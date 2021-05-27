@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anonymize-deploy
+  namespace: pem3brg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anonymize-image
+  template:
+    metadata:
+      labels:
+        app: anonymize-image
+    spec:
+      containers:
+        - name: anonymize-image
+          image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/blueprint-container:anonymize_v1
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 500m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
