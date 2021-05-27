@@ -8,21 +8,22 @@ CONTAINER_NAME = "Metadata"  # Name of the current container (current possible n
 OUTPUT_QUEUES_LIST = {
                         "SDM":          "dev-terraform-queue-s3-sdm",
                         "Anonymize":    "dev-terraform-queue-anonymize",
-                        "PreProcess":   "test-queue",
-                        "Labelling":    "test-queue",
-                        "Metadata":     "dev-terraform-queue-metadata"
+                        "PreProcess":   "dev-terraform-queue-preprocessing",
+                        "Metadata":     "dev-terraform-queue-metadata",
+                        "Output":       "dev-terraform-queue-output"
                    }
 
 INPUT_QUEUE = OUTPUT_QUEUES_LIST[CONTAINER_NAME]  # "dev-terraform-queue-s3-sdm"
 
-OUTPUT_QUEUE_ENABLED = False  # states if container has output sqs queue (OUTPUT_QUEUE_ENABLED = True) or output connection to DB (OUTPUT_QUEUE_ENABLED = False)
-DB_TABLE_NAME = "dev-metadata-mgmt"  # if OUTPUT_QUEUE_ENABLED = False, then this variable needs to have a valid DB table name (otherwise just leave it as "")
+DB_CONNECTION_ENABLED   = True                  # states if container has connection to DB (DB_CONNECTION_ENABLED = True) or not (DB_CONNECTION_ENABLED = False). Only true for metadata container
+DB_TABLE_NAME           = "dev-metadata-mgmt"   # if DB_CONNECTION_ENABLED = True, then this variable needs to have a valid DB table name (otherwise just leave it as "")
 
 SDM_PROCESSING_LIST = {
-                        "uber": ["Anonymize", "PreProcess", "Labelling"],
+                        "uber": ["Anonymize"],
                         "lyft": ["Anonymize", "PreProcess"],
                         "lync": ["Anonymize"]    
                     }
+# ["Anonymize", "PreProcess", "Labelling"]
 ###########################################################################
 
 def listen_to_input_queue():
@@ -61,23 +62,28 @@ def listen_to_input_queue():
         # Process message body
         print("Processing..")
         relay_list = processing_pipeline(message['Body'])
-
-        if OUTPUT_QUEUE_ENABLED:
+            
+        if DB_CONNECTION_ENABLED:
+            # Insert data to db
+            connect_to_db(relay_list, message['MessageAttributes'])
+            # Send message to output queue
+            response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
+            output_queue_url = response_output['QueueUrl'] 
+            send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
+            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
+        else:
             # Send message to output queue (if there are steps left)
             if relay_list["processing_steps"]:
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                 output_queue_url = response_output['QueueUrl']   
-                send_message(sqs, output_queue_url, relay_list)
+                send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                 print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
 
             # Send message to metadata mgmt queue
             response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
             output_queue_url = response_output['QueueUrl'] 
-            send_message(sqs, output_queue_url, relay_list)
+            send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
             print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
-        else:
-            # Insert data to db
-            connect_to_db(relay_list, message['MessageAttributes'])
 
 
         # Delete received message
@@ -138,7 +144,7 @@ def processing_pipeline(body):
 
     return relay_data
 
-def send_message(sqs_client, output_queue_url, data):
+def send_message(sqs_client, output_queue_url, data, output_queue_name):
     # Print content to send to output queue
     #print("Message content: {}".format(data))
 
@@ -154,7 +160,7 @@ def send_message(sqs_client, output_queue_url, data):
                         },
                         'ToQueue': {
                             'DataType': 'String',
-                            'StringValue': OUTPUT_QUEUES_LIST[data["processing_steps"][0]]
+                            'StringValue': output_queue_name
                         }
                     }
 
@@ -166,7 +172,7 @@ def send_message(sqs_client, output_queue_url, data):
         MessageBody=str(data)
     )
 
-    #print(response['MessageId'])
+    print(response['MessageId'])
 
 def connect_to_db(data, attributes):
     # Connect to DB resource
