@@ -62,7 +62,7 @@ def listen_to_input_queue():
             
         except:
             #print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
-            time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
+            #time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
             continue
 
         # Process message body
