@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   python:
-    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/blueprint-container:metadata_v1
+    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/blueprint-container:metadata_v2
     container_name: python_metadata
     build:
       context: .
