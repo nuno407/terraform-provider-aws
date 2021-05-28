@@ -37,10 +37,10 @@ def listen_to_input_queue():
     response_input = sqs.get_queue_url(QueueName=INPUT_QUEUE)
     input_queue_url = response_input['QueueUrl']   
 
+    print("Listening to {} queue..".format(INPUT_QUEUE))
+
     # Main loop
     while(True):
-
-        print("Listening to {} queue..".format(INPUT_QUEUE))
 
         try:
             # Receive message
@@ -61,12 +61,12 @@ def listen_to_input_queue():
             receipt_handle = message['ReceiptHandle']
             
         except:
-            print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
-            #time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
+            #print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
+            time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
             continue
 
         # Process message body
-        print("Processing..")
+        #print("Processing..")
         relay_list = processing_pipeline(message['Body'])
             
         if DB_CONNECTION_ENABLED:
@@ -76,20 +76,20 @@ def listen_to_input_queue():
             response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
             output_queue_url = response_output['QueueUrl'] 
             send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
-            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
+            #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
         else:
             # Send message to output queue (if there are steps left)
             if relay_list["processing_steps"]:
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                 output_queue_url = response_output['QueueUrl']   
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
+                #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
 
             # Send message to metadata mgmt queue
             response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
             output_queue_url = response_output['QueueUrl'] 
             send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
-            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
+            #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
 
 
         # Delete received message
@@ -97,7 +97,7 @@ def listen_to_input_queue():
             QueueUrl=input_queue_url,
             ReceiptHandle=receipt_handle
         )
-        print('Received and deleted message: %s' % message)
+        #print('Received and deleted message: %s' % message)
         
 
 
@@ -176,7 +176,7 @@ def send_message(sqs_client, output_queue_url, data, output_queue_name):
         MessageBody=str(data)
     )
 
-    print(response['MessageId'])
+    #print(response['MessageId'])
 
 def connect_to_db(data, attributes):
     # Connect to DB resource
@@ -202,7 +202,7 @@ def connect_to_db(data, attributes):
                                                     },
                             ReturnValues="UPDATED_NEW"
                         )
-        print("DB item (Id: {}) updated!".format(unique_id))
+        #print("DB item (Id: {}) updated!".format(unique_id))
     else:
         # Insert item if not created yet
         item_db = {
@@ -214,7 +214,7 @@ def connect_to_db(data, attributes):
                     'processing_list': data['processing_steps']
                 }
         table.put_item(Item=item_db)
-        print("DB item (Id: {}) created!".format(unique_id))
+        #print("DB item (Id: {}) created!".format(unique_id))
 
 def store_file():
     # WORK IN PROGRESS
