@@ -57,12 +57,13 @@ def listen_to_input_queue():
                 WaitTimeSeconds=0
             )
 
-            message = response['Messages'][0]
             receipt_handle = message['ReceiptHandle']
+            message = response['Messages'][0]
             
         except:
-            #print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
-            #time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
+            del response
+            print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
+            time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
             continue
 
         # Process message body
@@ -76,20 +77,19 @@ def listen_to_input_queue():
             response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
             output_queue_url = response_output['QueueUrl'] 
             send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
-            #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
+            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
         else:
             # Send message to output queue (if there are steps left)
             if relay_list["processing_steps"]:
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                 output_queue_url = response_output['QueueUrl']   
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
-
+                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
             # Send message to metadata mgmt queue
             response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
             output_queue_url = response_output['QueueUrl'] 
             send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
-            #print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
+            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
 
 
         # Delete received message
