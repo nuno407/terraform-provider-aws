@@ -36,7 +36,7 @@ def listen_to_input_queue():
     response_input = sqs.get_queue_url(QueueName=INPUT_QUEUE)
     input_queue_url = response_input['QueueUrl']   
 
-    print("Listening to {} queue..".format(INPUT_QUEUE))
+    print("Listening to {} queue..\n".format(INPUT_QUEUE))
 
     # Main loop
     while(True):
@@ -61,9 +61,12 @@ def listen_to_input_queue():
             receipt_handle = message['ReceiptHandle']
             
             # Process message body
-            #print("Processing..")
             relay_list = processing_pipeline(message['Body'])
-                
+            print("Message received!\n")
+            print("    -> id:  {}".format(message['MessageId']))
+            print("    -> key: {}".format(relay_list["s3_path"]))
+            print("Processing message..")    
+
             if DB_CONNECTION_ENABLED:
                 
                 # Insert data to db
@@ -96,7 +99,9 @@ def listen_to_input_queue():
                 QueueUrl=input_queue_url,
                 ReceiptHandle=receipt_handle
             )
-            #print('Received and deleted message: %s' % message)
+            print()
+            print("Listening to {} queue..\n".format(INPUT_QUEUE))
+            print()
             
 
 def processing_pipeline(body):
@@ -147,8 +152,6 @@ def processing_pipeline(body):
     return relay_data
 
 def send_message(sqs_client, output_queue_url, data, output_queue_name):
-    # Print content to send to output queue
-    #print("Message content: {}".format(data))
 
     # Add attributes to message
     msg_attributes = {
@@ -200,7 +203,7 @@ def connect_to_db(data, attributes):
                                                     },
                             ReturnValues="UPDATED_NEW"
                         )
-        #print("DB item (Id: {}) updated!".format(unique_id))
+        print("DB item (Id: {}) updated!".format(unique_id))
     else:
         # Insert item if not created yet
         item_db = {
@@ -212,7 +215,7 @@ def connect_to_db(data, attributes):
                     'processing_list': data['processing_steps']
                 }
         table.put_item(Item=item_db)
-        #print("DB item (Id: {}) created!".format(unique_id))
+        print("DB item (Id: {}) created!".format(unique_id))
 
 def store_file():
     # WORK IN PROGRESS
