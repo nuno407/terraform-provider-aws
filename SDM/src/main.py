@@ -1,8 +1,7 @@
 import boto3
 import json
 import re
-import time
-import gc
+
 ###########################################################################
 CONTAINER_NAME = "SDM"  # Name of the current container (current possible names: SDM, Anonymize, Metadata)
 
@@ -53,7 +52,7 @@ def listen_to_input_queue():
                 'All'
             ],
             VisibilityTimeout=0,
-            WaitTimeSeconds=0
+            WaitTimeSeconds=20
         )
 
         if 'Messages' in response:
@@ -99,9 +98,6 @@ def listen_to_input_queue():
             )
             #print('Received and deleted message: %s' % message)
             
-        else:
-            print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
-            time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
 
 def processing_pipeline(body):
 
