@@ -8,4 +8,4 @@ RUN pip install --proxy=http://127.0.0.1:3128 -r requirements.txt
 
 COPY ./src/ /app/
 
-CMD [ "python", "./main.py" ]
+CMD [ "python", "-u", "./main.py" ]
