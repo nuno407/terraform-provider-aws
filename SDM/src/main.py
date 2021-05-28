@@ -1,6 +1,7 @@
 import boto3
 import json
 import re
+import time
 
 ###########################################################################
 CONTAINER_NAME = "SDM"  # Name of the current container (current possible names: SDM, Anonymize, Metadata)
@@ -24,6 +25,8 @@ SDM_PROCESSING_LIST = {
                         "lync": ["Anonymize"]    
                     }
 # ["Anonymize", "PreProcess", "Labelling"]
+
+SLEEP_TIME = 10  # number of seconds to wait for new queue listening if no msgs available
 ###########################################################################
 
 def listen_to_input_queue():
@@ -34,30 +37,33 @@ def listen_to_input_queue():
     response_input = sqs.get_queue_url(QueueName=INPUT_QUEUE)
     input_queue_url = response_input['QueueUrl']   
 
-    # Message settings
-    msg_count = 0      # counter for number of messages received
-    msg_max   = 1      # max number of messages to be received
-    
-    print("Listening to {} queue..".format(INPUT_QUEUE))
-    # Main loop (right now limited to 1 msg - for debug purposes)
-    while(msg_count < msg_max):
+    # Main loop
+    while(True):
 
-        # Receive message
-        response = sqs.receive_message(
-            QueueUrl=input_queue_url,
-            AttributeNames=[
-                'SentTimestamp'
-            ],
-            MaxNumberOfMessages=1,
-            MessageAttributeNames=[
-                'All'
-            ],
-            VisibilityTimeout=0,
-            WaitTimeSeconds=0
-        )
+        print("Listening to {} queue..".format(INPUT_QUEUE))
 
-        message = response['Messages'][0]
-        receipt_handle = message['ReceiptHandle']
+        try:
+            # Receive message
+            response = sqs.receive_message(
+                QueueUrl=input_queue_url,
+                AttributeNames=[
+                    'SentTimestamp'
+                ],
+                MaxNumberOfMessages=1,
+                MessageAttributeNames=[
+                    'All'
+                ],
+                VisibilityTimeout=0,
+                WaitTimeSeconds=0
+            )
+
+            message = response['Messages'][0]
+            receipt_handle = message['ReceiptHandle']
+            
+        except:
+            print("No new messages! Retrying in {} seconds..".format(SLEEP_TIME))
+            time.sleep(SLEEP_TIME) # Waits SLEEP_TIME seconds to retry again
+            continue
 
         # Process message body
         print("Processing..")
@@ -93,8 +99,6 @@ def listen_to_input_queue():
         )
         print('Received and deleted message: %s' % message)
         
-        # Increase message count
-        msg_count +=1
 
 
 def processing_pipeline(body):
