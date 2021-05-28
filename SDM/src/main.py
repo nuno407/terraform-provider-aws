@@ -39,65 +39,65 @@ def listen_to_input_queue():
     print("Listening to {} queue..".format(INPUT_QUEUE))
 
     # Main loop
-    while(True):
+    #while(True):
 
-        # Receive messages
-        response = sqs.receive_message(
+    # Receive messages
+    response = sqs.receive_message(
+        QueueUrl=input_queue_url,
+        AttributeNames=[
+            'SentTimestamp'
+        ],
+        MaxNumberOfMessages=1,
+        MessageAttributeNames=[
+            'All'
+        ],
+        VisibilityTimeout=0,
+        WaitTimeSeconds=20
+    )
+
+    if 'Messages' in response:
+
+        message = response['Messages'][0]
+        receipt_handle = message['ReceiptHandle']
+        
+        # Process message body
+        #print("Processing..")
+        relay_list = processing_pipeline(message['Body'])
+            
+        if DB_CONNECTION_ENABLED:
+            
+            # Insert data to db
+            connect_to_db(relay_list, message['MessageAttributes'])
+
+            # Send message to output queue
+            response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
+            output_queue_url = response_output['QueueUrl'] 
+            send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
+            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
+
+        else:
+
+            # Send message to output queue (if there are steps left)
+            if relay_list["processing_steps"]:
+                response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
+                output_queue_url = response_output['QueueUrl']   
+                send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
+                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
+
+            # Send message to metadata mgmt queue
+            response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
+            output_queue_url = response_output['QueueUrl'] 
+            send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
+            print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
+
+
+        # Delete received message
+        sqs.delete_message(
             QueueUrl=input_queue_url,
-            AttributeNames=[
-                'SentTimestamp'
-            ],
-            MaxNumberOfMessages=1,
-            MessageAttributeNames=[
-                'All'
-            ],
-            VisibilityTimeout=0,
-            WaitTimeSeconds=20
+            ReceiptHandle=receipt_handle
         )
-
-        if 'Messages' in response:
-
-            message = response['Messages'][0]
-            receipt_handle = message['ReceiptHandle']
-            
-            # Process message body
-            #print("Processing..")
-            relay_list = processing_pipeline(message['Body'])
-                
-            if DB_CONNECTION_ENABLED:
-                
-                # Insert data to db
-                connect_to_db(relay_list, message['MessageAttributes'])
-
-                # Send message to output queue
-                response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
-                output_queue_url = response_output['QueueUrl'] 
-                send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
-                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
-
-            else:
-
-                # Send message to output queue (if there are steps left)
-                if relay_list["processing_steps"]:
-                    response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                    output_queue_url = response_output['QueueUrl']   
-                    send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                    print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
-
-                # Send message to metadata mgmt queue
-                response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
-                output_queue_url = response_output['QueueUrl'] 
-                send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
-                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
-
-
-            # Delete received message
-            sqs.delete_message(
-                QueueUrl=input_queue_url,
-                ReceiptHandle=receipt_handle
-            )
-            #print('Received and deleted message: %s' % message)
-            
+        #print('Received and deleted message: %s' % message)
+        
 
 def processing_pipeline(body):
 
