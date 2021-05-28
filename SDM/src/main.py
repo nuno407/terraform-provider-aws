@@ -64,7 +64,7 @@ def listen_to_input_queue():
             relay_list = processing_pipeline(message['Body'])
             print("Message received!\n")
             print("    -> id:  {}".format(message['MessageId']))
-            print("    -> key: {}".format(relay_list["s3_path"]))
+            print("    -> key: {}\n".format(relay_list["s3_path"]))
             print("Processing message..")    
 
             if DB_CONNECTION_ENABLED:
