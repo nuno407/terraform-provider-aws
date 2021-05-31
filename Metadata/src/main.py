@@ -199,7 +199,7 @@ def connect_to_db(data, attributes):
                             ExpressionAttributeValues={ 
                                                         ':val1': data['data_status'],
                                                         ':val2': attributes['SourceContainer']['StringValue'],
-                                                        ':val3': datetime.now(TIMEZONE)
+                                                        ':val3': str(datetime.now(TIMEZONE))
                                                     },
                             ReturnValues="UPDATED_NEW"
                         )
@@ -213,7 +213,7 @@ def connect_to_db(data, attributes):
                     'data_status':  data['data_status'],
                     'info_source': attributes['SourceContainer']['StringValue'],
                     'processing_list': data['processing_steps'], 
-                    'last_updated': datetime.now(TIMEZONE)
+                    'last_updated': str(datetime.now(TIMEZONE))
                 }
         table.put_item(Item=item_db)
         print("[{}]  DB item (Id: {}) created!".format(datetime.now(TIMEZONE), unique_id))
