@@ -65,7 +65,7 @@ def listen_to_input_queue():
             relay_list = processing_pipeline(message['Body'])
             print("Message received!\n")
             print("    -> id:  {}".format(message['MessageId']))
-            print("    -> key: {}\n".format(relay_list["s3_path"]))
+            print("    -> key: {}".format(relay_list["s3_path"]))
             print("    -> timestamp: {}\n".format(datetime.now(TIMEZONE)))
             print("Processing message..")    
 
@@ -78,7 +78,7 @@ def listen_to_input_queue():
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
                 output_queue_url = response_output['QueueUrl'] 
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
-                print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST["Output"], datetime.now(TIMEZONE)))
+                print("[{}]  Message sent to {} queue".format(datetime.now(TIMEZONE), OUTPUT_QUEUES_LIST["Output"]))
 
             else:
 
@@ -87,14 +87,13 @@ def listen_to_input_queue():
                     response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                     output_queue_url = response_output['QueueUrl']   
                     send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                    print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]], datetime.now(TIMEZONE)))
+                    print("[{}]  Message sent to {} queue".format(datetime.now(TIMEZONE), OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
 
                 # Send message to metadata mgmt queue
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
                 output_queue_url = response_output['QueueUrl'] 
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
-                print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST["Metadata"], datetime.now(TIMEZONE)))
-
+                print("[{}]  Message sent to {} queue".format(datetime.now(TIMEZONE), OUTPUT_QUEUES_LIST["Metadata"]))
 
             # Delete received message
             sqs.delete_message(
@@ -196,14 +195,15 @@ def connect_to_db(data, attributes):
         # Update already existing item
         table.update_item(
                             Key={ 'id': unique_id },
-                            UpdateExpression='SET data_status = :val1, info_source = :val2 ',
+                            UpdateExpression='SET data_status = :val1, info_source = :val2, last_updated = :val3',
                             ExpressionAttributeValues={ 
                                                         ':val1': data['data_status'],
-                                                        ':val2': attributes['SourceContainer']['StringValue']
+                                                        ':val2': attributes['SourceContainer']['StringValue'],
+                                                        ':val3': datetime.now(TIMEZONE)
                                                     },
                             ReturnValues="UPDATED_NEW"
                         )
-        print("DB item (Id: {}) updated ({})!".format(unique_id, datetime.now(TIMEZONE)))
+        print("[{}]  DB item (Id: {}) updated!".format(datetime.now(TIMEZONE), unique_id))
     else:
         # Insert item if not created yet
         item_db = {
@@ -212,10 +212,11 @@ def connect_to_db(data, attributes):
                     's3_path': data['s3_path'],
                     'data_status':  data['data_status'],
                     'info_source': attributes['SourceContainer']['StringValue'],
-                    'processing_list': data['processing_steps']
+                    'processing_list': data['processing_steps'], 
+                    'last_updated': datetime.now(TIMEZONE)
                 }
         table.put_item(Item=item_db)
-        print("DB item (Id: {}) created ({})!".format(unique_id, datetime.now(TIMEZONE)))
+        print("[{}]  DB item (Id: {}) created!".format(datetime.now(TIMEZONE), unique_id))
 
 def store_file():
     # WORK IN PROGRESS
