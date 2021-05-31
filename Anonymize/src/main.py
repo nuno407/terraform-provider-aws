@@ -1,6 +1,8 @@
 import boto3
 import json
 import re
+from datetime import datetime
+import pytz
 
 ###########################################################################
 CONTAINER_NAME = "Anonymize"  # Name of the current container (current possible names: SDM, Anonymize, Metadata)
@@ -24,8 +26,7 @@ SDM_PROCESSING_LIST = {
                         "lync": ["Anonymize"]    
                     }
 # ["Anonymize", "PreProcess", "Labelling"]
-
-SLEEP_TIME = 10  # number of seconds to wait for new queue listening if no msgs available
+TIMEZONE = pytz.timezone('Europe/London')
 ###########################################################################
 
 def listen_to_input_queue():
@@ -65,6 +66,7 @@ def listen_to_input_queue():
             print("Message received!\n")
             print("    -> id:  {}".format(message['MessageId']))
             print("    -> key: {}\n".format(relay_list["s3_path"]))
+            print("    -> timestamp: {}\n".format(datetime.now(TIMEZONE)))
             print("Processing message..")    
 
             if DB_CONNECTION_ENABLED:
@@ -76,7 +78,7 @@ def listen_to_input_queue():
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Output"])
                 output_queue_url = response_output['QueueUrl'] 
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Output"])
-                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Output"]))
+                print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST["Output"], datetime.now(TIMEZONE)))
 
             else:
 
@@ -85,13 +87,13 @@ def listen_to_input_queue():
                     response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
                     output_queue_url = response_output['QueueUrl']   
                     send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]])
-                    print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]]))
+                    print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST[relay_list["processing_steps"][0]], datetime.now(TIMEZONE)))
 
                 # Send message to metadata mgmt queue
                 response_output = sqs.get_queue_url(QueueName=OUTPUT_QUEUES_LIST["Metadata"])
                 output_queue_url = response_output['QueueUrl'] 
                 send_message(sqs, output_queue_url, relay_list, OUTPUT_QUEUES_LIST["Metadata"])
-                print("Message sent to {} queue".format(OUTPUT_QUEUES_LIST["Metadata"]))
+                print("Message sent to {} queue ({})".format(OUTPUT_QUEUES_LIST["Metadata"], datetime.now(TIMEZONE)))
 
 
             # Delete received message
@@ -101,9 +103,7 @@ def listen_to_input_queue():
             )
             print()
             print("Listening to {} queue..\n".format(INPUT_QUEUE))
-            print()
             
-
 def processing_pipeline(body):
 
     # PROCESSING STEPS FOR SDM CONTAINER
@@ -203,7 +203,7 @@ def connect_to_db(data, attributes):
                                                     },
                             ReturnValues="UPDATED_NEW"
                         )
-        print("DB item (Id: {}) updated!".format(unique_id))
+        print("DB item (Id: {}) updated ({})!".format(unique_id, datetime.now(TIMEZONE)))
     else:
         # Insert item if not created yet
         item_db = {
@@ -215,11 +215,25 @@ def connect_to_db(data, attributes):
                     'processing_list': data['processing_steps']
                 }
         table.put_item(Item=item_db)
-        print("DB item (Id: {}) created!".format(unique_id))
+        print("DB item (Id: {}) created ({})!".format(unique_id, datetime.now(TIMEZONE)))
 
 def store_file():
     # WORK IN PROGRESS
     print("store_file function -> WORK IN PROGRESS")
+
+    s3_client = boto3.client('s3')
+
+    file_path = r'C:\Users\PEM3BRG\Desktop\test_file_s3.txt'
+    with open(file_path, 'rb') as file_object:
+
+        response = s3_client.put_object(
+                                        Body=file_object,
+                                        Bucket='dev-rcd-anonymized-video-files',
+                                        Key='uber/test_file_s3.txt',
+                                        ServerSideEncryption='aws:kms'
+                                        )
+
+    print(response)
     
 def main():
     print("------ Starting Container {} ------".format(CONTAINER_NAME))
