@@ -137,7 +137,6 @@ def listen_to_input_queue():
             )
 
             logging.info("\nListening to {} queue..\n".format(INPUT_QUEUE))
-        break
 
 def processing_pipeline(body):
     """Converts the message body to json format (for easier variable access) and calls the appropriate processing function based on the name of the current container
