@@ -6,8 +6,8 @@ import pytz
 import logging
 
 ###########################################################################
-CONTAINER_NAME    = "SDM"  # Name of the current container (current possible names: SDM, Anonymize, Metadata)
-CONTAINER_VERSION = "v4"   # Version of the current container
+CONTAINER_NAME    = "SDM"               # Name of the current container (current possible names: SDM, Anonymize, Metadata)
+CONTAINER_VERSION = "v4.1"              # Version of the current container
 ###########################################################################
 
 def load_config_vars():
@@ -137,57 +137,93 @@ def listen_to_input_queue():
             )
 
             logging.info("\nListening to {} queue..\n".format(INPUT_QUEUE))
+        break
 
 def processing_pipeline(body):
-    """Converts the message body to json format (for easier variable access), calls the appropriate processing function based on the name of the current container and returns the data content to be sent to other containers 
+    """Converts the message body to json format (for easier variable access) and calls the appropriate processing function based on the name of the current container
     
     Arguments:
         body {str} -- [string containing the body info from the received message]
     Returns:
         relay_data {dict} -- [dict with the relevant info for the file received and to be sent via message to the output queues and/or via creation/update item request to the database]
     """
-    # PROCESSING STEPS FOR SDM CONTAINER
+    # Converts message body from string to dict (in order to perform index access)
+    new_body = body.replace("\'", "\"")
+    dict_body = json.loads(new_body)
+
+    # PROCESSING PIPELINE
     if CONTAINER_NAME == "SDM":       
-        # Converts message body from string to dict (in order to perform index access)
-        dict_body = json.loads(body)
-        # Access key value from msg body
-        key_value = dict_body["Records"][0]["s3"]["object"]["key"]
-        msp = key_value.split('/')[0]
+        # calls processing function for container SDM
+        relay_data = processing_sdm(dict_body)
 
-        relay_data = {}
-        relay_data["processing_steps"] = SDM_PROCESSING_LIST[msp]
-        relay_data["s3_path"] = key_value
-        relay_data["data_status"] = "received"
-        
-    # PROCESSING STEPS FOR ANONYMIZE CONTAINER
     elif CONTAINER_NAME == "Anonymize":   
-        # Converts message body from string to dict (in order to perform index access)
-        new_body = body.replace("\'", "\"")
-        dict_body = json.loads(new_body)
-        
-        #
-        #
-        # INSERT ANONYMIZATION ALGORITHM HERE + store_file()
-        #
-        #
-        #
+        # calls processing function for container Anonymize
+        relay_data = processing_anonymize(dict_body)
 
-        # remove current step/container from the processing_steps list (after processing)
-        if dict_body["processing_steps"][0] == CONTAINER_NAME:
-            dict_body["processing_steps"].pop(0)     
-
-        if dict_body["processing_steps"]:
-            dict_body["data_status"] = "processing"      # change the current file data_status (if not already changed)
-        else:
-            dict_body["data_status"] = "complete"
-        relay_data = dict_body                        # currently just sends the same msg that received
-
-    # PROCESSING STEPS FOR METADATA CONTAINER
     elif CONTAINER_NAME == "Metadata":  
-        # Converts message body from string to dict (in order to perform index access)
-        new_body = body.replace("\'", "\"")
-        #print(new_body)
-        relay_data = json.loads(new_body) 
+        # calls processing function for container Metadata
+        relay_data = processing_metadata(dict_body)
+
+    return relay_data
+
+def processing_sdm(dict_body):
+    """Retrieves the MSP name from the message received and creates a relay list for the current file 
+    
+    Arguments:
+        dict_body {dict} -- [dict containing the body info from the received message]
+    Returns:
+        relay_data {dict} -- [dict with the relevant info for the file received and to be sent via message to the input queues of the relevant containers]
+    """
+    # Access key value from msg body
+    key_value = dict_body["Records"][0]["s3"]["object"]["key"]
+    msp = key_value.split('/')[0]
+
+    # Creates relay list to be used by other containers
+    relay_data = {}
+    relay_data["processing_steps"] = SDM_PROCESSING_LIST[msp]
+    relay_data["s3_path"] = key_value
+    relay_data["data_status"] = "received"
+
+    return relay_data
+
+def processing_anonymize(dict_body):
+    """Executes the anonymization algorithm (WIP) for the file received and updates the relevant info in its relay list
+    
+    Arguments:
+        dict_body {dict} -- [dict containing the body info from the received message]
+    Returns:
+        relay_data {dict} -- [dict with the updated info for the file received and to be sent via message to the input queues of the relevant containers]
+    """  
+    ####################################
+    #
+    #
+    # INSERT ANONYMIZATION ALGORITHM HERE + store_file()
+    #
+    #
+    ####################################
+
+    # remove current step/container from the processing_steps list (after processing)
+    if dict_body["processing_steps"][0] == CONTAINER_NAME:
+        dict_body["processing_steps"].pop(0)     
+
+    if dict_body["processing_steps"]:
+        dict_body["data_status"] = "processing"     # change the current file data_status (if not already changed)
+    else:
+        dict_body["data_status"] = "complete"       # change the current file data_status to complete (if current step is the last one from the list)
+
+    relay_data = dict_body                          # currently just sends the same msg that received
+
+    return relay_data
+
+def processing_metadata(dict_body):
+    """Copies the relay list info received from other containers 
+    
+    Arguments:
+        dict_body {dict} -- [dict containing the body info from the received message]
+    Returns:
+        relay_data {dict} -- [dict with the updated info for the file received and to be sent via message to the output queue]
+    """  
+    relay_data = dict_body                          # currently just sends the same msg that received
 
     return relay_data
 
@@ -223,8 +259,6 @@ def send_message(sqs_client, output_queue_url, data, output_queue_name):
         MessageAttributes= msg_attributes,
         MessageBody=str(data)
     )
-
-    #print(response['MessageId'])
 
 def connect_to_db(data, attributes):
     """Connects to the DynamoDB table and checks if an item with an id equal to the file name already exists:
@@ -283,7 +317,7 @@ def store_file(path_file, s3_bucket, target_name):
         s3_bucket {string} -- [name of the destination s3 bucket]
         target_name {string} -- [string containg the path + file name to be used for the file in the destination s3 bucket (e.g. 'uber/test_file_s3.txt')]
     """
-    print("store_file function -> WORK IN PROGRESS")
+    logging.info("store_file function -> WORK IN PROGRESS")
     
     # Create S3 client
     s3_client = boto3.client('s3')
@@ -303,7 +337,7 @@ def store_file(path_file, s3_bucket, target_name):
                                         ServerSideEncryption='aws:kms'
                                         )
 
-    print(response)
+    logging.info(response)
     
 def main():
     # Define configuration for logging messages
