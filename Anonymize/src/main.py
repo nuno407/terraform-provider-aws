@@ -18,8 +18,8 @@ def load_config_vars():
     s3_client = boto3.client('s3')
 
     # Bucket and path for the config file to be used
-    s3_config_bucket = 'dev-rcd-raw-video-files'
-    s3_config_file = 'uber/config_file_containers.json'
+    s3_config_bucket = 'dev-rcd-config-files'
+    s3_config_file = 'containers/config_file_containers.json'
 
     logging.info("Loading parameters from config file (path: {})..".format(s3_config_bucket+'/'+s3_config_file))
 
