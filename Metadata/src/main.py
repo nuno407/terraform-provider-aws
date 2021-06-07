@@ -7,7 +7,7 @@ import logging
 
 ###########################################################################
 CONTAINER_NAME    = "Metadata"          # Name of the current container (current possible names: SDM, Anonymize, Metadata)
-CONTAINER_VERSION = "v4.2"              # Version of the current container
+CONTAINER_VERSION = "v4.3"              # Version of the current container
 ###########################################################################
 
 def load_config_vars():
