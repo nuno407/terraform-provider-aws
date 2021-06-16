@@ -18,6 +18,8 @@ class ContainerServices(object):
         self.__db_connection_enabled = False
         self.__db_table_name         = ""
         self.__sdm_processing_list   = {}
+        self.__raw_s3_bucket         = ""
+        self.__anonymized_s3_bucket  = ""
         # Container info
         self.__container_name        = container
         self.__container_version     = version
@@ -45,6 +47,14 @@ class ContainerServices(object):
     @property
     def sdm_processing_list(self):
         return self.__sdm_processing_list
+
+    @property
+    def raw_s3_bucket(self):
+        return self.__raw_s3_bucket
+
+    @property
+    def anonymized_s3_bucket(self):
+        return self.__anonymized_s3_bucket
 
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the respective class variables based on the info from that file
@@ -78,6 +88,12 @@ class ContainerServices(object):
 
         # List of processing steps required for each file based on the MSP
         self.__sdm_processing_list = dict_body['SDM_PROCESSING_LIST']
+
+        # Name of the S3 bucket used to store raw video files
+        self.__raw_s3_bucket = dict_body['RAW_S3_BUCKET']
+
+        # Name of the S3 bucket used to store anonymized video files
+        self.__anonymized_s3_bucket = dict_body['ANONYMIZED_S3_BUCKET']
 
         logging.info("Load complete!\n")
 
@@ -243,8 +259,8 @@ class ContainerServices(object):
             table.put_item(Item=item_db)
             logging.info("[{}]  DB item (Id: {}) created!".format(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"), unique_id))
 
-    def get_file(self, client, s3_bucket, file_path):
-        """(WIP - DO NOT USE IT YET) Gets a given file from the selected s3 bucket
+    def download_file(self, client, s3_bucket, file_path):
+        """Retrieves a given file from the selected s3 bucket
         
         Arguments:
             client {boto3.client} -- [client used to access the S3 service]
@@ -254,45 +270,37 @@ class ContainerServices(object):
             object_file {bytes} -- [downloaded file in bytes format]
         """
 
+        logging.info("[{}]  Downloading file from S3 bucket (path: {})..".format(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"), s3_bucket+'/'+file_path))
+        
         response = client.get_object(
                                         Bucket=s3_bucket,
                                         Key=file_path
                                     )
 
+        # Read all bytes from http response body (botocore.response.StreamingBody)
         object_file = response['Body'].read()
 
-        '''
-        # To download file to local folder
-        f = open("sample.png", "wb")
-        f. write(object_file)
-        f. close()
-        '''
-        
+        logging.info("[{}]  Download completed!".format(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")))
+
         return object_file
 
-    def store_file(self, path_file, s3_bucket, target_name, client):
-        """(WIP - DO NOT USE IT YET) Stores a given file in the selected s3 bucket
+    def upload_file(self, client, object_body, s3_bucket, key_path):
+        """Stores a given file in the selected s3 bucket
         
         Arguments:
-            path_file {string} -- [string containing the current path for the file to be stored]
+            client {boto3.client} -- [client used to access the S3 service]
+            object_body {bytes} -- [file to be uploaded to target S3 bucket]
             s3_bucket {string} -- [name of the destination s3 bucket]
-            target_name {string} -- [string containg the path + file name to be used for the file in the destination s3 bucket (e.g. 'uber/test_file_s3.txt')]
+            key_path {string} -- [string containg the path + file name to be used for the file in the destination s3 bucket (e.g. 'uber/test_file_s3.txt')]
         """
-        logging.info("store_file function -> WORK IN PROGRESS")
 
-        # Hardcodded parameters (to be changed)
-        path_file = r'C:\Users\PEM3BRG\Desktop\test_file_s3.txt'    
-        s3_bucket = 'dev-rcd-anonymized-video-files'
-        target_name = 'uber/test_file_s3.txt'
+        logging.info("[{}]  Uploading file to S3 bucket (path: {})..".format(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"), s3_bucket+'/'+key_path))
+        
+        response = client.put_object(
+                                        Body=object_body,
+                                        Bucket=s3_bucket,
+                                        Key=key_path,
+                                        ServerSideEncryption='aws:kms'
+                                        )
 
-        # Open file and send put object request 
-        with open(path_file, 'rb') as file_object:
-
-            response = client.put_object(
-                                            Body=file_object,
-                                            Bucket=s3_bucket,
-                                            Key= target_name,
-                                            ServerSideEncryption='aws:kms'
-                                            )
-
-        logging.info(response)
+        logging.info("[{}]  Upload completed!".format(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")))
