@@ -76,7 +76,7 @@ def main():
         if message:
         
             # Processing step
-            relay_list = processing_sdm(message['Body'])
+            relay_list = processing_sdm(container_services, message['Body'])
 
             # Send message to input queue of the next processing step (if applicable)
             if relay_list["processing_steps"]:
