@@ -1,0 +1,11 @@
+version: "3.4"
+
+services:
+  python:
+    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/blueprint-container:anonymize_v5
+    container_name: python_anonymize
+    build:
+      context: .
+      dockerfile: ./Anonymize/Dockerfile
+    ports:
+      - "8080:80"
