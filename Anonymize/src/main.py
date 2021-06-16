@@ -7,7 +7,7 @@ from BaseAws.shared_functions import ContainerServices
 
 ###########################################################################
 CONTAINER_NAME    = "Anonymize"         # Name of the current container (current possible names: SDM, Anonymize, Metadata)
-CONTAINER_VERSION = "v5.0"              # Version of the current container
+CONTAINER_VERSION = "v5.1"              # Version of the current container
 ###########################################################################
 
 def processing_anonymize(client, container_services, body):
@@ -84,25 +84,25 @@ def main():
 
     logging.info("\nListening to {} queue..\n\n".format(container_services.input_queue))
     
-    #while(True):
+    while(True):
     
-    # Check input SQS queue for new messages
-    message = container_services.listen_to_input_queue(sqs_client)
-    
-    if message:
-    
-        # Processing step
-        relay_list = processing_anonymize(s3_client, container_services, message['Body'])
+        # Check input SQS queue for new messages
+        message = container_services.listen_to_input_queue(sqs_client)
+        
+        if message:
+        
+            # Processing step
+            relay_list = processing_anonymize(s3_client, container_services, message['Body'])
 
-        # Send message to input queue of the next processing step (if applicable)
-        if relay_list["processing_steps"]:
-            container_services.send_message(sqs_client, container_services.output_queues_list[relay_list["processing_steps"][0]], relay_list)
+            # Send message to input queue of the next processing step (if applicable)
+            if relay_list["processing_steps"]:
+                container_services.send_message(sqs_client, container_services.output_queues_list[relay_list["processing_steps"][0]], relay_list)
 
-        # Send message to input queue of metadata container
-        container_services.send_message(sqs_client, container_services.output_queues_list["Metadata"], relay_list)
+            # Send message to input queue of metadata container
+            container_services.send_message(sqs_client, container_services.output_queues_list["Metadata"], relay_list)
 
-        # Delete message after processing
-        container_services.delete_message(sqs_client, message['ReceiptHandle'])
+            # Delete message after processing
+            container_services.delete_message(sqs_client, message['ReceiptHandle'])
     
 if __name__ == '__main__':
     main()
