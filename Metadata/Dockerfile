@@ -1,4 +1,4 @@
-FROM python:3.9.5-alpine3.12
+FROM public.ecr.aws/bitnami/python:3.9.5
 
 RUN mkdir -p /app
 WORKDIR /app
