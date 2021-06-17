@@ -1,4 +1,4 @@
-FROM public.ecr.aws/bitnami/python:3.9.5
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.5-alpine3.12
 
 RUN mkdir -p /app
 WORKDIR /app
