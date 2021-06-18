@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy required directories to docker container
 COPY ./SDM/src/ /app/src/
-COPY ./BaseAws/ /app/package/
+COPY ./baseaws/ /app/package/
 
 # Install BaseAws package (custom)
 WORKDIR /app/package

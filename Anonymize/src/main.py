@@ -37,7 +37,7 @@ def processing_anonymize(client, container_services, body):
                                                 dict_body["s3_path"])
     
     # INSERT ANONYMIZATION ALGORITHM HERE
-    
+
     # Upload processed file
     container_services.upload_file(client, 
                                 raw_file, 
@@ -94,12 +94,10 @@ def main():
     
     # Main loop
     while(True):
-    
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
         
         if message:
-        
             # Processing step
             relay_list = processing_anonymize(s3_client, 
                                             container_services, 
