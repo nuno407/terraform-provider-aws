@@ -1,8 +1,8 @@
 from setuptools import setup
 
 
-setup(name='BaseAws',
+setup(name='baseaws',
       version='1.0',
       # list folders, not files
-      packages=['BaseAws'],
+      packages=['baseaws'],
       )
