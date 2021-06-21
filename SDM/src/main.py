@@ -1,8 +1,6 @@
 import boto3
 import json
 import logging
-from datetime import datetime
-import pytz
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "SDM"          # Name of the current container
