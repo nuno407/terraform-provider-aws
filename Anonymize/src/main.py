@@ -33,7 +33,7 @@ def processing_anonymize(client, container_services, body):
 
     # Download target file to be processed (anonymized)
     raw_file = container_services.download_file(client,
-                                                container_services.raw_s3_bucket,
+                                                container_services.raw_s3,
                                                 dict_body["s3_path"])
 
     # INSERT ANONYMIZATION ALGORITHM HERE
@@ -41,7 +41,7 @@ def processing_anonymize(client, container_services, body):
     # Upload processed file
     container_services.upload_file(client,
                                    raw_file,
-                                   container_services.anonymized_s3_bucket,
+                                   container_services.anonymized_s3,
                                    dict_body["s3_path"])
 
     # Remove current step/container from the processing_steps
@@ -105,13 +105,13 @@ def main():
             # (if applicable)
             if relay_list["processing_steps"]:
                 next_step = relay_list["processing_steps"][0]
-                next_queue = container_services.output_queues_list[next_step]
+                next_queue = container_services.sqs_queues_list[next_step]
                 container_services.send_message(sqs_client,
                                                 next_queue,
                                                 relay_list)
 
             # Send message to input queue of metadata container
-            metadata_queue = container_services.output_queues_list["Metadata"]
+            metadata_queue = container_services.sqs_queues_list["Metadata"]
             container_services.send_message(sqs_client,
                                             metadata_queue,
                                             relay_list)

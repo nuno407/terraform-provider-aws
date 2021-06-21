@@ -1,13 +1,12 @@
 """Shared functions class for communication with AWS services"""
-import logging
-import boto3
 import json
-import re
+import logging
+import os
 from datetime import datetime
 import pytz
 
 
-class ContainerServices(object):
+class ContainerServices():
     """ContainerServices
 
     Class container comprised of all the necessary tools to establish
@@ -16,46 +15,50 @@ class ContainerServices(object):
 
     def __init__(self, container, version):
         # Config variables
-        self.__output_queues_list = {}
-        self.__input_queue = ""
-        self.__db_table_name = ""
-        self.__sdm_processing_list = {}
-        self.__raw_s3_bucket = ""
-        self.__anonymized_s3_bucket = ""
+        self.__queues = {'list': {}, 'input': ""}
+        self.__msp_steps = {}
+        self.__db_table = ""
+        self.__s3_buckets = {'raw': "", 'anonymized': ""}
+
         # Container info
-        self.__container_name = container
-        self.__container_version = version
+        self.__container = {'name': container, 'version': version}
+
         # Time format
         self.__time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        # Bucket and path for the config file to be used
-        self.__s3_config_bucket = 'dev-rcd-config-files'
-        self.__s3_config_file = 'containers/config_file_containers.json'
+
+        # Bucket and path for the config file
+        self.__config = {
+                          'bucket': 'dev-rcd-config-files',
+                          'file': 'containers/config_file_containers.json'
+                        }
+
         # Define configuration for logging messages
         logging.basicConfig(format='%(message)s', level=logging.INFO)
-        
+
     @property
-    def output_queues_list(self):
-        return self.__output_queues_list
+    def sqs_queues_list(self):
+        """sqs_queues_list variable"""
+        return self.__queues['list']
 
     @property
     def input_queue(self):
-        return self.__input_queue
+        """input_queue variable"""
+        return self.__queues['input']
 
     @property
-    def db_table_name(self):
-        return self.__db_table_name
+    def msp_steps(self):
+        """msp_steps variable"""
+        return self.__msp_steps
 
     @property
-    def sdm_processing_list(self):
-        return self.__sdm_processing_list
+    def raw_s3(self):
+        """raw_s3 variable"""
+        return self.__s3_buckets['raw']
 
     @property
-    def raw_s3_bucket(self):
-        return self.__raw_s3_bucket
-
-    @property
-    def anonymized_s3_bucket(self):
-        return self.__anonymized_s3_bucket
+    def anonymized_s3(self):
+        """anonymized_s3 variable"""
+        return self.__s3_buckets['anonymized']
 
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
@@ -64,13 +67,13 @@ class ContainerServices(object):
         Arguments:
             client {boto3.client} -- [client used to access the S3 service]
         """
-        full_path = self.__s3_config_bucket+'/'+self.__s3_config_file
-        logging.info("Loading parameters from: {} ..".format(full_path))
+        full_path = self.__config['bucket']+'/'+self.__config['file']
+        logging.info("Loading parameters from: %s ..", full_path)
 
         # Send request to access the config file (json)
         response = client.get_object(
-            Bucket=self.__s3_config_bucket,
-            Key=self.__s3_config_file
+            Bucket=self.__config['bucket'],
+            Key=self.__config['file']
         )
 
         # Load config file (botocore.response.StreamingBody)
@@ -78,26 +81,27 @@ class ContainerServices(object):
         dict_body = json.loads(response['Body'].read().decode("utf-8"))
 
         # List of the queues attached to each container
-        self.__output_queues_list = dict_body['output_queues_list']
+        self.__queues['list'] = dict_body['sqs_queues_list']
 
         # Name of the input queue attached to the current container
-        self.__input_queue = self.__output_queues_list[self.__container_name]
-
-        # Name of the dynamoDB table used to store metadata
-        self.__db_table_name = dict_body['db_table_name']
+        self.__queues['input'] = self.__queues['list'][self.__container['name']]
 
         # List of processing steps required for each file based on the MSP
-        self.__sdm_processing_list = dict_body['sdm_processing_list']
+        self.__msp_steps = dict_body['msp_processing_steps']
+
+        # Name of the dynamoDB table used to store metadata
+        self.__db_table = dict_body['db_metadata_table']
 
         # Name of the S3 bucket used to store raw video files
-        self.__raw_s3_bucket = dict_body['raw_s3_bucket']
+        self.__s3_buckets['raw'] = dict_body['s3_buckets']['raw']
 
         # Name of the S3 bucket used to store anonymized video files
-        self.__anonymized_s3_bucket = dict_body['anonymized_s3_bucket']
+        self.__s3_buckets['anonymized'] = dict_body['s3_buckets']['anonymized']
 
         logging.info("Load complete!\n")
 
-    def get_sqs_queue_url(self, client, queue_name):
+    @staticmethod
+    def get_sqs_queue_url(client, queue_name):
         """Retrieves the URL for a given SQS queue
 
         Arguments:
@@ -123,12 +127,12 @@ class ContainerServices(object):
             client {boto3.client} -- [client used to access the SQS service]
         Returns:
             message {dict} -- [dict with the received message content
-                            (for more info please check the response syntax
-                            of the Boto3 SQS.client.receive_message method).
-                            If no message is received, returns None]
+                               (for more info please check the response syntax
+                               of the Boto3 SQS.client.receive_message method).
+                               If no message is received, returns None]
         """
         # Get URL for container input SQS queue
-        input_queue_url = self.get_sqs_queue_url(client, self.__input_queue)
+        input_queue_url = self.get_sqs_queue_url(client, self.__queues['input'])
 
         # Receive message(s)
         response = client.receive_message(
@@ -144,6 +148,9 @@ class ContainerServices(object):
             WaitTimeSeconds=20
         )
 
+        # Initialise message variable with default value
+        message = None
+
         # If queue has new messages
         if 'Messages' in response:
             # Select the first message received
@@ -155,12 +162,10 @@ class ContainerServices(object):
                                     ).strftime(self.__time_format)
             logging.info("-----------------------------------------------")
             logging.info("Message received!")
-            logging.info("    -> id:  {}".format(message['MessageId']))
-            logging.info("    -> timestamp: {}\n".format(timestamp))
+            logging.info("    -> id:  %s", message['MessageId'])
+            logging.info("    -> timestamp: %s\n", str(timestamp))
 
-            return message
-        else:
-            return None
+        return message
 
     def delete_message(self, client, receipt_handle):
         """Deletes received SQS message
@@ -171,7 +176,7 @@ class ContainerServices(object):
                                         message to be deleted]
         """
         # Get URL for container input SQS queue
-        input_queue_url = self.get_sqs_queue_url(client, self.__input_queue)
+        input_queue_url = self.get_sqs_queue_url(client, self.__queues['input'])
 
         # Delete received message
         client.delete_message(
@@ -181,7 +186,7 @@ class ContainerServices(object):
 
         logging.info("-----------------------------------------------")
         logging.info("\n\n")
-        logging.info("Listening to {} queue..\n\n".format(self.__input_queue))
+        logging.info("Listening to %s queue..\n\n", self.__queues['input'])
 
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message
@@ -202,11 +207,11 @@ class ContainerServices(object):
         msg_attributes = {
                             'SourceContainer': {
                                 'DataType': 'String',
-                                'StringValue': self.__container_name
+                                'StringValue': self.__container['name']
                             },
                             'FromQueue': {
                                 'DataType': 'String',
-                                'StringValue': self.__input_queue
+                                'StringValue': self.__queues['input']
                             },
                             'ToQueue': {
                                 'DataType': 'String',
@@ -223,8 +228,8 @@ class ContainerServices(object):
         )
 
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[{}]  Message sent to {} queue".format(timestamp,
-                                                             dest_queue))
+        logging.info("[%s]  Message sent to %s queue", str(timestamp),
+                                                       dest_queue)
 
     def connect_to_db(self, resource, data, attributes):
         """Connects to the DynamoDB table and checks if an item
@@ -247,11 +252,10 @@ class ContainerServices(object):
                                   send_message function)]
         """
         # Select table to use
-        table = resource.Table(self.__db_table_name)
+        table = resource.Table(self.__db_table)
 
         # Get filename (id) from message received
-        get_file_name = re.search('/(.*)\.', data["s3_path"])
-        unique_id = get_file_name.group(1)
+        unique_id = os.path.basename(data["s3_path"]).split(".")[0]
 
         # Check if item with that name already exists
         response = table.get_item(Key={'id': unique_id})
@@ -268,14 +272,13 @@ class ContainerServices(object):
                                                         },
                               ReturnValues="UPDATED_NEW"
                             )
-            logging.info("[{}]  DB item (Id: {}) updated!".format(timestamp,
-                                                                  unique_id))
+            logging.info("[%s]  DB item (Id: %s) updated!", str(timestamp),
+                                                            unique_id)
         else:
-
             # Insert item if not created yet
             item_db = {
                         'id': unique_id,
-                        'from_container': self.__container_name,
+                        'from_container': self.__container['name'],
                         's3_path': data['s3_path'],
                         'data_status':  data['data_status'],
                         'info_source': attributes['SourceContainer']['StringValue'],
@@ -283,8 +286,8 @@ class ContainerServices(object):
                         'last_updated': str(timestamp)
                     }
             table.put_item(Item=item_db)
-            logging.info("[{}]  DB item (Id: {}) created!".format(timestamp,
-                                                                  unique_id))
+            logging.info("[%s]  DB item (Id: %s) created!", str(timestamp),
+                                                            unique_id)
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
@@ -301,8 +304,8 @@ class ContainerServices(object):
         """
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
         full_path = s3_bucket+'/'+file_path
-        logging.info("[{}]  Downloading file (path: {})..".format(timestamp,
-                                                                  full_path))
+        logging.info("[%s]  Downloading file (path: %s)..", str(timestamp),
+                                                            full_path)
 
         response = client.get_object(
                                         Bucket=s3_bucket,
@@ -314,7 +317,7 @@ class ContainerServices(object):
         object_file = response['Body'].read()
 
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[{}]  Download completed!".format(timestamp))
+        logging.info("[%s]  Download completed!", str(timestamp))
 
         return object_file
 
@@ -331,8 +334,8 @@ class ContainerServices(object):
         """
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
         full_path = s3_bucket+'/'+key_path
-        logging.info("[{}]  Uploading file (path: {})..".format(timestamp,
-                                                                full_path))
+        logging.info("[%s]  Uploading file (path: %s)..", str(timestamp),
+                                                          full_path)
 
         response = client.put_object(
                                         Body=object_body,
@@ -342,7 +345,7 @@ class ContainerServices(object):
                                         )
 
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[{}]  Upload completed!".format(timestamp))
+        logging.info("[%s]  Upload completed!", str(timestamp))
 
     def display_processed_msg(self, key_path):
         """Displays status message for processing completion
@@ -354,5 +357,5 @@ class ContainerServices(object):
         """
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
         logging.info("\nProcessing complete!")
-        logging.info("    -> key: {}".format(key_path))
-        logging.info("    -> timestamp: {}\n".format(timestamp))
+        logging.info("    -> key: %s", key_path)
+        logging.info("    -> timestamp: %s\n", str(timestamp))

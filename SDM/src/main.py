@@ -36,7 +36,7 @@ def processing_sdm(container_services, body):
 
     # Creates relay list to be used by other containers
     relay_data = {}
-    relay_data["processing_steps"] = container_services.sdm_processing_list[msp]
+    relay_data["processing_steps"] = container_services.msp_steps[msp]
     relay_data["s3_path"] = key_value
     relay_data["data_status"] = "received"
 
@@ -82,13 +82,13 @@ def main():
             # (if applicable)
             if relay_list["processing_steps"]:
                 next_step = relay_list["processing_steps"][0]
-                next_queue = container_services.output_queues_list[next_step]
+                next_queue = container_services.sqs_queues_list[next_step]
                 container_services.send_message(sqs_client,
                                                 next_queue,
                                                 relay_list)
 
             # Send message to input queue of metadata container
-            metadata_queue = container_services.output_queues_list["Metadata"]
+            metadata_queue = container_services.sqs_queues_list["Metadata"]
             container_services.send_message(sqs_client,
                                             metadata_queue,
                                             relay_list)
