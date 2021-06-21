@@ -5,7 +5,7 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v5.1"      # Version of the current container
+CONTAINER_VERSION = "v5.2"      # Version of the current container
 
 
 def processing_anonymize(client, container_services, body):

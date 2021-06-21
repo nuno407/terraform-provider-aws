@@ -5,7 +5,7 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
-CONTAINER_VERSION = "v5.1"     # Version of the current container
+CONTAINER_VERSION = "v5.2"     # Version of the current container
 
 
 def processing_metadata(container_services, body):
