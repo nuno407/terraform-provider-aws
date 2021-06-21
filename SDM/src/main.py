@@ -41,10 +41,7 @@ def processing_sdm(container_services, body):
     relay_data["s3_path"] = key_value
     relay_data["data_status"] = "received"
 
-    timestamp = datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    logging.info("\nProcessing complete!")
-    logging.info("    -> key: {}".format(relay_data["s3_path"]))
-    logging.info("    -> timestamp: {}\n".format(timestamp))
+    container_services.display_processed_msg(relay_data["s3_path"])
 
     return relay_data
 

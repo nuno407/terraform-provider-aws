@@ -326,7 +326,6 @@ class ContainerServices(object):
                                 used for the file in the destination s3 bucket
                                 (e.g. 'uber/test_file_s3.txt')]
         """
-
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
         full_path = s3_bucket+'/'+key_path
         logging.info("[{}]  Uploading file (path: {})..".format(timestamp,
@@ -341,3 +340,16 @@ class ContainerServices(object):
 
         timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
         logging.info("[{}]  Upload completed!".format(timestamp))
+
+    def display_processed_msg(self, key_path):
+        """Displays status message for processing completion
+
+        Arguments:
+            key_path {string} -- [string containg the path + name of the file,
+                                whose processing status is being updated to
+                                completed (e.g. 'uber/test_file_s3.txt')]
+        """
+        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
+        logging.info("\nProcessing complete!")
+        logging.info("    -> key: {}".format(key_path))
+        logging.info("    -> timestamp: {}\n".format(timestamp))

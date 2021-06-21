@@ -9,11 +9,13 @@ CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.1"     # Version of the current container
 
 
-def processing_metadata(body):
+def processing_metadata(container_services, body):
     """Copies the relay list info received from other containers and
     converts it from string into a dictionary
 
     Arguments:
+        container_services {BaseAws.shared_functions.ContainerServices}
+                        -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from
                           the received message]
     Returns:
@@ -31,10 +33,7 @@ def processing_metadata(body):
     # currently just sends the same msg that received
     relay_data = dict_body
 
-    timestamp = datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    logging.info("\nProcessing complete!")
-    logging.info("    -> key: {}".format(relay_data["s3_path"]))
-    logging.info("    -> timestamp: {}\n".format(timestamp))
+    container_services.display_processed_msg(relay_data["s3_path"])
 
     return relay_data
 
@@ -72,7 +71,8 @@ def main():
 
         if message:
             # Processing step
-            relay_list = processing_metadata(message['Body'])
+            relay_list = processing_metadata(container_services,
+                                             message['Body'])
 
             # Insert/update data in db
             container_services.connect_to_db(db_resource,

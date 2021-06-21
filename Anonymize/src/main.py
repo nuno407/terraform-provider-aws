@@ -61,10 +61,7 @@ def processing_anonymize(client, container_services, body):
     # Currently just sends the same msg that received
     relay_data = dict_body
 
-    timestamp = datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    logging.info("\nProcessing complete!")
-    logging.info("    -> key: {}".format(relay_data["s3_path"]))
-    logging.info("    -> timestamp: {}\n".format(timestamp))
+    container_services.display_processed_msg(relay_data["s3_path"])
 
     return relay_data
 
