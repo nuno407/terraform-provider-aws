@@ -1,6 +1,7 @@
-import boto3
+"""Metadata container script"""
 import json
 import logging
+import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
@@ -40,11 +41,10 @@ def main():
     """Main function"""
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s',
-                        level=logging.INFO)
+    logging.basicConfig(format='%(message)s', level=logging.INFO)
 
-    logging.info("Starting Container {} ({})\n".format(CONTAINER_NAME,
-                                                       CONTAINER_VERSION))
+    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
+                                                   CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',
@@ -61,7 +61,8 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
-    logging.info("\nListening to {} queue..\n\n".format(container_services.input_queue))
+    input_sqs_queue = container_services.input_queue
+    logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
 
     while(True):
         # Check input SQS queue for new messages
@@ -78,13 +79,15 @@ def main():
                                              message['MessageAttributes'])
 
             # Send message to output queue of metadata container
+            output_queue = container_services.output_queues_list["Output"]
             container_services.send_message(sqs_client,
-                                            container_services.output_queues_list["Output"],
+                                            output_queue,
                                             relay_list)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
+
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,7 @@
-import boto3
+"""Anonymize container script"""
 import json
 import logging
+import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
@@ -8,8 +9,8 @@ CONTAINER_VERSION = "v5.1"      # Version of the current container
 
 
 def processing_anonymize(client, container_services, body):
-    """Converts the message body to json format (for easier variable access) and
-    executes the anonymization algorithm (WIP) for the file received and
+    """Converts the message body to json format (for easier variable access)
+    and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
 
     Arguments:
@@ -68,11 +69,10 @@ def main():
     """Main function"""
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s',
-                        level=logging.INFO)
+    logging.basicConfig(format='%(message)s', level=logging.INFO)
 
-    logging.info("Starting Container {} ({})\n".format(CONTAINER_NAME,
-                                                       CONTAINER_VERSION))
+    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
+                                                   CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',
@@ -87,7 +87,8 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
-    logging.info("\nListening to {} queue..\n\n".format(container_services.input_queue))
+    input_sqs_queue = container_services.input_queue
+    logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
 
     # Main loop
     while(True):
@@ -103,18 +104,22 @@ def main():
             # Send message to input queue of the next processing step
             # (if applicable)
             if relay_list["processing_steps"]:
+                next_step = relay_list["processing_steps"][0]
+                next_queue = container_services.output_queues_list[next_step]
                 container_services.send_message(sqs_client,
-                                                container_services.output_queues_list[relay_list["processing_steps"][0]],
+                                                next_queue,
                                                 relay_list)
 
             # Send message to input queue of metadata container
+            metadata_queue = container_services.output_queues_list["Metadata"]
             container_services.send_message(sqs_client,
-                                            container_services.output_queues_list["Metadata"],
+                                            metadata_queue,
                                             relay_list)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
+
 
 if __name__ == '__main__':
     main()

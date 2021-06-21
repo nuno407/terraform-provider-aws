@@ -1,3 +1,4 @@
+"""Shared functions class for communication with AWS services"""
 import logging
 import boto3
 import json
@@ -29,7 +30,9 @@ class ContainerServices(object):
         # Bucket and path for the config file to be used
         self.__s3_config_bucket = 'dev-rcd-config-files'
         self.__s3_config_file = 'containers/config_file_containers.json'
-
+        # Define configuration for logging messages
+        logging.basicConfig(format='%(message)s', level=logging.INFO)
+        
     @property
     def output_queues_list(self):
         return self.__output_queues_list
