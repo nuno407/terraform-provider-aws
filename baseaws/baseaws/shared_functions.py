@@ -157,13 +157,13 @@ class ContainerServices():
             # (by default, it only receives 1 message
             # per enquiry - set above by MaxNumberOfMessages parameter)
             message = response['Messages'][0]
-            timestamp = datetime.now(
-                                    tz=pytz.UTC
-                                    ).strftime(self.__time_format)
+            timestamp = str(datetime.now(
+                                        tz=pytz.UTC
+                                        ).strftime(self.__time_format))
             logging.info("-----------------------------------------------")
             logging.info("Message received!")
             logging.info("    -> id:  %s", message['MessageId'])
-            logging.info("    -> timestamp: %s\n", str(timestamp))
+            logging.info("    -> timestamp: %s\n", timestamp)
 
         return message
 
@@ -227,8 +227,8 @@ class ContainerServices():
             MessageBody=str(data)
         )
 
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[%s]  Message sent to %s queue", str(timestamp),
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
     def connect_to_db(self, resource, data, attributes):
@@ -257,22 +257,33 @@ class ContainerServices():
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
 
+        # Initialise variables used in both item creation and update
+        status = data['data_status']
+        source = attributes['SourceContainer']['StringValue']
+
         # Check if item with that name already exists
         response = table.get_item(Key={'id': unique_id})
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+
         if 'Item' in response:
+            # Build update expression
+            exp1 = 'data_status = :val1'
+            exp2 = 'info_source = :val2'
+            exp3 = 'last_updated = :val3'
+            db_expression = 'SET '+exp1+', '+exp2+', '+exp3
+
             # Update already existing item
             table.update_item(
                               Key={'id': unique_id},
-                              UpdateExpression='SET data_status = :val1, info_source = :val2, last_updated = :val3',
+                              UpdateExpression=db_expression,
                               ExpressionAttributeValues={
-                                                         ':val1': data['data_status'],
-                                                         ':val2': attributes['SourceContainer']['StringValue'],
-                                                         ':val3': str(timestamp)
+                                                         ':val1': status,
+                                                         ':val2': source,
+                                                         ':val3': timestamp
                                                         },
                               ReturnValues="UPDATED_NEW"
                             )
-            logging.info("[%s]  DB item (Id: %s) updated!", str(timestamp),
+            logging.info("[%s]  DB item (Id: %s) updated!", timestamp,
                                                             unique_id)
         else:
             # Insert item if not created yet
@@ -280,13 +291,13 @@ class ContainerServices():
                         'id': unique_id,
                         'from_container': self.__container['name'],
                         's3_path': data['s3_path'],
-                        'data_status':  data['data_status'],
-                        'info_source': attributes['SourceContainer']['StringValue'],
+                        'data_status': status,
+                        'info_source': source,
                         'processing_list': data['processing_steps'],
-                        'last_updated': str(timestamp)
+                        'last_updated': timestamp
                     }
             table.put_item(Item=item_db)
-            logging.info("[%s]  DB item (Id: %s) created!", str(timestamp),
+            logging.info("[%s]  DB item (Id: %s) created!", timestamp,
                                                             unique_id)
 
     def download_file(self, client, s3_bucket, file_path):
@@ -302,9 +313,9 @@ class ContainerServices():
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         full_path = s3_bucket+'/'+file_path
-        logging.info("[%s]  Downloading file (path: %s)..", str(timestamp),
+        logging.info("[%s]  Downloading file (path: %s)..", timestamp,
                                                             full_path)
 
         response = client.get_object(
@@ -316,8 +327,8 @@ class ContainerServices():
         # (botocore.response.StreamingBody)
         object_file = response['Body'].read()
 
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[%s]  Download completed!", str(timestamp))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Download completed!", timestamp)
 
         return object_file
 
@@ -332,9 +343,9 @@ class ContainerServices():
                                 used for the file in the destination s3 bucket
                                 (e.g. 'uber/test_file_s3.txt')]
         """
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         full_path = s3_bucket+'/'+key_path
-        logging.info("[%s]  Uploading file (path: %s)..", str(timestamp),
+        logging.info("[%s]  Uploading file (path: %s)..", timestamp,
                                                           full_path)
 
         response = client.put_object(
@@ -344,8 +355,8 @@ class ContainerServices():
                                         ServerSideEncryption='aws:kms'
                                         )
 
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
-        logging.info("[%s]  Upload completed!", str(timestamp))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Upload completed!", timestamp)
 
     def display_processed_msg(self, key_path):
         """Displays status message for processing completion
@@ -355,7 +366,7 @@ class ContainerServices():
                                 whose processing status is being updated to
                                 completed (e.g. 'uber/test_file_s3.txt')]
         """
-        timestamp = datetime.now(tz=pytz.UTC).strftime(self.__time_format)
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("\nProcessing complete!")
         logging.info("    -> key: %s", key_path)
-        logging.info("    -> timestamp: %s\n", str(timestamp))
+        logging.info("    -> timestamp: %s\n", timestamp)
