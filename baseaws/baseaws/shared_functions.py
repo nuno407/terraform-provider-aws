@@ -340,8 +340,8 @@ class ContainerServices():
             object_body {bytes} -- [file to be uploaded to target S3 bucket]
             s3_bucket {string} -- [name of the destination s3 bucket]
             key_path {string} -- [string containg the path + file name to be
-                                used for the file in the destination s3 bucket
-                                (e.g. 'uber/test_file_s3.txt')]
+                                  used for the file in the destination s3
+                                  bucket (e.g. 'uber/test_file_s3.txt')]
         """
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         full_path = s3_bucket+'/'+key_path
@@ -363,8 +363,8 @@ class ContainerServices():
 
         Arguments:
             key_path {string} -- [string containg the path + name of the file,
-                                whose processing status is being updated to
-                                completed (e.g. 'uber/test_file_s3.txt')]
+                                  whose processing status is being updated to
+                                  completed (e.g. 'uber/test_file_s3.txt')]
         """
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("\nProcessing complete!")
