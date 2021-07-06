@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: metadata-service
+    namespace: pem3brg
+spec:
+    type: LoadBalancer
+    selector:
+        app: metadata-image
+    ports:
+        - name: http
+          port: 8080
+          targetPort: 80
+          protocol: TCP
