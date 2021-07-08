@@ -2,6 +2,11 @@ version: 0.2
 
 
 phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - pip3 install pytest
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -11,9 +16,16 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...       
       - docker build -f ./$CONTAINER_PATH/Dockerfile -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG      
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - python -m pytest --junitxml=tests/report-gen.xml
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+reports:
+  pytest_reports:
+    files:
+      - report-gen.xml
+    base-directory: ./tests
+    file-format: JUNITXML
