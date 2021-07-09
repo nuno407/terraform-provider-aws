@@ -3,6 +3,7 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
+import requests
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
@@ -94,7 +95,7 @@ def main():
     while(True):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
-
+        '''
         if message:
             # Processing step
             relay_list = processing_anonymize(s3_client,
@@ -119,7 +120,22 @@ def main():
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
+        '''
+        req_command = 'feature_chain'
+        #resource = tmp_file_path
+        #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
+        raw_file = container_services.download_file(s3_client,
+                                                    container_services.raw_s3,
+                                                    "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
 
+        files = [ ('chunk', raw_file,'application/octet-stream')]
+        payload = {'id': '1'}
+        ip_pod = '172.20.89.71'
+        port_pod = '80'
+
+        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+        r = requests.post(addr, files=files, data=payload)
+        ##########################################################################################
 
 if __name__ == '__main__':
     main()
