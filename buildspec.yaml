@@ -6,7 +6,7 @@ phases:
     runtime-versions:
       python: 3.7
     commands:
-      - pip3 install pytest
+      - pip3 install pytest pylint
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -17,6 +17,7 @@ phases:
       - echo Building the Docker image...       
       - docker build -f ./$CONTAINER_PATH/Dockerfile -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - pylint ./$CONTAINER_PATH --output-format=json > tests/report-pylint.json
       - python -m pytest ./$CONTAINER_PATH --junitxml=tests/report-gen.xml
   post_build:
     commands:
@@ -29,3 +30,8 @@ reports:
       - report-gen.xml
     base-directory: ./tests
     file-format: JUNITXML
+  pylin_reports:
+    files:
+      - report-pylint.json
+    base-directory: ./tests
+    file-format: json
