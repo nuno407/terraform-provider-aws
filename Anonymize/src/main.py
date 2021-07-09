@@ -128,7 +128,7 @@ def main():
                                                     container_services.raw_s3,
                                                     "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
 
-        files = [ ('chunk', raw_file,'application/octet-stream')]
+        files = [ ('chunk', raw_file)]
         payload = {'id': '1'}
         ip_pod = '172.20.89.71'
         port_pod = '80'
