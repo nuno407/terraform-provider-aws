@@ -142,9 +142,13 @@ def main():
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
         try:
             r = requests.post(addr, files=files, data=payload)
-            print(r)
+            logging.info(r)
         except requests.exceptions.ConnectionError as e:
-            print(e)
+            logging.info(e)
+        
+        if flag == 1:
+            flag = 2
+            logging.info("API first test done")
         ##########################################################################################
 
 if __name__ == '__main__':
