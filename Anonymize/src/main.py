@@ -121,6 +121,7 @@ def main():
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
         '''
+        ##########################################################################################
         req_command = 'feature_chain'
         #resource = tmp_file_path
         #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
@@ -134,7 +135,11 @@ def main():
         port_pod = '80'
 
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        r = requests.post(addr, files=files, data=payload)
+        try:
+            r = requests.post(addr, files=files, data=payload)
+            print(r)
+        except requests.exceptions.ConnectionError as e:
+            print(e)
         ##########################################################################################
 
 if __name__ == '__main__':
