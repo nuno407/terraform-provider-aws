@@ -91,6 +91,9 @@ def main():
     input_sqs_queue = container_services.input_queue
     logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
 
+    ####
+    flag = 0
+    ####
     # Main loop
     while(True):
         # Check input SQS queue for new messages
@@ -125,9 +128,11 @@ def main():
         req_command = 'feature_chain'
         #resource = tmp_file_path
         #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
-        raw_file = container_services.download_file(s3_client,
-                                                    container_services.raw_s3,
-                                                    "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
+        if flag == 0:
+            raw_file = container_services.download_file(s3_client,
+                                                        container_services.raw_s3,
+                                                        "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
+            flag = 1
 
         files = [ ('chunk', raw_file)]
         payload = {'id': '1'}
