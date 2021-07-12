@@ -16,4 +16,4 @@ WORKDIR /app/src
 RUN pip install -r requirements.txt
 
 # Run anonymize python script
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./main.py", ";", "python", "./api.py" ]
