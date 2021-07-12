@@ -16,4 +16,5 @@ WORKDIR /app/src
 RUN pip install -r requirements.txt
 
 # Run anonymize python script
-CMD [ "python", "./api.py", ";", "python", "./main.py" ]
+#CMD [ "python", "./api.py", ";", "python", "./main.py" ]
+RUN ./start_container.sh
