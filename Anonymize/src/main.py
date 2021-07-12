@@ -135,13 +135,13 @@ def main():
             flag = 1
 
         files = [ ('chunk', raw_file)]
-        payload = {'id': '1'}
-        ip_pod = '172.20.89.71'
+        #payload = {'id': '1'}
+        ip_pod = '172.20.4.93'
         port_pod = '80'
 
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
         try:
-            r = requests.post(addr, files=files, data=payload)
+            r = requests.post(addr, files=files)
             logging.info(r)
         except requests.exceptions.ConnectionError as e:
             logging.info(e)
