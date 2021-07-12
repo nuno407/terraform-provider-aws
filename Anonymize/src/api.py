@@ -16,7 +16,7 @@ def alive():
 def ready():
     return flask.jsonify(code='200', message='Ready')
 
-@app.route("/feature_chain", methods=["POST"])
+@app.route("/anonymized", methods=["POST"])
 def chain_producer():
     '''
     if flask.request.method == "POST":
