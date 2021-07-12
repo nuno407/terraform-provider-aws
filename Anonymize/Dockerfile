@@ -13,7 +13,7 @@ RUN pip install .
 
 # Install required modules
 WORKDIR /app/src
-RUN pip install -r requirements.txt
+RUN pip install --proxy=http://localhost:3128 -r requirements.txt
 
 # Run anonymize python script
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
