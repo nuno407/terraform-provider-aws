@@ -17,4 +17,4 @@ RUN pip install -r requirements.txt
 
 # Run anonymize python script
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
-RUN ["chmod", "+x", "./start_container.sh"]
+RUN ["chmod", "+x", "start_container.sh"]
