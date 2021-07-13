@@ -136,8 +136,8 @@ def main():
 
         files = [ ('chunk', raw_file)]
         #payload = {'id': '1'}
-        ip_pod = '172.20.90.35'
-        port_pod = '80'
+        ip_pod = '10.0.6.151'
+        port_pod = '5000'
 
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
         try:
