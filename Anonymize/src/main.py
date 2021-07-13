@@ -146,6 +146,13 @@ def main():
         except requests.exceptions.ConnectionError as e:
             logging.info(e)
         
+        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, 'ready')
+        try:
+            r = requests.post(addr, files=files)
+            logging.info(r)
+        except requests.exceptions.ConnectionError as e:
+            logging.info(e)
+        
         if flag == 1:
             flag = 2
             logging.info("API first test done")
