@@ -95,7 +95,7 @@ def main():
         #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
 
         #payload = {'id': '1'}
-        ip_pod = '10.0.18.221'
+        ip_pod = '10.0.25.232'
         port_pod = '5000'
 
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
