@@ -41,6 +41,10 @@ if __name__ == '__main__':
                         datefmt="%H:%M:%S")
 
     logging.info(app.config['SERVER_NAME'])
+    logging.info("########################")
+    app.run("0.0.0.0", use_reloader=True, debug=False)    
+    logging.info("########################")
+    logging.info(app.config['SERVER_NAME'])
+    logging.info("TEST")
 
-    app.run("0.0.0.0", use_reloader=True, debug=False)     
 
