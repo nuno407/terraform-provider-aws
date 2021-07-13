@@ -40,5 +40,5 @@ if __name__ == '__main__':
     logging.basicConfig(format=format, level=logging.INFO,
                         datefmt="%H:%M:%S")
 
-    app.run(use_reloader=True, debug=False)     
+    app.run("0.0.0.0", use_reloader=True, debug=False)     
 
