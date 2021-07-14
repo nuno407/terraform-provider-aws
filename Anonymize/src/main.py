@@ -9,7 +9,7 @@ CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 
 
-def processing_anonymize(client, container_services, body):
+def request_processing_anonymize(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
@@ -37,13 +37,52 @@ def processing_anonymize(client, container_services, body):
                                                 container_services.raw_s3,
                                                 dict_body["s3_path"])
 
-    # INSERT ANONYMIZATION ALGORITHM HERE
+    ##########################################################################################
+    req_command = 'feature_chain'
+    files = [ ('chunk', raw_file)]
+    # S3_path MISSING!! -> dict_body["s3_path"]
 
-    # Upload processed file
-    container_services.upload_file(client,
-                                   raw_file,
-                                   container_services.anonymized_s3,
-                                   dict_body["s3_path"])
+    ip_pod = '172.20.162.166'
+    port_pod = '8080'
+
+    addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+    try:
+        r = requests.post(addr, files=files)
+        logging.info(r)
+        status = 0
+    except requests.exceptions.ConnectionError as e:
+        logging.info(e)
+        status = 1
+
+    # ADD EXCEPTION HANDLING IF API NOT AVAILABLE (PUT FILE IN QUEUE?)
+
+    ##########################################################################################
+    return dict_body
+
+def update_processing_anonymize(client, container_services, body, pending_dict):
+    """Converts the message body to json format (for easier variable access)
+    and executes the anonymization algorithm (WIP) for the file received and
+    updates the relevant info in its relay list
+
+    Arguments:
+        client {boto3.client} -- [client used to access the S3 service]
+        container_services {BaseAws.shared_functions.ContainerServices}
+                            -- [class containing the shared aws functions]
+        body {string} -- [string containing the body info from the
+                          received message]
+    Returns:
+        relay_data {dict} -- [dict with the updated info for the file received
+                              and to be sent via message to the input queues of
+                              the relevant containers]
+    """
+    logging.info("Processing API message..\n")
+
+    # Converts message body from string to dict
+    # (in order to perform index access)
+    new_body = body.replace("\'", "\"")
+    msg_body = json.loads(new_body)
+
+    dict_body = pending_dict[msg_body['s3_path']]
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -91,20 +130,35 @@ def main():
     input_sqs_queue = container_services.input_queue
     logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
 
-    ####
-    flag = 0
-    ####
+    # Create pending_queue
+    pending_queue = {}
+
     # Main loop
     while(True):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
-        '''
+        
         if message:
-            # Processing step
-            relay_list = processing_anonymize(s3_client,
-                                              container_services,
-                                              message['Body'])
+            # Processing request
+            relay_pending = request_processing_anonymize(s3_client,
+                                                         container_services,
+                                                         message['Body'])
+            pending_queue[relay_pending["s3_path"]] = relay_pending
 
+            # Delete message after processing
+            container_services.delete_message(sqs_client,
+                                              message['ReceiptHandle'])
+
+        # Check API SQS queue for new update messages
+        message_api = container_services.listen_to_input_queue(sqs_client)
+
+        if message_api:
+            relay_list = update_processing_anonymize(s3_client,
+                                                     container_services,
+                                                     message_api['Body'], 
+                                                     pending_queue)
+
+            del pending_queue[relay_list["s3_path"]]
             # Send message to input queue of the next processing step
             # (if applicable)
             if relay_list["processing_steps"]:
@@ -122,41 +176,8 @@ def main():
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
-                                              message['ReceiptHandle'])
-        '''
-        ##########################################################################################
-        req_command = 'feature_chain'
-        #resource = tmp_file_path
-        #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
-        if flag == 0:
-            raw_file = container_services.download_file(s3_client,
-                                                        container_services.raw_s3,
-                                                        "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
-            flag = 1
+                                              message_api['ReceiptHandle'])
 
-        files = [ ('chunk', raw_file)]
-        #payload = {'id': '1'}
-        ip_pod = '172.20.162.166'
-        port_pod = '8080'
-
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        try:
-            r = requests.post(addr, files=files)
-            logging.info(r)
-        except requests.exceptions.ConnectionError as e:
-            logging.info(e)
-        
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, 'ready')
-        try:
-            r = requests.post(addr, files=files)
-            logging.info(r)
-        except requests.exceptions.ConnectionError as e:
-            logging.info(e)
-        
-        if flag == 1:
-            flag = 2
-            logging.info("API first test done")
-        ##########################################################################################
 
 if __name__ == '__main__':
     main()
