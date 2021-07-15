@@ -39,15 +39,15 @@ def request_processing_anonymize(client, container_services, body):
 
     ##########################################################################################
     req_command = 'feature_chain'
-    files = [ ('chunk', raw_file)]
-    # S3_path MISSING!! -> dict_body["s3_path"]
+    files = [ ('video', raw_file)]
+    payload = {'uid': '1'}
 
     ip_pod = '172.20.162.166'
-    port_pod = '8080'
+    port_pod = '8081'
 
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
     try:
-        r = requests.post(addr, files=files)
+        r = requests.post(addr, files=files, data=payload)
         logging.info(r)
         status = 0
     except requests.exceptions.ConnectionError as e:
@@ -137,7 +137,7 @@ def main():
     while(True):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
-        '''
+        
         if message:
             # Processing request
             relay_pending = request_processing_anonymize(s3_client,
@@ -177,27 +177,7 @@ def main():
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message_api['ReceiptHandle'])
-        '''
 
-        raw_file = container_services.download_file(s3_client,
-                                                    container_services.raw_s3,
-                                                    "lync/Hanau02_Passat_625_windshield_top_nir_merged_ros.mp4")
-
-        req_command = 'feature_chain'
-        files = [ ('video', raw_file)]
-        # S3_path MISSING!! -> dict_body["s3_path"]
-
-        ip_pod = '172.20.162.166'
-        port_pod = '8081'
-
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        try:
-            r = requests.post(addr, files=files)
-            logging.info(r)
-            status = 0
-        except requests.exceptions.ConnectionError as e:
-            logging.info(e)
-            status = 1
 
 if __name__ == '__main__':
     main()
