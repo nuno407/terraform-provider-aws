@@ -105,6 +105,17 @@ def main():
         except requests.exceptions.ConnectionError as e:
             logging.info(e)
 
+        ip_pod = '172.20.162.166'
+        port_pod = '8080'
+
+        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+        try:
+            r = requests.get(addr)
+            logging.info(r)
+        except requests.exceptions.ConnectionError as e:
+            logging.info(e)
+
+
         ##########################################################################################
 
 if __name__ == '__main__':
