@@ -3,7 +3,6 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
-import requests
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.2"     # Version of the current container
@@ -68,7 +67,7 @@ def main():
     while(True):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
-        '''
+
         if message:
             # Processing step
             relay_list = processing_metadata(container_services,
@@ -88,35 +87,7 @@ def main():
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
-        '''
-        ##########################################################################################
-        req_command = 'ready'
-        #resource = tmp_file_path
-        #files = [ ('chunk', (resource, open(resource, 'rb'),'application/octet-stream'))]
 
-        #payload = {'id': '1'}
-        ip_pod = '172.20.166.135'
-        port_pod = '5000'
-
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        try:
-            r = requests.get(addr)
-            logging.info(r)
-        except requests.exceptions.ConnectionError as e:
-            logging.info(e)
-
-        ip_pod = '172.20.162.166'
-        port_pod = '8081'
-
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        try:
-            r = requests.get(addr)
-            logging.info(r)
-        except requests.exceptions.ConnectionError as e:
-            logging.info(e)
-
-
-        ##########################################################################################
 
 if __name__ == '__main__':
     main()
