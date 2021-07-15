@@ -105,6 +105,7 @@ def main():
         except requests.exceptions.ConnectionError as e:
             logging.info(e)
 
+
         ip_pod = '172.20.162.166'
         port_pod = '8080'
 
