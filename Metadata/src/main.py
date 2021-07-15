@@ -106,7 +106,7 @@ def main():
             logging.info(e)
 
         ip_pod = '172.20.162.166'
-        port_pod = '8080'
+        port_pod = '8081'
 
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
         try:
