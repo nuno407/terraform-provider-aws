@@ -40,7 +40,8 @@ def request_processing_anonymize(client, container_services, body):
     ##########################################################################################
     req_command = 'feature_chain'
     files = [ ('video', raw_file)]
-    payload = {'uid': '1'}
+    uid = '1'
+    payload = {'uid': uid}
 
     ip_pod = '172.20.162.166'
     port_pod = '8081'

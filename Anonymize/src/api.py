@@ -21,12 +21,12 @@ def ready():
 def chain_producer():
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.form.get("uid"):
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
-            # Get info attached to request (chunk -> video; path -> s3 path)
+            # Get info attached to request (file -> video; uid -> video process id; path -> s3 path)
             chunk = flask.request.files["file"]
-            #chunk_info = secure_filename(chunk.filename)
-            s3_path = flask.request.form["uid"]
+            uid = flask.request.form["uid"]
+            s3_path = flask.request.form["path"]
 
             # Upload received video to S3 bucket
             logging.info("Uploading video to {} (path: {})..".format(container_services.anonymized_s3, s3_path))
@@ -40,6 +40,7 @@ def chain_producer():
 
             # Build message body
             msg_body = {}
+            msg_body['uid'] = uid
             msg_body['s3_path'] = s3_path
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
