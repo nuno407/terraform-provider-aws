@@ -4,15 +4,16 @@ import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
+import uuid
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v5.2"      # Version of the current container
+CONTAINER_VERSION = "v6.0"      # Version of the current container
 
 
-def request_processing_anonymize(client, container_services, body):
+def request_processing_anonymize(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
-    and executes the anonymization algorithm (WIP) for the file received and
-    updates the relevant info in its relay list
+    and sends an API request for the ivs feature chain container with the
+    file downloaded to be processed.
 
     Arguments:
         client {boto3.client} -- [client used to access the S3 service]
@@ -20,12 +21,11 @@ def request_processing_anonymize(client, container_services, body):
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-    Returns:
-        relay_data {dict} -- [dict with the updated info for the file received
-                              and to be sent via message to the input queues of
-                              the relevant containers]
+        pending_list {dict} -- [dictionary containing all the pending
+                                processing requests (identified by an
+                                uuid and their respective relay_lists)]
     """
-    logging.info("Processing message..\n")
+    logging.info("Processing pipeline message..\n")
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -37,42 +37,51 @@ def request_processing_anonymize(client, container_services, body):
                                                 container_services.raw_s3,
                                                 dict_body["s3_path"])
 
-    ##########################################################################################
-    req_command = 'feature_chain'
-    files = [ ('video', raw_file)]
-    uid = '1'
-    payload = {'uid': uid}
+    # Create a random uuid to identify a given video anonymization process
+    uid = str(uuid.uuid4())
 
+    # Add entry for current video relay list on pending queue
+    pending_list[uid] = dict_body
+
+    # Prepare data to be sent on API request
+    payload = {'uid': uid, 
+               'path': dict_body["s3_path"]}
+    files = [('video', raw_file)]
+
+    # Define settings for API request
     ip_pod = '172.20.162.166'
     port_pod = '8081'
+    req_command = 'feature_chain'
 
+    # TODO: ADD IP AND PORT TO CONFIG FILE!
+    
+    # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+
+    # Send API request (POST)   
     try:
         r = requests.post(addr, files=files, data=payload)
-        logging.info(r)
-        status = 0
+        logging.info("API POST request sent! (uid: %s)", uid)
     except requests.exceptions.ConnectionError as e:
         logging.info(e)
-        status = 1
 
-    # ADD EXCEPTION HANDLING IF API NOT AVAILABLE (PUT FILE IN QUEUE?)
+    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
-    ##########################################################################################
-    return dict_body
-
-def update_processing_anonymize(client, container_services, body, pending_dict):
+def update_processing_anonymize(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
 
     Arguments:
-        client {boto3.client} -- [client used to access the S3 service]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
+        pending_list {dict} -- [dictionary containing all the pending
+                                processing requests (identified by an
+                                uuid and their respective relay_lists)]
     Returns:
-        relay_data {dict} -- [dict with the updated info for the file received
+        relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
                               the relevant containers]
     """
@@ -83,25 +92,27 @@ def update_processing_anonymize(client, container_services, body, pending_dict):
     new_body = body.replace("\'", "\"")
     msg_body = json.loads(new_body)
 
-    dict_body = pending_dict[msg_body['s3_path']]
+    # Retrives relay_list based on uid received from api message
+    relay_data = pending_list[msg_body['uid']]
 
     # Remove current step/container from the processing_steps
     # list (after processing)
-    if dict_body["processing_steps"][0] == CONTAINER_NAME:
-        dict_body["processing_steps"].pop(0)
+    if relay_data["processing_steps"][0] == CONTAINER_NAME:
+        relay_data["processing_steps"].pop(0)
 
-    if dict_body["processing_steps"]:
+    if relay_data["processing_steps"]:
         # change the current file data_status (if not already changed)
-        dict_body["data_status"] = "processing"
+        relay_data["data_status"] = "processing"
     else:
         # change the current file data_status to complete
         # (if current step is the last one from the list)
-        dict_body["data_status"] = "complete"
+        relay_data["data_status"] = "complete"
 
-    # Currently just sends the same msg that received
-    relay_data = dict_body
+    # Remove uid entry from pending queue
+    del pending_list[msg_body['uid']]
 
-    container_services.display_processed_msg(relay_data["s3_path"])
+    container_services.display_processed_msg(relay_data["s3_path"],
+                                             msg_body['uid'])
 
     return relay_data
 
@@ -128,10 +139,15 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
-    input_sqs_queue = container_services.input_queue
-    logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
+    # Define additional input SQS queues to listen to
+    # (container_services.input_queue is the default queue
+    # and doesn't need to be declared here)
+    api_sqs_queue = container_services.sqs_queues_list['API_Anonymize']
+
+    logging.info("\nListening to input queue(s)..\n\n")
 
     # Create pending_queue
+    # Entries format: {'<uid>': <relay_list>}
     pending_queue = {}
 
     # Main loop
@@ -141,25 +157,25 @@ def main():
         
         if message:
             # Processing request
-            relay_pending = request_processing_anonymize(s3_client,
-                                                         container_services,
-                                                         message['Body'])
-            pending_queue[relay_pending["s3_path"]] = relay_pending
+            request_processing_anonymize(s3_client,
+                                         container_services,
+                                         message['Body'],
+                                         pending_queue)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
 
         # Check API SQS queue for new update messages
-        message_api = container_services.listen_to_input_queue(sqs_client)
-
+        message_api = container_services.listen_to_input_queue(sqs_client,
+                                                               api_sqs_queue)
+                                                 
         if message_api:
-            relay_list = update_processing_anonymize(s3_client,
-                                                     container_services,
+            # Processing update
+            relay_list = update_processing_anonymize(container_services,
                                                      message_api['Body'], 
                                                      pending_queue)
 
-            del pending_queue[relay_list["s3_path"]]
             # Send message to input queue of the next processing step
             # (if applicable)
             if relay_list["processing_steps"]:
@@ -177,7 +193,8 @@ def main():
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
-                                              message_api['ReceiptHandle'])
+                                              message_api['ReceiptHandle'],
+                                              api_sqs_queue)
 
 
 if __name__ == '__main__':

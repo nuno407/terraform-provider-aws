@@ -23,7 +23,7 @@ def processing_sdm(container_services, body):
                             of the relevant containers]
     """
 
-    logging.info("Processing message..\n")
+    logging.info("Processing pipeline message..\n")
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -67,8 +67,7 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
-    input_sqs_queue = container_services.input_queue
-    logging.info("\nListening to %s queue..\n\n", input_sqs_queue)
+    logging.info("\nListening to input queue(s)..\n\n")
 
     while(True):
         # Check input SQS queue for new messages

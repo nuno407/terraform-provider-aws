@@ -29,14 +29,12 @@ def chain_producer():
             s3_path = flask.request.form["path"]
 
             # Upload received video to S3 bucket
-            logging.info("Uploading video to {} (path: {})..".format(container_services.anonymized_s3, s3_path))
-
+            logging.info("-----------------------------------------------")
+            logging.info("API status update:")
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
                                            s3_path)
-
-            logging.info("Upload completed!")
 
             # Build message body
             msg_body = {}
@@ -51,6 +49,7 @@ def chain_producer():
             container_services.send_message(sqs_client,
                                             api_queue,
                                             msg_body)
+            logging.info("-----------------------------------------------")
 
     return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
 
