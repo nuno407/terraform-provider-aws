@@ -116,7 +116,7 @@ class ContainerServices():
 
         return queue_url
 
-    def listen_to_input_queue(self, client):
+    def listen_to_input_queue(self, client, input_queue=None):
         """Logs into the input SQS queue of a given container
         and checks for new messages.
 
@@ -125,14 +125,21 @@ class ContainerServices():
 
         Arguments:
             client {boto3.client} -- [client used to access the SQS service]
+            input_queue {string} -- [Name of the input queue to listen to.
+                                     If None, the default input queue
+                                     (defined in self.__queues['input']) is
+                                     used instead]
         Returns:
             message {dict} -- [dict with the received message content
                                (for more info please check the response syntax
                                of the Boto3 SQS.client.receive_message method).
                                If no message is received, returns None]
         """
-        # Get URL for container input SQS queue
-        input_queue_url = self.get_sqs_queue_url(client, self.__queues['input'])
+        if not input_queue:
+            # Get URL for container default input SQS queue
+            input_queue = self.__queues['input']
+
+        input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Receive message(s)
         response = client.receive_message(
@@ -162,31 +169,39 @@ class ContainerServices():
                                         ).strftime(self.__time_format))
             logging.info("-----------------------------------------------")
             logging.info("Message received!")
-            logging.info("    -> id:  %s", message['MessageId'])
-            logging.info("    -> timestamp: %s\n", timestamp)
+            logging.info("-> id:  %s", message['MessageId'])
+            logging.info("-> queue:  %s", input_queue)
+            logging.info("-> timestamp: %s\n", timestamp)
 
         return message
 
-    def delete_message(self, client, receipt_handle):
+    def delete_message(self, client, receipt_handle, input_queue=None):
         """Deletes received SQS message
 
         Arguments:
             client {boto3.client} -- [client used to access the SQS service]
             receipt_handle {string} -- [Receipt that identifies the received
                                         message to be deleted]
+            input_queue {string} -- [Name of the input queue to delete from.
+                                     If None, the default input queue
+                                     (defined in self.__queues['input']) is
+                                     used instead]
         """
-        # Get URL for container input SQS queue
-        input_queue_url = self.get_sqs_queue_url(client, self.__queues['input'])
+        if not input_queue:
+            # Get URL for container default input SQS queue
+            input_queue = self.__queues['input']
+
+        input_queue_url = self.get_sqs_queue_url(client, input_queue)
+
 
         # Delete received message
         client.delete_message(
-            QueueUrl=input_queue_url,
-            ReceiptHandle=receipt_handle
-        )
+                                QueueUrl=input_queue_url,
+                                ReceiptHandle=receipt_handle
+                            )
 
         logging.info("-----------------------------------------------")
-        logging.info("\n\n")
-        logging.info("Listening to %s queue..\n\n", self.__queues['input'])
+        logging.info("\n\nListening to input queue(s)..\n\n")
 
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message
@@ -209,10 +224,6 @@ class ContainerServices():
                                 'DataType': 'String',
                                 'StringValue': self.__container['name']
                             },
-                            'FromQueue': {
-                                'DataType': 'String',
-                                'StringValue': self.__queues['input']
-                            },
                             'ToQueue': {
                                 'DataType': 'String',
                                 'StringValue': dest_queue
@@ -221,11 +232,11 @@ class ContainerServices():
 
         # Send message to SQS queue
         response = client.send_message(
-            QueueUrl=destination_queue_url,
-            DelaySeconds=1,
-            MessageAttributes=msg_attributes,
-            MessageBody=str(data)
-        )
+                                        QueueUrl=destination_queue_url,
+                                        DelaySeconds=1,
+                                        MessageAttributes=msg_attributes,
+                                        MessageBody=str(data)
+                                       )
 
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Message sent to %s queue", timestamp,
@@ -358,15 +369,20 @@ class ContainerServices():
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Upload completed!", timestamp)
 
-    def display_processed_msg(self, key_path):
+    def display_processed_msg(self, key_path, uid=None):
         """Displays status message for processing completion
 
         Arguments:
             key_path {string} -- [string containg the path + name of the file,
                                   whose processing status is being updated to
                                   completed (e.g. 'uber/test_file_s3.txt')]
+            uid {string} -- [string containg an identifier used only in the
+                             processing containers to keep track of the
+                             process of a given file. Optional]
         """
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("\nProcessing complete!")
-        logging.info("    -> key: %s", key_path)
-        logging.info("    -> timestamp: %s\n", timestamp)
+        logging.info("-> key: %s", key_path)
+        if uid:
+            logging.info("-> uid: %s", uid)
+        logging.info("-> timestamp: %s\n", timestamp)

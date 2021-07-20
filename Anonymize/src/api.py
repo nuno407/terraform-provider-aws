@@ -17,29 +17,28 @@ def alive():
 def ready():
     return flask.jsonify(code='200', message='Ready')
 
-@app.route("/feature_chain", methods=["POST"])
+@app.route("/anonymized", methods=["POST"])
 def chain_producer():
     if flask.request.method == "POST":
 
-        if flask.request.files.get("chunk") and flask.request.form.get("path"):
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
-            # Get info attached to request (chunk -> video; path -> s3 path)
-            chunk = flask.request.files["chunk"]
-            #chunk_info = secure_filename(chunk.filename)
+            # Get info attached to request (file -> video; uid -> video process id; path -> s3 path)
+            chunk = flask.request.files["file"]
+            uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
 
             # Upload received video to S3 bucket
-            logging.info("Uploading video to {} (path: {})..".format(container_services.anonymized_s3, s3_path))
-
+            logging.info("-----------------------------------------------")
+            logging.info("API status update:")
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
                                            s3_path)
 
-            logging.info("Upload completed!")
-
             # Build message body
             msg_body = {}
+            msg_body['uid'] = uid
             msg_body['s3_path'] = s3_path
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
@@ -50,8 +49,9 @@ def chain_producer():
             container_services.send_message(sqs_client,
                                             api_queue,
                                             msg_body)
+            logging.info("-----------------------------------------------")
 
-    return flask.jsonify(code='200', message='Handling video in Chain in a minute')
+    return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
 
 if __name__ == '__main__':
 
