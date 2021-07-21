@@ -1,5 +1,6 @@
 import boto3
 import flask
+from flask import abort
 import logging
 from baseaws.shared_functions import ContainerServices
 from werkzeug.utils import secure_filename
@@ -31,6 +32,7 @@ def chain_producer():
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
             logging.info("API status update:")
+
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
@@ -49,9 +51,13 @@ def chain_producer():
             container_services.send_message(sqs_client,
                                             api_queue,
                                             msg_body)
+
             logging.info("-----------------------------------------------")
 
-    return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
+            return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
+        else:
+            abort(400)
+            # TODO: return flask.jsonify(code='400', message='Error!')
 
 if __name__ == '__main__':
 
