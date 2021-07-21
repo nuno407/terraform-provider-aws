@@ -1,6 +1,6 @@
 import boto3
 import flask
-from flask import abort
+from flask import abort, Response
 import logging
 from baseaws.shared_functions import ContainerServices
 from werkzeug.utils import secure_filename
@@ -56,8 +56,9 @@ def chain_producer():
 
             return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
         else:
-            abort(400)
-            # TODO: return flask.jsonify(code='400', message='Error!')
+            response = flask.jsonify(code='400', message= 'One or more request parameters missing!')
+            response.status_code = 400
+            return response
 
 if __name__ == '__main__':
 
