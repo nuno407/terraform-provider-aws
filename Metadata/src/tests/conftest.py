@@ -22,7 +22,7 @@ def application():
 
 
 @pytest.fixture
-def client(app):
+def client(application):
     """
     Method to run the mock api
 
@@ -30,4 +30,4 @@ def client(app):
     Returns:
         ap.test_client()
     """
-    return app.test_client()
+    return application.test_client()
