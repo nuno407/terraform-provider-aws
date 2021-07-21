@@ -6,7 +6,7 @@ API requests
 import sys
 import pytest
 sys.path.append('.')
-from src.api import app as flask_app
+from Metadata.src.api import app as flask_app
 
 
 
