@@ -50,6 +50,9 @@ def get_all_data():
     Returns:
         flask.jsonify -- [json with the status code + data]
     """
+    # Create the necessary clients for AWS services access
+    db_resource = boto3.resource('dynamodb',
+                                 region_name=REGION_NAME)
     table = db_resource.Table(TABLE_NAME)
     #TODO if the table is big this approach should not be
     # used instead think in query() or get_item()
@@ -64,8 +67,5 @@ if __name__ == '__main__':
     # Define configuration for logging messages
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
                         datefmt="%H:%M:%S")
-    # Create the necessary clients for AWS services access
-    db_resource = boto3.resource('dynamodb',
-                                 region_name=REGION_NAME)
     # Start API process
     app.run("0.0.0.0", use_reloader=True, debug=True)
