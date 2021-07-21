@@ -3,7 +3,9 @@ This file have the responsability of
 creating an mock endpoint to test the
 API requests
 """
+import sys
 import pytest
+sys.path.append('.')
 from api import app as flask_app
 
 
