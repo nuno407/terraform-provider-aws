@@ -17,6 +17,7 @@ phases:
       - echo Building the Docker image...       
       - docker build -f ./$CONTAINER_PATH/Dockerfile -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - ls ./$CONTAINER_PATH
       - python -m pytest ./$CONTAINER_PATH --junitxml=tests/report-gen.xml
   post_build:
     commands:
