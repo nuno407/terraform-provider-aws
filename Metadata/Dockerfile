@@ -15,5 +15,6 @@ RUN pip install .
 WORKDIR /app/src
 RUN pip install -r requirements.txt
 
-# Run anonymize python script
-CMD [ "python", "./main.py" ]
+# Run metadata api+service script
+RUN ["chmod", "+x", "start_container.sh"]
+CMD ["sh", "start_container.sh"]
