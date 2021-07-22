@@ -1,10 +1,10 @@
 """Anonymize container script"""
 import json
 import logging
+import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
-import uuid
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v6.0"      # Version of the current container
@@ -44,7 +44,7 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     pending_list[uid] = dict_body
 
     # Prepare data to be sent on API request
-    payload = {'uid': uid, 
+    payload = {'uid': uid,
                'path': dict_body["s3_path"]}
     files = [('video', raw_file)]
 
@@ -54,16 +54,16 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     req_command = 'feature_chain'
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
-    
+
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
 
-    # Send API request (POST)   
+    # Send API request (POST)
     try:
-        r = requests.post(addr, files=files, data=payload)
+        requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
-    except requests.exceptions.ConnectionError as e:
-        logging.info(e)
+    except requests.exceptions.ConnectionError as error_response:
+        logging.info(error_response)
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
@@ -154,7 +154,7 @@ def main():
     while(True):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
-        
+
         if message:
             # Processing request
             request_processing_anonymize(s3_client,
@@ -169,11 +169,11 @@ def main():
         # Check API SQS queue for new update messages
         message_api = container_services.listen_to_input_queue(sqs_client,
                                                                api_sqs_queue)
-                                                 
+
         if message_api:
             # Processing update
             relay_list = update_processing_anonymize(container_services,
-                                                     message_api['Body'], 
+                                                     message_api['Body'],
                                                      pending_queue)
 
             # Send message to input queue of the next processing step

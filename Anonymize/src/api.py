@@ -1,9 +1,8 @@
-from types import resolve_bases
-import boto3
-import flask    
+"""Anonymize API script"""
 import logging
+import boto3
+import flask
 from baseaws.shared_functions import ContainerServices
-from werkzeug.utils import secure_filename
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
@@ -13,7 +12,7 @@ app = flask.Flask(__name__)
 @app.route("/alive", methods=["GET"])
 def alive():
     """Returns status code 200 if alive
- 
+
     Arguments:
     Returns:
         flask.jsonify -- [json with the status code + response message]
@@ -23,7 +22,7 @@ def alive():
 @app.route("/ready", methods=["GET"])
 def ready():
     """Returns status code 200 if ready
- 
+
     Arguments:
     Returns:
         flask.jsonify -- [json with the status code + response message]
@@ -39,7 +38,7 @@ def chain_producer():
       script). Then, it returns status code 200 + response
       message.
     - if not, returns status code 400 + response message.
- 
+
     Arguments:
     Returns:
         flask.jsonify -- [json with the status code + response message]
@@ -48,7 +47,7 @@ def chain_producer():
 
         if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
-            # Get info attached to request (file -> video; 
+            # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
@@ -80,18 +79,21 @@ def chain_producer():
             logging.info("-----------------------------------------------")
 
             response_msg = 'Stored received video on S3 bucket!'
-            return flask.jsonify(code='200', message=response_msg)
-        else:
-            response_msg = 'One or more request parameters missing!'
-            response = flask.jsonify(code='400', message=response_msg)
-            response.status_code = 400
+            response = flask.jsonify(code='200', message=response_msg)
+            response.status_code = 200
             return response
+
+    # Return error code 400 if one or more parameters are missing
+    response_msg = 'One or more request parameters missing!'
+    response = flask.jsonify(code='400', message=response_msg)
+    response.status_code = 400
+    return response
 
 if __name__ == '__main__':
 
     # Define configuration for logging messages
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,
+    FORMAT_LOG = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=FORMAT_LOG, level=logging.INFO,
                         datefmt="%H:%M:%S")
 
     # Create the necessary clients for AWS services access
@@ -108,4 +110,4 @@ if __name__ == '__main__':
     container_services.load_config_vars(s3_client)
 
     # Start API process
-    app.run("0.0.0.0", use_reloader=True, debug=False)    
+    app.run("0.0.0.0", use_reloader=True, debug=False)
