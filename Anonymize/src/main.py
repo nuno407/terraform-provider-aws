@@ -144,7 +144,7 @@ def main():
     # and doesn't need to be declared here)
     api_sqs_queue = container_services.sqs_queues_list['API_Anonymize']
 
-    logging.info("\nListening to input queue(s)..\n\n")
+    logging.info("\nListening to input queue(s)..\n")
 
     # Create pending_queue
     # Entries format: {'<uid>': <relay_list>}

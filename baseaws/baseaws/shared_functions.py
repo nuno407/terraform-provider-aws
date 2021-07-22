@@ -167,7 +167,7 @@ class ContainerServices():
             timestamp = str(datetime.now(
                                         tz=pytz.UTC
                                         ).strftime(self.__time_format))
-            logging.info("-----------------------------------------------")
+            logging.info("\n-----------------------------------------------")
             logging.info("Message received!")
             logging.info("-> id:  %s", message['MessageId'])
             logging.info("-> queue:  %s", input_queue)
@@ -201,7 +201,7 @@ class ContainerServices():
                             )
 
         logging.info("-----------------------------------------------")
-        logging.info("\n\nListening to input queue(s)..\n\n")
+        logging.info("\n\nListening to input queue(s)..\n")
 
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message
