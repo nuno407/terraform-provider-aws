@@ -1,3 +1,4 @@
+from types import resolve_bases
 import boto3
 import flask
 from flask import abort, Response
@@ -12,19 +13,44 @@ app = flask.Flask(__name__)
 
 @app.route("/alive", methods=["GET"])
 def alive():
+    """Returns status code 200 if alive
+ 
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + response message]
+    """
     return flask.jsonify(code='200', message='Ok')
 
 @app.route("/ready", methods=["GET"])
 def ready():
+    """Returns status code 200 if ready
+ 
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + response message]
+    """
     return flask.jsonify(code='200', message='Ready')
 
 @app.route("/anonymized", methods=["POST"])
 def chain_producer():
+    """Checks if received request has all the required parameters:
+    - if yes, uploads the received file into the anonymized S3
+      bucket and sends an update message to the API-Anonymize
+      SQS queue (to be received by the Anonymize container main
+      script). Then, it returns status code 200 + response
+      message.
+    - if not, returns status code 400 + response message.
+ 
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + response message]
+    """
     if flask.request.method == "POST":
 
         if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
-            # Get info attached to request (file -> video; uid -> video process id; path -> s3 path)
+            # Get info attached to request (file -> video; 
+            # uid -> video process id; path -> s3 path)
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
@@ -47,16 +73,18 @@ def chain_producer():
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_Anonymize"]
-            
+
             container_services.send_message(sqs_client,
                                             api_queue,
                                             msg_body)
 
             logging.info("-----------------------------------------------")
 
-            return flask.jsonify(code='200', message='Stored received video on S3 bucket!')
+            response_msg = 'Stored received video on S3 bucket!'
+            return flask.jsonify(code='200', message=response_msg)
         else:
-            response = flask.jsonify(code='400', message= 'One or more request parameters missing!')
+            response_msg = 'One or more request parameters missing!'
+            response = flask.jsonify(code='400', message=response_msg)
             response.status_code = 400
             return response
 
