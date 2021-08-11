@@ -1,4 +1,4 @@
-"""Anonymize container script"""
+"""CHC container script"""
 import json
 import logging
 import uuid
@@ -10,7 +10,7 @@ CONTAINER_NAME = "CHC"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 
-def request_processing_anonymize(client, container_services, body, pending_list):
+def request_processing_chc(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -32,12 +32,12 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
 
-    # Download target file to be processed (anonymized)
+    # Download target file to be processed (camera health check)
     raw_file = container_services.download_file(client,
                                                 container_services.raw_s3,
                                                 dict_body["s3_path"])
 
-    # Create a random uuid to identify a given video anonymization process
+    # Create a random uuid to identify a given camera health check process
     uid = str(uuid.uuid4())
 
     # Add entry for current video relay list on pending queue
@@ -53,6 +53,8 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     port_pod = '8081'
     req_command = 'feature_chain'
 
+    # TODO: CHANGE REQUEST COMMAND
+
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
     # Build address for request
@@ -67,10 +69,11 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
-def update_processing_anonymize(container_services, body, pending_list):
+def update_processing_chc(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
+    TODO: CHANGE FUNCTION DESCRIPTION
 
     Arguments:
         container_services {BaseAws.shared_functions.ContainerServices}
@@ -142,7 +145,7 @@ def main():
     # Define additional input SQS queues to listen to
     # (container_services.input_queue is the default queue
     # and doesn't need to be declared here)
-    api_sqs_queue = container_services.sqs_queues_list['API_Anonymize']
+    api_sqs_queue = container_services.sqs_queues_list['API_CHC']
 
     logging.info("\nListening to input queue(s)..\n")
 
@@ -157,7 +160,7 @@ def main():
 
         if message:
             # Processing request
-            request_processing_anonymize(s3_client,
+            request_processing_chc(s3_client,
                                          container_services,
                                          message['Body'],
                                          pending_queue)
@@ -172,7 +175,7 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list = update_processing_anonymize(container_services,
+            relay_list = update_processing_chc(container_services,
                                                      message_api['Body'],
                                                      pending_queue)
 
