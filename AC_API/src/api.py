@@ -4,8 +4,8 @@ import boto3
 import flask
 from baseaws.shared_functions import ContainerServices
 
-CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v5.2"      # Version of the current container
+CONTAINER_NAME = "AC_API"    # Name of the current container
+CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 app = flask.Flask(__name__)
 
@@ -30,7 +30,7 @@ def ready():
     return flask.jsonify(code='200', message='Ready')
 
 @app.route("/anonymized", methods=["POST"])
-def chain_producer():
+def anonymization():
     """Checks if received request has all the required parameters:
     - if yes, uploads the received file into the anonymized S3
       bucket and sends an update message to the API-Anonymize
@@ -88,6 +88,35 @@ def chain_producer():
     response = flask.jsonify(code='400', message=response_msg)
     response.status_code = 400
     return response
+
+@app.route("/cameracheck", methods=["POST"])
+def camera_check():
+    """Checks if received request has all the required parameters:
+    - if yes, ...
+    - if not, returns status code 400 + response message.
+
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + response message]
+    """
+    if flask.request.method == "POST":
+
+
+        # TODO
+
+
+
+        response_msg = 'Stored received video on S3 bucket!'
+        response = flask.jsonify(code='200', message=response_msg)
+        response.status_code = 200
+        return response
+
+    # Return error code 400 if one or more parameters are missing
+    response_msg = 'One or more request parameters missing!'
+    response = flask.jsonify(code='400', message=response_msg)
+    response.status_code = 400
+    return response
+
 
 if __name__ == '__main__':
 
