@@ -7,7 +7,7 @@ the cluster.
 
 import logging
 import requests
-
+'''
 IP_SVC = '10.142.226.82'
 PORT_POD = '5000'
 REQ_COMMAND = 'alive'
@@ -26,3 +26,4 @@ if __name__ == '__main__':
             print("Failed...!")
     except requests.exceptions.ConnectionError as error:
         logging.error(error)
+'''
