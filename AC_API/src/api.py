@@ -136,7 +136,7 @@ if __name__ == '__main__':
                                            version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
-    container_services.load_config_vars(s3_client)
+    #container_services.load_config_vars(s3_client)
 
     # Start API process
     app.run("0.0.0.0", use_reloader=True, debug=False)
