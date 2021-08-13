@@ -17,7 +17,7 @@ class ContainerServices():
         # Config variables
         self.__queues = {'list': {}, 'input': ""}
         self.__msp_steps = {}
-        self.__db_table = ""
+        self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
 
         # Container info
@@ -90,7 +90,7 @@ class ContainerServices():
         self.__msp_steps = dict_body['msp_processing_steps']
 
         # Name of the dynamoDB table used to store metadata
-        self.__db_table = dict_body['db_metadata_table']
+        self.__db_tables = dict_body['db_metadata_tables']
 
         # Name of the S3 bucket used to store raw video files
         self.__s3_buckets['raw'] = dict_body['s3_buckets']['raw']
@@ -262,8 +262,9 @@ class ContainerServices():
                                   dict structure created in the
                                   send_message function)]
         """
-        # Select table to use
-        table = resource.Table(self.__db_table)
+        # Select tables to use
+        table_pipe = resource.Table(self.__db_tables['pipeline_exec'])
+        table_algo_out = resource.Table(self.__db_tables['algo_output'])
 
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
@@ -273,7 +274,7 @@ class ContainerServices():
         source = attributes['SourceContainer']['StringValue']
 
         # Check if item with that name already exists
-        response = table.get_item(Key={'id': unique_id})
+        response = table_pipe.get_item(Key={'id': unique_id})
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
 
         if 'Item' in response:
@@ -284,16 +285,16 @@ class ContainerServices():
             db_expression = 'SET '+exp1+', '+exp2+', '+exp3
 
             # Update already existing item
-            table.update_item(
-                              Key={'id': unique_id},
-                              UpdateExpression=db_expression,
-                              ExpressionAttributeValues={
-                                                         ':val1': status,
-                                                         ':val2': source,
-                                                         ':val3': timestamp
-                                                        },
-                              ReturnValues="UPDATED_NEW"
-                            )
+            table_pipe.update_item(
+                                   Key={'id': unique_id},
+                                   UpdateExpression=db_expression,
+                                   ExpressionAttributeValues={
+                                                               ':val1': status,
+                                                               ':val2': source,
+                                                               ':val3': timestamp
+                                                               },
+                                   ReturnValues="UPDATED_NEW"
+                                   )
             logging.info("[%s]  DB item (Id: %s) updated!", timestamp,
                                                             unique_id)
         else:
@@ -307,7 +308,7 @@ class ContainerServices():
                         'processing_list': data['processing_steps'],
                         'last_updated': timestamp
                     }
-            table.put_item(Item=item_db)
+            table_pipe.put_item(Item=item_db)
             logging.info("[%s]  DB item (Id: %s) created!", timestamp,
                                                             unique_id)
 
