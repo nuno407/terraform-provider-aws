@@ -277,6 +277,7 @@ class ContainerServices():
         response = table_pipe.get_item(Key={'id': unique_id})
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
 
+        # Create/Update item on Pipeline Execution DB
         if 'Item' in response:
             # Build update expression
             exp1 = 'data_status = :val1'
@@ -295,8 +296,8 @@ class ContainerServices():
                                                                },
                                    ReturnValues="UPDATED_NEW"
                                    )
-            logging.info("[%s]  DB item (Id: %s) updated!", timestamp,
-                                                            unique_id)
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp,
+                                                                          unique_id)
         else:
             # Insert item if not created yet
             item_db = {
@@ -309,8 +310,26 @@ class ContainerServices():
                         'last_updated': timestamp
                     }
             table_pipe.put_item(Item=item_db)
-            logging.info("[%s]  DB item (Id: %s) created!", timestamp,
-                                                            unique_id)
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp,
+                                                                          unique_id)
+
+        # Create/Update item on Algorithm Output DB
+        if 'metadata' in data:
+            # Initialise variables used in item creation
+            full_path = self.__s3_buckets['anonymized']+'/'+data['s3_path']
+            run_id = source+'_'+unique_id
+
+            # Item creation
+            item_db = {
+                        'results': data['metadata'],
+                        'pipeline_id': unique_id,
+                        's3_path': full_path,
+                        'algorithm_id': source,
+                        'run_id': run_id
+                    }
+            table_algo_out.put_item(Item=item_db)
+            logging.info("[%s]  Algo Output DB item (Id: %s) created!", timestamp,
+                                                                        unique_id)
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
