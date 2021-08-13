@@ -4,7 +4,7 @@ RUN mkdir -p /app
 WORKDIR /app
 
 # Copy required directories to docker container
-COPY ./AC_API/src/ /app/src/
+COPY ./ACAPI/src/ /app/src/
 COPY ./baseaws/ /app/package/
 
 # Install BaseAws package (custom)

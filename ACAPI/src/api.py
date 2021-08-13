@@ -4,7 +4,7 @@ import boto3
 import flask
 from baseaws.shared_functions import ContainerServices
 
-CONTAINER_NAME = "AC_API"    # Name of the current container
+CONTAINER_NAME = "ACAPI"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 app = flask.Flask(__name__)
