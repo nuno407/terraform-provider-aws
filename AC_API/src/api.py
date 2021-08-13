@@ -101,9 +101,35 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.form.get("metadata"):
 
-        # TODO
+            # Get info attached to request (file -> video;
+            # uid -> video process id; path -> s3 path)
+            chunk = flask.request.files["file"]
+            uid = flask.request.form["uid"]
+            s3_path = flask.request.form["path"]
+            metadata = flask.request.form["metadata"]
 
+
+            # TODO
+
+
+            # Build message body
+            msg_body = {}
+            msg_body['uid'] = uid
+            msg_body['s3_path'] = s3_path
+            msg_body['bucket'] = container_services.anonymized_s3
+            msg_body['status'] = 'processing completed'
+            msg_body['metadata'] = metadata
+
+            # Send message to input queue of metadata container
+            api_queue = container_services.sqs_queues_list["API_CHC"]
+
+            container_services.send_message(sqs_client,
+                                            api_queue,
+                                            msg_body)
+
+            logging.info("-----------------------------------------------")
 
 
         response_msg = 'Stored received video on S3 bucket!'

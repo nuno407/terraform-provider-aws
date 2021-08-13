@@ -87,6 +87,9 @@ def update_processing_chc(container_services, body, pending_list):
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
                               the relevant containers]
+        meta_result {dict} -- [dict with the output metadata from the CHC
+                               that will be sent via message to the
+                               metadata container for DB storage]
     """
     logging.info("Processing API message..\n")
 
@@ -97,6 +100,9 @@ def update_processing_chc(container_services, body, pending_list):
 
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
+
+    # Retrives result metadata from api message
+    meta_result = msg_body['metadata']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -117,7 +123,7 @@ def update_processing_chc(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data
+    return relay_data, meta_result
 
 
 def main():
@@ -175,9 +181,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list = update_processing_chc(container_services,
-                                                     message_api['Body'],
-                                                     pending_queue)
+            relay_list, meta_db = update_processing_chc(container_services,
+                                                        message_api['Body'],
+                                                        pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)
@@ -187,6 +193,10 @@ def main():
                 container_services.send_message(sqs_client,
                                                 next_queue,
                                                 relay_list)
+
+            # Add the algorithm output metadata to the relay_list sent
+            # to the metadata container so it can be stored on the DB
+            relay_list['metadata'] = meta_db
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
