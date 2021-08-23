@@ -112,8 +112,7 @@ def camera_check():
             metadata_file = flask.request.files["metadata"]
 
             # Read metadata file into dictionary
-            with open(metadata_file) as json_file:
-                metadata = json.load(json_file)
+            metadata = json.loads(metadata_file.decode("utf-8"))
 
             # TODO: ADD FILE STORAGE PART
 
