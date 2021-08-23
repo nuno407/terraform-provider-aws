@@ -68,7 +68,7 @@ def request_processing_chc(client, container_services, body, pending_list):
                                             'dev-rcd-config-files',
                                             'containers/config_file_containers.json')
 
-    files = [('video', raw_file), ('metadata', meta_file)]
+    files = [('file', raw_file), ('metadata', meta_file)]
     #############################################
 
     # Build address for request
@@ -76,8 +76,12 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # Send API request (POST)
     try:
-        requests.post(addr, files=files, data=payload)
+        response = requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
+        #############################################
+        # TESTING
+        logging.info(response)
+        #############################################
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
 
