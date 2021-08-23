@@ -71,6 +71,7 @@ def request_processing_chc(client, container_services, body, pending_list):
     meta_dict = json.loads(meta_info.decode("utf-8"))
 
     logging.info(meta_dict)
+    logging.info(str(meta_dict))
 
     files = [('file', raw_file)]
     payload = {'uid': uid,
