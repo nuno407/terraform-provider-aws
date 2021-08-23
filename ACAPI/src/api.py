@@ -109,9 +109,12 @@ def camera_check():
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            metadata = flask.request.form["metadata"]
+            body = flask.request.form["metadata"]
 
             # TODO: ADD FILE STORAGE PART
+
+            new_body = body.replace("\'", "\"")
+            metadata = json.loads(new_body)
 
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
