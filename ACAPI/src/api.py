@@ -129,6 +129,10 @@ def camera_check():
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
             msg_body['metadata'] = metadata
+            
+
+            logging.info(metadata) #$$$$$$
+
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]

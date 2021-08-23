@@ -319,6 +319,10 @@ class ContainerServices():
             full_path = self.__s3_buckets['anonymized']+'/'+data['s3_path']
             run_id = source+'_'+unique_id
 
+
+            logging.info(data['metadata'])
+
+
             # Item creation
             item_db = {
                         'results': data['metadata'],
