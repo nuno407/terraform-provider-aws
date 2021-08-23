@@ -75,7 +75,7 @@ def request_processing_chc(client, container_services, body, pending_list):
     files = [('file', raw_file)]
     payload = {'uid': uid,
                'path': dict_body["s3_path"],
-               'metadata': meta_dict}
+               'metadata': str(meta_dict)}
     #############################################
 
     # Build address for request
