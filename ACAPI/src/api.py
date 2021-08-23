@@ -102,17 +102,14 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.files.get("metadata"):
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.form.get("metadata"):
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            metadata_file = flask.request.files["metadata"]
-
-            # Read metadata file into dictionary
-            metadata = json.loads(metadata_file.decode("utf-8"))
+            metadata = flask.request.form["metadata"]
 
             # TODO: ADD FILE STORAGE PART
 

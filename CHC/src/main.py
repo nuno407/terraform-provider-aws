@@ -64,11 +64,16 @@ def request_processing_chc(client, container_services, body, pending_list):
     port_pod = '5000'
     req_command = 'cameracheck'
 
-    meta_file = container_services.download_file(client,
+    meta_info = container_services.download_file(client,
                                             'dev-rcd-config-files',
                                             'containers/config_file_containers.json')
 
-    files = [('file', raw_file), ('metadata', meta_file)]
+    meta_dict = json.loads(meta_info.decode("utf-8"))
+
+    files = [('file', raw_file)]
+    payload = {'uid': uid,
+               'path': dict_body["s3_path"],
+               'metadata': meta_dict}
     #############################################
 
     # Build address for request
