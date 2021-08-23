@@ -122,6 +122,7 @@ def update_processing_chc(container_services, body, pending_list):
     # Converts message body from string to dict
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
+    logging.info(new_body) #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     msg_body = json.loads(new_body)
 
     # Retrives relay_list based on uid received from api message
