@@ -55,6 +55,17 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
+    #############################################
+    logging.info("+++++++++++++ TESTING +++++++++++++++++++++++++++++")
+    # TESTING -> Changed ip address to sent request directly to AC_API container
+    ip_pod = '172.20.7.38'
+    port_pod = '5000'
+    req_command = 'anonymized'
+
+
+    files = [('video', raw_file)]
+    #############################################
+
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
 

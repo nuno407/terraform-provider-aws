@@ -53,9 +53,23 @@ def request_processing_chc(client, container_services, body, pending_list):
     port_pod = '8081'
     req_command = 'feature_chain'
 
-    # TODO: CHANGE REQUEST COMMAND
+    # TODO: CHANGE REQUEST COMMAND (SPLIT)
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
+
+    #############################################
+    logging.info("+++++++++++++ TESTING +++++++++++++++++++++++++++++")
+    # TESTING -> Changed ip address to sent request directly to AC_API container
+    ip_pod = '172.20.7.38'
+    port_pod = '5000'
+    req_command = 'cameracheck'
+
+    meta_file = container_services.download_file(client,
+                                            'dev-rcd-config-files',
+                                            'containers/config_file_containers.json')
+
+    files = [('video', raw_file), ('metadata', meta_file)]
+    #############################################
 
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)

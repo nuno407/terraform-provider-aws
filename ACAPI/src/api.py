@@ -2,6 +2,7 @@
 import logging
 import boto3
 import flask
+import json
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
@@ -101,18 +102,29 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.form.get("metadata"):
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.files.get("metadata"):
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            metadata = flask.request.form["metadata"]
+            metadata_file = flask.request.files["metadata"]
 
+            # Read metadata file into dictionary
+            with open(metadata_file) as json_file:
+                metadata = json.load(json_file)
 
-            # TODO
+            # TODO: ADD FILE STORAGE PART
 
+            # Upload received video to S3 bucket
+            logging.info("-----------------------------------------------")
+            logging.info("API status update:")
+
+            container_services.upload_file(s3_client,
+                                           chunk,
+                                           container_services.anonymized_s3,
+                                           s3_path)
 
             # Build message body
             msg_body = {}
