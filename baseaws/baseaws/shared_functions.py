@@ -319,10 +319,6 @@ class ContainerServices():
             full_path = self.__s3_buckets['anonymized']+'/'+data['s3_path']
             run_id = source+'_'+unique_id
 
-
-            logging.info(data['metadata'])
-
-
             # Item creation
             item_db = {
                         'results': data['metadata'],
@@ -334,6 +330,8 @@ class ContainerServices():
             table_algo_out.put_item(Item=item_db)
             logging.info("[%s]  Algo Output DB item (Id: %s) created!", timestamp,
                                                                         unique_id)
+
+        # TODO: SPLIT THIS FUNCTION WHEN WE HAVE MORE TABLES
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket

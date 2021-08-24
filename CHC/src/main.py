@@ -57,7 +57,7 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
-    #############################################
+    ############################################# REMOVE THIS BLOCK AFTER TESTING
     logging.info("+++++++++++++ TESTING +++++++++++++++++++++++++++++")
     # TESTING -> Changed ip address to sent request directly to AC_API container
     ip_pod = '172.20.7.38'
@@ -71,7 +71,6 @@ def request_processing_chc(client, container_services, body, pending_list):
     meta_dict = json.loads(meta_info.decode("utf-8"))
 
     logging.info(meta_dict)
-    logging.info(str(meta_dict))
 
     files = [('file', raw_file)]
     payload = {'uid': uid,
@@ -84,12 +83,8 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # Send API request (POST)
     try:
-        response = requests.post(addr, files=files, data=payload)
+        requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
-        #############################################
-        # TESTING
-        logging.info(response)
-        #############################################
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
 
@@ -122,7 +117,6 @@ def update_processing_chc(container_services, body, pending_list):
     # Converts message body from string to dict
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
-    logging.info(new_body) #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     msg_body = json.loads(new_body)
 
     # Retrives relay_list based on uid received from api message

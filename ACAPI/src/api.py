@@ -1,4 +1,4 @@
-"""Anonymize API script"""
+"""Anonymize/CHC API script"""
 import logging
 import boto3
 import flask
@@ -54,10 +54,10 @@ def anonymization():
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
 
-            # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
             logging.info("API status update:")
 
+            # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
@@ -93,7 +93,11 @@ def anonymization():
 @app.route("/cameracheck", methods=["POST"])
 def camera_check():
     """Checks if received request has all the required parameters:
-    - if yes, ...
+    - if yes, uploads the received file into the anonymized S3
+      bucket, and sends an update message to the API-CHC
+      SQS queue with the results metadata (to be received by
+      the CHC container main script). Then, it returns status
+      code 200 + response message.
     - if not, returns status code 400 + response message.
 
     Arguments:
@@ -106,13 +110,13 @@ def camera_check():
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
+            # metadata -> chc results json
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
             body = flask.request.form["metadata"]
 
-            # TODO: ADD FILE STORAGE PART
-
+            # Converts metadata content from string to dict
             new_body = body.replace("\'", "\"")
             metadata = json.loads(new_body)
 
@@ -132,10 +136,6 @@ def camera_check():
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
             msg_body['metadata'] = metadata
-            
-
-            logging.info(metadata) #$$$$$$
-
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]
@@ -145,7 +145,6 @@ def camera_check():
                                             msg_body)
 
             logging.info("-----------------------------------------------")
-
 
         response_msg = 'Stored received video on S3 bucket!'
         response = flask.jsonify(code='200', message=response_msg)
