@@ -7,6 +7,8 @@ import logging
 import flask
 from botocore.exceptions import ClientError
 import boto3
+from flask_cors import CORS, cross_origin
+
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
@@ -16,6 +18,8 @@ ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
 
 app = flask.Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/alive", methods=["GET"])
 def alive():
