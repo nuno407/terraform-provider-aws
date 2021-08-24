@@ -18,7 +18,7 @@ ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
 
 app = flask.Flask(__name__)
-cors = CORS(app)
+CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/alive", methods=["GET"])
