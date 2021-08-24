@@ -63,6 +63,7 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     req_command = 'anonymized'
 
     files = [('file', raw_file)]
+    logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 
     # Build address for request
@@ -70,12 +71,8 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # Send API request (POST)
     try:
-        response = requests.post(addr, files=files, data=payload)
+        requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
-        #############################################
-        # TESTING
-        logging.info(response)
-        #############################################
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
 
