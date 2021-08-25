@@ -15,7 +15,7 @@ RUN pip install .
 WORKDIR /app/src
 RUN pip install -r requirements.txt
 
-# Run anonymize python script
+# Run CHC python script
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
 RUN ["chmod", "+x", "start_container.sh"]
 CMD ["sh", "start_container.sh"]
