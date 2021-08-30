@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 import pytz
-
+import boto3
 
 class ContainerServices():
     """ContainerServices
@@ -408,3 +408,55 @@ class ContainerServices():
         if uid:
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
+
+    def get_kinesis_clip(self, client, stream_name, start_time, end_time, selector):
+        """Retrieves a given chunk from the selected Kinesis video stream
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            stream_name {string} -- [name of the source Kinesis video stream]
+            start_time {datetime} -- [starting timestamp of the desired clip]
+            end_time {datetime} -- [ending timestamp of the desired clip]
+            selector {string} -- [string containg the origin of the timestamps
+                                  (can only be either 'PRODUCER_TIMESTAMP' or
+                                  'SERVER_TIMESTAMP')]
+        Returns:
+            video_clip {bytes} -- [Received chunk in bytes format]
+        """
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Downloading clip (stream: %s)..", timestamp,
+                                                              stream_name)
+
+        # Getting endpoint URL for GET_CLIP
+        response = client.get_data_endpoint(
+            StreamName=stream_name,
+            APIName='GET_CLIP'
+        )
+
+        endpoint_response = response['DataEndpoint']
+
+        # Create client using received endpoint URL
+        media_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response,
+                                    region_name='eu-central-1')
+
+        # Send request to get desired clip
+        response_media = media_client.get_clip(
+            StreamName=stream_name,
+            ClipFragmentSelector={
+                'FragmentSelectorType': selector,
+                'TimestampRange': {
+                    'StartTimestamp': start_time,
+                    'EndTimestamp': end_time
+                }
+            }
+        )
+
+        # Read all bytes from http response body
+        # (botocore.response.StreamingBody)
+        video_chunk = response_media['Payload'].read()
+
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Clip download completed!", timestamp)
+
+        return video_chunk

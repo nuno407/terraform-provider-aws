@@ -3,18 +3,21 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
-import requests
+from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 
-def processing_request(client, container_services, body):
+def processing_request(s3_client, kinesis_client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     TODO: COMPLETE DESCRIPTION
 
     Arguments:
-        client {boto3.client} -- [client used to access the S3 service]
+        s3_client {boto3.client} -- [client used to access
+                                     the S3 service]
+        kinesis_client {boto3.client} -- [client used to access
+                                          the Kinesis service]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
@@ -27,8 +30,31 @@ def processing_request(client, container_services, body):
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
 
-    # TODO: ADD PROCESS LOGIC HERE
+    # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
 
+    # TEST VALUES 
+    stream_name = 'test-kinesis'
+    start_time = datetime(2021, 8, 29)
+    end_time = datetime(2021, 8, 30)
+    selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
+
+    # Get Kinesis clip using received message parameters
+    video_clip = container_services.get_kinesis_clip(kinesis_client,
+                                                     stream_name,
+                                                     start_time,
+                                                     end_time,
+                                                     selector)
+
+    # TODO: DEFINE S3 PATH FOR CLIP
+    s3_path = 'lyft/test_clip.mp4'
+
+    # Upload video clip into raw data S3 bucket
+    container_services.upload_file(s3_client,
+                                   video_clip,
+                                    container_services.raw_s3,
+                                    s3_path)
+
+    # TODO: ADD CONCATENATION SCRIPT HERE
 
 def main():
     """Main function"""
@@ -44,6 +70,8 @@ def main():
                              region_name='eu-central-1')
     sqs_client = boto3.client('sqs',
                               region_name='eu-central-1')
+    kinesis_client = boto3.client('kinesisvideo',
+                                  region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
@@ -62,6 +90,7 @@ def main():
         if message:
             # Processing request
             processing_request(s3_client,
+                               kinesis_client,
                                container_services,
                                message['Body'])
 
