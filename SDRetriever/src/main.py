@@ -59,8 +59,7 @@ def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
                                     container_services.raw_s3,
                                     s3_path)
 
-
-def concatenate_metadata_full(s3_client, kinesis_client, container_services, body):
+def concatenate_metadata_full(s3_client, container_services, body):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
     the previous processed video clip, concatenates all the info
@@ -69,8 +68,6 @@ def concatenate_metadata_full(s3_client, kinesis_client, container_services, bod
     Arguments:
         s3_client {boto3.client} -- [client used to access
                                      the S3 service]
-        kinesis_client {boto3.client} -- [client used to access
-                                          the Kinesis service]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
@@ -196,9 +193,8 @@ def main():
 
             # Concatenate all metadata related to processed clip
             concatenate_metadata_full(s3_client,
-                                    kinesis_client,
-                                    container_services,
-                                    message['Body'])
+                                      container_services,
+                                      message['Body'])
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
