@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.0"      # Version of the current container
+CONTAINER_VERSION = "v2.1"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
@@ -90,7 +90,7 @@ def concatenate_metadata_full(s3_client, container_services, body):
 
     key_prefix = 'test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021'
     # name of the folder and file for the final concatenated file
-    key_full_metadata = 'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
+    key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
     ##############################
 
     # Get list of all files with the same key prefix as the one
