@@ -19,6 +19,7 @@ class ContainerServices():
         self.__msp_steps = {}
         self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
+        self.__s3_ignore = {'raw': "", 'anonymized': ""}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -60,6 +61,16 @@ class ContainerServices():
         """anonymized_s3 variable"""
         return self.__s3_buckets['anonymized']
 
+    @property
+    def raw_s3_ignore(self):
+        """raw_s3_ignore variable"""
+        return self.__s3_ignore['raw']
+
+    @property
+    def anonymized_s3_ignore(self):
+        """anonymized_s3_ignore variable"""
+        return self.__s3_ignore['anonymized']
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -97,6 +108,11 @@ class ContainerServices():
 
         # Name of the S3 bucket used to store anonymized video files
         self.__s3_buckets['anonymized'] = dict_body['s3_buckets']['anonymized']
+
+        # List of all file formats that should be ignored by
+        # the processing container
+        self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
+        self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
 
         logging.info("Load complete!\n")
 

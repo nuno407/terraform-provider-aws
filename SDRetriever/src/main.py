@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
