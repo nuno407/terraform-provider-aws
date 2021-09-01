@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.1"      # Version of the current container
+CONTAINER_VERSION = "v2.2"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
@@ -78,9 +78,10 @@ def concatenate_metadata_full(s3_client, container_services, body):
 
     # Converts message body from string to dict
     # (in order to perform index access)
+    '''
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
-
+    '''
     #############################
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
 
