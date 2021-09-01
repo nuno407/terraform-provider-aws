@@ -5,7 +5,7 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "SDM"          # Name of the current container
-CONTAINER_VERSION = "v6.1"      # Version of the current container
+CONTAINER_VERSION = "v6.2"      # Version of the current container
 
 
 def processing_sdm(container_services, body):
@@ -38,7 +38,8 @@ def processing_sdm(container_services, body):
     try:
         key_value.split('/')[1]
     except:
-        logging.info("\nWARNING: File %s is outside MSP folders!!\n", msp)
+        logging.info("\nWARNING: File %s will not be processed!!", msp)
+        logging.info("Reason: File is outside MSP folders\n")
         relay_data = {}
         return relay_data
 
@@ -48,6 +49,8 @@ def processing_sdm(container_services, body):
     file_name = key_value.split('/')[-1]
     file_format = file_name.split('.')[-1]
     if file_format in container_services.raw_s3_ignore:
+        logging.info("\nWARNING: File %s will not be processed!!\n", key_value)
+        logging.info("Reason: File format is on the Raw Data S3 ignore list\n")
         relay_data = {}
         return relay_data
 
