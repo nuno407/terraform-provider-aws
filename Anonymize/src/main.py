@@ -64,6 +64,10 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     req_command = 'anonymized'
 
     files = [('file', raw_file)]
+
+    files = [('file', raw_file)]
+    payload = {'uid': uid,
+               'path': dict_body["s3_path"]}
     logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 

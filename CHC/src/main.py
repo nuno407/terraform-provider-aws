@@ -54,8 +54,6 @@ def request_processing_chc(client, container_services, body, pending_list):
     port_pod = '8081'
     req_command = 'feature_chain'
 
-    # TODO: CHANGE REQUEST COMMAND (SPLIT)
-
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
     ############################################# REMOVE THIS BLOCK AFTER TESTING
