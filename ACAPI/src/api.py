@@ -6,7 +6,7 @@ import json
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 app = flask.Flask(__name__)
 

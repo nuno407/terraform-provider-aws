@@ -7,7 +7,7 @@ from baseaws.shared_functions import ContainerServices
 import requests
 
 CONTAINER_NAME = "CHC"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 
 def request_processing_chc(client, container_services, body, pending_list):

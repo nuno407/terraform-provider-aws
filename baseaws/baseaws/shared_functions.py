@@ -344,8 +344,8 @@ class ContainerServices():
                         'run_id': run_id
                     }
             table_algo_out.put_item(Item=item_db)
-            logging.info("[%s]  Algo Output DB item (Id: %s) created!", timestamp,
-                                                                        unique_id)
+            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,
+                                                                            run_id)
 
         # TODO: SPLIT THIS FUNCTION WHEN WE HAVE MORE TABLES
 

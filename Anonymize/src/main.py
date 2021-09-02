@@ -7,7 +7,7 @@ from baseaws.shared_functions import ContainerServices
 import requests
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v6.0"      # Version of the current container
+CONTAINER_VERSION = "v6.2"      # Version of the current container
 
 
 def request_processing_anonymize(client, container_services, body, pending_list):
