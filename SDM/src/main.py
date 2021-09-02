@@ -49,7 +49,7 @@ def processing_sdm(container_services, body):
     file_name = key_value.split('/')[-1]
     file_format = file_name.split('.')[-1]
     if file_format in container_services.raw_s3_ignore:
-        logging.info("\nWARNING: File %s will not be processed!!\n", key_value)
+        logging.info("\nWARNING: File %s will not be processed!!", key_value)
         logging.info("Reason: File format is on the Raw Data S3 ignore list\n")
         relay_data = {}
         return relay_data

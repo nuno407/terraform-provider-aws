@@ -45,7 +45,8 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
+               'path': dict_body["s3_path"],
+               'mode': "anonymize"}
     files = [('video', raw_file)]
 
     # Define settings for API request
@@ -195,6 +196,11 @@ def main():
                 container_services.send_message(sqs_client,
                                                 next_queue,
                                                 relay_list)
+
+            # Add the algorithm output metadata flag to the relay_list sent
+            # to the metadata container so that an item for this processing
+            # run can be created on the Algo Output DB
+            relay_list['metadata'] = "video"
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]

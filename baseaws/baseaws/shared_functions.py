@@ -337,7 +337,7 @@ class ContainerServices():
 
             # Item creation
             item_db = {
-                        'results': data['metadata'],
+                        'results': "check video on specified S3 path",
                         'pipeline_id': unique_id,
                         's3_path': full_path,
                         'algorithm_id': source,

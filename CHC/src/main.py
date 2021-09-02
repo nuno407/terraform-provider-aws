@@ -45,7 +45,8 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
+               'path': dict_body["s3_path"],
+               'mode': "chc"}
     files = [('video', raw_file)]
 
     # Define settings for API request
@@ -64,18 +65,10 @@ def request_processing_chc(client, container_services, body, pending_list):
     port_pod = '5000'
     req_command = 'cameracheck'
 
-    meta_info = container_services.download_file(client,
-                                            'dev-rcd-config-files',
-                                            'containers/config_file_containers.json')
-
-    meta_dict = json.loads(meta_info.decode("utf-8"))
-
-    logging.info(meta_dict)
-
     files = [('file', raw_file)]
     payload = {'uid': uid,
-               'path': dict_body["s3_path"],
-               'metadata': str(meta_dict)}
+               'path': dict_body["s3_path"]}
+
     logging.info("++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 
@@ -123,9 +116,6 @@ def update_processing_chc(container_services, body, pending_list):
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
 
-    # Retrives result metadata from api message
-    meta_result = msg_body['metadata']
-
     # Remove current step/container from the processing_steps
     # list (after processing)
     if relay_data["processing_steps"][0] == CONTAINER_NAME:
@@ -145,7 +135,7 @@ def update_processing_chc(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data, meta_result
+    return relay_data
 
 
 def main():
@@ -203,7 +193,7 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, meta_db = update_processing_chc(container_services,
+            relay_list = update_processing_chc(container_services,
                                                         message_api['Body'],
                                                         pending_queue)
 
@@ -216,9 +206,10 @@ def main():
                                                 next_queue,
                                                 relay_list)
 
-            # Add the algorithm output metadata to the relay_list sent
-            # to the metadata container so it can be stored on the DB
-            relay_list['metadata'] = meta_db
+            # Add the algorithm output metadata flag to the relay_list sent
+            # to the metadata container so that an item for this processing
+            # run can be created on the Algo Output DB
+            relay_list['metadata'] = "video"
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
