@@ -330,10 +330,10 @@ class ContainerServices():
                                                                           unique_id)
 
         # Create/Update item on Algorithm Output DB
-        if 'metadata' in data:
+        if 'output' in data:
             # Initialise variables used in item creation
-            full_path = self.__s3_buckets['anonymized']+'/'+data['s3_path']
-            run_id = source+'_'+unique_id
+            full_path = data['output']['bucket'] + '/' + data['output']['path']
+            run_id = source + '_' + unique_id
 
             # Item creation
             item_db = {

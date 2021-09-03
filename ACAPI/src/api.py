@@ -57,16 +57,20 @@ def anonymization():
             logging.info("-----------------------------------------------")
             logging.info("API status update:")
 
+            # Rename file to be stored by adding the name of
+            # the algorithm that processed the file
+            path, file_extension = s3_path.split('.')
+            new_upload_path = path + "_anonymized." + file_extension
+
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
-                                           s3_path)
-
+                                           new_upload_path)
             # Build message body
             msg_body = {}
             msg_body['uid'] = uid
-            msg_body['s3_path'] = s3_path
+            msg_body['output_path'] = new_upload_path
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
 
@@ -119,15 +123,20 @@ def camera_check():
             logging.info("-----------------------------------------------")
             logging.info("API status update:")
 
+            # Rename file to be stored by adding the name of
+            # the algorithm that processed the file
+            path, file_extension = s3_path.split('.')
+            new_upload_path = path + "_chc." + file_extension
+
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
-                                           s3_path)
+                                           new_upload_path)
 
             # Build message body
             msg_body = {}
             msg_body['uid'] = uid
-            msg_body['s3_path'] = s3_path
+            msg_body['output_path'] = new_upload_path
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
 

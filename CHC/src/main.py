@@ -10,7 +10,7 @@ CONTAINER_NAME = "CHC"    # Name of the current container
 CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 
-def request_processing_chc(client, container_services, body, pending_list):
+def request_processing(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -82,7 +82,7 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
-def update_processing_chc(container_services, body, pending_list):
+def update_processing(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
@@ -114,6 +114,11 @@ def update_processing_chc(container_services, body, pending_list):
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
 
+    # Retrieve output info from received message
+    output_info = {}
+    output_info['path'] = msg_body['output_path']
+    output_info['bucket'] = msg_body['bucket']
+
     # Remove current step/container from the processing_steps
     # list (after processing)
     if relay_data["processing_steps"][0] == CONTAINER_NAME:
@@ -133,7 +138,7 @@ def update_processing_chc(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data
+    return relay_data, output_info
 
 
 def main():
@@ -176,10 +181,10 @@ def main():
 
         if message:
             # Processing request
-            request_processing_chc(s3_client,
-                                         container_services,
-                                         message['Body'],
-                                         pending_queue)
+            request_processing(s3_client,
+                               container_services,
+                               message['Body'],
+                               pending_queue)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
@@ -191,7 +196,7 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list = update_processing_chc(container_services,
+            relay_list, output_info = update_processing(container_services,
                                                         message_api['Body'],
                                                         pending_queue)
 
@@ -204,10 +209,10 @@ def main():
                                                 next_queue,
                                                 relay_list)
 
-            # Add the algorithm output metadata flag to the relay_list sent
+            # Add the algorithm output flag/info to the relay_list sent
             # to the metadata container so that an item for this processing
             # run can be created on the Algo Output DB
-            relay_list['metadata'] = "video"
+            relay_list['output'] = output_info
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
