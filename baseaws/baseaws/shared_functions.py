@@ -335,9 +335,16 @@ class ContainerServices():
             full_path = data['output']['bucket'] + '/' + data['output']['path']
             run_id = source + '_' + unique_id
 
+            # Checks if algorithm output has metadata and stores it on db
+            # (otherwise just displays a reference message to the video path)
+            if 'metadata' in data:
+                result_info = data['metadata']
+            else: 
+                result_info = "No metadata generated (only video file)"
+
             # Item creation
             item_db = {
-                        'results': "check video on specified S3 path",
+                        'results': result_info,
                         'pipeline_id': unique_id,
                         's3_path': full_path,
                         'algorithm_id': source,
