@@ -100,6 +100,9 @@ def update_processing(container_services, body, pending_list):
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
                               the relevant containers]
+        output_info {dict} -- [dict with the output S3 path and bucket
+                               information, where the CHC video will be
+                               stored]
     """
     logging.info("Processing API message..\n")
 
@@ -193,9 +196,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, output_info = update_processing(container_services,
-                                                        message_api['Body'],
-                                                        pending_queue)
+            relay_list, out_s3 = update_processing(container_services,
+                                                   message_api['Body'],
+                                                   pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)
@@ -209,7 +212,7 @@ def main():
             # Add the algorithm output flag/info to the relay_list sent
             # to the metadata container so that an item for this processing
             # run can be created on the Algo Output DB
-            relay_list['output'] = output_info
+            relay_list['output'] = out_s3
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
