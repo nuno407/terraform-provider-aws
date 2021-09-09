@@ -63,9 +63,16 @@ def request_processing(client, container_services, body, pending_list):
     port_pod = '5000'
     req_command = 'cameracheck'
 
+    meta_info = container_services.download_file(client,
+                                            'dev-rcd-config-files',
+                                            'containers/config_file_containers.json')
+
+    meta_dict = json.loads(meta_info.decode("utf-8"))                                            
+
     files = [('file', raw_file)]
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
+               'path': dict_body["s3_path"],
+               'metadata': str(meta_dict)}
 
     logging.info("++++++++++++++++++++++++++++++++++++++++++")
     #############################################
