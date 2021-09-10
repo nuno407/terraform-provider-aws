@@ -178,7 +178,7 @@ class ContainerServices():
     def delete_message(self, client, receipt_handle, input_queue=None):
         """Deletes received SQS message
 
-        Arguments:
+            Arguments:
             client {boto3.client} -- [client used to access the SQS service]
             receipt_handle {string} -- [Receipt that identifies the received
                                         message to be deleted]
