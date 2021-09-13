@@ -116,8 +116,8 @@ def update_processing(container_services, body, pending_list):
 
     # Retrieve output info from received message
     output_info = {}
-    output_info['path'] = msg_body['output_path']
     output_info['bucket'] = msg_body['bucket']
+    output_info['video_path'] = msg_body['video_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)

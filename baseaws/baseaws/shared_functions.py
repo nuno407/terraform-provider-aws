@@ -332,24 +332,41 @@ class ContainerServices():
         # Create/Update item on Algorithm Output DB
         if 'output' in data:
             # Initialise variables used in item creation
-            full_path = data['output']['bucket'] + '/' + data['output']['path']
-            run_id = source + '_' + unique_id
-
-            # Checks if algorithm output has metadata and stores it on db
-            # (otherwise just displays a reference message to the video path)
-            if 'metadata' in data:
-                result_info = data['metadata']
-            else: 
-                result_info = "No metadata generated (only video file)"
+            outputs = data['output']
+            full_path = outputs['bucket'] + '/' + outputs['video_path']
+            run_id = unique_id + '_' + source 
 
             # Item creation
             item_db = {
-                        'results': result_info,
                         'pipeline_id': unique_id,
-                        's3_path': full_path,
+                        'video_s3_path': full_path,
                         'algorithm_id': source,
                         'run_id': run_id
                     }
+            
+            # Checks if algorithm output has metadata and stores it on db
+            if 'meta_path' in outputs:
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                    Bucket=outputs['bucket'],
+                    Key=outputs['meta_path']
+                )
+
+                # Load config file (botocore.response.StreamingBody)
+                # content to dictionary
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Adds metadata json file path to item
+                item_db['meta_s3_path'] = outputs['meta_path']
+            else: 
+                result_info = "No metadata available"
+                item_db['meta_s3_path'] = "-"
+
+            item_db['results'] = result_info
             table_algo_out.put_item(Item=item_db)
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,
                                                                             run_id)

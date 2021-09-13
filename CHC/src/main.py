@@ -108,11 +108,8 @@ def update_processing(container_services, body, pending_list):
                               and to be sent via message to the input queues of
                               the relevant containers]
         output_info {dict} -- [dict with the output S3 path and bucket
-                               information, where the CHC video will be
-                               stored]
-        meta_result {dict} -- [dict with the output metadata from the CHC
-                               that will be sent via message to the
-                               metadata container for DB storage]
+                               information, where the CHC video and json files
+                               will be stored]
     """
     logging.info("Processing API message..\n")
 
@@ -126,11 +123,9 @@ def update_processing(container_services, body, pending_list):
 
     # Retrieve output info from received message
     output_info = {}
-    output_info['path'] = msg_body['output_path']
     output_info['bucket'] = msg_body['bucket']
-
-    # Retrives result metadata from api message 
-    meta_result = msg_body['metadata']
+    output_info['video_path'] = msg_body['video_path']
+    output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -151,7 +146,7 @@ def update_processing(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data, output_info, meta_result
+    return relay_data, output_info
 
 
 def main():
@@ -209,9 +204,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, out_s3, meta_db = update_processing(container_services,
-                                                            message_api['Body'],
-                                                            pending_queue)
+            relay_list, out_s3 = update_processing(container_services,
+                                                   message_api['Body'],
+                                                   pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)
@@ -222,14 +217,10 @@ def main():
                                                 next_queue,
                                                 relay_list)
 
-            # Add the algorithm output flag/info to the relay_list sent
+            # Add the algorithm output info to the relay_list sent
             # to the metadata container so that an item for this processing
             # run can be created on the Algo Output DB
             relay_list['output'] = out_s3
-
-            # Add the algorithm output metadata to the relay_list sent
-            # to the metadata container so it can be stored on the DB
-            relay_list['metadata'] = meta_db
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]

@@ -60,19 +60,23 @@ def anonymization():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            new_upload_path = path + "_anonymized." + file_extension
+            video_upload_path = path + "_anonymized." + file_extension
 
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
-                                           new_upload_path)
+                                           video_upload_path)
+
             # Build message body
             msg_body = {}
+            # Processing info
             msg_body['uid'] = uid
-            msg_body['output_path'] = new_upload_path
-            msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
+            # Output files bucket
+            msg_body['bucket'] = container_services.anonymized_s3
+            # Video file path
+            msg_body['video_path'] = video_upload_path
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_Anonymize"]
@@ -118,7 +122,7 @@ def camera_check():
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            meta_body = json.load(flask.request.files["metadata"])
+            meta_body = flask.request.files["metadata"]
 
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
@@ -127,24 +131,33 @@ def camera_check():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            new_upload_path = path + "_chc." + file_extension
+            video_upload_path = path + "_chc." + file_extension
 
-            # Converts metadata content from string to dict
-            #new_body = meta_body.replace("\'", "\"")
-            #metadata = json.loads(new_body)
-
+            # Upload video file to anonymized S3 bucket
             container_services.upload_file(s3_client,
                                            chunk,
                                            container_services.anonymized_s3,
-                                           new_upload_path)
+                                           video_upload_path)
 
+            # Rename metadata file to be stored by adding the name of
+            # the algorithm that processed the file
+            meta_upload_path = path + "_chc.json"
+
+            container_services.upload_file(s3_client,
+                                           meta_body,
+                                           container_services.anonymized_s3,
+                                           meta_upload_path)
             # Build message body
             msg_body = {}
+            # Processing info
             msg_body['uid'] = uid
-            msg_body['output_path'] = new_upload_path
-            msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
-            msg_body['metadata'] = meta_body
+            # Output files bucket
+            msg_body['bucket'] = container_services.anonymized_s3
+            # Video file path
+            msg_body['video_path'] = video_upload_path
+            # Metadata file (json) path
+            msg_body['meta_path'] = meta_upload_path
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]
@@ -155,16 +168,16 @@ def camera_check():
 
             logging.info("-----------------------------------------------")
 
-        response_msg = 'Stored received video on S3 bucket!'
-        response = flask.jsonify(code='200', message=response_msg)
-        response.status_code = 200
-        return response
+            response_msg = 'Stored received video on S3 bucket!'
+            response = flask.jsonify(code='200', message=response_msg)
+            response.status_code = 200
+            return response
 
-    # Return error code 400 if one or more parameters are missing
-    response_msg = 'One or more request parameters missing!'
-    response = flask.jsonify(code='400', message=response_msg)
-    response.status_code = 400
-    return response
+        # Return error code 400 if one or more parameters are missing
+        response_msg = 'One or more request parameters missing!'
+        response = flask.jsonify(code='400', message=response_msg)
+        response.status_code = 400
+        return response
 
 
 if __name__ == '__main__':
