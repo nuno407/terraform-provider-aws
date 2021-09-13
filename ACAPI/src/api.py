@@ -110,7 +110,7 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.form.get("metadata"):
+        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path") and flask.request.json.get("metadata"):
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
@@ -118,7 +118,7 @@ def camera_check():
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            meta_body = flask.request.form["metadata"]
+            meta_body = flask.request.json["metadata"]
 
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
@@ -130,8 +130,8 @@ def camera_check():
             new_upload_path = path + "_chc." + file_extension
 
             # Converts metadata content from string to dict
-            new_body = meta_body.replace("\'", "\"")
-            metadata = json.loads(new_body)
+            #new_body = meta_body.replace("\'", "\"")
+            #metadata = json.loads(new_body)
 
             container_services.upload_file(s3_client,
                                            chunk,
@@ -144,7 +144,7 @@ def camera_check():
             msg_body['output_path'] = new_upload_path
             msg_body['bucket'] = container_services.anonymized_s3
             msg_body['status'] = 'processing completed'
-            msg_body['metadata'] = metadata
+            msg_body['metadata'] = meta_body
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]
@@ -154,6 +154,7 @@ def camera_check():
                                             msg_body)
 
             logging.info("-----------------------------------------------")
+            logging.info(meta_body)
 
         response_msg = 'Stored received video on S3 bucket!'
         response = flask.jsonify(code='200', message=response_msg)

@@ -67,12 +67,13 @@ def request_processing(client, container_services, body, pending_list):
                                             'dev-rcd-config-files',
                                             'containers/config_file_containers.json')
 
-    meta_dict = json.loads(meta_info.decode("utf-8"))                                            
+    #meta_dict = json.loads(meta_info.decode("utf-8"))                                            
 
     files = [('file', raw_file)]
     payload = {'uid': uid,
-               'path': dict_body["s3_path"],
-               'metadata': str(meta_dict)}
+               'path': dict_body["s3_path"]}
+    #           'metadata': str(meta_dict)}
+    payload_json={'metadata': meta_info}
 
     logging.info("++++++++++++++++++++++++++++++++++++++++++")
     #############################################
@@ -82,7 +83,8 @@ def request_processing(client, container_services, body, pending_list):
 
     # Send API request (POST)
     try:
-        requests.post(addr, files=files, data=payload)
+        #requests.post(addr, files=files, data=payload)
+        requests.post(addr, files=files, data=payload, json=payload_json)
         logging.info("API POST request sent! (uid: %s)", uid)
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
