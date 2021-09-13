@@ -65,7 +65,7 @@ def request_processing(client, container_services, body, pending_list):
 
     meta_info = container_services.download_file(client,
                                             'dev-rcd-config-files',
-                                            'containers/config_file_containers.json')                                          
+                                            'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json')                                          
 
     files = [('file', raw_file), 
              ('metadata', ('containers/config_file_containers.json', meta_info, 'application/json')),]
