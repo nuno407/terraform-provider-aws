@@ -68,7 +68,7 @@ def request_processing(client, container_services, body, pending_list):
                                             'containers/config_file_containers.json')                                          
 
     files = [('file', raw_file), 
-             ('metadata', (meta_info, 'application/json')),]
+             ('metadata', ('containers/config_file_containers.json', meta_info, 'application/json')),]
     payload = {'uid': uid,
                'path': dict_body["s3_path"]
                }

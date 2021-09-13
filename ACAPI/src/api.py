@@ -133,10 +133,10 @@ def camera_check():
             #new_body = meta_body.replace("\'", "\"")
             #metadata = json.loads(new_body)
 
-            #container_services.upload_file(s3_client,
-            #                               chunk,
-            #                               container_services.anonymized_s3,
-            #                               new_upload_path)
+            container_services.upload_file(s3_client,
+                                           chunk,
+                                           container_services.anonymized_s3,
+                                           new_upload_path)
 
             # Build message body
             msg_body = {}
@@ -149,9 +149,9 @@ def camera_check():
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]
 
-            #container_services.send_message(sqs_client,
-            #                                api_queue,
-            #                                msg_body)
+            container_services.send_message(sqs_client,
+                                            api_queue,
+                                            msg_body)
 
             logging.info("-----------------------------------------------")
 
