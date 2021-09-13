@@ -110,17 +110,7 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.form.get("uid") and flask.request.form.get("path"):
-            ##########################################
-            # TEST
-            logging.info("TESTING")
-            
-            #logging.info(flask.request.json["metadata"])
-            logging.info("#########")
-            logging.info(flask.request.get_json(force=True))
-            logging.info(flask.request.json)
-            logging.info("################")
-            ##########################################
+        if flask.request.files.get("file") and flask.request.files.get("metadata") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
@@ -128,7 +118,7 @@ def camera_check():
             chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            meta_body = flask.request.json["metadata"]
+            meta_body = json.load(flask.request.files["metadata"])
 
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
@@ -143,10 +133,10 @@ def camera_check():
             #new_body = meta_body.replace("\'", "\"")
             #metadata = json.loads(new_body)
 
-            container_services.upload_file(s3_client,
-                                           chunk,
-                                           container_services.anonymized_s3,
-                                           new_upload_path)
+            #container_services.upload_file(s3_client,
+            #                               chunk,
+            #                               container_services.anonymized_s3,
+            #                               new_upload_path)
 
             # Build message body
             msg_body = {}
@@ -159,12 +149,11 @@ def camera_check():
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_CHC"]
 
-            container_services.send_message(sqs_client,
-                                            api_queue,
-                                            msg_body)
+            #container_services.send_message(sqs_client,
+            #                                api_queue,
+            #                                msg_body)
 
             logging.info("-----------------------------------------------")
-            logging.info(meta_body)
 
         response_msg = 'Stored received video on S3 bucket!'
         response = flask.jsonify(code='200', message=response_msg)
