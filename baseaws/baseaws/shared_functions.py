@@ -361,7 +361,7 @@ class ContainerServices():
                 result_info = json.loads(response['Body'].read().decode("utf-8"))
 
                 # Adds metadata json file path to item
-                item_db['meta_s3_path'] = outputs['meta_path']
+                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
             else: 
                 result_info = "No metadata available"
                 item_db['meta_s3_path'] = "-"
