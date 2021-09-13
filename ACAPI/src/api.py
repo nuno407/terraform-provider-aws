@@ -117,7 +117,7 @@ def camera_check():
             
             #logging.info(flask.request.json["metadata"])
             logging.info("#########")
-            logging.info(flask.request.get_json)
+            logging.info(flask.request.get_json(force=True))
             logging.info(flask.request.json)
             logging.info("################")
             ##########################################
