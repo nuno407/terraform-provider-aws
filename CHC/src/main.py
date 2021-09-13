@@ -68,7 +68,7 @@ def request_processing(client, container_services, body, pending_list):
                                             'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json')                                          
 
     files = [('file', raw_file), 
-             ('metadata', ('containers/config_file_containers.json', meta_info, 'application/json')),]
+             ('metadata', ('metadata_test_file', meta_info, 'application/json')),]
     payload = {'uid': uid,
                'path': dict_body["s3_path"]
                }
