@@ -187,12 +187,12 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-            '''
+
             transfer_kinesis_clip(s3_client,
                                   kinesis_client,
                                   container_services,
                                   message['Body'])
-            '''
+
             # Concatenate all metadata related to processed clip
             concatenate_metadata_full(s3_client,
                                       container_services,
