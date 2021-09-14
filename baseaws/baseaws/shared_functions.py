@@ -449,7 +449,7 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
 
-    def get_kinesis_clip(self, client, stream_name, start_time, end_time, selector):
+    def get_kinesis_clip(self, client, stream_name, stream_arn, start_time, end_time, selector):
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
@@ -470,6 +470,7 @@ class ContainerServices():
         # Getting endpoint URL for GET_CLIP
         response = client.get_data_endpoint(
             StreamName=stream_name,
+            StreamARN=stream_arn,
             APIName='GET_CLIP'
         )
 

@@ -41,11 +41,13 @@ def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
     start_time = datetime(2021, 8, 29)
     end_time = datetime(2021, 8, 30)
     selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
+    stream_arn = "arn:aws:kinesisvideo:eu-central-1:213279581081:stream/TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder/1630061769043"
     #############################
 
     # Get Kinesis clip using received message parameters
     video_clip = container_services.get_kinesis_clip(kinesis_client,
                                                      stream_name,
+                                                     stream_arn,
                                                      start_time,
                                                      end_time,
                                                      selector)
