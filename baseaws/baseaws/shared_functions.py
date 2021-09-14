@@ -469,10 +469,10 @@ class ContainerServices():
 
         # Getting endpoint URL for GET_CLIP
         response = client.get_data_endpoint(
-            StreamName=stream_name,
             StreamARN=stream_arn,
             APIName='GET_CLIP'
         )
+        # StreamName=stream_name,
 
         endpoint_response = response['DataEndpoint']
 
