@@ -37,7 +37,7 @@ def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
 
     # TEST VALUES 
-    stream_name = 'test-kinesis'
+    stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
     start_time = datetime(2021, 8, 29)
     end_time = datetime(2021, 8, 30)
     selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
