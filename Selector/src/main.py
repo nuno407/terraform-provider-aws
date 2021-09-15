@@ -33,9 +33,6 @@ def request_process_selector(client, container_services, body, pending_list):
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
 
-    # Create a random uuid to identify a given camera health check process
-    uid = str(uuid.uuid4())
-
     # Add entry for current video relay list on pending queue
     pending_list[uid] = dict_body
 
@@ -48,6 +45,8 @@ def request_process_selector(client, container_services, body, pending_list):
         if info.get('events'):
             for event in info.get('events'):
                 if event.get("value", "") == '1':
+                    # Create a random uuid to identify a given camera health check process
+                    uid = str(uuid.uuid4())
                     payload = {'device_id': device_id}
                     timestamps = event.get('timestamp_ms')
                     cal_date = datetime.fromtimestamp(int(timestamps[:10]))
