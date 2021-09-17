@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 import pytz
-
+import boto3
 
 class ContainerServices():
     """ContainerServices
@@ -19,6 +19,7 @@ class ContainerServices():
         self.__msp_steps = {}
         self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
+        self.__s3_ignore = {'raw': "", 'anonymized': ""}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -60,6 +61,16 @@ class ContainerServices():
         """anonymized_s3 variable"""
         return self.__s3_buckets['anonymized']
 
+    @property
+    def raw_s3_ignore(self):
+        """raw_s3_ignore variable"""
+        return self.__s3_ignore['raw']
+
+    @property
+    def anonymized_s3_ignore(self):
+        """anonymized_s3_ignore variable"""
+        return self.__s3_ignore['anonymized']
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -97,6 +108,11 @@ class ContainerServices():
 
         # Name of the S3 bucket used to store anonymized video files
         self.__s3_buckets['anonymized'] = dict_body['s3_buckets']['anonymized']
+
+        # List of all file formats that should be ignored by
+        # the processing container
+        self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
+        self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
 
         logging.info("Load complete!\n")
 
@@ -314,22 +330,46 @@ class ContainerServices():
                                                                           unique_id)
 
         # Create/Update item on Algorithm Output DB
-        if 'metadata' in data:
+        if 'output' in data:
             # Initialise variables used in item creation
-            full_path = self.__s3_buckets['anonymized']+'/'+data['s3_path']
-            run_id = source+'_'+unique_id
+            outputs = data['output']
+            full_path = outputs['bucket'] + '/' + outputs['video_path']
+            run_id = unique_id + '_' + source 
 
             # Item creation
             item_db = {
-                        'results': data['metadata'],
                         'pipeline_id': unique_id,
-                        's3_path': full_path,
+                        'video_s3_path': full_path,
                         'algorithm_id': source,
                         'run_id': run_id
                     }
+            
+            # Checks if algorithm output has metadata and stores it on db
+            if 'meta_path' in outputs:
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                    Bucket=outputs['bucket'],
+                    Key=outputs['meta_path']
+                )
+
+                # Load config file (botocore.response.StreamingBody)
+                # content to dictionary
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Adds metadata json file path to item
+                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
+            else: 
+                result_info = "No metadata available"
+                item_db['meta_s3_path'] = "-"
+
+            item_db['results'] = result_info
             table_algo_out.put_item(Item=item_db)
-            logging.info("[%s]  Algo Output DB item (Id: %s) created!", timestamp,
-                                                                        unique_id)
+            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,
+                                                                            run_id)
 
         # TODO: SPLIT THIS FUNCTION WHEN WE HAVE MORE TABLES
 
@@ -408,3 +448,56 @@ class ContainerServices():
         if uid:
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
+
+    def get_kinesis_clip(self, client, stream_name, stream_arn, start_time, end_time, selector):
+        """Retrieves a given chunk from the selected Kinesis video stream
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            stream_name {string} -- [name of the source Kinesis video stream]
+            start_time {datetime} -- [starting timestamp of the desired clip]
+            end_time {datetime} -- [ending timestamp of the desired clip]
+            selector {string} -- [string containg the origin of the timestamps
+                                  (can only be either 'PRODUCER_TIMESTAMP' or
+                                  'SERVER_TIMESTAMP')]
+        Returns:
+            video_clip {bytes} -- [Received chunk in bytes format]
+        """
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Downloading clip (stream: %s)..", timestamp,
+                                                              stream_name)
+
+        # Getting endpoint URL for GET_CLIP
+        response = client.get_data_endpoint(
+            StreamARN=stream_arn,
+            APIName='GET_CLIP'
+        )
+        # StreamName=stream_name,
+
+        endpoint_response = response['DataEndpoint']
+
+        # Create client using received endpoint URL
+        media_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response,
+                                    region_name='eu-central-1')
+
+        # Send request to get desired clip
+        response_media = media_client.get_clip(
+            StreamName=stream_name,
+            ClipFragmentSelector={
+                'FragmentSelectorType': selector,
+                'TimestampRange': {
+                    'StartTimestamp': start_time,
+                    'EndTimestamp': end_time
+                }
+            }
+        )
+
+        # Read all bytes from http response body
+        # (botocore.response.StreamingBody)
+        video_chunk = response_media['Payload'].read()
+
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Clip download completed!", timestamp)
+
+        return video_chunk

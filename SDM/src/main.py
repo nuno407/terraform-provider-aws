@@ -5,7 +5,7 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "SDM"          # Name of the current container
-CONTAINER_VERSION = "v5.2"      # Version of the current container
+CONTAINER_VERSION = "v6.2"      # Version of the current container
 
 
 def processing_sdm(container_services, body):
@@ -23,8 +23,6 @@ def processing_sdm(container_services, body):
                             of the relevant containers]
     """
 
-    logging.info("Processing pipeline message..\n")
-
     # Converts message body from string to dict
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
@@ -32,7 +30,33 @@ def processing_sdm(container_services, body):
 
     # Access key value from msg body
     key_value = dict_body["Records"][0]["s3"]["object"]["key"]
+    # Get provider (MSP) name
     msp = key_value.split('/')[0]
+
+    # If file is stored outside the providers folders then
+    # provide a warning about the error and stop processing the current file
+    try:
+        key_value.split('/')[1]
+    except:
+        logging.info("\nWARNING: File %s will not be processed!!", msp)
+        logging.info("Reason: File is outside MSP folders\n")
+        relay_data = {}
+        return relay_data
+
+    # If received file format is in the config file ignore list,
+    # then the processing of the file is stopped and the file is
+    # ignored by the data ingestion pipeline
+    file_name = key_value.split('/')[-1]
+    file_format = file_name.split('.')[-1]
+    if file_format in container_services.raw_s3_ignore:
+        logging.info("\nWARNING: File %s will not be processed!!", key_value)
+        logging.info("Reason: File format is on the Raw Data S3 ignore list\n")
+        relay_data = {}
+        return relay_data
+
+    # TODO: DEFINE PROCESS FOR METADATA FULL FILES (SHOULD BE DIRECTLY ADDED TO DB?)
+
+    logging.info("Processing pipeline message..\n")
 
     # Creates relay list to be used by other containers
     relay_data = {}
@@ -77,20 +101,23 @@ def main():
             # Processing step
             relay_list = processing_sdm(container_services, message['Body'])
 
-            # Send message to input queue of the next processing step
-            # (if applicable)
-            if relay_list["processing_steps"]:
-                next_step = relay_list["processing_steps"][0]
-                next_queue = container_services.sqs_queues_list[next_step]
-                container_services.send_message(sqs_client,
-                                                next_queue,
-                                                relay_list)
+            # If file received is valid
+            if relay_list:
 
-            # Send message to input queue of metadata container
-            metadata_queue = container_services.sqs_queues_list["Metadata"]
-            container_services.send_message(sqs_client,
-                                            metadata_queue,
-                                            relay_list)
+                # Send message to input queue of the next processing step
+                # (if applicable)
+                if relay_list["processing_steps"]:
+                    next_step = relay_list["processing_steps"][0]
+                    next_queue = container_services.sqs_queues_list[next_step]
+                    container_services.send_message(sqs_client,
+                                                    next_queue,
+                                                    relay_list)
+
+                # Send message to input queue of metadata container
+                metadata_queue = container_services.sqs_queues_list["Metadata"]
+                container_services.send_message(sqs_client,
+                                                metadata_queue,
+                                                relay_list)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,

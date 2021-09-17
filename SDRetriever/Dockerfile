@@ -4,7 +4,7 @@ RUN mkdir -p /app
 WORKDIR /app
 
 # Copy required directories to docker container
-COPY ./ACAPI/src/ /app/src/
+COPY ./SDRetriever/src/ /app/src/
 COPY ./baseaws/ /app/package/
 
 # Install BaseAws package (custom)
@@ -15,7 +15,7 @@ RUN pip install .
 WORKDIR /app/src
 RUN pip install -r requirements.txt
 
-# Run AC_API python script
+# Run SDRetriever python script
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
 RUN ["chmod", "+x", "start_container.sh"]
 CMD ["sh", "start_container.sh"]

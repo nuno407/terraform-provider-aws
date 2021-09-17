@@ -7,10 +7,10 @@ from baseaws.shared_functions import ContainerServices
 import requests
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v6.0"      # Version of the current container
+CONTAINER_VERSION = "v6.2"      # Version of the current container
 
 
-def request_processing_anonymize(client, container_services, body, pending_list):
+def request_processing(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -45,7 +45,8 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
+               'path': dict_body["s3_path"],
+               'mode': "anonymize"}
     files = [('video', raw_file)]
 
     # Define settings for API request
@@ -63,6 +64,10 @@ def request_processing_anonymize(client, container_services, body, pending_list)
     req_command = 'anonymized'
 
     files = [('file', raw_file)]
+
+    files = [('file', raw_file)]
+    payload = {'uid': uid,
+               'path': dict_body["s3_path"]}
     logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 
@@ -78,7 +83,7 @@ def request_processing_anonymize(client, container_services, body, pending_list)
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
-def update_processing_anonymize(container_services, body, pending_list):
+def update_processing(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
@@ -95,6 +100,9 @@ def update_processing_anonymize(container_services, body, pending_list):
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
                               the relevant containers]
+        output_info {dict} -- [dict with the output S3 path and bucket
+                               information, where the CHC video will be
+                               stored]
     """
     logging.info("Processing API message..\n")
 
@@ -105,6 +113,11 @@ def update_processing_anonymize(container_services, body, pending_list):
 
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
+
+    # Retrieve output info from received message
+    output_info = {}
+    output_info['bucket'] = msg_body['bucket']
+    output_info['video_path'] = msg_body['video_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -125,7 +138,7 @@ def update_processing_anonymize(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data
+    return relay_data, output_info
 
 
 def main():
@@ -168,10 +181,10 @@ def main():
 
         if message:
             # Processing request
-            request_processing_anonymize(s3_client,
-                                         container_services,
-                                         message['Body'],
-                                         pending_queue)
+            request_processing(s3_client,
+                               container_services,
+                               message['Body'],
+                               pending_queue)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
@@ -183,9 +196,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list = update_processing_anonymize(container_services,
-                                                     message_api['Body'],
-                                                     pending_queue)
+            relay_list, out_s3 = update_processing(container_services,
+                                                   message_api['Body'],
+                                                   pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)
@@ -195,6 +208,11 @@ def main():
                 container_services.send_message(sqs_client,
                                                 next_queue,
                                                 relay_list)
+
+            # Add the algorithm output flag/info to the relay_list sent
+            # to the metadata container so that an item for this processing
+            # run can be created on the Algo Output DB
+            relay_list['output'] = out_s3
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]

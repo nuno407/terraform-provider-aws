@@ -7,10 +7,10 @@ from baseaws.shared_functions import ContainerServices
 import requests
 
 CONTAINER_NAME = "CHC"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 
-def request_processing_chc(client, container_services, body, pending_list):
+def request_processing(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -45,15 +45,14 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
+               'path': dict_body["s3_path"],
+               'mode': "chc"}
     files = [('video', raw_file)]
 
     # Define settings for API request
     ip_pod = '172.20.162.166'
     port_pod = '8081'
     req_command = 'feature_chain'
-
-    # TODO: CHANGE REQUEST COMMAND (SPLIT)
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
@@ -66,16 +65,14 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     meta_info = container_services.download_file(client,
                                             'dev-rcd-config-files',
-                                            'containers/config_file_containers.json')
+                                            'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json')                                          
 
-    meta_dict = json.loads(meta_info.decode("utf-8"))
-
-    logging.info(meta_dict)
-
-    files = [('file', raw_file)]
+    files = [('file', raw_file), 
+             ('metadata', ('metadata_test_file', meta_info, 'application/json')),]
     payload = {'uid': uid,
-               'path': dict_body["s3_path"],
-               'metadata': str(meta_dict)}
+               'path': dict_body["s3_path"]
+               }
+
     logging.info("++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 
@@ -84,6 +81,7 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # Send API request (POST)
     try:
+        #requests.post(addr, files=files, data=payload)
         requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
     except requests.exceptions.ConnectionError as error_response:
@@ -91,7 +89,7 @@ def request_processing_chc(client, container_services, body, pending_list):
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
 
-def update_processing_chc(container_services, body, pending_list):
+def update_processing(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
@@ -109,9 +107,9 @@ def update_processing_chc(container_services, body, pending_list):
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
                               the relevant containers]
-        meta_result {dict} -- [dict with the output metadata from the CHC
-                               that will be sent via message to the
-                               metadata container for DB storage]
+        output_info {dict} -- [dict with the output S3 path and bucket
+                               information, where the CHC video and json files
+                               will be stored]
     """
     logging.info("Processing API message..\n")
 
@@ -123,8 +121,11 @@ def update_processing_chc(container_services, body, pending_list):
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
 
-    # Retrives result metadata from api message
-    meta_result = msg_body['metadata']
+    # Retrieve output info from received message
+    output_info = {}
+    output_info['bucket'] = msg_body['bucket']
+    output_info['video_path'] = msg_body['video_path']
+    output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -145,7 +146,7 @@ def update_processing_chc(container_services, body, pending_list):
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
 
-    return relay_data, meta_result
+    return relay_data, output_info
 
 
 def main():
@@ -188,10 +189,10 @@ def main():
 
         if message:
             # Processing request
-            request_processing_chc(s3_client,
-                                         container_services,
-                                         message['Body'],
-                                         pending_queue)
+            request_processing(s3_client,
+                               container_services,
+                               message['Body'],
+                               pending_queue)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
@@ -203,9 +204,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, meta_db = update_processing_chc(container_services,
-                                                        message_api['Body'],
-                                                        pending_queue)
+            relay_list, out_s3 = update_processing(container_services,
+                                                   message_api['Body'],
+                                                   pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)
@@ -216,9 +217,10 @@ def main():
                                                 next_queue,
                                                 relay_list)
 
-            # Add the algorithm output metadata to the relay_list sent
-            # to the metadata container so it can be stored on the DB
-            relay_list['metadata'] = meta_db
+            # Add the algorithm output info to the relay_list sent
+            # to the metadata container so that an item for this processing
+            # run can be created on the Algo Output DB
+            relay_list['output'] = out_s3
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
