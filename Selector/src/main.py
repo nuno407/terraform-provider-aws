@@ -11,7 +11,7 @@ CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 
-def request_process_selector(client, container_services, body, pending_list):
+def request_process_selector(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -22,9 +22,6 @@ def request_process_selector(client, container_services, body, pending_list):
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-        pending_list {dict} -- [dictionary containing all the pending
-                                processing requests (identified by an
-                                uuid and their respective relay_lists)]
     """
     logging.info("Processing pipeline message..\n")
 
@@ -34,7 +31,7 @@ def request_process_selector(client, container_services, body, pending_list):
     dict_body = json.loads(new_body)
 
     # Add entry for current video relay list on pending queue
-    pending_list[uid] = dict_body
+    #pending_list[uid] = dict_body
 
     # Picking Device Id from header
     device_id = dict_body.get("header").get('device_id')
@@ -57,14 +54,14 @@ def request_process_selector(client, container_services, body, pending_list):
 
                     payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
 
-
-
+                    '''
                     # Send API request (POST)
                     try:
                         requests.post(addr, files=files, data=payload)
                         logging.info("API POST request sent! (uid: %s)", uid)
                     except requests.exceptions.ConnectionError as error_response:
                         logging.info(error_response)
+                    '''
 
     
 
@@ -99,7 +96,7 @@ def main():
 
     # Create pending_queue
     # Entries format: {'<uid>': <relay_list>}
-    pending_queue = {}
+    #pending_queue = {}
 
     # Main loop
     while(True):
@@ -110,8 +107,7 @@ def main():
             # Processing request
             request_process_selector(s3_client,
                                          container_services,
-                                         message['Body'],
-                                         pending_queue)
+                                         message['Body'])
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
