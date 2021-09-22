@@ -12,7 +12,7 @@ from flask_cors import CORS, cross_origin
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
-TABLE_NAME = "Test-NoSQL" # Name of the Table  dev-metadata-mgmt
+TABLE_NAME = "dev-pipeline-execution" # Name of the Table  dev-metadata-mgmt
 REGION_NAME = "eu-central-1"
 ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
