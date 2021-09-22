@@ -65,7 +65,7 @@ def request_processing(client, container_services, body, pending_list):
         logging.info("API POST request sent! (uid: %s)", uid)
         ####################################################
         # DEBUG
-        logging.info("DEBUG LOGS: %s", response)
+        logging.info("DEBUG LOGS: %s", response.text)
         ####################################################
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
