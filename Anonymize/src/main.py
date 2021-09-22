@@ -46,7 +46,7 @@ def request_processing(client, container_services, body, pending_list):
     # Prepare data to be sent on API request
     payload = {'uid': uid,
                'path': dict_body["s3_path"],
-               'mode': "anonymize"}
+               'mode': 'anonymize'}
     files = [('video', raw_file)]
 
     # Define settings for API request
