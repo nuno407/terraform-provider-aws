@@ -67,12 +67,11 @@ def get_all_data():
         key['s3_path'] = 's3_path'
         print(key)
         response = table.get_item(Key=key)
-        return (response['Item'])
-        
+        #return (response['Item'])
+        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Item'])
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
-    else:
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
+
 
 if __name__ == '__main__':
     # Define configuration for logging messages
