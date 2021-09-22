@@ -56,26 +56,6 @@ def request_processing(client, container_services, body, pending_list):
 
     # TODO: ADD IP AND PORT TO CONFIG FILE!
 
-    ############################################# REMOVE THIS BLOCK AFTER TESTING
-    logging.info("+++++++++++++ TESTING +++++++++++++++++++++++++++++")
-    # TESTING -> Changed ip address to sent request directly to AC_API container
-    ip_pod = '172.20.7.38'
-    port_pod = '5000'
-    req_command = 'cameracheck'
-
-    meta_info = container_services.download_file(client,
-                                            'dev-rcd-config-files',
-                                            'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json')                                          
-
-    files = [('file', raw_file), 
-             ('metadata', ('metadata_test_file', meta_info, 'application/json')),]
-    payload = {'uid': uid,
-               'path': dict_body["s3_path"]
-               }
-
-    logging.info("++++++++++++++++++++++++++++++++++++++++++")
-    #############################################
-
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
 
