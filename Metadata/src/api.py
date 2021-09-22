@@ -12,7 +12,7 @@ from flask_cors import CORS, cross_origin
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
-TABLE_NAME = "dev-metadata-mgmt"
+TABLE_NAME = "Test-NoSQL" # Name of the Table  dev-metadata-mgmt
 REGION_NAME = "eu-central-1"
 ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
@@ -58,10 +58,17 @@ def get_all_data():
     db_resource = boto3.resource('dynamodb',
                                  region_name=REGION_NAME)
     table = db_resource.Table(TABLE_NAME)
+    
     #TODO if the table is big this approach should not be
     # used instead think in query() or get_item()
     try:
-        response = table.scan()
+        response = table.scan(TableName=TABLE_NAME)
+        key = {}
+        key['s3_path'] = 's3_path'
+        print(key)
+        response = table.get_item(Key=key)
+        return (response['Item'])
+        
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
     else:

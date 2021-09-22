@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 import pytz
-
+import boto3
 
 class ContainerServices():
     """ContainerServices
@@ -17,8 +17,9 @@ class ContainerServices():
         # Config variables
         self.__queues = {'list': {}, 'input': ""}
         self.__msp_steps = {}
-        self.__db_table = ""
+        self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
+        self.__s3_ignore = {'raw': "", 'anonymized': ""}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -60,6 +61,16 @@ class ContainerServices():
         """anonymized_s3 variable"""
         return self.__s3_buckets['anonymized']
 
+    @property
+    def raw_s3_ignore(self):
+        """raw_s3_ignore variable"""
+        return self.__s3_ignore['raw']
+
+    @property
+    def anonymized_s3_ignore(self):
+        """anonymized_s3_ignore variable"""
+        return self.__s3_ignore['anonymized']
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -90,13 +101,18 @@ class ContainerServices():
         self.__msp_steps = dict_body['msp_processing_steps']
 
         # Name of the dynamoDB table used to store metadata
-        self.__db_table = dict_body['db_metadata_table']
+        self.__db_tables = dict_body['db_metadata_tables']
 
         # Name of the S3 bucket used to store raw video files
         self.__s3_buckets['raw'] = dict_body['s3_buckets']['raw']
 
         # Name of the S3 bucket used to store anonymized video files
         self.__s3_buckets['anonymized'] = dict_body['s3_buckets']['anonymized']
+
+        # List of all file formats that should be ignored by
+        # the processing container
+        self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
+        self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
 
         logging.info("Load complete!\n")
 
@@ -178,7 +194,7 @@ class ContainerServices():
     def delete_message(self, client, receipt_handle, input_queue=None):
         """Deletes received SQS message
 
-        Arguments:
+            Arguments:
             client {boto3.client} -- [client used to access the SQS service]
             receipt_handle {string} -- [Receipt that identifies the received
                                         message to be deleted]
@@ -262,8 +278,9 @@ class ContainerServices():
                                   dict structure created in the
                                   send_message function)]
         """
-        # Select table to use
-        table = resource.Table(self.__db_table)
+        # Select tables to use
+        table_pipe = resource.Table(self.__db_tables['pipeline_exec'])
+        table_algo_out = resource.Table(self.__db_tables['algo_output'])
 
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
@@ -273,9 +290,10 @@ class ContainerServices():
         source = attributes['SourceContainer']['StringValue']
 
         # Check if item with that name already exists
-        response = table.get_item(Key={'id': unique_id})
+        response = table_pipe.get_item(Key={'id': unique_id})
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
 
+        # Create/Update item on Pipeline Execution DB
         if 'Item' in response:
             # Build update expression
             exp1 = 'data_status = :val1'
@@ -284,18 +302,18 @@ class ContainerServices():
             db_expression = 'SET '+exp1+', '+exp2+', '+exp3
 
             # Update already existing item
-            table.update_item(
-                              Key={'id': unique_id},
-                              UpdateExpression=db_expression,
-                              ExpressionAttributeValues={
-                                                         ':val1': status,
-                                                         ':val2': source,
-                                                         ':val3': timestamp
-                                                        },
-                              ReturnValues="UPDATED_NEW"
-                            )
-            logging.info("[%s]  DB item (Id: %s) updated!", timestamp,
-                                                            unique_id)
+            table_pipe.update_item(
+                                   Key={'id': unique_id},
+                                   UpdateExpression=db_expression,
+                                   ExpressionAttributeValues={
+                                                               ':val1': status,
+                                                               ':val2': source,
+                                                               ':val3': timestamp
+                                                               },
+                                   ReturnValues="UPDATED_NEW"
+                                   )
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp,
+                                                                          unique_id)
         else:
             # Insert item if not created yet
             item_db = {
@@ -307,9 +325,53 @@ class ContainerServices():
                         'processing_list': data['processing_steps'],
                         'last_updated': timestamp
                     }
-            table.put_item(Item=item_db)
-            logging.info("[%s]  DB item (Id: %s) created!", timestamp,
-                                                            unique_id)
+            table_pipe.put_item(Item=item_db)
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp,
+                                                                          unique_id)
+
+        # Create/Update item on Algorithm Output DB
+        if 'output' in data:
+            # Initialise variables used in item creation
+            outputs = data['output']
+            full_path = outputs['bucket'] + '/' + outputs['video_path']
+            run_id = unique_id + '_' + source 
+
+            # Item creation
+            item_db = {
+                        'pipeline_id': unique_id,
+                        'video_s3_path': full_path,
+                        'algorithm_id': source,
+                        'run_id': run_id
+                    }
+            
+            # Checks if algorithm output has metadata and stores it on db
+            if 'meta_path' in outputs:
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                    Bucket=outputs['bucket'],
+                    Key=outputs['meta_path']
+                )
+
+                # Load config file (botocore.response.StreamingBody)
+                # content to dictionary
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Adds metadata json file path to item
+                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
+            else: 
+                result_info = "No metadata available"
+                item_db['meta_s3_path'] = "-"
+
+            item_db['results'] = result_info
+            table_algo_out.put_item(Item=item_db)
+            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,
+                                                                            run_id)
+
+        # TODO: SPLIT THIS FUNCTION WHEN WE HAVE MORE TABLES
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
@@ -386,3 +448,56 @@ class ContainerServices():
         if uid:
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
+
+    def get_kinesis_clip(self, client, stream_name, stream_arn, start_time, end_time, selector):
+        """Retrieves a given chunk from the selected Kinesis video stream
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            stream_name {string} -- [name of the source Kinesis video stream]
+            start_time {datetime} -- [starting timestamp of the desired clip]
+            end_time {datetime} -- [ending timestamp of the desired clip]
+            selector {string} -- [string containg the origin of the timestamps
+                                  (can only be either 'PRODUCER_TIMESTAMP' or
+                                  'SERVER_TIMESTAMP')]
+        Returns:
+            video_clip {bytes} -- [Received chunk in bytes format]
+        """
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Downloading clip (stream: %s)..", timestamp,
+                                                              stream_name)
+
+        # Getting endpoint URL for GET_CLIP
+        response = client.get_data_endpoint(
+            StreamARN=stream_arn,
+            APIName='GET_CLIP'
+        )
+        # StreamName=stream_name,
+
+        endpoint_response = response['DataEndpoint']
+
+        # Create client using received endpoint URL
+        media_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response,
+                                    region_name='eu-central-1')
+
+        # Send request to get desired clip
+        response_media = media_client.get_clip(
+            StreamName=stream_name,
+            ClipFragmentSelector={
+                'FragmentSelectorType': selector,
+                'TimestampRange': {
+                    'StartTimestamp': start_time,
+                    'EndTimestamp': end_time
+                }
+            }
+        )
+
+        # Read all bytes from http response body
+        # (botocore.response.StreamingBody)
+        video_chunk = response_media['Payload'].read()
+
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Clip download completed!", timestamp)
+
+        return video_chunk

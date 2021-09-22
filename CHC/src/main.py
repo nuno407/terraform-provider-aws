@@ -1,4 +1,4 @@
-"""Anonymize container script"""
+"""CHC container script"""
 import json
 import logging
 import uuid
@@ -6,8 +6,8 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
 
-CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v6.2"      # Version of the current container
+CONTAINER_NAME = "CHC"    # Name of the current container
+CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 
 def request_processing(client, container_services, body, pending_list):
@@ -32,12 +32,12 @@ def request_processing(client, container_services, body, pending_list):
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
 
-    # Download target file to be processed (anonymized)
+    # Download target file to be processed (camera health check)
     raw_file = container_services.download_file(client,
                                                 container_services.raw_s3,
                                                 dict_body["s3_path"])
 
-    # Create a random uuid to identify a given video anonymization process
+    # Create a random uuid to identify a given camera health check process
     uid = str(uuid.uuid4())
 
     # Add entry for current video relay list on pending queue
@@ -46,7 +46,7 @@ def request_processing(client, container_services, body, pending_list):
     # Prepare data to be sent on API request
     payload = {'uid': uid,
                'path': dict_body["s3_path"],
-               'mode': "anonymize"}
+               'mode': "chc"}
     files = [('video', raw_file)]
 
     # Define settings for API request
@@ -61,14 +61,19 @@ def request_processing(client, container_services, body, pending_list):
     # TESTING -> Changed ip address to sent request directly to AC_API container
     ip_pod = '172.20.7.38'
     port_pod = '5000'
-    req_command = 'anonymized'
+    req_command = 'cameracheck'
 
-    files = [('file', raw_file)]
+    meta_info = container_services.download_file(client,
+                                            'dev-rcd-config-files',
+                                            'output_test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json')                                          
 
-    files = [('file', raw_file)]
+    files = [('file', raw_file), 
+             ('metadata', ('metadata_test_file', meta_info, 'application/json')),]
     payload = {'uid': uid,
-               'path': dict_body["s3_path"]}
-    logging.info("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+               'path': dict_body["s3_path"]
+               }
+
+    logging.info("++++++++++++++++++++++++++++++++++++++++++")
     #############################################
 
     # Build address for request
@@ -76,6 +81,7 @@ def request_processing(client, container_services, body, pending_list):
 
     # Send API request (POST)
     try:
+        #requests.post(addr, files=files, data=payload)
         requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
     except requests.exceptions.ConnectionError as error_response:
@@ -87,6 +93,7 @@ def update_processing(container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
+    TODO: CHANGE FUNCTION DESCRIPTION
 
     Arguments:
         container_services {BaseAws.shared_functions.ContainerServices}
@@ -101,8 +108,8 @@ def update_processing(container_services, body, pending_list):
                               and to be sent via message to the input queues of
                               the relevant containers]
         output_info {dict} -- [dict with the output S3 path and bucket
-                               information, where the CHC video will be
-                               stored]
+                               information, where the CHC video and json files
+                               will be stored]
     """
     logging.info("Processing API message..\n")
 
@@ -118,6 +125,7 @@ def update_processing(container_services, body, pending_list):
     output_info = {}
     output_info['bucket'] = msg_body['bucket']
     output_info['video_path'] = msg_body['video_path']
+    output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -166,7 +174,7 @@ def main():
     # Define additional input SQS queues to listen to
     # (container_services.input_queue is the default queue
     # and doesn't need to be declared here)
-    api_sqs_queue = container_services.sqs_queues_list['API_Anonymize']
+    api_sqs_queue = container_services.sqs_queues_list['API_CHC']
 
     logging.info("\nListening to input queue(s)..\n")
 
@@ -209,7 +217,7 @@ def main():
                                                 next_queue,
                                                 relay_list)
 
-            # Add the algorithm output flag/info to the relay_list sent
+            # Add the algorithm output info to the relay_list sent
             # to the metadata container so that an item for this processing
             # run can be created on the Algo Output DB
             relay_list['output'] = out_s3
