@@ -13,6 +13,7 @@ from flask_cors import CORS, cross_origin
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 TABLE_NAME = "dev-pipeline-execution" # Name of the Table  dev-metadata-mgmt
+TABLE_NAME_2 = "dev-algorithm-output" # Name of the Table  dev-metadata-mgmt
 REGION_NAME = "eu-central-1"
 ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
@@ -63,12 +64,31 @@ def get_all_data():
     # used instead think in query() or get_item()
     try:
         response = table.scan(TableName=TABLE_NAME)
-        key = {}
-        key['s3_path'] = 's3_path'
-        print(key)
-        response = table.get_item(Key=key)
-        #return (response['Item'])
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Item'])
+        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
+    except ClientError as error:
+        return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+
+@app.route("/getAllResults", methods=["GET"])
+def get_all_results():
+    """
+    Returns status code 200 if get is successfull
+    It will query a DynamoDB table to show everything in that
+    table
+
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + data]
+    """
+    # Create the necessary clients for AWS services access
+    db_resource = boto3.resource('dynamodb',
+                                 region_name=REGION_NAME)
+    table = db_resource.Table(TABLE_NAME_2)
+    
+    #TODO if the table is big this approach should not be
+    # used instead think in query() or get_item()
+    try:
+        response = table.scan(TableName=TABLE_NAME_2)
+        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
 
