@@ -212,6 +212,7 @@ def main():
 
             transfer_kinesis_clip(s3_client,
                                   kinesis_client,
+                                  sts_client,
                                   container_services,
                                   message['Body'])
 
