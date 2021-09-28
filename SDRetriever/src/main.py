@@ -9,7 +9,7 @@ CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v2.2"      # Version of the current container
 
 
-def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
+def transfer_kinesis_clip(s3_client, kinesis_client, sts_client, container_services, body):
     """Converts the message body to json format (for easier variable access),
     gets video clip from RCC Kinesis video stream and stores the received
     clip on the raw data S3 bucket to be later processed by the data
@@ -20,6 +20,8 @@ def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
                                      the S3 service]
         kinesis_client {boto3.client} -- [client used to access
                                           the Kinesis service]
+        sts_client {boto3.client} -- [client used to assume
+                                      a given cross-account IAM role]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
@@ -42,7 +44,23 @@ def transfer_kinesis_clip(s3_client, kinesis_client, container_services, body):
     end_time = datetime(2021, 8, 30)
     selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
     stream_arn = "arn:aws:kinesisvideo:eu-central-1:213279581081:stream/TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder/1630061769043"
+    stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    sts_session = "AssumeRoleSession1"
     #############################
+
+    # Requests credentials to assume specific cross-account role
+    assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
+                                                 RoleSessionName=sts_session)
+
+    role_credentials = assumed_role_object['Credentials']
+
+    kinesis_client=boto3.client(
+        'kinesisvideo',
+        region_name='eu-central-1',
+        aws_access_key_id=role_credentials['AccessKeyId'],
+        aws_secret_access_key=role_credentials['SecretAccessKey'],
+        aws_session_token=role_credentials['SessionToken'],
+    )
 
     # Get Kinesis clip using received message parameters
     video_clip = container_services.get_kinesis_clip(kinesis_client,
@@ -172,6 +190,8 @@ def main():
                               region_name='eu-central-1')
     kinesis_client = boto3.client('kinesisvideo',
                                   region_name='eu-central-1')
+    sts_client = boto3.client('sts',
+                              region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
