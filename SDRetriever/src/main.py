@@ -54,16 +54,8 @@ def transfer_kinesis_clip(s3_client, kinesis_client, sts_client, container_servi
 
     role_credentials = assumed_role_object['Credentials']
 
-    kinesis_client=boto3.client(
-        'kinesisvideo',
-        region_name='eu-central-1',
-        aws_access_key_id=role_credentials['AccessKeyId'],
-        aws_secret_access_key=role_credentials['SecretAccessKey'],
-        aws_session_token=role_credentials['SessionToken'],
-    )
-
     # Get Kinesis clip using received message parameters
-    video_clip = container_services.get_kinesis_clip(kinesis_client,
+    video_clip = container_services.get_kinesis_clip(role_credentials,
                                                      stream_name,
                                                      stream_arn,
                                                      start_time,

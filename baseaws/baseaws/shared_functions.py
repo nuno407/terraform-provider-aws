@@ -449,11 +449,11 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
 
-    def get_kinesis_clip(self, client, stream_name, stream_arn, start_time, end_time, selector):
+    def get_kinesis_clip(self, cred, stream_name, stream_arn, start_time, end_time, selector):
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
-            client {boto3.client} -- [client used to access the S3 service]
+            cred {dict} -- [cross-account credentials to assume IAM role]
             stream_name {string} -- [name of the source Kinesis video stream]
             start_time {datetime} -- [starting timestamp of the desired clip]
             end_time {datetime} -- [ending timestamp of the desired clip]
@@ -467,11 +467,17 @@ class ContainerServices():
         logging.info("[%s]  Downloading clip (stream: %s)..", timestamp,
                                                               stream_name)
 
+        # Create a kinesis client with temporary STS credentials
+        # to enable cross-account access
+        kinesis_client = boto3.client('kinesisvideo',
+                                      region_name='eu-central-1',
+                                      aws_access_key_id=cred['AccessKeyId'],
+                                      aws_secret_access_key=cred['SecretAccessKey'],
+                                      aws_session_token=cred['SessionToken'])
+
         # Getting endpoint URL for GET_CLIP
-        response = client.get_data_endpoint(
-            StreamARN=stream_arn,
-            APIName='GET_CLIP'
-        )
+        response = kinesis_client.get_data_endpoint(StreamARN=stream_arn,
+                                                    APIName='GET_CLIP')
         # StreamName=stream_name,
 
         endpoint_response = response['DataEndpoint']
@@ -479,7 +485,10 @@ class ContainerServices():
         # Create client using received endpoint URL
         media_client = boto3.client('kinesis-video-archived-media',
                                     endpoint_url=endpoint_response,
-                                    region_name='eu-central-1')
+                                    region_name='eu-central-1',                                      
+                                    aws_access_key_id=cred['AccessKeyId'],
+                                    aws_secret_access_key=cred['SecretAccessKey'],
+                                    aws_session_token=cred['SessionToken'])
 
         # Send request to get desired clip
         response_media = media_client.get_clip(
