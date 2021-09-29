@@ -128,7 +128,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
 
     # Get list of all files with the same key prefix as the one
     # received on the message
-    response_list = rcc_s3.list_objects(
+    response_list = rcc_s3.list_objects_v2(
         Bucket=bucket_origin,
         Prefix=key_prefix
     )               
@@ -191,7 +191,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     for index, file_entry in enumerate(response_list['Contents']):
 
         logging.info("%s\n", file_entry['Key'])
-        
+
         if file_entry['Key'].endswith('.json'):
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
