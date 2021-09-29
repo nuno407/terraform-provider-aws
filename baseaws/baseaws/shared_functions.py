@@ -449,11 +449,11 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
 
-    def get_kinesis_clip(self, cred, stream_name, stream_arn, start_time, end_time, selector):
+    def get_kinesis_clip(self, creds, stream_name, stream_arn, start_time, end_time, selector):
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
-            cred {dict} -- [cross-account credentials to assume IAM role]
+            creds {dict} -- [cross-account credentials to assume IAM role]
             stream_name {string} -- [name of the source Kinesis video stream]
             start_time {datetime} -- [starting timestamp of the desired clip]
             end_time {datetime} -- [ending timestamp of the desired clip]
@@ -471,9 +471,9 @@ class ContainerServices():
         # to enable cross-account access
         kinesis_client = boto3.client('kinesisvideo',
                                       region_name='eu-central-1',
-                                      aws_access_key_id=cred['AccessKeyId'],
-                                      aws_secret_access_key=cred['SecretAccessKey'],
-                                      aws_session_token=cred['SessionToken'])
+                                      aws_access_key_id=creds['AccessKeyId'],
+                                      aws_secret_access_key=creds['SecretAccessKey'],
+                                      aws_session_token=creds['SessionToken'])
 
         # Getting endpoint URL for GET_CLIP
         response = kinesis_client.get_data_endpoint(StreamARN=stream_arn,
@@ -486,9 +486,9 @@ class ContainerServices():
         media_client = boto3.client('kinesis-video-archived-media',
                                     endpoint_url=endpoint_response,
                                     region_name='eu-central-1',                                      
-                                    aws_access_key_id=cred['AccessKeyId'],
-                                    aws_secret_access_key=cred['SecretAccessKey'],
-                                    aws_session_token=cred['SessionToken'])
+                                    aws_access_key_id=creds['AccessKeyId'],
+                                    aws_secret_access_key=creds['SecretAccessKey'],
+                                    aws_session_token=creds['SessionToken'])
 
         # Send request to get desired clip
         response_media = media_client.get_clip(

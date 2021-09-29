@@ -71,7 +71,7 @@ def transfer_kinesis_clip(s3_client, kinesis_client, sts_client, container_servi
                                     container_services.raw_s3,
                                     s3_path)
 
-def concatenate_metadata_full(s3_client, container_services, body):
+def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
     the previous processed video clip, concatenates all the info
@@ -80,6 +80,8 @@ def concatenate_metadata_full(s3_client, container_services, body):
     Arguments:
         s3_client {boto3.client} -- [client used to access
                                      the S3 service]
+        sts_client {boto3.client} -- [client used to assume
+                                      a given cross-account IAM role]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
@@ -104,11 +106,28 @@ def concatenate_metadata_full(s3_client, container_services, body):
     key_prefix = 'test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021'
     # name of the folder and file for the final concatenated file
     key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
-    ##############################
+    s3_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    # TODO: CHANGE S3_ROLE TO THE PROPER ONE FROM RCC
+    sts_session = "AssumeRoleSession2"
+    #############################
+
+    # Requests credentials to assume specific cross-account role
+    assumed_role_object = sts_client.assume_role(RoleArn=s3_role,
+                                                 RoleSessionName=sts_session)
+
+    role_creds = assumed_role_object['Credentials']
+
+    # Create a S3 client with temporary STS credentials
+    # to enable cross-account access
+    rcc_s3 = boto3.client('s3',
+                          region_name='eu-central-1',
+                          aws_access_key_id=role_creds['AccessKeyId'],
+                          aws_secret_access_key=role_creds['SecretAccessKey'],
+                          aws_session_token=role_creds['SessionToken'])
 
     # Get list of all files with the same key prefix as the one
     # received on the message
-    response_list = s3_client.list_objects(
+    response_list = rcc_s3.list_objects(
         Bucket=bucket_origin,
         Prefix=key_prefix
     )               
@@ -121,7 +140,7 @@ def concatenate_metadata_full(s3_client, container_services, body):
     # download them from S3 and store them on the files_dict dictionary
     for index, file_entry in enumerate(response_list['Contents']):
 
-        metadata_file = container_services.download_file(s3_client,
+        metadata_file = container_services.download_file(rcc_s3,
                                                          bucket_origin,
                                                          file_entry['Key'])
 
@@ -210,6 +229,7 @@ def main():
 
             # Concatenate all metadata related to processed clip
             concatenate_metadata_full(s3_client,
+                                      sts_client,
                                       container_services,
                                       message['Body'])
 
