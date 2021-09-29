@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.2"      # Version of the current container
+CONTAINER_VERSION = "v2.3"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, kinesis_client, sts_client, container_services, body):
@@ -40,8 +40,8 @@ def transfer_kinesis_clip(s3_client, kinesis_client, sts_client, container_servi
 
     # TEST VALUES 
     stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
-    start_time = datetime(2021, 8, 29)
-    end_time = datetime(2021, 8, 30)
+    start_time = datetime(2021, 9, 29, 14, 00, 51)
+    end_time = datetime(2021, 9, 29, 14, 00, 54)
     selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
     stream_arn = "arn:aws:kinesisvideo:eu-central-1:213279581081:stream/TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder/1630061769043"
     stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
