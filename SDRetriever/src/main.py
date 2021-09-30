@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.5"      # Version of the current container
+CONTAINER_VERSION = "v2.6"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
@@ -197,7 +197,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
             
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
-                                                            file_key)
+                                                            file_entry['Key'])
 
             key_full_metadata = 'uber/' + file_key
 
