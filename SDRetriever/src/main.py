@@ -107,7 +107,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     
     # name of the folder and file for the final concatenated file
     key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
-    s3_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    s3_role = "arn:aws:iam::213279581081:role/dev-datanauts-S3-Source-Metadata-Role"
     # TODO: CHANGE S3_ROLE TO THE PROPER ONE FROM RCC
     sts_session = "AssumeRoleSession2"
     #############################
