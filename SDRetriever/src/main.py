@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.6"      # Version of the current container
+CONTAINER_VERSION = "v2.7 (Test)"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
@@ -108,7 +108,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     # name of the folder and file for the final concatenated file
     key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
     s3_role = "arn:aws:iam::213279581081:role/dev-datanauts-S3-Source-Metadata-Role"
-    # TODO: CHANGE S3_ROLE TO THE PROPER ONE FROM RCC
     sts_session = "AssumeRoleSession2"
     #############################
 
@@ -193,7 +192,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
         if file_entry['Key'].endswith('.json'):
 
             file_key = file_entry['Key'].split("/")[-1]
-            logging.info("%s\n", file_key)
+            #logging.info("%s\n", file_key)
             
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
