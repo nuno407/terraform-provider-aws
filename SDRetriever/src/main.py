@@ -88,7 +88,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
                           received message]
     """
     input_sqs = container_services.input_queue
-    logging.info("Processing %s SQS message (Concatenation)..\n", input_sqs)
+    logging.info("\nProcessing %s SQS message (Concatenation)..\n", input_sqs)
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -193,6 +193,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
 
             file_key = file_entry['Key'].split("/")[-1]
             #logging.info("%s\n", file_key)
+            logging.info("\n")
             
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
