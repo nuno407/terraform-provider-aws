@@ -190,14 +190,16 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     # CROSS ACCOUNT S3 ACCESS TEST
     for index, file_entry in enumerate(response_list['Contents']):
 
-        logging.info("%s\n", file_entry['Key'])
-
         if file_entry['Key'].endswith('.json'):
+
+            file_key = file_entry['Key'].split("/")[-1]
+            logging.info("%s\n", file_key)
+            
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
-                                                            file_entry['Key'])
+                                                            file_key)
 
-            key_full_metadata = 'uber/' + file_entry['Key']
+            key_full_metadata = 'uber/' + file_key
 
             container_services.upload_file(s3_client,
                                             metadata_file,
