@@ -6,21 +6,26 @@ the database.
 import logging
 import flask
 from botocore.exceptions import ClientError
-import boto3
 from flask_cors import CORS
+from pymongo import MongoClient
 
+# Container info
+CONTAINER_NAME = "Metadata"
+CONTAINER_VERSION = "v6.0"
 
-CONTAINER_NAME = "Metadata"    # Name of the current container
-CONTAINER_VERSION = "v6.0"     # Version of the current container
+# DocumentDB info
+DB_NAME = "DB_test"
+EXEC_COL_NAME = "dev-pipeline-execution"
+ALGO_COL_NAME = "dev-algorithm-output"
 
-EXEC_TABLE_NAME = "dev-pipeline-execution" # Pipeline execution table name
-ALGO_TABLE_NAME = "dev-algorithm-output"   # Algorithm output table name
-
+# AWS region 
 REGION_NAME = "eu-central-1"
 
+# API response codes
 ERROR_HTTP_CODE = "500"
 SUCCESS_HTTP_CODE = "200"
 BAD_REQUEST_CODE = "400"
+NOT_FOUND_CODE = "404"
 
 app = flask.Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -59,20 +64,28 @@ def get_all_data():
     Returns:
         flask.jsonify -- [json with the status code + data]
     """
-    # Create the necessary clients for AWS services access
-    db_resource = boto3.resource('dynamodb',
-                                 region_name=REGION_NAME)
+    # Create a MongoDB client, open a connection to Amazon DocumentDB
+    # as a replica set and specify the read preference as
+    # secondary preferred
+    client = MongoClient(connection_string)
 
-    # Access specific DB table
-    table = db_resource.Table(EXEC_TABLE_NAME)
-    
-    # TODO: if the table is big this approach should not be
-    # used instead think in query() or get_item()
+    # Specify the database to be used
+    db = client[DB_NAME]
+
+    ##Specify the collection to be used
+    col = db[EXEC_COL_NAME]
 
     try:
         # Get all info from the table
-        response = table.scan(TableName=EXEC_TABLE_NAME)
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
+        response = list(col.find({}))
+        '''
+        response = []
+        for x in col.find():
+            response.append(x)
+        '''
+        # Close the connection
+        client.close()
+        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
 
@@ -87,20 +100,28 @@ def get_all_results():
     Returns:
         flask.jsonify -- [json with the status code + data]
     """
-    # Create the necessary clients for AWS services access
-    db_resource = boto3.resource('dynamodb',
-                                 region_name=REGION_NAME)
+    # Create a MongoDB client, open a connection to Amazon DocumentDB
+    # as a replica set and specify the read preference as
+    # secondary preferred
+    client = MongoClient(connection_string)
 
-    # Access specific DB table
-    table = db_resource.Table(ALGO_TABLE_NAME)
-    
-    # TODO: if the table is big this approach should not be
-    # used instead think in query() or get_item()
+    # Specify the database to be used
+    db = client[DB_NAME]
+
+    ##Specify the collection to be used
+    col = db[ALGO_COL_NAME]
 
     try:
         # Get all info from the table
-        response = table.scan(TableName=ALGO_TABLE_NAME)
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
+        response = list(col.find({}))
+        '''
+        response = []
+        for x in col.find():
+            response.append(x)
+        '''
+        # Close the connection
+        client.close()
+        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
 
@@ -108,8 +129,8 @@ def get_all_results():
 def get_exec_item():
     """
     Returns status code 200 if get is successfull
-    It will query a DynamoDB table to show a given item in that
-    table
+    It will query a DocumentDB collection to show a given item in that
+    collection
 
     Arguments:
     Returns:
@@ -119,22 +140,34 @@ def get_exec_item():
     if flask.request.method == "POST":
 
         if flask.request.form.get("id"):
-            # Create the necessary clients for AWS services access
-            db_resource = boto3.resource('dynamodb',
-                                        region_name=REGION_NAME)
+            # Get info attached to request
+            item_id = flask.request.form["id"]
 
-            # Access specific DB table
-            table = db_resource.Table(ALGO_TABLE_NAME)
-            
-            # TODO: if the table is big this approach should not be
-            # used instead think in query() or get_item()
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = MongoClient(connection_string)
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[EXEC_COL_NAME]
 
             try:
-                # Get all info from the table
-                response = table.scan(TableName=ALGO_TABLE_NAME)
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
-            except ClientError as error:
-                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+                # Find the document with request id
+                response = col.find_one({'id':item_id})
+                # Close the connection
+                client.close()
+                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
+            except:
+                # Close the connection
+                client.close()
+                # Return error code 404 if no item found
+                response_msg = 'No item with requested id was found in collection'
+                response = flask.jsonify(code=NOT_FOUND_CODE, message=response_msg)
+                response.status_code = 404
+                return response
 
     # Return error code 400 if one or more parameters are missing
     response_msg = 'One or more request parameters missing!'
@@ -142,12 +175,12 @@ def get_exec_item():
     response.status_code = 400
     return response
 
-@app.route("/getAlgoItem", methods=["GET"])
+@app.route("/getAlgoItem", methods=["POST"])
 def get_algo_item():
     """
     Returns status code 200 if get is successfull
-    It will query a DynamoDB table to show a given item in that
-    table
+    It will query a DocumentDB collection to show a given item in that
+    collection
 
     Arguments:
     Returns:
@@ -157,23 +190,35 @@ def get_algo_item():
     if flask.request.method == "POST":
 
         if flask.request.form.get("id"):
-            # Create the necessary clients for AWS services access
-            db_resource = boto3.resource('dynamodb',
-                                        region_name=REGION_NAME)
+            # Get info attached to request
+            item_id = flask.request.form["id"]
 
-            # Access specific DB table
-            table = db_resource.Table(ALGO_TABLE_NAME)
-            
-            # TODO: if the table is big this approach should not be
-            # used instead think in query() or get_item()
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = MongoClient(connection_string)
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[ALGO_COL_NAME]
 
             try:
-                # Get all info from the table
-                response = table.scan(TableName=ALGO_TABLE_NAME)
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response['Items'])
-            except ClientError as error:
-                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
-    
+                # Find the document with request id
+                response = col.find_one({'run_id':item_id})
+                # Close the connection
+                client.close()
+                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
+            except:
+                # Close the connection
+                client.close()
+                # Return error code 404 if no item found
+                response_msg = 'No item with requested id was found in collection'
+                response = flask.jsonify(code=NOT_FOUND_CODE, message=response_msg)
+                response.status_code = 404
+                return response
+
     # Return error code 400 if one or more parameters are missing
     response_msg = 'One or more request parameters missing!'
     response = flask.jsonify(code=BAD_REQUEST_CODE, message=response_msg)
@@ -186,6 +231,27 @@ if __name__ == '__main__':
     # Define configuration for logging messages
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
                         datefmt="%H:%M:%S")
+
+    # Build connection string to access DocDB cluster
+    # DO NOT CHANGE THE docdb_info PARAMETERS ORDER!
+    connection_string = 'mongodb://'
+    docdb_info = {
+                  'sample-user': "usertest1",
+                  '1st_marker': ":",
+                  'password': "pass-test",
+                  '2nd_marker': "@",
+                  'sample-cluster': "DocDB-test-cluster",
+                  '3rd_maker': ".node.",
+                  'region': REGION_NAME,
+                  '4th_marker': ".docdb.amazonaws.com:27017/",
+                  'tls_configs': "?tls=true&tlsCAFile=rds-combined-ca-bundle.pem",
+                  'replica_config': "&replicaSet=rs0",
+                  'read_config': "&readPreference=secondaryPreferred",
+                  'retry_config': "&retryWrites=false"
+                 }
+
+    for i in docdb_info.keys():
+        connection_string += docdb_info[i]
 
     # Start API process
     app.run("0.0.0.0", use_reloader=True, debug=True)
