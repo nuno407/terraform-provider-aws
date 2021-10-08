@@ -240,13 +240,12 @@ if __name__ == '__main__':
                   '1st_marker': ":",
                   'password': "pass-test",
                   '2nd_marker': "@",
-                  'sample-cluster': "DocDB-test-cluster",
-                  '3rd_maker': ".node.",
+                  'sample-cluster': "docdb-cluster-demo-0",
+                  '3rd_maker': ".czddtysxwqch.",
                   'region': REGION_NAME,
                   '4th_marker': ".docdb.amazonaws.com:27017/",
-                  'tls_configs': "?tls=true&tlsCAFile=rds-combined-ca-bundle.pem",
-                  'replica_config': "&replicaSet=rs0",
-                  'read_config': "&readPreference=secondaryPreferred",
+                  'ssl_config': "?ssl=true",
+                  'ssl_ca_certs_config': "&ssl_ca_certs=rds-combined-ca-bundle.pem",
                   'retry_config': "&retryWrites=false"
                  }
 
