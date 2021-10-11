@@ -287,12 +287,24 @@ def get_db_status():
         # Get list of current databases on the cluster
         response['dbs_list'] = client.list_database_names()
 
+
+        logging.info(response['dbs_list'])
+
+
         # Get list of current collections on each database
         response['col_list'] = {}
         for db_name in response['dbs_list']:
             mydb = client[db_name]
             response['col_list'][mydb].append(mydb.list_collection_names())
 
+
+            logging.info(mydb.list_collection_names())
+
+        logging.info("---------------------------------")
+        logging.info(response)
+        print(response)
+        
+        
         client.close()
         return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
     except ClientError as error:
@@ -346,6 +358,105 @@ def debug_add_item():
                 # Close the connection
                 client.close()
                 response_msg = 'Added item: {}'.format(str(item))
+                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response_msg)
+            except ClientError as error:
+                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+
+@app.route("/debugDeleteAll", methods=["POST"])
+def debug_delete_all():
+    """
+    Returns status code 200 if get is successfull
+    ** FOR DEBUG PURPOSES **
+
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + data]
+    """
+    if flask.request.method == "POST":
+
+        if flask.request.form.get("collection"):
+
+            # Get info attached to request
+            collection = flask.request.form["collection"]
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = MongoClient(docdb_info['cluster_endpoint'], 
+                                username=docdb_info['username'],
+                                password=docdb_info['password'],
+                                tls=docdb_info['tls'],
+                                tlsCAFile=docdb_info['tlsCAFile'],
+                                replicaSet=docdb_info['replicaSet'],
+                                readPreference=docdb_info['readPreference'],
+                                retryWrites=docdb_info['retryWrites']
+                                )
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection]
+
+            try:
+                # Delete items
+                x = col.delete_many({})
+
+                # Close the connection
+                client.close()
+                response_msg = 'Deleted all items from collection: {}'.format(str(collection))
+                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response_msg)
+            except ClientError as error:
+                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+
+@app.route("/debugDeleteItem", methods=["POST"])
+def debug_delete_item():
+    """
+    Returns status code 200 if get is successfull
+    ** FOR DEBUG PURPOSES **
+
+    Arguments:
+    Returns:
+        flask.jsonify -- [json with the status code + data]
+    """
+    if flask.request.method == "POST":
+
+        if flask.request.form.get("item") and flask.request.form.get("collection"):
+
+            # Get info attached to request
+            str_item = flask.request.form["item"]
+            collection = flask.request.form["collection"]
+
+            # Converts item received from string to dict
+            new_body = str_item.replace("\'", "\"")
+            item = json.loads(new_body)
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = MongoClient(docdb_info['cluster_endpoint'], 
+                                username=docdb_info['username'],
+                                password=docdb_info['password'],
+                                tls=docdb_info['tls'],
+                                tlsCAFile=docdb_info['tlsCAFile'],
+                                replicaSet=docdb_info['replicaSet'],
+                                readPreference=docdb_info['readPreference'],
+                                retryWrites=docdb_info['retryWrites']
+                                )
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection]
+
+            try:
+                # Delete item
+                col.delete_one(item)
+
+                # Close the connection
+                client.close()
+                response_msg = 'Deleted item: {}'.format(str(item))
                 return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response_msg)
             except ClientError as error:
                 return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
