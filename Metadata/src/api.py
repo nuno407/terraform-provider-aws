@@ -67,8 +67,17 @@ def get_all_data():
     # Create a MongoDB client, open a connection to Amazon DocumentDB
     # as a replica set and specify the read preference as
     # secondary preferred
-    client = MongoClient(connection_string)
-
+    ###########################################################################################
+    #client = MongoClient(connection_string)
+    clusterendpoint = "docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com"
+    username = "usertest1"
+    password = "pass-test"
+    #client = MongoClient(clusterendpoint, username=username, password=password, replicaSet='rs0', readPreference='secondaryPreferred',retryWrites='false')
+    
+    #client = MongoClient('mongodb://usertest1:pass-test@docdb-cluster-demo-0.czddtysxwqch.eu-central-1.docdb.amazonaws.com:27017/?retryWrites=false')
+    client = MongoClient(clusterendpoint, username=username, password=password, tls='true', tlsCAFile='rds-combined-ca-bundle.pem',retryWrites='false')
+    
+    ###########################################################################################
     # Specify the database to be used
     db = client[DB_NAME]
 
