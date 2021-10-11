@@ -295,7 +295,7 @@ def get_db_status():
         response['col_list'] = {}
         for db_name in response['dbs_list']:
             mydb = client[db_name]
-            response['col_list'][mydb].append(mydb.list_collection_names())
+            response['col_list'][mydb] = mydb.list_collection_names()
 
 
             logging.info(mydb.list_collection_names())
