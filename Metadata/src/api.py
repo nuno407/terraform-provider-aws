@@ -8,6 +8,7 @@ import flask
 from botocore.exceptions import ClientError
 from flask_cors import CORS
 from pymongo import MongoClient
+import json
 
 # Container info
 CONTAINER_NAME = "Metadata"
@@ -312,8 +313,12 @@ def debug_add_item():
         if flask.request.form.get("item") and flask.request.form.get("collection"):
 
             # Get info attached to request
-            item = flask.request.form["item"]
+            str_item = flask.request.form["item"]
             collection = flask.request.form["collection"]
+
+            # Converts item received from string to dict
+            new_body = str_item.replace("\'", "\"")
+            item = json.loads(new_body)
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
