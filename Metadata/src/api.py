@@ -54,8 +54,8 @@ def ready():
     """
     return flask.jsonify(code=SUCCESS_HTTP_CODE, message='Ready')
 
-@app.route("/getAllData", methods=["GET"])
-def get_all_data():
+@app.route("/getAllItems", methods=["POST"])
+def get_all_items():
     """
     Returns status code 200 if get is successfull
     It will query a DocumentDB table to show everything in that
@@ -65,82 +65,40 @@ def get_all_data():
     Returns:
         flask.jsonify -- [json with the status code + data]
     """
-    # Create a MongoDB client, open a connection to Amazon DocumentDB
-    # as a replica set and specify the read preference as
-    # secondary preferred
-    client = MongoClient(docdb_info['cluster_endpoint'], 
-                         username=docdb_info['username'],
-                         password=docdb_info['password'],
-                         tls=docdb_info['tls'],
-                         tlsCAFile=docdb_info['tlsCAFile'],
-                         replicaSet=docdb_info['replicaSet'],
-                         readPreference=docdb_info['readPreference'],
-                         retryWrites=docdb_info['retryWrites']
-                        )
+    if flask.request.method == "POST":
 
-    # Specify the database to be used
-    db = client[DB_NAME]
+        if flask.request.form.get("collection"):
 
-    ##Specify the collection to be used
-    col = db[EXEC_COL_NAME]
+            # Get info attached to request
+            collection = flask.request.form["collection"]
 
-    try:
-        # Get all info from the table
-        response = list(col.find({}))
-        '''
-        response = []
-        for x in col.find():
-            response.append(x)
-        '''
-        # Close the connection
-        client.close()
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
-    except ClientError as error:
-        return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = MongoClient(docdb_info['cluster_endpoint'], 
+                                username=docdb_info['username'],
+                                password=docdb_info['password'],
+                                tls=docdb_info['tls'],
+                                tlsCAFile=docdb_info['tlsCAFile'],
+                                replicaSet=docdb_info['replicaSet'],
+                                readPreference=docdb_info['readPreference'],
+                                retryWrites=docdb_info['retryWrites']
+                                )
 
-@app.route("/getAllResults", methods=["GET"])
-def get_all_results():
-    """
-    Returns status code 200 if get is successfull
-    It will query a DocumentDB table to show everything in that
-    table
+            # Specify the database to be used
+            db = client[DB_NAME]
 
-    Arguments:
-    Returns:
-        flask.jsonify -- [json with the status code + data]
-    """
-    # Create a MongoDB client, open a connection to Amazon DocumentDB
-    # as a replica set and specify the read preference as
-    # secondary preferred
-    client = MongoClient(docdb_info['cluster_endpoint'], 
-                         username=docdb_info['username'],
-                         password=docdb_info['password'],
-                         tls=docdb_info['tls'],
-                         tlsCAFile=docdb_info['tlsCAFile'],
-                         replicaSet=docdb_info['replicaSet'],
-                         readPreference=docdb_info['readPreference'],
-                         retryWrites=docdb_info['retryWrites']
-                        )
+            ##Specify the collection to be used
+            col = db[collection]
 
-    # Specify the database to be used
-    db = client[DB_NAME]
-
-    ##Specify the collection to be used
-    col = db[ALGO_COL_NAME]
-
-    try:
-        # Get all info from the table
-        response = list(col.find({}))
-        '''
-        response = []
-        for x in col.find():
-            response.append(x)
-        '''
-        # Close the connection
-        client.close()
-        return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
-    except ClientError as error:
-        return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+            try:
+                # Get all info from the table
+                response = list(col.find({}))
+                # Close the connection
+                client.close()
+                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
+            except ClientError as error:
+                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
 
 @app.route("/getItem", methods=["POST"])
 def get_one_item():
@@ -156,11 +114,12 @@ def get_one_item():
 
     if flask.request.method == "POST":
 
-        if flask.request.form.get("id") and flask.request.form.get("collection"):
+        if flask.request.form.get("value") and flask.request.form.get("collection") and flask.request.form.get("parameter"):
 
             # Get info attached to request
-            item_id = flask.request.form["id"]
+            value = flask.request.form["value"]
             collection = flask.request.form["collection"]
+            parameter = flask.request.form["parameter"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -183,7 +142,7 @@ def get_one_item():
 
             try:
                 # Find the document with request id
-                response = col.find_one({'_id':item_id})
+                response = col.find_one({parameter:value})
                 # Close the connection
                 client.close()
                 return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
@@ -228,16 +187,14 @@ def get_db_status():
 
     try:
         response = {}
-
         # Get list of current databases on the cluster
         response['dbs_list'] = client.list_database_names()
-
         # Get list of current collections on each database
         response['col_list'] = {}
         for db_name in response['dbs_list']:
             mydb = client[db_name]
             response['col_list'][db_name] = mydb.list_collection_names()
-
+        # Close the connection
         client.close()
         return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
     except ClientError as error:
@@ -287,7 +244,6 @@ def debug_add_item():
             try:
                 # Insert item
                 x = col.insert_one(item)
-
                 # Close the connection
                 client.close()
                 response_msg = 'Added item: {}'.format(str(item))
@@ -334,7 +290,6 @@ def debug_delete_all():
             try:
                 # Delete items
                 x = col.delete_many({})
-
                 # Close the connection
                 client.close()
                 response_msg = 'Deleted all items from collection: {}'.format(str(collection))
@@ -386,7 +341,6 @@ def debug_delete_item():
             try:
                 # Delete item
                 col.delete_one(item)
-
                 # Close the connection
                 client.close()
                 response_msg = 'Deleted item: {}'.format(str(item))
@@ -401,27 +355,7 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
                         datefmt="%H:%M:%S")
 
-    # Build connection string to access DocDB cluster
-    # DO NOT CHANGE THE docdb_info PARAMETERS ORDER!
-    '''
-    connection_string = 'mongodb://'
-    docdb_info = {
-                  'sample-user': "usertest1",
-                  '1st_marker': ":",
-                  'password': "pass-test",
-                  '2nd_marker': "@",
-                  'sample-cluster': "docdb-cluster-demo-0",
-                  '3rd_maker': ".czddtysxwqch.",
-                  'region': REGION_NAME,
-                  '4th_marker': ".docdb.amazonaws.com:27017/",
-                  'ssl_config': "?ssl=true",
-                  'ssl_ca_certs_config': "&ssl_ca_certs=rds-combined-ca-bundle.pem",
-                  'retry_config': "&retryWrites=false"
-                 }
-
-    for i in docdb_info.keys():
-        connection_string += docdb_info[i]
-    '''
+    # Build connection info to access DocDB cluster
     docdb_info = {
                   'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
                   'username': 'usertest1',
