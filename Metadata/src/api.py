@@ -142,8 +142,8 @@ def get_all_results():
     except ClientError as error:
         return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
 
-@app.route("/getExecItem", methods=["POST"])
-def get_exec_item():
+@app.route("/getItem", methods=["POST"])
+def get_one_item():
     """
     Returns status code 200 if get is successfull
     It will query a DocumentDB collection to show a given item in that
@@ -156,9 +156,11 @@ def get_exec_item():
 
     if flask.request.method == "POST":
 
-        if flask.request.form.get("id"):
+        if flask.request.form.get("id") and flask.request.form.get("collection"):
+
             # Get info attached to request
             item_id = flask.request.form["id"]
+            collection = flask.request.form["collection"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -177,11 +179,11 @@ def get_exec_item():
             db = client[DB_NAME]
 
             ##Specify the collection to be used
-            col = db[EXEC_COL_NAME]
+            col = db[collection]
 
             try:
                 # Find the document with request id
-                response = col.find_one({'id':item_id})
+                response = col.find_one({'_id':item_id})
                 # Close the connection
                 client.close()
                 return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
@@ -189,65 +191,8 @@ def get_exec_item():
                 # Close the connection
                 client.close()
                 # Return error code 404 if no item found
-                response_msg = 'No item with requested id was found in collection'
-                response = flask.jsonify(code=NOT_FOUND_CODE, message=response_msg)
-                response.status_code = 404
-                return response
-
-    # Return error code 400 if one or more parameters are missing
-    response_msg = 'One or more request parameters missing!'
-    response = flask.jsonify(code=BAD_REQUEST_CODE, message=response_msg)
-    response.status_code = 400
-    return response
-
-@app.route("/getAlgoItem", methods=["POST"])
-def get_algo_item():
-    """
-    Returns status code 200 if get is successfull
-    It will query a DocumentDB collection to show a given item in that
-    collection
-
-    Arguments:
-    Returns:
-        flask.jsonify -- [json with the status code + data]
-    """
-
-    if flask.request.method == "POST":
-
-        if flask.request.form.get("id"):
-            # Get info attached to request
-            item_id = flask.request.form["id"]
-
-            # Create a MongoDB client, open a connection to Amazon DocumentDB
-            # as a replica set and specify the read preference as
-            # secondary preferred
-            client = MongoClient(docdb_info['cluster_endpoint'], 
-                                 username=docdb_info['username'],
-                                 password=docdb_info['password'],
-                                 tls=docdb_info['tls'],
-                                 tlsCAFile=docdb_info['tlsCAFile'],
-                                 replicaSet=docdb_info['replicaSet'],
-                                 readPreference=docdb_info['readPreference'],
-                                 retryWrites=docdb_info['retryWrites']
-                                )
-
-            # Specify the database to be used
-            db = client[DB_NAME]
-
-            ##Specify the collection to be used
-            col = db[ALGO_COL_NAME]
-
-            try:
-                # Find the document with request id
-                response = col.find_one({'run_id':item_id})
-                # Close the connection
-                client.close()
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
-            except:
-                # Close the connection
-                client.close()
-                # Return error code 404 if no item found
-                response_msg = 'No item with requested id was found in collection'
+                # TODO: CHANGE THIS ERROR HANDLING PART
+                response_msg = 'No item with requested id was found in collection {}'.format(collection)
                 response = flask.jsonify(code=NOT_FOUND_CODE, message=response_msg)
                 response.status_code = 404
                 return response
@@ -287,24 +232,12 @@ def get_db_status():
         # Get list of current databases on the cluster
         response['dbs_list'] = client.list_database_names()
 
-
-        logging.info(response['dbs_list'])
-
-
         # Get list of current collections on each database
         response['col_list'] = {}
         for db_name in response['dbs_list']:
             mydb = client[db_name]
             response['col_list'][db_name] = mydb.list_collection_names()
 
-
-            logging.info(mydb.list_collection_names())
-
-        logging.info("---------------------------------")
-        logging.info(response)
-        print(response)
-        
-        
         client.close()
         return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
     except ClientError as error:
