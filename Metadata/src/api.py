@@ -1,11 +1,8 @@
 """
-This file should be used to create an API
-to communicate between the application and
-the database.
+Metadata API 
 """
 import logging
 import flask
-from botocore.exceptions import ClientError
 from flask_cors import CORS
 from pymongo import MongoClient
 import json
@@ -13,25 +10,14 @@ from flask_restx import Api, Resource, reqparse, fields
 
 # Container info
 CONTAINER_NAME = "Metadata"
-CONTAINER_VERSION = "v6.0"
+CONTAINER_VERSION = "v7.0"
 
 # DocumentDB info
 DB_NAME = "DB_test"
 
-# AWS region 
-REGION_NAME = "eu-central-1"
-
-# API response codes
-ERROR_HTTP_CODE = '500'
-SUCCESS_HTTP_CODE = '200'
-BAD_REQUEST_CODE = '400'
-NOT_FOUND_CODE = '404'
-
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
 ERROR_500_MSG = 'Mapping Key Error'
-
-CUSTOM_MSG = "TO BE CHANGED"
 
 # API instance initialisation
 app = flask.Flask(__name__)
@@ -39,8 +25,11 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Swagger documentation initialisation
 api = Api(app, version='1.0', title='Metadata management API',
-    description='API used for communication between Fronted UI and DocumentDB database',
-)
+          description='API used for communication between Fronted UI and DocumentDB database',
+          default="General endpoints", default_label="")
+
+# Create namespace for debug endpoints
+ns = api.namespace('Debug endpoints', description="", path="/")
 
 # Common models used in most endpoints
 error_400_model = api.model("Error_400", {
@@ -72,31 +61,57 @@ def create_mongo_client():
                         )
     return client
 
+# Custom model for alive code 200 response (Swagger documentation)
+alive_200_model = api.model("Alive_200", {
+    'message': fields.String(example="Ok"),
+    'statusCode': fields.String(example="200")
+})
+
 @api.route('/alive')
 class Alive(Resource):
-    @api.doc(responses={200:'Ok'})
+    @api.response(200, 'Success', alive_200_model)
     def get(self):
         """
         Checks if API is alive
         """
         return flask.jsonify(message='Ok', statusCode="200")
 
+# Custom model for ready code 200 response (Swagger documentation)
+ready_200_model = api.model("Ready_200", {
+    'message': fields.String(example="Ready"),
+    'statusCode': fields.String(example="200")
+})
+
 @api.route('/ready')
 class Ready(Resource):
-    @api.doc(responses={200:'Ready'})
+    @api.response(200, 'Success', ready_200_model)
     def get(self):
         """
         Checks if API is ready
         """
         return flask.jsonify(message='Ready', statusCode="200")
 
+# Custom models for dbStatus code 200 response (Swagger documentation)
+sub_nest_model = api.model("sub_nest", {
+    'DB_test': fields.Raw(["dev-algorithm-output", "dev-pipeline-execution"])
+})
+nest_model = api.model("nest", {
+    'dbs_list': fields.List(fields.Raw("DB_test")),
+    'col_list': fields.Nested(sub_nest_model)
+})
+status_200_model = api.model("status", {
+    'message': fields.Nested(nest_model),
+    'statusCode': fields.String(example="200")
+})
+   
 @api.route('/dbStatus')
 class Status(Resource):
-    @api.doc(responses={200:CUSTOM_MSG, 400:ERROR_400_MSG, 500:ERROR_500_MSG})
+    @api.response(200, 'Success', status_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
     def get(self):
         """
         Returns a list of all databases and collections currently present on the DocumentDB cluster
-        ** FOR DEBUG PURPOSES **
         """
         try:
             # Create a MongoDB client, open a connection to Amazon DocumentDB
@@ -134,12 +149,12 @@ add_one_200_model = api.model("Add_one_200", {
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/debugAddItem')
+@ns.route('/debugAddItem')
 class AddItem(Resource):
-    @api.response(200, 'Success', add_one_200_model)
-    @api.response(400, ERROR_400_MSG, error_400_model)
-    @api.response(500, ERROR_500_MSG, error_500_model)
-    @api.expect(add_one_parser, validate=True)
+    @ns.response(200, 'Success', add_one_200_model)
+    @ns.response(400, ERROR_400_MSG, error_400_model)
+    @ns.response(500, ERROR_500_MSG, error_500_model)
+    @ns.expect(add_one_parser, validate=True)
     def post(self):
         """
         Inserts item in a given collection
@@ -185,7 +200,7 @@ get_all_parser.add_argument('collection', type=str, required=True, help='DocDB C
 
 # Custom model for getAllItems code 200 response (Swagger documentation)
 get_all_200_model = api.model("Get_all_200", {
-    'message': fields.List(fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}])),
+    'message': fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}]),
     'statusCode': fields.String(example="200")
 })
 
@@ -233,8 +248,12 @@ get_one_parser.add_argument('value', type=str, required=True, help='Value that s
 get_one_parser.add_argument('parameter', type=str, required=True, help='Parameter to use to search for specific item', location='form')
 
 # Custom model for getItem code 200 response (Swagger documentation)
+get_nest_model = api.model("Get_nest_200", {
+    '_id': fields.String(example="Mary"),
+    'address': fields.String(example="Highway 99")
+})
 get_one_200_model = api.model("Get_one_200", {
-    'message': fields.String(example="{'_id': 'Mary', 'address': 'Highway 99'}"),
+    'message': fields.Nested(get_nest_model),
     'statusCode': fields.String(example="200")
 })
 
@@ -282,17 +301,17 @@ del_all_parser = reqparse.RequestParser()
 del_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete all items', location='form')
 
 # Custom model for debugDeleteAll code 200 response (Swagger documentation)
-del_all_200_model = api.model("Del_all_200", {
+del_all_200_model = ns.model("Del_all_200", {
     'message': fields.String(example="Deleted all items from collection: example-collection"),
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/debugDeleteAll')
+@ns.route('/debugDeleteAll')
 class DelAll(Resource):
-    @api.response(200, 'Success', del_all_200_model)
-    @api.response(400, ERROR_400_MSG, error_400_model)
-    @api.response(500, ERROR_500_MSG, error_500_model)
-    @api.expect(del_all_parser, validate=True)
+    @ns.response(200, 'Success', del_all_200_model)
+    @ns.response(400, ERROR_400_MSG, error_400_model)
+    @ns.response(500, ERROR_500_MSG, error_500_model)
+    @ns.expect(del_all_parser, validate=True)
     def post(self):
         """
         Deletes all items from a given collection
@@ -338,12 +357,12 @@ del_one_200_model = api.model("Del_one_200", {
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/debugDeleteItem')
+@ns.route('/debugDeleteItem')
 class DelOne(Resource):
-    @api.response(200, 'Success', del_one_200_model)
-    @api.response(400, ERROR_400_MSG, error_400_model)
-    @api.response(500, ERROR_500_MSG, error_500_model)
-    @api.expect(del_one_parser, validate=True)
+    @ns.response(200, 'Success', del_one_200_model)
+    @ns.response(400, ERROR_400_MSG, error_400_model)
+    @ns.response(500, ERROR_500_MSG, error_500_model)
+    @ns.expect(del_one_parser, validate=True)
     def post(self):
         """
         Deletes one item from a given collection
