@@ -129,14 +129,14 @@ add_one_parser.add_argument('item', type=str, required=True, help='Item to be ad
 add_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection where the item is going to be added', location='form')
 
 # Custom model for debugAddItem code 200 response (Swagger documentation)
-add_item_200_model = api.model("Add_item_200", {
+add_one_200_model = api.model("Add_one_200", {
     'message': fields.String(example="Added item: {'_id': 'Mary', 'address': 'Highway 99'}"),
     'statusCode': fields.String(example="200")
 })
 
 @api.route('/debugAddItem')
 class AddItem(Resource):
-    @api.response(200, 'Success', add_item_200_model)
+    @api.response(200, 'Success', add_one_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(add_one_parser, validate=True)
@@ -184,7 +184,7 @@ get_all_parser = reqparse.RequestParser()
 get_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get all items', location='form')
 
 # Custom model for getAllItems code 200 response (Swagger documentation)
-get_all_200_model = api.model("Add_item_200", {
+get_all_200_model = api.model("Get_all_200", {
     'message': fields.List(fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}])),
     'statusCode': fields.String(example="200")
 })
@@ -226,33 +226,29 @@ class GetAll(Resource):
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
+# Parameters parser for getItem endpoint (Swagger documentation)
+get_one_parser = reqparse.RequestParser()
+get_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get an item', location='form')
+get_one_parser.add_argument('value', type=str, required=True, help='Value that specified parameter should have', location='form')
+get_one_parser.add_argument('parameter', type=str, required=True, help='Parameter to use to search for specific item', location='form')
 
+# Custom model for getItem code 200 response (Swagger documentation)
+get_one_200_model = api.model("Get_one_200", {
+    'message': fields.String(example="{'_id': 'Mary', 'address': 'Highway 99'}"),
+    'statusCode': fields.String(example="200")
+})
 
-
-
-
-
-
-
-
-##############################################################################################################
-
-@app.route("/getItem", methods=["POST"])
-def get_one_item():
-    """
-    Returns status code 200 if get is successfull
-    It will query a DocumentDB collection to show a given item in that
-    collection
-
-    Arguments:
-    Returns:
-        flask.jsonify -- [json with the status code + data]
-    """
-
-    if flask.request.method == "POST":
-
-        if flask.request.form.get("value") and flask.request.form.get("collection") and flask.request.form.get("parameter"):
-
+@api.route('/getItem')
+class GetOne(Resource):
+    @api.response(200, 'Success', get_one_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(get_one_parser, validate=True)
+    def post(self):
+        """
+        Returns the item from a given collection that has the specific value for a given parameter
+        """
+        try:
             # Get info attached to request
             value = flask.request.form["value"]
             collection = flask.request.form["collection"]
@@ -261,15 +257,7 @@ def get_one_item():
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
-            client = MongoClient(docdb_info['cluster_endpoint'], 
-                                 username=docdb_info['username'],
-                                 password=docdb_info['password'],
-                                 tls=docdb_info['tls'],
-                                 tlsCAFile=docdb_info['tlsCAFile'],
-                                 replicaSet=docdb_info['replicaSet'],
-                                 readPreference=docdb_info['readPreference'],
-                                 retryWrites=docdb_info['retryWrites']
-                                )
+            client = create_mongo_client()
 
             # Specify the database to be used
             db = client[DB_NAME]
@@ -277,57 +265,47 @@ def get_one_item():
             ##Specify the collection to be used
             col = db[collection]
 
-            try:
-                # Find the document with request id
-                response = col.find_one({parameter:value})
-                # Close the connection
-                client.close()
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response)
-            except:
-                # Close the connection
-                client.close()
-                # Return error code 404 if no item found
-                # TODO: CHANGE THIS ERROR HANDLING PART
-                response_msg = 'No item with requested id was found in collection {}'.format(collection)
-                response = flask.jsonify(code=NOT_FOUND_CODE, message=response_msg)
-                response.status_code = 404
-                return response
+            # Find the document with request id
+            response_msg = col.find_one({parameter:value})
 
-    # Return error code 400 if one or more parameters are missing
-    response_msg = 'One or more request parameters missing!'
-    response = flask.jsonify(code=BAD_REQUEST_CODE, message=response_msg)
-    response.status_code = 400
-    return response
+            # Close the connection
+            client.close()
 
-@app.route("/debugDeleteAll", methods=["POST"])
-def debug_delete_all():
-    """
-    Returns status code 200 if get is successfull
-    ** FOR DEBUG PURPOSES **
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except Exception as e:
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except KeyError as e:
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
-    Arguments:
-    Returns:
-        flask.jsonify -- [json with the status code + data]
-    """
-    if flask.request.method == "POST":
+# Parameters parser for debugDeleteAll endpoint (Swagger documentation)
+del_all_parser = reqparse.RequestParser()
+del_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete all items', location='form')
 
-        if flask.request.form.get("collection"):
+# Custom model for debugDeleteAll code 200 response (Swagger documentation)
+del_all_200_model = api.model("Del_all_200", {
+    'message': fields.String(example="Deleted all items from collection: example-collection"),
+    'statusCode': fields.String(example="200")
+})
 
+@api.route('/debugDeleteAll')
+class DelAll(Resource):
+    @api.response(200, 'Success', del_all_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(del_all_parser, validate=True)
+    def post(self):
+        """
+        Deletes all items from a given collection
+        ** FOR DEBUG PURPOSES **
+        """
+        try:
             # Get info attached to request
             collection = flask.request.form["collection"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
-            client = MongoClient(docdb_info['cluster_endpoint'], 
-                                username=docdb_info['username'],
-                                password=docdb_info['password'],
-                                tls=docdb_info['tls'],
-                                tlsCAFile=docdb_info['tlsCAFile'],
-                                replicaSet=docdb_info['replicaSet'],
-                                readPreference=docdb_info['readPreference'],
-                                retryWrites=docdb_info['retryWrites']
-                                )
+            client = create_mongo_client()
 
             # Specify the database to be used
             db = client[DB_NAME]
@@ -335,31 +313,44 @@ def debug_delete_all():
             ##Specify the collection to be used
             col = db[collection]
 
-            try:
-                # Delete items
-                x = col.delete_many({})
-                # Close the connection
-                client.close()
-                response_msg = 'Deleted all items from collection: {}'.format(str(collection))
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response_msg)
-            except ClientError as error:
-                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+            # Delete items
+            x = col.delete_many({})
 
-@app.route("/debugDeleteItem", methods=["POST"])
-def debug_delete_item():
-    """
-    Returns status code 200 if get is successfull
-    ** FOR DEBUG PURPOSES **
+            # Close the connection
+            client.close()
 
-    Arguments:
-    Returns:
-        flask.jsonify -- [json with the status code + data]
-    """
-    if flask.request.method == "POST":
+            response_msg = 'Deleted all items from collection: {}'.format(str(collection))
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except Exception as e:
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except KeyError as e:
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
-        if flask.request.form.get("item") and flask.request.form.get("collection"):
+# Parameters parser for debugDeleteItem endpoint (Swagger documentation)
+del_one_parser = reqparse.RequestParser()
+del_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete a given item', location='form')
+del_one_parser.add_argument('item', type=str, required=True, 
+                            help='Item to be deleted (the value of this parameter could be just the parameter-value pair of the unique key)', location='form')
 
-            # Get info attached to request
+# Custom model for debugDeleteItem code 200 response (Swagger documentation)
+del_one_200_model = api.model("Del_one_200", {
+    'message': fields.String(example="Deleted item: {'_id': 'Jack'}"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/debugDeleteItem')
+class DelOne(Resource):
+    @api.response(200, 'Success', del_one_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(del_one_parser, validate=True)
+    def post(self):
+        """
+        Deletes one item from a given collection
+        ** FOR DEBUG PURPOSES **
+        """
+        try:
+            # Get info attached to request  
             str_item = flask.request.form["item"]
             collection = flask.request.form["collection"]
 
@@ -370,15 +361,7 @@ def debug_delete_item():
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
-            client = MongoClient(docdb_info['cluster_endpoint'], 
-                                username=docdb_info['username'],
-                                password=docdb_info['password'],
-                                tls=docdb_info['tls'],
-                                tlsCAFile=docdb_info['tlsCAFile'],
-                                replicaSet=docdb_info['replicaSet'],
-                                readPreference=docdb_info['readPreference'],
-                                retryWrites=docdb_info['retryWrites']
-                                )
+            client = create_mongo_client()
 
             # Specify the database to be used
             db = client[DB_NAME]
@@ -386,16 +369,19 @@ def debug_delete_item():
             ##Specify the collection to be used
             col = db[collection]
 
-            try:
-                # Delete item
-                # TODO: CHECK FIRST IF ITEM EXISTS 
-                col.delete_one(item)
-                # Close the connection
-                client.close()
-                response_msg = 'Deleted item: {}'.format(str(item))
-                return flask.jsonify(code=SUCCESS_HTTP_CODE, message=response_msg)
-            except ClientError as error:
-                return flask.jsonify(code=ERROR_HTTP_CODE, message=error.response['Error']['Message'])
+            # Delete item
+            # TODO: CHECK FIRST IF ITEM EXISTS 
+            col.delete_one(item)
+
+            # Close the connection
+            client.close()
+
+            response_msg = 'Deleted item: {}'.format(str(item))
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except Exception as e:
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except KeyError as e:
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 
 if __name__ == '__main__':
