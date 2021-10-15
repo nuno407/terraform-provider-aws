@@ -114,12 +114,11 @@ def camera_check():
     """
     if flask.request.method == "POST":
 
-        if flask.request.files.get("file") and flask.request.files.get("metadata") and flask.request.form.get("uid") and flask.request.form.get("path"):
+        if flask.request.files.get("metadata") and flask.request.form.get("uid") and flask.request.form.get("path"):
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
             # metadata -> chc results json
-            chunk = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
             meta_body = flask.request.files["metadata"]
@@ -128,19 +127,9 @@ def camera_check():
             logging.info("-----------------------------------------------")
             logging.info("API status update:")
 
-            # Rename file to be stored by adding the name of
-            # the algorithm that processed the file
-            path, file_extension = s3_path.split('.')
-            video_upload_path = path + "_chc." + file_extension
-
-            # Upload video file to anonymized S3 bucket
-            container_services.upload_file(s3_client,
-                                           chunk,
-                                           container_services.anonymized_s3,
-                                           video_upload_path)
-
             # Rename metadata file to be stored by adding the name of
             # the algorithm that processed the file
+            path, file_extension = s3_path.split('.')
             meta_upload_path = path + "_chc.json"
 
             container_services.upload_file(s3_client,
@@ -155,7 +144,7 @@ def camera_check():
             # Output files bucket
             msg_body['bucket'] = container_services.anonymized_s3
             # Video file path
-            msg_body['video_path'] = video_upload_path
+            msg_body['video_path'] = "-"
             # Metadata file (json) path
             msg_body['meta_path'] = meta_upload_path
 
