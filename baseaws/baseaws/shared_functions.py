@@ -260,6 +260,7 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
+    ######### For Document DB (Mongo DB) ###############################
 
 	def connect_to_db(self, data, attributes):
     
@@ -277,7 +278,7 @@ class ContainerServices():
 			}
         
         parameter = 'id'
-        collection = 'table_name' # Mention the Table Name
+        #collection = 'table_name' # Mention the Table Name
 
 		# Create a MongoDB client, open a connection to Amazon DocumentDB
 		# as a replica set and specify the read preference as
@@ -373,7 +374,7 @@ class ContainerServices():
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
 
 
-
+    ######### For Dynamo DB ###############################
 
     def connect_to_db(self, resource, data, attributes):
         """Connects to the DynamoDB table and checks if an item
