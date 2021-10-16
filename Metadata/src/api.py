@@ -91,6 +91,7 @@ def create_mongo_client():
                          readPreference=docdb_info['readPreference'],
                          retryWrites=docdb_info['retryWrites']
                         )
+    logging.info(client)
     logging.info("EP4")
     return client
 
@@ -153,6 +154,7 @@ class Status(Resource):
             # secondary preferred
             client = create_mongo_client()
             logging.info("CP2")
+            logging.info(client)
             # Get list of current databases on the cluster
             response = {}
             response['dbs_list'] = client.list_database_names()
@@ -217,6 +219,8 @@ class AddItem(Resource):
             ##Specify the collection to be used
             col = db[collection]
             logging.info("XP4")
+            logging.info(db)
+            logging.info(col)
             # Insert item
             x = col.insert_one(item)
             logging.info("XP5")
