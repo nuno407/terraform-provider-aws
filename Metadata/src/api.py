@@ -54,9 +54,7 @@ def create_mongo_client():
     """
     # Build connection info to access DocDB cluster
     docdb_info = {
-                  'cluster_endpoint': 'test-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-                  'ssl': 'true',
-                  'ssl_ca_certs': 'rds-combined-ca-bundle.pem',
+                  'cluster_endpoint': 'docdb-2021-10-16-17-03-05.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
                   'tls': 'true',
                   'tlsCAFile': 'rds-combined-ca-bundle.pem',
                   'replicaSet': 'rs0',
@@ -85,10 +83,8 @@ def create_mongo_client():
     logging.info(dict_response)
     # Mongo client creation with info previously built
     client = MongoClient(docdb_info['cluster_endpoint'], 
-                         username=dict_response['username'],
-                         password=dict_response['password'],
-                         ssl=docdb_info['ssl'],
-                         ssl_ca_certs=docdb_info['ssl_ca_certs'],
+                         username="usert",
+                         password="pass-test",
                          tls=docdb_info['tls'],
                          tlsCAFile=docdb_info['tlsCAFile'],
                          replicaSet=docdb_info['replicaSet'],
