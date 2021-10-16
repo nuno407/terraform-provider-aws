@@ -70,16 +70,17 @@ def create_mongo_client():
     # Create the necessary client for AWS secrets manager access
     secrets_client = boto3.client('secretsmanager',
                                   region_name='eu-central-1')
-    
+    logging.info("EP1")
     # Get password and username from secrets manager
     response = secrets_client.get_secret_value(SecretId=secret_name)
     str_response = response['SecretString']
-
+    logging.info("EP2")
     # Converts response body from string to dict
     # (in order to perform index access)
     new_body = str_response.replace("\'", "\"")
     dict_response = json.loads(new_body)
-
+    logging.info("EP3")
+    logging.info(dict_response)
     # Mongo client creation with info previously built
     client = MongoClient(docdb_info['cluster_endpoint'], 
                          username=dict_response['username'],
@@ -90,6 +91,7 @@ def create_mongo_client():
                          readPreference=docdb_info['readPreference'],
                          retryWrites=docdb_info['retryWrites']
                         )
+    logging.info("EP4")
     return client
 
 # Custom model for alive code 200 response (Swagger documentation)
@@ -199,7 +201,7 @@ class AddItem(Resource):
             # Get info attached to request
             str_item = flask.request.form["item"]
             collection = flask.request.form["collection"]
-
+            logging.info("XP1")
             # Converts item received from string to dict
             new_body = str_item.replace("\'", "\"")
             item = json.loads(new_body)
@@ -208,22 +210,23 @@ class AddItem(Resource):
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-
+            logging.info("XP2")
             # Specify the database to be used
             db = client[DB_NAME]
-
+            logging.info("XP3")
             ##Specify the collection to be used
             col = db[collection]
-
+            logging.info("XP4")
             # Insert item
             x = col.insert_one(item)
-
+            logging.info("XP5")
             # Close the connection
             client.close()
 
             response_msg = 'Added item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
+            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
