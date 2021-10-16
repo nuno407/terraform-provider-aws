@@ -15,7 +15,7 @@ CONTAINER_NAME = "Metadata"
 CONTAINER_VERSION = "v7.0"
 
 # DocumentDB info
-DB_NAME = "DB_test"
+DB_NAME = "DB_data_ingestion"
 
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
@@ -145,26 +145,29 @@ class Status(Resource):
         Returns a list of all databases and collections currently present on the DocumentDB cluster
         """
         try:
+            logging.info("CP1")
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-
+            logging.info("CP2")
             # Get list of current databases on the cluster
             response = {}
             response['dbs_list'] = client.list_database_names()
-
+            logging.info("CP3")
             # Get list of current collections on each database
             response['col_list'] = {}
             for db_name in response['dbs_list']:
                 mydb = client[db_name]
                 response['col_list'][db_name] = mydb.list_collection_names()
-
+            logging.info("CP4")
+            logging.info(response)
             # Close the connection
             client.close()
-
+            logging.info("CP5")
             return flask.jsonify(message=response, statusCode="200")
         except Exception as e:
+            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
