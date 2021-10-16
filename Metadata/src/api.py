@@ -63,7 +63,7 @@ def create_mongo_client():
                 }
 
     region_name = "eu-central-1"
-    secret_name = "data-ingestion-cluster-creds"
+    secret_name = "data-ingestion-cluster-credentials"
 
     # TODO: ADD docdb_info TO CONFIG S3 FILE!!
 
