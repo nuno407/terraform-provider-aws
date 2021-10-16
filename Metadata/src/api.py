@@ -54,7 +54,7 @@ def create_mongo_client():
     """
     # Build connection info to access DocDB cluster
     docdb_info = {
-                  'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+                  'cluster_endpoint': 'test-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
                   'tls': 'true',
                   'tlsCAFile': 'rds-combined-ca-bundle.pem',
                   'replicaSet': 'rs0',
@@ -63,7 +63,7 @@ def create_mongo_client():
                 }
 
     region_name = "eu-central-1"
-    secret_name = "data-ingestion-cluster-credentials"
+    secret_name = "test-cluster-credentials"
 
     # TODO: ADD docdb_info TO CONFIG S3 FILE!!
 
