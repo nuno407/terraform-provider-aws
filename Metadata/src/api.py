@@ -7,6 +7,8 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import json
 from flask_restx import Api, Resource, reqparse, fields
+from baseaws.shared_functions import ContainerServices
+import boto3
 
 # Container info
 CONTAINER_NAME = "Metadata"
@@ -50,9 +52,38 @@ def create_mongo_client():
         client {pymongo.mongo_client.MongoClient'} -- [Mongo client used to
                                                        access AWS DocDB cluster]
     """
+    # Build connection info to access DocDB cluster
+    docdb_info = {
+                  'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+                  'tls': 'true',
+                  'tlsCAFile': 'rds-combined-ca-bundle.pem',
+                  'replicaSet': 'rs0',
+                  'readPreference': 'secondaryPreferred',
+                  'retryWrites': 'false'
+                }
+
+    region_name = "eu-central-1"
+    secret_name = "data-ingestion-cluster-creds"
+
+    # TODO: ADD docdb_info TO CONFIG S3 FILE!!
+
+    # Create the necessary client for AWS secrets manager access
+    secrets_client = boto3.client('secretsmanager',
+                                  region_name='eu-central-1')
+    
+    # Get password and username from secrets manager
+    response = secrets_client.get_secret_value(SecretId=secret_name)
+    str_response = response['SecretString']
+
+    # Converts response body from string to dict
+    # (in order to perform index access)
+    new_body = str_response.replace("\'", "\"")
+    dict_response = json.loads(new_body)
+
+    # Mongo client creation with info previously built
     client = MongoClient(docdb_info['cluster_endpoint'], 
-                         username=docdb_info['username'],
-                         password=docdb_info['password'],
+                         username=dict_response['username'],
+                         password=dict_response['password'],
                          tls=docdb_info['tls'],
                          tlsCAFile=docdb_info['tlsCAFile'],
                          replicaSet=docdb_info['replicaSet'],
@@ -409,17 +440,16 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
                         datefmt="%H:%M:%S")
 
-    # Build connection info to access DocDB cluster
-    docdb_info = {
-                  'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-                  'username': 'usertest1',
-                  'password': 'pass-test',
-                  'tls': 'true',
-                  'tlsCAFile': 'rds-combined-ca-bundle.pem',
-                  'replicaSet': 'rs0',
-                  'readPreference': 'secondaryPreferred',
-                  'retryWrites': 'false'
-                }
+    # Create the necessary clients for AWS services access
+    s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+    # Initialise instance of ContainerServices class
+    container_services = ContainerServices(container=CONTAINER_NAME,
+                                           version=CONTAINER_VERSION)
+
+    # Load global variable values from config json file (S3 bucket)
+    container_services.load_config_vars(s3_client)
 
     # Start API process
     app.run("0.0.0.0", use_reloader=True, debug=True)
