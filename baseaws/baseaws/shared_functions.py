@@ -342,6 +342,7 @@ class ContainerServices():
 
             # Item creation
             item_db = {
+                        '_id': unique_id,
                         'pipeline_id': unique_id,
                         'video_s3_path': full_path,
                         'algorithm_id': source,
