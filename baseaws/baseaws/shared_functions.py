@@ -5,6 +5,8 @@ import os
 from datetime import datetime
 import pytz
 import boto3
+from pymongo import MongoClient
+
 
 class ContainerServices():
     """ContainerServices
@@ -257,6 +259,122 @@ class ContainerServices():
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
+
+    ######### For Document DB (Mongo DB) ###############################
+
+	def connect_to_db(self, data, attributes):
+    
+        # Build connection info to access DocDB cluster
+        docdb_info = {
+			  'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+			  'username': 'usertest1',
+			  'password': 'pass-test',
+			  'tls': 'true',
+			  'tlsCAFile': 'rds-combined-ca-bundle.pem',
+			  'replicaSet': 'rs0',
+			  'readPreference': 'secondaryPreferred',
+			  'retryWrites': 'false',
+              'db': 'DB_test'
+			}
+        
+        parameter = 'id'
+        #collection = 'table_name' # Mention the Table Name
+
+		# Create a MongoDB client, open a connection to Amazon DocumentDB
+		# as a replica set and specify the read preference as
+		# secondary preferred
+		client = MongoClient(docdb_info['cluster_endpoint'], 
+							 username=docdb_info['username'],
+							 password=docdb_info['password'],
+							 tls=docdb_info['tls'],
+							 tlsCAFile=docdb_info['tlsCAFile'],
+							 replicaSet=docdb_info['replicaSet'],
+							 readPreference=docdb_info['readPreference'],
+							 retryWrites=docdb_info['retryWrites']
+							)
+        
+        # Specify the database to be used
+		db = client[docdb_info['db']]
+
+        # Specify the tables to be used
+        table_pipe = db[self.__db_tables['pipeline_exec']]
+        table_algo_out = db[self.__db_tables['algo_output']]
+
+        # Get filename (id) from message received
+        unique_id = os.path.basename(data["s3_path"]).split(".")[0]
+
+         # Initialise variables used in both item creation and update
+        status = data['data_status']
+        source = attributes['SourceContainer']['StringValue']
+        print(unique_id, status, source)
+
+        # Check if item with that name already exists
+        response = table_pipe.find_one({'id': unique_id})
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        print(response, timestamp)
+
+        if reponse:
+            # Update the existing records
+            table_pipe.update({'id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_update": timestamp}})
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
+        
+        else:
+            # Insert if not created
+            item_db = {
+                        'id': unique_id,
+                        'from_container': self.__container['name'],
+                        's3_path': data['s3_path'],
+                        'data_status': status,
+                        'info_source': source,
+                        'processing_list': data['processing_steps'],
+                        'last_updated': timestamp
+                    }
+            table_pipe.insert_one(item_db)
+            logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
+            
+        # Create/Update item on Algorithm Output DB
+        if 'output' in data:
+            # Initialise variables used in item creation
+            outputs = data['output']
+            full_path = outputs['bucket'] + '/' + outputs['video_path']
+            run_id = unique_id + '_' + source 
+
+            # Item creation
+            item_db = {
+                        'pipeline_id': unique_id,
+                        'video_s3_path': full_path,
+                        'algorithm_id': source,
+                        'run_id': run_id
+                    }
+            
+            # Checks if algorithm output has metadata and stores it on db
+            if 'meta_path' in outputs:
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                    Bucket=outputs['bucket'],
+                    Key=outputs['meta_path']
+                )
+
+                # Load config file (botocore.response.StreamingBody)
+                # content to dictionary
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Adds metadata json file path to item
+                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
+            else: 
+                result_info = "No metadata available"
+                item_db['meta_s3_path'] = "-"
+
+            item_db['results'] = result_info
+            table_algo_out.insert_one(item_db)
+            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
+
+
+    ######### For Dynamo DB ###############################
 
     def connect_to_db(self, resource, data, attributes):
         """Connects to the DynamoDB table and checks if an item
