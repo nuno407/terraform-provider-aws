@@ -7,13 +7,15 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import json
 from flask_restx import Api, Resource, reqparse, fields
+from baseaws.shared_functions import ContainerServices
+import boto3
 
 # Container info
 CONTAINER_NAME = "Metadata"
 CONTAINER_VERSION = "v7.0"
 
 # DocumentDB info
-DB_NAME = "DB_test"
+DB_NAME = "DB_data_ingestion"
 
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
@@ -50,15 +52,47 @@ def create_mongo_client():
         client {pymongo.mongo_client.MongoClient'} -- [Mongo client used to
                                                        access AWS DocDB cluster]
     """
+    # Build connection info to access DocDB cluster
+    docdb_info = {
+                  'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+                  'tls': 'true',
+                  'tlsCAFile': 'rds-combined-ca-bundle.pem',
+                  'replicaSet': 'rs0',
+                  'readPreference': 'secondaryPreferred',
+                  'retryWrites': 'false'
+                }
+
+    region_name = "eu-central-1"
+    secret_name = "data-ingestion-cluster-credentials"
+
+    # TODO: ADD docdb_info TO CONFIG S3 FILE!!
+
+    # Create the necessary client for AWS secrets manager access
+    secrets_client = boto3.client('secretsmanager',
+                                  region_name='eu-central-1')
+    logging.info("EP1")
+    # Get password and username from secrets manager
+    response = secrets_client.get_secret_value(SecretId=secret_name)
+    str_response = response['SecretString']
+    logging.info("EP2")
+    # Converts response body from string to dict
+    # (in order to perform index access)
+    new_body = str_response.replace("\'", "\"")
+    dict_response = json.loads(new_body)
+    logging.info("EP3")
+    logging.info(dict_response)
+    # Mongo client creation with info previously built
     client = MongoClient(docdb_info['cluster_endpoint'], 
-                         username=docdb_info['username'],
-                         password=docdb_info['password'],
+                         username=dict_response['username'],
+                         password=dict_response['password'],
                          tls=docdb_info['tls'],
                          tlsCAFile=docdb_info['tlsCAFile'],
                          replicaSet=docdb_info['replicaSet'],
                          readPreference=docdb_info['readPreference'],
                          retryWrites=docdb_info['retryWrites']
                         )
+    logging.info(client)
+    logging.info("EP4")
     return client
 
 # Custom model for alive code 200 response (Swagger documentation)
@@ -114,26 +148,30 @@ class Status(Resource):
         Returns a list of all databases and collections currently present on the DocumentDB cluster
         """
         try:
+            logging.info("CP1")
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-
+            logging.info("CP2")
+            logging.info(client)
             # Get list of current databases on the cluster
             response = {}
             response['dbs_list'] = client.list_database_names()
-
+            logging.info("CP3")
             # Get list of current collections on each database
             response['col_list'] = {}
             for db_name in response['dbs_list']:
                 mydb = client[db_name]
                 response['col_list'][db_name] = mydb.list_collection_names()
-
+            logging.info("CP4")
+            logging.info(response)
             # Close the connection
             client.close()
-
+            logging.info("CP5")
             return flask.jsonify(message=response, statusCode="200")
         except Exception as e:
+            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
@@ -165,7 +203,7 @@ class AddItem(Resource):
             # Get info attached to request
             str_item = flask.request.form["item"]
             collection = flask.request.form["collection"]
-
+            logging.info("XP1")
             # Converts item received from string to dict
             new_body = str_item.replace("\'", "\"")
             item = json.loads(new_body)
@@ -174,22 +212,25 @@ class AddItem(Resource):
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-
+            logging.info("XP2")
             # Specify the database to be used
             db = client[DB_NAME]
-
+            logging.info("XP3")
             ##Specify the collection to be used
             col = db[collection]
-
+            logging.info("XP4")
+            logging.info(db)
+            logging.info(col)
             # Insert item
             x = col.insert_one(item)
-
+            logging.info("XP5")
             # Close the connection
             client.close()
 
             response_msg = 'Added item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
+            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
@@ -409,17 +450,16 @@ if __name__ == '__main__':
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
                         datefmt="%H:%M:%S")
 
-    # Build connection info to access DocDB cluster
-    docdb_info = {
-                  'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-                  'username': 'usertest1',
-                  'password': 'pass-test',
-                  'tls': 'true',
-                  'tlsCAFile': 'rds-combined-ca-bundle.pem',
-                  'replicaSet': 'rs0',
-                  'readPreference': 'secondaryPreferred',
-                  'retryWrites': 'false'
-                }
+    # Create the necessary clients for AWS services access
+    s3_client = boto3.client('s3',
+                             region_name='eu-central-1')
+
+    # Initialise instance of ContainerServices class
+    container_services = ContainerServices(container=CONTAINER_NAME,
+                                           version=CONTAINER_VERSION)
+
+    # Load global variable values from config json file (S3 bucket)
+    container_services.load_config_vars(s3_client)
 
     # Start API process
     app.run("0.0.0.0", use_reloader=True, debug=True)
