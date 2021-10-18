@@ -322,6 +322,7 @@ class ContainerServices():
             # Insert if not created
             item_db = {
                         'id': unique_id,
+                        '_id': unique_id,
                         'from_container': self.__container['name'],
                         's3_path': data['s3_path'],
                         'data_status': status,
