@@ -176,24 +176,24 @@ class Status(Resource):
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
-# Parameters parser for debugAddItem endpoint (Swagger documentation)
+# Parameters parser for addItem endpoint (Swagger documentation)
 add_one_parser = reqparse.RequestParser()
 add_one_parser.add_argument('item', type=str, required=True, help='Item to be added to a given collection', location='form')
-add_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection where the item is going to be added', location='form')
+add_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection where the item is going to be added', location='args')
 
-# Custom model for debugAddItem code 200 response (Swagger documentation)
+# Custom model for addItem code 200 response (Swagger documentation)
 add_one_200_model = api.model("Add_one_200", {
     'message': fields.String(example="Added item: {'_id': 'Mary', 'address': 'Highway 99'}"),
     'statusCode': fields.String(example="200")
 })
 
-@ns.route('/debugAddItem')
+@ns.route('/addItem/<string:collection>')
 class AddItem(Resource):
     @ns.response(200, 'Success', add_one_200_model)
     @ns.response(400, ERROR_400_MSG, error_400_model)
     @ns.response(500, ERROR_500_MSG, error_500_model)
     @ns.expect(add_one_parser, validate=True)
-    def post(self):
+    def post(self, collection):
         """
         Inserts item in a given collection
         ** FOR DEBUG PURPOSES **
@@ -202,8 +202,7 @@ class AddItem(Resource):
         try:
             # Get info attached to request
             str_item = flask.request.form["item"]
-            collection = flask.request.form["collection"]
-            logging.info("XP1")
+
             # Converts item received from string to dict
             new_body = str_item.replace("\'", "\"")
             item = json.loads(new_body)
@@ -212,18 +211,16 @@ class AddItem(Resource):
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-            logging.info("XP2")
+
             # Specify the database to be used
             db = client[DB_NAME]
-            logging.info("XP3")
+
             ##Specify the collection to be used
             col = db[collection]
-            logging.info("XP4")
-            logging.info(db)
-            logging.info(col)
+
             # Insert item
             x = col.insert_one(item)
-            logging.info("XP5")
+
             # Close the connection
             client.close()
 
@@ -237,7 +234,7 @@ class AddItem(Resource):
 
 # Parameters parser for getAllItems endpoint (Swagger documentation)
 get_all_parser = reqparse.RequestParser()
-get_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get all items', location='form')
+get_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get all items', location='args')
 
 # Custom model for getAllItems code 200 response (Swagger documentation)
 get_all_200_model = api.model("Get_all_200", {
@@ -245,20 +242,17 @@ get_all_200_model = api.model("Get_all_200", {
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/getAllItems')
+@api.route('/getAllItems/<string:collection>')
 class GetAll(Resource):
     @api.response(200, 'Success', get_all_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(get_all_parser, validate=True)
-    def post(self):
+    def get(self, collection):
         """
         Returns all items present in a given collection
         """
         try:
-            # Get info attached to request
-            collection = flask.request.form["collection"]
-
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -284,9 +278,9 @@ class GetAll(Resource):
 
 # Parameters parser for getItem endpoint (Swagger documentation)
 get_one_parser = reqparse.RequestParser()
-get_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get an item', location='form')
-get_one_parser.add_argument('value', type=str, required=True, help='Value that specified parameter should have', location='form')
-get_one_parser.add_argument('parameter', type=str, required=True, help='Parameter to use to search for specific item', location='form')
+get_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get an item', location='args')
+get_one_parser.add_argument('value', type=str, required=True, help='Value that specified parameter should have', location='args')
+get_one_parser.add_argument('parameter', type=str, required=True, help='Parameter to use to search for specific item', location='args')
 
 # Custom model for getItem code 200 response (Swagger documentation)
 get_nest_model = api.model("Get_nest_200", {
@@ -298,22 +292,17 @@ get_one_200_model = api.model("Get_one_200", {
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/getItem')
+@api.route('/getItem/<string:collection>/<string:parameter>/<string:value>')
 class GetOne(Resource):
     @api.response(200, 'Success', get_one_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(get_one_parser, validate=True)
-    def post(self):
+    def get(self, collection, parameter, value):
         """
         Returns the item from a given collection that has the specific value for a given parameter
         """
         try:
-            # Get info attached to request
-            value = flask.request.form["value"]
-            collection = flask.request.form["collection"]
-            parameter = flask.request.form["parameter"]
-
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -337,31 +326,28 @@ class GetOne(Resource):
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
-# Parameters parser for debugDeleteAll endpoint (Swagger documentation)
+# Parameters parser for deleteAllItems endpoint (Swagger documentation)
 del_all_parser = reqparse.RequestParser()
-del_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete all items', location='form')
+del_all_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete all items', location='args')
 
-# Custom model for debugDeleteAll code 200 response (Swagger documentation)
+# Custom model for deleteAllItems code 200 response (Swagger documentation)
 del_all_200_model = ns.model("Del_all_200", {
     'message': fields.String(example="Deleted all items from collection: example-collection"),
     'statusCode': fields.String(example="200")
 })
 
-@ns.route('/debugDeleteAll')
+@ns.route('/deleteAllItems/<string:collection>')
 class DelAll(Resource):
     @ns.response(200, 'Success', del_all_200_model)
     @ns.response(400, ERROR_400_MSG, error_400_model)
     @ns.response(500, ERROR_500_MSG, error_500_model)
     @ns.expect(del_all_parser, validate=True)
-    def post(self):
+    def delete(self, collection):
         """
         Deletes all items from a given collection
         ** FOR DEBUG PURPOSES **
         """
         try:
-            # Get info attached to request
-            collection = flask.request.form["collection"]
-
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -386,25 +372,26 @@ class DelAll(Resource):
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
-# Parameters parser for debugDeleteItem endpoint (Swagger documentation)
+# Parameters parser for deleteItem endpoint (Swagger documentation)
 del_one_parser = reqparse.RequestParser()
-del_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete a given item', location='form')
+del_one_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to delete a given item', location='args')
 del_one_parser.add_argument('item', type=str, required=True, 
-                            help='Item to be deleted (the value of this parameter could be just the parameter-value pair of the unique key)', location='form')
+                            help='Item to be deleted (the value of this parameter could be just the parameter-value pair of the unique key)',
+                            location='form')
 
-# Custom model for debugDeleteItem code 200 response (Swagger documentation)
+# Custom model for deleteItem code 200 response (Swagger documentation)
 del_one_200_model = api.model("Del_one_200", {
     'message': fields.String(example="Deleted item: {'_id': 'Jack'}"),
     'statusCode': fields.String(example="200")
 })
 
-@ns.route('/debugDeleteItem')
+@ns.route('/deleteItem/<string:collection>')
 class DelOne(Resource):
     @ns.response(200, 'Success', del_one_200_model)
     @ns.response(400, ERROR_400_MSG, error_400_model)
     @ns.response(500, ERROR_500_MSG, error_500_model)
     @ns.expect(del_one_parser, validate=True)
-    def post(self):
+    def delete(self, collection):
         """
         Deletes one item from a given collection
         ** FOR DEBUG PURPOSES **
@@ -412,7 +399,6 @@ class DelOne(Resource):
         try:
             # Get info attached to request  
             str_item = flask.request.form["item"]
-            collection = flask.request.form["collection"]
 
             # Converts item received from string to dict
             new_body = str_item.replace("\'", "\"")
