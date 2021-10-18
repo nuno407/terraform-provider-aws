@@ -262,19 +262,19 @@ class ContainerServices():
 
     ######### For Document DB (Mongo DB) ###############################
 
-	def connect_to_db(self, data, attributes):
+    def connect_to_db(self, data, attributes):
     
         # Build connection info to access DocDB cluster
         docdb_info = {
-			  'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-			  'username': 'usertest1',
-			  'password': 'pass-test',
-			  'tls': 'true',
-			  'tlsCAFile': 'rds-combined-ca-bundle.pem',
-			  'replicaSet': 'rs0',
-			  'readPreference': 'secondaryPreferred',
-			  'retryWrites': 'false',
-              'db': 'DB_test'
+                'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+                'username': 'usertest1',
+                'password': 'pass-test',
+                'tls': 'true',
+                'tlsCAFile': 'rds-combined-ca-bundle.pem',
+                'replicaSet': 'rs0',
+                'readPreference': 'secondaryPreferred',
+                'retryWrites': 'false',
+                'db': 'DB_test'
 			}
         
         parameter = 'id'
@@ -283,18 +283,18 @@ class ContainerServices():
 		# Create a MongoDB client, open a connection to Amazon DocumentDB
 		# as a replica set and specify the read preference as
 		# secondary preferred
-		client = MongoClient(docdb_info['cluster_endpoint'], 
-							 username=docdb_info['username'],
-							 password=docdb_info['password'],
-							 tls=docdb_info['tls'],
-							 tlsCAFile=docdb_info['tlsCAFile'],
-							 replicaSet=docdb_info['replicaSet'],
-							 readPreference=docdb_info['readPreference'],
-							 retryWrites=docdb_info['retryWrites']
-							)
+        client = MongoClient(docdb_info['cluster_endpoint'], 
+                            username=docdb_info['username'],
+                            password=docdb_info['password'],
+                            tls=docdb_info['tls'],
+                            tlsCAFile=docdb_info['tlsCAFile'],
+                            replicaSet=docdb_info['replicaSet'],
+                            readPreference=docdb_info['readPreference'],
+                            retryWrites=docdb_info['retryWrites']
+                            )
         
         # Specify the database to be used
-		db = client[docdb_info['db']]
+        db = client[docdb_info['db']]
 
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]
@@ -313,7 +313,7 @@ class ContainerServices():
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         print(response, timestamp)
 
-        if reponse:
+        if response:
             # Update the existing records
             table_pipe.update({'id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_update": timestamp}})
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
@@ -375,7 +375,7 @@ class ContainerServices():
 
 
     ######### For Dynamo DB ###############################
-
+    
     def connect_to_db(self, resource, data, attributes):
         """Connects to the DynamoDB table and checks if an item
         with an id equal to the file name already exists:
@@ -387,14 +387,14 @@ class ContainerServices():
 
         Arguments:
             resource {boto3.resource} -- [service resource used to
-                                          access the DynamoDB service]
+                                            access the DynamoDB service]
             data {dict} -- [dict containing the info to be sent
                             in the message body]
             attributes {dict} -- [dict containing the received message
-                                  attributes (to check its contents,
-                                  please refer to the msg_attributes
-                                  dict structure created in the
-                                  send_message function)]
+                                    attributes (to check its contents,
+                                    please refer to the msg_attributes
+                                    dict structure created in the
+                                    send_message function)]
         """
         # Select tables to use
         table_pipe = resource.Table(self.__db_tables['pipeline_exec'])
@@ -421,17 +421,17 @@ class ContainerServices():
 
             # Update already existing item
             table_pipe.update_item(
-                                   Key={'id': unique_id},
-                                   UpdateExpression=db_expression,
-                                   ExpressionAttributeValues={
-                                                               ':val1': status,
-                                                               ':val2': source,
-                                                               ':val3': timestamp
-                                                               },
-                                   ReturnValues="UPDATED_NEW"
-                                   )
+                                    Key={'id': unique_id},
+                                    UpdateExpression=db_expression,
+                                    ExpressionAttributeValues={
+                                                                ':val1': status,
+                                                                ':val2': source,
+                                                                ':val3': timestamp
+                                                                },
+                                    ReturnValues="UPDATED_NEW"
+                                    )
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp,
-                                                                          unique_id)
+                                                                            unique_id)
         else:
             # Insert item if not created yet
             item_db = {
@@ -445,7 +445,7 @@ class ContainerServices():
                     }
             table_pipe.put_item(Item=item_db)
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp,
-                                                                          unique_id)
+                                                                            unique_id)
 
         # Create/Update item on Algorithm Output DB
         if 'output' in data:
@@ -466,7 +466,7 @@ class ContainerServices():
             if 'meta_path' in outputs:
                 # Create S3 client to download metadata
                 s3_client = boto3.client('s3',
-                             region_name='eu-central-1')
+                                region_name='eu-central-1')
 
                 # Download metadata json file
                 response = s3_client.get_object(
