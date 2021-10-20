@@ -73,7 +73,7 @@ def main():
                                              message['Body'])
 
             # Insert/update data in db
-            container_services.connect_to_mongodb(relay_list,
+            container_services.connect_to_docdb(relay_list,
                                              message['MessageAttributes'])
 
             # Send message to output queue of metadata container

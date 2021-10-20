@@ -262,36 +262,57 @@ class ContainerServices():
 
     ######### For Document DB (Mongo DB) ###############################
 
-    def connect_to_mongodb(self, data, attributes):
+    def connect_to_docdb(self, data, attributes):
         
         # Build connection info to access DocDB cluster
         docdb_info = {
-            'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-            'username': 'usertest1',
-            'password': 'pass-test',
+            'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
             'tls': 'true',
             'tlsCAFile': 'rds-combined-ca-bundle.pem',
             'replicaSet': 'rs0',
             'readPreference': 'secondaryPreferred',
             'retryWrites': 'false',
-            'db': 'DB_test'
+            'db': 'DB_data_ingestion'
             }
         
         parameter = 'id'
+        region_name = "eu-central-1"
+        secret_name = "data-ingestion-cluster-credentials"
+
+        # TODO: ADD docdb_info TO CONFIG S3 FILE!!
+
+        # Create the necessary client for AWS secrets manager access
+        secrets_client = boto3.client('secretsmanager',
+                                    region_name='eu-central-1')
+        logging.info("EP1")
+        # Get password and username from secrets manager
+        response = secrets_client.get_secret_value(SecretId=secret_name)
+        str_response = response['SecretString']
+        logging.info("EP2")
+        # Converts response body from string to dict
+        # (in order to perform index access)
+        new_body = str_response.replace("\'", "\"")
+        dict_response = json.loads(new_body)
+        logging.info("EP3")
+        logging.info(dict_response)
+
         #collection = 'table_name' # Mention the Table Name
 
         # Create a MongoDB client, open a connection to Amazon DocumentDB
         # as a replica set and specify the read preference as
         # secondary preferred
         client = MongoClient(docdb_info['cluster_endpoint'], 
-                            username=docdb_info['username'],
-                            password=docdb_info['password'],
-                            tls=docdb_info['tls'],
-                            tlsCAFile=docdb_info['tlsCAFile'],
-                            replicaSet=docdb_info['replicaSet'],
-                            readPreference=docdb_info['readPreference'],
-                            retryWrites=docdb_info['retryWrites']
-                            )
+                         username=dict_response['username'],
+                         password=dict_response['password'],
+                         tls=docdb_info['tls'],
+                         tlsCAFile=docdb_info['tlsCAFile'],
+                         replicaSet=docdb_info['replicaSet'],
+                         readPreference=docdb_info['readPreference'],
+                         retryWrites=docdb_info['retryWrites']
+                        )
+    
+        logging.info(client)
+        logging.info("EP4")
         
         # Specify the database to be used
         db = client[docdb_info['db']]
