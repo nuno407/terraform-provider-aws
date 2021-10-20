@@ -10,7 +10,7 @@ from flask_restx import Api, Resource, reqparse, fields
 from baseaws.shared_functions import ContainerServices
 import boto3
 from mongosanitizer.sanitizer import sanitize
-import re
+#import re
 
 # Container info
 CONTAINER_NAME = "Metadata"
@@ -357,12 +357,12 @@ class GetAll(Resource):
             clean_query = sanitize(query)
 
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            split_query = clean_query.split(",")
-            for splited in split_query:
-                valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-                if bool(valid):
-                    response_msg = "Invalid input format for query."
-                    return flask.jsonify(message=response_msg, statusCode="222") 		
+            #split_query = clean_query.split(",")
+            #for splited in split_query:
+            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
+            #    if bool(valid):
+            #        response_msg = "Invalid input format for query."
+            #        return flask.jsonify(message=response_msg, statusCode="222") 		
 		
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as

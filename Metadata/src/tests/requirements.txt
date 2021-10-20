@@ -4,4 +4,3 @@ requests
 flask
 flask_cors
 mongosanitizer
-regex
