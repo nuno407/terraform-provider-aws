@@ -90,8 +90,7 @@ def create_mongo_client():
                          tlsCAFile=docdb_info['tlsCAFile'],
                          replicaSet=docdb_info['replicaSet'],
                          readPreference=docdb_info['readPreference'],
-                         retryWrites=docdb_info['retryWrites']
-                        )
+                         retryWrites=docdb_info['retryWrites'])
 
     return client
 
@@ -488,6 +487,43 @@ class DelOne(Resource):
             response_msg = 'Deleted item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except KeyError as e:
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+
+# Parameters parser for getVideoUrl endpoint (Swagger documentation)
+video_parser = reqparse.RequestParser()
+video_parser.add_argument('bucket', type=str, required=True, help='S3 bucket where the video file is located', location='args')
+video_parser.add_argument('folder', type=str, required=True, help='S3 folder where the video file is located', location='args')
+video_parser.add_argument('file', type=str, required=True, help='Name of the video file', location='args')
+
+# Custom model for getVideoUrl code 200 response (Swagger documentation)
+get_video_200_model = api.model("Del_one_200", {
+    'message': fields.String(example="<video_url>"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getVideoUrl/<string:bucket>/<string:folder>/<string:file>')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_video_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(video_parser, validate=True)
+    def get(self, bucket, folder, file):
+        try:
+            # Joins folder and file args to form S3 path
+            key = folder + '/' + file
+
+            # Builds params argument
+            params_s3 = {'Bucket': bucket, 'Key': key}
+
+            # Request to get video file url
+            response_msg  = s3_client.generate_presigned_url('get_object',
+                                                             Params = params_s3)
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except Exception as e:
+            print(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
