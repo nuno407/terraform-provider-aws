@@ -352,11 +352,7 @@ class GetAll(Resource):
         """
         try:
             # Get info attached to request
-            str_item = flask.request.form["query"]
-
-            # Converts item received from string to dict
-            new_body = str_item.replace("\'", "\"")
-            query = json.loads(new_body)
+            query = flask.request.form["query"]
 
             # Remove all non-allowd characters from the query          
             clean_query = sanitize(query)
@@ -364,7 +360,7 @@ class GetAll(Resource):
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
             split_query = clean_query.split(",")
             for splited in split_query:
-                valid = re.findall("[a-zA-Z]+:[-09a-zA-Z]+", splited)
+                valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
                 if bool(valid):
                     response_msg = "Invalid input format for query."
                     return flask.jsonify(message=response_msg, statusCode="222") 		
