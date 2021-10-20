@@ -5,3 +5,5 @@ flask
 flask_cors
 pymongo
 flask_restx
+mongosanitizer
+re
