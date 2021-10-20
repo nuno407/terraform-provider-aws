@@ -324,68 +324,68 @@ class GetOne(Resource):
 
 
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
-get_query_parser = reqparse.RequestParser()
-get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
-get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items', location='form')
+#get_query_parser = reqparse.RequestParser()
+#get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
+#get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items', location='form')
 
 # Custom model for getQueryItems code 200 response (Swagger documentation)
-get_query_200_model = api.model("get_query_200", {
-    'message': fields.Raw([{"collection:example-collection","_id:Jack,address:Highway 2"}]),
-    'statusCode': fields.String(example="200")
-})
-get_query_222_model = api.model("get_query_222", {
-    'message': fields.Raw([{"Invalid input format for query. Please use: collection:example-collection","_id:Jack,address:Highway 2"}]),
-    'statusCode': fields.String(example="222")
-})
+#get_query_200_model = api.model("get_query_200", {
+#    'message': fields.Raw([{"collection:example-collection","_id:Jack,address:Highway 2"}]),
+#    'statusCode': fields.String(example="200")
+#})
+#get_query_222_model = api.model("get_query_222", {
+#    'message': fields.Raw([{"Invalid input format for query. Please use: collection:example-collection","_id:Jack,address:Highway 2"}]),
+#    'statusCode': fields.String(example="222")
+#})
 
-@api.route('/getQueryItems/<string:collection>')
-class GetAll(Resource):
-    @api.response(200, 'Success', get_query_200_model)
-    @api.response(222, 'Failed', get_query_222_model)
-    @api.response(400, ERROR_400_MSG, error_400_model)
-    @api.response(500, ERROR_500_MSG, error_500_model)
-    @api.expect(get_query_parser, validate=True)
-    def post(self, collection):
-        """
-        Returns all items for a custom query
-        """
-        try:
-            # Get info attached to request
-            query = flask.request.form["query"]
-
-            # Remove all non-allowd characters from the query          
-            clean_query = sanitize(query)
-
-            #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            #split_query = clean_query.split(",")
-            #for splited in split_query:
-            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-            #    if bool(valid):
-            #        response_msg = "Invalid input format for query."
-            #        return flask.jsonify(message=response_msg, statusCode="222") 		
-		
-            # Create a MongoDB client, open a connection to Amazon DocumentDB
-            # as a replica set and specify the read preference as
-            # secondary preferred
-            client = create_mongo_client()
-
-            # Specify the database to be used
-            db = client[DB_NAME]
-
-            ##Specify the collection to be used
-            col = db[collection]
-
-            # Find the document with request id
-            response_msg = col.find({clean_query})
-
-            # Close the connection
-            client.close()
-
-            return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+#@api.route('/getQueryItems/<string:collection>')
+#class GetAll(Resource):
+#    @api.response(200, 'Success', get_query_200_model)
+#    @api.response(222, 'Failed', get_query_222_model)
+#    @api.response(400, ERROR_400_MSG, error_400_model)
+#    @api.response(500, ERROR_500_MSG, error_500_model)
+#    @api.expect(get_query_parser, validate=True)
+#    def post(self, collection):
+#        """
+#        Returns all items for a custom query
+#        """
+#        try:
+#            # Get info attached to request
+#            query = flask.request.form["query"]
+#
+#            # Remove all non-allowd characters from the query          
+#            clean_query = sanitize(query)
+#
+#            #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
+#            #split_query = clean_query.split(",")
+#            #for splited in split_query:
+#            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
+#            #    if bool(valid):
+#            #        response_msg = "Invalid input format for query."
+#            #        return flask.jsonify(message=response_msg, statusCode="222") 		
+#		
+#            # Create a MongoDB client, open a connection to Amazon DocumentDB
+#            # as a replica set and specify the read preference as
+#            # secondary preferred
+#            client = create_mongo_client()
+#
+#            # Specify the database to be used
+#            db = client[DB_NAME]
+#
+#            ##Specify the collection to be used
+#            col = db[collection]
+#
+#            # Find the document with request id
+#            response_msg = col.find({clean_query})
+#
+#            # Close the connection
+#            client.close()
+#
+#            return flask.jsonify(message=response_msg, statusCode="200")
+#        except Exception as e:
+#            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+#        except KeyError as e:
+#            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 
 # Parameters parser for deleteAllItems endpoint (Swagger documentation)
