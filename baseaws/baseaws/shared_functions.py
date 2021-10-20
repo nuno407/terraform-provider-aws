@@ -343,7 +343,7 @@ class ContainerServices():
             # Insert if not created
             item_db = {
                         'id': unique_id,
-                        '_id': unique_id,
+                        '_id': unique_id + '_' + source,
                         'from_container': self.__container['name'],
                         's3_path': data['s3_path'],
                         'data_status': status,
@@ -363,7 +363,7 @@ class ContainerServices():
 
             # Item creation
             item_db = {
-                        '_id': unique_id,
+                        '_id': unique_id + '_' + source,
                         'pipeline_id': unique_id,
                         'video_s3_path': full_path,
                         'algorithm_id': source,
