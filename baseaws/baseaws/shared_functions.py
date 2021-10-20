@@ -262,39 +262,39 @@ class ContainerServices():
 
     ######### For Document DB (Mongo DB) ###############################
 
-	def connect_to_mongodb(self, data, attributes):
+    def connect_to_mongodb(self, data, attributes):
         
         # Build connection info to access DocDB cluster
         docdb_info = {
-			  'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-			  'username': 'usertest1',
-			  'password': 'pass-test',
-			  'tls': 'true',
-			  'tlsCAFile': 'rds-combined-ca-bundle.pem',
-			  'replicaSet': 'rs0',
-			  'readPreference': 'secondaryPreferred',
-			  'retryWrites': 'false',
-              'db': 'DB_test'
-			}
+            'cluster_endpoint': 'docdb-cluster-demo.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
+            'username': 'usertest1',
+            'password': 'pass-test',
+            'tls': 'true',
+            'tlsCAFile': 'rds-combined-ca-bundle.pem',
+            'replicaSet': 'rs0',
+            'readPreference': 'secondaryPreferred',
+            'retryWrites': 'false',
+            'db': 'DB_test'
+            }
         
         parameter = 'id'
         #collection = 'table_name' # Mention the Table Name
 
-		# Create a MongoDB client, open a connection to Amazon DocumentDB
-		# as a replica set and specify the read preference as
-		# secondary preferred
-		client = MongoClient(docdb_info['cluster_endpoint'], 
-							 username=docdb_info['username'],
-							 password=docdb_info['password'],
-							 tls=docdb_info['tls'],
-							 tlsCAFile=docdb_info['tlsCAFile'],
-							 replicaSet=docdb_info['replicaSet'],
-							 readPreference=docdb_info['readPreference'],
-							 retryWrites=docdb_info['retryWrites']
-							)
+        # Create a MongoDB client, open a connection to Amazon DocumentDB
+        # as a replica set and specify the read preference as
+        # secondary preferred
+        client = MongoClient(docdb_info['cluster_endpoint'], 
+                            username=docdb_info['username'],
+                            password=docdb_info['password'],
+                            tls=docdb_info['tls'],
+                            tlsCAFile=docdb_info['tlsCAFile'],
+                            replicaSet=docdb_info['replicaSet'],
+                            readPreference=docdb_info['readPreference'],
+                            retryWrites=docdb_info['retryWrites']
+                            )
         
         # Specify the database to be used
-		db = client[docdb_info['db']]
+        db = client[docdb_info['db']]
 
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]
@@ -303,7 +303,7 @@ class ContainerServices():
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
 
-         # Initialise variables used in both item creation and update
+        # Initialise variables used in both item creation and update
         status = data['data_status']
         source = attributes['SourceContainer']['StringValue']
         print(unique_id, status, source)
@@ -353,7 +353,7 @@ class ContainerServices():
             if 'meta_path' in outputs:
                 # Create S3 client to download metadata
                 s3_client = boto3.client('s3',
-                             region_name='eu-central-1')
+                            region_name='eu-central-1')
 
                 # Download metadata json file
                 response = s3_client.get_object(
