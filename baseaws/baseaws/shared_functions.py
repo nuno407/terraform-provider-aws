@@ -275,7 +275,6 @@ class ContainerServices():
             'db': 'DB_data_ingestion'
             }
         
-        parameter = 'id'
         region_name = "eu-central-1"
         secret_name = "data-ingestion-cluster-credentials"
 
@@ -284,16 +283,15 @@ class ContainerServices():
         # Create the necessary client for AWS secrets manager access
         secrets_client = boto3.client('secretsmanager',
                                     region_name='eu-central-1')
-        logging.info("EP1")
+        logging.info(secrets_client)
         # Get password and username from secrets manager
         response = secrets_client.get_secret_value(SecretId=secret_name)
         str_response = response['SecretString']
-        logging.info("EP2")
+        logging.info(str_response)
         # Converts response body from string to dict
         # (in order to perform index access)
         new_body = str_response.replace("\'", "\"")
         dict_response = json.loads(new_body)
-        logging.info("EP3")
         logging.info(dict_response)
 
         #collection = 'table_name' # Mention the Table Name
@@ -312,7 +310,6 @@ class ContainerServices():
                         )
     
         logging.info(client)
-        logging.info("EP4")
         
         # Specify the database to be used
         db = client[docdb_info['db']]
@@ -330,20 +327,19 @@ class ContainerServices():
         print(unique_id, status, source)
 
         # Check if item with that name already exists
-        response = table_pipe.find_one({'id': unique_id})
+        response = table_pipe.find_one({'_id': unique_id})
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         print(response, timestamp)
 
         if response:
             # Update the existing records
-            table_pipe.update({'id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_update": timestamp}})
+            table_pipe.update({'_id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_updated": timestamp}})
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
         
         else:
             # Insert if not created
             item_db = {
-                        'id': unique_id,
-                        '_id': unique_id + '_' + source,
+                        '_id': unique_id,
                         'from_container': self.__container['name'],
                         's3_path': data['s3_path'],
                         'data_status': status,
@@ -396,123 +392,6 @@ class ContainerServices():
             table_algo_out.insert_one(item_db)
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
 
-
-    ######### For Dynamo DB ###############################
-
-    def connect_to_db(self, resource, data, attributes):
-        """Connects to the DynamoDB table and checks if an item
-        with an id equal to the file name already exists:
-
-        - If yes, updates some of the item parameters with
-        new values provided as inputs (data and attributes)
-        - If not, creates a new item with the values provided
-        in the data and attributes inputs
-
-        Arguments:
-            resource {boto3.resource} -- [service resource used to
-                                          access the DynamoDB service]
-            data {dict} -- [dict containing the info to be sent
-                            in the message body]
-            attributes {dict} -- [dict containing the received message
-                                  attributes (to check its contents,
-                                  please refer to the msg_attributes
-                                  dict structure created in the
-                                  send_message function)]
-        """
-        # Select tables to use
-        table_pipe = resource.Table(self.__db_tables['pipeline_exec'])
-        table_algo_out = resource.Table(self.__db_tables['algo_output'])
-
-        # Get filename (id) from message received
-        unique_id = os.path.basename(data["s3_path"]).split(".")[0]
-
-        # Initialise variables used in both item creation and update
-        status = data['data_status']
-        source = attributes['SourceContainer']['StringValue']
-
-        # Check if item with that name already exists
-        response = table_pipe.get_item(Key={'id': unique_id})
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-
-        # Create/Update item on Pipeline Execution DB
-        if 'Item' in response:
-            # Build update expression
-            exp1 = 'data_status = :val1'
-            exp2 = 'info_source = :val2'
-            exp3 = 'last_updated = :val3'
-            db_expression = 'SET '+exp1+', '+exp2+', '+exp3
-
-            # Update already existing item
-            table_pipe.update_item(
-                                   Key={'id': unique_id},
-                                   UpdateExpression=db_expression,
-                                   ExpressionAttributeValues={
-                                                               ':val1': status,
-                                                               ':val2': source,
-                                                               ':val3': timestamp
-                                                               },
-                                   ReturnValues="UPDATED_NEW"
-                                   )
-            logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp,
-                                                                          unique_id)
-        else:
-            # Insert item if not created yet
-            item_db = {
-                        'id': unique_id,
-                        'from_container': self.__container['name'],
-                        's3_path': data['s3_path'],
-                        'data_status': status,
-                        'info_source': source,
-                        'processing_list': data['processing_steps'],
-                        'last_updated': timestamp
-                    }
-            table_pipe.put_item(Item=item_db)
-            logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp,
-                                                                          unique_id)
-
-        # Create/Update item on Algorithm Output DB
-        if 'output' in data:
-            # Initialise variables used in item creation
-            outputs = data['output']
-            full_path = outputs['bucket'] + '/' + outputs['video_path']
-            run_id = unique_id + '_' + source 
-
-            # Item creation
-            item_db = {
-                        'pipeline_id': unique_id,
-                        'video_s3_path': full_path,
-                        'algorithm_id': source,
-                        'run_id': run_id
-                    }
-            
-            # Checks if algorithm output has metadata and stores it on db
-            if 'meta_path' in outputs:
-                # Create S3 client to download metadata
-                s3_client = boto3.client('s3',
-                             region_name='eu-central-1')
-
-                # Download metadata json file
-                response = s3_client.get_object(
-                    Bucket=outputs['bucket'],
-                    Key=outputs['meta_path']
-                )
-
-                # Load config file (botocore.response.StreamingBody)
-                # content to dictionary
-                result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-                # Adds metadata json file path to item
-                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
-            else: 
-                result_info = "No metadata available"
-                item_db['meta_s3_path'] = "-"
-
-            item_db['results'] = result_info
-            table_algo_out.put_item(Item=item_db)
-            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,
-                                                                            run_id)
-
-        # TODO: SPLIT THIS FUNCTION WHEN WE HAVE MORE TABLES
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
