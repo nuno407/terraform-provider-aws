@@ -323,7 +323,7 @@ class GetOne(Resource):
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
 get_query_parser = reqparse.RequestParser()
 get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
-get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items', location='args')
+get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":"value1", "parameter2":"value2", ... }', location='args')
 
 query_200_nest_model = api.model("Query_nest_200", {
     '_id': fields.String(example="Mary"),
@@ -333,16 +333,15 @@ get_query_200_model = api.model("Get_query_200", {
     'message': fields.Nested(query_200_nest_model),
     'statusCode': fields.String(example="200")
 })
-get_query_222_model = api.model("Get_query_222", {
+query_error_400_model = api.model("Get_query_400", {
     'message': fields.String(example="Invalid input format for query. Use the following format for queries: {'parameter1':'value1', 'parameter2':'value2', ... }"),
-    'statusCode': fields.String(example="222")
+    'statusCode': fields.String(example="400")
 })
 
 @api.route('/getQueryItems/<string:collection>/<string:query>')
 class GetQuery(Resource):
    @api.response(200, 'Success', get_query_200_model)
-   @api.response(222, 'Failed', get_query_222_model)
-   @api.response(400, ERROR_400_MSG, error_400_model)
+   @api.response(400, ERROR_400_MSG, query_error_400_model)
    @api.response(500, ERROR_500_MSG, error_500_model)
    @api.expect(get_query_parser, validate=True)
    def get(self, collection, query):
