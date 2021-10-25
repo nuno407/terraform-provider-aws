@@ -6,4 +6,4 @@ flask_cors
 pymongo
 flask_restx
 mongosanitizer
-regex
+regex --no-use-wheel
