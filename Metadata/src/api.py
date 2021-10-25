@@ -29,7 +29,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Swagger documentation initialisation
 api = Api(app, version='1.0', title='Metadata management API',
-          description='API used for communication between Fronted UI and DocumentDB database',
+          description='API used for communication between Frontend UI and DocumentDB database',
           default="General endpoints", default_label="")
 
 # Create namespace for debug endpoints
