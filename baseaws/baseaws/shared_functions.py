@@ -22,6 +22,7 @@ class ContainerServices():
         self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
+        self.__docdb_whitelist = {}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -73,6 +74,11 @@ class ContainerServices():
         """anonymized_s3_ignore variable"""
         return self.__s3_ignore['anonymized']
 
+    @property
+    def docdb_whitelist(self):
+        """docdb_whitelist variable"""
+        return self.__docdb_whitelist
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -115,6 +121,9 @@ class ContainerServices():
         # the processing container
         self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
         self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
+
+        # List of all parameters whitelisted for docdb queries
+        self.__docdb_whitelist = dict_body['docdb_key_whitelists']
 
         logging.info("Load complete!\n")
 

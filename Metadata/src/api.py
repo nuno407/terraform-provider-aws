@@ -4,7 +4,7 @@ Metadata API
 import logging
 import flask
 from flask_cors import CORS
-from pymongo import MongoClient
+from pymongo import MongoClient, collection
 import json
 from flask_restx import Api, Resource, reqparse, fields
 from baseaws.shared_functions import ContainerServices
@@ -354,38 +354,54 @@ class GetQuery(Resource):
         logging.info(type(query))
         try:
             # Remove all non-allowd characters from the query          
-            clean_query = sanitize(query)
-            logging.info("CP1")
-            logging.info(clean_query)
-            logging.info(type(clean_query))
+            sanitize(query)
+
+            ########### Parameters (keys) validation ##############################
+            
+            # Converts item received from string to dict
+            new_body = query.replace("\'", "\"")
+            json_query = json.loads(new_body)
+
+            logging.info("CP10")
+
+            whitelist = container_services.docdb_whitelist[collection]
+            logging.info(whitelist)
+
+            keys_to_check = list(json_query.keys())
+            logging.info(keys_to_check)
+
+            logging.info("CP11")
+
+            assert [a for a in keys_to_check if a not in whitelist] == [],"List is empty."
+            
+            logging.info("CP12")
+            ########################################################################
+
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            split_query = clean_query.split(",")
-            logging.info("CP2")
-            for splited in split_query:
-               valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-               logging.info("CP2.5")
-               logging.info(valid)
-               logging.info(bool(valid))
-               if bool(valid):
-                   return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
-            logging.info("CP3")
+            # split_query = clean_query.split(",")
+            # for splited in split_query:
+            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
+            #    if bool(valid):
+            #        return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-            logging.info("CP4")
+
             # Specify the database to be used
             db = client[DB_NAME]
-            logging.info("CP5")
+
             ##Specify the collection to be used
             col = db[collection]
-            logging.info("CP6")
+
             # Find the document with request id
-            response_msg = col.find({clean_query})
-            logging.info("CP7")
+            #response_msg = col.find({clean_query})
+            response_msg = "DEBUG MODE"
+
             # Close the connection
             client.close()
-            logging.info("CP8")
+
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
             logging.info(e)
