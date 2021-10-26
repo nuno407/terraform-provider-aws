@@ -353,11 +353,11 @@ class GetQuery(Resource):
             clean_query = sanitize(query)
 
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            # split_query = clean_query.split(",")
-            # for splited in split_query:
-            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-            #    if bool(valid):
-            #        return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
+            split_query = clean_query.split(",")
+            for splited in split_query:
+               valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
+               if bool(valid):
+                   return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
         
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
