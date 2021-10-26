@@ -350,10 +350,14 @@ class GetQuery(Resource):
         """
         logging.info(collection)
         logging.info(query)
+        logging.info(type(collection))
+        logging.info(type(query))
         try:
             # Remove all non-allowd characters from the query          
             clean_query = sanitize(query)
             logging.info("CP1")
+            logging.info(clean_query)
+            logging.info(type(clean_query))
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
             split_query = clean_query.split(",")
             logging.info("CP2")
