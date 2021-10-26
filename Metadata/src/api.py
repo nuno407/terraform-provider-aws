@@ -348,34 +348,40 @@ class GetQuery(Resource):
         """
         Returns all items for a custom query
         """
+        logging.info(collection)
+        logging.info(query)
         try:
             # Remove all non-allowd characters from the query          
             clean_query = sanitize(query)
-
+            logging.info("CP1")
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
             split_query = clean_query.split(",")
+            logging.info("CP2")
             for splited in split_query:
                valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
+               logging.info("CP2.5")
+               logging.info(valid)
+               logging.info(bool(valid))
                if bool(valid):
                    return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
-        
+            logging.info("CP3")
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
             client = create_mongo_client()
-
+            logging.info("CP4")
             # Specify the database to be used
             db = client[DB_NAME]
-
+            logging.info("CP5")
             ##Specify the collection to be used
             col = db[collection]
-
+            logging.info("CP6")
             # Find the document with request id
             response_msg = col.find({clean_query})
-
+            logging.info("CP7")
             # Close the connection
             client.close()
-
+            logging.info("CP8")
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
