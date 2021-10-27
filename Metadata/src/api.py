@@ -326,12 +326,8 @@ get_query_parser.add_argument('collection', type=str, required=True, help='DocDB
 get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":{"operator1":"value1"}, "parameter2":{"operator2":"value2"}, ... }', location='args')
 get_query_parser.add_argument('op', type=str, required=True, help='DocDB operator (supported: AND, OR)', location='args')
 
-query_200_nest_model = api.model("Query_nest_200", {
-    '_id': fields.String(example="Mary"),
-    'address': fields.String(example="Highway 99")
-})
 get_query_200_model = api.model("Get_query_200", {
-    'message': fields.Nested(query_200_nest_model),
+    'message': fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}]),
     'statusCode': fields.String(example="200")
 })
 query_error_400_model = api.model("Get_query_400", {
@@ -429,10 +425,11 @@ class GetQuery(Resource):
                 # TODO: CHECK IF THIS STEP IS NECESSARY
                 if ops_conv == "$nin":
                     #query_tuple = (key, ops_conv, [op_value[1]])
-                    query_mongo[key] = {ops_conv:{[op_value[1]]}}
+                    #format: { "address": { "$regex": "^S" } }
+                    query_mongo[key] = {ops_conv:[op_value[1]]}
                 else:
                     #query_tuple = (key, ops_conv, op_value[1])
-                    query_mongo[key] = {ops_conv:{op_value[1]}}
+                    query_mongo[key] = {ops_conv:op_value[1]}
                 #tuples_list.append(query_tuple)
 
             logging.info("CP16")
@@ -460,16 +457,17 @@ class GetQuery(Resource):
 
             logging.info("CP17")
 
-
             # Find the document with request id
-            response_msg = col.find(query_mongo)
+            response_msg = list(col.find(query_mongo))
             #response_msg = "DEBUG MODE"
 
             logging.info("CP18")
-            logging.info(response_msg)
+
             # Close the connection
             client.close()
+
             logging.info("CP19")
+
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
