@@ -14,7 +14,7 @@ import re
 
 # Container info
 CONTAINER_NAME = "Metadata"
-CONTAINER_VERSION = "v7.2"
+CONTAINER_VERSION = "v7.3"
 
 # DocumentDB info
 DB_NAME = "DB_data_ingestion"
@@ -356,6 +356,9 @@ class GetQuery(Resource):
         logging.info(type(query))
         logging.info(type(op))
         try:
+
+            # TODO: ADD COLLECTION VALIDATION STEP USING MAYBE THE KEYS IN container_services.docdb_whitelist
+
             valid_links = {"or":"$or", "and":"$and"}
             # TODO: ADD valid_ops_dict to config file
 
@@ -397,35 +400,45 @@ class GetQuery(Resource):
             
             logging.info("CP13")
 
-            tuples_list = []
+            #tuples_list = []
 
             valid_ops_dict = {"==":"$eq", ">":"$gt", "<":"$lt", "!=":"$nin"}
             # TODO: ADD valid_ops_dict to config file
 
             valid_ops_keys = list(valid_ops_dict.keys())
 
+            query_mongo = {}
+            
             logging.info("CP14")
 
             for key in keys_to_check:
                 # Get item (pair op/value) for a given key (parameter)
                 op_value = list(json_query[key].items())[0]
 
+                ## OPERATOR VALIDATION + CONVERSION
                 # Check if operator is valid 
-                assert op_value[0] in valid_ops_keys, "Invalid/Forbidden operators"
+                assert op_value[0] in valid_ops_keys, "Invalid/Forbidden query operators"
 
                 # Convert the operator to pymongo syntax
                 ops_conv = valid_ops_dict[op_value[0]]
 
+                ## VALUE VALIDATION
+                # Check if value is valid (i.e. alphanumeric and/or with characters _ : / . -)
+                # NOTE: No spaces are allowed in the value string!
+                assert re.findall("^[a-zA-Z0-9_:/.-]*$", str(op_value[1])) != [], "Invalid/Forbidden query values"
+
                 # Convert value to array if operation is $nin
                 # TODO: CHECK IF THIS STEP IS NECESSARY
                 if ops_conv == "$nin":
-                    query_tuple = (key, ops_conv, [op_value[1]])
+                    #query_tuple = (key, ops_conv, [op_value[1]])
+                    query_mongo[key] = {ops_conv:[op_value[1]]}
                 else:
-                    query_tuple = (key, ops_conv, op_value[1])
-                tuples_list.append(query_tuple)
+                    #query_tuple = (key, ops_conv, op_value[1])
+                    query_mongo[key] = {ops_conv:op_value[1]}
+                #tuples_list.append(query_tuple)
 
             logging.info("CP16")
-            logging.info(tuples_list)
+            logging.info(query_mongo)
 
             ########################################################################
 
@@ -447,16 +460,20 @@ class GetQuery(Resource):
             ##Specify the collection to be used
             col = db[collection]
 
+            logging.info("CP17")
+
+
             # Find the document with request id
-            #response_msg = col.find({clean_query})
-            response_msg = "DEBUG MODE"
+            response_msg = col.find(query_mongo)
+            #response_msg = "DEBUG MODE"
+
+            logging.info("CP18")
 
             # Close the connection
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
-            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
