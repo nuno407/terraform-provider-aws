@@ -351,9 +351,24 @@ class GetQuery(Resource):
         """
         logging.info(collection)
         logging.info(query)
+        logging.info(op)
         logging.info(type(collection))
         logging.info(type(query))
+        logging.info(type(op))
         try:
+            valid_links = {"or":"$or", "and":"$and"}
+            # TODO: ADD valid_ops_dict to config file
+
+            valid_links_keys = list(valid_links.keys())
+
+            logging.info("CP8")
+
+            # Check if operator is in the valid list
+            if op.lower() not in valid_links_keys:
+                api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+            logging.info("CP9")
+
             # Remove all non-allowd characters from the query          
             sanitize(query)
 
@@ -376,21 +391,42 @@ class GetQuery(Resource):
             assert [a for a in keys_to_check if a not in whitelist] == [], "Invalid/Forbidden query keys"
             
             logging.info("CP12")
+
             ########################################################################
-
-            ########### Split processing (operations + values) ##############################
-            tuples_list = []
-
+            ########### Split processing (operations + values) ##############################       
+            
             logging.info("CP13")
 
-            for key in keys_to_check:
-                op_value = list(json_query[key].items())[0]
-                query_tuple = (key, op_value[0], op_value[1])
-                tuples_list.append(query_tuple)
+            tuples_list = []
+
+            valid_ops_dict = {"==":"$eq", ">":"$gt", "<":"$lt", "!=":"$nin"}
+            # TODO: ADD valid_ops_dict to config file
+
+            valid_ops_keys = list(valid_ops_dict.keys())
 
             logging.info("CP14")
-            logging.info(tuples_list)    
-                        
+
+            for key in keys_to_check:
+                # Get item (pair op/value) for a given key (parameter)
+                op_value = list(json_query[key].items())[0]
+
+                # Check if operator is valid 
+                assert op_value[0] in valid_ops_keys, "Invalid/Forbidden operators"
+
+                # Convert the operator to pymongo syntax
+                ops_conv = valid_ops_dict[op_value[0]]
+
+                # Convert value to array if operation is $nin
+                # TODO: CHECK IF THIS STEP IS NECESSARY
+                if ops_conv == "$nin":
+                    query_tuple = (key, ops_conv, [op_value[1]])
+                else:
+                    query_tuple = (key, ops_conv, op_value[1])
+                tuples_list.append(query_tuple)
+
+            logging.info("CP16")
+            logging.info(tuples_list)
+
             ########################################################################
 
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
