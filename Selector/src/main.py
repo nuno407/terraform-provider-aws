@@ -54,14 +54,14 @@ def request_process_selector(client, container_services, body):
 
                     payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
 
-                    '''
                     # Send API request (POST)
+                    addr = f"https://dev.bosch-ridecare.com/footage/devices/{device_id}/videofootage"
+
                     try:
-                        requests.post(addr, files=files, data=payload)
+                        requests.post(addr, data=payload)
                         logging.info("API POST request sent! (uid: %s)", uid)
                     except requests.exceptions.ConnectionError as error_response:
                         logging.info(error_response)
-                    '''
 
     
 
