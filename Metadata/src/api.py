@@ -324,7 +324,7 @@ class GetOne(Resource):
 get_query_parser = reqparse.RequestParser()
 get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
 get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":{"operator1":"value1"}, "parameter2":{"operator2":"value2"}, ... }', location='args')
-get_query_parser.add_argument('op', type=str, required=True, help='DocDB operator (supported: AND, OR)', location='args')
+get_query_parser.add_argument('operator', type=str, required=True, help='DocDB operator used to link multiple queries (supported: AND, OR)', location='args')
 
 get_query_200_model = api.model("Get_query_200", {
     'message': fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}]),
@@ -335,22 +335,22 @@ query_error_400_model = api.model("Get_query_400", {
     'statusCode': fields.String(example="400")
 })
 
-@api.route('/getQueryItems/<string:collection>/<string:query>/<string:op>')
+@api.route('/getQueryItems/<string:collection>/<string:query>/<string:operator>')
 class GetQuery(Resource):
    @api.response(200, 'Success', get_query_200_model)
    @api.response(400, ERROR_400_MSG, query_error_400_model)
    @api.response(500, ERROR_500_MSG, error_500_model)
    @api.expect(get_query_parser, validate=True)
-   def get(self, collection, query, op):
+   def get(self, collection, query, operator):
         """
         Returns all items for a custom query
         """
         logging.info(collection)
         logging.info(query)
-        logging.info(op)
+        logging.info(operator)
         logging.info(type(collection))
         logging.info(type(query))
-        logging.info(type(op))
+        logging.info(type(operator))
         try:
 
             # TODO: ADD COLLECTION VALIDATION STEP USING MAYBE THE KEYS IN container_services.docdb_whitelist
@@ -363,7 +363,7 @@ class GetQuery(Resource):
             logging.info("CP8")
 
             # Check if operator is in the valid list
-            if op.lower() not in valid_links_keys:
+            if operator.lower() not in valid_links_keys:
                 api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
             logging.info("CP9")
@@ -426,15 +426,20 @@ class GetQuery(Resource):
                 if ops_conv == "$nin":
                     #query_tuple = (key, ops_conv, [op_value[1]])
                     #format: { "address": { "$regex": "^S" } }
-                    query_mongo[key] = {ops_conv:[op_value[1]]}
+                    query_mongo[key] = {'$exists': 'true', ops_conv:[op_value[1]]}
                 else:
                     #query_tuple = (key, ops_conv, op_value[1])
-                    query_mongo[key] = {ops_conv:op_value[1]}
+                    # $exists -> used to make sure items without
+                    # the parameter set in key are not also returned
+                    query_mongo[key] = {'$exists': 'true', ops_conv:op_value[1]}
                 #tuples_list.append(query_tuple)
 
             logging.info("CP16")
             logging.info(query_mongo)
 
+            query_request = {valid_links[operator]: [query_mongo]}
+            
+            logging.info(query_request)
             ########################################################################
 
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
@@ -458,7 +463,7 @@ class GetQuery(Resource):
             logging.info("CP17")
 
             # Find the document with request id
-            response_msg = list(col.find(query_mongo))
+            response_msg = list(col.find(query_request))
             #response_msg = "DEBUG MODE"
 
             logging.info("CP18")
