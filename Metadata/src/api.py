@@ -355,7 +355,10 @@ class GetQuery(Resource):
 
             # TODO: ADD COLLECTION VALIDATION STEP USING MAYBE THE KEYS IN container_services.docdb_whitelist
 
-            valid_links = {"or":"$or", "and":"$and"}
+            valid_links = {
+                            "or":"$or",
+                            "and":"$and"
+                        }
             # TODO: ADD valid_ops_dict to config file
 
             valid_links_keys = list(valid_links.keys())
@@ -395,7 +398,7 @@ class GetQuery(Resource):
             logging.info("CP13")
 
             #tuples_list = []
-
+            
             valid_ops_dict = {
                               "==":"$eq",
                               ">":"$gt",
@@ -407,7 +410,7 @@ class GetQuery(Resource):
 
             valid_ops_keys = list(valid_ops_dict.keys())
 
-            query_mongo = {}
+            query_list = []
             
             logging.info("CP14")
 
@@ -432,18 +435,22 @@ class GetQuery(Resource):
                 if ops_conv == "$nin":
                     #query_tuple = (key, ops_conv, [op_value[1]])
                     #format: { "address": { "$regex": "^S" } }
-                    query_mongo[key] = {'$exists': 'true', ops_conv:[op_value[1]]}
+                    #query_mongo[key] = {'$exists': 'true', ops_conv:[op_value[1]]}
+                    subquery = {key:{'$exists': 'true', ops_conv:[op_value[1]]}}
+                    query_list.append(subquery)
                 else:
                     #query_tuple = (key, ops_conv, op_value[1])
                     # $exists -> used to make sure items without
                     # the parameter set in key are not also returned
-                    query_mongo[key] = {'$exists': 'true', ops_conv:op_value[1]}
+                    #query_mongo[key] = {'$exists': 'true', ops_conv:op_value[1]}
+                    subquery = {key:{'$exists': 'true', ops_conv:op_value[1]}}
+                    query_list.append(subquery)
                 #tuples_list.append(query_tuple)
 
             logging.info("CP16")
-            logging.info(query_mongo)
+            logging.info(query_list)
 
-            query_request = {valid_links[operator]: [query_mongo]}
+            query_request = {valid_links[operator]: query_list}
 
             logging.info(query_request)
             ########################################################################
