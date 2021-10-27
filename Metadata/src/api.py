@@ -384,10 +384,8 @@ class GetQuery(Resource):
             logging.info("CP10")
 
             whitelist = container_services.docdb_whitelist[collection]
-            logging.info(whitelist)
 
             keys_to_check = list(json_query.keys())
-            logging.info(keys_to_check)
 
             logging.info("CP11")
 
@@ -431,10 +429,10 @@ class GetQuery(Resource):
                 # TODO: CHECK IF THIS STEP IS NECESSARY
                 if ops_conv == "$nin":
                     #query_tuple = (key, ops_conv, [op_value[1]])
-                    query_mongo[key] = {ops_conv:[op_value[1]]}
+                    query_mongo[key] = {ops_conv:{[op_value[1]]}}
                 else:
                     #query_tuple = (key, ops_conv, op_value[1])
-                    query_mongo[key] = {ops_conv:op_value[1]}
+                    query_mongo[key] = {ops_conv:{op_value[1]}}
                 #tuples_list.append(query_tuple)
 
             logging.info("CP16")
@@ -468,10 +466,10 @@ class GetQuery(Resource):
             #response_msg = "DEBUG MODE"
 
             logging.info("CP18")
-
+            logging.info(response_msg)
             # Close the connection
             client.close()
-
+            logging.info("CP19")
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
