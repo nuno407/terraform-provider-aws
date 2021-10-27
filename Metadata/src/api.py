@@ -323,7 +323,8 @@ class GetOne(Resource):
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
 get_query_parser = reqparse.RequestParser()
 get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
-get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":"value1", "parameter2":"value2", ... }', location='args')
+get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":{"operator1":"value1"}, "parameter2":{"operator2":"value2"}, ... }', location='args')
+get_query_parser.add_argument('op', type=str, required=True, help='DocDB operator (supported: AND, OR)', location='args')
 
 query_200_nest_model = api.model("Query_nest_200", {
     '_id': fields.String(example="Mary"),
@@ -334,17 +335,17 @@ get_query_200_model = api.model("Get_query_200", {
     'statusCode': fields.String(example="200")
 })
 query_error_400_model = api.model("Get_query_400", {
-    'message': fields.String(example="Invalid input format for query. Use the following format for queries: {'parameter1':'value1', 'parameter2':'value2', ... }"),
+    'message': fields.String(example="Invalid input format for query. Use the following format for queries: {'parameter1':{'operator1':'value1'}, 'parameter2':{'operator2':'value2'}, ... }"),
     'statusCode': fields.String(example="400")
 })
 
-@api.route('/getQueryItems/<string:collection>/<string:query>')
+@api.route('/getQueryItems/<string:collection>/<string:query>/<string:op>')
 class GetQuery(Resource):
    @api.response(200, 'Success', get_query_200_model)
    @api.response(400, ERROR_400_MSG, query_error_400_model)
    @api.response(500, ERROR_500_MSG, error_500_model)
    @api.expect(get_query_parser, validate=True)
-   def get(self, collection, query):
+   def get(self, collection, query, op):
         """
         Returns all items for a custom query
         """
@@ -372,9 +373,24 @@ class GetQuery(Resource):
 
             logging.info("CP11")
 
-            assert [a for a in keys_to_check if a not in whitelist] == [],"List is empty."
+            assert [a for a in keys_to_check if a not in whitelist] == [], "Invalid/Forbidden query keys"
             
             logging.info("CP12")
+            ########################################################################
+
+            ########### Split processing (operations + values) ##############################
+            tuples_list = []
+
+            logging.info("CP13")
+
+            for key in keys_to_check:
+                op_value = list(json_query[key].items())[0]
+                query_tuple = (key, op_value[0], op_value[1])
+                tuples_list.append(query_tuple)
+
+            logging.info("CP14")
+            logging.info(tuples_list)    
+                        
             ########################################################################
 
             #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
