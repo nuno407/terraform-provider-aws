@@ -396,7 +396,13 @@ class GetQuery(Resource):
 
             #tuples_list = []
 
-            valid_ops_dict = {"==":"$eq", ">":"$gt", "<":"$lt", "!=":"$nin"}
+            valid_ops_dict = {
+                              "==":"$eq",
+                              ">":"$gt",
+                              "<":"$lt",
+                              "!=":"$nin",
+                              "has":"$regex"
+                            }
             # TODO: ADD valid_ops_dict to config file
 
             valid_ops_keys = list(valid_ops_dict.keys())
@@ -438,7 +444,7 @@ class GetQuery(Resource):
             logging.info(query_mongo)
 
             query_request = {valid_links[operator]: [query_mongo]}
-            
+
             logging.info(query_request)
             ########################################################################
 
