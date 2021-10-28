@@ -508,10 +508,6 @@ class GetQuery(Resource):
             ##Specify the collection to be used
             col = db[collection]
 
-            #############################################################################################
-            logging.info(query_request)
-            #############################################################################################
-
             # Find the documents that match the query conditions
             response_msg = list(col.find(query_request))
 
@@ -520,8 +516,10 @@ class GetQuery(Resource):
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
+            logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
         except KeyError as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 # Parameters parser for deleteAllItems endpoint (Swagger documentation)
