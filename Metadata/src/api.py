@@ -324,7 +324,7 @@ class GetOne(Resource):
 get_query_parser = reqparse.RequestParser()
 get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
 get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":{"operator1":"value1"}, "parameter2":{"operator2":"value2"}, ... }', location='args')
-get_query_parser.add_argument('operator', type=str, required=True, help='DocDB operator used to link multiple queries (supported: AND, OR)', location='args')
+get_query_parser.add_argument('logic_operator', type=str, required=True, help='DocDB operator used to link multiple queries (supported: AND, OR)', location='args')
 
 get_query_200_model = api.model("Get_query_200", {
     'message': fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}]),
@@ -335,70 +335,100 @@ query_error_400_model = api.model("Get_query_400", {
     'statusCode': fields.String(example="400")
 })
 
-@api.route('/getQueryItems/<string:collection>/<string:query>/<string:operator>')
+@api.route('/getQueryItems/<string:collection>/<string:query>/<string:logic_operator>')
 class GetQuery(Resource):
    @api.response(200, 'Success', get_query_200_model)
    @api.response(400, ERROR_400_MSG, query_error_400_model)
    @api.response(500, ERROR_500_MSG, error_500_model)
    @api.expect(get_query_parser, validate=True)
-   def get(self, collection, query, operator):
+   def get(self, collection, query, logic_operator):
         """
         Returns all items for a custom query
+
+        ** Resulting query format **
+
+        QUERY: <subquery1> <logic_operator> <subquery2> <logic_operator> ..
+
+        where:
+            <subquery>          ->   {'parameter1': {'operator1':'value1'}}
+            <logic_operator>    ->   e.g. AND or OR (currently supported logical operators)
+
+
+        ** Currently supported operators (for query argument) **
+
+        OPERATOR  ->  DESCRIPTION
+            "=="  ->  equal
+            "!="  ->  not equal
+            ">"   ->  greater than
+            "<"   ->  less than
+            "has" ->  contains substring in its value
+
+
+        ** Currently supported logical operators (for operator argument) **
+
+        OPERATOR  ->  DESCRIPTION
+           "and"  ->  all parameter:value conditions must be met
+           "or"   ->  at least one parameter:value condition must be met
         """
         logging.info(collection)
         logging.info(query)
-        logging.info(operator)
+        logging.info(logic_operator)
         logging.info(type(collection))
         logging.info(type(query))
-        logging.info(type(operator))
+        logging.info(type(logic_operator))
         try:
 
             # TODO: ADD COLLECTION VALIDATION STEP USING MAYBE THE KEYS IN container_services.docdb_whitelist
-
-            valid_links = {
+            
+            # State all valid logical operators
+            valid_logical = {
                             "or":"$or",
                             "and":"$and"
                         }
             # TODO: ADD valid_ops_dict to config file
 
-            valid_links_keys = list(valid_links.keys())
+            # List all valid logical operators
+            valid_logic_keys = list(valid_logical.keys())
 
             logging.info("CP8")
 
             # Check if operator is in the valid list
-            if operator.lower() not in valid_links_keys:
+            if logic_operator.lower() not in valid_logic_keys:
                 api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
             logging.info("CP9")
 
-            # Remove all non-allowd characters from the query          
+            # Sanitize query to be ready for assertion          
             sanitize(query)
 
-            ########### Parameters (keys) validation ##############################
+            ## Parameters (keys) validation ##
             
-            # Converts item received from string to dict
+            # Converts query received from string to dict
             new_body = query.replace("\'", "\"")
             json_query = json.loads(new_body)
 
             logging.info("CP10")
 
+            # Load whitelist for valid keys from config file
             whitelist = container_services.docdb_whitelist[collection]
 
+            # Create list of keys from received query
             keys_to_check = list(json_query.keys())
 
             logging.info("CP11")
 
+            # Check if all keys received are valid
             assert [a for a in keys_to_check if a not in whitelist] == [], "Invalid/Forbidden query keys"
             
             logging.info("CP12")
 
-            ########################################################################
-            ########### Split processing (operations + values) ##############################       
-            
+            ## Split processing and validation(operations + values) ##
+           
             logging.info("CP13")
-
-            #tuples_list = []
             
+            # State all valid query operators and their
+            # corresponding pymongo operators (used for
+            # validation and later conversion)
             valid_ops_dict = {
                               "==":"$eq",
                               ">":"$gt",
@@ -407,9 +437,11 @@ class GetQuery(Resource):
                               "has":"$regex"
                             }
             # TODO: ADD valid_ops_dict to config file
-
+            
+            # Create list of valid operators for query validation
             valid_ops_keys = list(valid_ops_dict.keys())
 
+            # Create empty list that will contain all sub queries received
             query_list = []
             
             logging.info("CP14")
@@ -433,35 +465,31 @@ class GetQuery(Resource):
                 # Convert value to array if operation is $nin
                 # TODO: CHECK IF THIS STEP IS NECESSARY
                 if ops_conv == "$nin":
-                    #query_tuple = (key, ops_conv, [op_value[1]])
-                    #format: { "address": { "$regex": "^S" } }
-                    #query_mongo[key] = {'$exists': 'true', ops_conv:[op_value[1]]}
-                    subquery = {key:{'$exists': 'true', ops_conv:[op_value[1]]}}
-                    query_list.append(subquery)
-                else:
-                    #query_tuple = (key, ops_conv, op_value[1])
-                    # $exists -> used to make sure items without
+                    # Create subquery. 
+                    # NOTE: $exists -> used to make sure items without
                     # the parameter set in key are not also returned
-                    #query_mongo[key] = {'$exists': 'true', ops_conv:op_value[1]}
+                    subquery = {key:{'$exists': 'true', ops_conv:[op_value[1]]}}
+                else:
+                    # Create subquery. 
+                    # NOTE: $exists -> used to make sure items without
+                    # the parameter set in key are not also returned
                     subquery = {key:{'$exists': 'true', ops_conv:op_value[1]}}
-                    query_list.append(subquery)
-                #tuples_list.append(query_tuple)
+
+                # Append subquery to list
+                query_list.append(subquery)
 
             logging.info("CP16")
             logging.info(query_list)
 
-            query_request = {valid_links[operator]: query_list}
+            # Append selected logical operator to query
+            # NOTE: Resulting format -> { <AND/OR>: [<subquery1>, <subquery2>, ...] },
+            #       which translates into: <subquery1> AND/OR <subquery2> AND/OR ... 
+            query_request = {valid_logical[logic_operator]: query_list}
 
             logging.info(query_request)
-            ########################################################################
 
-            #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            # split_query = clean_query.split(",")
-            # for splited in split_query:
-            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-            #    if bool(valid):
-            #        return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
-
+            ## DocDB connection ##
+            
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -475,9 +503,8 @@ class GetQuery(Resource):
 
             logging.info("CP17")
 
-            # Find the document with request id
+            # Find the documents that match the query conditions
             response_msg = list(col.find(query_request))
-            #response_msg = "DEBUG MODE"
 
             logging.info("CP18")
 
