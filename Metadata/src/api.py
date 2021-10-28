@@ -345,30 +345,35 @@ class GetQuery(Resource):
         """
         Returns all items for a custom query
 
-        ** Resulting query format **
+        ### Resulting query format
 
-        QUERY: <subquery1> <logic_operator> <subquery2> <logic_operator> ..
+            QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
 
         where:
-            <subquery>          ->   {'parameter1': {'operator1':'value1'}}
-            <logic_operator>    ->   e.g. AND or OR (currently supported logical operators)
+        - `<subquery_x>`  -   {'parameter_x': {'operator_x':'value_x'}}  
 
+        - `<logic_operator>` - e.g. AND or OR (currently supported logical operators)
 
-        ** Currently supported operators (for query argument) **
+        ---
 
-        OPERATOR  ->  DESCRIPTION
-            "=="  ->  equal
-            "!="  ->  not equal
-            ">"   ->  greater than
-            "<"   ->  less than
-            "has" ->  contains substring in its value
+        ### Currently supported operators (for query argument)
 
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `==` | Equal |
+        | `!=` | Not equal |
+        | `>` | Greater than |
+        | `<` | Less than |
+        | `has` | Contains substring in its value |
 
-        ** Currently supported logical operators (for operator argument) **
+        ---
 
-        OPERATOR  ->  DESCRIPTION
-           "and"  ->  all parameter:value conditions must be met
-           "or"   ->  at least one parameter:value condition must be met
+        ### Currently supported logical operators (for logical_operator argument)
+
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `AND` / `and` |  All parameter:value conditions must be met |
+        | `OR` / `or` | At least one parameter:value condition must be met |
         """
         logging.info(collection)
         logging.info(query)
