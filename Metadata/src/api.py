@@ -345,18 +345,22 @@ class GetQuery(Resource):
         """
         Returns all items for a custom query
 
-        ### Resulting query format
+        ## Example of query request
 
-            QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
+        If it necessary to query the "dev-algorithm-output" DB collection for items where:
+        - The **processing algorithm** was **anonymization** (i.e. parameter "algorithm_id" equals "Anonymize")
 
-        where:
-        - `<subquery_x>`  -   {'parameter_x': {'operator_x':'value_x'}}  
+        - The **name** of the item contains the word **"pipeline"** (i.e. parameter "_id" has the substring "pipeline)
 
-        - `<logic_operator>` - e.g. AND or OR (currently supported logical operators)
+        then, the request arguments should be the following:  
+        - **collection:**  `"dev-algorithm-output"`
 
+        - **query:** `{ 'algorithm_id': {'==' : 'Anonymize'}, '_id': {'has' : 'pipeline'} }`
+
+        - **logic_operator:** `AND` (if both conditions are required) or `OR` (if only one condition needs to be met)
         ---
 
-        ### Currently supported operators (for query argument)
+        ## Currently supported operators (for query argument)
 
         | Operator | Description |
         | ----------- | ----------- |
@@ -368,51 +372,62 @@ class GetQuery(Resource):
 
         ---
 
-        ### Currently supported logical operators (for logical_operator argument)
+        ## Currently supported logical operators (for logical_operator argument)
 
         | Operator | Description |
         | ----------- | ----------- |
         | `AND` / `and` |  All parameter:value conditions must be met |
         | `OR` / `or` | At least one parameter:value condition must be met |
-        """
-        logging.info(collection)
-        logging.info(query)
-        logging.info(logic_operator)
-        logging.info(type(collection))
-        logging.info(type(query))
-        logging.info(type(logic_operator))
-        try:
 
-            # TODO: ADD COLLECTION VALIDATION STEP USING MAYBE THE KEYS IN container_services.docdb_whitelist
+        ---
+        
+        ## Resulting query format
+
+            QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
+
+        where:
+        - `<subquery_x>`  -  corresponds to x<sup>th</sup> condition stated on the query argument (e.g. {'parameter_x': {'operator_x' : 'value_x'}} )  
+
+        - `<logic_operator>` - corresponds to the logical operator used link two or more expressions (currently supported logical operators: AND, OR).
+        <br/>
+
+        **Note:** The usage of logical operators is limited to one of them (and not both) per request, i.e.:
+        - `<subquery_1> AND <subquery_2> AND ...` or `<subquery_1> OR <subquery_2> OR ...` are supported
+
+        - `<subquery_1> OR <subquery_2> AND ...` is not currently supported
+
+        """
+        try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if operator is in the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+            # TODO: ADD THIS VALIDATION TO THE OTHER ENDPOINTS
             
             # State all valid logical operators
             valid_logical = {
-                            "or":"$or",
-                            "and":"$and"
-                        }
-            # TODO: ADD valid_ops_dict to config file
+                              "or":"$or",
+                              "and":"$and"
+                            }
+            # TODO: ADD valid_logical to config file
 
             # List all valid logical operators
             valid_logic_keys = list(valid_logical.keys())
 
-            logging.info("CP8")
-
             # Check if operator is in the valid list
-            if logic_operator.lower() not in valid_logic_keys:
-                api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-
-            logging.info("CP9")
+            assert logic_operator.lower() in valid_logic_keys, "Invalid/Forbidden logical operator"
 
             # Sanitize query to be ready for assertion          
             sanitize(query)
 
-            ## Parameters (keys) validation ##
+            ## Parameters (keys) validation #################
             
             # Converts query received from string to dict
             new_body = query.replace("\'", "\"")
             json_query = json.loads(new_body)
-
-            logging.info("CP10")
 
             # Load whitelist for valid keys from config file
             whitelist = container_services.docdb_whitelist[collection]
@@ -420,17 +435,11 @@ class GetQuery(Resource):
             # Create list of keys from received query
             keys_to_check = list(json_query.keys())
 
-            logging.info("CP11")
-
             # Check if all keys received are valid
             assert [a for a in keys_to_check if a not in whitelist] == [], "Invalid/Forbidden query keys"
-            
-            logging.info("CP12")
 
-            ## Split processing and validation(operations + values) ##
-           
-            logging.info("CP13")
-            
+            ## Split processing and validation(operations + values) ################
+
             # State all valid query operators and their
             # corresponding pymongo operators (used for
             # validation and later conversion)
@@ -448,8 +457,6 @@ class GetQuery(Resource):
 
             # Create empty list that will contain all sub queries received
             query_list = []
-            
-            logging.info("CP14")
 
             for key in keys_to_check:
                 # Get item (pair op/value) for a given key (parameter)
@@ -483,17 +490,12 @@ class GetQuery(Resource):
                 # Append subquery to list
                 query_list.append(subquery)
 
-            logging.info("CP16")
-            logging.info(query_list)
-
             # Append selected logical operator to query
             # NOTE: Resulting format -> { <AND/OR>: [<subquery1>, <subquery2>, ...] },
             #       which translates into: <subquery1> AND/OR <subquery2> AND/OR ... 
             query_request = {valid_logical[logic_operator]: query_list}
 
-            logging.info(query_request)
-
-            ## DocDB connection ##
+            ## DocDB connection ###################
             
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -506,17 +508,15 @@ class GetQuery(Resource):
             ##Specify the collection to be used
             col = db[collection]
 
-            logging.info("CP17")
+            #############################################################################################
+            logging.info(query_request)
+            #############################################################################################
 
             # Find the documents that match the query conditions
             response_msg = list(col.find(query_request))
 
-            logging.info("CP18")
-
             # Close the connection
             client.close()
-
-            logging.info("CP19")
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except Exception as e:
