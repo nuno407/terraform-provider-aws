@@ -3,6 +3,7 @@ Metadata API
 """
 import logging
 import flask
+from flask import make_response
 from flask_cors import CORS
 from pymongo import MongoClient, collection
 import json
@@ -21,7 +22,8 @@ DB_NAME = "DB_data_ingestion"
 
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
-ERROR_500_MSG = 'Mapping Key Error'
+ERROR_404_MSG = 'Method not found'
+ERROR_500_MSG = 'Internal Server Error'
 
 # API instance initialisation
 app = flask.Flask(__name__)
@@ -34,6 +36,11 @@ api = Api(app, version='1.0', title='Metadata management API',
 
 # Create namespace for debug endpoints
 ns = api.namespace('Debug endpoints', description="", path="/")
+
+# Error 404 general handler
+@app.errorhandler(404)
+def not_found(_):
+    return make_response(flask.jsonify(message=ERROR_404_MSG, statusCode="404"), 404)
 
 # Common models used in most endpoints
 error_400_model = api.model("Error_400", {
@@ -166,10 +173,15 @@ class Status(Resource):
             client.close()
 
             return flask.jsonify(message=response, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for addItem endpoint (Swagger documentation)
 add_one_parser = reqparse.RequestParser()
@@ -195,6 +207,14 @@ class AddItem(Resource):
 
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Get info attached to request
             str_item = flask.request.form["item"]
 
@@ -221,10 +241,15 @@ class AddItem(Resource):
 
             response_msg = 'Added item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getAllItems endpoint (Swagger documentation)
 get_all_parser = reqparse.RequestParser()
@@ -247,6 +272,14 @@ class GetAll(Resource):
         Returns all items present in a given collection
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -265,10 +298,15 @@ class GetAll(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getItem endpoint (Swagger documentation)
 get_one_parser = reqparse.RequestParser()
@@ -297,6 +335,14 @@ class GetOne(Resource):
         Returns the item from a given collection that has the specific value for a given parameter
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -315,10 +361,15 @@ class GetOne(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
 get_query_parser = reqparse.RequestParser()
@@ -403,9 +454,8 @@ class GetQuery(Resource):
             # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
             #       INFO FROM CONFIG FILE?? 
 
-            # Check if operator is in the valid list
+            # Check if collection is on the valid list
             assert collection in valid_collections, "Invalid/Forbidden collection"
-            # TODO: ADD THIS VALIDATION TO THE OTHER ENDPOINTS
             
             # State all valid logical operators
             valid_logical = {
@@ -470,9 +520,9 @@ class GetQuery(Resource):
                 ops_conv = valid_ops_dict[op_value[0]]
 
                 ## VALUE VALIDATION
-                # Check if value is valid (i.e. alphanumeric and/or with characters _ : / . -)
+                # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
                 # NOTE: No spaces are allowed in the value string!
-                assert re.findall("^[a-zA-Z0-9_:/.-]*$", str(op_value[1])) != [], "Invalid/Forbidden query values"
+                assert re.findall("^[a-zA-Z0-9_:.-]*$", str(op_value[1])) != [], "Invalid/Forbidden query values"
 
                 # Convert value to array if operation is $nin
                 # TODO: CHECK IF THIS STEP IS NECESSARY
@@ -515,12 +565,15 @@ class GetQuery(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
         except Exception as e:
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
-            logging.info(e)
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 # Parameters parser for deleteAllItems endpoint (Swagger documentation)
 del_all_parser = reqparse.RequestParser()
@@ -544,6 +597,14 @@ class DelAll(Resource):
         ** FOR DEBUG PURPOSES **
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -563,10 +624,15 @@ class DelAll(Resource):
 
             response_msg = 'Deleted all items from collection: {}'.format(str(collection))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for deleteItem endpoint (Swagger documentation)
 del_one_parser = reqparse.RequestParser()
@@ -593,6 +659,14 @@ class DelOne(Resource):
         ** FOR DEBUG PURPOSES **
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Get info attached to request  
             str_item = flask.request.form["item"]
 
@@ -620,11 +694,75 @@ class DelOne(Resource):
 
             response_msg = 'Deleted item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+###############################################################################################################
+# Parameters parser for deleteCollection endpoint (Swagger documentation)
+del_col_parser = reqparse.RequestParser()
+del_col_parser.add_argument('collection', type=str, required=True, help='DocDB Collection to be deleted', location='args')
 
+# Custom model for deleteCollection code 200 response (Swagger documentation)
+del_col_200_model = ns.model("Del_col_200", {
+    'message': fields.String(example="Deleted collection: example-collection"),
+    'statusCode': fields.String(example="200")
+})
+
+@ns.route('/deleteCollection/<string:collection>')
+class DelCol(Resource):
+    @ns.response(200, 'Success', del_col_200_model)
+    @ns.response(400, ERROR_400_MSG, error_400_model)
+    @ns.response(500, ERROR_500_MSG, error_500_model)
+    @ns.expect(del_col_parser, validate=True)
+    def delete(self, collection):
+        """
+        Deletes a given collection
+        ** FOR DEBUG PURPOSES **
+        """
+        try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection]
+
+            # Delete items
+            col.drop()
+
+            # Close the connection
+            client.close()
+
+            response_msg = 'Deleted collection: {}'.format(str(collection))
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+################################################################################################################
 # Parameters parser for getVideoUrl endpoint (Swagger documentation)
 video_parser = reqparse.RequestParser()
 video_parser.add_argument('bucket', type=str, required=True, help='S3 bucket where the video file is located', location='args')
@@ -656,11 +794,15 @@ class VideoFeed(Resource):
                                                              Params = params_s3)
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            print(e)
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
 if __name__ == '__main__':
