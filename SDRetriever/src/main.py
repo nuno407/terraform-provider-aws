@@ -38,8 +38,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
 
     # TEST VALUES 
     stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
-    start_time = datetime(2021, 9, 29, 14, 00, 51)
-    end_time = datetime(2021, 9, 29, 14, 00, 54)
+    start_time = datetime(2021, 10, 15, 21, 40, 15)
+    end_time = datetime(2021, 10, 15, 21, 40, 18)
     selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
     stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
     sts_session = "AssumeRoleSession1"
@@ -104,8 +104,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     key_prefix = dict_body['s3_key_prefix'] # 'test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021'
     
     # name of the folder and file for the final concatenated file
-    key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full.json'
-    s3_role = "arn:aws:iam::213279581081:role/dev-datanauts-S3-Source-Metadata-Role"
+    key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full_test.json'
+    s3_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
     sts_session = "AssumeRoleSession2"
     #############################
 
