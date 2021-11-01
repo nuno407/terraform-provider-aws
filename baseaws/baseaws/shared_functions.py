@@ -478,7 +478,7 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
 
-    def get_kinesis_clip(self, creds, stream_name, stream_arn, start_time, end_time, selector):
+    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector):
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
@@ -505,9 +505,8 @@ class ContainerServices():
                                       aws_session_token=creds['SessionToken'])
 
         # Getting endpoint URL for GET_CLIP
-        response = kinesis_client.get_data_endpoint(StreamARN=stream_arn,
+        response = kinesis_client.get_data_endpoint(StreamName=stream_name,
                                                     APIName='GET_CLIP')
-        # StreamName=stream_name,
 
         endpoint_response = response['DataEndpoint']
 

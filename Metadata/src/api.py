@@ -3,6 +3,7 @@ Metadata API
 """
 import logging
 import flask
+from flask import make_response
 from flask_cors import CORS
 from pymongo import MongoClient, collection
 import json
@@ -14,14 +15,15 @@ import re
 
 # Container info
 CONTAINER_NAME = "Metadata"
-CONTAINER_VERSION = "v7.2"
+CONTAINER_VERSION = "v7.3"
 
 # DocumentDB info
 DB_NAME = "DB_data_ingestion"
 
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
-ERROR_500_MSG = 'Mapping Key Error'
+ERROR_404_MSG = 'Method not found'
+ERROR_500_MSG = 'Internal Server Error'
 
 # API instance initialisation
 app = flask.Flask(__name__)
@@ -34,6 +36,11 @@ api = Api(app, version='1.0', title='Metadata management API',
 
 # Create namespace for debug endpoints
 ns = api.namespace('Debug endpoints', description="", path="/")
+
+# Error 404 general handler
+@app.errorhandler(404)
+def not_found(_):
+    return make_response(flask.jsonify(message=ERROR_404_MSG, statusCode="404"), 404)
 
 # Common models used in most endpoints
 error_400_model = api.model("Error_400", {
@@ -166,10 +173,15 @@ class Status(Resource):
             client.close()
 
             return flask.jsonify(message=response, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for addItem endpoint (Swagger documentation)
 add_one_parser = reqparse.RequestParser()
@@ -195,6 +207,14 @@ class AddItem(Resource):
 
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Get info attached to request
             str_item = flask.request.form["item"]
 
@@ -221,10 +241,15 @@ class AddItem(Resource):
 
             response_msg = 'Added item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getAllItems endpoint (Swagger documentation)
 get_all_parser = reqparse.RequestParser()
@@ -247,6 +272,14 @@ class GetAll(Resource):
         Returns all items present in a given collection
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -265,10 +298,15 @@ class GetAll(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getItem endpoint (Swagger documentation)
 get_one_parser = reqparse.RequestParser()
@@ -297,6 +335,14 @@ class GetOne(Resource):
         Returns the item from a given collection that has the specific value for a given parameter
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -315,23 +361,24 @@ class GetOne(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
 get_query_parser = reqparse.RequestParser()
 get_query_parser.add_argument('collection', type=str, required=True, help='DocDB Collection from where to get the items', location='args')
 get_query_parser.add_argument('query', type=str, required=True, help='DocDB custom pair(s) of parameter:value to use to get items. Use the following format (json): {"parameter1":{"operator1":"value1"}, "parameter2":{"operator2":"value2"}, ... }', location='args')
-get_query_parser.add_argument('op', type=str, required=True, help='DocDB operator (supported: AND, OR)', location='args')
+get_query_parser.add_argument('logic_operator', type=str, required=True, help='DocDB operator used to link multiple queries (supported: AND, OR)', location='args')
 
-query_200_nest_model = api.model("Query_nest_200", {
-    '_id': fields.String(example="Mary"),
-    'address': fields.String(example="Highway 99")
-})
 get_query_200_model = api.model("Get_query_200", {
-    'message': fields.Nested(query_200_nest_model),
+    'message': fields.Raw([{"_id": "John","address": "Highway 2"},{"_id": "Jack","address": "Highway 2"}]),
     'statusCode': fields.String(example="200")
 })
 query_error_400_model = api.model("Get_query_400", {
@@ -339,67 +386,167 @@ query_error_400_model = api.model("Get_query_400", {
     'statusCode': fields.String(example="400")
 })
 
-@api.route('/getQueryItems/<string:collection>/<string:query>/<string:op>')
+@api.route('/getQueryItems/<string:collection>/<string:query>/<string:logic_operator>')
 class GetQuery(Resource):
    @api.response(200, 'Success', get_query_200_model)
    @api.response(400, ERROR_400_MSG, query_error_400_model)
    @api.response(500, ERROR_500_MSG, error_500_model)
    @api.expect(get_query_parser, validate=True)
-   def get(self, collection, query, op):
+   def get(self, collection, query, logic_operator):
         """
         Returns all items for a custom query
+
+        ## Example of query request
+
+        If it necessary to query the "dev-algorithm-output" DB collection for items where:
+        - The **processing algorithm** was **anonymization** (i.e. parameter "algorithm_id" equals "Anonymize")
+
+        - The **name** of the item contains the word **"pipeline"** (i.e. parameter "_id" has the substring "pipeline)
+
+        then, the request arguments should be the following:  
+        - **collection:**  `"dev-algorithm-output"`
+
+        - **query:** `{ 'algorithm_id': {'==' : 'Anonymize'}, '_id': {'has' : 'pipeline'} }`
+
+        - **logic_operator:** `AND` (if both conditions are required) or `OR` (if only one condition needs to be met)
+        ---
+
+        ## Currently supported operators (for query argument)
+
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `==` | Equal |
+        | `!=` | Not equal |
+        | `>` | Greater than |
+        | `<` | Less than |
+        | `has` | Contains substring in its value |
+
+        ---
+
+        ## Currently supported logical operators (for logical_operator argument)
+
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `AND` / `and` |  All parameter:value conditions must be met |
+        | `OR` / `or` | At least one parameter:value condition must be met |
+
+        ---
+        
+        ## Resulting query format
+
+            QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
+
+        where:
+        - `<subquery_x>`  -  corresponds to x<sup>th</sup> condition stated on the query argument (e.g. {'parameter_x': {'operator_x' : 'value_x'}} )  
+
+        - `<logic_operator>` - corresponds to the logical operator used link two or more expressions (currently supported logical operators: AND, OR).
+        <br/>
+
+        **Note:** The usage of logical operators is limited to one of them (and not both) per request, i.e.:
+        - `<subquery_1> AND <subquery_2> AND ...` or `<subquery_1> OR <subquery_2> OR ...` are supported
+
+        - `<subquery_1> OR <subquery_2> AND ...` is not currently supported
+
         """
-        logging.info(collection)
-        logging.info(query)
-        logging.info(type(collection))
-        logging.info(type(query))
         try:
-            # Remove all non-allowd characters from the query          
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+            
+            # State all valid logical operators
+            valid_logical = {
+                              "or":"$or",
+                              "and":"$and"
+                            }
+            # TODO: ADD valid_logical to config file
+
+            # List all valid logical operators
+            valid_logic_keys = list(valid_logical.keys())
+
+            # Check if operator is in the valid list
+            assert logic_operator.lower() in valid_logic_keys, "Invalid/Forbidden logical operator"
+
+            # Sanitize query to be ready for assertion          
             sanitize(query)
 
-            ########### Parameters (keys) validation ##############################
+            ## Parameters (keys) validation #################
             
-            # Converts item received from string to dict
+            # Converts query received from string to dict
             new_body = query.replace("\'", "\"")
             json_query = json.loads(new_body)
 
-            logging.info("CP10")
-
+            # Load whitelist for valid keys from config file
             whitelist = container_services.docdb_whitelist[collection]
-            logging.info(whitelist)
 
+            # Create list of keys from received query
             keys_to_check = list(json_query.keys())
-            logging.info(keys_to_check)
 
-            logging.info("CP11")
-
+            # Check if all keys received are valid
             assert [a for a in keys_to_check if a not in whitelist] == [], "Invalid/Forbidden query keys"
+
+            ## Split processing and validation(operations + values) ################
+
+            # State all valid query operators and their
+            # corresponding pymongo operators (used for
+            # validation and later conversion)
+            valid_ops_dict = {
+                              "==":"$eq",
+                              ">":"$gt",
+                              "<":"$lt",
+                              "!=":"$nin",
+                              "has":"$regex"
+                            }
+            # TODO: ADD valid_ops_dict to config file
             
-            logging.info("CP12")
-            ########################################################################
+            # Create list of valid operators for query validation
+            valid_ops_keys = list(valid_ops_dict.keys())
 
-            ########### Split processing (operations + values) ##############################
-            tuples_list = []
-
-            logging.info("CP13")
+            # Create empty list that will contain all sub queries received
+            query_list = []
 
             for key in keys_to_check:
+                # Get item (pair op/value) for a given key (parameter)
                 op_value = list(json_query[key].items())[0]
-                query_tuple = (key, op_value[0], op_value[1])
-                tuples_list.append(query_tuple)
 
-            logging.info("CP14")
-            logging.info(tuples_list)    
-                        
-            ########################################################################
+                ## OPERATOR VALIDATION + CONVERSION
+                # Check if operator is valid 
+                assert op_value[0] in valid_ops_keys, "Invalid/Forbidden query operators"
 
-            #Split the query  and validate each sub-statement to ensure it follows the "parameter:value,parameter:value" format
-            # split_query = clean_query.split(",")
-            # for splited in split_query:
-            #    valid = re.findall("[a-zA-Z]+:[0-9a-zA-Z]+", splited)
-            #    if bool(valid):
-            #        return flask.jsonify(message=ERROR_400_MSG, statusCode="400") 		
+                # Convert the operator to pymongo syntax
+                ops_conv = valid_ops_dict[op_value[0]]
 
+                ## VALUE VALIDATION
+                # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
+                # NOTE: No spaces are allowed in the value string!
+                assert re.findall("^[a-zA-Z0-9_:.-]*$", str(op_value[1])) != [], "Invalid/Forbidden query values"
+
+                # Convert value to array if operation is $nin
+                # TODO: CHECK IF THIS STEP IS NECESSARY
+                if ops_conv == "$nin":
+                    # Create subquery. 
+                    # NOTE: $exists -> used to make sure items without
+                    # the parameter set in key are not also returned
+                    subquery = {key:{'$exists': 'true', ops_conv:[op_value[1]]}}
+                else:
+                    # Create subquery. 
+                    # NOTE: $exists -> used to make sure items without
+                    # the parameter set in key are not also returned
+                    subquery = {key:{'$exists': 'true', ops_conv:op_value[1]}}
+
+                # Append subquery to list
+                query_list.append(subquery)
+
+            # Append selected logical operator to query
+            # NOTE: Resulting format -> { <AND/OR>: [<subquery1>, <subquery2>, ...] },
+            #       which translates into: <subquery1> AND/OR <subquery2> AND/OR ... 
+            query_request = {valid_logical[logic_operator]: query_list}
+
+            ## DocDB connection ###################
+            
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -411,19 +558,22 @@ class GetQuery(Resource):
             ##Specify the collection to be used
             col = db[collection]
 
-            # Find the document with request id
-            #response_msg = col.find({clean_query})
-            response_msg = "DEBUG MODE"
+            # Find the documents that match the query conditions
+            response_msg = list(col.find(query_request))
 
             # Close the connection
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
         except Exception as e:
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 # Parameters parser for deleteAllItems endpoint (Swagger documentation)
 del_all_parser = reqparse.RequestParser()
@@ -447,6 +597,14 @@ class DelAll(Resource):
         ** FOR DEBUG PURPOSES **
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
             # secondary preferred
@@ -466,10 +624,15 @@ class DelAll(Resource):
 
             response_msg = 'Deleted all items from collection: {}'.format(str(collection))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for deleteItem endpoint (Swagger documentation)
 del_one_parser = reqparse.RequestParser()
@@ -496,6 +659,14 @@ class DelOne(Resource):
         ** FOR DEBUG PURPOSES **
         """
         try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
             # Get info attached to request  
             str_item = flask.request.form["item"]
 
@@ -523,11 +694,75 @@ class DelOne(Resource):
 
             response_msg = 'Deleted item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+###############################################################################################################
+# Parameters parser for deleteCollection endpoint (Swagger documentation)
+del_col_parser = reqparse.RequestParser()
+del_col_parser.add_argument('collection', type=str, required=True, help='DocDB Collection to be deleted', location='args')
 
+# Custom model for deleteCollection code 200 response (Swagger documentation)
+del_col_200_model = ns.model("Del_col_200", {
+    'message': fields.String(example="Deleted collection: example-collection"),
+    'statusCode': fields.String(example="200")
+})
+
+@ns.route('/deleteCollection/<string:collection>')
+class DelCol(Resource):
+    @ns.response(200, 'Success', del_col_200_model)
+    @ns.response(400, ERROR_400_MSG, error_400_model)
+    @ns.response(500, ERROR_500_MSG, error_500_model)
+    @ns.expect(del_col_parser, validate=True)
+    def delete(self, collection):
+        """
+        Deletes a given collection
+        ** FOR DEBUG PURPOSES **
+        """
+        try:
+            # Load list of collections currently available on DocDB
+            valid_collections = list(container_services.docdb_whitelist.keys())
+            # TODO: USE METHOD SIMILAR TO DBSTATUS ENDPOINT INSTEAD OF GETTING
+            #       INFO FROM CONFIG FILE?? 
+
+            # Check if collection is on the valid list
+            assert collection in valid_collections, "Invalid/Forbidden collection"
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection]
+
+            # Delete items
+            col.drop()
+
+            # Close the connection
+            client.close()
+
+            response_msg = 'Deleted collection: {}'.format(str(collection))
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+################################################################################################################
 # Parameters parser for getVideoUrl endpoint (Swagger documentation)
 video_parser = reqparse.RequestParser()
 video_parser.add_argument('bucket', type=str, required=True, help='S3 bucket where the video file is located', location='args')
@@ -559,11 +794,15 @@ class VideoFeed(Resource):
                                                              Params = params_s3)
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except Exception as e:
-            print(e)
-            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-        except KeyError as e:
+        except (NameError, LookupError) as e:
+            logging.info(e)
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
 if __name__ == '__main__':
