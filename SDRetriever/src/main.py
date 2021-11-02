@@ -100,7 +100,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
 
     bucket_origin = 'rcc-dev-device-data'
 
-    # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "s3_key_prefix": "honeybadger/ivs_srx_develop_tmk2si_03/year=2021/month=09/day=22/hour=05/InteriorRecorder_InteriorRecorder-8a79e911-deb6-4d1d-8c52-372f8eb07e49"}
+    # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "s3_key_prefix": "TEST_TENANT/HONEYBADGER_DEV_01/year=2021/month=10/day=29/hour=12/InteriorRecorder_InteriorRecorder-3d5ac5dd-b19f-491a-a3e0-f21da9f88316"}
     key_prefix = dict_body['s3_key_prefix'] # 'test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021'
     
     # name of the folder and file for the final concatenated file
@@ -187,22 +187,22 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
     # CROSS ACCOUNT S3 ACCESS TEST
     for index, file_entry in enumerate(response_list['Contents']):
 
-        if file_entry['Key'].endswith('.json'):
+        #if file_entry['Key'].endswith('.json'):
 
-            file_key = file_entry['Key'].split("/")[-1]
-            #logging.info("%s\n", file_key)
-            logging.info("\n")
-            
-            metadata_file = container_services.download_file(rcc_s3,
-                                                            bucket_origin,
-                                                            file_entry['Key'])
+        file_key = file_entry['Key'].split("/")[-1]
+        #logging.info("%s\n", file_key)
+        logging.info("\n")
+        
+        metadata_file = container_services.download_file(rcc_s3,
+                                                        bucket_origin,
+                                                        file_entry['Key'])
 
-            key_full_metadata = 'uber/' + file_key
+        key_full_metadata = 'uber/' + file_key
 
-            container_services.upload_file(s3_client,
-                                            metadata_file,
-                                            container_services.raw_s3,
-                                            key_full_metadata)
+        container_services.upload_file(s3_client,
+                                        metadata_file,
+                                        container_services.raw_s3,
+                                        key_full_metadata)
     ######################################
 def main():
     """Main function"""
