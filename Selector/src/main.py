@@ -6,9 +6,65 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
 from datetime import datetime, timedelta
+import os
+import base64
+import urllib3
+from json.decoder import JSONDecodeError
+from urllib.parse import urlencode
+
+http_client = urllib3.PoolManager()
+
+# secret = os.environ.get('RCC_API_DEV_SECRET_NAME')
+secret = 'API_DEVCLOUD_SELECTOR_SECRET'
+aws_secrets = aws_secrets_manager.get_secret(secret)
+
 
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
+
+#####  Generating Token for API Authorization ###########
+
+def get_token(token_endpoint, client_id, client_secret, scopes) -> dict:
+    client_auth = base64.b64encode((client_id + ':' + client_secret).encode('utf-8')).decode('utf-8')
+
+    headers = {}
+    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    headers['Authorization'] = 'Basic ' + client_auth
+
+    body = {
+        'grant_type': 'client_credentials',
+        'scope': scopes
+    }
+    encoded_body = urlencode(body)
+
+    try:
+        response = http_client.request('POST', token_endpoint, headers=headers, body=encoded_body)
+        #requests.post(token_endpoint, headers=headers, data=encoded_body)
+
+        if response.status == 200:
+            json_response = json.loads(response.data.decode('utf-8'))
+            return json_response
+        else:
+            print("Error getting access token, status: ", response.status, ", cause: ", response.data)
+            return None
+    except JSONDecodeError:
+        print("String could not be converted to JSON")
+        return None
+
+def refresh_api_token() -> dict:
+        current_timestamp_s = int(datetime.now().timestamp())
+
+        token = get_token(
+            aws_secrets['oauthTokenEndpoint'],
+            aws_secrets['clientId'],
+            aws_secrets['clientSecret'],
+            aws_secrets['oauthScopes'])
+
+        # Substract 5 minutes from the expiration date to avoid expired tokens due to processing time, network delay, etc.
+        # 5 minutes is a random chosen value.
+        token['expiration_timestamp_s'] = current_timestamp_s + token.get('expires_in') - (5 * 60)
+        return token
+
 
 
 def request_process_selector(client, container_services, body):
@@ -44,7 +100,8 @@ def request_process_selector(client, container_services, body):
                 if event.get("value", "") == '1':
                     # Create a random uuid to identify a given camera health check process
                     uid = str(uuid.uuid4())
-                    payload = {'device_id': device_id}
+                    #payload = {'device_id': device_id}
+                    #payload = {}
                     timestamps = event.get('timestamp_ms')
                     cal_date = datetime.fromtimestamp(int(timestamps[:10]))
                     # print(cal_date, timestamps)
@@ -52,13 +109,17 @@ def request_process_selector(client, container_services, body):
                     prev_timestamps = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
                     post_timestamps = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
 
-                    payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
+                    #payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
+                    payload = {'from': str(prev_timestamps), 'to': str(post_timestamps)}
 
                     # Send API request (POST)
                     addr = f"https://dev.bosch-ridecare.com/footage/devices/{device_id}/videofootage"
-
+                    
                     try:
-                        requests.post(addr, data=payload)
+                        headers = {}
+                        headers['Content-Type'] = 'application/json'
+                        headers['Authorization'] = 'Bearer ' + refresh_api_token().get('access_token')
+                        requests.post(addr, data=payload, headers=headers)
                         logging.info("API POST request sent! (uid: %s)", uid)
                     except requests.exceptions.ConnectionError as error_response:
                         logging.info(error_response)
