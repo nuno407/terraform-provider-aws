@@ -11,6 +11,8 @@ import base64
 import urllib3
 from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
+import aws_secrets_manager.aws_secrets_manager as aws_secrets_manager
+
 
 http_client = urllib3.PoolManager()
 
