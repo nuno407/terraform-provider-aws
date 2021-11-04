@@ -703,7 +703,7 @@ class DelOne(Resource):
         except Exception as e:
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-###############################################################################################################
+
 # Parameters parser for deleteCollection endpoint (Swagger documentation)
 del_col_parser = reqparse.RequestParser()
 del_col_parser.add_argument('collection', type=str, required=True, help='DocDB Collection to be deleted', location='args')
@@ -762,7 +762,7 @@ class DelCol(Resource):
         except Exception as e:
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-################################################################################################################
+
 # Parameters parser for getVideoUrl endpoint (Swagger documentation)
 video_parser = reqparse.RequestParser()
 video_parser.add_argument('bucket', type=str, required=True, help='S3 bucket where the video file is located', location='args')
@@ -792,6 +792,77 @@ class VideoFeed(Resource):
             # Request to get video file url
             response_msg  = s3_client.generate_presigned_url('get_object',
                                                              Params = params_s3)
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+# Custom model for getAllUrls code 200 response (Swagger documentation)
+url_nest_model = api.model("url_nest", {
+    'item_1_id': fields.String(example="<video_url_1>"),
+    'item_2_id': fields.String(example="<video_url_2>"),
+})
+
+get_urls_200_model = api.model("Get_urls_200", {
+    'message': fields.Nested(url_nest_model),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getAllUrls')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_urls_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self):
+        """
+        Returns the video URL available for each DB item
+        """
+        try:
+            # Define S3 bucket to get access URLs from
+            collection_algo = "dev-algorithm-output"
+            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_algo]
+
+            # Get all info from the table with output video available
+            items_list = list(col.find({"algorithm_id":"Anonymize"}))
+            # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
+
+            # Close the connection
+            client.close()
+
+            # Iterate received items and get video url for each one
+            response_msg = {}
+
+            for algo_item in items_list:
+                # Get video path and split it into bucket and key
+                s3_path = algo_item['video_s3_path']
+                bucket, key = s3_path.split("/", 1)
+
+                # Builds params argument
+                params_s3 = {'Bucket': bucket, 'Key': key}
+
+                # Request to get video file url
+                video_url  = s3_client.generate_presigned_url('get_object',
+                                                              Params = params_s3)
+
+                response_msg[algo_item['pipeline_id']] = video_url         
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
