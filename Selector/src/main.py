@@ -18,6 +18,51 @@ CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 
+#####  Generating Token for API Authorization ###########
+
+def get_token(token_endpoint, client_id, client_secret, scopes) -> dict:
+    client_auth = base64.b64encode((client_id + ':' + client_secret).encode('utf-8')).decode('utf-8')
+
+    headers = {}
+    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    headers['Authorization'] = 'Basic ' + client_auth
+
+    body = {
+        'grant_type': 'client_credentials',
+        'scope': scopes
+    }
+    encoded_body = urlencode(body)
+
+    try:
+        response = http_client.request('POST', token_endpoint, headers=headers, body=encoded_body)
+        #requests.post(token_endpoint, headers=headers, data=encoded_body)
+
+        if response.status == 200:
+            json_response = json.loads(response.data.decode('utf-8'))
+            return json_response
+        else:
+            print("Error getting access token, status: ", response.status, ", cause: ", response.data)
+            return None
+    except JSONDecodeError:
+        print("String could not be converted to JSON")
+        return None
+
+def refresh_api_token() -> dict:
+        current_timestamp_s = int(datetime.now().timestamp())
+
+        token = get_token()
+            # aws_secrets['oauthTokenEndpoint'],
+            # aws_secrets['clientId'],
+            # aws_secrets['clientSecret'],
+            # aws_secrets['oauthScopes'])
+
+        # Substract 5 minutes from the expiration date to avoid expired tokens due to processing time, network delay, etc.
+        # 5 minutes is a random chosen value.
+        token['expiration_timestamp_s'] = current_timestamp_s + token.get('expires_in') - (5 * 60)
+        return token
+
+
+
 def request_process_selector(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
