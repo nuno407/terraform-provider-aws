@@ -60,7 +60,7 @@ def anonymization():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            video_upload_path = path + "_anonymized." + file_extension
+            video_upload_path = path + "_anonymized." + "avi"
 
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,

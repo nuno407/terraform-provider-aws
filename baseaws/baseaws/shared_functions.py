@@ -453,7 +453,8 @@ class ContainerServices():
         # TODO: ADD THIS INFO TO CONFIG FILE
         type_dict = {
                       "json": "application/json",
-                      "mp4": "video/mp4"
+                      "mp4": "video/mp4",
+                      "avi": "video/x-msvideo"
                     }
         file_extension = key_path.split('.')[-1]
          

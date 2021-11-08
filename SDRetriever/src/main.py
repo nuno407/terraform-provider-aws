@@ -91,8 +91,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Upload video clip into raw data S3 bucket
     container_services.upload_file(s3_client,
                                    video_clip,
-                                    container_services.raw_s3,
-                                    s3_path)
+                                   container_services.raw_s3,
+                                   s3_path)
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
