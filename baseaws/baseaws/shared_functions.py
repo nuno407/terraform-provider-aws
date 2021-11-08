@@ -450,12 +450,20 @@ class ContainerServices():
         logging.info("[%s]  Uploading file (path: %s)..", timestamp,
                                                           full_path)
 
+        # TODO: ADD THIS INFO TO CONFIG FILE
+        type_dict = {
+                      "json": "application/json",
+                      "mp4": "video/mp4"
+                    }
+        file_extension = key_path.split('.')[-1]
+         
         response = client.put_object(
                                         Body=object_body,
                                         Bucket=s3_bucket,
                                         Key=key_path,
-                                        ServerSideEncryption='aws:kms'
-                                        )
+                                        ServerSideEncryption='aws:kms',
+                                        ContentType=type_dict[file_extension]
+                                    )
 
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Upload completed!", timestamp)
