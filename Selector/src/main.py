@@ -17,6 +17,11 @@ http_client = urllib3.PoolManager()
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
+token_endpoint = 'https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token'
+client_id = '5ler2p82u6spoo05lle1em53hk'
+client_secret = '11ojnjs9bisjmv3hqdu4frh31pq1tfqjdtmefpbpl34r64o0ld4j'
+auth_scopes = ''
+            
 
 #####  Generating Token for API Authorization ###########
 
@@ -35,8 +40,7 @@ def get_token(token_endpoint, client_id, client_secret, scopes) -> dict:
 
     try:
         response = http_client.request('POST', token_endpoint, headers=headers, body=encoded_body)
-        #requests.post(token_endpoint, headers=headers, data=encoded_body)
-
+        
         if response.status == 200:
             json_response = json.loads(response.data.decode('utf-8'))
             return json_response
@@ -50,12 +54,8 @@ def get_token(token_endpoint, client_id, client_secret, scopes) -> dict:
 def refresh_api_token() -> dict:
         current_timestamp_s = int(datetime.now().timestamp())
 
-        token = get_token()
-            # aws_secrets['oauthTokenEndpoint'],
-            # aws_secrets['clientId'],
-            # aws_secrets['clientSecret'],
-            # aws_secrets['oauthScopes'])
-
+        token = get_token(token_endpoint, client_id, client_secret,auth_scopes)
+             
         # Substract 5 minutes from the expiration date to avoid expired tokens due to processing time, network delay, etc.
         # 5 minutes is a random chosen value.
         token['expiration_timestamp_s'] = current_timestamp_s + token.get('expires_in') - (5 * 60)
