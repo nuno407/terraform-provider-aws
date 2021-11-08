@@ -4,9 +4,10 @@ import boto3
 import flask
 import json
 from baseaws.shared_functions import ContainerServices
+import subprocess
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v2.0"      # Version of the current container
+CONTAINER_VERSION = "v2.1"      # Version of the current container
 
 app = flask.Flask(__name__)
 
@@ -60,7 +61,17 @@ def anonymization():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            video_upload_path = path + "_anonymized." + "avi"
+            video_upload_path = path + "_anonymized.avi"
+
+            # Video Conversion (avi -> mp4)
+            inputvideo = video_upload_path.split('/')[-1]
+            logging.info(inputvideo)
+            outvideo = inputvideo.split('.')[0] + ".mp4"
+            logging.info(outvideo)
+            video_upload_path = path + "_anonymized.mp4"
+            logging.info(video_upload_path)
+
+            subprocess.run(["ffmpeg", "-i", inputvideo, "-b:v", "27648k", outvideo ])
 
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
