@@ -31,12 +31,14 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # Converts message body from string to dict
     # (in order to perform index access)
-    new_body = message['Body'].replace("\'", "\"")
-    dict_body = json.loads(new_body)
+    new_msg = message['Body'].replace("\'", "\"")
+    dict_msg = json.loads(new_msg)
+    # Converts value on Message parameter (where msg info is stored) 
+    # also from string to dict (in order to perform index access)
+    dict_body = json.loads(dict_msg['Message'])
 
     ##########################################################
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
-
     # TEST VALUES 
     #stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
     #start_time = datetime(2021, 10, 15, 21, 40, 15)
@@ -49,16 +51,16 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     #s3_folder = dict_body['folder'] # 'lyft'
     #s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
     #s3_path = s3_folder + '/' + s3_filename
-
     ##########################################################
     ####################################################################################################################
-    # Info from received message
-    stream_name = dict_body['Message']['streamName']
 
-    epoch_from = dict_body['Message']['from']
+    # Info from received message
+    stream_name = dict_body['streamName']
+
+    epoch_from = dict_body['from']
     start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
-    epoch_to = dict_body['Message']['to']
+    epoch_to = dict_body['to']
     end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
@@ -68,7 +70,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     sts_session = "AssumeRoleSession1"
     #s3_folder = 'Debug_Lync'
 
-    s3_filename = stream_name + "_ts_" + epoch_from + "_te_" + epoch_to
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     #s3_path = s3_folder + '/' + s3_filename + clip_ext
     s3_path = s3_filename + clip_ext
     ####################################################################################################################
@@ -261,17 +263,16 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-
             transfer_kinesis_clip(s3_client,
                                   sts_client,
                                   container_services,
                                   message)
 
             # Concatenate all metadata related to processed clip
-            concatenate_metadata_full(s3_client,
-                                      sts_client,
-                                      container_services,
-                                      message)
+            # concatenate_metadata_full(s3_client,
+            #                           sts_client,
+            #                           container_services,
+            #                           message)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
