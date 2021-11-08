@@ -38,52 +38,38 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
 
     # TEST VALUES 
-    stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
-    start_time = datetime(2021, 10, 15, 21, 40, 15)
-    end_time = datetime(2021, 10, 15, 21, 40, 18)
-    selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
-    stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
-    sts_session = "AssumeRoleSession1"
+    #stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
+    #start_time = datetime(2021, 10, 15, 21, 40, 15)
+    #end_time = datetime(2021, 10, 15, 21, 40, 18)
+    #selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
+    #stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    #sts_session = "AssumeRoleSession1"
     # TODO: DEFINE S3 PATH FOR CLIP + DESTINATION FOLDER PROCESSING (CONFIG FILE?)
     # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "meta_name": "metadata_full.json"}
-    s3_folder = dict_body['folder'] # 'lyft'
-    s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
-    s3_path = s3_folder + '/' + s3_filename
+    #s3_folder = dict_body['folder'] # 'lyft'
+    #s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
+    #s3_path = s3_folder + '/' + s3_filename
 
-    '''
-    MessageAttributes:
-
-    "tenant": "String"
-    "deviceId": "String"
-    "recorder": "String"
-
-    Message
-
-    "streamName": "String",
-    "from": "Number - Timestamp in epoch ms",
-    "to": "Number - Timestampe in epoch ms",
-    '''
     ##########################################################
     ####################################################################################################################
     # Info from received message
-    stream_name = dict_body['streamName']
+    stream_name = dict_body['Message']['streamName']
 
-    epoch_from = dict_body['from']
+    epoch_from = dict_body['Message']['from']
     start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
-    epoch_to = dict_body['to']
+    epoch_to = dict_body['Message']['to']
     end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
     stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
-
+    clip_ext = ".mp4"
     sts_session = "AssumeRoleSession1"
+    s3_folder = 'Debug_Lync'
 
-    
-    s3_folder = dict_body['folder'] # 'lyft'
-    s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
-    s3_path = s3_folder + '/' + s3_filename
+    s3_filename = stream_name + "_ts_" + epoch_from + "_te_" + epoch_to
+    s3_path = s3_folder + '/' + s3_filename + clip_ext
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
