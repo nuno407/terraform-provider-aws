@@ -61,23 +61,41 @@ def anonymization():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            video_upload_path = path + "_anonymized.avi"
+            video_upload_path = path + "_anonymized.mp4"
 
             # Video Conversion (avi -> mp4)
-            inputvideo = video_upload_path.split('/')[-1]
-            logging.info(inputvideo)
-            outvideo = inputvideo.split('.')[0] + ".mp4"
-            logging.info(outvideo)
-            video_upload_path = path + "_anonymized.mp4"
-            logging.info(video_upload_path)
+            # inputvideo = video_upload_path.split('/')[-1]
+            # logging.info(inputvideo)
+            # outvideo = inputvideo.split('.')[0] + ".mp4"
+            # logging.info(outvideo)
+            # video_upload_path = path + "_anonymized.mp4"
+            # logging.info(video_upload_path)
             
+            # subprocess.run(["ls", "-l"])
+
+            # subprocess.run(["ffmpeg", "-i", chunk, "-b:v", "27648k", outvideo ])
+
+            input_name = "input_video.avi"
+
+            input_video = chunk.read()
+
+            input_file = open("input_video.avi", "wb")
+            input_file.write(input_video)
+            input_file.close()
+
             subprocess.run(["ls", "-l"])
 
-            subprocess.run(["ffmpeg", "-i", chunk, "-b:v", "27648k", outvideo ])
+            output_name = "output_video.mp4"
+
+            subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name])
+
+            output_file = open(output_name, "rb")
+            output_video = output_file.read()
+            output_file.close()
 
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
-                                           chunk,
+                                           output_video,
                                            container_services.anonymized_s3,
                                            video_upload_path)
 
