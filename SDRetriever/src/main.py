@@ -65,7 +65,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
-    stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    stream_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
     clip_ext = ".mp4"
     sts_session = "AssumeRoleSession1"
     
