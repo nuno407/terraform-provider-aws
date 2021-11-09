@@ -58,8 +58,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     stream_name = dict_body['streamName']
 
     # Stream filter TODO: REMOVE AFTER PERMISSIONS ARE IMPLEMENTED
-    if stream_name != 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder':
-        return
+    # if stream_name != 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder':
+    #     return
 
     epoch_from = dict_body['from']
     start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')

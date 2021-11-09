@@ -70,8 +70,10 @@ def anonymization():
             logging.info(outvideo)
             video_upload_path = path + "_anonymized.mp4"
             logging.info(video_upload_path)
+            
+            subprocess.run(["ls", "-l"])
 
-            subprocess.run(["ffmpeg", "-i", inputvideo, "-b:v", "27648k", outvideo ])
+            subprocess.run(["ffmpeg", "-i", chunk, "-b:v", "27648k", outvideo ])
 
             # Upload received video to S3 bucket
             container_services.upload_file(s3_client,
