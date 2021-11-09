@@ -68,11 +68,13 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
     clip_ext = ".mp4"
     sts_session = "AssumeRoleSession1"
-    #s3_folder = 'Debug_Lync'
+    
+    #s3_folder = 'Debug_Lync/'
+    s3_folder = container_services.sdr_folder
 
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    #s3_path = s3_folder + '/' + s3_filename + clip_ext
-    s3_path = s3_filename + clip_ext
+    s3_path = s3_folder + s3_filename + clip_ext
+    #s3_path = s3_filename + clip_ext
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
