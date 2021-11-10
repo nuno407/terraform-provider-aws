@@ -82,45 +82,52 @@ def request_process_selector(client, container_services, body):
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
     print(dict_body)
+    logging.info(new_body)
 
     # Add entry for current video relay list on pending queue
     #pending_list[uid] = dict_body
 
     # Picking Device Id from header
-    msg_header = dict_body["value"]["properties"]["header"]
-    device_id = msg_header.get('device_id')
-    recording_info = dict_body["value"]["properties"].get("recording_info")
-    for info in recording_info:
+    if "value" in dict_body:
+        msg_header = dict_body["value"]["properties"]["header"]
+        device_id = msg_header.get('device_id')
+        if "recording_info" in dict_body["value"]["properties"]:
+                
+            recording_info = dict_body["value"]["properties"].get("recording_info")
+            for info in recording_info:
 
-        #print(info.get("recording_state"))
-        if info.get('events'):
-            for event in info.get('events'):
-                if event.get("value", "") == '1':
-                    # Create a random uuid to identify a given camera health check process
-                    uid = str(uuid.uuid4())
-                    #payload = {'device_id': device_id}
-                    #payload = {}
-                    timestamps = event.get('timestamp_ms')
-                    cal_date = datetime.fromtimestamp(int(timestamps[:10]))
-                    # print(cal_date, timestamps)
+                #print(info.get("recording_state"))
+                if info.get('events'):
+                    for event in info.get('events'):
+                        if event.get("value", "") == '1':
+                            # Create a random uuid to identify a given camera health check process
+                            uid = str(uuid.uuid4())
+                            #payload = {'device_id': device_id}
+                            #payload = {}
+                            timestamps = event.get('timestamp_ms')
+                            cal_date = datetime.fromtimestamp(int(timestamps[:10]))
+                            # print(cal_date, timestamps)
 
-                    prev_timestamps = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
-                    post_timestamps = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
+                            prev_timestamps = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
+                            post_timestamps = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
 
-                    #payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
-                    payload = {'from': str(prev_timestamps), 'to': str(post_timestamps)}
+                            #payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
+                            payload = {'from': str(prev_timestamps), 'to': str(post_timestamps)}
 
-                    # Send API request (POST)
-                    addr = f"https://dev.bosch-ridecare.com/footage/devices/{device_id}/videofootage"
-                    
-                    try:
-                        headers = {}
-                        headers['Content-Type'] = 'application/json'
-                        headers['Authorization'] = 'Bearer ' + refresh_api_token().get('access_token')
-                        requests.post(addr, data=payload, headers=headers)
-                        logging.info("API POST request sent! (uid: %s)", uid)
-                    except requests.exceptions.ConnectionError as error_response:
-                        logging.info(error_response)
+                            # Send API request (POST)
+                            addr = f"https://dev.bosch-ridecare.com/footage/devices/{device_id}/videofootage"
+                            
+                            try:
+                                headers = {}
+                                headers['Content-Type'] = 'application/json'
+                                headers['Authorization'] = 'Bearer ' + refresh_api_token().get('access_token')
+                                result = requests.post(addr, data=payload, headers=headers)
+                                logging.info("API POST request sent! (Status: %s)", str(result.status_code))
+                            except requests.exceptions.ConnectionError as error_response:
+                                logging.info(error_response)
+
+    else:
+        logging.info("Not a Valid Message")                        
 
     
 
