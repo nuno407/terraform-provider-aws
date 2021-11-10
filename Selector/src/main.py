@@ -86,11 +86,12 @@ def request_process_selector(client, container_services, body):
     #pending_list[uid] = dict_body
 
     # Picking Device Id from header
-    device_id = dict_body.get("header").get('device_id')
+    msg_header = dict_body["value"]["properties"]["header"]
+    device_id = msg_header.get('device_id')
+    recording_info = dict_body["value"]["properties"].get("recording_info")
+    for info in recording_info:
 
-    for info in dict_body.get("recording_info"):
-
-        print(info.get("recording_state"))
+        #print(info.get("recording_state"))
         if info.get('events'):
             for event in info.get('events'):
                 if event.get("value", "") == '1':
