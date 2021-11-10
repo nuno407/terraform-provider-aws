@@ -170,17 +170,18 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Cycle through the received list of matching files,
     # download them from S3 and store them on the files_dict dictionary
     for index, file_entry in enumerate(response_list['Contents']):
+        # Process only json files
+        if file_entry['Key'].endswith('.json'):
+            metadata_file = container_services.download_file(rcc_s3,
+                                                            bucket_origin,
+                                                            file_entry['Key'])
 
-        metadata_file = container_services.download_file(rcc_s3,
-                                                         bucket_origin,
-                                                         file_entry['Key'])
+            # Read all bytes from http response body
+            # (botocore.response.StreamingBody) and convert them into json format
+            json_temp = json.loads(metadata_file.decode("utf-8"))
 
-        # Read all bytes from http response body
-        # (botocore.response.StreamingBody) and convert them into json format
-        json_temp = json.loads(metadata_file.decode("utf-8"))
-
-        # Store json file on the dictionary based on the index
-        files_dict[index] = json_temp
+            # Store json file on the dictionary based on the index
+            files_dict[index] = json_temp
 
     # Define total number of metadata_full files received
     chunks_total = len(files_dict)
