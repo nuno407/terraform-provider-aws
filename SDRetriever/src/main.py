@@ -116,7 +116,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     # TEST VALUES
     bucket_origin = 'rcc-dev-device-data'
-    key_prefix = "InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
+    key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
 
     # name of the folder and file for the final concatenated file
     #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
