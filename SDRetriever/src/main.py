@@ -167,6 +167,10 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # that match the received prefix
     files_dict = {}
 
+    # Create counter for indexing and to get total number
+    # of metadata_full files received
+    chunks_total = 0
+
     # Cycle through the received list of matching files,
     # download them from S3 and store them on the files_dict dictionary
     for index, file_entry in enumerate(response_list['Contents']):
@@ -184,10 +188,10 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
             json_temp = json.loads(metadata_file.decode("utf-8"))
 
             # Store json file on the dictionary based on the index
-            files_dict[index] = json_temp
+            files_dict[chunks_total] = json_temp
 
-    # Define total number of metadata_full files received
-    chunks_total = len(files_dict)
+            # Increase counter for number of files received
+            chunks_total += 1
 
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
@@ -197,6 +201,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     logging.info(files_dict)
     logging.info("\n")
     logging.info(files_dict.keys())
+    logging.info("\n")
+    logging.info(chunks_total)
 
 
     ##############################################################################
