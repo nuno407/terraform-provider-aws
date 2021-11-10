@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v2.7 (Test)"      # Version of the current container
+CONTAINER_VERSION = "v3.0 (S3 Test)"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -33,26 +33,10 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # (in order to perform index access)
     new_msg = message['Body'].replace("\'", "\"")
     dict_msg = json.loads(new_msg)
+
     # Converts value on Message parameter (where msg info is stored) 
     # also from string to dict (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
-
-    ##########################################################
-    # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
-    # TEST VALUES 
-    #stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
-    #start_time = datetime(2021, 10, 15, 21, 40, 15)
-    #end_time = datetime(2021, 10, 15, 21, 40, 18)
-    #selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
-    #stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
-    #sts_session = "AssumeRoleSession1"
-    # TODO: DEFINE S3 PATH FOR CLIP + DESTINATION FOLDER PROCESSING (CONFIG FILE?)
-    # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "meta_name": "metadata_full.json"}
-    #s3_folder = dict_body['folder'] # 'lyft'
-    #s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
-    #s3_path = s3_folder + '/' + s3_filename
-    ##########################################################
-    ####################################################################################################################
 
     # Info from received message
     stream_name = dict_body['streamName']
@@ -73,8 +57,11 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     s3_folder = container_services.sdr_folder
 
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    s3_path = s3_folder + s3_filename + clip_ext
-    #s3_path = s3_filename + clip_ext
+
+    if stream_name == "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder":
+        s3_path = s3_filename + clip_ext
+    else:
+        s3_path = s3_folder + s3_filename + clip_ext
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
@@ -118,24 +105,41 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     # Converts message body from string to dict
     # (in order to perform index access)
-    new_body = message['Body'].replace("\'", "\"")
-    dict_body = json.loads(new_body)
+    new_msg = message['Body'].replace("\'", "\"")
+    dict_msg = json.loads(new_msg)
+    # Converts value on Message parameter (where msg info is stored) 
+    # also from string to dict (in order to perform index access)
+    dict_body = json.loads(dict_msg['Message'])
 
-    #############################
+    #################################################################################################################################################
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON THIS FUNCTION
 
     # TEST VALUES
-
     bucket_origin = 'rcc-dev-device-data'
+    key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
 
-    # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "s3_key_prefix": "TEST_TENANT/HONEYBADGER_DEV_01/year=2021/month=10/day=29/hour=12/InteriorRecorder_InteriorRecorder-3d5ac5dd-b19f-491a-a3e0-f21da9f88316"}
-    key_prefix = dict_body['s3_key_prefix'] # 'test/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021'
-    
     # name of the folder and file for the final concatenated file
-    key_full_metadata = 'uber/InteriorRecorder_InteriorRecorder-62c86acc-3c3b-4d76-b00f-037fcd82021_metadata_full_test.json'
+    #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
+
+    # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     s3_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
     sts_session = "AssumeRoleSession2"
-    #############################
+
+    # Info from received message
+    stream_name = dict_body['streamName']
+    epoch_from = dict_body['from']
+    epoch_to = dict_body['to']
+
+    #s3_folder = 'Debug_Lync/'
+    s3_folder = container_services.sdr_folder
+    s3_file_extension = '_metadata_full.json'
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+
+    if stream_name == "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder":
+        key_full_metadata = s3_filename + s3_file_extension
+    else:
+        key_full_metadata = s3_folder + s3_filename + s3_file_extension
+    #################################################################################################################################################
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=s3_role,
@@ -157,31 +161,51 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         Bucket=bucket_origin,
         Prefix=key_prefix
     )               
-    ''' #################### UNCOMMENT THIS PART TO ENABLE CONCATENATION
+    
+    #################### UNCOMMENT THIS PART TO ENABLE CONCATENATION
     # Initialise dictionary that will store all files
     # that match the received prefix
     files_dict = {}
 
+    # Create counter for indexing and to get total number
+    # of metadata_full files received
+    chunks_total = 0
+
     # Cycle through the received list of matching files,
     # download them from S3 and store them on the files_dict dictionary
     for index, file_entry in enumerate(response_list['Contents']):
+        
+        # Process only json files
+        if file_entry['Key'].endswith('.json'):
 
-        metadata_file = container_services.download_file(rcc_s3,
-                                                         bucket_origin,
-                                                         file_entry['Key'])
+            # Download metadata file from RCC S3 bucket
+            metadata_file = container_services.download_file(rcc_s3,
+                                                            bucket_origin,
+                                                            file_entry['Key'])
 
-        # Read all bytes from http response body
-        # (botocore.response.StreamingBody) and convert them into json format
-        json_temp = json.loads(metadata_file.decode("utf-8"))
+            # Read all bytes from http response body
+            # (botocore.response.StreamingBody) and convert them into json format
+            json_temp = json.loads(metadata_file.decode("utf-8"))
 
-        # Store json file on the dictionary based on the index
-        files_dict[index] = json_temp
+            # Store json file on the dictionary based on the index
+            files_dict[chunks_total] = json_temp
 
-    # Define total number of metadata_full files received
-    chunks_total = len(files_dict)
+            # Increase counter for number of files received
+            chunks_total += 1
 
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
+
+    ##############################################################################
+    logging.info("\n")
+    logging.info(files_dict)
+    logging.info("\n")
+    logging.info(files_dict.keys())
+    logging.info("\n")
+    logging.info(chunks_total)
+
+
+    ##############################################################################
 
     # Use the resolution of the first file (assumption: resolution is the same
     # for all received files)
@@ -209,9 +233,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                                     concatenated_file,
                                     container_services.raw_s3,
                                     key_full_metadata)
-    '''
 
     #####################################
+    '''
     # CROSS ACCOUNT S3 ACCESS TEST
     for index, file_entry in enumerate(response_list['Contents']):
 
@@ -231,7 +255,10 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                                         metadata_file,
                                         container_services.raw_s3,
                                         key_full_metadata)
+    '''
     ######################################
+
+
 def main():
     """Main function"""
 
@@ -271,10 +298,10 @@ def main():
                                   message)
 
             # Concatenate all metadata related to processed clip
-            # concatenate_metadata_full(s3_client,
-            #                           sts_client,
-            #                           container_services,
-            #                           message)
+            concatenate_metadata_full(s3_client,
+                                      sts_client,
+                                      container_services,
+                                      message)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
