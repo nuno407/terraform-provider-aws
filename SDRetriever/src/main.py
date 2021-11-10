@@ -73,8 +73,11 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     s3_folder = container_services.sdr_folder
 
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    s3_path = s3_folder + s3_filename + clip_ext
-    #s3_path = s3_filename + clip_ext
+
+    if stream_name == "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder":
+        s3_path = s3_filename + clip_ext
+    else:
+        s3_path = s3_folder + s3_filename + clip_ext
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
