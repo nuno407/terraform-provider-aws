@@ -81,6 +81,7 @@ def request_process_selector(client, container_services, body):
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
+    print(dict_body)
 
     # Add entry for current video relay list on pending queue
     #pending_list[uid] = dict_body
