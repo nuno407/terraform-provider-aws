@@ -23,6 +23,7 @@ class ContainerServices():
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
         self.__docdb_whitelist = {}
+        self.__sdr_folder = ""
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -79,6 +80,11 @@ class ContainerServices():
         """docdb_whitelist variable"""
         return self.__docdb_whitelist
 
+    @property
+    def sdr_folder(self):
+        """sdr_folder variable"""
+        return self.__sdr_folder
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -124,6 +130,9 @@ class ContainerServices():
 
         # List of all parameters whitelisted for docdb queries
         self.__docdb_whitelist = dict_body['docdb_key_whitelists']
+        
+        # Name of the Raw S3 bucket folder where to store RCC KVS clips
+        self.__sdr_folder = dict_body['sdr_dest_folder']
 
         logging.info("Load complete!\n")
 
@@ -450,12 +459,21 @@ class ContainerServices():
         logging.info("[%s]  Uploading file (path: %s)..", timestamp,
                                                           full_path)
 
+        # TODO: ADD THIS INFO TO CONFIG FILE
+        type_dict = {
+                      "json": "application/json",
+                      "mp4": "video/mp4",
+                      "avi": "video/x-msvideo"
+                    }
+        file_extension = key_path.split('.')[-1]
+         
         response = client.put_object(
                                         Body=object_body,
                                         Bucket=s3_bucket,
                                         Key=key_path,
-                                        ServerSideEncryption='aws:kms'
-                                        )
+                                        ServerSideEncryption='aws:kms',
+                                        ContentType=type_dict[file_extension]
+                                    )
 
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Upload completed!", timestamp)

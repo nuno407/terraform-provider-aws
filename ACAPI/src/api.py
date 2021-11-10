@@ -4,9 +4,10 @@ import boto3
 import flask
 import json
 from baseaws.shared_functions import ContainerServices
+import subprocess
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v2.0"      # Version of the current container
+CONTAINER_VERSION = "v2.1"      # Version of the current container
 
 app = flask.Flask(__name__)
 
@@ -60,13 +61,36 @@ def anonymization():
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
-            video_upload_path = path + "_anonymized." + file_extension
+            video_upload_path = path + "_anonymized.mp4"
 
-            # Upload received video to S3 bucket
+            # Convert received file into bytes 
+            input_video = chunk.read()
+            
+            # Store input video file into current working directory
+            input_name = "input_video.avi"
+            input_file = open(input_name, "wb")
+            input_file.write(input_video)
+            input_file.close()
+
+            # Convert .avi input file into .mp4 using ffmpeg
+            output_name = "output_video.mp4"
+            subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name])
+
+            # Load bytes from converted output file
+            output_file = open(output_name, "rb")
+            output_video = output_file.read()
+            output_file.close()
+
+            # Upload converted output file to S3 bucket
             container_services.upload_file(s3_client,
-                                           chunk,
+                                           output_video,
                                            container_services.anonymized_s3,
                                            video_upload_path)
+
+            # Delete temporary video files
+            subprocess.run(["ls", "-l"])
+            subprocess.run(["rm", input_name, output_name])
+            subprocess.run(["ls", "-l"])
 
             # Build message body
             msg_body = {}

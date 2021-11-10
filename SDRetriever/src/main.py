@@ -9,7 +9,7 @@ CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v2.7 (Test)"      # Version of the current container
 
 
-def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
+def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
     gets video clip from RCC Kinesis video stream and stores the received
     clip on the raw data S3 bucket to be later processed by the data
@@ -22,33 +22,60 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
                                       a given cross-account IAM role]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
-        body {string} -- [string containing the body info from the
-                          received message]
+        message {dict} -- [dict with the received message content
+                           (for more info please check the response syntax
+                           of the Boto3 SQS.client.receive_message method)]
     """
     input_sqs = container_services.input_queue
     logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
 
     # Converts message body from string to dict
     # (in order to perform index access)
-    new_body = body.replace("\'", "\"")
-    dict_body = json.loads(new_body)
+    new_msg = message['Body'].replace("\'", "\"")
+    dict_msg = json.loads(new_msg)
+    # Converts value on Message parameter (where msg info is stored) 
+    # also from string to dict (in order to perform index access)
+    dict_body = json.loads(dict_msg['Message'])
 
     ##########################################################
     # TODO: CONVERT MSG PARAMETERS TO BE USED ON GET_KINESIS_CLIP FUNCTION
-
     # TEST VALUES 
-    stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
-    start_time = datetime(2021, 10, 15, 21, 40, 15)
-    end_time = datetime(2021, 10, 15, 21, 40, 18)
-    selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
-    stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
-    sts_session = "AssumeRoleSession1"
+    #stream_name = 'TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder'
+    #start_time = datetime(2021, 10, 15, 21, 40, 15)
+    #end_time = datetime(2021, 10, 15, 21, 40, 18)
+    #selector = 'PRODUCER_TIMESTAMP'  # 'PRODUCER_TIMESTAMP'|'SERVER_TIMESTAMP'
+    #stream_role = "arn:aws:iam::213279581081:role/dev-datanauts-KVS-Source-Stream-Role"
+    #sts_session = "AssumeRoleSession1"
     # TODO: DEFINE S3 PATH FOR CLIP + DESTINATION FOLDER PROCESSING (CONFIG FILE?)
     # MESSAGE EXAMPLE:  {"clip_name": "kinesis_clip.mp4", "folder": "lyft", "meta_name": "metadata_full.json"}
-    s3_folder = dict_body['folder'] # 'lyft'
-    s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
-    s3_path = s3_folder + '/' + s3_filename
+    #s3_folder = dict_body['folder'] # 'lyft'
+    #s3_filename = dict_body['clip_name']  # 'kinesis_clip.mp4'
+    #s3_path = s3_folder + '/' + s3_filename
     ##########################################################
+    ####################################################################################################################
+
+    # Info from received message
+    stream_name = dict_body['streamName']
+
+    epoch_from = dict_body['from']
+    start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+    epoch_to = dict_body['to']
+    end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+    # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
+    selector = 'PRODUCER_TIMESTAMP'
+    stream_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
+    clip_ext = ".mp4"
+    sts_session = "AssumeRoleSession1"
+    
+    #s3_folder = 'Debug_Lync/'
+    s3_folder = container_services.sdr_folder
+
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    s3_path = s3_folder + s3_filename + clip_ext
+    #s3_path = s3_filename + clip_ext
+    ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
@@ -66,10 +93,10 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, body):
     # Upload video clip into raw data S3 bucket
     container_services.upload_file(s3_client,
                                    video_clip,
-                                    container_services.raw_s3,
-                                    s3_path)
+                                   container_services.raw_s3,
+                                   s3_path)
 
-def concatenate_metadata_full(s3_client, sts_client, container_services, body):
+def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
     the previous processed video clip, concatenates all the info
@@ -82,15 +109,16 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, body):
                                       a given cross-account IAM role]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
-        body {string} -- [string containing the body info from the
-                          received message]
+        message {dict} -- [dict with the received message content
+                           (for more info please check the response syntax
+                           of the Boto3 SQS.client.receive_message method)]
     """
     input_sqs = container_services.input_queue
     logging.info("\nProcessing %s SQS message (Concatenation)..\n", input_sqs)
 
     # Converts message body from string to dict
     # (in order to perform index access)
-    new_body = body.replace("\'", "\"")
+    new_body = message['Body'].replace("\'", "\"")
     dict_body = json.loads(new_body)
 
     #############################
@@ -237,17 +265,16 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-
             transfer_kinesis_clip(s3_client,
                                   sts_client,
                                   container_services,
-                                  message['Body'])
+                                  message)
 
             # Concatenate all metadata related to processed clip
-            concatenate_metadata_full(s3_client,
-                                      sts_client,
-                                      container_services,
-                                      message['Body'])
+            # concatenate_metadata_full(s3_client,
+            #                           sts_client,
+            #                           container_services,
+            #                           message)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
