@@ -170,8 +170,11 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Cycle through the received list of matching files,
     # download them from S3 and store them on the files_dict dictionary
     for index, file_entry in enumerate(response_list['Contents']):
+        
         # Process only json files
         if file_entry['Key'].endswith('.json'):
+
+            # Download metadata file from RCC S3 bucket
             metadata_file = container_services.download_file(rcc_s3,
                                                             bucket_origin,
                                                             file_entry['Key'])
@@ -188,6 +191,15 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
+
+    ##############################################################################
+    logging.info("\n")
+    logging.info(files_dict)
+    logging.info("\n")
+    logging.info(files_dict.keys())
+
+
+    ##############################################################################
 
     # Use the resolution of the first file (assumption: resolution is the same
     # for all received files)
