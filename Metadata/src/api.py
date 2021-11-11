@@ -857,10 +857,14 @@ class VideoFeed(Resource):
 #                        chb_value = frame_item['objectlist']['floatAttributes']['value']
 #                        bucket, key = chb_value
 #                        response_msg[algo_item['pipeline_id']] = chb_value         
+
+
             for frame in items_list['results']['frame']:
-                chb_value = frame['objectlist'][0]['floatAttributes'][0]['value']
-                bucket, key = chb_value
-                response_msg[items_list['pipeline_id']] = chb_value 
+                for item in frame['objectlist']:
+                    if item['id'] == '1':
+                        chb_value = item['floatAttributes'][0]['value']
+                        bucket, key = chb_value
+                        response_msg[items_list['pipeline_id']] = chb_value 
             
 
             return flask.jsonify(message=response_msg, statusCode="200")
