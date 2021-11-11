@@ -865,7 +865,7 @@ class VideoFeed(Resource):
                         if item['id'] == '1':
                             chb_value = item['floatAttributes'][0]['value']
                             chb_array.append(chb_value)
-            response_msg[algo_item['pipeline_id']] = chb_array 
+                response_msg[algo_item['pipeline_id']] = chb_array 
             
 
             return flask.jsonify(message=response_msg, statusCode="200")
