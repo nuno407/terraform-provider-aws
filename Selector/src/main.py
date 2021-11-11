@@ -122,6 +122,10 @@ def request_process_selector(client, container_services, body):
                                 headers['Content-Type'] = 'application/json'
                                 headers['Authorization'] = 'Bearer ' + refresh_api_token().get('access_token')
                                 result = requests.post(addr, data=payload, headers=headers)
+                                
+                                if not result.ok:
+                                    logging.info("Post Request Error Message: %s", result.reason)
+
                                 logging.info("API POST request sent! (Status: %s)", str(result.status_code))
                             except requests.exceptions.ConnectionError as error_response:
                                 logging.info(error_response)
