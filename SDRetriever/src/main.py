@@ -54,14 +54,22 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     sts_session = "AssumeRoleSession1"
     
     #s3_folder = 'Debug_Lync/'
+    processing_blacklist = container_services.sdr_blacklist
     s3_folder = container_services.sdr_folder
-
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
 
-    if stream_name == "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder":
+    # Tenants filtering
+    if stream_name in processing_blacklist['ignore']:
+        logging.info("\nWARNING: KVS clip %s will not be stored!!", s3_filename)
+        logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+        return
+    elif stream_name in processing_blacklist['store_only']:
+        logging.info("\nWARNING: KVS clip %s will not be processed!!", s3_filename)
+        logging.info("Reason: Tenant is on the Raw Data S3 store_only list\n")
         s3_path = s3_filename + clip_ext
     else:
         s3_path = s3_folder + s3_filename + clip_ext
+
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
@@ -131,14 +139,21 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     epoch_to = dict_body['to']
 
     #s3_folder = 'Debug_Lync/'
+    processing_blacklist = container_services.sdr_blacklist
     s3_folder = container_services.sdr_folder
     s3_file_extension = '_metadata_full.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
 
-    if stream_name == "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder":
+    # Tenants filtering
+    if stream_name in processing_blacklist['ignore']:
+        logging.info("\nWARNING: Metadata file %s will not be stored!!", s3_filename)
+        logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+        return
+    elif stream_name in processing_blacklist['store_only']:
         key_full_metadata = s3_filename + s3_file_extension
     else:
         key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
     #################################################################################################################################################
 
     # Requests credentials to assume specific cross-account role
@@ -203,13 +218,18 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     logging.info(files_dict.keys())
     logging.info("\n")
     logging.info(chunks_total)
-
-
     ##############################################################################
 
-    # Use the resolution of the first file (assumption: resolution is the same
-    # for all received files)
+    # Use the resolution of the first file
+    # NOTE: assumption -> resolution is the same for all received files
     final_dict['resolution'] = files_dict[0]['resolution']
+
+
+
+    #######################################################################
+    # NOTE: assumption -> FIRST FILE HAS THE FIRST FRAME
+    #######################################################################
+
 
     # Define chunk start point as the start from the first file and
     # end point as the end of the last file

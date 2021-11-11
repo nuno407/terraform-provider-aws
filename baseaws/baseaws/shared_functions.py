@@ -24,6 +24,7 @@ class ContainerServices():
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
         self.__docdb_whitelist = {}
         self.__sdr_folder = ""
+        self.__sdr_blacklist = {}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -85,6 +86,11 @@ class ContainerServices():
         """sdr_folder variable"""
         return self.__sdr_folder
 
+    @property
+    def sdr_blacklist(self):
+        """sdr_blacklist variable"""
+        return self.__sdr_blacklist
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -133,6 +139,9 @@ class ContainerServices():
         
         # Name of the Raw S3 bucket folder where to store RCC KVS clips
         self.__sdr_folder = dict_body['sdr_dest_folder']
+
+        # Dictionary containing the tenant blacklists for processing and storage of RCC clips  
+        self.__sdr_blacklist = dict_body['sdr_blacklist_tenants']
 
         logging.info("Load complete!\n")
 
@@ -278,8 +287,6 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
-    ######### For Document DB (Mongo DB) ###############################
-
     def connect_to_docdb(self, data, attributes):
         
         # Build connection info to access DocDB cluster
@@ -409,7 +416,6 @@ class ContainerServices():
             item_db['results'] = result_info
             table_algo_out.insert_one(item_db)
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
-
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
