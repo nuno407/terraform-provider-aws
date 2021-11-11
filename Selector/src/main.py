@@ -124,16 +124,20 @@ def request_process_selector(client, container_services, body):
                                 headers = {}
                                 headers['Content-Type'] = 'application/json'
                                 headers['Authorization'] = 'Bearer ' + refresh_api_token().get('access_token')
-                                result = requests.post(addr, data=payload, headers=headers)
+                                #result = requests.post(addr, data=payload, headers=headers)
                                 
-                                if not result.ok:
-                                    logging.info("Post Request Error Message: %s", result.reason)
-                                    response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
-                                    msg = f"Sending Device request, status: {response.status}, cause: {response.data.decode('utf-8')}"
-                                    logging.info(msg)
+                                response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
+                                msg = f"Sending Device request, status: {response.status}, message: {response.data.decode('utf-8')}"
+                                logging.info(msg)
+                                
+                                # if not result.ok:
+                                #     logging.info("Post Request Error Message: %s", result.reason)
+                                #     response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
+                                #     msg = f"Sending Device request, status: {response.status}, cause: {response.data.decode('utf-8')}"
+                                #     logging.info(msg)
                                 
 
-                                logging.info("API POST request sent! (Status: %s)", str(result.status_code))
+                                #logging.info("API POST request sent! (Status: %s)", str(result.status_code))
                             except requests.exceptions.ConnectionError as error_response:
                                 logging.info(error_response)
 
