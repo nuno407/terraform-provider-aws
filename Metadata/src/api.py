@@ -863,7 +863,6 @@ class VideoFeed(Resource):
                 for item in frame['objectlist']:
                     if item['id'] == '1':
                         chb_value = item['floatAttributes'][0]['value']
-                        bucket, key = chb_value
                         response_msg[items_list['pipeline_id']] = chb_value 
             
 
