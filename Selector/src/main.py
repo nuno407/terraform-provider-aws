@@ -118,6 +118,7 @@ def request_process_selector(client, container_services, body):
 
                             # Send API request (POST)
                             addr = "https://dev.bosch-ridecare.com/footage/devices/{}/videofootage".format(device_id)
+                            logging.info("The Address of Footage API URL: %s", addr)
                             
                             try:
                                 headers = {}
@@ -127,6 +128,10 @@ def request_process_selector(client, container_services, body):
                                 
                                 if not result.ok:
                                     logging.info("Post Request Error Message: %s", result.reason)
+                                    response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
+                                    msg = f"Sending Device request, status: {response.status}, cause: {response.data.decode('utf-8')}"
+                                    logging.info(msg)
+                                
 
                                 logging.info("API POST request sent! (Status: %s)", str(result.status_code))
                             except requests.exceptions.ConnectionError as error_response:
