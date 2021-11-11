@@ -55,7 +55,8 @@ def refresh_api_token() -> dict:
         current_timestamp_s = int(datetime.now().timestamp())
 
         token = get_token(token_endpoint, client_id, client_secret,auth_scopes)
-             
+        logging.info("CUrrent Token Value is: %s", token)
+                     
         # Substract 5 minutes from the expiration date to avoid expired tokens due to processing time, network delay, etc.
         # 5 minutes is a random chosen value.
         token['expiration_timestamp_s'] = current_timestamp_s + token.get('expires_in') - (5 * 60)
@@ -81,7 +82,7 @@ def request_process_selector(client, container_services, body):
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
-    print(dict_body)
+    #print(dict_body)
     logging.info(new_body)
 
     # Add entry for current video relay list on pending queue
@@ -113,9 +114,10 @@ def request_process_selector(client, container_services, body):
 
                             #payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
                             payload = {'from': str(prev_timestamps), 'to': str(post_timestamps)}
+                            logging.info("The Payload is: %s", payload)
 
                             # Send API request (POST)
-                            addr = f"https://dev.bosch-ridecare.com/footage/devices/{device_id}/videofootage"
+                            addr = "https://dev.bosch-ridecare.com/footage/devices/{}/videofootage".format(device_id)
                             
                             try:
                                 headers = {}
