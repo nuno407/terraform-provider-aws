@@ -804,6 +804,77 @@ class VideoFeed(Resource):
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
+
+# Custom model for getAllCHBs code 200 response (Swagger documentation)
+chb_nest_model = api.model("chb_nest", {
+    'item_1_id': fields.String(example="[0.0015,0.002,0.005,0.2]"),
+    'item_2_id': fields.String(example="[0.001,0.02,0.035,0.5]"),
+})
+
+get_chbs_200_model = api.model("Get_chbs_200", {
+    'message': fields.Nested(chb_nest_model),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getAllCHBs')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_chbs_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self):
+        """
+        Returns the video Camara Healthcheck Blocks available for each DB item
+        """
+        try:
+            # Define S3 bucket to get Camera HealthChecks from
+            collection_algo = "dev-algorithm-output"
+            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_algo]
+
+            # Get all info from the table with output video available
+            items_list = list(col.find({"algorithm_id":"CHC"}))
+            # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
+
+            # Close the connection
+            client.close()
+
+            # Iterate received items and Camera HealthChecks blocks for each one
+            response_msg = {}
+
+#            for algo_item in items_list['results']:
+#                for frame_item in algo_item['frame']:
+#                    if (frame_item['objectlist']['id']==1):
+#                        chb_value = frame_item['objectlist']['floatAttributes']['value']
+#                        bucket, key = chb_value
+#                        response_msg[algo_item['pipeline_id']] = chb_value         
+            for frame in items_list['results']['frame']:
+                chb_value = frame['objectlist'][0]['floatAttributes'][0]['value'])
+                bucket, key = chb_value
+                response_msg[items_list['pipeline_id']] = chb_value 
+            
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+
 # Custom model for getAllUrls code 200 response (Swagger documentation)
 url_nest_model = api.model("url_nest", {
     'item_1_id': fields.String(example="<video_url_1>"),

@@ -137,7 +137,8 @@ request_response = requests.get(url)
 status_code = request_response.status_code
 print("Invalid test - expected status code 404 : Valid Collection + null + Valid operator")
 print("Response: ")
-print(request_response)
+print(request_response.json())
+print()
 
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{: {'==' :\"pipeline_check_final\"}}/or"
 request_response = requests.get(url)
@@ -152,11 +153,13 @@ request_response = requests.get(url)
 status_code = request_response.status_code
 print("Invalid test - expected status code 404 : Null + Valid parameter:string  + Valid operator")
 print("Response: ")
-print(request_response)
+print(request_response.json())
+print()
 
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{\"_id\": {'==' :\"pipeline_check_final\"}}/"
 request_response = requests.get(url)
 status_code = request_response.status_code
 print("Invalid test - expected status code 404 : Valid Collection + Valid parameter:string  + Null")
 print("Response: ")
-print(request_response)
+print(request_response.json())
+print()
