@@ -12,6 +12,12 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
 # install RabbitMQ from testing branch
 RUN apk add rabbitmq-server@testing
 
+RUN touch /usr/lib/rabbitmq/.erlang.cookie \
+ && echo your-favourite-erlang-cookie > /usr/lib/rabbitmq/.erlang.cookie \
+ && chown rabbitmq:rabbitmq /usr/lib/rabbitmq/.erlang.cookie \
+ && chmod 700 /usr/lib/rabbitmq/.erlang.cookie
+
+
 # Copy required directories to docker container
 COPY ./ACAPI/src/ /app/src/
 COPY ./baseaws/ /app/package/
@@ -28,3 +34,5 @@ RUN pip install -r requirements.txt
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
 RUN ["chmod", "+x", "start_container.sh"]
 CMD ["sh", "start_container.sh"]
+
+EXPOSE 5000

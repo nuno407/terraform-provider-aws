@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-python api.py
+rabbitmq-server -detached
+python api.py && celery -A proj worker -l info
