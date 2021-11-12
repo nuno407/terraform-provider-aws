@@ -20,7 +20,9 @@ def alive():
     Returns:
         flask.jsonify -- [json with the status code + response message]
     """
+    logging.info("CP1")
     add.apply_async((2, 2), countdown=2)
+    logging.info("CP2")
     return flask.jsonify(code='200', message='Ok')
 
 @app.route("/ready", methods=["GET"])
