@@ -73,7 +73,15 @@ def request_processing(client, container_services, body, pending_list):
         req_command = 'ready'
         addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
         response_ready = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_ready.status_code, response_alive.text)
+        logging.info("DEBUG LOGS: %s || %s", response_ready.status_code, response_ready.text)
+
+
+        ip_pod = '172.20.7.38'
+        port_pod = '5000'
+        req_command = 'alive'
+        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+        response_test = requests.get(addr)
+        logging.info("DEBUG LOGS: %s || %s", response_alive.status_code, response_test.text)
         ####################################################
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
