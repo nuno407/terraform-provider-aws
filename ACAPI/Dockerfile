@@ -34,5 +34,3 @@ RUN pip install -r requirements.txt
 #CMD [ "python", "./api.py", ";", "python", "./main.py" ]
 RUN ["chmod", "+x", "start_container.sh"]
 CMD ["sh", "start_container.sh"]
-
-EXPOSE 5000
