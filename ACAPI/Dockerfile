@@ -8,6 +8,10 @@ RUN apk update
 RUN apk upgrade
 RUN apk add ffmpeg
 
+RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+# install RabbitMQ from testing branch
+RUN apk add rabbitmq-server@testing
+
 # Copy required directories to docker container
 COPY ./ACAPI/src/ /app/src/
 COPY ./baseaws/ /app/package/

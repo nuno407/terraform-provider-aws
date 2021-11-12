@@ -5,12 +5,22 @@ import flask
 import json
 from baseaws.shared_functions import ContainerServices
 import subprocess
+from celery import Celery
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v2.1"      # Version of the current container
+CONTAINER_VERSION = "v3.0"      # Version of the current container
 
 app = flask.Flask(__name__)
+############################
+broker_url = 'amqp://guest@localhost'
+celery = Celery(app.name, broker=broker_url)
+celery.config_from_object('celeryconfig')
 
+@celery.task(bind=True)
+def some_long_task(self, x, y):
+    # Do some long task
+    print(x, y)
+##############################
 @app.route("/alive", methods=["GET"])
 def alive():
     """Returns status code 200 if alive
@@ -19,6 +29,9 @@ def alive():
     Returns:
         flask.jsonify -- [json with the status code + response message]
     """
+    x="1"
+    y="2"
+    some_long_task.delay(x, y)     
     return flask.jsonify(code='200', message='Ok')
 
 @app.route("/ready", methods=["GET"])
