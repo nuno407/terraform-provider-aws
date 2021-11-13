@@ -109,7 +109,7 @@ def update_processing(client, container_services, body, pending_list):
     msg_body = json.loads(new_body)
 
     logging.info("CP1")
-    
+
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
 
@@ -169,15 +169,16 @@ def update_processing(client, container_services, body, pending_list):
     logs_file.close()
 
     logging.info("CP6")
+    logging.info(logs_path)
+    
+    # # Upload conversion logs to S3 bucket
+    # container_services.upload_file(client,
+    #                                logs_file,
+    #                                container_services.anonymized_s3,
+    #                                logs_path)
 
-    # Upload conversion logs to S3 bucket
-    container_services.upload_file(client,
-                                   logs_file,
-                                   container_services.anonymized_s3,
-                                   logs_path)
-
-    # Delete temporary video files
-    subprocess.run(["rm", input_name, output_name, logs_name])
+    # # Delete temporary video files
+    # subprocess.run(["rm", input_name, output_name, logs_name])
 
     subprocess.run(["ls", "-l"])
     logging.info("CP7")
@@ -218,6 +219,40 @@ def main():
 
     logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                                                    CONTAINER_VERSION)
+
+    ########################################################################################################################################################################################################
+    result = subprocess.run(['ls', '-l'], capture_output=True, text=True)
+    
+    logging.info(result.stdout)
+    logging.info("\n")
+    logging.info(result.stderr)
+    logging.info("\n")
+    logging.info(type(result.stdout))
+    logging.info("\n")
+    logging.info(result)
+
+
+    # Store input video file into current working directory
+    input_name = "input_video.avi"
+    output_name = "output_video.mp4"
+
+    conv_logs = subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], capture_output=True, text=True)#stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+
+    logging.info(type(conv_logs.stdout))
+    logging.info("\n")
+    logging.info(conv_logs)
+    logging.info("\n")
+    logging.info(conv_logs.stdout)
+
+    logs_name = "logs.txt"
+    logs_file = open(logs_name, "w")
+    logs_file.write(conv_logs.stdout)
+    logs_file.close()
+    result = subprocess.run(['ls', '-l'])
+    
+    ########################################################################################################################################################################################################
+
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',
