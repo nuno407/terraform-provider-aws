@@ -114,10 +114,13 @@ def update_processing(client, container_services, body, pending_list):
     ######################################################################
     # VIDEO CONVERSION (.avi -> .mp4)
 
-    avi_path = msg_body['video_path']
-    path, file_extension = avi_path.split('.')
-    mp4_path = path + ".mp4"
+    logging.info("\nStarting conversion (AVI to MP4) process..")
 
+    # Defining videos/logs paths
+    avi_path = msg_body['video_path']
+    path = avi_path.split('.')[0]
+    mp4_path = path + ".mp4"
+    logs_path = path.split("_Anonymize")[0] + "_conversion_logs.txt"
 
     # Download target file to be converted
     avi_video = container_services.download_file(client,
@@ -132,12 +135,14 @@ def update_processing(client, container_services, body, pending_list):
 
     # Convert .avi input file into .mp4 using ffmpeg
     output_name = "output_video.mp4"
-    subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name])
+    conv_logs = subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], capture_output=True, text=True)
 
     # Load bytes from converted output file
     output_file = open(output_name, "rb")
     output_video = output_file.read()
     output_file.close()
+
+    logging.info("Conversion complete!\n")
 
     # Upload converted output file to S3 bucket
     container_services.upload_file(client,
@@ -145,10 +150,20 @@ def update_processing(client, container_services, body, pending_list):
                                    container_services.anonymized_s3,
                                    mp4_path)
 
+    # Save conversion logs into txt file
+    logs_name = "logs.txt"
+    logs_file = open(logs_name, "w")
+    logs_file.write(conv_logs.stdout)
+    logs_file.close()
+
+    # Upload conversion logs to S3 bucket
+    container_services.upload_file(client,
+                                   logs_file,
+                                   container_services.anonymized_s3,
+                                   logs_path)
+
     # Delete temporary video files
-    subprocess.run(["ls", "-l"])
-    subprocess.run(["rm", input_name, output_name])
-    subprocess.run(["ls", "-l"])
+    subprocess.run(["rm", input_name, output_name, logs_name])
 
     #########################################################################################
 
