@@ -469,7 +469,8 @@ class ContainerServices():
         type_dict = {
                       "json": "application/json",
                       "mp4": "video/mp4",
-                      "avi": "video/x-msvideo"
+                      "avi": "video/x-msvideo",
+                      "txt": "text/plain"
                     }
         file_extension = key_path.split('.')[-1]
          
