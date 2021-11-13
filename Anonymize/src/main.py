@@ -114,7 +114,7 @@ def update_processing(client, container_services, body, pending_list):
     ######################################################################
     # VIDEO CONVERSION (.avi -> .mp4)
 
-    logging.info("\nStarting conversion (AVI to MP4) process..")
+    logging.info("Starting conversion (AVI to MP4) process..\n")
 
     # Defining videos/logs paths
     avi_path = msg_body['video_path']
@@ -122,38 +122,39 @@ def update_processing(client, container_services, body, pending_list):
     mp4_path = path + ".mp4"
     logs_path = path.split("_Anonymize")[0] + "_conversion_logs.txt"
 
+    # Defining temporary files names
+    input_name = "input_video.avi"
+    output_name = "output_video.mp4"
+    logs_name = "logs.txt"
+
     # Download target file to be converted
     avi_video = container_services.download_file(client,
                                                 container_services.anonymized_s3,
                                                 avi_path)
 
     # Store input video file into current working directory
-    input_name = "input_video.avi"
-
     with open(input_name, "wb") as input_file:
         input_file.write(avi_video)
 
-    # Convert .avi input file into .mp4 using ffmpeg
-    output_name = "output_video.mp4"
-    conv_logs = subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], capture_output=True, text=True)
+    with open(logs_name, 'w') as logs_write:
+        # Convert .avi input file into .mp4 using ffmpeg
+        conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        
+        # Save conversion logs into txt file
+        for line in conv_logs.stdout:
+            logs_write.write(line)
 
     # Load bytes from converted output file
     with open(output_name, "rb") as output_file:
         output_video = output_file.read()
 
-    logging.info("Conversion complete!\n")
+    logging.info("\nConversion complete!\n")
 
     # Upload converted output file to S3 bucket
     container_services.upload_file(client,
                                    output_video,
                                    container_services.anonymized_s3,
                                    mp4_path)
-
-    # Save conversion logs into txt file
-    logs_name = "logs.txt"
-
-    with open(logs_name, "w") as logs_write:
-        logs_write.write(conv_logs.stdout)
 
     # Load bytes from logs file
     with open(logs_name, "rb") as logs_bytes:
@@ -205,40 +206,6 @@ def main():
 
     logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                                                    CONTAINER_VERSION)
-
-    ########################################################################################################################################################################################################
-    # result = subprocess.run(['ls', '-l'], capture_output=True, text=True)
-    
-    # logging.info(result.stdout)
-    # logging.info("\n")
-    # logging.info(result.stderr)
-    # logging.info("\n")
-    # logging.info(type(result.stdout))
-    # logging.info("\n")
-    # logging.info(result)
-
-
-    # # Store input video file into current working directory
-    # input_name = "input_video.avi"
-    # output_name = "output_video.mp4"
-
-    # conv_logs = subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], capture_output=True, text=True)#stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-
-    # logging.info(type(conv_logs.stdout))
-    # logging.info("\n")
-    # logging.info(conv_logs)
-    # logging.info("\n")
-    # logging.info(conv_logs.stdout)
-
-    # logs_name = "logs.txt"
-    # logs_file = open(logs_name, "w")
-    # logs_file.write(conv_logs.stdout)
-    # logs_file.close()
-    # result = subprocess.run(['ls', '-l'])
-    
-    ########################################################################################################################################################################################################
-
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',
