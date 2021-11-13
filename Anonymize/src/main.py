@@ -5,9 +5,10 @@ import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
+import subprocess
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v6.2"      # Version of the current container
+CONTAINER_VERSION = "v7.0"      # Version of the current container
 
 
 def request_processing(client, container_services, body, pending_list):
@@ -67,41 +68,24 @@ def request_processing(client, container_services, body, pending_list):
         ####################################################
         # DEBUG
         logging.info("DEBUG LOGS: %s", response.text)
-        req_command = 'alive'
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        response_alive = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_alive.status_code, response_alive.text)
-        req_command = 'ready'
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        response_ready = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_ready.status_code, response_ready.text)
-
+        #req_command = 'alive'
+        #addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+        #response_alive = requests.get(addr)
+        #logging.info("DEBUG LOGS: %s || %s", response_alive.status_code, response_alive.text)
         ####################################################
+
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
 
+    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
-
-    logging.info("CP1")
-    try:
-        ip_pod = '172.20.7.38'
-        port_pod = '5000'
-        req_command = 'alive'
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        logging.info("CP1.2")
-        response_test = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_alive.status_code, response_test.text)
-    except Exception as e:
-        logging.info(e)
-    logging.info("CP2")
-    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
-
-def update_processing(container_services, body, pending_list):
+def update_processing(client, container_services, body, pending_list):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
 
     Arguments:
+        client {boto3.client} -- [client used to access the S3 service]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
@@ -127,10 +111,51 @@ def update_processing(container_services, body, pending_list):
     # Retrives relay_list based on uid received from api message
     relay_data = pending_list[msg_body['uid']]
 
+    ######################################################################
+    # VIDEO CONVERSION (.avi -> .mp4)
+
+    avi_path = msg_body['video_path']
+    path, file_extension = avi_path.split('.')
+    mp4_path = path + ".mp4"
+
+
+    # Download target file to be converted
+    avi_video = container_services.download_file(client,
+                                                container_services.anonymized_s3,
+                                                avi_path)
+
+    # Store input video file into current working directory
+    input_name = "input_video.avi"
+    input_file = open(input_name, "wb")
+    input_file.write(avi_video)
+    input_file.close()
+
+    # Convert .avi input file into .mp4 using ffmpeg
+    output_name = "output_video.mp4"
+    subprocess.run(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name])
+
+    # Load bytes from converted output file
+    output_file = open(output_name, "rb")
+    output_video = output_file.read()
+    output_file.close()
+
+    # Upload converted output file to S3 bucket
+    container_services.upload_file(client,
+                                   output_video,
+                                   container_services.anonymized_s3,
+                                   mp4_path)
+
+    # Delete temporary video files
+    subprocess.run(["ls", "-l"])
+    subprocess.run(["rm", input_name, output_name])
+    subprocess.run(["ls", "-l"])
+
+    #########################################################################################
+
     # Retrieve output info from received message
     output_info = {}
     output_info['bucket'] = msg_body['bucket']
-    output_info['video_path'] = msg_body['video_path']
+    output_info['video_path'] = mp4_path
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -209,7 +234,8 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, out_s3 = update_processing(container_services,
+            relay_list, out_s3 = update_processing(s3_client,
+                                                   container_services,
                                                    message_api['Body'],
                                                    pending_queue)
 
