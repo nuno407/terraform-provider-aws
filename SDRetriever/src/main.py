@@ -38,14 +38,21 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # also from string to dict (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
 
-    # Info from received message
-    stream_name = dict_body['streamName']
+    try:
+        # Info from received message
+        stream_name = dict_body['streamName']
 
-    epoch_from = dict_body['from']
-    start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+        epoch_from = dict_body['from']
+        start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
-    epoch_to = dict_body['to']
-    end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+        epoch_to = dict_body['to']
+        end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+    except Exception as e:
+        logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check error below:", message['MessageId'])
+        logging.info(e)
+        logging.info("\n")
+        return
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
