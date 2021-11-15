@@ -211,19 +211,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
 
-    ##############################################################################
-    logging.info("\n")
-    logging.info(files_dict)
-    logging.info("\n")
-    logging.info(files_dict.keys())
-    logging.info("\n")
-    logging.info(chunks_total)
-    ##############################################################################
-
     # Use the resolution of the first file
     # NOTE: assumption -> resolution is the same for all received files
     final_dict['resolution'] = files_dict[0]['resolution']
-
 
 
     #######################################################################
@@ -253,30 +243,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                                     concatenated_file,
                                     container_services.raw_s3,
                                     key_full_metadata)
-
-    #####################################
-    '''
-    # CROSS ACCOUNT S3 ACCESS TEST
-    for index, file_entry in enumerate(response_list['Contents']):
-
-        #if file_entry['Key'].endswith('.json'):
-
-        file_key = file_entry['Key'].split("/")[-1]
-        #logging.info("%s\n", file_key)
-        logging.info("\n")
-        
-        metadata_file = container_services.download_file(rcc_s3,
-                                                        bucket_origin,
-                                                        file_entry['Key'])
-
-        key_full_metadata = 'uber/' + file_key
-
-        container_services.upload_file(s3_client,
-                                        metadata_file,
-                                        container_services.raw_s3,
-                                        key_full_metadata)
-    '''
-    ######################################
 
 
 def main():
