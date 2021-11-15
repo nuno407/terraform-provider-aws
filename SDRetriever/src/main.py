@@ -49,7 +49,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
     except Exception as e:
-        logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check error below:", message['MessageId'])
+        logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
         logging.info(e)
         logging.info("\n")
         return
@@ -60,22 +60,24 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     clip_ext = ".mp4"
     sts_session = "AssumeRoleSession1"
     
-    #s3_folder = 'Debug_Lync/'
-    processing_blacklist = container_services.sdr_blacklist
+    # Defining s3 path to store KVS clip
     s3_folder = container_services.sdr_folder
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    s3_path = s3_folder + s3_filename + clip_ext
 
     # Tenants filtering
-    if stream_name in processing_blacklist['ignore']:
-        logging.info("\nWARNING: KVS clip %s will not be stored!!", s3_filename)
-        logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
-        return
-    elif stream_name in processing_blacklist['store_only']:
-        logging.info("\nWARNING: KVS clip %s will not be processed!!", s3_filename)
-        logging.info("Reason: Tenant is on the Raw Data S3 store_only list\n")
-        s3_path = s3_filename + clip_ext
-    else:
-        s3_path = s3_folder + s3_filename + clip_ext
+    # processing_blacklist = container_services.sdr_blacklist
+    # if stream_name in processing_blacklist['ignore']:
+    #     logging.info("\nWARNING: KVS clip %s will not be stored!!", s3_filename)
+    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+    #     return
+    # elif stream_name in processing_blacklist['store_only']:
+    #     logging.info("\nWARNING: KVS clip %s will not be processed!!", s3_filename)
+    #     logging.info("Reason: Tenant is on the Raw Data S3 store_only list\n")
+    #     s3_path = s3_filename + clip_ext
+    # else:
+    #     s3_path = s3_folder + s3_filename + clip_ext
+
 
     ####################################################################################################################
 
@@ -145,21 +147,22 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     epoch_from = dict_body['from']
     epoch_to = dict_body['to']
 
-    #s3_folder = 'Debug_Lync/'
-    processing_blacklist = container_services.sdr_blacklist
+    # Defining s3 path to store concatenated metadata full json
     s3_folder = container_services.sdr_folder
     s3_file_extension = '_metadata_full.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    key_full_metadata = s3_folder + s3_filename + s3_file_extension
 
     # Tenants filtering
-    if stream_name in processing_blacklist['ignore']:
-        logging.info("\nWARNING: Metadata file %s will not be stored!!", s3_filename)
-        logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
-        return
-    elif stream_name in processing_blacklist['store_only']:
-        key_full_metadata = s3_filename + s3_file_extension
-    else:
-        key_full_metadata = s3_folder + s3_filename + s3_file_extension
+    # processing_blacklist = container_services.sdr_blacklist
+    # if stream_name in processing_blacklist['ignore']:
+    #     logging.info("\nWARNING: Metadata file %s will not be stored!!", s3_filename)
+    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+    #     return
+    # elif stream_name in processing_blacklist['store_only']:
+    #     key_full_metadata = s3_filename + s3_file_extension
+    # else:
+    #     key_full_metadata = s3_folder + s3_filename + s3_file_extension
 
     #################################################################################################################################################
 
