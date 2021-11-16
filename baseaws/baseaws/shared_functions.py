@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 import pytz
 import boto3
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 
 
 class ContainerServices():
@@ -300,7 +300,7 @@ class ContainerServices():
             'db': 'DB_data_ingestion'
             }
         
-        region_name = "eu-central-1"
+        #region_name = "eu-central-1"
         secret_name = "data-ingestion-cluster-credentials"
 
         # TODO: ADD docdb_info TO CONFIG S3 FILE!!
@@ -308,16 +308,15 @@ class ContainerServices():
         # Create the necessary client for AWS secrets manager access
         secrets_client = boto3.client('secretsmanager',
                                     region_name='eu-central-1')
-        logging.info(secrets_client)
+
         # Get password and username from secrets manager
         response = secrets_client.get_secret_value(SecretId=secret_name)
         str_response = response['SecretString']
-        logging.info(str_response)
+
         # Converts response body from string to dict
         # (in order to perform index access)
         new_body = str_response.replace("\'", "\"")
         dict_response = json.loads(new_body)
-        logging.info(dict_response)
 
         #collection = 'table_name' # Mention the Table Name
 
@@ -333,8 +332,6 @@ class ContainerServices():
                          readPreference=docdb_info['readPreference'],
                          retryWrites=docdb_info['retryWrites']
                         )
-    
-        logging.info(client)
         
         # Specify the database to be used
         db = client[docdb_info['db']]
@@ -349,12 +346,10 @@ class ContainerServices():
         # Initialise variables used in both item creation and update
         status = data['data_status']
         source = attributes['SourceContainer']['StringValue']
-        print(unique_id, status, source)
 
         # Check if item with that name already exists
         response = table_pipe.find_one({'_id': unique_id})
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-        print(response, timestamp)
 
         if response:
             # Update the existing records
@@ -414,7 +409,13 @@ class ContainerServices():
                 item_db['meta_s3_path'] = "-"
 
             item_db['results'] = result_info
-            table_algo_out.insert_one(item_db)
+
+            try:
+                table_algo_out.insert_one(item_db)
+            except errors.DuplicateKeyError as e:
+                logging.info(e)
+                logging.info(item_db)
+
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
 
     def download_file(self, client, s3_bucket, file_path):
