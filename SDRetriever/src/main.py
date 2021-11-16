@@ -6,7 +6,7 @@ from baseaws.shared_functions import ContainerServices
 from datetime import datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v3.0 (S3 Test)"      # Version of the current container
+CONTAINER_VERSION = "v3.2"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -25,6 +25,9 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         message {dict} -- [dict with the received message content
                            (for more info please check the response syntax
                            of the Boto3 SQS.client.receive_message method)]
+    Returns:
+        valid_recording {bool} -- [variable that indicates if recording
+                                   received is valid (True) or invalid (False)]
     """
     input_sqs = container_services.input_queue
     logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
@@ -37,6 +40,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Converts value on Message parameter (where msg info is stored) 
     # also from string to dict (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
+
+    valid_recording = True
 
     try:
         # Info from received message
@@ -52,7 +57,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
         logging.info(e)
         logging.info("\n")
-        return
+        valid_recording = False
+        return valid_recording
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
@@ -65,7 +71,19 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     s3_path = s3_folder + s3_filename + clip_ext
 
-    ####################################################################################################################
+    # Check if there is a file with the same name already
+    # stored on the S3 bucket (to avoid multiple processing of a given
+    # video due to receiving duplicated SNS messages)
+    response_list = s3_client.list_objects_v2(
+        Bucket=container_services.raw_s3,
+        Prefix=s3_path
+    )         
+
+    # Skips processing if video file is a duplicate
+    if response_list['KeyCount'] > 0:
+        logging.info("\nWARNING: Recording (path: %s) already exists on the S3 bucket and will be skipped!!\n", s3_path)
+        valid_recording = False
+        return valid_recording
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
@@ -85,6 +103,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                    video_clip,
                                    container_services.raw_s3,
                                    s3_path)
+
+    return valid_recording
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
@@ -162,7 +182,11 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         Prefix=key_prefix
     )               
     
-    #################### UNCOMMENT THIS PART TO ENABLE CONCATENATION
+    # Check if response_list is not empty
+    if response_list['KeyCount'] == 0:
+        logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
+        return
+
     # Initialise dictionary that will store all files
     # that match the received prefix
     files_dict = {}
@@ -263,16 +287,18 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-            transfer_kinesis_clip(s3_client,
-                                  sts_client,
-                                  container_services,
-                                  message)
+            valid_rec = transfer_kinesis_clip(s3_client,
+                                              sts_client,
+                                              container_services,
+                                              message)
 
-            # Concatenate all metadata related to processed clip
-            concatenate_metadata_full(s3_client,
-                                      sts_client,
-                                      container_services,
-                                      message)
+            # Checks if recording received is valid
+            if valid_rec:
+                # Concatenate all metadata related to processed clip
+                concatenate_metadata_full(s3_client,
+                                          sts_client,
+                                          container_services,
+                                          message)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
