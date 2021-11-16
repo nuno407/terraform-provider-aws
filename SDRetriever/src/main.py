@@ -65,20 +65,6 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     s3_path = s3_folder + s3_filename + clip_ext
 
-    # Tenants filtering
-    # processing_blacklist = container_services.sdr_blacklist
-    # if stream_name in processing_blacklist['ignore']:
-    #     logging.info("\nWARNING: KVS clip %s will not be stored!!", s3_filename)
-    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
-    #     return
-    # elif stream_name in processing_blacklist['store_only']:
-    #     logging.info("\nWARNING: KVS clip %s will not be processed!!", s3_filename)
-    #     logging.info("Reason: Tenant is on the Raw Data S3 store_only list\n")
-    #     s3_path = s3_filename + clip_ext
-    # else:
-    #     s3_path = s3_folder + s3_filename + clip_ext
-
-
     ####################################################################################################################
 
     # Requests credentials to assume specific cross-account role
@@ -152,17 +138,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     s3_file_extension = '_metadata_full.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     key_full_metadata = s3_folder + s3_filename + s3_file_extension
-
-    # Tenants filtering
-    # processing_blacklist = container_services.sdr_blacklist
-    # if stream_name in processing_blacklist['ignore']:
-    #     logging.info("\nWARNING: Metadata file %s will not be stored!!", s3_filename)
-    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
-    #     return
-    # elif stream_name in processing_blacklist['store_only']:
-    #     key_full_metadata = s3_filename + s3_file_extension
-    # else:
-    #     key_full_metadata = s3_folder + s3_filename + s3_file_extension
 
     #################################################################################################################################################
 

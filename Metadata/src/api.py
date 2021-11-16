@@ -849,16 +849,9 @@ class VideoFeed(Resource):
             client.close()
 
             # Iterate received items and Camera HealthChecks blocks for each one
-            response_msg = {}
+            response_msg = {} 
 
-#            for algo_item in items_list['results']:
-#                for frame_item in algo_item['frame']:
-#                    if (frame_item['objectlist']['id']==1):
-#                        chb_value = frame_item['objectlist']['floatAttributes']['value']
-#                        bucket, key = chb_value
-#                        response_msg[algo_item['pipeline_id']] = chb_value         
-
-            logging.info(items_list)
+            # logging.info(items_list)
 
             #validar um video de cada vez            
             for algo_item in items_list:
@@ -873,8 +866,8 @@ class VideoFeed(Resource):
                                 chb_array.append(chb_value)
                     else:
                         chb_array.append("0")
-                logging.info(chb_array)
-                logging.info(algo_item['pipeline_id'])
+                # logging.info(chb_array)
+                # logging.info(algo_item['pipeline_id'])
                 response_msg[algo_item['pipeline_id']] = chb_array 
             
 
