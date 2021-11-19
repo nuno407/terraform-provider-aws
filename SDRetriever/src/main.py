@@ -3,7 +3,7 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
-from datetime import datetime
+from datetime import timedelta as td, datetime
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v3.2"      # Version of the current container
@@ -52,6 +52,14 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
         epoch_to = dict_body['to']
         end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+        ##### New implementation for SNS changes #######################################################################################################################
+        # epoch_from = dict_body['footageFrom']
+        # start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+        # epoch_to = dict_body['footageTo']
+        # end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+        ############################################################################################################################
 
     except Exception as e:
         logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
@@ -130,36 +138,23 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # (in order to perform index access)
     new_msg = message['Body'].replace("\'", "\"")
     dict_msg = json.loads(new_msg)
-    # Converts value on Message parameter (where msg info is stored) 
-    # also from string to dict (in order to perform index access)
+
+    # Converts value on Message and MessageAttributes parameters
+    # (where msg info is stored) also from string to dict
+    # (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
+    dict_attr = json.loads(dict_msg['MessageAttributes'])
 
-    #################################################################################################################################################
-    # TODO: CONVERT MSG PARAMETERS TO BE USED ON THIS FUNCTION
-
-    # TEST VALUES
+    # Define metadata files S3 bucket location (RCC)
+    # NOTE: This bucket name will always be the same
+    #       (confirmed by the HoneyBadgers team)
     bucket_origin = 'rcc-dev-device-data'
-    key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
 
-    # name of the folder and file for the final concatenated file
-    #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
+    #################################################################################
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     s3_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
     sts_session = "AssumeRoleSession2"
-
-    # Info from received message
-    stream_name = dict_body['streamName']
-    epoch_from = dict_body['from']
-    epoch_to = dict_body['to']
-
-    # Defining s3 path to store concatenated metadata full json
-    s3_folder = container_services.sdr_folder
-    s3_file_extension = '_metadata_full.json'
-    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    key_full_metadata = s3_folder + s3_filename + s3_file_extension
-
-    #################################################################################################################################################
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=s3_role,
@@ -174,6 +169,114 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                           aws_access_key_id=role_creds['AccessKeyId'],
                           aws_secret_access_key=role_creds['SecretAccessKey'],
                           aws_session_token=role_creds['SessionToken'])
+
+    #################################################################################
+
+    # TEST VALUES
+    key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
+
+    # name of the folder and file for the final concatenated file
+    #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
+
+    # Info from received message
+    stream_name = dict_body['streamName']
+    epoch_from = dict_body['from']
+    epoch_to = dict_body['to']
+
+    ##### New implementation for SNS changes #######################################################################################################################
+    # # Info from received message (MessageAttributes parameter)
+    # rec_prefix = dict_attr['recordingId']
+    # device = dict_attr['deviceId']
+    # tenant = dict_attr['tenantId']
+    # recorder = dict_attr['recorder']
+    
+    # # Info from received message (Message parameter)
+    # stream_name = dict_body['streamName']
+    # epoch_from = dict_body['footageFrom']
+    # epoch_to = dict_body['footageTo']
+    # upload_start = dict_body['uploadStart']
+    # upload_end = dict_body['uploadFinished']
+
+    # # Convert start timestamp (Metadata) to datetime
+    # meta_start_time = datetime.fromtimestamp(upload_start/1000.0)
+    # # Round down to exact hour (i.e. 0min 0s)
+    # round_start_time = meta_start_time.replace(microsecond=0, second=0, minute=0)
+
+    # # Convert end timestamp (Metadata) to datetime
+    # meta_end_time = datetime.fromtimestamp(upload_end/1000.0)
+    # # Round down to exact hour (i.e. 0min 0s)
+    # round_end_time = meta_end_time.replace(microsecond=0, second=0, minute=0)
+
+    # # Calculate delta between start and end timestamps
+    # delta = round_end_time-round_start_time
+    
+    # # Convert delta from seconds to hours
+    # hours_conv = divmod(delta.seconds, 3600.0)[0]
+
+    # # Round up previous result and add 24h for each day (if any)
+    # # present on the delta result
+    # delta_hours = round(hours_conv) + delta.days*24 + 1    
+
+    # # Initialise dictionary that will store all files
+    # # that match the received prefix
+    # files_dict = {}
+
+    # # Create counter for indexing and to get total number
+    # # of metadata_full files received
+    # chunks_total = 0
+
+    # # Generate a timestamp path for each hour within the calculated delta
+    # # and get all files that match the key prefix
+    # for temp_hour in range(int(delta_hours)):
+
+    #     # Increment the start timestamp by the number of hours
+    #     # defined in temp_hour to generate the next timestamp path
+    #     next_time = round_start_time + td(hours=temp_hour)
+
+    #     # Construct timestamp part of the s3 path (folder)
+    #     time_path = "year={}/month={}/day={}/hour={}".format(next_time.year,
+    #                                                          next_time.month,
+    #                                                          next_time.day,
+    #                                                          next_time.hour)
+        
+    #     # Build s3 key prefix
+    #     key_prefix = tenant + "/" + device + "/" + time_path + "/" + recorder + "_" + rec_prefix
+
+    #     # Get list of all files with the same key prefix as the one
+    #     # received on the message
+    #     response_list = rcc_s3.list_objects_v2(
+    #         Bucket=bucket_origin,
+    #         Prefix=key_prefix
+    #     )               
+    
+    #     # Check if response_list is not empty
+    #     if response_list['KeyCount'] == 0:
+    #         logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
+    #         return
+
+    #     # Cycle through the received list of matching files,
+    #     # download them from S3 and store them on the files_dict dictionary
+    #     for index, file_entry in enumerate(response_list['Contents']):
+            
+    #         # Process only json files
+    #         if file_entry['Key'].endswith('.json'):
+
+    #             # Download metadata file from RCC S3 bucket
+    #             metadata_file = container_services.download_file(rcc_s3,
+    #                                                             bucket_origin,
+    #                                                             file_entry['Key'])
+
+    #             # Read all bytes from http response body
+    #             # (botocore.response.StreamingBody) and convert them into json format
+    #             json_temp = json.loads(metadata_file.decode("utf-8"))
+
+    #             # Store json file on the dictionary based on the index
+    #             files_dict[chunks_total] = json_temp
+
+    #             # Increase counter for number of files received
+    #             chunks_total += 1
+    
+    #################################################################################################################################################
 
     # Get list of all files with the same key prefix as the one
     # received on the message
@@ -217,6 +320,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
             # Increase counter for number of files received
             chunks_total += 1
 
+    #################################################################################
+
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
 
@@ -247,6 +352,14 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # that it can be uploaded into the S3 bucket
     concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
     
+    #################################################################################
+
+    # Defining s3 path to store concatenated metadata full json
+    s3_folder = container_services.sdr_folder
+    s3_file_extension = '_metadata_full.json'
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
     # Upload final concatenated file
     container_services.upload_file(s3_client,
                                     concatenated_file,
