@@ -99,12 +99,18 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     role_credentials = assumed_role_object['Credentials']
 
-    # Get Kinesis clip using received message parameters
-    video_clip = container_services.get_kinesis_clip(role_credentials,
-                                                     stream_name,
-                                                     start_time,
-                                                     end_time,
-                                                     selector)
+    try:
+        # Get Kinesis clip using received message parameters
+        video_clip = container_services.get_kinesis_clip(role_credentials,
+                                                         stream_name,
+                                                         start_time,
+                                                         end_time,
+                                                         selector)
+    except Exception as e:
+        logging.info("\nWARNING: Failed to get kinesis clip (%s)!!\n", s3_path)
+        logging.info("\nReason: %s\n", e)
+        valid_recording = False
+        return valid_recording
 
     # Upload video clip into raw data S3 bucket
     container_services.upload_file(s3_client,
