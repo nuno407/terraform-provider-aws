@@ -143,7 +143,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # (where msg info is stored) also from string to dict
     # (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
-    dict_attr = json.loads(dict_msg['MessageAttributes'])
+    #dict_attr = json.loads(dict_msg['MessageAttributes'])
+    dict_attr = dict_msg['MessageAttributes']
 
     # Define metadata files S3 bucket location (RCC)
     # NOTE: This bucket name will always be the same
