@@ -78,6 +78,8 @@ def anonymization():
             msg_body['bucket'] = container_services.anonymized_s3
             # Video file path
             msg_body['video_path'] = video_upload_path
+            # Metadata file (json) path
+            msg_body['meta_path'] = "-"
 
             # Send message to input queue of metadata container
             api_queue = container_services.sqs_queues_list["API_Anonymize"]

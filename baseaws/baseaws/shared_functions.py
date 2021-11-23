@@ -287,8 +287,13 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
-    def connect_to_docdb(self, data, attributes):
-        
+    @staticmethod
+    def create_db_client():
+        """TODO
+
+        Returns:
+            db {TODO} -- [TODO]
+        """
         # Build connection info to access DocDB cluster
         docdb_info = {
             'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
@@ -318,8 +323,6 @@ class ContainerServices():
         new_body = str_response.replace("\'", "\"")
         dict_response = json.loads(new_body)
 
-        #collection = 'table_name' # Mention the Table Name
-
         # Create a MongoDB client, open a connection to Amazon DocumentDB
         # as a replica set and specify the read preference as
         # secondary preferred
@@ -335,88 +338,127 @@ class ContainerServices():
         
         # Specify the database to be used
         db = client[docdb_info['db']]
+    
+        return db
+
+    def connect_to_docdb(self, data, attributes):
+        """TODO
+
+        Arguments:
+            data {TODO} -- []
+            attributes {TODO} -- []
+        """
+        # Create DocDB client
+        db = self.create_db_client()
 
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]
         table_algo_out = db[self.__db_tables['algo_output']]
+        table_rec = db[self.__db_tables['recording']]
 
+        # Create timestamp for the current time
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+
+        # Get source container name
+        source = attributes['SourceContainer']['StringValue']
+
+        #################### NOTE: Recording collection handling ##################
+
+        # SDRetriever container info is processed in a different
+        # way from the other containers
+        if source == "SDRetriever":
+            # Build item structure and add info from msg received
+            item_db = {
+                        '_id': data["_id"],
+                        'recording_overview': data["rec_data"]
+                    }
+
+            # Insert previous built item on the Recording collection
+            table_rec.insert_one(item_db)
+
+            # Create logs message
+            logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
+
+            return
+
+        #################### NOTE: Pipeline execution collection handling ####################
+        
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
 
         # Initialise variables used in both item creation and update
         status = data['data_status']
-        source = attributes['SourceContainer']['StringValue']
 
         # Check if item with that name already exists
         response = table_pipe.find_one({'_id': unique_id})
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
 
         if response:
             # Update the existing records
             table_pipe.update({'_id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_updated": timestamp}})
+
+            # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
         
         else:
-            # Insert if not created
+            # Build item structure and add info from msg received
             item_db = {
                         '_id': unique_id,
-                        'from_container': self.__container['name'],
-                        's3_path': data['s3_path'],
                         'data_status': status,
+                        'from_container': self.__container['name'],
                         'info_source': source,
+                        'last_updated': timestamp,
                         'processing_list': data['processing_steps'],
-                        'last_updated': timestamp
+                        's3_path': data['s3_path']
                     }
+
+            # Insert previous built item
             table_pipe.insert_one(item_db)
+
+            # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
-            
+
+        #################### NOTE: Algorithm output collection handling ####################
+
         # Create/Update item on Algorithm Output DB
         if 'output' in data:
             # Initialise variables used in item creation
             outputs = data['output']
-            full_path = outputs['bucket'] + '/' + outputs['video_path']
-            run_id = unique_id + '_' + source 
+            run_id = unique_id + '_' + source
 
-            # Item creation
+            # Item creation (common parameters)
             item_db = {
-                        '_id': unique_id + '_' + source,
-                        'pipeline_id': unique_id,
-                        'video_s3_path': full_path,
+                        '_id': run_id,
                         'algorithm_id': source,
-                        'run_id': run_id
+                        'pipeline_id': unique_id
                     }
-            
-            # Checks if algorithm output has metadata and stores it on db
-            if 'meta_path' in outputs:
-                # Create S3 client to download metadata
-                s3_client = boto3.client('s3',
-                            region_name='eu-central-1')
 
-                # Download metadata json file
-                response = s3_client.get_object(
-                    Bucket=outputs['bucket'],
-                    Key=outputs['meta_path']
-                )
+            # Populate output_paths parameter
+            item_db['output_paths'] = {}
 
-                # Load config file (botocore.response.StreamingBody)
-                # content to dictionary
-                result_info = json.loads(response['Body'].read().decode("utf-8"))
+            # Check if there is a metadata file path available
+            if outputs['meta_path'] == "-":
+                item_db['output_paths']["metadata"] = "-"
+            else:
+                metadata_path = outputs['bucket'] + '/' + outputs['meta_path']
+                item_db['output_paths']["metadata"] = metadata_path
 
-                # Adds metadata json file path to item
-                item_db['meta_s3_path'] = outputs['bucket'] + '/' + outputs['meta_path']
-            else: 
-                result_info = "No metadata available"
-                item_db['meta_s3_path'] = "-"
-
-            item_db['results'] = result_info
+            # Check if there is a video file path available
+            if outputs['video_path'] == "-":
+                item_db['output_paths']["video"] = "-"
+            else:
+                metadata_path = outputs['bucket'] + '/' + outputs['video_path']
+                item_db['output_paths']["video"] = metadata_path
 
             try:
+                # Insert previous built item
                 table_algo_out.insert_one(item_db)
             except errors.DuplicateKeyError as e:
+                # Raise error exception if duplicated item is found
+                # NOTE: In this case, the old item is not overriden!
                 logging.info(e)
                 logging.info(item_db)
 
-            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp,run_id)
+            logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket

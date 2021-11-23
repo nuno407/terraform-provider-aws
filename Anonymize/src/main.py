@@ -129,7 +129,11 @@ def update_processing(client, container_services, body, pending_list):
 
     with open(logs_name, 'w') as logs_write:
         # Convert .avi input file into .mp4 using ffmpeg
-        conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-b:v", "27648k", output_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-b:v",
+                                      "27648k", output_name],
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT,
+                                      universal_newlines=True)
         
         # Save conversion logs into txt file
         for line in conv_logs.stdout:
@@ -166,6 +170,7 @@ def update_processing(client, container_services, body, pending_list):
     output_info = {}
     output_info['bucket'] = msg_body['bucket']
     output_info['video_path'] = mp4_path
+    output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)

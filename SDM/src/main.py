@@ -54,14 +54,6 @@ def processing_sdm(container_services, body):
         relay_data = {}
         return relay_data
 
-    ############################################################################################################ REMOVE AFTER TESTING!! 
-    if "TEST_TENANT" in file_name:
-        logging.info("\nWARNING: File %s will not be processed!!", key_value)
-        logging.info("Reason: File name is on the Raw Data S3 ignore list\n")
-        relay_data = {}
-        return relay_data
-    ############################################################################################################
-
     # TODO: DEFINE PROCESS FOR METADATA FULL FILES (SHOULD BE DIRECTLY ADDED TO DB?)
 
     logging.info("Processing pipeline message..\n")
