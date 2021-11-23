@@ -849,9 +849,16 @@ class VideoFeed(Resource):
             client.close()
 
             # Iterate received items and Camera HealthChecks blocks for each one
-            response_msg = {} 
+            response_msg = {}
 
-            # logging.info(items_list)
+#            for algo_item in items_list['results']:
+#                for frame_item in algo_item['frame']:
+#                    if (frame_item['objectlist']['id']==1):
+#                        chb_value = frame_item['objectlist']['floatAttributes']['value']
+#                        bucket, key = chb_value
+#                        response_msg[algo_item['pipeline_id']] = chb_value         
+
+            logging.info(items_list)
 
             #validar um video de cada vez            
             for algo_item in items_list:
@@ -866,10 +873,75 @@ class VideoFeed(Resource):
                                 chb_array.append(chb_value)
                     else:
                         chb_array.append("0")
-                # logging.info(chb_array)
-                # logging.info(algo_item['pipeline_id'])
+                logging.info(chb_array)
+                logging.info(algo_item['pipeline_id'])
                 response_msg[algo_item['pipeline_id']] = chb_array 
             
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+
+# Custom model for getTableData code 200 response (Swagger documentation)
+tabledata_nest_model = api.model("tabledata_nest", {
+    'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
+    'item_2_id': fields.String(example="recording_overview: ['deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1637316243575_1637316303540', 'True', '5', '15' , '00:30:00', status, '00:09:00', 23-11-2021 14:32, 600x480, 'yuj2hi_01_InteriorRecorder']"),
+})
+
+get_tabledata_200_model = api.model("Get_tabledata_200", {
+    'message': fields.Nested(tabledata_nest_model),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getTableData')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_tabledata_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self):
+        """
+        Returns the recording overview paremeter available for each DB item so it can be viewed in Recording overview table in the Front End
+        """
+        try:
+            # Define S3 bucket to get Data from
+            collection_pipe = "dev-pipeline-execution"
+            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_pipe]
+
+            # Get all videos that have recording overview populated
+            items_list = list(col.find({"recording_overview":"{$exists:true}"}))
+            
+
+            # Close the connection
+            client.close()
+
+            # Iterate received items and send only the recording_overview parameter to the response
+            response_msg = {}
+
+            logging.info(items_list)
+
+            for video_item in items_list:
+                response_msg[video_item['_id']] = video_item['recording_overview']
+                logging.info(response_msg)
+           
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
