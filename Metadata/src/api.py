@@ -877,7 +877,7 @@ class VideoFeed(Resource):
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
                 logging.info(algo_item['pipeline_id'])
-                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']:
+                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
@@ -1026,7 +1026,7 @@ class VideoFeed(Resource):
 
             for algo_item in items_list:
                 # Get video path and split it into bucket and key
-                s3_path = algo_item['video_s3_path']
+                s3_path = algo_item['output_paths']['video']
                 bucket, key = s3_path.split("/", 1)
 
                 # Builds params argument
