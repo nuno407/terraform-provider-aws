@@ -958,7 +958,7 @@ class VideoFeed(Resource):
                 table_data_array.append(record_item_details['recording_overview']['resolution'])        
                 table_data_array.append(record_item_details['recording_overview']['deviceID'])        
                 response_msg[item['_id']] = table_data_array
-                logging.info(item['_id'])
+                logging.info(response_msg[item['_id']])
 
 
             # Close the connection
