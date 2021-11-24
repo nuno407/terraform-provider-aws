@@ -930,7 +930,7 @@ class VideoFeed(Resource):
             col = db[collection_pipe]
 
             # Get all videos that entered processing phase
-            pipe_items_list = list(col.find({}))
+            pipe_items_list = list(col.find({"data_status":"complete"}))
             
 
             # Iterate received items and add additional data from algo and recording databases
@@ -942,12 +942,12 @@ class VideoFeed(Resource):
                 table_data_array = []
                 col = db[collection_results]
                 # Get the recording data for the video
-                record_item_details = list(col.find({"_id":item['_id']}))
+                record_item_details = col.find_one({"_id":item['_id']})
                 
                 logging.info(record_item_details)
                 col = db[collection_algo]
 
-                algo_item_details = list(col.find({"_id":item['_id'],"algorithm_id":"CHC"}))
+                algo_item_details = col.find_one({"_id":item['_id'],"algorithm_id":"CHC"})
                 logging.info(algo_item_details)
 
 
