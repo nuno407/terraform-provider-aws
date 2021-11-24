@@ -936,15 +936,31 @@ class VideoFeed(Resource):
             # Iterate received items and add additional data from algo and recording databases
             response_msg = {}
 
-            logging.info(pipe_items_list)
+#            logging.info(pipe_items_list)
 
             for item in pipe_items_list:
                 table_data_array = []
                 col = db[collection_results]
                 # Get the recording data for the video
                 record_item_details = list(col.find({"_id":item['_id']}))
+                
+                logging.info(record_item_details)
                 col = db[collection_algo]
+
                 algo_item_details = list(col.find({"_id":item['_id'],"algorithm_id":"CHC"}))
+                logging.info(algo_item_details)
+
+
+                logging.info(item['_id'])
+                logging.info(record_item_details['recording_overview']['#snapshots'])
+                logging.info(algo_item_details['results']['number_CHC_events'])      
+                logging.info(algo_item_details['results']['lengthCHC']) 
+                logging.info(item['data_status'])                
+                logging.info(record_item_details['recording_overview']['length'])
+                logging.info(record_item_details['recording_overview']['time'])                
+                logging.info(record_item_details['recording_overview']['resolution'])        
+                logging.info(record_item_details['recording_overview']['deviceID'])     
+
            
                 #Add the fields in the array in the proper order
                 table_data_array.append(item['_id'])
