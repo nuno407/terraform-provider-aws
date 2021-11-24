@@ -952,6 +952,7 @@ class VideoFeed(Resource):
 
 
                 logging.info(item['_id'])
+                logging.info(item['processing_list'])
                 logging.info(record_item_details['recording_overview']['#snapshots'])
                 logging.info(algo_item_details['results']['number_CHC_events'])      
                 logging.info(algo_item_details['results']['lengthCHC']) 
@@ -964,7 +965,7 @@ class VideoFeed(Resource):
            
                 #Add the fields in the array in the proper order
                 table_data_array.append(item['_id'])
-#                table_data_array.append(item['processing_list'])
+                table_data_array.append(item['processing_list'])
                 table_data_array.append(record_item_details['recording_overview']['#snapshots'])
                 table_data_array.append(algo_item_details['results']['number_CHC_events'])      
                 table_data_array.append(algo_item_details['results']['lengthCHC']) 
