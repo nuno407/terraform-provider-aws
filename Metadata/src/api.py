@@ -947,7 +947,7 @@ class VideoFeed(Resource):
                 logging.info(record_item_details)
                 col = db[collection_algo]
 
-                algo_item_details = col.find_one({"_id":item['_id'],"algorithm_id":"CHC"})
+                algo_item_details = col.find_one({"pipeline_id":item['_id'],"algorithm_id":"CHC"})
                 logging.info(algo_item_details)
 
 
