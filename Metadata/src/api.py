@@ -862,21 +862,22 @@ class VideoFeed(Resource):
 
             #validar um video de cada vez            
             for algo_item in items_list:
-                chb_array = []
-                #validar todoos os frames do video
-                for frame in algo_item['results']['frame']:
-                    #validar todos os items da frame
-                    if 'objectlist' in frame.keys():
-                        for item in frame['objectlist']:
-                            if item['id'] == '1':
-                                chb_value = item['floatAttributes'][0]['value']
-                                chb_array.append(chb_value)
-                    else:
-                        chb_array.append("0")
-                logging.info(chb_array)
+#                chb_array = []
+#                #validar todoos os frames do video
+#                for frame in algo_item['results']['frame']:
+#                    #validar todos os items da frame
+#                   if 'objectlist' in frame.keys():
+#                        for item in frame['objectlist']:
+#                            if item['id'] == '1':
+#                                chb_value = item['floatAttributes'][0]['value']
+#                                chb_array.append(chb_value)
+#                    else:
+#                        chb_array.append("0")
+#                logging.info(chb_array)
+#                logging.info(algo_item['pipeline_id'])
+#                response_msg[algo_item['pipeline_id']] = chb_array 
                 logging.info(algo_item['pipeline_id'])
-                response_msg[algo_item['pipeline_id']] = chb_array 
-            
+                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
@@ -932,9 +933,6 @@ class VideoFeed(Resource):
             pipe_items_list = list(col.find({}))
             
 
-            # Close the connection
-            client.close()
-
             # Iterate received items and add additional data from algo and recording databases
             response_msg = {}
 
@@ -942,21 +940,15 @@ class VideoFeed(Resource):
 
             for item in pipe_items_list:
                 table_data_array = []
-                client = create_mongo_client()
-                # Create new connection to get the results for the item
-                db = client[DB_NAME]
-                ##Specify the collection to be used
                 col = db[collection_results]
                 # Get the recording data for the video
                 record_item_details = list(col.find({"_id":item['_id']}))
                 col = db[collection_algo]
                 algo_item_details = list(col.find({"_id":item['_id'],"algorithm_id":"CHC"}))
-                # Close the connection
-                client.close()
            
                 #Add the fields in the array in the proper order
                 table_data_array.append(item['_id'])
-                table_data_array.append(item['processing_list'])
+#                table_data_array.append(item['processing_list'])
                 table_data_array.append(record_item_details['recording_overview']['#snapshots'])
                 table_data_array.append(algo_item_details['results']['number_CHC_events'])      
                 table_data_array.append(algo_item_details['results']['lengthCHC']) 
@@ -966,6 +958,11 @@ class VideoFeed(Resource):
                 table_data_array.append(record_item_details['recording_overview']['resolution'])        
                 table_data_array.append(record_item_details['recording_overview']['deviceID'])        
                 response_msg[item['_id']] = table_data_array
+                logging.info(response_msg[item['_id']])
+
+
+            # Close the connection
+            client.close()
 
             logging.info(response_msg)
            
@@ -1029,7 +1026,7 @@ class VideoFeed(Resource):
 
             for algo_item in items_list:
                 # Get video path and split it into bucket and key
-                s3_path = algo_item['video_s3_path']
+                s3_path = algo_item['output_paths']['video']
                 bucket, key = s3_path.split("/", 1)
 
                 # Builds params argument
