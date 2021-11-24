@@ -250,7 +250,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     stream_name = dict_body['streamName']
     epoch_from = dict_body['footageFrom']
     epoch_to = dict_body['footageTo']
-    upload_start = dict_body['uploadStart']
+    upload_start = dict_body['uploadStarted']
     upload_end = dict_body['uploadFinished']
 
     # Convert start timestamp (Metadata) to datetime
