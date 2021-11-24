@@ -908,12 +908,14 @@ class VideoFeed(Resource):
     @api.response(500, ERROR_500_MSG, error_500_model)
     def get(self):
         """
-        Returns the recording overview paremeter available for each DB item so it can be viewed in Recording overview table in the Front End
+        Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
         """
         try:
             # Define S3 bucket to get Data from
             collection_pipe = "dev-pipeline-execution"
-            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+            collection_algo = "dev-algorithm-output"
+            collection_results = "dev-recording"
+            # TODO: ADD THIS VARIABLES TO CONFIG FILE OR LEAVE IT HARDCODDED?
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -926,23 +928,47 @@ class VideoFeed(Resource):
             ##Specify the collection to be used
             col = db[collection_pipe]
 
-            # Get all videos that have recording overview populated
-            items_list = list(col.find({"recording_overview":"{$exists:true}"}))
+            # Get all videos that entered processing phase
+            pipe_items_list = list(col.find({}))
             
 
             # Close the connection
             client.close()
 
-            # Iterate received items and send only the recording_overview parameter to the response
+            # Iterate received items and add additional data from algo and recording databases
             response_msg = {}
 
-            logging.info(items_list)
+            logging.info(pipe_items_list)
 
-            for video_item in items_list:
-                response_msg[video_item['_id']] = video_item['recording_overview']
-                logging.info(response_msg)
+            for item in pipe_items_list:
+                table_data_array = []
+                client = create_mongo_client()
+                # Create new connection to get the results for the item
+                db = client[DB_NAME]
+                ##Specify the collection to be used
+                col = db[collection_results]
+                # Get the recording data for the video
+                record_item_details = list(col.find({"_id":item['_id']}))
+                col = db[collection_algo]
+                algo_item_details = list(col.find({"_id":item['_id'],"algorithm_id":"CHC"}))
+                # Close the connection
+                client.close()
            
+                #Add the fields in the array in the proper order
+                table_data_array.append(item['_id'])
+                table_data_array.append(item['processing_list'])
+                table_data_array.append(record_item_details['recording_overview']['#snapshots'])
+                table_data_array.append(algo_item_details['results']['number_CHC_events'])      
+                table_data_array.append(algo_item_details['results']['lengthCHC']) 
+                table_data_array.append(item['data_status'])                
+                table_data_array.append(record_item_details['recording_overview']['length'])
+                table_data_array.append(record_item_details['recording_overview']['time'])                
+                table_data_array.append(record_item_details['recording_overview']['resolution'])        
+                table_data_array.append(record_item_details['recording_overview']['deviceID'])        
+                response_msg[item['_id']] = table_data_array
 
+            logging.info(response_msg)
+           
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
             logging.info(e)
