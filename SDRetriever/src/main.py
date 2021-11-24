@@ -243,7 +243,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Info from received message (MessageAttributes parameter)
     rec_prefix = dict_attr['recordingId']
     device = dict_attr['deviceId']
-    tenant = dict_attr['tenantId']
+    tenant = dict_attr['tenant']
     recorder = dict_attr['recorder']
     
     # Info from received message (Message parameter)
