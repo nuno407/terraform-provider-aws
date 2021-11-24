@@ -933,9 +933,6 @@ class VideoFeed(Resource):
             pipe_items_list = list(col.find({}))
             
 
-            # Close the connection
-            client.close()
-
             # Iterate received items and add additional data from algo and recording databases
             response_msg = {}
 
@@ -943,21 +940,15 @@ class VideoFeed(Resource):
 
             for item in pipe_items_list:
                 table_data_array = []
-                client = create_mongo_client()
-                # Create new connection to get the results for the item
-                db = client[DB_NAME]
-                ##Specify the collection to be used
                 col = db[collection_results]
                 # Get the recording data for the video
                 record_item_details = list(col.find({"_id":item['_id']}))
                 col = db[collection_algo]
                 algo_item_details = list(col.find({"_id":item['_id'],"algorithm_id":"CHC"}))
-                # Close the connection
-                client.close()
            
                 #Add the fields in the array in the proper order
                 table_data_array.append(item['_id'])
-                table_data_array.append(item['processing_list'])
+#                table_data_array.append(item['processing_list'])
                 table_data_array.append(record_item_details['recording_overview']['#snapshots'])
                 table_data_array.append(algo_item_details['results']['number_CHC_events'])      
                 table_data_array.append(algo_item_details['results']['lengthCHC']) 
@@ -967,6 +958,11 @@ class VideoFeed(Resource):
                 table_data_array.append(record_item_details['recording_overview']['resolution'])        
                 table_data_array.append(record_item_details['recording_overview']['deviceID'])        
                 response_msg[item['_id']] = table_data_array
+                logging.info(item['_id'])
+
+
+            # Close the connection
+            client.close()
 
             logging.info(response_msg)
            
