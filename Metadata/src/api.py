@@ -862,21 +862,22 @@ class VideoFeed(Resource):
 
             #validar um video de cada vez            
             for algo_item in items_list:
-                chb_array = []
-                #validar todoos os frames do video
-                for frame in algo_item['results']['frame']:
-                    #validar todos os items da frame
-                    if 'objectlist' in frame.keys():
-                        for item in frame['objectlist']:
-                            if item['id'] == '1':
-                                chb_value = item['floatAttributes'][0]['value']
-                                chb_array.append(chb_value)
-                    else:
-                        chb_array.append("0")
-                logging.info(chb_array)
+#                chb_array = []
+#                #validar todoos os frames do video
+#                for frame in algo_item['results']['frame']:
+#                    #validar todos os items da frame
+#                   if 'objectlist' in frame.keys():
+#                        for item in frame['objectlist']:
+#                            if item['id'] == '1':
+#                                chb_value = item['floatAttributes'][0]['value']
+#                                chb_array.append(chb_value)
+#                    else:
+#                        chb_array.append("0")
+#                logging.info(chb_array)
+#                logging.info(algo_item['pipeline_id'])
+#                response_msg[algo_item['pipeline_id']] = chb_array 
                 logging.info(algo_item['pipeline_id'])
-                response_msg[algo_item['pipeline_id']] = chb_array 
-            
+                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']:
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
