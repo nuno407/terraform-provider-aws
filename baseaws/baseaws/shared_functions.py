@@ -386,6 +386,34 @@ class ContainerServices():
         # Get filename (id) from message received
         unique_id = os.path.basename(data["s3_path"]).split(".")[0]
 
+
+
+        ###################################################### DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS) ######################################################
+        # Check if item with that name already exists
+        response_rec = table_rec.find_one({'_id': unique_id})
+        if response_rec:
+            pass
+        else:
+            # Create empty item for the recording
+            item_db = {
+                       '_id': unique_id,
+                       'recording_overview':{
+                                             "length": "",
+                                             "time": "",
+                                             "deviceID": "",
+                                             "resolution": "",
+                                             "#snapshots": "",
+                                             "snapshots_paths": {}
+                                            }
+                }
+            # Insert previous built item on the Recording collection
+            table_rec.insert_one(item_db)
+            # Create logs message
+            logging.info("[%s]  Recording DB empty item (Id: %s) created!", timestamp, unique_id)
+        ##################################################################################################################################################################
+
+
+
         # Initialise variables used in both item creation and update
         status = data['data_status']
 
@@ -446,8 +474,52 @@ class ContainerServices():
             if outputs['video_path'] == "-":
                 item_db['output_paths']["video"] = "-"
             else:
-                metadata_path = outputs['bucket'] + '/' + outputs['video_path']
-                item_db['output_paths']["video"] = metadata_path
+                video_path = outputs['bucket'] + '/' + outputs['video_path']
+                item_db['output_paths']["video"] = video_path
+
+            # Compute results from CHC processing
+            if source == "CHC":
+                # Build default results structure
+                item_db['results'] = {
+                                      'CHBs': {
+                                               'MDF': [],
+                                               'CHC': []
+                                      },
+                                      'number_CHC_events': "",
+                                      'lengthCHC': ""
+                                    }
+
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                            region_name='eu-central-1')
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                    Bucket=outputs['bucket'],
+                    Key=outputs['meta_path']
+                )
+
+                # Decode and convert file contents into json format
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Get info to populate CHC blocked events arrays (CHC)
+                chb_array = []
+
+                # Check all frames
+                for frame in result_info['frame']:
+                    # Validate every frame (check if it has objectlist parameter)
+                    if 'objectlist' in frame.keys():
+                        for item in frame['objectlist']:
+                            # Check for item with ID = 1
+                            # (it has the CameraViewBlocked info)
+                            if item['id'] == '1':
+                                chb_value = item['floatAttributes'][0]['value']
+                                chb_array.append(chb_value)
+                    else:
+                        chb_array.append("0")
+
+                # Add array from ivs_chain metadata file to created item
+                item_db['results']['CHBs']['CHC'] = chb_array
 
             try:
                 # Insert previous built item
