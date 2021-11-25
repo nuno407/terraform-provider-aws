@@ -49,7 +49,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # Get device ID from message attributes
     dict_attr = dict_msg['MessageAttributes']
-    device = dict_attr['deviceId']
+    device = dict_attr['deviceId']['Value']
 
     record_data = {}
 
@@ -151,7 +151,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Get video resolution
     width = str(video_info["streams"][0]["width"])
     height = str(video_info["streams"][0]["height"])
-    video_resolution = width + "x "+ height
+    video_resolution = width + "x"+ height
 
     # Get video duration
     video_seconds = round(float(video_info["format"]["duration"]))
