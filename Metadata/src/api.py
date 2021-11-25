@@ -934,7 +934,7 @@ class VideoFeed(Resource):
             
 
             # Iterate received items and add additional data from algo and recording databases
-            response_msg = {}
+            response_msg = []
 
 #            logging.info(pipe_items_list)
 
@@ -975,8 +975,7 @@ class VideoFeed(Resource):
                 table_data_dict['time'] = record_item_details['recording_overview']['time']                
                 table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
                 table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
-                response_msg[item['_id']] = table_data_dict
-                logging.info(response_msg[item['_id']])
+                response_msg.append(table_data_dict)
 
 
             # Close the connection

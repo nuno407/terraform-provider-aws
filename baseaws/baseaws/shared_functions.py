@@ -370,7 +370,9 @@ class ContainerServices():
             # Build item structure and add info from msg received
             item_db = {
                         '_id': data["_id"],
-                        'recording_overview': data["rec_data"]
+                        's3_path': data["s3_path"],
+                        'MDF_available': data["MDF_available"],
+                        'recording_overview': data["recording_overview"]
                     }
 
             # Insert previous built item on the Recording collection
@@ -397,6 +399,8 @@ class ContainerServices():
             # Create empty item for the recording
             item_db = {
                        '_id': unique_id,
+                       's3_path': self.__s3_buckets['raw'] + "/" + data["s3_path"],
+                       'MDF_available': "No",
                        'recording_overview':{
                                              "length": "",
                                              "time": "",
