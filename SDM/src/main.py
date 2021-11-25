@@ -57,11 +57,11 @@ def processing_sdm(container_services, body):
     # TODO: DEFINE PROCESS FOR METADATA FULL FILES (SHOULD BE DIRECTLY ADDED TO DB?)
 
     ################################################################################################### DEBUG SDRETRIEVER PROCESSING (REMOVE AFTERWARDS)
-    if "TEST_TENANT" in file_name:
-        logging.info("\nWARNING: File %s will not be processed!!", key_value)
-        logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
-        relay_data = {}
-        return relay_data
+    # if "TEST_TENANT" in file_name:
+    #     logging.info("\nWARNING: File %s will not be processed!!", key_value)
+    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+    #     relay_data = {}
+    #     return relay_data
     ###################################################################################################
 
     logging.info("Processing pipeline message..\n")
