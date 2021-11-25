@@ -849,28 +849,141 @@ class VideoFeed(Resource):
             client.close()
 
             # Iterate received items and Camera HealthChecks blocks for each one
-            response_msg = {} 
+            response_msg = {}
 
-            # logging.info(items_list)
+#            for algo_item in items_list['results']:
+#                for frame_item in algo_item['frame']:
+#                    if (frame_item['objectlist']['id']==1):
+#                        chb_value = frame_item['objectlist']['floatAttributes']['value']
+#                        bucket, key = chb_value
+#                        response_msg[algo_item['pipeline_id']] = chb_value         
+
+            logging.info(items_list)
 
             #validar um video de cada vez            
             for algo_item in items_list:
-                chb_array = []
-                #validar todoos os frames do video
-                for frame in algo_item['results']['frame']:
-                    #validar todos os items da frame
-                    if 'objectlist' in frame.keys():
-                        for item in frame['objectlist']:
-                            if item['id'] == '1':
-                                chb_value = item['floatAttributes'][0]['value']
-                                chb_array.append(chb_value)
-                    else:
-                        chb_array.append("0")
-                # logging.info(chb_array)
-                # logging.info(algo_item['pipeline_id'])
-                response_msg[algo_item['pipeline_id']] = chb_array 
+#                chb_array = []
+#                #validar todoos os frames do video
+#                for frame in algo_item['results']['frame']:
+#                    #validar todos os items da frame
+#                   if 'objectlist' in frame.keys():
+#                        for item in frame['objectlist']:
+#                            if item['id'] == '1':
+#                                chb_value = item['floatAttributes'][0]['value']
+#                                chb_array.append(chb_value)
+#                    else:
+#                        chb_array.append("0")
+#                logging.info(chb_array)
+#                logging.info(algo_item['pipeline_id'])
+#                response_msg[algo_item['pipeline_id']] = chb_array 
+                logging.info(algo_item['pipeline_id'])
+                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+
+# Custom model for getTableData code 200 response (Swagger documentation)
+tabledata_nest_model = api.model("tabledata_nest", {
+    'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
+    'item_2_id': fields.String(example="recording_overview: ['deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1637316243575_1637316303540', 'True', '5', '15' , '00:30:00', status, '00:09:00', 23-11-2021 14:32, 600x480, 'yuj2hi_01_InteriorRecorder']"),
+})
+
+get_tabledata_200_model = api.model("Get_tabledata_200", {
+    'message': fields.Nested(tabledata_nest_model),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getTableData')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_tabledata_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self):
+        """
+        Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
+        """
+        try:
+            # Define S3 bucket to get Data from
+            collection_pipe = "dev-pipeline-execution"
+            collection_algo = "dev-algorithm-output"
+            collection_results = "dev-recording"
+            # TODO: ADD THIS VARIABLES TO CONFIG FILE OR LEAVE IT HARDCODDED?
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_pipe]
+
+            # Get all videos that entered processing phase
+            pipe_items_list = list(col.find({"data_status":"complete"}))
             
 
+            # Iterate received items and add additional data from algo and recording databases
+            response_msg = {}
+
+#            logging.info(pipe_items_list)
+
+
+            for item in pipe_items_list:
+                table_data_dict = {}
+                col = db[collection_results]
+                # Get the recording data for the video
+                record_item_details = col.find_one({"_id":item['_id']})
+                
+                logging.info(record_item_details)
+                col = db[collection_algo]
+
+                algo_item_details = col.find_one({"pipeline_id":item['_id'],"algorithm_id":"CHC"})
+                logging.info(algo_item_details)
+
+
+                logging.info(item['_id'])
+                logging.info(item['processing_list'])
+                logging.info(record_item_details['recording_overview']['#snapshots'])
+                logging.info(algo_item_details['results']['number_CHC_events'])      
+                logging.info(algo_item_details['results']['lengthCHC']) 
+                logging.info(item['data_status'])                
+                logging.info(record_item_details['recording_overview']['length'])
+                logging.info(record_item_details['recording_overview']['time'])                
+                logging.info(record_item_details['recording_overview']['resolution'])        
+                logging.info(record_item_details['recording_overview']['deviceID'])     
+
+           
+                #Add the fields in the array in the proper order
+                table_data_dict['_id'] = item['_id']
+                table_data_dict['processing_list'] = item['processing_list']
+                table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
+                table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
+                table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
+                table_data_dict['data_status'] = item['data_status']                
+                table_data_dict['length'] = record_item_details['recording_overview']['length']
+                table_data_dict['time'] = record_item_details['recording_overview']['time']                
+                table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
+                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
+                response_msg[item['_id']] = table_data_dict
+                logging.info(response_msg[item['_id']])
+
+
+            # Close the connection
+            client.close()
+
+            logging.info(response_msg)
+           
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
             logging.info(e)
@@ -931,7 +1044,7 @@ class VideoFeed(Resource):
 
             for algo_item in items_list:
                 # Get video path and split it into bucket and key
-                s3_path = algo_item['video_s3_path']
+                s3_path = algo_item['output_paths']['video']
                 bucket, key = s3_path.split("/", 1)
 
                 # Builds params argument

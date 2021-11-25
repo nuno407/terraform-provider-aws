@@ -4,9 +4,11 @@ import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
 from datetime import timedelta as td, datetime
+import pytz
+import subprocess
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v3.2"      # Version of the current container
+CONTAINER_VERSION = "v4.0"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -26,11 +28,15 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                            (for more info please check the response syntax
                            of the Boto3 SQS.client.receive_message method)]
     Returns:
-        valid_recording {bool} -- [variable that indicates if recording
-                                   received is valid (True) or invalid (False)]
+        record_data {dict} -- [TODO]
     """
     input_sqs = container_services.input_queue
     logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
+
+    ###########################################
+    #DEBUG
+    logging.info(message)
+    ##########################################
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -41,32 +47,35 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # also from string to dict (in order to perform index access)
     dict_body = json.loads(dict_msg['Message'])
 
-    valid_recording = True
+    # Get device ID from message attributes
+    dict_attr = dict_msg['MessageAttributes']
+    device = dict_attr['deviceId']
+
+    record_data = {}
 
     try:
         # Info from received message
         stream_name = dict_body['streamName']
 
-        epoch_from = dict_body['from']
-        start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-
-        epoch_to = dict_body['to']
-        end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-
-        ##### New implementation for SNS changes #######################################################################################################################
-        # epoch_from = dict_body['footageFrom']
+        # epoch_from = dict_body['from']
         # start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
-        # epoch_to = dict_body['footageTo']
+        # epoch_to = dict_body['to']
         # end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+        ##### New implementation for SNS changes #######################################################################################################################
+        epoch_from = dict_body['footageFrom']
+        start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+        epoch_to = dict_body['footageTo']
+        end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
         ############################################################################################################################
 
     except Exception as e:
         logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
         logging.info(e)
         logging.info("\n")
-        valid_recording = False
-        return valid_recording
+        return record_data
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
@@ -90,8 +99,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Skips processing if video file is a duplicate
     if response_list['KeyCount'] > 0:
         logging.info("\nWARNING: Recording (path: %s) already exists on the S3 bucket and will be skipped!!\n", s3_path)
-        valid_recording = False
-        return valid_recording
+        return record_data
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
@@ -99,12 +107,17 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     role_credentials = assumed_role_object['Credentials']
 
-    # Get Kinesis clip using received message parameters
-    video_clip = container_services.get_kinesis_clip(role_credentials,
-                                                     stream_name,
-                                                     start_time,
-                                                     end_time,
-                                                     selector)
+    try:
+        # Get Kinesis clip using received message parameters
+        video_clip = container_services.get_kinesis_clip(role_credentials,
+                                                         stream_name,
+                                                         start_time,
+                                                         end_time,
+                                                         selector)
+    except Exception as e:
+        logging.info("\nWARNING: Failed to get kinesis clip (%s)!!\n", s3_path)
+        logging.info("\nReason: %s\n", e)
+        return record_data
 
     # Upload video clip into raw data S3 bucket
     container_services.upload_file(s3_client,
@@ -112,7 +125,49 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                    container_services.raw_s3,
                                    s3_path)
 
-    return valid_recording
+    ################ NOTE: Extract info details from video ###############
+
+    # Create timestamp for the current time
+    timestamp = str(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"))
+
+    # Store input video file into current working directory
+    input_name = "input_video.mp4"
+    with open(input_name, "wb") as input_file:
+        input_file.write(video_clip)
+
+    # Execute ffprobe command to get video clip info
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_format",
+                             "-show_streams", "-print_format", "json",
+                             input_name],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+
+    # Convert bytes from ffprobe output to string
+    decoded_info = (result.stdout).decode("utf-8")
+
+    # Convert info string to json
+    video_info = json.loads(decoded_info)
+
+    # Get video resolution
+    width = str(video_info["streams"][0]["width"])
+    height = str(video_info["streams"][0]["height"])
+    video_resolution = width + "x "+ height
+
+    # Get video duration
+    video_seconds = round(float(video_info["format"]["duration"]))
+    video_duration = str(td(seconds=video_seconds))
+
+    # Build dictionary with info to store on DB (Recording collection)
+    record_data["_id"] = s3_filename
+    record_data["recording_overview"] = {}
+    record_data["recording_overview"]["length"] = video_duration
+    record_data["recording_overview"]["time"] = timestamp
+    record_data["recording_overview"]["deviceID"] = device
+    record_data["recording_overview"]["resolution"] = video_resolution
+    record_data["recording_overview"]["#snapshots"] = "0"
+    record_data["recording_overview"]["snapshots_paths"] = {}
+
+    return record_data
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
@@ -174,122 +229,49 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     #################################################################################
 
     # TEST VALUES
-    key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
+    # key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
 
-    # name of the folder and file for the final concatenated file
-    #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
+    # # name of the folder and file for the final concatenated file
+    # #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
 
-    # Info from received message
-    stream_name = dict_body['streamName']
-    epoch_from = dict_body['from']
-    epoch_to = dict_body['to']
+    # # Info from received message
+    # stream_name = dict_body['streamName']
+    # epoch_from = dict_body['from']
+    # epoch_to = dict_body['to']
 
     ##### New implementation for SNS changes #######################################################################################################################
-    # # Info from received message (MessageAttributes parameter)
-    # rec_prefix = dict_attr['recordingId']
-    # device = dict_attr['deviceId']
-    # tenant = dict_attr['tenantId']
-    # recorder = dict_attr['recorder']
+    # Info from received message (MessageAttributes parameter)
+    rec_prefix = dict_attr['recordingId']['Value']
+    device = dict_attr['deviceId']['Value']
+    tenant = dict_attr['tenant']['Value']
+    recorder = dict_attr['recorder']['Value']
     
-    # # Info from received message (Message parameter)
-    # stream_name = dict_body['streamName']
-    # epoch_from = dict_body['footageFrom']
-    # epoch_to = dict_body['footageTo']
-    # upload_start = dict_body['uploadStart']
-    # upload_end = dict_body['uploadFinished']
+    # Info from received message (Message parameter)
+    stream_name = dict_body['streamName']
+    epoch_from = dict_body['footageFrom']
+    epoch_to = dict_body['footageTo']
+    upload_start = dict_body['uploadStarted']
+    upload_end = dict_body['uploadFinished']
 
-    # # Convert start timestamp (Metadata) to datetime
-    # meta_start_time = datetime.fromtimestamp(upload_start/1000.0)
-    # # Round down to exact hour (i.e. 0min 0s)
-    # round_start_time = meta_start_time.replace(microsecond=0, second=0, minute=0)
+    # Convert start timestamp (Metadata) to datetime
+    meta_start_time = datetime.fromtimestamp(upload_start/1000.0)
+    # Round down to exact hour (i.e. 0min 0s)
+    round_start_time = meta_start_time.replace(microsecond=0, second=0, minute=0)
 
-    # # Convert end timestamp (Metadata) to datetime
-    # meta_end_time = datetime.fromtimestamp(upload_end/1000.0)
-    # # Round down to exact hour (i.e. 0min 0s)
-    # round_end_time = meta_end_time.replace(microsecond=0, second=0, minute=0)
+    # Convert end timestamp (Metadata) to datetime
+    meta_end_time = datetime.fromtimestamp(upload_end/1000.0)
+    # Round down to exact hour (i.e. 0min 0s)
+    round_end_time = meta_end_time.replace(microsecond=0, second=0, minute=0)
 
-    # # Calculate delta between start and end timestamps
-    # delta = round_end_time-round_start_time
+    # Calculate delta between start and end timestamps
+    delta = round_end_time-round_start_time
     
-    # # Convert delta from seconds to hours
-    # hours_conv = divmod(delta.seconds, 3600.0)[0]
+    # Convert delta from seconds to hours
+    hours_conv = divmod(delta.seconds, 3600.0)[0]
 
-    # # Round up previous result and add 24h for each day (if any)
-    # # present on the delta result
-    # delta_hours = round(hours_conv) + delta.days*24 + 1    
-
-    # # Initialise dictionary that will store all files
-    # # that match the received prefix
-    # files_dict = {}
-
-    # # Create counter for indexing and to get total number
-    # # of metadata_full files received
-    # chunks_total = 0
-
-    # # Generate a timestamp path for each hour within the calculated delta
-    # # and get all files that match the key prefix
-    # for temp_hour in range(int(delta_hours)):
-
-    #     # Increment the start timestamp by the number of hours
-    #     # defined in temp_hour to generate the next timestamp path
-    #     next_time = round_start_time + td(hours=temp_hour)
-
-    #     # Construct timestamp part of the s3 path (folder)
-    #     time_path = "year={}/month={}/day={}/hour={}".format(next_time.year,
-    #                                                          next_time.month,
-    #                                                          next_time.day,
-    #                                                          next_time.hour)
-        
-    #     # Build s3 key prefix
-    #     key_prefix = tenant + "/" + device + "/" + time_path + "/" + recorder + "_" + rec_prefix
-
-    #     # Get list of all files with the same key prefix as the one
-    #     # received on the message
-    #     response_list = rcc_s3.list_objects_v2(
-    #         Bucket=bucket_origin,
-    #         Prefix=key_prefix
-    #     )               
-    
-    #     # Check if response_list is not empty
-    #     if response_list['KeyCount'] == 0:
-    #         logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
-    #         return
-
-    #     # Cycle through the received list of matching files,
-    #     # download them from S3 and store them on the files_dict dictionary
-    #     for index, file_entry in enumerate(response_list['Contents']):
-            
-    #         # Process only json files
-    #         if file_entry['Key'].endswith('.json'):
-
-    #             # Download metadata file from RCC S3 bucket
-    #             metadata_file = container_services.download_file(rcc_s3,
-    #                                                             bucket_origin,
-    #                                                             file_entry['Key'])
-
-    #             # Read all bytes from http response body
-    #             # (botocore.response.StreamingBody) and convert them into json format
-    #             json_temp = json.loads(metadata_file.decode("utf-8"))
-
-    #             # Store json file on the dictionary based on the index
-    #             files_dict[chunks_total] = json_temp
-
-    #             # Increase counter for number of files received
-    #             chunks_total += 1
-    
-    #################################################################################################################################################
-
-    # Get list of all files with the same key prefix as the one
-    # received on the message
-    response_list = rcc_s3.list_objects_v2(
-        Bucket=bucket_origin,
-        Prefix=key_prefix
-    )               
-    
-    # Check if response_list is not empty
-    if response_list['KeyCount'] == 0:
-        logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
-        return
+    # Round up previous result and add 24h for each day (if any)
+    # present on the delta result
+    delta_hours = round(hours_conv) + delta.days*24 + 1    
 
     # Initialise dictionary that will store all files
     # that match the received prefix
@@ -299,27 +281,100 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # of metadata_full files received
     chunks_total = 0
 
-    # Cycle through the received list of matching files,
-    # download them from S3 and store them on the files_dict dictionary
-    for index, file_entry in enumerate(response_list['Contents']):
+    # Generate a timestamp path for each hour within the calculated delta
+    # and get all files that match the key prefix
+    for temp_hour in range(int(delta_hours)):
+
+        # Increment the start timestamp by the number of hours
+        # defined in temp_hour to generate the next timestamp path
+        next_time = round_start_time + td(hours=temp_hour)
+
+        # Construct timestamp part of the s3 path (folder)
+        time_path = "year={}/month={}/day={}/hour={}".format(next_time.year,
+                                                             next_time.month,
+                                                             next_time.day,
+                                                             next_time.hour)
         
-        # Process only json files
-        if file_entry['Key'].endswith('.json'):
+        # Build s3 key prefix
+        key_prefix = tenant + "/" + device + "/" + time_path + "/" + recorder + "_" + rec_prefix
 
-            # Download metadata file from RCC S3 bucket
-            metadata_file = container_services.download_file(rcc_s3,
-                                                            bucket_origin,
-                                                            file_entry['Key'])
+        # Get list of all files with the same key prefix as the one
+        # received on the message
+        response_list = rcc_s3.list_objects_v2(
+            Bucket=bucket_origin,
+            Prefix=key_prefix
+        )               
+    
+        # Check if response_list is not empty
+        if response_list['KeyCount'] == 0:
+            logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
+            return
 
-            # Read all bytes from http response body
-            # (botocore.response.StreamingBody) and convert them into json format
-            json_temp = json.loads(metadata_file.decode("utf-8"))
+        # Cycle through the received list of matching files,
+        # download them from S3 and store them on the files_dict dictionary
+        for index, file_entry in enumerate(response_list['Contents']):
+            
+            # Process only json files
+            if file_entry['Key'].endswith('.json'):
 
-            # Store json file on the dictionary based on the index
-            files_dict[chunks_total] = json_temp
+                # Download metadata file from RCC S3 bucket
+                metadata_file = container_services.download_file(rcc_s3,
+                                                                bucket_origin,
+                                                                file_entry['Key'])
 
-            # Increase counter for number of files received
-            chunks_total += 1
+                # Read all bytes from http response body
+                # (botocore.response.StreamingBody) and convert them into json format
+                json_temp = json.loads(metadata_file.decode("utf-8"))
+
+                # Store json file on the dictionary based on the index
+                files_dict[chunks_total] = json_temp
+
+                # Increase counter for number of files received
+                chunks_total += 1
+    
+    #################################################################################################################################################
+
+    # # Get list of all files with the same key prefix as the one
+    # # received on the message
+    # response_list = rcc_s3.list_objects_v2(
+    #     Bucket=bucket_origin,
+    #     Prefix=key_prefix
+    # )               
+    
+    # # Check if response_list is not empty
+    # if response_list['KeyCount'] == 0:
+    #     logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
+    #     return
+
+    # # Initialise dictionary that will store all files
+    # # that match the received prefix
+    # files_dict = {}
+
+    # # Create counter for indexing and to get total number
+    # # of metadata_full files received
+    # chunks_total = 0
+
+    # # Cycle through the received list of matching files,
+    # # download them from S3 and store them on the files_dict dictionary
+    # for index, file_entry in enumerate(response_list['Contents']):
+        
+    #     # Process only json files
+    #     if file_entry['Key'].endswith('.json'):
+
+    #         # Download metadata file from RCC S3 bucket
+    #         metadata_file = container_services.download_file(rcc_s3,
+    #                                                         bucket_origin,
+    #                                                         file_entry['Key'])
+
+    #         # Read all bytes from http response body
+    #         # (botocore.response.StreamingBody) and convert them into json format
+    #         json_temp = json.loads(metadata_file.decode("utf-8"))
+
+    #         # Store json file on the dictionary based on the index
+    #         files_dict[chunks_total] = json_temp
+
+    #         # Increase counter for number of files received
+    #         chunks_total += 1
 
     #################################################################################
 
@@ -401,18 +456,24 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-            valid_rec = transfer_kinesis_clip(s3_client,
-                                              sts_client,
-                                              container_services,
-                                              message)
+            rec_data = transfer_kinesis_clip(s3_client,
+                                             sts_client,
+                                             container_services,
+                                             message)
 
             # Checks if recording received is valid
-            if valid_rec:
+            if rec_data:
                 # Concatenate all metadata related to processed clip
                 concatenate_metadata_full(s3_client,
                                           sts_client,
                                           container_services,
                                           message)
+
+                # Send message to input queue of metadata container
+                metadata_queue = container_services.sqs_queues_list["Metadata"]
+                container_services.send_message(sqs_client,
+                                                metadata_queue,
+                                                rec_data)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
