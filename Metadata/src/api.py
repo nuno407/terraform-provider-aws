@@ -965,18 +965,18 @@ class VideoFeed(Resource):
 
            
                 #Add the fields in the array in the proper order
-				table_data_dict['_id'] = item['_id']
-				table_data_dict['processing_list'] = item['processing_list']
-				table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
-				table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
-				table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
-				table_data_dict['data_status'] = item['data_status']                
-				table_data_dict['length'] = record_item_details['recording_overview']['length']
-				table_data_dict['time'] = record_item_details['recording_overview']['time']                
-				table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
-				table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
+                table_data_dict['_id'] = item['_id']
+                table_data_dict['processing_list'] = item['processing_list']
+                table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
+                table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
+                table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
+                table_data_dict['data_status'] = item['data_status']                
+                table_data_dict['length'] = record_item_details['recording_overview']['length']
+                table_data_dict['time'] = record_item_details['recording_overview']['time']                
+                table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
+                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
                 response_msg[item['_id']] = table_data_dict
-                logging.info(response_msg[item['_id']]       
+                logging.info(response_msg[item['_id']])
 
 
             # Close the connection
