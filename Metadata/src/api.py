@@ -939,8 +939,6 @@ class VideoFeed(Resource):
 #            logging.info(pipe_items_list)
 
 
-udar o table_data_array p dicionário e os appends p table_data_array['_id] = item['_id'] por exemplo
-
             for item in pipe_items_list:
                 table_data_dict = {}
                 col = db[collection_results]
