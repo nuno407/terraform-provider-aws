@@ -91,10 +91,10 @@ def request_process_selector(client, container_services, body):
     # Picking Device Id from header
     if "value" in dict_body:
         msg_header = dict_body["value"]["properties"]["header"]
-        device_id = msg_header.get('device_id')
+        device_id = msg_header.get('deviceId')
         if "recording_info" in dict_body["value"]["properties"]:
                 
-            recording_info = dict_body["value"]["properties"].get("recording_info")
+            recording_info = dict_body["value"]["properties"].get("recordingInfo")
             for info in recording_info:
 
                 #print(info.get("recording_state"))
@@ -105,7 +105,7 @@ def request_process_selector(client, container_services, body):
                             uid = str(uuid.uuid4())
                             #payload = {'device_id': device_id}
                             #payload = {}
-                            timestamps = event.get('timestamp_ms')
+                            timestamps = event.get('timestampMs')
                             cal_date = datetime.fromtimestamp(int(timestamps[:10]))
                             # print(cal_date, timestamps)
 
