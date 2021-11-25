@@ -938,8 +938,11 @@ class VideoFeed(Resource):
 
 #            logging.info(pipe_items_list)
 
+
+udar o table_data_array p dicionário e os appends p table_data_array['_id] = item['_id'] por exemplo
+
             for item in pipe_items_list:
-                table_data_array = []
+                table_data_dict = {}
                 col = db[collection_results]
                 # Get the recording data for the video
                 record_item_details = col.find_one({"_id":item['_id']})
@@ -947,11 +950,12 @@ class VideoFeed(Resource):
                 logging.info(record_item_details)
                 col = db[collection_algo]
 
-                algo_item_details = col.find_one({"_id":item['_id'],"algorithm_id":"CHC"})
+                algo_item_details = col.find_one({"pipeline_id":item['_id'],"algorithm_id":"CHC"})
                 logging.info(algo_item_details)
 
 
                 logging.info(item['_id'])
+                logging.info(item['processing_list'])
                 logging.info(record_item_details['recording_overview']['#snapshots'])
                 logging.info(algo_item_details['results']['number_CHC_events'])      
                 logging.info(algo_item_details['results']['lengthCHC']) 
@@ -963,18 +967,18 @@ class VideoFeed(Resource):
 
            
                 #Add the fields in the array in the proper order
-                table_data_array.append(item['_id'])
-#                table_data_array.append(item['processing_list'])
-                table_data_array.append(record_item_details['recording_overview']['#snapshots'])
-                table_data_array.append(algo_item_details['results']['number_CHC_events'])      
-                table_data_array.append(algo_item_details['results']['lengthCHC']) 
-                table_data_array.append(item['data_status'])                
-                table_data_array.append(record_item_details['recording_overview']['length'])
-                table_data_array.append(record_item_details['recording_overview']['time'])                
-                table_data_array.append(record_item_details['recording_overview']['resolution'])        
-                table_data_array.append(record_item_details['recording_overview']['deviceID'])        
-                response_msg[item['_id']] = table_data_array
-                logging.info(response_msg[item['_id']])
+				table_data_dict['_id'] = item['_id']
+				table_data_dict['processing_list'] = item['processing_list']
+				table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
+				table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
+				table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
+				table_data_dict['data_status'] = item['data_status']                
+				table_data_dict['length'] = record_item_details['recording_overview']['length']
+				table_data_dict['time'] = record_item_details['recording_overview']['time']                
+				table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
+				table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
+                response_msg[item['_id']] = table_data_dict
+                logging.info(response_msg[item['_id']]       
 
 
             # Close the connection
