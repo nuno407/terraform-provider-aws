@@ -159,6 +159,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # Build dictionary with info to store on DB (Recording collection)
     record_data["_id"] = s3_filename
+    record_data["s3_path"] = container_services.raw_s3 + "/" + s3_path
     record_data["recording_overview"] = {}
     record_data["recording_overview"]["length"] = video_duration
     record_data["recording_overview"]["time"] = timestamp
@@ -206,6 +207,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     #       (confirmed by the HoneyBadgers team)
     bucket_origin = 'rcc-dev-device-data'
 
+    # Initialises the variable to flag the
+    # availability of the metadata files
+    metadata_available = "Yes"
     #################################################################################
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
@@ -308,7 +312,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         # Check if response_list is not empty
         if response_list['KeyCount'] == 0:
             logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
-            return
+            metadata_available = "No"
+            return metadata_available
 
         # Cycle through the received list of matching files,
         # download them from S3 and store them on the files_dict dictionary
@@ -422,6 +427,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                                     container_services.raw_s3,
                                     key_full_metadata)
 
+    return metadata_available
+
 
 def main():
     """Main function"""
@@ -464,10 +471,13 @@ def main():
             # Checks if recording received is valid
             if rec_data:
                 # Concatenate all metadata related to processed clip
-                concatenate_metadata_full(s3_client,
-                                          sts_client,
-                                          container_services,
-                                          message)
+                meta_available = concatenate_metadata_full(s3_client,
+                                                           sts_client,
+                                                           container_services,
+                                                           message)
+
+                # Add parameter with info about metadata availability
+                rec_data["MDF_available"] = meta_available
 
                 # Send message to input queue of metadata container
                 metadata_queue = container_services.sqs_queues_list["Metadata"]
