@@ -241,10 +241,10 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     ##### New implementation for SNS changes #######################################################################################################################
     # Info from received message (MessageAttributes parameter)
-    rec_prefix = dict_attr['recordingId']
-    device = dict_attr['deviceId']
-    tenant = dict_attr['tenant']
-    recorder = dict_attr['recorder']
+    rec_prefix = dict_attr['recordingId']['Value']
+    device = dict_attr['deviceId']['Value']
+    tenant = dict_attr['tenant']['Value']
+    recorder = dict_attr['recorder']['Value']
     
     # Info from received message (Message parameter)
     stream_name = dict_body['streamName']
