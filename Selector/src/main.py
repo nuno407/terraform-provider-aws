@@ -21,7 +21,8 @@ token_endpoint = 'https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth
 client_id = '5ler2p82u6spoo05lle1em53hk'
 client_secret = '11ojnjs9bisjmv3hqdu4frh31pq1tfqjdtmefpbpl34r64o0ld4j'
 auth_scopes = ''
-            
+
+
 
 #####  Generating Token for API Authorization ###########
 
@@ -91,10 +92,10 @@ def request_process_selector(client, container_services, body):
     # Picking Device Id from header
     if "value" in dict_body:
         msg_header = dict_body["value"]["properties"]["header"]
-        device_id = msg_header.get('deviceId')
+        device_id = msg_header.get('device_id')
         if "recording_info" in dict_body["value"]["properties"]:
                 
-            recording_info = dict_body["value"]["properties"].get("recordingInfo")
+            recording_info = dict_body["value"]["properties"].get("recording_info")
             for info in recording_info:
 
                 #print(info.get("recording_state"))
@@ -105,7 +106,7 @@ def request_process_selector(client, container_services, body):
                             uid = str(uuid.uuid4())
                             #payload = {'device_id': device_id}
                             #payload = {}
-                            timestamps = event.get('timestampMs')
+                            timestamps = str(event.get('timestamp_ms'))
                             cal_date = datetime.fromtimestamp(int(timestamps[:10]))
                             # print(cal_date, timestamps)
 
