@@ -127,9 +127,6 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     ################ NOTE: Extract info details from video ###############
 
-    # Create timestamp for the current time
-    timestamp = str(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"))
-
     # Store input video file into current working directory
     input_name = "input_video.mp4"
     with open(input_name, "wb") as input_file:
@@ -162,7 +159,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     record_data["s3_path"] = container_services.raw_s3 + "/" + s3_path
     record_data["recording_overview"] = {}
     record_data["recording_overview"]["length"] = video_duration
-    record_data["recording_overview"]["time"] = timestamp
+    record_data["recording_overview"]["time"] = str(start_time)
     record_data["recording_overview"]["deviceID"] = device
     record_data["recording_overview"]["resolution"] = video_resolution
     record_data["recording_overview"]["#snapshots"] = "0"
