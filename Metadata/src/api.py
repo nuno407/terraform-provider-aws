@@ -972,7 +972,7 @@ class VideoFeed(Resource):
                 table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
                 table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
                 table_data_dict['data_status'] = item['data_status']                
-                table_data_dict['last_updated'] = item['last_updated']
+                table_data_dict['last_updated'] = item['last_updated'].split(".",1)[0].replace("T"," ")
                 table_data_dict['length'] = record_item_details['recording_overview']['length']
                 table_data_dict['time'] = record_item_details['recording_overview']['time']                
                 table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
