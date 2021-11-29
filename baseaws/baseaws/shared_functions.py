@@ -605,6 +605,17 @@ class ContainerServices():
                             'number_CHC_events': "",
                             'lengthCHC': ""
                         }
+                try:
+                    # Update recording DB item (appends chc_data to results list)
+                    table_rec.update({'_id': unique_id}, {'$push': {'results': chc_data}})
+                    table_rec.insert_one(item_db)
+
+                    # Create logs message
+                    logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
+
+                except Exception as e:
+                    logging.info(e)
+                    logging.info(chc_data)
                 ###################################################################
             try:
                 # Insert previous built item
@@ -615,18 +626,6 @@ class ContainerServices():
                 # NOTE: In this case, the old item is not overriden!
                 logging.info(e)
                 logging.info(item_db)
-
-            try:
-                # Update recording DB item (appends chc_data to results list)
-                table_rec.update({'_id': unique_id}, {'$push': {'results': chc_data}})
-                table_rec.insert_one(item_db)
-
-                # Create logs message
-                logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
-
-            except Exception as e:
-                logging.info(e)
-                logging.info(chc_data)
 
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
     ####################################################################################################
