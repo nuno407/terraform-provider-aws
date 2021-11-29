@@ -287,6 +287,7 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
+    ##### DB related functions #########################################################################
     @staticmethod
     def create_db_client():
         """TODO
@@ -340,7 +341,31 @@ class ContainerServices():
         db = client[docdb_info['db']]
     
         return db
+    
+    @staticmethod
+    def update_recordings_db():
+        """TODO
 
+        Returns:
+            db {TODO} -- [TODO]
+        """
+    
+    @staticmethod
+    def update_pipeline_db():
+        """TODO
+
+        Returns:
+            db {TODO} -- [TODO]
+        """
+    
+    @staticmethod
+    def update_outputs_db():
+        """TODO
+
+        Returns:
+            db {TODO} -- [TODO]
+        """
+    
     def connect_to_docdb(self, data, attributes):
         """TODO
 
@@ -372,8 +397,56 @@ class ContainerServices():
                         '_id': data["_id"],
                         's3_path': data["s3_path"],
                         'MDF_available': data["MDF_available"],
-                        'recording_overview': data["recording_overview"]
+                        'recording_overview': data["recording_overview"],
+                        'results_CHC': []
                     }
+            
+            ##################################################################################################################################
+            if data["MDF_available"] == "Yes":
+
+                # Create S3 client to download metadata
+                s3_client = boto3.client('s3',
+                            region_name='eu-central-1')
+
+                s3_bucket, video_key = data["s3_path"].split("/", 1)
+                s3_key = video_key.split(".")[0] + '_metadata_full.json'
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                                                 Bucket=s3_bucket,
+                                                 Key=s3_key
+                                                )
+
+                # Decode and convert file contents into json format
+                result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+                # Get info to populate CHC blocked events arrays (CHC)
+                chb_array = []
+
+                # Check all frames
+                for frame in result_info['frame']:
+                    # Validate every frame (check if it has objectlist parameter)
+                    if 'objectlist' in frame.keys():
+                        for item in frame['objectlist']:
+                            # Check for item with ID = 1
+                            # (it has the CameraViewBlocked info)
+                            if item['id'] == '1':
+                                chb_value = item['floatAttributes'][0]['value']
+                                chb_array.append(chb_value)
+                    else:
+                        chb_array.append("0")
+
+                # Add array from metadata full file to created item
+                mdf_data = {    
+                            'algo_out_id': "-",
+                            'source': "MDF",
+                            'CHBs': chb_array,
+                            'number_CHC_events': "",
+                            'lengthCHC': ""
+                        }
+
+                item_db['results_CHC'].append(mdf_data)
+            ##################################################################################################################################
 
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
@@ -408,7 +481,8 @@ class ContainerServices():
                                              "resolution": "",
                                              "#snapshots": "",
                                              "snapshots_paths": {}
-                                            }
+                                            },
+                        "results_CHC": []
                 }
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
@@ -485,10 +559,7 @@ class ContainerServices():
             if source == "CHC":
                 # Build default results structure
                 item_db['results'] = {
-                                      'CHBs': {
-                                               'MDF': [],
-                                               'CHC': []
-                                      },
+                                      'CHBs': [],
                                       'number_CHC_events': "",
                                       'lengthCHC': ""
                                     }
@@ -523,18 +594,42 @@ class ContainerServices():
                         chb_array.append("0")
 
                 # Add array from ivs_chain metadata file to created item
-                item_db['results']['CHBs']['CHC'] = chb_array
+                item_db['results']['CHBs'] = chb_array
 
+                ###################################################################
+                # Add array from CHC output file to recording DB item
+                chc_data = {    
+                            'algo_out_id': run_id,
+                            'source': "CHC",
+                            'CHBs': chb_array,
+                            'number_CHC_events': "",
+                            'lengthCHC': ""
+                        }
+                ###################################################################
             try:
                 # Insert previous built item
                 table_algo_out.insert_one(item_db)
+
             except errors.DuplicateKeyError as e:
                 # Raise error exception if duplicated item is found
                 # NOTE: In this case, the old item is not overriden!
                 logging.info(e)
                 logging.info(item_db)
 
+            try:
+                # Update recording DB item (appends chc_data to results list)
+                table_rec.update({'_id': unique_id}, {'$push': {'results': chc_data}})
+                table_rec.insert_one(item_db)
+
+                # Create logs message
+                logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
+
+            except Exception as e:
+                logging.info(e)
+                logging.info(chc_data)
+
             logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
+    ####################################################################################################
 
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
