@@ -607,7 +607,7 @@ class ContainerServices():
                         }
                 try:
                     # Update recording DB item (appends chc_data to results list)
-                    table_rec.update({'_id': unique_id}, {'$push': {'results': chc_data}})
+                    table_rec.update({'_id': unique_id}, {'$push': {'results_CHC': chc_data}})
 
                     # Create logs message
                     logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
