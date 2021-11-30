@@ -938,7 +938,7 @@ class VideoFeed(Resource):
             # Iterate received items and add additional data from algo and recording databases
             response_msg = []
 
-#            logging.info(pipe_items_list)
+            logging.info(pipe_items_list)
 
 
             for item in pipe_items_list:
@@ -973,7 +973,10 @@ class VideoFeed(Resource):
                 table_data_dict['length'] = record_item_details['recording_overview']['length']
                 table_data_dict['time'] = record_item_details['recording_overview']['time']                
                 table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
-                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']        
+                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']      
+
+                logging.info(table_data_dict)
+
                 response_msg.append(table_data_dict)
 
 
