@@ -864,7 +864,7 @@ class VideoFeed(Resource):
             for item in items_list:
                 chb_dict = {}
                 for CHCs_item in item['results_CHC']:                
-                    chb_dict[CHCs_item['algorithm_id']] = CHCs_item['CHBs']
+                    chb_dict[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
 #                chb_array = []
 #                #validar todoos os frames do video
 #                for frame in algo_item['results']['frame']:
