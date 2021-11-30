@@ -963,17 +963,17 @@ class VideoFeed(Resource):
 
            
                 #Add the fields in the array in the proper order
-                table_data_dict['_id'] = item['_id']
-                table_data_dict['processing_list'] = item['processing_list']
-                table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
-                table_data_dict['number_CHC_events'] = record_item_details['results_CHC']['number_CHC_events']      
-                table_data_dict['lengthCHC'] = record_item_details['results_CHC']['lengthCHC'] 
-                table_data_dict['data_status'] = item['data_status']                
-                table_data_dict['last_updated'] = item['last_updated'].split(".",1)[0].replace("T"," ")
-                table_data_dict['length'] = record_item_details['recording_overview']['length']
-                table_data_dict['time'] = record_item_details['recording_overview']['time']                
-                table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
-                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']      
+#                table_data_dict['_id'] = item['_id']
+#                table_data_dict['processing_list'] = item['processing_list']
+#                table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
+#                table_data_dict['number_CHC_events'] = record_item_details['results_CHC']['number_CHC_events']      
+#                table_data_dict['lengthCHC'] = record_item_details['results_CHC']['lengthCHC'] 
+#                table_data_dict['data_status'] = item['data_status']                
+#                table_data_dict['last_updated'] = item['last_updated'].split(".",1)[0].replace("T"," ")
+#                table_data_dict['length'] = record_item_details['recording_overview']['length']
+#                table_data_dict['time'] = record_item_details['recording_overview']['time']                
+#                table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
+#                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']      
 
                 logging.info(table_data_dict)
 
