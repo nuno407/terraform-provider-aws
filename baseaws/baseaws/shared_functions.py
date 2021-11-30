@@ -566,7 +566,6 @@ class ContainerServices():
         # Create DocDB client
         db = self.create_db_client()
 
-        ########################################################################################
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]
         table_algo_out = db[self.__db_tables['algo_output']]
@@ -577,7 +576,6 @@ class ContainerServices():
 
         # Get source container name
         source = attributes['SourceContainer']['StringValue']
-        ########################################################################################
 
         #################### NOTE: Recording collection handling ##################
 
@@ -587,72 +585,6 @@ class ContainerServices():
             # Call respective processing function
             self.generate_recording_item(data, table_rec, timestamp)
             return
-
-        # # SDRetriever container info is processed in a different
-        # # way from the other containers
-        # if source == "SDRetriever":
-        #     # Build item structure and add info from msg received
-        #     item_db = {
-        #                 '_id': data["_id"],
-        #                 's3_path': data["s3_path"],
-        #                 'MDF_available': data["MDF_available"],
-        #                 'recording_overview': data["recording_overview"],
-        #                 'results_CHC': []
-        #             }
-            
-        #     if data["MDF_available"] == "Yes":
-
-        #         # Create S3 client to download metadata
-        #         s3_client = boto3.client('s3',
-        #                     region_name='eu-central-1')
-
-        #         s3_bucket, video_key = data["s3_path"].split("/", 1)
-        #         s3_key = video_key.split(".")[0] + '_metadata_full.json'
-
-        #         # Download metadata json file
-        #         response = s3_client.get_object(
-        #                                          Bucket=s3_bucket,
-        #                                          Key=s3_key
-        #                                         )
-
-        #         # Decode and convert file contents into json format
-        #         result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-        #         # Get info to populate CHC blocked events arrays (CHC)
-        #         chb_array = []
-
-        #         # Check all frames
-        #         for frame in result_info['frame']:
-        #             # Validate every frame (check if it has objectlist parameter)
-        #             if 'objectlist' in frame.keys():
-        #                 for item in frame['objectlist']:
-        #                     # Check for item with ID = 1
-        #                     # (it has the CameraViewBlocked info)
-        #                     if item['id'] == '1':
-        #                         chb_value = item['floatAttributes'][0]['value']
-        #                         chb_array.append(chb_value)
-        #             else:
-        #                 chb_array.append("0")
-
-        #         # Add array from metadata full file to created item
-        #         mdf_data = {    
-        #                     'algo_out_id': "-",
-        #                     'source': "MDF",
-        #                     'CHBs': chb_array,
-        #                     'number_CHC_events': "",
-        #                     'lengthCHC': ""
-        #                 }
-
-        #         item_db['results_CHC'].append(mdf_data)
-
-        #     # Insert previous built item on the Recording collection
-        #     table_rec.insert_one(item_db)
-
-        #     # Create logs message
-        #     logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
-
-        #     return
-
 
         #################### NOTE: Pipeline execution collection handling ####################
         
@@ -671,38 +603,6 @@ class ContainerServices():
                                 unique_id,
                                 source,
                                 self.__container['name'])
-
-
-        # # Initialise variables used in both item creation and update
-        # status = data['data_status']
-
-        # # Check if item with that name already exists
-        # response = table_pipe.find_one({'_id': unique_id})
-
-        # if response:
-        #     # Update the existing records
-        #     table_pipe.update({'_id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_updated": timestamp}})
-
-        #     # Create logs message
-        #     logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
-        
-        # else:
-        #     # Build item structure and add info from msg received
-        #     item_db = {
-        #                 '_id': unique_id,
-        #                 'data_status': status,
-        #                 'from_container': self.__container['name'],
-        #                 'info_source': source,
-        #                 'last_updated': timestamp,
-        #                 'processing_list': data['processing_steps'],
-        #                 's3_path': data['s3_path']
-        #             }
-
-        #     # Insert previous built item
-        #     table_pipe.insert_one(item_db)
-
-        #     # Create logs message
-        #     logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
 
 
         ###################################################### DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
@@ -745,109 +645,6 @@ class ContainerServices():
                                    timestamp,
                                    unique_id,
                                    source)
-
-        # # Create/Update item on Algorithm Output DB
-        # if 'output' in data:
-        #     # Initialise variables used in item creation
-        #     outputs = data['output']
-        #     run_id = unique_id + '_' + source
-
-        #     # Item creation (common parameters)
-        #     item_db = {
-        #                 '_id': run_id,
-        #                 'algorithm_id': source,
-        #                 'pipeline_id': unique_id
-        #             }
-
-        #     # Populate output_paths parameter
-        #     item_db['output_paths'] = {}
-
-        #     # Check if there is a metadata file path available
-        #     if outputs['meta_path'] == "-":
-        #         item_db['output_paths']["metadata"] = "-"
-        #     else:
-        #         metadata_path = outputs['bucket'] + '/' + outputs['meta_path']
-        #         item_db['output_paths']["metadata"] = metadata_path
-
-        #     # Check if there is a video file path available
-        #     if outputs['video_path'] == "-":
-        #         item_db['output_paths']["video"] = "-"
-        #     else:
-        #         video_path = outputs['bucket'] + '/' + outputs['video_path']
-        #         item_db['output_paths']["video"] = video_path
-
-        #     # Compute results from CHC processing
-        #     if source == "CHC":
-        #         # Build default results structure
-        #         item_db['results'] = {
-        #                               'CHBs': [],
-        #                               'number_CHC_events': "",
-        #                               'lengthCHC': ""
-        #                             }
-
-        #         # Create S3 client to download metadata
-        #         s3_client = boto3.client('s3',
-        #                     region_name='eu-central-1')
-
-        #         # Download metadata json file
-        #         response = s3_client.get_object(
-        #             Bucket=outputs['bucket'],
-        #             Key=outputs['meta_path']
-        #         )
-
-        #         # Decode and convert file contents into json format
-        #         result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-        #         # Get info to populate CHC blocked events arrays (CHC)
-        #         chb_array = []
-
-        #         # Check all frames
-        #         for frame in result_info['frame']:
-        #             # Validate every frame (check if it has objectlist parameter)
-        #             if 'objectlist' in frame.keys():
-        #                 for item in frame['objectlist']:
-        #                     # Check for item with ID = 1
-        #                     # (it has the CameraViewBlocked info)
-        #                     if item['id'] == '1':
-        #                         chb_value = item['floatAttributes'][0]['value']
-        #                         chb_array.append(chb_value)
-        #             else:
-        #                 chb_array.append("0")
-
-        #         # Add array from ivs_chain metadata file to created item
-        #         item_db['results']['CHBs'] = chb_array
-
-        #         ###################################################################
-        #         # Add array from CHC output file to recording DB item
-        #         chc_data = {    
-        #                     'algo_out_id': run_id,
-        #                     'source': "CHC",
-        #                     'CHBs': chb_array,
-        #                     'number_CHC_events': "",
-        #                     'lengthCHC': ""
-        #                 }
-        #         try:
-        #             # Update recording DB item (appends chc_data to results list)
-        #             table_rec.update({'_id': unique_id}, {'$push': {'results_CHC': chc_data}})
-
-        #             # Create logs message
-        #             logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
-
-        #         except Exception as e:
-        #             logging.info(e)
-        #             logging.info(chc_data)
-        #         ###################################################################
-        #     try:
-        #         # Insert previous built item
-        #         table_algo_out.insert_one(item_db)
-
-        #     except errors.DuplicateKeyError as e:
-        #         # Raise error exception if duplicated item is found
-        #         # NOTE: In this case, the old item is not overriden!
-        #         logging.info(e)
-        #         logging.info(item_db)
-
-        #     logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
 
     ##### S3 related functions #########################################################################
     def download_file(self, client, s3_bucket, file_path):
