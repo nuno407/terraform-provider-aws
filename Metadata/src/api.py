@@ -827,7 +827,7 @@ class VideoFeed(Resource):
         """
         try:
             # Define S3 bucket to get Camera HealthChecks from
-            collection_algo = "dev-algorithm-output"
+            collection_rec = "dev-recording"
             # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
@@ -839,10 +839,10 @@ class VideoFeed(Resource):
             db = client[DB_NAME]
 
             ##Specify the collection to be used
-            col = db[collection_algo]
+            col = db[collection_rec]
 
             # Get all info from the table with output video available
-            items_list = list(col.find({"algorithm_id":"CHC"}))
+            items_list = list(col.find())
             # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
 
             # Close the connection
@@ -861,7 +861,10 @@ class VideoFeed(Resource):
             logging.info(items_list)
 
             #validar um video de cada vez            
-            for algo_item in items_list:
+            for item in items_list:
+                chb_dict = {}
+                for CHCs_item in item['results_CHC']:                
+                    chb_dict[CHCs_item['algorithm_id']] = CHCs_item['CHBs']
 #                chb_array = []
 #                #validar todoos os frames do video
 #                for frame in algo_item['results']['frame']:
@@ -873,11 +876,10 @@ class VideoFeed(Resource):
 #                                chb_array.append(chb_value)
 #                    else:
 #                        chb_array.append("0")
-#                logging.info(chb_array)
+                    logging.info(chb_dict)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
-                logging.info(algo_item['pipeline_id'])
-                response_msg[algo_item['pipeline_id']] = algo_item['results']['CHBs']['CHC']
+                response_msg[item['_id']] = chb_dict
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
@@ -914,7 +916,7 @@ class VideoFeed(Resource):
         try:
             # Define S3 bucket to get Data from
             collection_pipe = "dev-pipeline-execution"
-            collection_algo = "dev-algorithm-output"
+            #collection_algo = "dev-algorithm-output"
             collection_results = "dev-recording"
             # TODO: ADD THIS VARIABLES TO CONFIG FILE OR LEAVE IT HARDCODDED?
 
@@ -946,19 +948,14 @@ class VideoFeed(Resource):
                 record_item_details = col.find_one({"_id":item['_id']})
                 
                 logging.info(record_item_details)
-                col = db[collection_algo]
-
-                algo_item_details = col.find_one({"pipeline_id":item['_id'],"algorithm_id":"CHC"})
-                logging.info(algo_item_details)
-
 
                 logging.info(item['_id'])
                 logging.info(item['processing_list'])
                 logging.info(record_item_details['recording_overview']['#snapshots'])
-                logging.info(algo_item_details['results']['number_CHC_events'])      
-                logging.info(algo_item_details['results']['lengthCHC']) 
+                logging.info(record_item_details['results_CHC']['number_CHC_events'])      
+                logging.info(record_item_details['results_CHC']['lengthCHC']) 
                 logging.info(item['data_status'])                
-                logging.info(item['last_updated'])     
+                logging.info(item['last_updated']).split(".",1)[0].replace("T"," ")
                 logging.info(record_item_details['recording_overview']['length'])
                 logging.info(record_item_details['recording_overview']['time'])                
                 logging.info(record_item_details['recording_overview']['resolution'])        
@@ -969,8 +966,8 @@ class VideoFeed(Resource):
                 table_data_dict['_id'] = item['_id']
                 table_data_dict['processing_list'] = item['processing_list']
                 table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
-                table_data_dict['number_CHC_events'] = algo_item_details['results']['number_CHC_events']      
-                table_data_dict['lengthCHC'] = algo_item_details['results']['lengthCHC'] 
+                table_data_dict['number_CHC_events'] = record_item_details['results_CHC']['number_CHC_events']      
+                table_data_dict['lengthCHC'] = record_item_details['results_CHC']['lengthCHC'] 
                 table_data_dict['data_status'] = item['data_status']                
                 table_data_dict['last_updated'] = item['last_updated'].split(".",1)[0].replace("T"," ")
                 table_data_dict['length'] = record_item_details['recording_overview']['length']
