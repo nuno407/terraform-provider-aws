@@ -931,7 +931,7 @@ class VideoFeed(Resource):
             col = db[collection_rec]
 
             # Get all info from the table with output video available
-            item = list(col.find_one({"_id" : videoID}))
+            item = col.find_one({"_id" : videoID})
             # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
 
             # Close the connection
@@ -941,7 +941,7 @@ class VideoFeed(Resource):
             response_msg = {}
             
             logging.info(item)
-            
+
             for CHCs_item in item['results_CHC']:                
                 response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
                 logging.info(response_msg)
