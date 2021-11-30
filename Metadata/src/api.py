@@ -893,6 +893,69 @@ class VideoFeed(Resource):
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
+
+# Parameters parser for getVideoCHC endpoint (Swagger documentation)
+videochc_parser = reqparse.RequestParser()
+videochc_parser.add_argument('file', type=str, required=True, help='Name of the video file', location='args')
+
+# Custom model for getVideoUrl code 200 response (Swagger documentation)
+get_videochc_200_model = api.model("Del_one_200", {
+    'message': fields.String(example="<recording_id>"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getVideoCHC/<string:file>')
+class VideoFeed(Resource):
+    @api.response(200, 'Success', get_videochc_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(videochc_parser, validate=True)
+    def get(self, file):
+        try:
+            # Define S3 bucket to get Camera HealthChecks from
+            collection_rec = "dev-recording"
+            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_rec]
+
+            # Get all info from the table with output video available
+            item = list(col.find_one({"_id":file}))
+            # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
+
+            # Close the connection
+            client.close()
+
+            # Iterate received items and Camera HealthChecks blocks for each one
+            response_msg = {}
+
+            logging.info(item)
+            for CHCs_item in item['results_CHC']:                
+                response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+                logging.info(response_msg)
+#                logging.info(algo_item['pipeline_id'])
+#                response_msg[algo_item['pipeline_id']] = chb_array 
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+
 # Custom model for getTableData code 200 response (Swagger documentation)
 tabledata_nest_model = api.model("tabledata_nest", {
     'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
