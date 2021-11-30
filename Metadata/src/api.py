@@ -982,6 +982,7 @@ class VideoFeed(Resource):
            
                 #Add the fields in the array in the proper order
                 table_data_dict['tenant'] = item['_id'].split("_",1)[0]
+                table_data_dict['_id'] = item['_id']
                 table_data_dict['processing_list'] = item['processing_list']
                 table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
                 table_data_dict['data_status'] = item['data_status']                
