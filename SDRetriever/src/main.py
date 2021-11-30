@@ -57,19 +57,11 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         # Info from received message
         stream_name = dict_body['streamName']
 
-        # epoch_from = dict_body['from']
-        # start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-
-        # epoch_to = dict_body['to']
-        # end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-
-        ##### New implementation for SNS changes #######################################################################################################################
         epoch_from = dict_body['footageFrom']
         start_time = datetime.fromtimestamp(epoch_from/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
         epoch_to = dict_body['footageTo']
         end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-        ############################################################################################################################
 
     except Exception as e:
         logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
@@ -157,13 +149,14 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Build dictionary with info to store on DB (Recording collection)
     record_data["_id"] = s3_filename
     record_data["s3_path"] = container_services.raw_s3 + "/" + s3_path
-    record_data["recording_overview"] = {}
-    record_data["recording_overview"]["length"] = video_duration
-    record_data["recording_overview"]["time"] = str(start_time)
-    record_data["recording_overview"]["deviceID"] = device
-    record_data["recording_overview"]["resolution"] = video_resolution
-    record_data["recording_overview"]["#snapshots"] = "0"
-    record_data["recording_overview"]["snapshots_paths"] = {}
+    record_data["recording_overview"] = {
+                                         'length': video_duration,
+                                         'time': str(start_time),
+                                         'deviceID': device,
+                                         'resolution': video_resolution,
+                                         '#snapshots': "0",
+                                         'snapshots_paths': {}
+                                        }
 
     return record_data
 
@@ -207,7 +200,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Initialises the variable to flag the
     # availability of the metadata files
     metadata_available = "Yes"
-    #################################################################################
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     s3_role = "arn:aws:iam::213279581081:role/dev-DevCloud"
@@ -227,20 +219,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                           aws_secret_access_key=role_creds['SecretAccessKey'],
                           aws_session_token=role_creds['SessionToken'])
 
-    #################################################################################
-
-    # TEST VALUES
-    # key_prefix = "honeybadger/ivs_srx_develop_tmk2si_01/year=2021/month=11/day=04/hour=08/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7"
-
-    # # name of the folder and file for the final concatenated file
-    # #key_full_metadata = 'Debug_Lync/InteriorRecorder_InteriorRecorder-768bf358-24dc-495e-a63e-aad1d3ce1bb7_metadata_full.json'
-
-    # # Info from received message
-    # stream_name = dict_body['streamName']
-    # epoch_from = dict_body['from']
-    # epoch_to = dict_body['to']
-
-    ##### New implementation for SNS changes #######################################################################################################################
     # Info from received message (MessageAttributes parameter)
     rec_prefix = dict_attr['recordingId']['Value']
     device = dict_attr['deviceId']['Value']
@@ -333,52 +311,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
                 # Increase counter for number of files received
                 chunks_total += 1
-    
-    #################################################################################################################################################
-
-    # # Get list of all files with the same key prefix as the one
-    # # received on the message
-    # response_list = rcc_s3.list_objects_v2(
-    #     Bucket=bucket_origin,
-    #     Prefix=key_prefix
-    # )               
-    
-    # # Check if response_list is not empty
-    # if response_list['KeyCount'] == 0:
-    #     logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
-    #     return
-
-    # # Initialise dictionary that will store all files
-    # # that match the received prefix
-    # files_dict = {}
-
-    # # Create counter for indexing and to get total number
-    # # of metadata_full files received
-    # chunks_total = 0
-
-    # # Cycle through the received list of matching files,
-    # # download them from S3 and store them on the files_dict dictionary
-    # for index, file_entry in enumerate(response_list['Contents']):
-        
-    #     # Process only json files
-    #     if file_entry['Key'].endswith('.json'):
-
-    #         # Download metadata file from RCC S3 bucket
-    #         metadata_file = container_services.download_file(rcc_s3,
-    #                                                         bucket_origin,
-    #                                                         file_entry['Key'])
-
-    #         # Read all bytes from http response body
-    #         # (botocore.response.StreamingBody) and convert them into json format
-    #         json_temp = json.loads(metadata_file.decode("utf-8"))
-
-    #         # Store json file on the dictionary based on the index
-    #         files_dict[chunks_total] = json_temp
-
-    #         # Increase counter for number of files received
-    #         chunks_total += 1
-
-    #################################################################################
 
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
