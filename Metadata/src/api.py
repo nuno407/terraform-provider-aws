@@ -949,7 +949,7 @@ class VideoFeed(Resource):
                 
                 logging.info(record_item_details)
 
-                logging.info(item['_id'])
+                logging.info(item['_id'].split("_",1)[0])
                 logging.info(item['processing_list'])
                 logging.info(record_item_details['recording_overview']['#snapshots'])
 
@@ -973,7 +973,7 @@ class VideoFeed(Resource):
 
 
                 logging.info(item['data_status'])                
-                logging.info(item['last_updated']).split(".",1)[0].replace("T"," ")
+                logging.info(item['last_updated'].split(".",1)[0].replace("T"," "))
                 logging.info(record_item_details['recording_overview']['length'])
                 logging.info(record_item_details['recording_overview']['time'])                
                 logging.info(record_item_details['recording_overview']['resolution'])        
