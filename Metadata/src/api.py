@@ -896,22 +896,25 @@ class VideoFeed(Resource):
 
 # Parameters parser for getVideoCHC endpoint (Swagger documentation)
 videochc_parser = reqparse.RequestParser()
-videochc_parser.add_argument('file', type=str, required=True, help='Name of the video file', location='args')
+videochc_parser.add_argument('videoID', type=str, required=True, help='Name of the video file', location='args')
 
 # Custom model for getVideoUrl code 200 response (Swagger documentation)
-get_videochc_200_model = api.model("Del_one_200", {
+get_videochc_200_model = api.model("Video_CHC_200", {
     'message': fields.String(example="<recording_id>"),
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/getVideoCHC/<string:file>')
+@api.route('/getVideoCHC/<string:videoID>')
 class VideoFeed(Resource):
     @api.response(200, 'Success', get_videochc_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(videochc_parser, validate=True)
-    def get(self, file):
+    def get(self, videoID):
         try:
+
+            logging.info(videoID)
+
             # Define S3 bucket to get Camera HealthChecks from
             collection_rec = "dev-recording"
             # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
@@ -928,7 +931,7 @@ class VideoFeed(Resource):
             col = db[collection_rec]
 
             # Get all info from the table with output video available
-            item = list(col.find_one({"_id":file}))
+            item = col.find_one({"_id" : videoID})
             # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
 
             # Close the connection
@@ -936,10 +939,15 @@ class VideoFeed(Resource):
 
             # Iterate received items and Camera HealthChecks blocks for each one
             response_msg = {}
-
+            
             logging.info(item)
+
             for CHCs_item in item['results_CHC']:                
                 response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+
+                #for testing purposes, delete after
+                response_msg[CHCs_item['algo_out_id']+"_test"] = CHCs_item['CHBs']
+
                 logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
