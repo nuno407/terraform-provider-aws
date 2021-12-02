@@ -944,6 +944,10 @@ class VideoFeed(Resource):
 
             for CHCs_item in item['results_CHC']:                
                 response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+
+                #for testing purposes, delete after
+                response_msg[CHCs_item['algo_out_id']+"_test"] = CHCs_item['CHBs']
+
                 logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
