@@ -942,15 +942,17 @@ class VideoFeed(Resource):
             
 #            logging.info(item)
 
-            for CHCs_item in item['results_CHC']:                
+            for CHCs_item in item['results_CHC']:
+                logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
                 response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
                 #for testing purposes, delete after
-                a = CHCs_item['CHBs']
-                b = []
-                for i in a:
-                    b.append(i+0.05)
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_test"] = b
+                #a = CHCs_item['CHBs']
+                #b = []
+                #for i in a:
+                #    b.append(i+0.05)
+                #
+                #response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_test"] = b
 
 #                logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
