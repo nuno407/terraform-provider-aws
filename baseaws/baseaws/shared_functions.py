@@ -764,7 +764,7 @@ class ContainerServices():
             logging.info("\nWARNING: Operation (%s) not supported!!\n", mode)
         
         # Encode and convert updated json into bytes to be uploaded
-        object_body = json.dumps(result_info).encode('utf-8')
+        object_body = json.dumps(result_info, indent=4, sort_keys=True).encode('utf-8')
 
         # Upload updated json file
         client.put_object(
