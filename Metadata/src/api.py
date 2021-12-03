@@ -858,13 +858,13 @@ class VideoFeed(Resource):
 #                        bucket, key = chb_value
 #                        response_msg[algo_item['pipeline_id']] = chb_value         
 
-            logging.info(items_list)
+#            logging.info(items_list)
 
             #validar um video de cada vez            
             for item in items_list:
                 chb_dict = {}
                 for CHCs_item in item['results_CHC']:                
-                    chb_dict[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+                    chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 #                chb_array = []
 #                #validar todoos os frames do video
 #                for frame in algo_item['results']['frame']:
@@ -876,7 +876,7 @@ class VideoFeed(Resource):
 #                                chb_array.append(chb_value)
 #                    else:
 #                        chb_array.append("0")
-                    logging.info(chb_dict)
+#                    logging.info(chb_dict)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
                 response_msg[item['_id']] = chb_dict
@@ -913,7 +913,7 @@ class VideoFeed(Resource):
     def get(self, videoID):
         try:
 
-            logging.info(videoID)
+#            logging.info(videoID)
 
             # Define S3 bucket to get Camera HealthChecks from
             collection_rec = "dev-recording"
@@ -940,15 +940,19 @@ class VideoFeed(Resource):
             # Iterate received items and Camera HealthChecks blocks for each one
             response_msg = {}
             
-            logging.info(item)
+#            logging.info(item)
 
             for CHCs_item in item['results_CHC']:                
-                response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
                 #for testing purposes, delete after
-                response_msg[CHCs_item['algo_out_id']+"_test"] = CHCs_item['CHBs']
+                a = CHCs_item['CHBs']
+                b = []
+                for i in a:
+                    b.append(i+0.05)
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_test"] = b
 
-                logging.info(response_msg)
+#                logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
 
@@ -1009,7 +1013,7 @@ class VideoFeed(Resource):
             # Iterate received items and add additional data from algo and recording databases
             response_msg = []
 
-            logging.info(pipe_items_list)
+            #logging.info(pipe_items_list)
 
 
             for item in pipe_items_list:
@@ -1018,16 +1022,16 @@ class VideoFeed(Resource):
                 # Get the recording data for the video
                 record_item_details = col.find_one({"_id":item['_id']})
                 
-                logging.info(record_item_details)
+                #logging.info(record_item_details)
 
-                logging.info(item['_id'].split("_",1)[0])
-                logging.info(item['processing_list'])
-                logging.info(record_item_details['recording_overview']['#snapshots'])
+                #logging.info(item['_id'].split("_",1)[0])
+                #logging.info(item['processing_list'])
+                #logging.info(record_item_details['recording_overview']['#snapshots'])
 
 
                 for chbs in record_item_details['results_CHC']:
-                    logging.info(chbs['number_CHC_events'])      
-                    logging.info(chbs['lengthCHC']) 
+                    #logging.info(chbs['number_CHC_events'])      
+                    #logging.info(chbs['lengthCHC']) 
                     try:
                         table_data_dict['number_CHC_events'] = chbs[0]['number_CHC_events']      
                         table_data_dict['lengthCHC'] = chbs[0]['lengthCHC'] 
@@ -1038,17 +1042,18 @@ class VideoFeed(Resource):
                             break
 
                     except Exception as e:
+                        logging.info("number_CHC_events empty")
                         logging.info(e)
                         table_data_dict['number_CHC_events'] = ''      
                         table_data_dict['lengthCHC'] = '' 
 
 
-                logging.info(item['data_status'])                
-                logging.info(item['last_updated'].split(".",1)[0].replace("T"," "))
-                logging.info(record_item_details['recording_overview']['length'])
-                logging.info(record_item_details['recording_overview']['time'])                
-                logging.info(record_item_details['recording_overview']['resolution'])        
-                logging.info(record_item_details['recording_overview']['deviceID'])     
+                #logging.info(item['data_status'])                
+                #logging.info(item['last_updated'].split(".",1)[0].replace("T"," "))
+                #logging.info(record_item_details['recording_overview']['length'])
+                #logging.info(record_item_details['recording_overview']['time'])                
+                #logging.info(record_item_details['recording_overview']['resolution'])        
+                #logging.info(record_item_details['recording_overview']['deviceID'])     
 
            
                 #Add the fields in the array in the proper order
@@ -1063,7 +1068,7 @@ class VideoFeed(Resource):
                 table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
                 table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']      
 
-                logging.info(table_data_dict)
+                #logging.info(table_data_dict)
 
                 response_msg.append(table_data_dict)
 
@@ -1071,7 +1076,7 @@ class VideoFeed(Resource):
             # Close the connection
             client.close()
 
-            logging.info(response_msg)
+            #logging.info(response_msg)
            
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
