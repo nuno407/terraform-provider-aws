@@ -704,16 +704,83 @@ class ContainerServices():
                     }
         file_extension = key_path.split('.')[-1]
          
-        response = client.put_object(
-                                        Body=object_body,
-                                        Bucket=s3_bucket,
-                                        Key=key_path,
-                                        ServerSideEncryption='aws:kms',
-                                        ContentType=type_dict[file_extension]
-                                    )
+        client.put_object(
+                          Body=object_body,
+                          Bucket=s3_bucket,
+                          Key=key_path,
+                          ServerSideEncryption='aws:kms',
+                          ContentType=type_dict[file_extension]
+                        )
 
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Upload completed!", timestamp)
+
+    def update_pending_queue(self, client, uid, mode, dict_body=None):
+        """TODO
+
+        Returns:
+            relay_data {TODO} -- [TODO]
+        """
+        # Define key s3 paths for each container's pending queue json file
+        # TODO: ADD THIS INFO TO CONFIG FILE
+        key_paths = {
+                      "Anonymize": "containers/pending_queue_anonymize.json",
+                      "CHC": "containers/pending_queue_chc.json"
+                    }
+
+        # Download pending queue json file
+        response = client.get_object(
+                                      Bucket="dev-rcd-config-files",
+                                      Key=key_paths[self.__container['name']]
+                                    )
+
+        # Decode and convert received bytes into json format
+        result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+        # Initialise response as empty dictionary
+        relay_data = {}
+
+        ## NOTE: Mode Selection ##
+
+        if mode == "insert":
+            # Create current time timestamp to add to pending item info (for debug)
+            curr_time = str(datetime.now(tz=pytz.UTC).strftime('%Y-%m-%d %H:%M:%S'))
+
+            # Insert a new pending order on the downloaded file
+            result_info[uid] = {
+                                "relay_list": dict_body,
+                                "creation_date": curr_time
+            }
+
+        elif mode == "read":
+            # Read stored info for a given uid
+            relay_data = result_info[uid]["relay_list"]
+
+        elif mode == "delete":
+            # Delete stored info for a given uid
+            del result_info[uid]
+
+        else:
+            logging.info("\nWARNING: Operation (%s) not supported!!\n", mode)
+        
+        # Encode and convert updated json into bytes to be uploaded
+        object_body = json.dumps(result_info).encode('utf-8')
+
+        # Upload updated json file
+        client.put_object(
+                          Body=object_body,
+                          Bucket="dev-rcd-config-files",
+                          Key=key_paths[self.__container['name']],
+                          ServerSideEncryption='aws:kms',
+                          ContentType="application/json"
+                        )
+
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  S3 Pending queue updated (mode: %s | uid: %s)!", timestamp,
+                                                                             mode,
+                                                                             uid)
+
+        return relay_data
 
     ##### Kinesis related functions ####################################################################
     def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector):
