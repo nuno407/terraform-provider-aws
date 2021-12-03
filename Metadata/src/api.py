@@ -864,7 +864,7 @@ class VideoFeed(Resource):
             for item in items_list:
                 chb_dict = {}
                 for CHCs_item in item['results_CHC']:                
-                    chb_dict[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+                    chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 #                chb_array = []
 #                #validar todoos os frames do video
 #                for frame in algo_item['results']['frame']:
@@ -943,10 +943,14 @@ class VideoFeed(Resource):
 #            logging.info(item)
 
             for CHCs_item in item['results_CHC']:                
-                response_msg[CHCs_item['algo_out_id']] = CHCs_item['CHBs']
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
                 #for testing purposes, delete after
-                response_msg[CHCs_item['algo_out_id']+"_test"] = CHCs_item['CHBs']
+                a = CHCs_item['CHBs']
+                b = []
+                for i in a:
+                    b.append(i+0.05)
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_test"] = b
 
 #                logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
@@ -1038,6 +1042,7 @@ class VideoFeed(Resource):
                             break
 
                     except Exception as e:
+                        logging.info("number_CHC_events empty")
                         logging.info(e)
                         table_data_dict['number_CHC_events'] = ''      
                         table_data_dict['lengthCHC'] = '' 
