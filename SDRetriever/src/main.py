@@ -33,11 +33,6 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     input_sqs = container_services.input_queue
     logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
 
-    ###########################################
-    #DEBUG
-    logging.info(message)
-    ##########################################
-
     # Converts message body from string to dict
     # (in order to perform index access)
     new_msg = message['Body'].replace("\'", "\"")
@@ -52,6 +47,17 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     device = dict_attr['deviceId']['Value']
 
     record_data = {}
+
+    ###########################################
+    #DEBUG
+    tenant = dict_attr['tenant']['Value']
+    if tenant == "TEST_TENANT":
+        logging.info("\nWARNING: Message skipped (TEST_TENANT | %s)", dict_body['streamName'])
+        return record_data
+
+    logging.info(message)
+    ##########################################
+
 
     try:
         # Info from received message
