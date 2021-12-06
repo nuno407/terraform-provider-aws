@@ -11,7 +11,7 @@ CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v8.0"      # Version of the current container
 
 
-def request_processing(client, container_services, body):#, pending_list):
+def request_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -22,9 +22,6 @@ def request_processing(client, container_services, body):#, pending_list):
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-        pending_list {dict} -- [dictionary containing all the pending
-                                processing requests (identified by an
-                                uuid and their respective relay_lists)]
     """
     logging.info("Processing pipeline message..\n")
 
@@ -41,13 +38,8 @@ def request_processing(client, container_services, body):#, pending_list):
     # Create a random uuid to identify a given video anonymization process
     uid = str(uuid.uuid4())
 
-    #########################################################################################################################
-    # Add entry for current video relay list on pending queue
-    #pending_list[uid] = dict_body
-
     # Add entry for current video relay list on pending queue
     container_services.update_pending_queue(client, uid, "insert", dict_body)
-    #########################################################################################################################
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
@@ -75,7 +67,7 @@ def request_processing(client, container_services, body):#, pending_list):
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
-def update_processing(client, container_services, body):#, pending_list):
+def update_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
@@ -86,9 +78,6 @@ def update_processing(client, container_services, body):#, pending_list):
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-        pending_list {dict} -- [dictionary containing all the pending
-                                processing requests (identified by an
-                                uuid and their respective relay_lists)]
     Returns:
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
@@ -104,15 +93,10 @@ def update_processing(client, container_services, body):#, pending_list):
     new_body = body.replace("\'", "\"")
     msg_body = json.loads(new_body)
 
-    #########################################################################################################################
-    # Retrives relay_list based on uid received from api message
-    #relay_data = pending_list[msg_body['uid']]
-
     # Retrives relay_list based on uid received from api message
     relay_data = container_services.update_pending_queue(client,
                                                          msg_body['uid'],
                                                          "read")
-    #########################################################################################################################
 
     ######################################################################
     # VIDEO CONVERSION (.avi -> .mp4)
@@ -197,15 +181,10 @@ def update_processing(client, container_services, body):#, pending_list):
         # (if current step is the last one from the list)
         relay_data["data_status"] = "complete"
 
-    #########################################################################################################################
-    # Remove uid entry from pending queue
-    #del pending_list[msg_body['uid']]
-
     # Remove uid entry from pending queue
     container_services.update_pending_queue(client,
                                             msg_body['uid'],
                                             "delete")
-    #########################################################################################################################
 
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
@@ -242,12 +221,6 @@ def main():
 
     logging.info("\nListening to input queue(s)..\n")
 
-    #########################################################################################################################
-    # Create pending_queue
-    # Entries format: {'<uid>': <relay_list>}
-    #pending_queue = {}
-    #########################################################################################################################
-
     # Main loop
     while(True):
         # Check input SQS queue for new messages
@@ -258,8 +231,6 @@ def main():
             request_processing(s3_client,
                                container_services,
                                message['Body'])
-            #                   ,
-            #                   pending_queue)
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
@@ -274,8 +245,6 @@ def main():
             relay_list, out_s3 = update_processing(s3_client,
                                                    container_services,
                                                    message_api['Body'])
-            #                                       ,
-            #                                       pending_queue)
 
             # Send message to input queue of the next processing step
             # (if applicable)

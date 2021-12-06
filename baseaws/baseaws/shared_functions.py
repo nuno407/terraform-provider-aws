@@ -291,10 +291,14 @@ class ContainerServices():
     ##### DB related functions #########################################################################
     @staticmethod
     def create_db_client():
-        """TODO
+        """Creates MongoDB client and returns a DB object based on
+        the set configurations so that an user can access the respective
+        AWS DocumentDB resource
 
         Returns:
-            db {TODO} -- [TODO]
+            db {MongoDB database object} -- [Object that can be used to
+                                             access a given database
+                                             and its collections]
         """
         # Build connection info to access DocDB cluster
         docdb_info = {
@@ -345,10 +349,20 @@ class ContainerServices():
     
     @staticmethod
     def generate_recording_item(data, table_rec, timestamp):
-        """TODO
+        """Inserts a new item on the recordings collection and, if there is
+        a metadata full file available for that item, processes that info
+        and adds it to the item
 
-        Returns:
-            db {TODO} -- [TODO]
+        Arguments:
+            data {dict} -- [info set from the sqs message received
+                            that will be used to populate the newly
+                            created DB item]
+            table_rec {MongoDB collection object} -- [Object used to
+                                                      access/update the
+                                                      recordings collection
+                                                      information]
+            timestamp {string} -- [Current timestamp to be used on status
+                                   update logs]
         """
         # Build item structure and add info from msg received
         item_db = {
@@ -413,10 +427,25 @@ class ContainerServices():
         
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
-        """TODO
+        """Inserts a new item (or updates it if already exists) on the
+        pipeline execution collection
 
-        Returns:
-            db {TODO} -- [TODO]
+        Arguments:
+            data {dict} -- [info set from the received sqs message 
+                            that is used to populate the created/updated
+                            item]
+            table_pipe {MongoDB collection object} -- [Object used to
+                                                      access/update the
+                                                      pipeline execution
+                                                      collection information]
+            timestamp {string} -- [Current timestamp to be used on status
+                                   update logs]
+            unique_id {string} -- [Name of the recording (coincides with the
+                                   name of the item to be created/updated
+                                   in this function]
+            source {string} -- [Name of the container which is the source
+                                of the info received on the sqs message]
+            container_name {string} -- [Name of the current container]
         """
         # Initialise variables used in both item creation and update
         status = data['data_status']
@@ -451,10 +480,29 @@ class ContainerServices():
 
     @staticmethod
     def update_outputs_db(data, table_algo_out, table_rec, timestamp, unique_id, source):
-        """TODO
+        """Inserts a new item on the algorithm output collection and, if
+        there is a CHC file available for that item, processes
+        that info and adds it to the item (plus updates the respective
+        recordings collection item with that CHC info)
 
-        Returns:
-            db {TODO} -- [TODO]
+        Arguments:
+            data {dict} -- [info set from the received sqs message 
+                            that is used to populate the created item]
+            table_algo_out {MongoDB collection object} -- [Object used to
+                                                      access/update the
+                                                      algorithm output
+                                                      collection information]
+            table_rec {MongoDB collection object} -- [Object used to
+                                                      access/update the
+                                                      recordings
+                                                      collection information]
+            timestamp {string} -- [Current timestamp to be used on status
+                                   update logs]
+            unique_id {string} -- [Name of the recording (coincides with the
+                                   name of the item to be created/updated
+                                   in this function]
+            source {string} -- [Name of the container which is the source
+                                of the info received on the sqs message]
         """
         # Initialise variables used in item creation
         outputs = data['output']
@@ -557,11 +605,16 @@ class ContainerServices():
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
     
     def connect_to_docdb(self, data, attributes):
-        """TODO
+        """Main DB access function that processes the info received
+        from a sqs message and calls the corresponding functions
+        necessary to create/update DB items
 
         Arguments:
-            data {TODO} -- []
-            attributes {TODO} -- []
+            data {dict} -- [info set from the received sqs message 
+                            that is used to populate the DB items]
+            attributes {dict} -- [attributes from the received sqs message 
+                                  that is used to populate DB items or to
+                                  define which operations are performed]
         """
         # Create DocDB client
         db = self.create_db_client()
@@ -716,10 +769,39 @@ class ContainerServices():
         logging.info("[%s]  Upload completed!", timestamp)
 
     def update_pending_queue(self, client, uid, mode, dict_body=None):
-        """TODO
+        """Inserts a new item on the algorithm output collection and, if
+        there is a CHC file available for that item, processes
+        that info and adds it to the item (plus updates the respective
+        recordings collection item with that CHC info)
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            uid {string} -- [string containg an identifier used only in the
+                             processing containers to keep track of the
+                             process of a given file]
+            mode {string} -- [The working mode of the current function will
+                              vary based on the value stated in this parameter.
+                              If mode equals to:
+                               -> insert: a pending order will be added to the
+                                          pending queue file based on the uid
+                                          and dict_body info provided
+                               -> read:  a pending order will be read and
+                                         retrieved from the
+                                         pending queue file based on the uid
+                                         provided
+                               -> delete:  a pending order will be deleted from
+                                           the pending queue file based on the
+                                           uid provided]
+            dict_body {dict} -- [Info regarding the pending order that is
+                                 going to be added to the pending queue. 
+                                 NOTE: Only required if mode parsed is "insert"]
 
         Returns:
-            relay_data {TODO} -- [TODO]
+            relay_data {dict} -- [The value returned in this variable depends
+                                  on the mode used on the current function call,
+                                  i.e., it will return {} (empty dictionary)
+                                  for the "insert" and "delete" modes, or a
+                                  pending order for the "read" mode]
         """
         # Define key s3 paths for each container's pending queue json file
         # TODO: ADD THIS INFO TO CONFIG FILE

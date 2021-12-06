@@ -28,7 +28,15 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                            (for more info please check the response syntax
                            of the Boto3 SQS.client.receive_message method)]
     Returns:
-        record_data {dict} -- [TODO]
+        record_data {dict} -- [If the kinesis clip associated to the
+                                recording was successfully retrieved
+                                from RCC, processed and stored on a S3
+                                bucket, this variable returns a set of
+                                data associated to that recording (i.e.
+                                filename, S3 path and video metadata),
+                                otherwise (i.e. if the process failed
+                                at some point), it is returned {} (empty
+                                dictionary)]
     """
     input_sqs = container_services.input_queue
     logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
@@ -47,6 +55,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     device = dict_attr['deviceId']['Value']
 
     record_data = {}
+
 
     ###########################################
     #DEBUG
@@ -182,6 +191,14 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         message {dict} -- [dict with the received message content
                            (for more info please check the response syntax
                            of the Boto3 SQS.client.receive_message method)]
+    Returns:
+        metadata_available {string} -- [If the metadata associated to the
+                                        recording was successfully retrieved
+                                        from RCC and concatenated into a
+                                        metadata full file, the value of
+                                        this variable is "Yes", otherwise
+                                        (i.e. if the process failed at some
+                                        point), its value is "No"]
     """
     input_sqs = container_services.input_queue
     logging.info("\nProcessing %s SQS message (Concatenation)..\n", input_sqs)
