@@ -963,14 +963,13 @@ class VideoFeed(Resource):
                     f.append(0.75)
                     g.append(0.70)
                     h.append(0.65)
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = b
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = c
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = d
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = e
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = f
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = g
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = h
-
+                response_msg["CHC-VB"] = b
+                response_msg["CHC-CVS"] = c
+                response_msg["CB"] = d
+                response_msg["CVS"] = e
+                response_msg["AD"] = f
+                response_msg["MB"] = g
+                response_msg["ASM"] = h
 
                 logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
