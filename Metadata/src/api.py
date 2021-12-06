@@ -949,11 +949,30 @@ class VideoFeed(Resource):
                 #for testing purposes, delete after
                 a = CHCs_item['CHBs']
                 b = []
+                c = []
+                d = []
+                e = []
+                f = []
+                g = []
+                h = []
                 for i in a:
-                    b.append(0.55)
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_test"] = b
+                    b.append(0.95)
+                    c.append(0.90)
+                    d.append(0.85)
+                    e.append(0.80)
+                    f.append(0.75)
+                    g.append(0.70)
+                    h.append(0.65)
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = b
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = c
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = d
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = e
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = f
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = g
+                response_msg[CHCs_item['algo_out_id'].split('_')[-1]+"_b"] = h
 
-#                logging.info(response_msg)
+
+                logging.info(response_msg)
 #                logging.info(algo_item['pipeline_id'])
 #                response_msg[algo_item['pipeline_id']] = chb_array 
 
