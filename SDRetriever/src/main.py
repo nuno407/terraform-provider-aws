@@ -8,7 +8,7 @@ import pytz
 import subprocess
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v4.0"      # Version of the current container
+CONTAINER_VERSION = "v4.1"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -297,11 +297,19 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         # defined in temp_hour to generate the next timestamp path
         next_time = round_start_time + td(hours=temp_hour)
 
+        ##################################################################
+        # NOTE: S3 RCC Naming convention fix
+        next_year = next_time.year
+        next_month = f"{next_time.month:02}"
+        next_day = f"{next_time.day:02}"
+        next_hour = f"{next_time.hour:02}"
+        ##################################################################
+
         # Construct timestamp part of the s3 path (folder)
-        time_path = "year={}/month={}/day={}/hour={}".format(next_time.year,
-                                                             next_time.month,
-                                                             next_time.day,
-                                                             next_time.hour)
+        time_path = "year={}/month={}/day={}/hour={}".format(next_year,
+                                                             next_month,
+                                                             next_day,
+                                                             next_hour)
         
         # Build s3 key prefix
         key_prefix = tenant + "/" + device + "/" + time_path + "/" + recorder + "_" + rec_prefix
