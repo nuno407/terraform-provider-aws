@@ -248,6 +248,12 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     tenant = dict_attr['tenant']['Value']
     recorder = dict_attr['recorder']['Value']
     
+    ###########################################################################################################
+    # NOTE: S3 RCC Naming convention fix
+    # TODO: Align with RCC about the recorder value
+    recorder = rec_prefix.split("-")[0]
+    ###########################################################################################################
+
     # Info from received message (Message parameter)
     stream_name = dict_body['streamName']
     epoch_from = dict_body['footageFrom']
