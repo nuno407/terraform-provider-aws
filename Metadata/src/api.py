@@ -863,8 +863,14 @@ class VideoFeed(Resource):
             #validar um video de cada vez            
             for item in items_list:
                 chb_dict = {}
-                for CHCs_item in item['results_CHC']:                
-                    chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
+                for CHCs_item in item['results_CHC']:    
+                    if (CHCs_item['source'] == "MDF"):
+                        logging.info(CHCs_item['source'])                
+                        chb_dict[CHCs_item['source']] = CHCs_item['CHBs']
+                    else:    
+                        logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
+                        chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
+                  
 #                chb_array = []
 #                #validar todoos os frames do video
 #                for frame in algo_item['results']['frame']:
