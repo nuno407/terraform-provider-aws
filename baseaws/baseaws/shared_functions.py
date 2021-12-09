@@ -419,8 +419,13 @@ class ContainerServices():
 
             item_db['results_CHC'].append(mdf_data)
 
-        # Insert previous built item on the Recording collection
-        table_rec.insert_one(item_db)
+        try:
+            # Insert previous built item on the Recording collection
+            table_rec.insert_one(item_db)
+        
+        except Exception as e:
+            logging.info(e)
+            table_rec.update_one(item_db)
 
         # Create logs message
         logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
