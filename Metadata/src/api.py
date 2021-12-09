@@ -943,8 +943,12 @@ class VideoFeed(Resource):
 #            logging.info(item)
 
             for CHCs_item in item['results_CHC']:
-                logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
-                response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
+                if (CHCs_item['source'] == "MDF"):
+                    logging.info(CHCs_item['source'])                
+                    response_msg[CHCs_item['source']] = CHCs_item['CHBs']
+                else:    
+                    logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
+                    response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
                 #for testing purposes, delete after
                 a = CHCs_item['CHBs']
