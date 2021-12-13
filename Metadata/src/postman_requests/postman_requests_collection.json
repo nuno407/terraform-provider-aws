@@ -1,0 +1,1306 @@
+{
+	"info": {
+		"_postman_id": "150884f2-80ec-4da6-9dfa-c0bcf049f027",
+		"name": "Dataset manager configuration",
+		"description": "This is the swagger file that goes with our server code",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "getAllItems_exec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-pipeline-execution",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/getAllItems/dev-pipeline-execution",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"getAllItems",
+						"dev-pipeline-execution"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllItems_algo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/getAllItems/dev-algorithm-output",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"getAllItems",
+						"dev-algorithm-output"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllItems_rec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/getAllItems/dev-recording",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"getAllItems",
+						"dev-recording"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getItem_exec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-pipeline-execution",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "value",
+							"value": "Jack",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "parameter",
+							"value": "_id",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/getItem/dev-pipeline-execution/_id/honeybadger_ivs_srx_develop_tmk2si_01_InteriorRecorder_1636643772119_1636643891179",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"getItem",
+						"dev-pipeline-execution",
+						"_id",
+						"honeybadger_ivs_srx_develop_tmk2si_01_InteriorRecorder_1636643772119_1636643891179"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getItem_algo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "value",
+							"value": "Mary",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "parameter",
+							"value": "_id",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/getItem/dev-algorithm-output/_id/pipeline_check_final_Anonymize",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"getItem",
+						"dev-algorithm-output",
+						"_id",
+						"pipeline_check_final_Anonymize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugAddItem_exec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-pipeline-execution",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/addItem/dev-pipeline-execution",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"addItem",
+						"dev-pipeline-execution"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugAddItem_algo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"pipeline_check_final_CHC\", \"video_s3_path\": \"dev-rcd-anonymized-video-files/-\", \"meta_s3_path\": \"dev-rcd-anonymized-video-files/lync/pipeline_check_final_chc.json\", \"algorithm_id\": \"CHC\", \"pipeline_id\": \"pipeline_check_final\", \"results\": { \"blockingrect\": [], \"resolution\": { \"width\": \"1280\", \"height\": \"720\" }, \"frame\": [ { \"number\": \"0\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.132807\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.179971\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0480751\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.0577117\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"107\", \"x\": \"499\", \"y\": \"93\", \"height\": \"133\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"578\", \"Y\": \"368\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"528\", \"Y\": \"84\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"597\", \"Y\": \"212\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"512\", \"Y\": \"81\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"559\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"613\", \"Y\": \"260\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"571\", \"Y\": \"125\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"525\", \"Y\": \"239\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"503\", \"Y\": \"124\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"501\", \"Y\": \"93\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"0\", \"Y\": \"0\", \"OutOfFrame\": \"0\", \"Conf\": \"0\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"463\", \"Y\": \"93\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"428\", \"Y\": \"192\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"485\", \"Y\": \"85\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"473\", \"Y\": \"224\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"0\", \"Y\": \"0\", \"OutOfFrame\": \"0\", \"Conf\": \"0\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"443\", \"Y\": \"132\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"478\", \"Y\": \"235\", \"OutOfFrame\": \"0\", \"Conf\": \"0.324165\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"92\", \"x\": \"795\", \"y\": \"90\", \"height\": \"115\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"827\", \"Y\": \"372\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"783\", \"Y\": \"82\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"828\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"813\", \"Y\": \"80\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"797\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"833\", \"Y\": \"282\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"815\", \"Y\": \"132\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"812\", \"Y\": \"226\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"778\", \"Y\": \"118\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"815\", \"Y\": \"89\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"743\", \"Y\": \"373\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"765\", \"Y\": \"89\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"696\", \"Y\": \"198\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"800\", \"Y\": \"81\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"733\", \"Y\": \"224\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"760\", \"Y\": \"283\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"723\", \"Y\": \"131\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"740\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.362779\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223707531\", \"timestamp64\": \"1634311280011\" }, { \"number\": \"1\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"2\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"3\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"4\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"5\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"6\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"7\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"8\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"9\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"10\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"11\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"12\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"13\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"14\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"15\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"16\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"17\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"18\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"19\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"20\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"21\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"22\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"23\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"24\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"25\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.128933\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.21144\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0479688\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.0567887\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"122\", \"x\": \"501\", \"y\": \"103\", \"height\": \"153\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"578\", \"Y\": \"367\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"528\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"605\", \"Y\": \"208\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"515\", \"Y\": \"88\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"561\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"613\", \"Y\": \"260\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"574\", \"Y\": \"126\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"530\", \"Y\": \"233\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"505\", \"Y\": \"135\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"509\", \"Y\": \"103\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"457\", \"Y\": \"367\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"460\", \"Y\": \"107\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"429\", \"Y\": \"202\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"489\", \"Y\": \"93\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"472\", \"Y\": \"224\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"455\", \"Y\": \"259\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"440\", \"Y\": \"139\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"492\", \"Y\": \"234\", \"OutOfFrame\": \"0\", \"Conf\": \"0.321636\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"101\", \"x\": \"791\", \"y\": \"92\", \"height\": \"126\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"826\", \"Y\": \"369\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"812\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"828\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"807\", \"Y\": \"82\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"794\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"831\", \"Y\": \"275\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"818\", \"Y\": \"134\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"809\", \"Y\": \"224\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"780\", \"Y\": \"123\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"798\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"741\", \"Y\": \"370\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"758\", \"Y\": \"88\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"697\", \"Y\": \"198\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"784\", \"Y\": \"80\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"731\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"759\", \"Y\": \"275\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"723\", \"Y\": \"132\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"741\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.358695\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223708632\", \"timestamp64\": \"1634311281112\" }, { \"number\": \"26\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"27\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"28\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"29\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"30\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"31\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"32\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"33\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"34\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"35\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"36\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"37\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"38\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"39\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"40\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"41\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"42\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"43\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"44\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"45\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"46\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"47\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"48\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"49\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"50\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.127365\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.331878\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0481853\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.0531713\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"71\", \"x\": \"772\", \"y\": \"94\", \"height\": \"89\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"827\", \"Y\": \"366\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"803\", \"Y\": \"95\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"813\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"784\", \"Y\": \"84\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"793\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"829\", \"Y\": \"272\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"812\", \"Y\": \"133\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"797\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"770\", \"Y\": \"122\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"767\", \"Y\": \"93\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"738\", \"Y\": \"369\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"748\", \"Y\": \"89\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"697\", \"Y\": \"198\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"759\", \"Y\": \"81\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"732\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"755\", \"Y\": \"272\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"720\", \"Y\": \"134\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"742\", \"Y\": \"220\", \"OutOfFrame\": \"0\", \"Conf\": \"0.369469\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"131\", \"x\": \"554\", \"y\": \"95\", \"height\": \"164\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"585\", \"Y\": \"361\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"556\", \"Y\": \"86\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"607\", \"Y\": \"206\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"574\", \"Y\": \"84\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"571\", \"Y\": \"218\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"611\", \"Y\": \"261\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"600\", \"Y\": \"131\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"532\", \"Y\": \"240\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"539\", \"Y\": \"130\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"570\", \"Y\": \"96\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"0\", \"Y\": \"0\", \"OutOfFrame\": \"0\", \"Conf\": \"0\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"510\", \"Y\": \"93\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"440\", \"Y\": \"174\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"553\", \"Y\": \"83\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"488\", \"Y\": \"214\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"0\", \"Y\": \"0\", \"OutOfFrame\": \"0\", \"Conf\": \"0\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"476\", \"Y\": \"128\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"474\", \"Y\": \"234\", \"OutOfFrame\": \"0\", \"Conf\": \"0.31392\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223710633\", \"timestamp64\": \"1634311283113\" }, { \"number\": \"51\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"52\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"53\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"54\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"55\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"56\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"57\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"58\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"59\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"60\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"61\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"62\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"63\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"64\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"65\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"66\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"67\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"68\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"69\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"70\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"71\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"72\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"73\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"74\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"75\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.129411\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.31821\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0489753\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.0514999\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"98\", \"x\": \"798\", \"y\": \"95\", \"height\": \"123\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"826\", \"Y\": \"360\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"826\", \"Y\": \"95\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"828\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"816\", \"Y\": \"86\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"792\", \"Y\": \"219\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"830\", \"Y\": \"271\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"828\", \"Y\": \"137\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"800\", \"Y\": \"215\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"788\", \"Y\": \"121\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"801\", \"Y\": \"94\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"741\", \"Y\": \"370\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"766\", \"Y\": \"89\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"699\", \"Y\": \"195\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"790\", \"Y\": \"82\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"731\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"754\", \"Y\": \"266\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"728\", \"Y\": \"131\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"750\", \"Y\": \"204\", \"OutOfFrame\": \"0\", \"Conf\": \"0.364705\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"138\", \"x\": \"572\", \"y\": \"95\", \"height\": \"172\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"580\", \"Y\": \"369\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"570\", \"Y\": \"86\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"613\", \"Y\": \"211\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"598\", \"Y\": \"85\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"570\", \"Y\": \"218\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"611\", \"Y\": \"261\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"613\", \"Y\": \"138\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"534\", \"Y\": \"239\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"553\", \"Y\": \"131\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"592\", \"Y\": \"98\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"456\", \"Y\": \"355\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"527\", \"Y\": \"92\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"456\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"572\", \"Y\": \"84\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"491\", \"Y\": \"216\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"440\", \"Y\": \"247\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"489\", \"Y\": \"129\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"489\", \"Y\": \"235\", \"OutOfFrame\": \"0\", \"Conf\": \"0.34154\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223713833\", \"timestamp64\": \"1634311286313\" }, { \"number\": \"76\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"77\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"78\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"79\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"80\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"81\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"82\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"83\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"84\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"85\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"86\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"87\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"88\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"89\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"90\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"91\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"92\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"93\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"94\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"95\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"96\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"97\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"98\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"99\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"100\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.129053\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.336795\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0488965\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.051352\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"128\", \"x\": \"565\", \"y\": \"94\", \"height\": \"160\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"580\", \"Y\": \"368\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"579\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"614\", \"Y\": \"210\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"588\", \"Y\": \"84\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"571\", \"Y\": \"219\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"610\", \"Y\": \"260\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"612\", \"Y\": \"135\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"533\", \"Y\": \"239\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"551\", \"Y\": \"129\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"576\", \"Y\": \"95\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"442\", \"Y\": \"367\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"523\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"458\", \"Y\": \"190\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"560\", \"Y\": \"81\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"492\", \"Y\": \"216\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"440\", \"Y\": \"247\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"486\", \"Y\": \"129\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"478\", \"Y\": \"235\", \"OutOfFrame\": \"0\", \"Conf\": \"0.343985\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"68\", \"x\": \"791\", \"y\": \"93\", \"height\": \"84\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"826\", \"Y\": \"360\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"824\", \"Y\": \"99\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"831\", \"Y\": \"189\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"800\", \"Y\": \"85\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"796\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"829\", \"Y\": \"272\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"832\", \"Y\": \"140\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"800\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"787\", \"Y\": \"122\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"783\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"743\", \"Y\": \"371\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"777\", \"Y\": \"87\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"700\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"780\", \"Y\": \"80\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"735\", \"Y\": \"219\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"753\", \"Y\": \"266\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"735\", \"Y\": \"129\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"736\", \"Y\": \"216\", \"OutOfFrame\": \"0\", \"Conf\": \"0.360415\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223716729\", \"timestamp64\": \"1634311289209\" }, { \"number\": \"101\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"102\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"103\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"104\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"105\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"106\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"107\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"108\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"109\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"110\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"111\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"112\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"113\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"114\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"115\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"116\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"117\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"118\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"119\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"120\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"121\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"122\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"123\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"124\", \"objectlist\": [], \"facelist\": [], \"timestamp\": \"0\", \"timestamp64\": \"0\" }, { \"number\": \"125\", \"objectlist\": [ { \"boolAttributes\": [ { \"name\": \"CameraViewShifted\", \"value\": \"false\" } ], \"floatAttributes\": [ { \"name\": \"CameraViewBlocked\", \"value\": \"0.128261\" } ], \"id\": \"1\" }, { \"floatAttributes\": [ { \"name\": \"CameraViewEstimation_rot\", \"value\": \"-0.266747\" }, { \"name\": \"CameraViewEstimation_x\", \"value\": \"0.0484156\" }, { \"name\": \"CameraViewEstimation_y\", \"value\": \"-0.0513506\" } ], \"id\": \"2\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cvb\", \"value\": \"0\" } ], \"id\": \"4\" }, { \"floatAttributes\": [ { \"name\": \"interior_camera_health_response_cve\", \"value\": \"0\" } ], \"id\": \"5\" }, { \"box\": { \"width\": \"76\", \"x\": \"786\", \"y\": \"103\", \"height\": \"94\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"826\", \"Y\": \"358\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"815\", \"Y\": \"100\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"829\", \"Y\": \"189\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"798\", \"Y\": \"96\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"795\", \"Y\": \"223\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"828\", \"Y\": \"263\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"829\", \"Y\": \"138\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"797\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"787\", \"Y\": \"126\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"785\", \"Y\": \"104\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"741\", \"Y\": \"369\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"762\", \"Y\": \"100\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"698\", \"Y\": \"187\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"774\", \"Y\": \"95\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"734\", \"Y\": \"222\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"749\", \"Y\": \"264\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"732\", \"Y\": \"132\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"730\", \"Y\": \"216\", \"OutOfFrame\": \"0\", \"Conf\": \"0.354412\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"10\", \"confidence\": \"0\" }, { \"box\": { \"width\": \"128\", \"x\": \"566\", \"y\": \"95\", \"height\": \"160\" }, \"personDetail\": { \"KeyPoint\": [ { \"X\": \"585\", \"Y\": \"361\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftAnkle\" }, { \"X\": \"579\", \"Y\": \"91\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftEar\" }, { \"X\": \"613\", \"Y\": \"210\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftElbow\" }, { \"X\": \"589\", \"Y\": \"85\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftEye\" }, { \"X\": \"570\", \"Y\": \"218\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftHip\" }, { \"X\": \"610\", \"Y\": \"259\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftKnee\" }, { \"X\": \"612\", \"Y\": \"136\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftShoulder\" }, { \"X\": \"534\", \"Y\": \"238\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"LeftWrist\" }, { \"X\": \"552\", \"Y\": \"129\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"Neck\" }, { \"X\": \"579\", \"Y\": \"96\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"Nose\" }, { \"X\": \"456\", \"Y\": \"366\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightAnkle\" }, { \"X\": \"524\", \"Y\": \"90\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightEar\" }, { \"X\": \"457\", \"Y\": \"188\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightElbow\" }, { \"X\": \"562\", \"Y\": \"82\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightEye\" }, { \"X\": \"492\", \"Y\": \"215\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightHip\" }, { \"X\": \"440\", \"Y\": \"246\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightKnee\" }, { \"X\": \"488\", \"Y\": \"128\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightShoulder\" }, { \"X\": \"490\", \"Y\": \"234\", \"OutOfFrame\": \"0\", \"Conf\": \"0.338143\", \"Valid\": \"1\", \"Name\": \"RightWrist\" } ] }, \"id\": \"11\", \"confidence\": \"0\" } ], \"facelist\": [], \"timestamp\": \"2223720037\", \"timestamp64\": \"1634311292517\" } ] } }",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/addItem/dev-algorithm-output",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"addItem",
+						"dev-algorithm-output"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteAll_exec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-pipeline-execution",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteAllItems/dev-pipeline-execution",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteAllItems",
+						"dev-pipeline-execution"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteAll_algo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteAllItems/dev-algorithm-output",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteAllItems",
+						"dev-algorithm-output"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteAll_rec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteAllItems/dev-recording",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteAllItems",
+						"dev-recording"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteItem_exec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1638896566467_1638896601919\"}",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-pipeline-execution",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteItem/dev-pipeline-execution",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteItem",
+						"dev-pipeline-execution"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteItem_algo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1638896566467_1638896601919_Anonymize\"}",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteItem/dev-algorithm-output",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteItem",
+						"dev-algorithm-output"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteItem_rec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1638896566467_1638896601919\"}",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteItem/dev-recording",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteItem",
+						"dev-recording"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "debugDeleteCollection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "item",
+						"value": "{ \"name\": \"John\", \"address\": \"Highway 37\" }",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "collection",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"pipeline_check_final_CHC\"}",
+							"type": "text"
+						},
+						{
+							"key": "collection",
+							"value": "dev-algorithm-output",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/deleteCollection/dev-pipeline-execution1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"deleteCollection",
+						"dev-pipeline-execution1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/alive",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"alive"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ready",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/ready",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"ready"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "dbStatus",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"tests['Should return status code 200'] = responseCode.code === 200;\r",
+							"\r",
+							"pm.test('Should contain a json body', function(){\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;  \r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/dbStatus",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"dbStatus"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getQueryItems_exec",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getQueryItems/dev-pipeline-execution/{\"data_status\": { \"!=\": \"complete\"}}/or",
+					"host": [
+						"{{baseUrl}}getQueryItems"
+					],
+					"path": [
+						"dev-pipeline-execution",
+						"{\"data_status\": { \"!=\": \"complete\"}}",
+						"or"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getQueryItems_algo",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getQueryItems/dev-algorithm-output/{ '_id': {'==' : 'deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1637066385801_1637066444559_CHC'}}/and",
+					"host": [
+						"{{baseUrl}}getQueryItems"
+					],
+					"path": [
+						"dev-algorithm-output",
+						"{ '_id': {'==' : 'deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1637066385801_1637066444559_CHC'}}",
+						"and"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getVideoUrl",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getVideoUrl/dev-rcd-anonymized-video-files/lync/ivs_chain_test_run_anonymized.mp4",
+					"host": [
+						"{{baseUrl}}getVideoUrl"
+					],
+					"path": [
+						"dev-rcd-anonymized-video-files",
+						"lync",
+						"ivs_chain_test_run_anonymized.mp4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllUrls",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getAllUrls",
+					"host": [
+						"{{baseUrl}}getAllUrls"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllCHBs",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getAllCHBs",
+					"host": [
+						"{{baseUrl}}getAllCHBs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getTableData",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "item",
+							"value": "{ \"_id\": \"Mary\", \"address\": \"Highway 99\" }",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "collection",
+							"value": "hello",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "vts",
+							"value": "{ \"_id\": \"pipeline_check_final\",\"last_updated\": \"2021-10-15T15:21:47.198075Z\",\"from_container\": \"Metadata\",\"s3_path\": \"lync/pipeline_check_final.mp4\",\"data_status\": \"complete\",\"info_source\": \"CHC\",\"processing_list\": [\"Anonymize\",\"CHC\"]}",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}getTableData",
+					"host": [
+						"{{baseUrl}}getTableData"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/"
+		}
+	]
+}
