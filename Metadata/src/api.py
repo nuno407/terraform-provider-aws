@@ -140,6 +140,9 @@ class Alive(Resource):
             logging.info(s3_bucket)
             logging.info(s3_key)
 
+            if s3_key == "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639492620739_1639492653894_metadata_full.json":
+                continue
+
             # Download metadata json file
             response = s3_client.get_object(
                                                 Bucket=s3_bucket,
