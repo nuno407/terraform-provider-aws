@@ -172,7 +172,7 @@ class Alive(Resource):
                 logging.info(e)
                 continue
 
-            col.update_one(data_db) 
+            col.update_one({'_id': data_db["_id"]}, {"$set": {"results_CHC": data_db["results_CHC"]}}) 
 
         # Close the connection
         client.close()
