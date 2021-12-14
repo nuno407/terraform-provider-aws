@@ -988,31 +988,6 @@ class VideoFeed(Resource):
                     logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
                     response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
-                #for testing purposes, delete after
-                a = CHCs_item['CHBs']
-                b = []
-                c = []
-                d = []
-                e = []
-                f = []
-                g = []
-                h = []
-                for i in a:
-                    b.append(0.95)
-                    c.append(0.90)
-                    d.append(0.85)
-                    e.append(0.80)
-                    f.append(0.75)
-                    g.append(0.70)
-                    h.append(0.65)
-                response_msg["CHC-VB"] = b
-                response_msg["CHC-CVS"] = c
-                response_msg["CB"] = d
-                response_msg["CVS"] = e
-                response_msg["AD"] = f
-                response_msg["MB"] = g
-                response_msg["ASM"] = h
-
                 logging.info(response_msg)
 
             return flask.jsonify(message=response_msg, statusCode="200")
