@@ -132,9 +132,9 @@ class Alive(Resource):
 
         logging.info(response_msg)
         
-        for item in response_msg: 
+        for data_db in response_msg: 
 
-            s3_bucket, video_key = item["s3_path"].split("/", 1)
+            s3_bucket, video_key = data_db["s3_path"].split("/", 1)
             s3_key = video_key.split(".")[0] + '_metadata_full.json'
 
             # Download metadata json file
@@ -162,9 +162,9 @@ class Alive(Resource):
                 else:
                     chb_array.append("0")
 
-            logging.info(item)
+
             try: 
-                for aux in item["results_CHC"]:
+                for aux in data_db["results_CHC"]:
                     if aux["source"] == "MDF":
                         aux["CHBs"] = chb_array
                         break
@@ -172,7 +172,7 @@ class Alive(Resource):
                 logging.info(e)
                 continue
 
-            col.update_one(item) 
+            col.update_one(data_db) 
 
         # Close the connection
         client.close()
