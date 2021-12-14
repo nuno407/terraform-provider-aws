@@ -137,6 +137,9 @@ class Alive(Resource):
             s3_bucket, video_key = data_db["s3_path"].split("/", 1)
             s3_key = video_key.split(".")[0] + '_metadata_full.json'
 
+            logging.info(s3_bucket)
+            logging.info(s3_key)
+
             # Download metadata json file
             response = s3_client.get_object(
                                                 Bucket=s3_bucket,
