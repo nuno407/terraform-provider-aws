@@ -130,6 +130,8 @@ class Alive(Resource):
         # Get all info from the table
         response_msg = list(col.find({}))
 
+        logging.info(response_msg)
+        
         for item in response_msg: 
 
             s3_bucket, video_key = item["s3_path"].split("/", 1)
