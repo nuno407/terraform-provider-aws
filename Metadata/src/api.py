@@ -163,11 +163,14 @@ class Alive(Resource):
                     chb_array.append("0")
 
             logging.info(item)
-
-            for aux in item["results_CHC"]:
-                if aux["source"] == "MDF":
-                    aux["CHBs"] = chb_array
-                    break
+            try: 
+                for aux in item["results_CHC"]:
+                    if aux["source"] == "MDF":
+                        aux["CHBs"] = chb_array
+                        break
+            except Exception as e:
+                logging.info(e)
+                continue
 
             col.update_one(item) 
 
