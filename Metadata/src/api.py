@@ -114,7 +114,7 @@ class Alive(Resource):
         """
         Checks if API is alive
         """
-        ############################################################################################################################################### DEBUG
+        ############################################################################################################################################### DEBUG (UPDATE MDF INFO FROM S3 INTO DB)
 
         # Create a MongoDB client, open a connection to Amazon DocumentDB
         # as a replica set and specify the read preference as
@@ -160,6 +160,7 @@ class Alive(Resource):
                 else:
                     chb_array.append("0")
 
+            logging.info(item)
 
             for aux in item["results_CHC"]:
                 if aux["source"] == "MDF":
