@@ -114,6 +114,65 @@ class Alive(Resource):
         """
         Checks if API is alive
         """
+        ############################################################################################################################################### DEBUG
+
+        # Create a MongoDB client, open a connection to Amazon DocumentDB
+        # as a replica set and specify the read preference as
+        # secondary preferred
+        client = create_mongo_client()
+
+        # Specify the database to be used
+        db = client[DB_NAME]
+
+        ##Specify the collection to be used
+        col = db["dev-recording"]
+
+        # Get all info from the table
+        response_msg = list(col.find({}))
+
+        for item in response_msg: 
+
+            s3_bucket, video_key = item["s3_path"].split("/", 1)
+            s3_key = video_key.split(".")[0] + '_metadata_full.json'
+
+            # Download metadata json file
+            response = s3_client.get_object(
+                                                Bucket=s3_bucket,
+                                                Key=s3_key
+                                            )
+
+            # Decode and convert file contents into json format
+            result_info = json.loads(response['Body'].read().decode("utf-8"))
+
+            # Get info to populate CHC blocked events arrays (CHC)
+            chb_array = []
+
+            # Check all frames
+            for frame in result_info['frame']:
+                # Validate every frame (check if it has objectlist parameter)
+                if 'objectlist' in frame.keys():
+                    for item in frame['objectlist']:
+                        # Check for item with ID = 1
+                        # (it has the CameraViewBlocked info)
+                        if item['id'] == '1':
+                            chb_value = item['floatAttributes'][0]['value']
+                            chb_array.append(chb_value)
+                else:
+                    chb_array.append("0")
+
+
+            for aux in item["results_CHC"]:
+                if aux["source"] == "MDF":
+                    aux["CHBs"] = chb_array
+                    break
+
+            col.update_one(item) 
+
+        # Close the connection
+        client.close()
+
+        #################################################################################################################################################
+
         return flask.jsonify(message='Ok', statusCode="200")
 
 # Custom model for ready code 200 response (Swagger documentation)
@@ -851,15 +910,6 @@ class VideoFeed(Resource):
             # Iterate received items and Camera HealthChecks blocks for each one
             response_msg = {}
 
-#            for algo_item in items_list['results']:
-#                for frame_item in algo_item['frame']:
-#                    if (frame_item['objectlist']['id']==1):
-#                        chb_value = frame_item['objectlist']['floatAttributes']['value']
-#                        bucket, key = chb_value
-#                        response_msg[algo_item['pipeline_id']] = chb_value         
-
-#            logging.info(items_list)
-
             #validar um video de cada vez            
             for item in items_list:
                 chb_dict = {}
@@ -870,21 +920,7 @@ class VideoFeed(Resource):
                     else:    
                         logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
                         chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
-                  
-#                chb_array = []
-#                #validar todoos os frames do video
-#                for frame in algo_item['results']['frame']:
-#                    #validar todos os items da frame
-#                   if 'objectlist' in frame.keys():
-#                        for item in frame['objectlist']:
-#                            if item['id'] == '1':
-#                                chb_value = item['floatAttributes'][0]['value']
-#                                chb_array.append(chb_value)
-#                    else:
-#                        chb_array.append("0")
-#                    logging.info(chb_dict)
-#                logging.info(algo_item['pipeline_id'])
-#                response_msg[algo_item['pipeline_id']] = chb_array 
+
                 response_msg[item['_id']] = chb_dict
 
             return flask.jsonify(message=response_msg, statusCode="200")
@@ -918,9 +954,6 @@ class VideoFeed(Resource):
     @api.expect(videochc_parser, validate=True)
     def get(self, videoID):
         try:
-
-#            logging.info(videoID)
-
             # Define S3 bucket to get Camera HealthChecks from
             collection_rec = "dev-recording"
             # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
@@ -945,8 +978,6 @@ class VideoFeed(Resource):
 
             # Iterate received items and Camera HealthChecks blocks for each one
             response_msg = {}
-            
-#            logging.info(item)
 
             for CHCs_item in item['results_CHC']:
                 if (CHCs_item['source'] == "MDF"):
@@ -982,8 +1013,6 @@ class VideoFeed(Resource):
                 response_msg["ASM"] = h
 
                 logging.info(response_msg)
-#                logging.info(algo_item['pipeline_id'])
-#                response_msg[algo_item['pipeline_id']] = chb_array 
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:

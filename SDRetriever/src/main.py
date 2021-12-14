@@ -6,9 +6,10 @@ from baseaws.shared_functions import ContainerServices
 from datetime import timedelta as td, datetime
 import pytz
 import subprocess
+from operator import itemgetter
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v4.1"      # Version of the current container
+CONTAINER_VERSION = "v4.2"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -359,6 +360,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     #######################################################################
     # NOTE: assumption -> FIRST FILE HAS THE FIRST FRAME
+
+    # TODO: CHANGE THIS LOGIC!! WRONG
     #######################################################################
 
 
@@ -374,6 +377,13 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     for m in files_dict:
         for current_frame in files_dict[m]['frame']:
             final_dict['frame'].append(current_frame)
+
+    ##################################################################################################
+    # Sort frames by number
+    newlist = sorted(final_dict["frame"], key=itemgetter('number')) 
+
+    final_dict["frame"] = newlist
+    ##################################################################################################
 
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
