@@ -101,7 +101,7 @@ def request_process_selector(client, container_services, body):
                 #print(info.get("recording_state"))
                 if info.get('events'):
                     for event in info.get('events'):
-                        if event.get("value", "") == '1':
+                        if event.get("value", "") != '0':
                             # Create a random uuid to identify a given camera health check process
                             uid = str(uuid.uuid4())
                             #payload = {'device_id': device_id}
