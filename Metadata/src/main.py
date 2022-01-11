@@ -56,8 +56,13 @@ def main():
     db_resource = boto3.resource('dynamodb',
                                  region_name='eu-central-1')
     ##########################################################################################################################
+    print("###################")
     print(str(sys.argv))
+    print()
     print(os.environ['CONFIG_S3'])
+    print()
+    print(os.environ)
+    print("###################$$$$$")
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION,
