@@ -114,76 +114,76 @@ class Alive(Resource):
         """
         Checks if API is alive
         """
-        ############################################################################################################################################### DEBUG (UPDATE MDF INFO FROM S3 INTO DB)
+        # ############################################################################################################################################### DEBUG (UPDATE MDF INFO FROM S3 INTO DB)
 
-        # Create a MongoDB client, open a connection to Amazon DocumentDB
-        # as a replica set and specify the read preference as
-        # secondary preferred
-        client = create_mongo_client()
+        # # Create a MongoDB client, open a connection to Amazon DocumentDB
+        # # as a replica set and specify the read preference as
+        # # secondary preferred
+        # client = create_mongo_client()
 
-        # Specify the database to be used
-        db = client[DB_NAME]
+        # # Specify the database to be used
+        # db = client[DB_NAME]
 
-        ##Specify the collection to be used
-        col = db["dev-recording"]
+        # ##Specify the collection to be used
+        # col = db["dev-recording"]
 
-        # Get all info from the table
-        response_msg = list(col.find({}))
+        # # Get all info from the table
+        # response_msg = list(col.find({}))
 
-        logging.info(response_msg)
+        # logging.info(response_msg)
         
-        for data_db in response_msg: 
+        # for data_db in response_msg: 
 
-            s3_bucket, video_key = data_db["s3_path"].split("/", 1)
-            s3_key = video_key.split(".")[0] + '_metadata_full.json'
+        #     s3_bucket, video_key = data_db["s3_path"].split("/", 1)
+        #     s3_key = video_key.split(".")[0] + '_metadata_full.json'
 
-            logging.info(s3_bucket)
-            logging.info(s3_key)
+        #     logging.info(s3_bucket)
+        #     logging.info(s3_key)
 
-            if s3_key == "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639492620739_1639492653894_metadata_full.json":
-                continue
+        #     if s3_key == "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639492620739_1639492653894_metadata_full.json":
+        #         continue
 
-            # Download metadata json file
-            response = s3_client.get_object(
-                                                Bucket=s3_bucket,
-                                                Key=s3_key
-                                            )
+        #     # Download metadata json file
+        #     response = s3_client.get_object(
+        #                                         Bucket=s3_bucket,
+        #                                         Key=s3_key
+        #                                     )
 
-            # Decode and convert file contents into json format
-            result_info = json.loads(response['Body'].read().decode("utf-8"))
+        #     # Decode and convert file contents into json format
+        #     result_info = json.loads(response['Body'].read().decode("utf-8"))
 
-            # Get info to populate CHC blocked events arrays (CHC)
-            chb_array = []
+        #     # Get info to populate CHC blocked events arrays (CHC)
+        #     chb_array = []
 
-            # Check all frames
-            for frame in result_info['frame']:
-                # Validate every frame (check if it has objectlist parameter)
-                if 'objectlist' in frame.keys():
-                    for item in frame['objectlist']:
-                        # Check for item with ID = 1
-                        # (it has the CameraViewBlocked info)
-                        if item['id'] == '1':
-                            chb_value = item['floatAttributes'][0]['value']
-                            chb_array.append(chb_value)
-                else:
-                    chb_array.append("0")
+        #     # Check all frames
+        #     for frame in result_info['frame']:
+        #         # Validate every frame (check if it has objectlist parameter)
+        #         if 'objectlist' in frame.keys():
+        #             for item in frame['objectlist']:
+        #                 # Check for item with ID = 1
+        #                 # (it has the CameraViewBlocked info)
+        #                 if item['id'] == '1':
+        #                     chb_value = item['floatAttributes'][0]['value']
+        #                     chb_array.append(chb_value)
+        #         else:
+        #             chb_array.append("0")
 
 
-            try: 
-                for aux in data_db["results_CHC"]:
-                    if aux["source"] == "MDF":
-                        aux["CHBs"] = chb_array
-                        break
-            except Exception as e:
-                logging.info(e)
-                continue
+        #     try: 
+        #         for aux in data_db["results_CHC"]:
+        #             if aux["source"] == "MDF":
+        #                 aux["CHBs"] = chb_array
+        #                 break
+        #     except Exception as e:
+        #         logging.info(e)
+        #         continue
 
-            col.update_one({'_id': data_db["_id"]}, {"$set": {"results_CHC": data_db["results_CHC"]}}) 
+        #     col.update_one({'_id': data_db["_id"]}, {"$set": {"results_CHC": data_db["results_CHC"]}}) 
 
-        # Close the connection
-        client.close()
+        # # Close the connection
+        # client.close()
 
-        #################################################################################################################################################
+        # #################################################################################################################################################
 
         return flask.jsonify(message='Ok', statusCode="200")
 
