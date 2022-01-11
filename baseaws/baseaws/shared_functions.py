@@ -15,7 +15,7 @@ class ContainerServices():
     connection and interact with the various AWS services
     """
 
-    def __init__(self, container, version, config_bucket):
+    def __init__(self, container, version):
         # Config variables
         self.__queues = {'list': {}, 'input': ""}
         self.__msp_steps = {}
@@ -34,7 +34,7 @@ class ContainerServices():
 
         # Bucket and path for the config file #'dev-rcd-config-files'
         self.__config = {
-                          'bucket': config_bucket,
+                          'bucket': os.environ['CONFIG_S3'],
                           'file': 'containers/config_file_containers.json'
                         }
 

@@ -6,12 +6,10 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
 from datetime import datetime, timedelta
-import os
 import base64
 import urllib3
 from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
-import sys
 
 http_client = urllib3.PoolManager()
 
@@ -165,8 +163,7 @@ def main():
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION,
-                                           config_bucket=(sys.argv[1]).strip())
+                                           version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)

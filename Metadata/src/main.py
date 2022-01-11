@@ -3,8 +3,6 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
-import sys
-import os
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
@@ -55,16 +53,11 @@ def main():
                               region_name='eu-central-1')
     db_resource = boto3.resource('dynamodb',
                                  region_name='eu-central-1')
-    ##########################################################################################################################
+
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION,
-                                           config_bucket='dev-rcd-config-files')
-    
-    # container_services = ContainerServices(container=CONTAINER_NAME,
-    #                                        version=CONTAINER_VERSION,
-    #                                        config_bucket=(sys.argv[1]).strip())
-    ##########################################################################################################################
+                                           version=CONTAINER_VERSION)
+
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 

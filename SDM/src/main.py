@@ -95,8 +95,7 @@ def main():
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION,
-                                           config_bucket=os.environ['CONFIG_S3'])
+                                           version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)

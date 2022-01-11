@@ -5,7 +5,6 @@ import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
-import sys
 
 CONTAINER_NAME = "CHC"    # Name of the current container
 CONTAINER_VERSION = "v3.0"      # Version of the current container
@@ -146,8 +145,7 @@ def main():
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION,
-                                           config_bucket=(sys.argv[1]).strip())
+                                           version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)

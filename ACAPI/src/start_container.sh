@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python api.py $CONFIG_S3
+python api.py

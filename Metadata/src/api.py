@@ -12,7 +12,6 @@ from baseaws.shared_functions import ContainerServices
 import boto3
 from mongosanitizer.sanitizer import sanitize
 import re
-import sys
 
 # Container info
 CONTAINER_NAME = "Metadata"
@@ -1220,8 +1219,7 @@ if __name__ == '__main__':
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION,
-                                           config_bucket=(sys.argv[1]).strip())
+                                           version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
