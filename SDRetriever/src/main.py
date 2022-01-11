@@ -7,6 +7,7 @@ from datetime import timedelta as td, datetime
 import pytz
 import subprocess
 from operator import itemgetter
+import sys
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v4.2"      # Version of the current container
@@ -425,7 +426,8 @@ def main():
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION)
+                                           version=CONTAINER_VERSION,
+                                           config_bucket=(sys.argv[1]).strip())
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)

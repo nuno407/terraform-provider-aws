@@ -5,6 +5,7 @@ import flask
 import json
 from baseaws.shared_functions import ContainerServices
 import subprocess
+import sys
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
 CONTAINER_VERSION = "v3.0"      # Version of the current container
@@ -187,7 +188,8 @@ if __name__ == '__main__':
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION)
+                                           version=CONTAINER_VERSION,
+                                           config_bucket=(sys.argv[1]).strip())
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)

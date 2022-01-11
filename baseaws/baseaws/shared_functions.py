@@ -15,7 +15,7 @@ class ContainerServices():
     connection and interact with the various AWS services
     """
 
-    def __init__(self, container, version):
+    def __init__(self, container, version, config_bucket):
         # Config variables
         self.__queues = {'list': {}, 'input': ""}
         self.__msp_steps = {}
@@ -32,9 +32,9 @@ class ContainerServices():
         # Time format
         self.__time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-        # Bucket and path for the config file
+        # Bucket and path for the config file #'dev-rcd-config-files'
         self.__config = {
-                          'bucket': 'dev-rcd-config-files',
+                          'bucket': config_bucket,
                           'file': 'containers/config_file_containers.json'
                         }
 
@@ -817,7 +817,7 @@ class ContainerServices():
 
         # Download pending queue json file
         response = client.get_object(
-                                      Bucket="dev-rcd-config-files",
+                                      Bucket=self.__config['bucket'],
                                       Key=key_paths[self.__container['name']]
                                     )
 
@@ -856,7 +856,7 @@ class ContainerServices():
         # Upload updated json file
         client.put_object(
                           Body=object_body,
-                          Bucket="dev-rcd-config-files",
+                          Bucket=self.__config['bucket'],
                           Key=key_paths[self.__container['name']],
                           ServerSideEncryption='aws:kms',
                           ContentType="application/json"
