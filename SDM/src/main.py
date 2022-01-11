@@ -3,7 +3,7 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
-import sys
+import os
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
@@ -96,7 +96,7 @@ def main():
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION,
-                                           config_bucket=(sys.argv[1]).strip())
+                                           config_bucket=os.environ['CONFIG_S3'])
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
