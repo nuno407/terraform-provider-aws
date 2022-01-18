@@ -6,9 +6,81 @@ import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
 from datetime import datetime, timedelta
+import base64
+import urllib3
+from json.decoder import JSONDecodeError
+from urllib.parse import urlencode
+from botocore.exceptions import ClientError
+
+
+http_client = urllib3.PoolManager()
 
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
+
+token_endpoint = 'https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token'
+client_id = '5ler2p82u6spoo05lle1em53hk'
+client_secret = '11ojnjs9bisjmv3hqdu4frh31pq1tfqjdtmefpbpl34r64o0ld4j'
+auth_scopes = ''
+
+
+
+#####  Generating Token for API Authorization ###########
+
+def get_token(token_endpoint, container_services, scopes) -> dict:
+    sm = container_services.secret_managers() 
+    sm_client = boto3.client('secretsmanager', region_name='eu-central-1')
+    
+    try:
+        get_secret_value_response = sm_client.get_secret_value(
+            SecretId=sm['selector']
+        )
+        secret = get_secret_value_response['SecretString']
+        print("Test of Try")
+    except ClientError as e:
+        print("Enter into Exception", e.response['Error']['Code'])
+    
+    if secret:
+        client_id = secret['client_id']
+        client_secret = secret['client_secret']    
+        client_auth = base64.b64encode((client_id + ':' + client_secret).encode('utf-8')).decode('utf-8')
+
+        headers = {}
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        headers['Authorization'] = 'Basic ' + client_auth
+
+        body = {
+            'grant_type': 'client_credentials',
+            'scope': scopes
+        }
+        encoded_body = urlencode(body)
+
+        try:
+            response = http_client.request('POST', token_endpoint, headers=headers, body=encoded_body)
+            
+            if response.status == 200:
+                json_response = json.loads(response.data.decode('utf-8'))
+                return json_response
+            else:
+                print("Error getting access token, status: ", response.status, ", cause: ", response.data)
+                return None
+        except JSONDecodeError:
+            print("String could not be converted to JSON")
+            return None
+    else:
+        return None
+
+def refresh_api_token(container_services) -> dict:
+        current_timestamp_s = int(datetime.now().timestamp())
+
+        token = get_token(token_endpoint, container_services, auth_scopes)
+        logging.info("CUrrent Token Value is: %s", token)
+                     
+        # Substract 5 minutes from the expiration date to avoid expired tokens due to processing time, network delay, etc.
+        # 5 minutes is a random chosen value.
+        token['expiration_timestamp_s'] = current_timestamp_s + token.get('expires_in') - (5 * 60)
+        return token
+
 
 
 def request_process_selector(client, container_services, body):
@@ -29,39 +101,67 @@ def request_process_selector(client, container_services, body):
     # (in order to perform index access)
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
+    #print(dict_body)
+    logging.info(new_body)
 
     # Add entry for current video relay list on pending queue
     #pending_list[uid] = dict_body
 
     # Picking Device Id from header
-    device_id = dict_body.get("header").get('device_id')
+    if "value" in dict_body:
+        msg_header = dict_body["value"]["properties"]["header"]
+        device_id = msg_header.get('device_id')
+        if "recording_info" in dict_body["value"]["properties"]:
+                
+            recording_info = dict_body["value"]["properties"].get("recording_info")
+            for info in recording_info:
 
-    for info in dict_body.get("recording_info"):
+                #print(info.get("recording_state"))
+                if info.get('events'):
+                    for event in info.get('events'):
+                        if event.get("value", "") != '0':
+                            # Create a random uuid to identify a given camera health check process
+                            uid = str(uuid.uuid4())
+                            #payload = {'device_id': device_id}
+                            #payload = {}
+                            timestamps = str(event.get('timestamp_ms'))
+                            cal_date = datetime.fromtimestamp(int(timestamps[:10]))
+                            # print(cal_date, timestamps)
 
-        print(info.get("recording_state"))
-        if info.get('events'):
-            for event in info.get('events'):
-                if event.get("value", "") == '1':
-                    # Create a random uuid to identify a given camera health check process
-                    uid = str(uuid.uuid4())
-                    payload = {'device_id': device_id}
-                    timestamps = event.get('timestamp_ms')
-                    cal_date = datetime.fromtimestamp(int(timestamps[:10]))
-                    # print(cal_date, timestamps)
+                            prev_timestamps = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
+                            post_timestamps = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
 
-                    prev_timestamps = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
-                    post_timestamps = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
+                            #payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
+                            payload = {'from': str(prev_timestamps), 'to': str(post_timestamps)}
+                            logging.info("The Payload is: %s", payload)
 
-                    payload.update({'uid': uid, 'start_time': str(prev_timestamps), 'end_time': str(post_timestamps)})
+                            # Send API request (POST)
+                            addr = container_services.api_endpoints()["mdl_footage_endpoint"].format(device_id)
+                            logging.info("The Address of Footage API URL: %s", addr)
+                            
+                            try:
+                                headers = {}
+                                headers['Content-Type'] = 'application/json'
+                                headers['Authorization'] = 'Bearer ' + refresh_api_token(container_services).get('access_token')
+                                #result = requests.post(addr, data=payload, headers=headers)
+                                
+                                response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
+                                msg = f"Sending Device request, status: {response.status}, message: {response.data.decode('utf-8')}"
+                                logging.info(msg)
+                                
+                                # if not result.ok:
+                                #     logging.info("Post Request Error Message: %s", result.reason)
+                                #     response = http_client.request('POST', addr, headers=headers, body=json.dumps(payload))
+                                #     msg = f"Sending Device request, status: {response.status}, cause: {response.data.decode('utf-8')}"
+                                #     logging.info(msg)
+                                
 
-                    '''
-                    # Send API request (POST)
-                    try:
-                        requests.post(addr, files=files, data=payload)
-                        logging.info("API POST request sent! (uid: %s)", uid)
-                    except requests.exceptions.ConnectionError as error_response:
-                        logging.info(error_response)
-                    '''
+                                #logging.info("API POST request sent! (Status: %s)", str(result.status_code))
+                            except requests.exceptions.ConnectionError as error_response:
+                                logging.info(error_response)
+
+    else:
+        logging.info("Not a Valid Message")                        
 
     
 
@@ -79,7 +179,7 @@ def main():
                              region_name='eu-central-1')
     sqs_client = boto3.client('sqs',
                               region_name='eu-central-1')
-    
+
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION)

@@ -20,6 +20,8 @@ class ContainerServices():
         self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
+        self.__secretmanagers = {} # To be modify on dated 16 Jan'2022
+        self.__apiendpoints = {} # To be modify on dated 16 Jan'2022
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -71,6 +73,18 @@ class ContainerServices():
         """anonymized_s3_ignore variable"""
         return self.__s3_ignore['anonymized']
 
+    @property
+    def secret_managers(self):
+        """ Secret Manager variable """
+        return self.__secretmanagers  # To be modify on dated 16 Jan'2022 
+
+    @property
+    def api_endpoints(self):
+        """ API End Points variable """
+        return self.__apiendpoints  # To be modify on dated 16 Jan'2022 
+
+
+
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -113,6 +127,9 @@ class ContainerServices():
         # the processing container
         self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
         self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
+        self.__secretmanagers = dict_body['secret_manager']   # To be modify on dated 16 Jan'2022
+        self.__apiendpoints = dict_body['api_endpoints']   # To be modify on dated 16 Jan'2022
+
 
         logging.info("Load complete!\n")
 
