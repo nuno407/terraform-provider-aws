@@ -88,7 +88,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
-    stream_role = container_services.rcc_role #"arn:aws:iam::213279581081:role/dev-DevCloud"
+    stream_role = container_services.rcc_info["role"] #"arn:aws:iam::213279581081:role/dev-DevCloud"
     clip_ext = ".mp4"
     sts_session = "AssumeRoleSession1"
     
@@ -220,14 +220,14 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Define metadata files S3 bucket location (RCC)
     # NOTE: This bucket name will always be the same
     #       (confirmed by the HoneyBadgers team)
-    bucket_origin = 'rcc-dev-device-data'
+    bucket_origin = container_services.rcc_info["s3_bucket"] #'rcc-dev-device-data'
 
     # Initialises the variable to flag the
     # availability of the metadata files
     metadata_available = "Yes"
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
-    s3_role = container_services.rcc_role #"arn:aws:iam::213279581081:role/dev-DevCloud"
+    s3_role = container_services.rcc_info["role"] #"arn:aws:iam::213279581081:role/dev-DevCloud"
     sts_session = "AssumeRoleSession2"
 
     # Requests credentials to assume specific cross-account role
