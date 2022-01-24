@@ -25,7 +25,7 @@ class ContainerServices():
         self.__docdb_whitelist = {}
         self.__sdr_folder = ""
         self.__sdr_blacklist = {}
-        self.__rcc_role = ""
+        self.__rcc_info = {}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -93,9 +93,9 @@ class ContainerServices():
         return self.__sdr_blacklist
 
     @property
-    def rcc_role(self):
-        """rcc_role variable"""
-        return self.__rcc_role
+    def rcc_info(self):
+        """rcc_info variable"""
+        return self.__rcc_info
 
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
@@ -149,8 +149,8 @@ class ContainerServices():
         # Dictionary containing the tenant blacklists for processing and storage of RCC clips  
         self.__sdr_blacklist = dict_body['sdr_blacklist_tenants']
 
-        # Name of the RCC role to assume for cross-account access of services/resources
-        self.__rcc_role = dict_body['rcc_role']
+        # Information of the RCC account for cross-account access of services/resources
+        self.__rcc_info = dict_body['rcc_info']
 
         logging.info("Load complete!\n")
 
