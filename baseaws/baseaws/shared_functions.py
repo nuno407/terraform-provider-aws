@@ -26,6 +26,7 @@ class ContainerServices():
         self.__sdr_folder = ""
         self.__sdr_blacklist = {}
         self.__rcc_info = {}
+        self.__ivs_api = {}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -96,6 +97,11 @@ class ContainerServices():
     def rcc_info(self):
         """rcc_info variable"""
         return self.__rcc_info
+    
+    @property
+    def ivs_api(self):
+        """ivs_api variable"""
+        return self.__ivs_api
 
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
@@ -142,19 +148,22 @@ class ContainerServices():
 
         # List of all parameters whitelisted for docdb queries
         self.__docdb_whitelist = dict_body['docdb_key_whitelists']
-        
+
         # Name of the Raw S3 bucket folder where to store RCC KVS clips
         self.__sdr_folder = dict_body['sdr_dest_folder']
 
-        # Dictionary containing the tenant blacklists for processing and storage of RCC clips  
+        # Dictionary containing the tenant blacklists for processing and storage of RCC clips
         self.__sdr_blacklist = dict_body['sdr_blacklist_tenants']
 
         # Information of the RCC account for cross-account access of services/resources
         self.__rcc_info = dict_body['rcc_info']
 
+        # Information of the ivs_chain endpoint (ip, port, endpoint name)
+        self.__ivs_api = dict_body['ivs_api']
+
         logging.info("Load complete!\n")
 
-    ##### SQS related functions #########################################################################
+    ##### SQS related functions ########################################################
     @staticmethod
     def get_sqs_queue_url(client, queue_name):
         """Retrieves the URL for a given SQS queue
@@ -297,7 +306,7 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
-    ##### DB related functions #########################################################################
+    ##### DB related functions #########################################################
     @staticmethod
     def create_db_client():
         """Creates MongoDB client and returns a DB object based on
@@ -319,7 +328,7 @@ class ContainerServices():
             'retryWrites': 'false',
             'db': 'DB_data_ingestion'
             }
-        
+
         #region_name = "eu-central-1"
         secret_name = "data-ingestion-cluster-credentials"
 
@@ -341,7 +350,7 @@ class ContainerServices():
         # Create a MongoDB client, open a connection to Amazon DocumentDB
         # as a replica set and specify the read preference as
         # secondary preferred
-        client = MongoClient(docdb_info['cluster_endpoint'], 
+        client = MongoClient(docdb_info['cluster_endpoint'],
                          username=dict_response['username'],
                          password=dict_response['password'],
                          tls=docdb_info['tls'],
@@ -350,12 +359,12 @@ class ContainerServices():
                          readPreference=docdb_info['readPreference'],
                          retryWrites=docdb_info['retryWrites']
                         )
-        
+
         # Specify the database to be used
         db = client[docdb_info['db']]
-    
+
         return db
-    
+
     @staticmethod
     def generate_recording_item(data, table_rec, timestamp):
         """Inserts a new item on the recordings collection and, if there is
@@ -381,7 +390,7 @@ class ContainerServices():
                     'recording_overview': data["recording_overview"],
                     'results_CHC': []
                 }
-        
+
         # Fetch metadata file if it exists
         if data["MDF_available"] == "Yes":
 
@@ -418,7 +427,7 @@ class ContainerServices():
                     chb_array.append("0")
 
             # Add array from metadata full file to created item
-            mdf_data = {    
+            mdf_data = {
                         'algo_out_id': "-",
                         'source': "MDF",
                         'CHBs': chb_array,
@@ -431,21 +440,21 @@ class ContainerServices():
         try:
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
-        
+
         except Exception as e:
             logging.info(e)
             table_rec.update_one(item_db)
 
         # Create logs message
         logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
-        
+
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
         """Inserts a new item (or updates it if already exists) on the
         pipeline execution collection
 
         Arguments:
-            data {dict} -- [info set from the received sqs message 
+            data {dict} -- [info set from the received sqs message
                             that is used to populate the created/updated
                             item]
             table_pipe {MongoDB collection object} -- [Object used to
@@ -469,11 +478,18 @@ class ContainerServices():
 
         if response:
             # Update the existing records
-            table_pipe.update_one({'_id': unique_id}, {"$set": {"data_status": status, "info_source": source, "last_updated": timestamp}})
+            update_dict = {
+                            "$set":{
+                                    "data_status": status,
+                                    "info_source": source,
+                                    "last_updated": timestamp
+                                   }
+                          }
+            table_pipe.update_one({'_id': unique_id}, update_dict)
 
             # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
-        
+
         else:
             # Build item structure and add info from msg received
             item_db = {
@@ -500,7 +516,7 @@ class ContainerServices():
         recordings collection item with that CHC info)
 
         Arguments:
-            data {dict} -- [info set from the received sqs message 
+            data {dict} -- [info set from the received sqs message
                             that is used to populate the created item]
             table_algo_out {MongoDB collection object} -- [Object used to
                                                       access/update the
@@ -588,13 +604,13 @@ class ContainerServices():
             item_db['results']['CHBs'] = chb_array
 
             # Add array from CHC output file to recording DB item
-            chc_data = {    
+            chc_data = {
                         'algo_out_id': run_id,
                         'source': "CHC",
                         'CHBs': chb_array,
                         'number_CHC_events': "",
                         'lengthCHC': ""
-                    }
+                       }
             try:
                 # Update recording DB item (appends chc_data to results list)
                 table_rec.update_one({'_id': unique_id}, {'$push': {'results_CHC': chc_data}})
@@ -605,7 +621,7 @@ class ContainerServices():
             except Exception as e:
                 logging.info(e)
                 logging.info(chc_data)
-            
+
         try:
             # Insert previous built item
             table_algo_out.insert_one(item_db)
@@ -617,16 +633,16 @@ class ContainerServices():
             logging.info(item_db)
 
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
-    
+
     def connect_to_docdb(self, data, attributes):
         """Main DB access function that processes the info received
         from a sqs message and calls the corresponding functions
         necessary to create/update DB items
 
         Arguments:
-            data {dict} -- [info set from the received sqs message 
+            data {dict} -- [info set from the received sqs message
                             that is used to populate the DB items]
-            attributes {dict} -- [attributes from the received sqs message 
+            attributes {dict} -- [attributes from the received sqs message
                                   that is used to populate DB items or to
                                   define which operations are performed]
         """
@@ -654,7 +670,7 @@ class ContainerServices():
             return
 
         #################### NOTE: Pipeline execution collection handling ####################
-        
+
         # Get filename (id) from message received
         # Note: If source container is SDRetriever then:
         #            data["s3_path"] = bucket + key
@@ -672,8 +688,8 @@ class ContainerServices():
                                 self.__container['name'])
 
 
-        ###################################################### DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
-        #####################################################################################################
+        ############################################ DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
+        ##########################################################################################
         # Check if item with that name already exists
         response_rec = table_rec.find_one({'_id': unique_id})
         if response_rec:
@@ -698,8 +714,8 @@ class ContainerServices():
             table_rec.insert_one(item_db)
             # Create logs message
             logging.info("[%s]  Recording DB empty item (Id: %s) created!", timestamp, unique_id)
-        #####################################################################################################
-        #####################################################################################################
+        ###########################################################################################
+        ###########################################################################################
 
 
         #################### NOTE: Algorithm output collection handling ####################
@@ -713,7 +729,7 @@ class ContainerServices():
                                    unique_id,
                                    source)
 
-    ##### S3 related functions #########################################################################
+    ##### S3 related functions ####################################################################
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
 
@@ -770,7 +786,7 @@ class ContainerServices():
                       "txt": "text/plain"
                     }
         file_extension = key_path.split('.')[-1]
-         
+
         client.put_object(
                           Body=object_body,
                           Bucket=s3_bucket,
@@ -807,7 +823,7 @@ class ContainerServices():
                                            the pending queue file based on the
                                            uid provided]
             dict_body {dict} -- [Info regarding the pending order that is
-                                 going to be added to the pending queue. 
+                                 going to be added to the pending queue.
                                  NOTE: Only required if mode parsed is "insert"]
 
         Returns:
@@ -858,7 +874,7 @@ class ContainerServices():
 
         else:
             logging.info("\nWARNING: Operation (%s) not supported!!\n", mode)
-        
+
         # Encode and convert updated json into bytes to be uploaded
         object_body = json.dumps(result_info, indent=4, sort_keys=True).encode('utf-8')
 
@@ -878,7 +894,7 @@ class ContainerServices():
 
         return relay_data
 
-    ##### Kinesis related functions ####################################################################
+    ##### Kinesis related functions ###############################################################
     def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector):
         """Retrieves a given chunk from the selected Kinesis video stream
 
@@ -914,7 +930,7 @@ class ContainerServices():
         # Create client using received endpoint URL
         media_client = boto3.client('kinesis-video-archived-media',
                                     endpoint_url=endpoint_response,
-                                    region_name='eu-central-1',                                      
+                                    region_name='eu-central-1',
                                     aws_access_key_id=creds['AccessKeyId'],
                                     aws_secret_access_key=creds['SecretAccessKey'],
                                     aws_session_token=creds['SessionToken'])
@@ -940,7 +956,7 @@ class ContainerServices():
 
         return video_chunk
 
-    ##### Logs/Misc. functions #########################################################################
+    ##### Logs/Misc. functions ####################################################################
     def display_processed_msg(self, key_path, uid=None):
         """Displays status message for processing completion
 

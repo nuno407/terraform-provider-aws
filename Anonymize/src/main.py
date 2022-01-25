@@ -48,11 +48,9 @@ def request_processing(client, container_services, body):
     files = [('video', raw_file)]
 
     # Define settings for API request
-    ip_pod = '172.20.162.166'
-    port_pod = '8081'
-    req_command = 'feature_chain'
-
-    # TODO: ADD IP AND PORT TO CONFIG FILE!
+    ip_pod = container_services.ivs_api["address"]
+    port_pod = container_services.ivs_api["port"]
+    req_command = container_services.ivs_api["endpoint"]
 
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
