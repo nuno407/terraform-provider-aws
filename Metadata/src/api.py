@@ -930,7 +930,7 @@ class VideoFeed(Resource):
                         #logging.info(CHCs_item['source'])                
                         chb_dict[CHCs_item['source']] = CHCs_item['CHBs']
                     else:    
-                        logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
+                        #logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
                         chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
                 response_msg[item['_id']] = chb_dict
@@ -1087,8 +1087,8 @@ class VideoFeed(Resource):
                             break
 
                     except Exception as e:
-                        logging.info("number_CHC_events empty")
-                        logging.info(e)
+                        #logging.info("number_CHC_events empty")
+                        #logging.info(e)
                         table_data_dict['number_CHC_events'] = ''      
                         table_data_dict['lengthCHC'] = '' 
 
