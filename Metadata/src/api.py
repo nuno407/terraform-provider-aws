@@ -927,7 +927,7 @@ class VideoFeed(Resource):
                 chb_dict = {}
                 for CHCs_item in item['results_CHC']:    
                     if (CHCs_item['source'] == "MDF"):
-                        logging.info(CHCs_item['source'])                
+                        #logging.info(CHCs_item['source'])                
                         chb_dict[CHCs_item['source']] = CHCs_item['CHBs']
                     else:    
                         logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
@@ -993,13 +993,13 @@ class VideoFeed(Resource):
 
             for CHCs_item in item['results_CHC']:
                 if (CHCs_item['source'] == "MDF"):
-                    logging.info(CHCs_item['source'])                
+                    #logging.info(CHCs_item['source'])                
                     response_msg[CHCs_item['source']] = CHCs_item['CHBs']
                 else:    
-                    logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
+                    #logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
                     response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs']
 
-                logging.info(response_msg)
+                #logging.info(response_msg)
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError) as e:
