@@ -18,9 +18,9 @@ http_client = urllib3.PoolManager()
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
 
-token_endpoint = 'https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token'
-client_id = '5ler2p82u6spoo05lle1em53hk'
-client_secret = '11ojnjs9bisjmv3hqdu4frh31pq1tfqjdtmefpbpl34r64o0ld4j'
+#token_endpoint = 'https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token'
+#client_id = '5ler2p82u6spoo05lle1em53hk'
+#client_secret = '11ojnjs9bisjmv3hqdu4frh31pq1tfqjdtmefpbpl34r64o0ld4j'
 auth_scopes = ''
 
 
