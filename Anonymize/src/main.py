@@ -5,12 +5,13 @@ import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
+import subprocess
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
-CONTAINER_VERSION = "v6.2"      # Version of the current container
+CONTAINER_VERSION = "v8.0"      # Version of the current container
 
 
-def request_processing(client, container_services, body, pending_list):
+def request_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -21,9 +22,6 @@ def request_processing(client, container_services, body, pending_list):
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-        pending_list {dict} -- [dictionary containing all the pending
-                                processing requests (identified by an
-                                uuid and their respective relay_lists)]
     """
     logging.info("Processing pipeline message..\n")
 
@@ -41,7 +39,7 @@ def request_processing(client, container_services, body, pending_list):
     uid = str(uuid.uuid4())
 
     # Add entry for current video relay list on pending queue
-    pending_list[uid] = dict_body
+    container_services.update_pending_queue(client, uid, "insert", dict_body)
 
     # Prepare data to be sent on API request
     payload = {'uid': uid,
@@ -50,11 +48,9 @@ def request_processing(client, container_services, body, pending_list):
     files = [('video', raw_file)]
 
     # Define settings for API request
-    ip_pod = '172.20.162.166'
-    port_pod = '8081'
-    req_command = 'feature_chain'
-
-    # TODO: ADD IP AND PORT TO CONFIG FILE!
+    ip_pod = container_services.ivs_api["address"]
+    port_pod = container_services.ivs_api["port"]
+    req_command = container_services.ivs_api["endpoint"]
 
     # Build address for request
     addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
@@ -63,36 +59,23 @@ def request_processing(client, container_services, body, pending_list):
     try:
         response = requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
-        ####################################################
-        # DEBUG
-        logging.info("DEBUG LOGS: %s", response.text)
-        req_command = 'alive'
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        response_alive = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_alive.status_code, response_alive.text)
-        req_command = 'ready'
-        addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
-        response_ready = requests.get(addr)
-        logging.info("DEBUG LOGS: %s || %s", response_ready.status_code, response_alive.text)
-        ####################################################
+        logging.info("IVS Chain response: %s", response.text)
     except requests.exceptions.ConnectionError as error_response:
         logging.info(error_response)
 
-    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE
+    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
-def update_processing(container_services, body, pending_list):
+def update_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
     and executes the anonymization algorithm (WIP) for the file received and
     updates the relevant info in its relay list
 
     Arguments:
+        client {boto3.client} -- [client used to access the S3 service]
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from the
                           received message]
-        pending_list {dict} -- [dictionary containing all the pending
-                                processing requests (identified by an
-                                uuid and their respective relay_lists)]
     Returns:
         relay_data {dict} -- [dict with the updated info after file processing
                               and to be sent via message to the input queues of
@@ -109,12 +92,79 @@ def update_processing(container_services, body, pending_list):
     msg_body = json.loads(new_body)
 
     # Retrives relay_list based on uid received from api message
-    relay_data = pending_list[msg_body['uid']]
+    relay_data = container_services.update_pending_queue(client,
+                                                         msg_body['uid'],
+                                                         "read")
+
+    ######################################################################
+    # VIDEO CONVERSION (.avi -> .mp4)
+
+    logging.info("Starting conversion (AVI to MP4) process..\n")
+
+    # Defining videos/logs paths
+    avi_path = msg_body['video_path']
+    path = avi_path.split('.')[0]
+    mp4_path = path + ".mp4"
+    logs_path = path.split("_Anonymize")[0] + "_conversion_logs.txt"
+
+    # Defining temporary files names
+    input_name = "input_video.avi"
+    output_name = "output_video.mp4"
+    logs_name = "logs.txt"
+
+    # Download target file to be converted
+    avi_video = container_services.download_file(client,
+                                                container_services.anonymized_s3,
+                                                avi_path)
+
+    # Store input video file into current working directory
+    with open(input_name, "wb") as input_file:
+        input_file.write(avi_video)
+
+    with open(logs_name, 'w') as logs_write:
+        # Convert .avi input file into .mp4 using ffmpeg
+        conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-b:v",
+                                      "27648k", output_name],
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT,
+                                      universal_newlines=True)
+        
+        # Save conversion logs into txt file
+        for line in conv_logs.stdout:
+            logs_write.write(line)
+
+    # Load bytes from converted output file
+    with open(output_name, "rb") as output_file:
+        output_video = output_file.read()
+
+    logging.info("\nConversion complete!\n")
+
+    # Upload converted output file to S3 bucket
+    container_services.upload_file(client,
+                                   output_video,
+                                   container_services.anonymized_s3,
+                                   mp4_path)
+
+    # Load bytes from logs file
+    with open(logs_name, "rb") as logs_bytes:
+        logs_file = logs_bytes.read()
+    
+    # Upload conversion logs to S3 bucket
+    container_services.upload_file(client,
+                                   logs_file,
+                                   container_services.anonymized_s3,
+                                   logs_path)
+
+    # Delete temporary video files
+    subprocess.run(["rm", input_name, output_name, logs_name])
+
+    #########################################################################################
 
     # Retrieve output info from received message
     output_info = {}
     output_info['bucket'] = msg_body['bucket']
-    output_info['video_path'] = msg_body['video_path']
+    output_info['video_path'] = mp4_path
+    output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
     # list (after processing)
@@ -130,7 +180,9 @@ def update_processing(container_services, body, pending_list):
         relay_data["data_status"] = "complete"
 
     # Remove uid entry from pending queue
-    del pending_list[msg_body['uid']]
+    container_services.update_pending_queue(client,
+                                            msg_body['uid'],
+                                            "delete")
 
     container_services.display_processed_msg(relay_data["s3_path"],
                                              msg_body['uid'])
@@ -167,10 +219,6 @@ def main():
 
     logging.info("\nListening to input queue(s)..\n")
 
-    # Create pending_queue
-    # Entries format: {'<uid>': <relay_list>}
-    pending_queue = {}
-
     # Main loop
     while(True):
         # Check input SQS queue for new messages
@@ -180,8 +228,7 @@ def main():
             # Processing request
             request_processing(s3_client,
                                container_services,
-                               message['Body'],
-                               pending_queue)
+                               message['Body'])
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
@@ -193,9 +240,9 @@ def main():
 
         if message_api:
             # Processing update
-            relay_list, out_s3 = update_processing(container_services,
-                                                   message_api['Body'],
-                                                   pending_queue)
+            relay_list, out_s3 = update_processing(s3_client,
+                                                   container_services,
+                                                   message_api['Body'])
 
             # Send message to input queue of the next processing step
             # (if applicable)

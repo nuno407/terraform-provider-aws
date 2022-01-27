@@ -3,6 +3,7 @@ import json
 import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
+import os
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
@@ -55,6 +56,14 @@ def processing_sdm(container_services, body):
         return relay_data
 
     # TODO: DEFINE PROCESS FOR METADATA FULL FILES (SHOULD BE DIRECTLY ADDED TO DB?)
+
+    ################################################################################################### DEBUG SDRETRIEVER PROCESSING (REMOVE AFTERWARDS)
+    # if "TEST_TENANT" in file_name:
+    #     logging.info("\nWARNING: File %s will not be processed!!", key_value)
+    #     logging.info("Reason: Tenant is on the Raw Data S3 ignore list\n")
+    #     relay_data = {}
+    #     return relay_data
+    ###################################################################################################
 
     logging.info("Processing pipeline message..\n")
 
