@@ -136,6 +136,7 @@ def request_process_selector(client, container_services, body):
                             logging.info("The Payload is: %s", payload)
 
                             # Send API request (POST)
+                            print(container_services.api_endpoints())
                             addr = container_services.api_endpoints()["mdl_footage_endpoint"].format(device_id)
                             logging.info("The Address of Footage API URL: %s", addr)
                             
