@@ -177,8 +177,6 @@ class ContainerServices():
 
         self.__secretmanagers = dict_body['secret_manager']   # To be modify on dated 16 Jan'2022
         
-        print(dict_body)
-        print(dict_body['api_endpoints'])
         self.__apiendpoints = dict_body['api_endpoints']   # To be modify on dated 16 Jan'2022
         
 
