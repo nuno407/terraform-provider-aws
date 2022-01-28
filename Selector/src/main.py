@@ -37,7 +37,7 @@ def get_token(token_endpoint, container_services, scopes) -> dict:
         get_secret_value_response = sm_client.get_secret_value(
             SecretId=sm['selector']
         )
-        secret = get_secret_value_response['SecretString']
+        secret = json.loads(get_secret_value_response['SecretString'])
         print(get_secret_value_response)
         print(f"Identifying the Secret Value: {secret}")
         print("Test of Try")
