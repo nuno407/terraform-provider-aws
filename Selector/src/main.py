@@ -38,6 +38,8 @@ def get_token(token_endpoint, container_services, scopes) -> dict:
             SecretId=sm['selector']
         )
         secret = get_secret_value_response['SecretString']
+        print(get_secret_value_response)
+        print(f"Identifying the Secret Value: {secret}")
         print("Test of Try")
     except ClientError as e:
         print("Enter into Exception", e.response['Error']['Code'])
