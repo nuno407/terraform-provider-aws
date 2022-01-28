@@ -31,7 +31,8 @@ def get_token(token_endpoint, container_services, scopes) -> dict:
     print(container_services.secret_managers)
     sm = container_services.secret_managers 
     sm_client = boto3.client('secretsmanager', region_name='eu-central-1')
-    
+    secret = None
+
     try:
         get_secret_value_response = sm_client.get_secret_value(
             SecretId=sm['selector']

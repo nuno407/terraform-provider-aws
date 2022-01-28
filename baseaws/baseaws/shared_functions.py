@@ -27,6 +27,7 @@ class ContainerServices():
         self.__sdr_blacklist = {}
         self.__rcc_info = {}
         self.__ivs_api = {}
+        self.__docdb_config = {}
 
         # Container info
         self.__container = {'name': container, 'version': version}
@@ -179,6 +180,8 @@ class ContainerServices():
         
         self.__apiendpoints = dict_body['api_endpoints']   # To be modify on dated 16 Jan'2022
         
+        # Documentdb information for client login
+        self.__docdb_config = dict_body['docdb_config']
 
         logging.info("Load complete!\n")
 
@@ -327,16 +330,20 @@ class ContainerServices():
 
     ##### DB related functions #########################################################
     @staticmethod
-    def create_db_client():
+    def create_db_client(db_config):
         """Creates MongoDB client and returns a DB object based on
         the set configurations so that an user can access the respective
         AWS DocumentDB resource
 
+        Arguments:
+            db_config {dict} -- [dict containing the configurations to be used
+                                 on the docdb client creation]
         Returns:
             db {MongoDB database object} -- [Object that can be used to
                                              access a given database
                                              and its collections]
         """
+        '''
         # Build connection info to access DocDB cluster
         docdb_info = {
             'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
@@ -348,39 +355,39 @@ class ContainerServices():
             'db': 'DB_data_ingestion'
             }
 
-        #region_name = "eu-central-1"
+        region_name = "eu-central-1"
         secret_name = "data-ingestion-cluster-credentials"
 
         # TODO: ADD docdb_info TO CONFIG S3 FILE!!
-
+        '''
         # Create the necessary client for AWS secrets manager access
         secrets_client = boto3.client('secretsmanager',
-                                    region_name='eu-central-1')
+                                      region_name='eu-central-1')
 
         # Get password and username from secrets manager
-        response = secrets_client.get_secret_value(SecretId=secret_name)
+        response = secrets_client.get_secret_value(SecretId=db_config['secret_name'])
         str_response = response['SecretString']
 
         # Converts response body from string to dict
         # (in order to perform index access)
         new_body = str_response.replace("\'", "\"")
-        dict_response = json.loads(new_body)
+        secret_info = json.loads(new_body)
 
         # Create a MongoDB client, open a connection to Amazon DocumentDB
         # as a replica set and specify the read preference as
         # secondary preferred
-        client = MongoClient(docdb_info['cluster_endpoint'],
-                         username=dict_response['username'],
-                         password=dict_response['password'],
-                         tls=docdb_info['tls'],
-                         tlsCAFile=docdb_info['tlsCAFile'],
-                         replicaSet=docdb_info['replicaSet'],
-                         readPreference=docdb_info['readPreference'],
-                         retryWrites=docdb_info['retryWrites']
-                        )
+        client = MongoClient(db_config['cluster_endpoint'],
+                             username=secret_info['username'],
+                             password=secret_info['password'],
+                             tls=db_config['tls'],
+                             tlsCAFile=db_config['tlsCAFile'],
+                             replicaSet=db_config['replicaSet'],
+                             readPreference=db_config['readPreference'],
+                             retryWrites=db_config['retryWrites']
+                            )
 
         # Specify the database to be used
-        db = client[docdb_info['db']]
+        db = client[db_config['db']]
 
         return db
 
@@ -462,7 +469,7 @@ class ContainerServices():
 
         except Exception as e:
             logging.info(e)
-            table_rec.update_one(item_db)
+            table_rec.update_one({'_id': data["_id"]}, item_db)
 
         # Create logs message
         logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
@@ -666,7 +673,7 @@ class ContainerServices():
                                   define which operations are performed]
         """
         # Create DocDB client
-        db = self.create_db_client()
+        db = self.create_db_client(self.__docdb_config)
 
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]

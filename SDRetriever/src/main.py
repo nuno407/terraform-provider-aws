@@ -374,10 +374,16 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                         }
 
     # Frames Concatenation Process
-    final_dict['frame'] = []
-    for m in files_dict:
-        for current_frame in files_dict[m]['frame']:
-            final_dict['frame'].append(current_frame)
+    try:
+        final_dict['frame'] = []
+        for m in files_dict:
+            for current_frame in files_dict[m]['frame']:
+                final_dict['frame'].append(current_frame)
+    except Exception as e:
+        logging.info("\nWARNING: THe following error occured during the concatenation process:\n")
+        logging.info(e)
+        metadata_available = "No"
+        return metadata_available
 
     ##################################################################################################
     # Sort frames by number
