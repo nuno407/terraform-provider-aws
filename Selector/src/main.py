@@ -73,7 +73,7 @@ def get_token(token_endpoint, container_services, scopes) -> dict:
 
 def refresh_api_token(container_services) -> dict:
         current_timestamp_s = int(datetime.now().timestamp())
-
+        token_endpoint = container_services.api_endpoints['selector_token_endpoint']
         token = get_token(token_endpoint, container_services, auth_scopes)
         logging.info("CUrrent Token Value is: %s", token)
                      
