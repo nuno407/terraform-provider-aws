@@ -108,6 +108,11 @@ class ContainerServices():
         return self.__ivs_api
 
     @property
+    def docdb_config(self):
+        """docdb_config variable"""
+        return self.__docdb_config
+
+    @property
     def secret_managers(self):
         """ Secret Manager variable """
         return self.__secretmanagers  # To be modify on dated 16 Jan'2022 
@@ -343,26 +348,9 @@ class ContainerServices():
                                              access a given database
                                              and its collections]
         """
-        '''
-        # Build connection info to access DocDB cluster
-        docdb_info = {
-            'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-            'tls': 'true',
-            'tlsCAFile': 'rds-combined-ca-bundle.pem',
-            'replicaSet': 'rs0',
-            'readPreference': 'secondaryPreferred',
-            'retryWrites': 'false',
-            'db': 'DB_data_ingestion'
-            }
-
-        region_name = "eu-central-1"
-        secret_name = "data-ingestion-cluster-credentials"
-
-        # TODO: ADD docdb_info TO CONFIG S3 FILE!!
-        '''
         # Create the necessary client for AWS secrets manager access
         secrets_client = boto3.client('secretsmanager',
-                                      region_name='eu-central-1')
+                                      region_name=db_config['region_name'])
 
         # Get password and username from secrets manager
         response = secrets_client.get_secret_value(SecretId=db_config['secret_name'])

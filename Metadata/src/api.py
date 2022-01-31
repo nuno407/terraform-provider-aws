@@ -61,27 +61,15 @@ def create_mongo_client():
         client {pymongo.mongo_client.MongoClient'} -- [Mongo client used to
                                                        access AWS DocDB cluster]
     """
-    # Build connection info to access DocDB cluster
-    docdb_info = {
-                  'cluster_endpoint': 'data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com',
-                  'tls': 'true',
-                  'tlsCAFile': 'rds-combined-ca-bundle.pem',
-                  'replicaSet': 'rs0',
-                  'readPreference': 'secondaryPreferred',
-                  'retryWrites': 'false'
-                }
-
-    region_name = "eu-central-1"
-    secret_name = "data-ingestion-cluster-credentials"
-
-    # TODO: ADD docdb_info TO CONFIG S3 FILE!!
+    # Load documentDB login info from config file
+    docdb_info = container_services.docdb_config
 
     # Create the necessary client for AWS secrets manager access
     secrets_client = boto3.client('secretsmanager',
-                                  region_name='eu-central-1')
+                                  region_name=docdb_info['region_name'])
 
     # Get password and username from secrets manager
-    response = secrets_client.get_secret_value(SecretId=secret_name)
+    response = secrets_client.get_secret_value(SecretId=docdb_info['secret_name'])
     str_response = response['SecretString']
 
     # Converts response body from string to dict
@@ -97,7 +85,8 @@ def create_mongo_client():
                          tlsCAFile=docdb_info['tlsCAFile'],
                          replicaSet=docdb_info['replicaSet'],
                          readPreference=docdb_info['readPreference'],
-                         retryWrites=docdb_info['retryWrites'])
+                         retryWrites=docdb_info['retryWrites']
+                        )
 
     return client
 
