@@ -366,6 +366,16 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         starts_list.append(int(files_dict[item]['chunk']['pts_start']))
         ends_list.append(int(files_dict[item]['chunk']['pts_end']))
 
+    #############################################
+    # DEBUG LOGS
+    logging.info("DEBUG LOGS ############")
+    logging.info("starts_list:")
+    logging.info(starts_list)
+    logging.info("ends_list:")
+    logging.info(ends_list)
+    logging.info("END OF DEBUG LOGS ############")
+    #############################################
+
     # Defines chunk start point as the lowest starting timestamp and
     # end point as the highest ending timestamp
     final_dict['chunk'] = {
