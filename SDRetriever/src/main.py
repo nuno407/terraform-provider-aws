@@ -358,19 +358,19 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # NOTE: assumption -> resolution is the same for all received files
     final_dict['resolution'] = files_dict[0]['resolution']
 
+    # Collects all start and end timestamps from each file entry (chunk parameter)
+    starts_list = []
+    ends_list = []
 
-    #######################################################################
-    # NOTE: assumption -> FIRST FILE HAS THE FIRST FRAME
+    for item in files_dict.keys():
+        starts_list.append(int(files_dict[item]['chunk']['pts_start']))
+        ends_list.append(int(files_dict[item]['chunk']['pts_end']))
 
-    # TODO: CHANGE THIS LOGIC!! WRONG
-    #######################################################################
-
-
-    # Define chunk start point as the start from the first file and
-    # end point as the end of the last file
+    # Defines chunk start point as the lowest starting timestamp and
+    # end point as the highest ending timestamp
     final_dict['chunk'] = {
-                            "pts_start": files_dict[0]['chunk']['pts_start'],
-                            "pts_end": files_dict[chunks_total-1]['chunk']['pts_end']
+                            "pts_start": min(starts_list),
+                            "pts_end": max(ends_list)
                         }
 
     # Frames Concatenation Process
@@ -387,7 +387,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     ##################################################################################################
     # Sort frames by number
-    newlist = sorted(final_dict["frame"], key=itemgetter('number')) 
+    newlist = sorted(final_dict["frame"], key=lambda x: int(itemgetter("number")(x)))
 
     final_dict["frame"] = newlist
     ##################################################################################################
