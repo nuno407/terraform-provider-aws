@@ -4,10 +4,8 @@ import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
 from datetime import timedelta as td, datetime
-import pytz
 import subprocess
 from operator import itemgetter
-import sys
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v4.2"      # Version of the current container
@@ -177,6 +175,95 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     return record_data
 
+def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
+    """TODO
+
+    Arguments:
+        TODO
+    """
+    debug_mode = True
+    aux_list = []
+
+    key_set = set(("CameraViewBlocked", "cvb", "cve"))
+    
+    final_info = {
+                "partial_timestamps": {},
+                "frames": [],
+                "video": {
+                            "start": epoch_from,
+                            "end": epoch_to
+                }
+            }
+
+    for partial_mdf in files_dict:
+
+        aux_frames_list = []
+
+        # Partial timestamps  ###############################################
+        first_split = partial_mdf["filename"].split("._stream2_")
+        second_split = first_split[1].split("_")
+        human_timestamp = second_split[0]
+
+        # Convert into datetime and then into epoch timestamp
+        datetime_object = datetime.strptime(human_timestamp, "%Y%m%d%H%M%S")
+        chunk_epoch_start = int(datetime_object.timestamp())
+        ######################################################################
+
+
+        # Frames  ###########################################################
+        for frame in partial_mdf["frame"]:
+
+            aux_frames_list.append(int(frame["number"]))
+
+            frame_data = {
+                        "number": int(frame["number"]),
+                        "timestamp": int(frame["timestamp"])
+            }
+
+            if 'objectlist' in frame.keys():
+                for item in frame['objectlist']:
+                    if item['id'] == '1':
+                        frame_data["CameraViewBlocked"] = item['floatAttributes'][0]['value']
+                    if item['id'] == '4':
+                        frame_data["cvb"] = item['floatAttributes'][0]['value']
+                    if item['id'] == '5':
+                        frame_data["cve"] = item['floatAttributes'][0]['value']
+                        
+            if key_set.issubset(frame_data.keys()) or debug_mode:
+                aux_list.append(frame_data)
+
+        ###########################################################################
+
+        final_info["partial_timestamps"][human_timestamp] = {
+            "filename": partial_mdf["filename"], 
+            "pts_start": int(partial_mdf["chunk"]["pts_start"]),
+            "converted_time": chunk_epoch_start,
+            "frames_list": aux_frames_list
+        }
+
+    final_info["frames"] = sorted(aux_list, key=lambda x: int(itemgetter("number")(x)))
+    
+    ############################################################################################################
+
+    # Convert concatenated dictionary into json and then into bytes so
+    # that it can be uploaded into the S3 bucket
+    concatenated_file = (bytes(json.dumps(final_info, ensure_ascii=False, indent=4).encode('UTF-8')))
+
+    # Defining s3 path to store concatenated metadata full json
+    s3_folder = container_services.sdr_folder
+    s3_file_extension = '_compact_mdf.json'
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
+    # Upload final concatenated file
+    container_services.upload_file(s3_client,
+                                    concatenated_file,
+                                    container_services.raw_s3,
+                                    key_full_metadata)
+
+    #################################################################################
+
+
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
@@ -345,6 +432,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                 # (botocore.response.StreamingBody) and convert them into json format
                 json_temp = json.loads(metadata_file.decode("utf-8"))
 
+                # Add filename to the json file (for debug)
+                json_temp["filename"] = file_entry['Key']
+
                 # Store json file on the dictionary based on the index
                 files_dict[chunks_total] = json_temp
 
@@ -389,6 +479,15 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         for m in files_dict:
             for current_frame in files_dict[m]['frame']:
                 final_dict['frame'].append(current_frame)
+
+        #############################################
+        #
+        logging.info("Generating metadata debug file..\n")
+        generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
+        logging.info("Metadata debug file created!\n")
+        #
+        #############################################
+
     except Exception as e:
         logging.info("\nWARNING: THe following error occured during the concatenation process:\n")
         logging.info(e)
