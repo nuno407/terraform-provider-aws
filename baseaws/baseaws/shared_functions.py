@@ -113,6 +113,11 @@ class ContainerServices():
         return self.__docdb_config
 
     @property
+    def db_tables(self):
+        """db_tables variable"""
+        return self.__db_tables
+
+    @property
     def secret_managers(self):
         """ Secret Manager variable """
         return self.__secretmanagers  # To be modify on dated 16 Jan'2022 

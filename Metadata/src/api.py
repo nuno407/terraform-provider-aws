@@ -886,9 +886,8 @@ class VideoFeed(Resource):
         Returns the video Camara Healthcheck Blocks available for each DB item
         """
         try:
-            # Define S3 bucket to get Camera HealthChecks from
-            collection_rec = "dev-recording"
-            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+            # Define DB collection to get recording info from
+            collection_rec = container_services.db_tables["recording"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -955,9 +954,8 @@ class VideoFeed(Resource):
     @api.expect(videochc_parser, validate=True)
     def get(self, videoID):
         try:
-            # Define S3 bucket to get Camera HealthChecks from
-            collection_rec = "dev-recording"
-            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+            # Define DB collection to get recording info from
+            collection_rec = container_services.db_tables["recording"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -1023,11 +1021,11 @@ class VideoFeed(Resource):
         Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
         """
         try:
-            # Define S3 bucket to get Data from
-            collection_pipe = "dev-pipeline-execution"
-            #collection_algo = "dev-algorithm-output"
-            collection_results = "dev-recording"
-            # TODO: ADD THIS VARIABLES TO CONFIG FILE OR LEAVE IT HARDCODDED?
+            # Define DB collection to get recording info from
+            collection_results = container_services.db_tables["recording"]
+
+            # Define DB collection to get pipeline info from
+            collection_pipe = container_services.db_tables["pipeline_exec"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -1145,9 +1143,8 @@ class VideoFeed(Resource):
         Returns the video URL available for each DB item
         """
         try:
-            # Define S3 bucket to get access URLs from
-            collection_algo = "dev-algorithm-output"
-            # TODO: ADD THIS VARIABLE TO CONFIG FILE OR LEAVE IT HARDCODDED?
+            # Define DB collection to get algo output info from
+            collection_algo = container_services.db_tables["algo_output"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
