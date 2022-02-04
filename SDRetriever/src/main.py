@@ -199,8 +199,10 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
 
         aux_frames_list = []
 
+        logging.info("Partial timestamps")
+
         # Partial timestamps  ###############################################
-        first_split = partial_mdf["filename"].split("._stream2_")
+        first_split = files_dict[partial_mdf]["filename"].split("._stream2_")
         second_split = first_split[1].split("_")
         human_timestamp = second_split[0]
 
@@ -209,9 +211,10 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
         chunk_epoch_start = int(datetime_object.timestamp())
         ######################################################################
 
+        logging.info("Frames")
 
         # Frames  ###########################################################
-        for frame in partial_mdf["frame"]:
+        for frame in files_dict[partial_mdf]["frame"]:
 
             aux_frames_list.append(int(frame["number"]))
 
@@ -234,13 +237,16 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
 
         ###########################################################################
 
+        logging.info("final_info")
+
         final_info["partial_timestamps"][human_timestamp] = {
-            "filename": partial_mdf["filename"], 
-            "pts_start": int(partial_mdf["chunk"]["pts_start"]),
+            "filename": files_dict[partial_mdf]["filename"], 
+            "pts_start": int(files_dict[partial_mdf]["chunk"]["pts_start"]),
             "converted_time": chunk_epoch_start,
             "frames_list": aux_frames_list
         }
 
+    logging.info("sort")
     final_info["frames"] = sorted(aux_list, key=lambda x: int(itemgetter("number")(x)))
     
     ############################################################################################################
