@@ -445,13 +445,18 @@ class ContainerServices():
                 else:
                     chb_array.append("0")
 
+            chc_periods = result_info['chc_periods']
+            number_chc_events, length_chc = ContainerServices.calculate_chc_events(
+                chc_periods)
+
             # Add array from metadata full file to created item
             mdf_data = {
                         'algo_out_id': "-",
                         'source': "MDF",
                         'CHBs': chb_array,
-                        'number_CHC_events': "",
-                        'lengthCHC': ""
+                        'CHC_periods': chc_periods,
+                        'number_CHC_events': number_chc_events,
+                        'lengthCHC': length_chc
                     }
 
             item_db['results_CHC'].append(mdf_data)
@@ -466,6 +471,17 @@ class ContainerServices():
 
         # Create logs message
         logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
+
+    @staticmethod
+    def calculate_chc_events(chc_periods):
+        duration = 0.0
+        number = 0
+        for period in chc_periods:
+            duration += period['duration']
+            if period['duration'] >= 10.0:
+                number += 1
+
+        return number, duration
 
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):

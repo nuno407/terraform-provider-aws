@@ -1065,14 +1065,9 @@ class VideoFeed(Resource):
                     #logging.info(chbs['number_CHC_events'])      
                     #logging.info(chbs['lengthCHC']) 
                     try:
-                        table_data_dict['number_CHC_events'] = chbs[0]['number_CHC_events']      
-                        table_data_dict['lengthCHC'] = chbs[0]['lengthCHC'] 
+                        table_data_dict['number_CHC_events'] = chbs['number_CHC_events']
+                        table_data_dict['lengthCHC'] = chbs['lengthCHC'] 
                     
-                        if chbs["source"] == "MDF":
-                            table_data_dict['number_CHC_events'] = chbs['number_CHC_events']      
-                            table_data_dict['lengthCHC'] = chbs['lengthCHC']
-                            break
-
                     except Exception as e:
                         #logging.info("number_CHC_events empty")
                         #logging.info(e)

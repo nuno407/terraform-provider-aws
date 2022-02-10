@@ -175,7 +175,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     return record_data
 
-def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
+
+def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
     """TODO
 
     Arguments:
@@ -582,8 +583,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         #############################################
         #
         logging.info("Generating metadata debug file..\n")
-        compact_mdf = generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
+        compact_mdf = generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
         logging.info("Metadata debug file created!\n")
+        final_dict['chc_periods'] = calculate_chc_periods(compact_mdf)
         #
         #############################################
 
@@ -596,7 +598,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         #############################################
 
     except Exception as e:
-        logging.info("\nWARNING: THe following error occured during the concatenation process:\n")
+        logging.info(
+            "\nWARNING: The following error occured during the concatenation process:\n")
         logging.info(e)
         metadata_available = "No"
         return metadata_available
@@ -628,6 +631,54 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     return metadata_available
 
+
+def calculate_chc_periods(compact_mdf):
+    frames_with_cv = []
+    frame_times = {}
+
+    #################################### Identify frames with cvb and cve equal to 1 #################################################################
+
+    for frame in compact_mdf["frames"]:
+        if frame["cvb"] == "1" or frame["cve"] == "1":
+            frames_with_cv.append(frame["number"])
+            frame_times[frame["number"]] = frame["timestamp"]
+
+    #################################### Group frames into events ####################################################################################
+
+    from itertools import groupby
+    from operator import itemgetter
+
+    # https://stackoverflow.com/questions/3149440/splitting-list-based-on-missing-numbers-in-a-sequence
+
+    intervals = {}
+
+    for k, g in groupby(enumerate(frames_with_cv), lambda i_x: i_x[0] - i_x[1]):
+        intervals[k] = list(map(itemgetter(1), g))
+
+    #################################### Apply 2 frames tolerance (e.g. 100 -> 102) #########################################################
+    aux_dict = {}
+    list_keys = list(intervals.keys())
+
+    for k, g in groupby(enumerate(list_keys), lambda i_x: i_x[0] - abs(i_x[1])):
+        aux_dict[k] = list(map(itemgetter(1), g))
+
+    count = 0
+    final_dict_ = []
+    for i in aux_dict:
+        final_dict_[count]['frames'] = intervals[aux_dict[i][0]]
+        if len(aux_dict[i]) > 1:
+            for k in range(1, len(aux_dict[i])):
+                final_dict_[count]['frames'] = final_dict_[
+                    count]['frames'] + intervals[aux_dict[i][k]]
+        count += 1
+
+    #########  Duration calculation  #################################################################################################################
+    for entry in final_dict_:
+        entry['duration'] = (frame_times[entry['frames'][-1]] -
+                             frame_times[entry['frames'][0]])/100000
+        entry['start_frame'] = entry['frames'][0]
+
+    return final_dict_
 
 def main():
     """Main function"""
