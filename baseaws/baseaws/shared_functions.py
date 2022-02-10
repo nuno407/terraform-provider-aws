@@ -450,6 +450,7 @@ class ContainerServices():
                         'algo_out_id': "-",
                         'source': "MDF",
                         'CHBs': chb_array,
+                        'CHBs_sync': data["video_sync_chb"],
                         'number_CHC_events': "",
                         'lengthCHC': ""
                     }

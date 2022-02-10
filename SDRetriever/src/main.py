@@ -249,7 +249,7 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
     logging.info("sort")
     final_info["frames"] = sorted(aux_list, key=lambda x: int(itemgetter("number")(x)))
     
-    ############################################################################################################
+    ############################################################################################################ FOR DEBUG
 
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
@@ -346,7 +346,7 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
         # Store relative video timestamp for each frame and its corresponding CameraViewBlocked value
         frame_ts_chb[str(delta)] = frame_chb[frame]
 
-    ############################################################################################################
+    ############################################################################################################ FOR DEBUG
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
     concatenated_file = (bytes(json.dumps(frame_ts_chb, ensure_ascii=False, indent=4).encode('UTF-8')))
@@ -362,6 +362,8 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
                                     concatenated_file,
                                     container_services.raw_s3,
                                     key_full_metadata)
+
+    return frame_ts_chb
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
@@ -513,7 +515,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         if response_list['KeyCount'] == 0:
             logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
             metadata_available = "No"
-            return metadata_available
+            video_sync = {}
+            return metadata_available, video_sync
 
         # Cycle through the received list of matching files,
         # download them from S3 and store them on the files_dict dictionary
@@ -590,7 +593,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         #############################################
         #
         logging.info("Generating Video sync info file..\n")
-        generate_sync_data(container_services, s3_client, epoch_from, epoch_to, compact_mdf, stream_name)
+        video_sync = generate_sync_data(container_services, s3_client, epoch_from, epoch_to, compact_mdf, stream_name)
         logging.info("Video sync info file created!\n")
         #
         #############################################
@@ -599,7 +602,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         logging.info("\nWARNING: THe following error occured during the concatenation process:\n")
         logging.info(e)
         metadata_available = "No"
-        return metadata_available
+        video_sync = {}
+        return metadata_available, video_sync
 
     ##################################################################################################
     # Sort frames by number
@@ -626,7 +630,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                                     container_services.raw_s3,
                                     key_full_metadata)
 
-    return metadata_available
+    return metadata_available, video_sync
 
 
 def main():
@@ -670,13 +674,16 @@ def main():
             # Checks if recording received is valid
             if rec_data:
                 # Concatenate all metadata related to processed clip
-                meta_available = concatenate_metadata_full(s3_client,
-                                                           sts_client,
-                                                           container_services,
-                                                           message)
+                meta_available, sync_chbs = concatenate_metadata_full(s3_client,
+                                                                      sts_client,
+                                                                      container_services,
+                                                                      message)
 
                 # Add parameter with info about metadata availability
                 rec_data["MDF_available"] = meta_available
+
+                # Add parameter with video sync data
+                rec_data["video_sync_chb"] = sync_chbs
 
                 # Send message to input queue of metadata container
                 metadata_queue = container_services.sqs_queues_list["Metadata"]
