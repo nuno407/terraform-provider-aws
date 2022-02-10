@@ -267,8 +267,101 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
                                     container_services.raw_s3,
                                     key_full_metadata)
 
-    #################################################################################
+    return final_info
 
+def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data_json, stream_name):
+    """TODO
+
+    Arguments:
+        TODO
+    """
+    # Collect frame data and store it in separate dictionaries
+    frame_ts = {}
+    frame_chb = {}
+
+    for frame in data_json['frames']:
+        # Collect relative timestamp for each frame
+        frame_ts[frame['number']] = frame['timestamp']
+        # Collect CameraViewBlocked value for each frame
+        frame_chb[frame['number']] = frame['CameraViewBlocked']
+
+    ###############################
+    # Convert frame relative timestamps to real epoch timestamp
+    real_frame_ts = {}
+
+    for item in data_json['partial_timestamps']:
+        # Collect reference relative timestamp for the current chunk
+        pts_ref = data_json['partial_timestamps'][item]["pts_start"]
+        # Collect reference real timestamp for the current chunk
+        conv_ref = data_json['partial_timestamps'][item]["converted_time"]
+
+        for frame in data_json['partial_timestamps'][item]["frames_list"]:
+            # Calculate time difference between chunk reference and current frame (relative ts)
+            diff_ref_to_frame = (frame_ts[frame] - pts_ref)/100000
+            # Add calculated difference to the reference real timestamp
+            # (generates real frame datetime)
+            real_frame_dt = datetime.fromtimestamp(conv_ref) + td(seconds=diff_ref_to_frame)
+            # Convert real frame datetime to real epoch timestamp and store it
+            real_frame_ts[frame] = int(real_frame_dt.timestamp()*1000)
+
+    ###############################
+    # Prune frames (select only the frames that are within the video interval)
+    start_to_frame_diff = {}
+    frame_to_end_diff = {}
+
+    for ts in real_frame_ts:
+        # Calculate difference between frame real ts and video start ts
+        diff_to_start = real_frame_ts[ts] - data_json['video']['start']
+        # Calculate difference between frame real ts and video end ts
+        diff_to_end = real_frame_ts[ts] - data_json['video']['end']
+        # Store only the frames that are after the video start ts
+        if diff_to_start >= 0:
+            start_to_frame_diff[ts] = diff_to_start
+        # Store only the frames that are before the video end ts
+        if diff_to_end < 0:
+            frame_to_end_diff[ts] = diff_to_end
+
+    # Determine video frame interval
+    # Calculate nearest frame from video start ts
+    start_frame = min(start_to_frame_diff, key=start_to_frame_diff.get)
+    # Calculate nearest frame from video end ts
+    end_frame = max(frame_to_end_diff, key=frame_to_end_diff.get)
+
+    # Compile all frames that correspond to the video interval
+    video_frames_ts = {frame: real_frame_ts[frame] for frame in real_frame_ts.keys() if frame in list(range(start_frame, end_frame+1))}
+
+    ###############################
+    # Convert real frame timestamps into relative video timestamps (format: H:M:S:ms)
+    frame_ts_chb = {}
+
+    # Generate datetime value for video start timestamp
+    video_start_dt = datetime.fromtimestamp(data_json['video']['start']/1000.0)
+
+    for frame in video_frames_ts:
+        # Generate datetime value for current frame
+        video_frame_dt = datetime.fromtimestamp(video_frames_ts[frame]/1000.0)
+
+        # Calculate delta between datetime values
+        delta = video_frame_dt-video_start_dt
+        # Store relative video timestamp for each frame and its corresponding CameraViewBlocked value
+        frame_ts_chb[str(delta)] = frame_chb[frame]
+
+    ############################################################################################################
+    # Convert concatenated dictionary into json and then into bytes so
+    # that it can be uploaded into the S3 bucket
+    concatenated_file = (bytes(json.dumps(frame_ts_chb, ensure_ascii=False, indent=4).encode('UTF-8')))
+
+    # Defining s3 path to store concatenated metadata full json
+    s3_folder = container_services.sdr_folder
+    s3_file_extension = '_video_sync_info.json'
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
+    # Upload final concatenated file
+    container_services.upload_file(s3_client,
+                                    concatenated_file,
+                                    container_services.raw_s3,
+                                    key_full_metadata)
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
@@ -489,8 +582,16 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         #############################################
         #
         logging.info("Generating metadata debug file..\n")
-        generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
+        compact_mdf = generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
         logging.info("Metadata debug file created!\n")
+        #
+        #############################################
+
+        #############################################
+        #
+        logging.info("Generating Video sync info file..\n")
+        generate_sync_data(container_services, s3_client, epoch_from, epoch_to, compact_mdf, stream_name)
+        logging.info("Video sync info file created!\n")
         #
         #############################################
 
