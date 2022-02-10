@@ -638,47 +638,43 @@ def calculate_chc_periods(compact_mdf):
 
     #################################### Identify frames with cvb and cve equal to 1 #################################################################
 
-    for frame in compact_mdf["frames"]:
-        if frame["cvb"] == "1" or frame["cve"] == "1":
+    for frame in compact_mdf['frames']:
+        if 'cvb' in frame and 'cve' in frame and 'timestamp' in frame and (frame["cvb"] == "1" or frame["cve"] == "1"):
             frames_with_cv.append(frame["number"])
             frame_times[frame["number"]] = frame["timestamp"]
 
-    #################################### Group frames into events ####################################################################################
+    #################################### Group frames into events with tolerance #####################################################################
 
-    from itertools import groupby
-    from operator import itemgetter
-
-    # https://stackoverflow.com/questions/3149440/splitting-list-based-on-missing-numbers-in-a-sequence
-
-    intervals = {}
-
-    for k, g in groupby(enumerate(frames_with_cv), lambda i_x: i_x[0] - i_x[1]):
-        intervals[k] = list(map(itemgetter(1), g))
-
-    #################################### Apply 2 frames tolerance (e.g. 100 -> 102) #########################################################
-    aux_dict = {}
-    list_keys = list(intervals.keys())
-
-    for k, g in groupby(enumerate(list_keys), lambda i_x: i_x[0] - abs(i_x[1])):
-        aux_dict[k] = list(map(itemgetter(1), g))
-
-    count = 0
-    final_dict_ = []
-    for i in aux_dict:
-        final_dict_[count]['frames'] = intervals[aux_dict[i][0]]
-        if len(aux_dict[i]) > 1:
-            for k in range(1, len(aux_dict[i])):
-                final_dict_[count]['frames'] = final_dict_[
-                    count]['frames'] + intervals[aux_dict[i][k]]
-        count += 1
+    frame_groups = group_frames_to_events(frames_with_cv, 2)
 
     #########  Duration calculation  #################################################################################################################
-    for entry in final_dict_:
-        entry['duration'] = (frame_times[entry['frames'][-1]] -
-                             frame_times[entry['frames'][0]])/100000
-        entry['start_frame'] = entry['frames'][0]
+    chc_periods = []
+    for frame_group in frame_groups:
+        entry = {}
+        entry['frames'] = frame_group
+        entry['duration'] = (frame_times[frame_group[-1]] -
+                             frame_times[frame_group[0]])/100000
+        entry['start_frame'] = frame_group[0]
+        chc_periods.append(entry)
 
-    return final_dict_
+    return chc_periods
+
+
+def group_frames_to_events(frames, tolerance):
+    groups = []
+
+    if len(frames) < 1:
+        return groups
+
+    entry = []
+    for i in range(0, len(frames)):
+        entry.append(frames[i])
+        if i == (len(frames) - 1) or abs(frames[i + 1] - frames[i]) > tolerance:
+            groups.append(entry)
+            entry = []
+
+    return groups
+
 
 def main():
     """Main function"""
