@@ -633,10 +633,11 @@ class ContainerServices():
             frame_chb = {}
 
             for frame in result_info['frame']:
-                # Collect relative timestamp for each frame
-                frame_ts[frame['number']] = frame['timestamp64']
 
                 if 'objectlist' in frame.keys():
+                    # Collect relative timestamp for each frame
+                    frame_ts[frame['number']] = frame['timestamp64']
+
                     for item in frame['objectlist']:
                         # Check for item with ID = 1
                         # (it has the CameraViewBlocked info)
