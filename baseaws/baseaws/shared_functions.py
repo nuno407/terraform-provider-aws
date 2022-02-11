@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import timedelta as td, datetime
 import pytz
 import boto3
 from pymongo import MongoClient, errors
@@ -587,6 +587,7 @@ class ContainerServices():
             # Build default results structure
             item_db['results'] = {
                                     'CHBs': [],
+                                    'CHBs_sync': {},
                                     'number_CHC_events': "",
                                     'lengthCHC': ""
                                 }
@@ -623,11 +624,52 @@ class ContainerServices():
             # Add array from ivs_chain metadata file to created item
             item_db['results']['CHBs'] = chb_array
 
+            ############################################################################################################################################################################################################################
+            ############################################################################################################################################################################################################################
+
+
+            # Collect frame data and store it in separate dictionaries
+            frame_ts = {}
+            frame_chb = {}
+
+            for frame in result_info['frame']:
+                # Collect relative timestamp for each frame
+                frame_ts[frame['number']] = frame['timestamp64']
+
+                if 'objectlist' in frame.keys():
+                    for item in frame['objectlist']:
+                        # Check for item with ID = 1
+                        # (it has the CameraViewBlocked info)
+                        if item['id'] == '1':
+                            frame_chb[frame['number']] = item['floatAttributes'][0]['value']
+
+
+
+            frame_ref_ts = int(frame_ts[list(frame_ts.keys())[0]])
+            x = datetime.fromtimestamp(frame_ref_ts/1000.0)
+            ###############################
+
+            frame_ts_chb = {}
+
+            for frame, value_ts in frame_ts.items():
+                y = datetime.fromtimestamp(int(value_ts)/1000.0)
+                z = str(y-x)
+                video_ts = z.replace(".", ":")
+                frame_ts_chb[z] = float(frame_chb[frame])
+
+
+            # Add video sync data processed from ivs_chain metadata file to created item
+            item_db['results']['CHBs_sync'] = frame_ts_chb
+
+            ############################################################################################################################################################################################################################
+            ############################################################################################################################################################################################################################
+
             # Add array from CHC output file to recording DB item
             chc_data = {
                         'algo_out_id': run_id,
                         'source': "CHC",
                         'CHBs': chb_array,
+                        'CHBs_sync': frame_ts_chb,
                         'number_CHC_events': "",
                         'lengthCHC': ""
                        }
