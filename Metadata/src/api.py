@@ -1060,19 +1060,16 @@ class VideoFeed(Resource):
                 #logging.info(item['processing_list'])
                 #logging.info(record_item_details['recording_overview']['#snapshots'])
 
-
-                for chbs in record_item_details['results_CHC']:
-                    #logging.info(chbs['number_CHC_events'])      
-                    #logging.info(chbs['lengthCHC']) 
+                table_data_dict['number_CHC_events'] = ''      
+                table_data_dict['lengthCHC'] = ''
+                for chc_result in record_item_details['results_CHC']:
                     try:
-                        table_data_dict['number_CHC_events'] = chbs['number_CHC_events']
-                        table_data_dict['lengthCHC'] = chbs['lengthCHC'] 
+                        number_chc, duration_chc = calculate_chc_events(chc_result['CHC_periods'])
+                        table_data_dict['number_CHC_events'] = number_chc
+                        table_data_dict['lengthCHC'] = duration_chc
                     
                     except Exception as e:
-                        #logging.info("number_CHC_events empty")
-                        #logging.info(e)
-                        table_data_dict['number_CHC_events'] = ''      
-                        table_data_dict['lengthCHC'] = '' 
+                        logging.info("No CHC periods present")
 
 
                 #logging.info(item['data_status'])                
@@ -1115,6 +1112,16 @@ class VideoFeed(Resource):
         except Exception as e:
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+def calculate_chc_events(chc_periods):
+    duration = 0.0
+    number = 0
+    for period in chc_periods:
+        duration += period['duration']
+        if period['duration'] >= 10.0:
+            number += 1
+
+    return number, duration
 
 
 # Custom model for getAllUrls code 200 response (Swagger documentation)

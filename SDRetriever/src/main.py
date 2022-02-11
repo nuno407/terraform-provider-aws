@@ -654,7 +654,6 @@ def calculate_chc_periods(compact_mdf):
         entry['frames'] = frame_group
         entry['duration'] = (frame_times[frame_group[-1]] -
                              frame_times[frame_group[0]])/100000
-        entry['start_frame'] = frame_group[0]
         chc_periods.append(entry)
 
     return chc_periods
