@@ -656,7 +656,7 @@ class ContainerServices():
                 y = datetime.fromtimestamp(int(value_ts)/1000.0)
                 z = str(y-x)
                 video_ts = z.replace(".", ":")
-                frame_ts_chb[z] = float(frame_chb[frame])
+                frame_ts_chb[video_ts] = float(frame_chb[frame])
 
 
             # Add video sync data processed from ivs_chain metadata file to created item
