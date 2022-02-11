@@ -450,10 +450,25 @@ class ContainerServices():
                         'algo_out_id': "-",
                         'source': "MDF",
                         'CHBs': chb_array,
-                        'CHBs_sync': data["video_sync_chb"],
+                        'CHBs_sync': {},
                         'number_CHC_events': "",
                         'lengthCHC': ""
                     }
+
+            # Add sync data if available
+            if data["sync_file_ext"]:
+                s3_key = video_key.split(".")[0] + data["sync_file_ext"]
+
+                # Download metadata json file
+                response = s3_client.get_object(
+                                                Bucket=s3_bucket,
+                                                Key=s3_key
+                                            )
+
+                # Decode and convert file contents into json format
+                result_sync = json.loads(response['Body'].read().decode("utf-8"))
+
+                mdf_data['CHBs_sync'] = result_sync
 
             item_db['results_CHC'].append(mdf_data)
 
@@ -647,15 +662,15 @@ class ContainerServices():
 
 
             frame_ref_ts = int(frame_ts[list(frame_ts.keys())[0]])
-            x = datetime.fromtimestamp(frame_ref_ts/1000.0)
+            frame_ref_dt = datetime.fromtimestamp(frame_ref_ts/1000.0)
             ###############################
 
             frame_ts_chb = {}
 
             for frame, value_ts in frame_ts.items():
-                y = datetime.fromtimestamp(int(value_ts)/1000.0)
-                z = str(y-x)
-                video_ts = z.replace(".", ":")
+                frame_dt = datetime.fromtimestamp(int(value_ts)/1000.0)
+                delta = str(frame_dt-frame_ref_dt)
+                video_ts = delta.replace(".", ":")
                 frame_ts_chb[video_ts] = float(frame_chb[frame])
 
 
