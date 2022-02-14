@@ -451,9 +451,8 @@ class ContainerServices():
                         'source': "MDF",
                         'CHBs': chb_array,
                         'CHBs_sync': {},
-                        'number_CHC_events': "",
-                        'lengthCHC': ""
-                    }
+                        'CHC_periods': result_info['chc_periods']
+                       }
 
             # Add sync data if available
             if data["sync_file_ext"]:

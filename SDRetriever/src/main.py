@@ -175,7 +175,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     return record_data
 
-def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
+def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
     """TODO
 
     Arguments:
@@ -553,12 +553,15 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     final_dict['chunk'] = {
                             "pts_start": min(starts_list),
                             "pts_end": max(ends_list)
-                        }
+                        }                        
+
+    #############################################
+    compact_mdf = {}
+    #############################################
 
     #############################################
     # Frames Concatenation Process
     try:
-        logging.info("\nGenerating metadata full file..")
         final_dict['frame'] = []
         for m in files_dict:
             for current_frame in files_dict[m]['frame']:
@@ -567,23 +570,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         # Sort frames by number
         newlist = sorted(final_dict["frame"], key=lambda x: int(itemgetter("number")(x)))
         final_dict["frame"] = newlist
-
-        # Convert concatenated dictionary into json and then into bytes so
-        # that it can be uploaded into the S3 bucket
-        concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
-
-        # Defining s3 path to store concatenated metadata full json
-        s3_folder = container_services.sdr_folder
-        s3_file_extension = '_metadata_full.json'
-        s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-        key_full_metadata = s3_folder + s3_filename + s3_file_extension
-
-        # Upload final concatenated file
-        container_services.upload_file(s3_client,
-                                        concatenated_file,
-                                        container_services.raw_s3,
-                                        key_full_metadata)
-        logging.info("Metadata full file created!\n")
 
     except Exception as e:
         logging.info("\nWARNING: The following error occured during the concatenation process:\n")
@@ -596,19 +582,19 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Generate and store compact mdf json
     try:
         logging.info("Generating metadata compact file..")
-        compact_mdf = generate_mdf_metadata(container_services,
-                                            s3_client,
-                                            epoch_from,
-                                            epoch_to,
-                                            files_dict,
-                                            stream_name)
+        compact_mdf = generate_compact_mdf_metadata(container_services,
+                                                    s3_client,
+                                                    epoch_from,
+                                                    epoch_to,
+                                                    files_dict,
+                                                    stream_name)
         logging.info("Metadata compact file created!\n")
 
     except Exception as e:
         logging.info("\nWARNING: The following error occured during the processing of the compact metadata:\n")
         logging.info(e)
+        logging.info("WARNING: Metadata compact not file created!\n")
         sync_file_ext = ""
-        return metadata_available, sync_file_ext
     
     #############################################
     # Generate and store video sync json
@@ -625,9 +611,77 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     except Exception as e:
         logging.info("\nWARNING: The following error occured during the video data sync process:\n")
         logging.info(e)
+        logging.info("WARNING: Video sync info file not file created!\n")
         sync_file_ext = ""
 
+    ##########################################
+    if compact_mdf:
+        # Add CHC event periods to MDF file
+        final_dict['chc_periods'] = calculate_chc_periods(compact_mdf)
+    else:
+        final_dict['chc_periods'] = []
+
+    logging.info("Generating metadata full file..")
+    # Convert concatenated dictionary into json and then into bytes so
+    # that it can be uploaded into the S3 bucket
+    concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
+
+    # Defining s3 path to store concatenated metadata full json
+    s3_folder = container_services.sdr_folder
+    s3_file_extension = '_metadata_full.json'
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+    key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
+    # Upload final concatenated file
+    container_services.upload_file(s3_client,
+                                    concatenated_file,
+                                    container_services.raw_s3,
+                                    key_full_metadata)
+    logging.info("Metadata full file created!\n")
+    ##########################################
+
     return metadata_available, sync_file_ext
+
+def calculate_chc_periods(compact_mdf):
+    frames_with_cv = []
+    frame_times = {}
+
+    #################################### Identify frames with cvb and cve equal to 1 #################################################################
+
+    for frame in compact_mdf['frames']:
+        if 'cvb' in frame and 'cve' in frame and 'timestamp' in frame and (frame["cvb"] == "1" or frame["cve"] == "1"):
+            frames_with_cv.append(frame["number"])
+            frame_times[frame["number"]] = frame["timestamp"]
+
+    #################################### Group frames into events with tolerance #####################################################################
+
+    frame_groups = group_frames_to_events(frames_with_cv, 2)
+
+    #########  Duration calculation  #################################################################################################################
+    chc_periods = []
+    for frame_group in frame_groups:
+        entry = {}
+        entry['frames'] = frame_group
+        entry['duration'] = (frame_times[frame_group[-1]] -
+                             frame_times[frame_group[0]])/100000
+        chc_periods.append(entry)
+
+    return chc_periods
+
+def group_frames_to_events(frames, tolerance):
+    groups = []
+
+    if len(frames) < 1:
+        return groups
+
+    entry = []
+    for i in range(0, len(frames)):
+        entry.append(frames[i])
+        if i == (len(frames) - 1) or abs(frames[i + 1] - frames[i]) > tolerance:
+            groups.append(entry)
+            entry = []
+
+    return groups
 
 
 def main():
