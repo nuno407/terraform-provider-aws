@@ -8,7 +8,7 @@ import subprocess
 from operator import itemgetter
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v4.2"      # Version of the current container
+CONTAINER_VERSION = "v5.0"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -199,8 +199,6 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
 
         aux_frames_list = []
 
-        logging.info("Partial timestamps")
-
         # Partial timestamps  ###############################################
         first_split = files_dict[partial_mdf]["filename"].split("._stream2_")
         second_split = first_split[1].split("_")
@@ -209,9 +207,6 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
         # Convert into datetime and then into epoch timestamp
         datetime_object = datetime.strptime(human_timestamp, "%Y%m%d%H%M%S")
         chunk_epoch_start = int(datetime_object.timestamp())
-        ######################################################################
-
-        logging.info("Frames")
 
         # Frames  ###########################################################
         for frame in files_dict[partial_mdf]["frame"]:
@@ -235,10 +230,7 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
             if key_set.issubset(frame_data.keys()) or debug_mode:
                 aux_list.append(frame_data)
 
-        ###########################################################################
-
-        logging.info("final_info")
-
+        # Partial timestamps full info #########################################
         final_info["partial_timestamps"][human_timestamp] = {
             "filename": files_dict[partial_mdf]["filename"], 
             "pts_start": int(files_dict[partial_mdf]["chunk"]["pts_start"]),
@@ -246,10 +238,7 @@ def generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, f
             "frames_list": aux_frames_list
         }
 
-    logging.info("sort")
     final_info["frames"] = sorted(aux_list, key=lambda x: int(itemgetter("number")(x)))
-    
-    ############################################################################################################ FOR DEBUG
 
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
@@ -559,16 +548,6 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         starts_list.append(int(files_dict[item]['chunk']['pts_start']))
         ends_list.append(int(files_dict[item]['chunk']['pts_end']))
 
-    #############################################
-    # DEBUG LOGS
-    logging.info("DEBUG LOGS ############")
-    logging.info("starts_list:")
-    logging.info(starts_list)
-    logging.info("ends_list:")
-    logging.info(ends_list)
-    logging.info("END OF DEBUG LOGS ############")
-    #############################################
-
     # Defines chunk start point as the lowest starting timestamp and
     # end point as the highest ending timestamp
     final_dict['chunk'] = {
@@ -576,60 +555,77 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                             "pts_end": max(ends_list)
                         }
 
+    #############################################
     # Frames Concatenation Process
     try:
+        logging.info("\nGenerating metadata full file..")
         final_dict['frame'] = []
         for m in files_dict:
             for current_frame in files_dict[m]['frame']:
                 final_dict['frame'].append(current_frame)
 
-        #############################################
-        #
-        logging.info("Generating metadata debug file..\n")
-        compact_mdf = generate_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name)
-        logging.info("Metadata debug file created!\n")
-        #
-        #############################################
+        # Sort frames by number
+        newlist = sorted(final_dict["frame"], key=lambda x: int(itemgetter("number")(x)))
+        final_dict["frame"] = newlist
 
-        #############################################
-        #
-        logging.info("Generating Video sync info file..\n")
-        sync_file_ext = generate_sync_data(container_services, s3_client, epoch_from, epoch_to, compact_mdf, stream_name)
-        logging.info("Video sync info file created!\n")
-        #
-        #############################################
+        # Convert concatenated dictionary into json and then into bytes so
+        # that it can be uploaded into the S3 bucket
+        concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
+
+        # Defining s3 path to store concatenated metadata full json
+        s3_folder = container_services.sdr_folder
+        s3_file_extension = '_metadata_full.json'
+        s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
+        key_full_metadata = s3_folder + s3_filename + s3_file_extension
+
+        # Upload final concatenated file
+        container_services.upload_file(s3_client,
+                                        concatenated_file,
+                                        container_services.raw_s3,
+                                        key_full_metadata)
+        logging.info("Metadata full file created!\n")
 
     except Exception as e:
-        logging.info("\nWARNING: THe following error occured during the concatenation process:\n")
+        logging.info("\nWARNING: The following error occured during the concatenation process:\n")
         logging.info(e)
         metadata_available = "No"
         sync_file_ext = ""
         return metadata_available, sync_file_ext
 
-    ##################################################################################################
-    # Sort frames by number
-    newlist = sorted(final_dict["frame"], key=lambda x: int(itemgetter("number")(x)))
+    #############################################
+    # Generate and store compact mdf json
+    try:
+        logging.info("Generating metadata compact file..")
+        compact_mdf = generate_mdf_metadata(container_services,
+                                            s3_client,
+                                            epoch_from,
+                                            epoch_to,
+                                            files_dict,
+                                            stream_name)
+        logging.info("Metadata compact file created!\n")
 
-    final_dict["frame"] = newlist
-    ##################################################################################################
-
-    # Convert concatenated dictionary into json and then into bytes so
-    # that it can be uploaded into the S3 bucket
-    concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
+    except Exception as e:
+        logging.info("\nWARNING: The following error occured during the processing of the compact metadata:\n")
+        logging.info(e)
+        sync_file_ext = ""
+        return metadata_available, sync_file_ext
     
-    #################################################################################
+    #############################################
+    # Generate and store video sync json
+    try:
+        logging.info("Generating Video sync info file..")
+        sync_file_ext = generate_sync_data(container_services,
+                                           s3_client,
+                                           epoch_from,
+                                           epoch_to,
+                                           compact_mdf,
+                                           stream_name)
+        logging.info("Video sync info file created!\n")
 
-    # Defining s3 path to store concatenated metadata full json
-    s3_folder = container_services.sdr_folder
-    s3_file_extension = '_metadata_full.json'
-    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    key_full_metadata = s3_folder + s3_filename + s3_file_extension
-
-    # Upload final concatenated file
-    container_services.upload_file(s3_client,
-                                    concatenated_file,
-                                    container_services.raw_s3,
-                                    key_full_metadata)
+    except Exception as e:
+        logging.info("\nWARNING: The following error occured during the video data sync process:\n")
+        logging.info(e)
+        sync_file_ext = ""
 
     return metadata_available, sync_file_ext
 

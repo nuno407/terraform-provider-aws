@@ -877,7 +877,7 @@ get_chbs_200_model = api.model("Get_chbs_200", {
 })
 
 @api.route('/getAllCHBs')
-class VideoFeed(Resource):
+class AllCHBs(Resource):
     @api.response(200, 'Success', get_chbs_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
@@ -934,7 +934,77 @@ class VideoFeed(Resource):
             logging.info(e)
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
+# Custom model for getCHBData code 200 response (Swagger documentation)
+chbdata_nest_model = api.model("chbdata_nest", {
+    'item_1_id': fields.String(example="{'0:00:01:750000': 0.00265299,'0:00:02:666000': 0.00325521}"),
+    'item_2_id': fields.String(example="{'0:00:00:750000': 0.00333597,'0:00:01:582000': 0.00404188}"),
+})
 
+get_chbdata_200_model = api.model("Get_chbdata_200", {
+    'message': fields.Nested(chbdata_nest_model),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getCHBData')
+class CHBData(Resource):
+    @api.response(200, 'Success', get_chbdata_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self):
+        """
+        Returns the video timestamps and corresponding Camera View Blocked values
+        available for each DB item
+        """
+        try:
+            # Define DB collection to get recording info from
+            collection_rec = container_services.db_tables["recording"]
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            # Specify the collection to be used
+            col = db[collection_rec]
+
+            # Get all recording items available on DB
+            items_list = list(col.find())
+
+            # Close the connection
+            client.close()
+
+            # Dictionary to be returned as API response message
+            response_msg = {}
+
+            # Collect dictionary containing timestamps + CHBs values from each item         
+            for item in items_list:
+                # Create temporary dictionary that will hold the sync data
+                # of a given item
+                chb_dict = {}
+
+                for CHCs_item in item['results_CHC']:   
+                    if CHCs_item['source'] == "MDF":
+                        # Retrieve sync info from MDF source
+                        chb_dict["MDF"] = CHCs_item['CHBs_sync']
+                    else:    
+                        # Retrieve sync info from other sources               
+                        chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
+
+                response_msg[item['_id']] = chb_dict
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError) as e:
+            logging.info(e)
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as e:
+            logging.info(e)
+            api.abort(400, message=str(e), statusCode = "400")
+        except Exception as e:
+            logging.info(e)
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getVideoCHC endpoint (Swagger documentation)
 videochc_parser = reqparse.RequestParser()
@@ -947,7 +1017,7 @@ get_videochc_200_model = api.model("Video_CHC_200", {
 })
 
 @api.route('/getVideoCHC/<string:videoID>')
-class VideoFeed(Resource):
+class VideoCHC(Resource):
     @api.response(200, 'Success', get_videochc_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
@@ -1012,7 +1082,7 @@ get_tabledata_200_model = api.model("Get_tabledata_200", {
 })
 
 @api.route('/getTableData')
-class VideoFeed(Resource):
+class TableData(Resource):
     @api.response(200, 'Success', get_tabledata_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
@@ -1134,7 +1204,7 @@ get_urls_200_model = api.model("Get_urls_200", {
 })
 
 @api.route('/getAllUrls')
-class VideoFeed(Resource):
+class AllUrls(Resource):
     @api.response(200, 'Success', get_urls_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
