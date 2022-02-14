@@ -91,7 +91,11 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     sts_session = "AssumeRoleSession1"
     
     # Defining s3 path to store KVS clip
-    s3_folder = container_services.sdr_folder
+    if "driverpr" in stream_name:
+        s3_folder = container_services.sdr_folder['driver_pr']
+    else:
+        s3_folder = container_services.sdr_folder['debug']
+
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     s3_path = s3_folder + s3_filename + clip_ext
 
@@ -245,7 +249,11 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
     concatenated_file = (bytes(json.dumps(final_info, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    s3_folder = container_services.sdr_folder
+    if "driverpr" in stream_name:
+        s3_folder = container_services.sdr_folder['driver_pr']
+    else:
+        s3_folder = container_services.sdr_folder['debug']
+
     s3_file_extension = '_compact_mdf.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     key_full_metadata = s3_folder + s3_filename + s3_file_extension
@@ -342,7 +350,11 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
     concatenated_file = (bytes(json.dumps(frame_ts_chb, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    s3_folder = container_services.sdr_folder
+    if "driverpr" in stream_name:
+        s3_folder = container_services.sdr_folder['driver_pr']
+    else:
+        s3_folder = container_services.sdr_folder['debug']
+
     s3_file_extension = '_video_sync_info.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     key_full_metadata = s3_folder + s3_filename + s3_file_extension
@@ -627,7 +639,11 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    s3_folder = container_services.sdr_folder
+    if "driverpr" in stream_name:
+        s3_folder = container_services.sdr_folder['driver_pr']
+    else:
+        s3_folder = container_services.sdr_folder['debug']
+
     s3_file_extension = '_metadata_full.json'
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     key_full_metadata = s3_folder + s3_filename + s3_file_extension

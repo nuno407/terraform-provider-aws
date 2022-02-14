@@ -23,7 +23,7 @@ class ContainerServices():
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
         self.__docdb_whitelist = {}
-        self.__sdr_folder = ""
+        self.__sdr_folder = {}
         self.__sdr_blacklist = {}
         self.__rcc_info = {}
         self.__ivs_api = {}
@@ -174,7 +174,7 @@ class ContainerServices():
         # List of all parameters whitelisted for docdb queries
         self.__docdb_whitelist = dict_body['docdb_key_whitelists']
 
-        # Name of the Raw S3 bucket folder where to store RCC KVS clips
+        # Name of the Raw S3 bucket folders where to store RCC KVS clips
         self.__sdr_folder = dict_body['sdr_dest_folder']
 
         # Dictionary containing the tenant blacklists for processing and storage of RCC clips
