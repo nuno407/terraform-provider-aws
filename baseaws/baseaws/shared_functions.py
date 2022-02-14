@@ -451,8 +451,12 @@ class ContainerServices():
                         'source': "MDF",
                         'CHBs': chb_array,
                         'CHBs_sync': {},
-                        'CHC_periods': result_info['chc_periods']
+                        'CHC_periods': []
                        }
+
+            # NOTE: Condition added due to some MDF files still not having this info 
+            if 'chc_periods' in result_info:
+                mdf_data['CHC_periods'] = result_info['chc_periods']
 
             # Add sync data if available
             if data["sync_file_ext"]:

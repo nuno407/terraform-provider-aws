@@ -985,13 +985,16 @@ class CHBData(Resource):
                 # of a given item
                 chb_dict = {}
 
-                for CHCs_item in item['results_CHC']:   
-                    if CHCs_item['source'] == "MDF":
-                        # Retrieve sync info from MDF source
-                        chb_dict["MDF"] = CHCs_item['CHBs_sync']
-                    else:    
-                        # Retrieve sync info from other sources               
-                        chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
+                for CHCs_item in item['results_CHC']: 
+                    try:  
+                        if CHCs_item['source'] == "MDF":
+                            # Retrieve sync info from MDF source
+                            chb_dict["MDF"] = CHCs_item['CHBs_sync']
+                        else:    
+                            # Retrieve sync info from other sources               
+                            chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
+                    except Exception as e:
+                        pass
 
                 response_msg[item['_id']] = chb_dict
 
@@ -1139,7 +1142,8 @@ class TableData(Resource):
                         table_data_dict['lengthCHC'] = duration_chc
                     
                     except Exception as e:
-                        logging.info("No CHC periods present")
+                        #logging.info("No CHC periods present")
+                        pass
 
 
                 #logging.info(item['data_status'])                
