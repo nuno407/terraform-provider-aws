@@ -478,13 +478,19 @@ class ContainerServices():
         try:
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
-
-        except Exception as e:
+            # Create logs message
+            logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
+        except errors.DuplicateKeyError as e:
+            # Re-write item (necessary in rare cases SDRetriever message
+            # arrives after SDM update -> item already exists so needs to be replaced)
+            table_rec.replace_one({'_id': data["_id"]}, item_db)
+            # Create logs message
+            logging.info("[%s]  Recording DB item (Id: %s) replaced!", timestamp, data["_id"])
             logging.info(e)
-            table_rec.update_one({'_id': data["_id"]}, item_db)
+        except Exception as e:
+            logging.info("Warning: Unable to create or replace recording item for id: %s", data["_id"])
+            logging.info(e)
 
-        # Create logs message
-        logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
 
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
