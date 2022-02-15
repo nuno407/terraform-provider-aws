@@ -91,7 +91,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     sts_session = "AssumeRoleSession1"
     
     # Defining s3 path to store KVS clip
-    if "driverpr" in stream_name:
+    if "srxdriverpr" in stream_name:
         s3_folder = container_services.sdr_folder['driver_pr']
     else:
         s3_folder = container_services.sdr_folder['debug']
@@ -249,7 +249,7 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
     concatenated_file = (bytes(json.dumps(final_info, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    if "driverpr" in stream_name:
+    if "srxdriverpr" in stream_name:
         s3_folder = container_services.sdr_folder['driver_pr']
     else:
         s3_folder = container_services.sdr_folder['debug']
@@ -350,7 +350,7 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
     concatenated_file = (bytes(json.dumps(frame_ts_chb, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    if "driverpr" in stream_name:
+    if "srxdriverpr" in stream_name:
         s3_folder = container_services.sdr_folder['driver_pr']
     else:
         s3_folder = container_services.sdr_folder['debug']
@@ -365,7 +365,7 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
                                     container_services.raw_s3,
                                     key_full_metadata)
 
-    return s3_file_extension
+    return s3_file_extension, start_frame, end_frame
 
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
@@ -569,6 +569,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     #############################################
     compact_mdf = {}
+    start_frame = 0
+    end_frame = 0
     #############################################
 
     #############################################
@@ -612,12 +614,12 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # Generate and store video sync json
     try:
         logging.info("Generating Video sync info file..")
-        sync_file_ext = generate_sync_data(container_services,
-                                           s3_client,
-                                           epoch_from,
-                                           epoch_to,
-                                           compact_mdf,
-                                           stream_name)
+        sync_file_ext, start_frame, end_frame = generate_sync_data(container_services,
+                                                                   s3_client,
+                                                                   epoch_from,
+                                                                   epoch_to,
+                                                                   compact_mdf,
+                                                                   stream_name)
         logging.info("Video sync info file created!\n")
 
     except Exception as e:
@@ -627,9 +629,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         sync_file_ext = ""
 
     ##########################################
-    if compact_mdf:
+    if compact_mdf and end_frame != 0:
         # Add CHC event periods to MDF file
-        final_dict['chc_periods'] = calculate_chc_periods(compact_mdf)
+        final_dict['chc_periods'] = calculate_chc_periods(compact_mdf, start_frame, end_frame)
     else:
         final_dict['chc_periods'] = []
 
@@ -639,7 +641,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     concatenated_file = (bytes(json.dumps(final_dict, ensure_ascii=False, indent=4).encode('UTF-8')))
 
     # Defining s3 path to store concatenated metadata full json
-    if "driverpr" in stream_name:
+    if "srxdriverpr" in stream_name:
         s3_folder = container_services.sdr_folder['driver_pr']
     else:
         s3_folder = container_services.sdr_folder['debug']
@@ -658,7 +660,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     return metadata_available, sync_file_ext
 
-def calculate_chc_periods(compact_mdf):
+def calculate_chc_periods(compact_mdf, start_frame, end_frame):
     frames_with_cv = []
     frame_times = {}
 
@@ -666,8 +668,9 @@ def calculate_chc_periods(compact_mdf):
 
     for frame in compact_mdf['frames']:
         if 'cvb' in frame and 'cve' in frame and 'timestamp' in frame and (frame["cvb"] == "1" or frame["cve"] == "1"):
-            frames_with_cv.append(frame["number"])
-            frame_times[frame["number"]] = frame["timestamp"]
+            if frame["number"] >= start_frame and frame["number"] <= end_frame:
+                frames_with_cv.append(frame["number"])
+                frame_times[frame["number"]] = frame["timestamp"]
 
     #################################### Group frames into events with tolerance #####################################################################
 
