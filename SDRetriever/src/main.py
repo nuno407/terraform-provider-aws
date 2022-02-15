@@ -292,30 +292,31 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
         conv_ref = data_json['partial_timestamps'][item]["converted_time"]
 
         for frame in data_json['partial_timestamps'][item]["frames_list"]:
-            # Calculate time difference between chunk reference and current frame (relative ts)
-            diff_ref_to_frame = (frame_ts[frame] - pts_ref)/100000
-            # Add calculated difference to the reference real timestamp
-            # (generates real frame datetime)
-            real_frame_dt = datetime.fromtimestamp(conv_ref) + td(seconds=diff_ref_to_frame)
-            # Convert real frame datetime to real epoch timestamp and store it
-            real_frame_ts[frame] = int(real_frame_dt.timestamp()*1000)
+            if frame in frame_ts.keys():
+                # Calculate time difference between chunk reference and current frame (relative ts)
+                diff_ref_to_frame = (frame_ts[frame] - pts_ref)/100000
+                # Add calculated difference to the reference real timestamp
+                # (generates real frame datetime)
+                real_frame_dt = datetime.fromtimestamp(conv_ref) + td(seconds=diff_ref_to_frame)
+                # Convert real frame datetime to real epoch timestamp and store it
+                real_frame_ts[frame] = int(real_frame_dt.timestamp()*1000)
 
     ###############################
     # Prune frames (select only the frames that are within the video interval)
     start_to_frame_diff = {}
     frame_to_end_diff = {}
 
-    for ts in real_frame_ts:
+    for tstamp in real_frame_ts:
         # Calculate difference between frame real ts and video start ts
-        diff_to_start = real_frame_ts[ts] - data_json['video']['start']
+        diff_to_start = real_frame_ts[tstamp] - data_json['video']['start']
         # Calculate difference between frame real ts and video end ts
-        diff_to_end = real_frame_ts[ts] - data_json['video']['end']
+        diff_to_end = real_frame_ts[tstamp] - data_json['video']['end']
         # Store only the frames that are after the video start ts
         if diff_to_start >= 0:
-            start_to_frame_diff[ts] = diff_to_start
+            start_to_frame_diff[tstamp] = diff_to_start
         # Store only the frames that are before the video end ts
         if diff_to_end < 0:
-            frame_to_end_diff[ts] = diff_to_end
+            frame_to_end_diff[tstamp] = diff_to_end
 
     # Determine video frame interval
     # Calculate nearest frame from video start ts
