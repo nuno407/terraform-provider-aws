@@ -545,6 +545,15 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                 # Increase counter for number of files received
                 chunks_total += 1
 
+    # Check if there are partial chunk MDF files
+    if not files_dict or chunks_total == 0:
+        logging.info("\nWARNING: No valid metadata files with prefix: %s were found!!\n", key_prefix)
+        logging.info("Please check files_dict dictionary content below:\n")
+        logging.info(files_dict)
+        metadata_available = "No"
+        sync_file_ext = ""
+        return metadata_available, sync_file_ext
+
     # Initialise dictionary that will comprise all concatenated info
     final_dict = {}
 
