@@ -185,7 +185,6 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
     Arguments:
         TODO
     """
-    debug_mode = True
     aux_list = []
 
     key_set = set(("CameraViewBlocked", "cvb", "cve"))
@@ -231,7 +230,7 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
                     if item['id'] == '5':
                         frame_data["cve"] = item['floatAttributes'][0]['value']
                         
-            if key_set.issubset(frame_data.keys()) or debug_mode:
+            if key_set.issubset(frame_data.keys()):
                 aux_list.append(frame_data)
 
         # Partial timestamps full info #########################################
@@ -607,7 +606,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     except Exception as e:
         logging.info("\nWARNING: The following error occured during the processing of the compact metadata:\n")
         logging.info(e)
-        logging.info("WARNING: Metadata compact not file created!\n")
+        logging.info("WARNING: Metadata compact file not created!\n")
         sync_file_ext = ""
     
     #############################################
@@ -625,7 +624,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     except Exception as e:
         logging.info("\nWARNING: The following error occured during the video data sync process:\n")
         logging.info(e)
-        logging.info("WARNING: Video sync info file not file created!\n")
+        logging.info("WARNING: Video sync info file not created!\n")
         sync_file_ext = ""
 
     ##########################################
