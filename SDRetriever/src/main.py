@@ -8,7 +8,7 @@ import subprocess
 from operator import itemgetter
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
-CONTAINER_VERSION = "v5.0"      # Version of the current container
+CONTAINER_VERSION = "v5.1"      # Version of the current container
 
 
 def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
@@ -55,18 +55,17 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     device = dict_attr['deviceId']['Value']
 
     record_data = {}
-
+    hq_request = {}
 
     ###########################################
     #DEBUG
     tenant = dict_attr['tenant']['Value']
     if tenant == "TEST_TENANT":
-        logging.info("\nWARNING: Message skipped (TEST_TENANT | %s)", dict_body['streamName'])
-        return record_data
+        logging.info("WARNING: Message skipped (TEST_TENANT | %s)", dict_body['streamName'])
+        return record_data, hq_request
 
     logging.info(message)
     ##########################################
-
 
     try:
         # Info from received message
@@ -82,7 +81,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         logging.info("\n######################## Exception #########################")
         logging.exception("ERROR: Message (id: %s) contains unsupported info!", message['MessageId'])
         logging.info("############################################################\n")
-        return record_data
+        return record_data, hq_request
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
@@ -110,7 +109,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Skips processing if video file is a duplicate
     if response_list['KeyCount'] > 0:
         logging.info("\nWARNING: Recording (path: %s) already exists on the S3 bucket and will be skipped!!\n", s3_path)
-        return record_data
+        return record_data, hq_request
 
     # Requests credentials to assume specific cross-account role
     assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
@@ -129,7 +128,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         logging.info("\n######################## Exception #########################")
         logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
         logging.info("############################################################\n")
-        return record_data
+        return record_data, hq_request
 
     # Upload video clip into raw data S3 bucket
     container_services.upload_file(s3_client,
@@ -178,7 +177,15 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                          'snapshots_paths': {}
                                         }
 
-    return record_data
+    # Generate dictionary with info to send to Selector container for
+    # HQ data request
+    hq_request = {
+                  "streamName": stream_name,
+                  "footageFrom": epoch_from,
+                  "footageTo": epoch_to
+                }
+
+    return record_data, hq_request
 
 def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
     """TODO
@@ -749,10 +756,20 @@ def main():
 
         if message:
             # Get and store kinesis video clip
-            rec_data = transfer_kinesis_clip(s3_client,
-                                             sts_client,
-                                             container_services,
-                                             message)
+            rec_data, hq_data = transfer_kinesis_clip(s3_client,
+                                                      sts_client,
+                                                      container_services,
+                                                      message)
+
+            # Checks if recording received is valid for
+            # HQ data request
+            if hq_data:
+                # Send message to secondary input queue (HQ_Request)
+                # of Selector container
+                hq_selector_queue = container_services.sqs_queues_list["HQ_Selector"]
+                container_services.send_message(sqs_client,
+                                                hq_selector_queue,
+                                                hq_data)
 
             # Checks if recording received is valid
             if rec_data:
