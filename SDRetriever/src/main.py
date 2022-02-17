@@ -79,7 +79,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         end_time = datetime.fromtimestamp(epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
 
     except Exception as e:
-        logging.info("\nWARNING: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
+        logging.info("\ERROR: Message (id: %s) contains unsupported info! Please check the error below:", message['MessageId'])
         logging.info(e)
         logging.info("\n")
         return record_data
@@ -126,7 +126,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                                          end_time,
                                                          selector)
     except Exception as e:
-        logging.info("\nWARNING: Failed to get kinesis clip (%s)!!\n", s3_path)
+        logging.info("\ERROR: Failed to get kinesis clip (%s)!!\n", s3_path)
         logging.info("\nReason: %s\n", e)
         return record_data
 
@@ -515,10 +515,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     
         # Check if response_list is not empty
         if response_list['KeyCount'] == 0:
-            logging.info("\nWARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
-            metadata_available = "No"
-            sync_file_ext = ""
-            return metadata_available, sync_file_ext
+            logging.info("\WARNING: No metadata files with prefix: %s were found!!\n", key_prefix)
+            continue
 
         # Cycle through the received list of matching files,
         # download them from S3 and store them on the files_dict dictionary
@@ -547,7 +545,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
     # Check if there are partial chunk MDF files
     if not files_dict or chunks_total == 0:
-        logging.info("\nWARNING: No valid metadata files with prefix: %s were found!!\n", key_prefix)
+        logging.info("\ERROR: No valid metadata files with prefix: %s were found!!\n", key_prefix)
         logging.info("Please check files_dict dictionary content below:\n")
         logging.info(files_dict)
         metadata_available = "No"
@@ -595,7 +593,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         final_dict["frame"] = newlist
 
     except Exception as e:
-        logging.info("\nWARNING: The following error occured during the concatenation process:\n")
+        logging.info("\ERROR: The following error occured during the concatenation process:\n")
         logging.info(e)
         metadata_available = "No"
         sync_file_ext = ""
@@ -614,9 +612,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         logging.info("Metadata compact file created!\n")
 
     except Exception as e:
-        logging.info("\nWARNING: The following error occured during the processing of the compact metadata:\n")
+        logging.info("\ERROR: The following error occured during the processing of the compact metadata:\n")
         logging.info(e)
-        logging.info("WARNING: Metadata compact file not created!\n")
+        logging.info("Metadata compact file not created!\n")
         sync_file_ext = ""
     
     #############################################
@@ -632,9 +630,9 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         logging.info("Video sync info file created!\n")
 
     except Exception as e:
-        logging.info("\nWARNING: The following error occured during the video data sync process:\n")
+        logging.info("\ERROR: The following error occured during the video data sync process:\n")
         logging.info(e)
-        logging.info("WARNING: Video sync info file not created!\n")
+        logging.info("Video sync info file not created!\n")
         sync_file_ext = ""
 
     ##########################################
