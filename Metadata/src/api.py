@@ -1192,7 +1192,7 @@ def calculate_chc_events(chc_periods):
     number = 0
     for period in chc_periods:
         duration += period['duration']
-        if period['duration'] >= 10.0:
+        if period['duration'] > 0.0:
             number += 1
 
     return number, duration
