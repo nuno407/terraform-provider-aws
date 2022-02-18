@@ -181,6 +181,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # HQ data request
     hq_request = {
                   "streamName": stream_name,
+                  "deviceId": device,
                   "footageFrom": epoch_from,
                   "footageTo": epoch_to
                 }

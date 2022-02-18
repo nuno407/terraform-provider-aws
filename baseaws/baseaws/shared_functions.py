@@ -338,6 +338,15 @@ class ContainerServices():
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
+    @staticmethod
+    def get_message_body(message):
+        body_string = message.get('Body')
+        if body_string:
+            body = json.loads(body_string.replace("\'", "\""))
+            return body
+        else:
+            return None
+
     ##### DB related functions #########################################################
     @staticmethod
     def create_db_client(db_config):
