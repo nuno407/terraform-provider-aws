@@ -41,9 +41,9 @@ class ContainerServices():
                           'file': 'containers/config_file_containers.json'
                         }
         self.__secretmanagers = {} # To be modify on dated 16 Jan'2022
-        
+
         self.__apiendpoints = {} # To be modify on dated 16 Jan'2022
-        
+
         # Define configuration for logging messages
         logging.basicConfig(format='%(message)s', level=logging.INFO)
 
@@ -101,7 +101,7 @@ class ContainerServices():
     def rcc_info(self):
         """rcc_info variable"""
         return self.__rcc_info
-    
+
     @property
     def ivs_api(self):
         """ivs_api variable"""
@@ -120,12 +120,12 @@ class ContainerServices():
     @property
     def secret_managers(self):
         """ Secret Manager variable """
-        return self.__secretmanagers  # To be modify on dated 16 Jan'2022 
+        return self.__secretmanagers  # To be modify on dated 16 Jan'2022
 
     @property
     def api_endpoints(self):
         """ API End Points variable """
-        return self.__apiendpoints  # To be modify on dated 16 Jan'2022 
+        return self.__apiendpoints  # To be modify on dated 16 Jan'2022
 
 
     def load_config_vars(self, client):
@@ -187,9 +187,9 @@ class ContainerServices():
         self.__ivs_api = dict_body['ivs_api']
 
         self.__secretmanagers = dict_body['secret_manager']   # To be modify on dated 16 Jan'2022
-        
+
         self.__apiendpoints = dict_body['api_endpoints']   # To be modify on dated 16 Jan'2022
-        
+
         # Documentdb information for client login
         self.__docdb_config = dict_body['docdb_config']
 
@@ -454,7 +454,7 @@ class ContainerServices():
                         'CHC_periods': []
                        }
 
-            # NOTE: Condition added due to some MDF files still not having this info 
+            # NOTE: Condition added due to some MDF files still not having this info
             if 'chc_periods' in result_info:
                 mdf_data['CHC_periods'] = result_info['chc_periods']
 
@@ -480,16 +480,19 @@ class ContainerServices():
             table_rec.insert_one(item_db)
             # Create logs message
             logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
-        except errors.DuplicateKeyError as e:
+        except errors.DuplicateKeyError:
             # Re-write item (necessary in rare cases SDRetriever message
             # arrives after SDM update -> item already exists so needs to be replaced)
             table_rec.replace_one({'_id': data["_id"]}, item_db)
             # Create logs message
-            logging.info("[%s]  Recording DB item (Id: %s) replaced!", timestamp, data["_id"])
-            logging.info(e)
-        except Exception as e:
-            logging.info("Warning: Unable to create or replace recording item for id: %s", data["_id"])
-            logging.info(e)
+            logging.info("\n######################## Exception #########################")
+            logging.exception("The following exception occured during execution:")
+            logging.info("\n[%s] Recording DB item (Id: %s) replaced!", timestamp, data["_id"])
+            logging.info("############################################################\n")
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
+            logging.info("############################################################\n")
 
 
     @staticmethod
@@ -704,19 +707,23 @@ class ContainerServices():
                 # Create logs message
                 logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
 
-            except Exception as e:
-                logging.info(e)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("The following exception occured during execution:")
                 logging.info(chc_data)
+                logging.info("############################################################\n")
 
         try:
             # Insert previous built item
             table_algo_out.insert_one(item_db)
 
-        except errors.DuplicateKeyError as e:
+        except errors.DuplicateKeyError:
             # Raise error exception if duplicated item is found
             # NOTE: In this case, the old item is not overriden!
-            logging.info(e)
+            logging.info("\n######################## Exception #########################")
+            logging.exception("The following exception occured during execution:")
             logging.info(item_db)
+            logging.info("############################################################\n")
 
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
 

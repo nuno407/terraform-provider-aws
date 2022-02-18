@@ -53,6 +53,14 @@ error_500_model = api.model("Error_500", {
     'statusCode': fields.String(example="500")
 })
 
+def generate_exception_logs():
+    """
+    Generates exception logs to be displayed during container execution
+    """
+    logging.info("\n######################## Exception #########################")
+    logging.exception("The following exception occured during execution:")
+    logging.info("############################################################\n")
+
 def create_mongo_client():
     """
     Creates Mongo client to access DocDB cluster
@@ -103,77 +111,6 @@ class Alive(Resource):
         """
         Checks if API is alive
         """
-        # ############################################################################################################################################### DEBUG (UPDATE MDF INFO FROM S3 INTO DB)
-
-        # # Create a MongoDB client, open a connection to Amazon DocumentDB
-        # # as a replica set and specify the read preference as
-        # # secondary preferred
-        # client = create_mongo_client()
-
-        # # Specify the database to be used
-        # db = client[DB_NAME]
-
-        # ##Specify the collection to be used
-        # col = db["dev-recording"]
-
-        # # Get all info from the table
-        # response_msg = list(col.find({}))
-
-        # logging.info(response_msg)
-        
-        # for data_db in response_msg: 
-
-        #     s3_bucket, video_key = data_db["s3_path"].split("/", 1)
-        #     s3_key = video_key.split(".")[0] + '_metadata_full.json'
-
-        #     logging.info(s3_bucket)
-        #     logging.info(s3_key)
-
-        #     if s3_key == "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639492620739_1639492653894_metadata_full.json":
-        #         continue
-
-        #     # Download metadata json file
-        #     response = s3_client.get_object(
-        #                                         Bucket=s3_bucket,
-        #                                         Key=s3_key
-        #                                     )
-
-        #     # Decode and convert file contents into json format
-        #     result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-        #     # Get info to populate CHC blocked events arrays (CHC)
-        #     chb_array = []
-
-        #     # Check all frames
-        #     for frame in result_info['frame']:
-        #         # Validate every frame (check if it has objectlist parameter)
-        #         if 'objectlist' in frame.keys():
-        #             for item in frame['objectlist']:
-        #                 # Check for item with ID = 1
-        #                 # (it has the CameraViewBlocked info)
-        #                 if item['id'] == '1':
-        #                     chb_value = item['floatAttributes'][0]['value']
-        #                     chb_array.append(chb_value)
-        #         else:
-        #             chb_array.append("0")
-
-
-        #     try: 
-        #         for aux in data_db["results_CHC"]:
-        #             if aux["source"] == "MDF":
-        #                 aux["CHBs"] = chb_array
-        #                 break
-        #     except Exception as e:
-        #         logging.info(e)
-        #         continue
-
-        #     col.update_one({'_id': data_db["_id"]}, {"$set": {"results_CHC": data_db["results_CHC"]}}) 
-
-        # # Close the connection
-        # client.close()
-
-        # #################################################################################################################################################
-
         return flask.jsonify(message='Ok', statusCode="200")
 
 # Custom model for ready code 200 response (Swagger documentation)
@@ -233,14 +170,14 @@ class Status(Resource):
             client.close()
 
             return flask.jsonify(message=response, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for addItem endpoint (Swagger documentation)
@@ -301,14 +238,14 @@ class AddItem(Resource):
 
             response_msg = 'Added item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getAllItems endpoint (Swagger documentation)
@@ -358,14 +295,14 @@ class GetAll(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getItem endpoint (Swagger documentation)
@@ -421,14 +358,14 @@ class GetOne(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getQueryItems endpoint (Swagger documentation)
@@ -625,14 +562,14 @@ class GetQuery(Resource):
             client.close()
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for deleteAllItems endpoint (Swagger documentation)
@@ -684,14 +621,14 @@ class DelAll(Resource):
 
             response_msg = 'Deleted all items from collection: {}'.format(str(collection))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for deleteItem endpoint (Swagger documentation)
@@ -754,14 +691,14 @@ class DelOne(Resource):
 
             response_msg = 'Deleted item: {}'.format(str(item))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for deleteCollection endpoint (Swagger documentation)
@@ -813,14 +750,14 @@ class DelCol(Resource):
 
             response_msg = 'Deleted collection: {}'.format(str(collection))
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getVideoUrl endpoint (Swagger documentation)
@@ -854,14 +791,14 @@ class VideoFeed(Resource):
                                                              Params = params_s3)
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
@@ -924,14 +861,14 @@ class AllCHBs(Resource):
                 response_msg[item['_id']] = chb_dict
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Custom model for getCHBData code 200 response (Swagger documentation)
@@ -993,20 +930,20 @@ class CHBData(Resource):
                         else:    
                             # Retrieve sync info from other sources               
                             chb_dict[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
-                    except Exception as e:
+                    except Exception:
                         pass
 
                 response_msg[item['_id']] = chb_dict
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 # Parameters parser for getVideoCHC endpoint (Swagger documentation)
@@ -1062,14 +999,14 @@ class VideoCHC(Resource):
                 #logging.info(response_msg)
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
@@ -1141,10 +1078,9 @@ class TableData(Resource):
                         table_data_dict['number_CHC_events'] = number_chc
                         table_data_dict['lengthCHC'] = duration_chc
                     
-                    except Exception as e:
+                    except Exception:
                         #logging.info("No CHC periods present")
                         pass
-
 
                 #logging.info(item['data_status'])                
                 #logging.info(item['last_updated'].split(".",1)[0].replace("T"," "))
@@ -1153,7 +1089,6 @@ class TableData(Resource):
                 #logging.info(record_item_details['recording_overview']['resolution'])        
                 #logging.info(record_item_details['recording_overview']['deviceID'])     
 
-           
                 #Add the fields in the array in the proper order
                 table_data_dict['tenant'] = item['_id'].split("_",1)[0]
                 table_data_dict['_id'] = item['_id']
@@ -1177,14 +1112,14 @@ class TableData(Resource):
             #logging.info(response_msg)
            
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 def calculate_chc_events(chc_periods):
@@ -1258,14 +1193,14 @@ class AllUrls(Resource):
                 response_msg[algo_item['pipeline_id']] = video_url         
 
             return flask.jsonify(message=response_msg, statusCode="200")
-        except (NameError, LookupError) as e:
-            logging.info(e)
+        except (NameError, LookupError):
+            generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as e:
-            logging.info(e)
-            api.abort(400, message=str(e), statusCode = "400")
-        except Exception as e:
-            logging.info(e)
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 

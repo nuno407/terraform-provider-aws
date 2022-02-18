@@ -59,8 +59,10 @@ def request_processing(client, container_services, body):
         response = requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
         logging.info("IVS Chain response: %s", response.text)
-    except requests.exceptions.ConnectionError as error_response:
-        logging.info(error_response)
+    except requests.exceptions.ConnectionError:
+        logging.info("\n######################## Exception #########################")
+        logging.exception("The following exception occured during execution:")
+        logging.info("############################################################\n")
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
