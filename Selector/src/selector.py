@@ -68,7 +68,7 @@ class Selector():
             logging.error('Could not get auth token for Footage API. Skipping request.')
             return
         
-        payload = {'from': str(from_timestamp), 'to': str(to_timestamp)}
+        payload = {'from': str(from_timestamp), 'to': str(to_timestamp), 'recorder': 'TRAINING'}
         url = self.__container_services.api_endpoints["mdl_footage_endpoint"].format(device_id)
 
         headers = {}
