@@ -81,9 +81,11 @@ class Selector():
             response = self.__http_client.request('POST', url, headers=headers, body=body)
 
             if(response.status >= 200 and response.status <300):
-                logging.info(f'Successfully requested footage with response code {response.status} and body {response.body}')
+                logging.info(f'Successfully requested footage with response code {response.status}')
             else:
                 logging.warning(f'Unexpected response when requesting footage: {response}')
+                if response.content:
+                    logging.warning(f'Details: {response.content}')
         except Exception as error:
             logging.error(f'Unexpected error occured when requesting footage: {error}')
 
