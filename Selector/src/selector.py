@@ -10,7 +10,7 @@ class Selector():
     def __init__(self, sqs_client, container_services):
         self.__sqs_client = sqs_client
         self.__container_services = container_services
-        retries = Retry(connect=3, read=1, backoff_factor=1)
+        retries = Retry(total=3, backoff_factor=1, allowed_methods=['POST'], status_forcelist=[500])
         self.__http_client = urllib3.PoolManager(retries=retries)
 
         # Define additional input SQS queues to listen to
