@@ -3,13 +3,15 @@ import json
 import logging
 
 import urllib3
+from urllib3 import Retry
 from api_token_manager import ApiTokenManager
 
 class Selector():
     def __init__(self, sqs_client, container_services):
         self.__sqs_client = sqs_client
         self.__container_services = container_services
-        self.__http_client = urllib3.PoolManager()
+        retries = Retry(connect=3, read=1, backoff_factor=1)
+        self.__http_client = urllib3.PoolManager(retries=retries)
 
         # Define additional input SQS queues to listen to
         # (container_services.input_queue is the default queue
@@ -79,7 +81,7 @@ class Selector():
             response = self.__http_client.request('POST', url, headers=headers, body=body)
 
             if(response.status >= 200 and response.status <300):
-                logging.info(f'Successfully requested footage with response {response}')
+                logging.info(f'Successfully requested footage with response code {response.status} and body {response.body}')
             else:
                 logging.warning(f'Unexpected response when requesting footage: {response}')
         except Exception as error:
