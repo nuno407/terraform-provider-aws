@@ -1031,11 +1031,11 @@ class TableData(Resource):
         Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
         """
         try:
-            # Define DB collection to get recording info from
-            collection_results = container_services.db_tables["recording"]
+            # Define DB collection name to get recording info from
+            name_recording_collection = container_services.db_tables["recording"]
 
-            # Define DB collection to get pipeline info from
-            collection_pipe = container_services.db_tables["pipeline_exec"]
+            # Define DB collection name to get pipeline info from
+            name_pipeline_collection = container_services.db_tables["pipeline_exec"]
 
             # Create a MongoDB client, open a connection to Amazon DocumentDB
             # as a replica set and specify the read preference as
@@ -1046,33 +1046,25 @@ class TableData(Resource):
             db = client[DB_NAME]
 
             ##Specify the collection to be used
-            col = db[collection_pipe]
+            recording_collection = db[name_recording_collection]
 
             # Get all videos that entered processing phase
-            pipe_items_list = list(col.find({"data_status":"complete"}))
-            
+            recording_items = recording_collection.aggregate([
+                {'$lookup': {'from':name_pipeline_collection, 'localField':'_id', 'foreignField':'_id', 'as': 'pipeline_execution'}},
+                {'$unwind': '$pipeline_execution'},
+                {'$match':{'pipeline_execution.data_status':'complete'}}
+            ])
 
-            # Iterate received items and add additional data from algo and recording databases
             response_msg = []
 
-            #logging.info(pipe_items_list)
-
-
-            for item in pipe_items_list:
+            for recording_item in recording_items:
+                pipeline_item = recording_item['pipeline_execution']
                 table_data_dict = {}
-                col = db[collection_results]
-                # Get the recording data for the video
-                record_item_details = col.find_one({"_id":item['_id']})
-                
-                #logging.info(record_item_details)
 
-                #logging.info(item['_id'].split("_",1)[0])
-                #logging.info(item['processing_list'])
-                #logging.info(record_item_details['recording_overview']['#snapshots'])
-
+                # Add CHC information
                 table_data_dict['number_CHC_events'] = ''      
                 table_data_dict['lengthCHC'] = ''
-                for chc_result in record_item_details['results_CHC']:
+                for chc_result in recording_item['results_CHC']:
                     try:
                         number_chc, duration_chc = calculate_chc_events(chc_result['CHC_periods'])
                         table_data_dict['number_CHC_events'] = number_chc
@@ -1082,26 +1074,21 @@ class TableData(Resource):
                         #logging.info("No CHC periods present")
                         pass
 
-                #logging.info(item['data_status'])                
-                #logging.info(item['last_updated'].split(".",1)[0].replace("T"," "))
-                #logging.info(record_item_details['recording_overview']['length'])
-                #logging.info(record_item_details['recording_overview']['time'])                
-                #logging.info(record_item_details['recording_overview']['resolution'])        
-                #logging.info(record_item_details['recording_overview']['deviceID'])     
-
                 #Add the fields in the array in the proper order
-                table_data_dict['tenant'] = item['_id'].split("_",1)[0]
-                table_data_dict['_id'] = item['_id']
-                table_data_dict['processing_list'] = item['processing_list']
-                table_data_dict['snapshots'] = record_item_details['recording_overview']['#snapshots']
-                table_data_dict['data_status'] = item['data_status']                
-                table_data_dict['last_updated'] = item['last_updated'].split(".",1)[0].replace("T"," ")
-                table_data_dict['length'] = record_item_details['recording_overview']['length']
-                table_data_dict['time'] = record_item_details['recording_overview']['time']                
-                table_data_dict['resolution'] = record_item_details['recording_overview']['resolution']        
-                table_data_dict['deviceID'] = record_item_details['recording_overview']['deviceID']      
+                table_data_dict['tenant'] = recording_item['_id'].split("_",1)[0]
+                table_data_dict['_id'] = recording_item['_id']
+                table_data_dict['processing_list'] = pipeline_item['processing_list']
+                table_data_dict['snapshots'] = recording_item['recording_overview']['#snapshots']
+                table_data_dict['data_status'] = pipeline_item['data_status']                
+                table_data_dict['last_updated'] = pipeline_item['last_updated'].split(".",1)[0].replace("T"," ")
+                table_data_dict['length'] = recording_item['recording_overview']['length']
+                table_data_dict['time'] = recording_item['recording_overview']['time']                
+                table_data_dict['resolution'] = recording_item['recording_overview']['resolution']        
+                table_data_dict['deviceID'] = recording_item['recording_overview']['deviceID']      
 
-                #logging.info(table_data_dict)
+                hq_video = check_and_get_hq_video_info(recording_item['_id'], recording_collection)
+                if hq_video:
+                    table_data_dict['hq_video'] = hq_video
 
                 response_msg.append(table_data_dict)
 
@@ -1132,6 +1119,30 @@ def calculate_chc_events(chc_periods):
 
     return number, duration
 
+def check_and_get_hq_video_info(entry_id, recording_collection):
+    recorder_name_matcher = re.match(".+_([^_]+)_\d+_\d+", entry_id)
+    if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
+        logging.warning(f'Could not parse recorder information from {entry_id}')
+        return None
+    
+    if recorder_name_matcher.group(1) != 'InteriorRecorder':
+        logging.info(f'Skipping HQ video search for {entry_id} because it is not recorded with InteriorRecorder but with {recorder_name_matcher.group(1)}')
+        return None
+    
+    hq_id = entry_id.replace('InteriorRecorder', 'TrainingRecorder')
+    hq_entry = recording_collection.find_one({'_id':hq_id})
+    if not hq_entry:
+        return None
+    hq_video_details = hq_entry.get('recording_overview')
+
+    hq_video = {}
+    hq_video['id'] = hq_id
+    hq_video['length'] = hq_video_details['length']
+    hq_video['time'] = hq_video_details['time']                
+    hq_video['resolution'] = hq_video_details['resolution']        
+    hq_video['snapshots'] = hq_video_details['#snapshots']
+
+    return hq_video
 
 # Custom model for getAllUrls code 200 response (Swagger documentation)
 url_nest_model = api.model("url_nest", {

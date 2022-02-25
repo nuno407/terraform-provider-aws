@@ -51,8 +51,6 @@ def main():
                              region_name='eu-central-1')
     sqs_client = boto3.client('sqs',
                               region_name='eu-central-1')
-    db_resource = boto3.resource('dynamodb',
-                                 region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
