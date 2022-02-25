@@ -1086,9 +1086,9 @@ class TableData(Resource):
                 table_data_dict['resolution'] = recording_item['recording_overview']['resolution']        
                 table_data_dict['deviceID'] = recording_item['recording_overview']['deviceID']      
 
-                hq_video = check_and_get_hq_video_info(recording_item['_id'], recording_collection)
-                if hq_video:
-                    table_data_dict['hq_video'] = hq_video
+                lq_video = check_and_get_lq_video_info(recording_item['_id'], recording_collection)
+                if lq_video:
+                    table_data_dict['lq_video'] = lq_video
 
                 response_msg.append(table_data_dict)
 
@@ -1119,30 +1119,30 @@ def calculate_chc_events(chc_periods):
 
     return number, duration
 
-def check_and_get_hq_video_info(entry_id, recording_collection):
+def check_and_get_lq_video_info(entry_id, recording_collection):
     recorder_name_matcher = re.match(".+_([^_]+)_\d+_\d+", entry_id)
     if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
         logging.warning(f'Could not parse recorder information from {entry_id}')
         return None
     
-    if recorder_name_matcher.group(1) != 'InteriorRecorder':
-        logging.info(f'Skipping HQ video search for {entry_id} because it is not recorded with InteriorRecorder but with {recorder_name_matcher.group(1)}')
+    if recorder_name_matcher.group(1) != 'TrainingRecorder':
+        logging.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
         return None
     
-    hq_id = entry_id.replace('InteriorRecorder', 'TrainingRecorder')
-    hq_entry = recording_collection.find_one({'_id':hq_id})
-    if not hq_entry:
+    lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
+    lq_entry = recording_collection.find_one({'_id':lq_id})
+    if not lq_entry:
         return None
-    hq_video_details = hq_entry.get('recording_overview')
+    lq_video_details = lq_entry.get('recording_overview')
 
-    hq_video = {}
-    hq_video['id'] = hq_id
-    hq_video['length'] = hq_video_details['length']
-    hq_video['time'] = hq_video_details['time']                
-    hq_video['resolution'] = hq_video_details['resolution']        
-    hq_video['snapshots'] = hq_video_details['#snapshots']
+    lq_video = {}
+    lq_video['id'] = lq_id
+    lq_video['length'] = lq_video_details['length']
+    lq_video['time'] = lq_video_details['time']                
+    lq_video['resolution'] = lq_video_details['resolution']        
+    lq_video['snapshots'] = lq_video_details['#snapshots']
 
-    return hq_video
+    return lq_video
 
 # Custom model for getAllUrls code 200 response (Swagger documentation)
 url_nest_model = api.model("url_nest", {
