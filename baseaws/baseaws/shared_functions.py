@@ -4,6 +4,7 @@ import logging
 import os
 from datetime import timedelta as td, datetime
 import pytz
+from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
 
@@ -593,7 +594,7 @@ class ContainerServices():
         # Initialise variables used in item creation
         outputs = data['output']
         run_id = unique_id + '_' + source
-
+        
         # Item creation (common parameters)
         item_db = {
                     '_id': run_id,
@@ -624,8 +625,7 @@ class ContainerServices():
             item_db['results'] = {
                                     'CHBs': [],
                                     'CHBs_sync': {},
-                                    'number_CHC_events': "",
-                                    'lengthCHC': ""
+                                    'CHC_periods': []
                                 }
 
             # Create S3 client to download metadata
@@ -696,7 +696,11 @@ class ContainerServices():
 
             # Add video sync data processed from ivs_chain metadata file to created item
             item_db['results']['CHBs_sync'] = frame_ts_chb
-
+            
+            # Add CHC event periods processed from ivs_chain metadata file to created item
+            compact_mdf_metadata = generate_compact_mdf_metadata(result_info)
+            chc_periods = calculate_chc_periods(compact_mdf_metadata)
+            item_db['results']['CHC_periods'] = chc_periods
             ############################################################################################################################################################################################################################
             ############################################################################################################################################################################################################################
 
@@ -706,8 +710,7 @@ class ContainerServices():
                         'source': "CHC",
                         'CHBs': chb_array,
                         'CHBs_sync': frame_ts_chb,
-                        'number_CHC_events': "",
-                        'lengthCHC': ""
+                        'CHC_periods': chc_periods
                        }
             try:
                 # Update recording DB item (appends chc_data to results list)
@@ -1076,3 +1079,4 @@ class ContainerServices():
         if uid:
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
+        
