@@ -179,12 +179,13 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # Generate dictionary with info to send to Selector container for
     # HQ data request
-    hq_request = {
-                  "streamName": stream_name,
-                  "deviceId": device,
-                  "footageFrom": epoch_from,
-                  "footageTo": epoch_to
-                }
+    if not 'TrainingRecorder' in stream_name:
+        hq_request = {
+                    "streamName": stream_name,
+                    "deviceId": device,
+                    "footageFrom": epoch_from,
+                    "footageTo": epoch_to
+                    }
 
     return record_data, hq_request
 

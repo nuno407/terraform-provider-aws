@@ -1021,12 +1021,13 @@ get_tabledata_200_model = api.model("Get_tabledata_200", {
     'statusCode': fields.String(example="200")
 })
 
-@api.route('/getTableData')
+@api.route('/getTableData', defaults={'requested_id': None})
+@api.route('/getTableData/<requested_id>')
 class TableData(Resource):
     @api.response(200, 'Success', get_tabledata_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
-    def get(self):
+    def get(self, requested_id):
         """
         Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
         """
@@ -1048,12 +1049,15 @@ class TableData(Resource):
             ##Specify the collection to be used
             recording_collection = db[name_recording_collection]
 
-            # Get all videos that entered processing phase
-            recording_items = recording_collection.aggregate([
-                {'$lookup': {'from':name_pipeline_collection, 'localField':'_id', 'foreignField':'_id', 'as': 'pipeline_execution'}},
-                {'$unwind': '$pipeline_execution'},
-                {'$match':{'pipeline_execution.data_status':'complete'}}
-            ])
+            # Get all videos that entered processing phase or the specific one video
+            aggregation_pipeline = []
+            if requested_id != None:
+                aggregation_pipeline.append({'$match': {'_id': requested_id}})
+            aggregation_pipeline.append({'$lookup': {'from':name_pipeline_collection, 'localField':'_id', 'foreignField':'_id', 'as': 'pipeline_execution'}})
+            aggregation_pipeline.append({'$unwind': '$pipeline_execution'})
+            aggregation_pipeline.append({'$match':{'pipeline_execution.data_status':'complete'}})
+            aggregation_pipeline.append({'$sort': {'recording_overview.time':1}})
+            recording_items = recording_collection.aggregate(aggregation_pipeline)
 
             response_msg = []
 
@@ -1086,12 +1090,14 @@ class TableData(Resource):
                 table_data_dict['resolution'] = recording_item['recording_overview']['resolution']        
                 table_data_dict['deviceID'] = recording_item['recording_overview']['deviceID']      
 
-                lq_video = check_and_get_lq_video_info(recording_item['_id'], recording_collection)
-                if lq_video:
-                    table_data_dict['lq_video'] = lq_video
-
-                response_msg.append(table_data_dict)
-
+                if requested_id != None:
+                    lq_video = check_and_get_lq_video_info(recording_item['_id'], recording_collection)
+                    if lq_video:
+                        table_data_dict['lq_video'] = lq_video
+                    response_msg = table_data_dict
+                    break
+                else:
+                    response_msg.append(table_data_dict)
 
             # Close the connection
             client.close()
@@ -1204,6 +1210,68 @@ class AllUrls(Resource):
                 response_msg[algo_item['pipeline_id']] = video_url         
 
             return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError):
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+# Custom model for getAnonymizedVideoUrl code 200 response (Swagger documentation)
+get_anonymized_video_url_200_model = api.model("get_anonymized_video_url_200", {
+    'message': fields.String(example="https://qa-rcd-anonymized-video-files.s3.amazonaws.com/Debug_Lync/srxfut2internal23_rc_srx_qa_eur_fut2_009_InteriorRecorder_1644054706267_1644054801665_anonymized.mp4"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getAnonymizedVideoUrl/<recording_id>')
+class VideoUrl(Resource):
+    @api.response(200, 'Success', get_anonymized_video_url_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def get(self, recording_id):
+        """
+        Returns the video URL available for one DB item
+        """
+        try:
+            # Define DB collection to get algo output info from
+            name_collection_algo = container_services.db_tables["algo_output"]
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[name_collection_algo]
+
+            # Get the info from the table with output video available
+            anonymization_entry = col.find_one({"algorithm_id":"Anonymize", "pipeline_id": recording_id})
+
+            # Close the connection
+            client.close()
+
+            # Get the video URL
+            video_url = None
+
+            if anonymization_entry:
+                # Get video path and split it into bucket and key
+                s3_path = anonymization_entry['output_paths']['video']
+                bucket, key = s3_path.split("/", 1)
+
+                # Builds params argument
+                params_s3 = {'Bucket': bucket, 'Key': key}
+
+                # Request to get video file url
+                video_url  = s3_client.generate_presigned_url('get_object',
+                                                              Params = params_s3)
+
+            return flask.jsonify(message=video_url, statusCode="200")
         except (NameError, LookupError):
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
