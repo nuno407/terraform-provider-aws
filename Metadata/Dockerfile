@@ -25,14 +25,8 @@ RUN pip install -r requirements.txt
 # Your install token
 ARG TOKEN
 
-# The Teams client version to install, or "latest"
-ARG TEAMS_VERSION=latest
-
-RUN if [ "${TEAMS_VERSION}" = "latest" ]; then \
-        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone; \
-    else \
-        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION}; \
-    fi
+# The Teams client 
+RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone
 
 ARG FIFTYONE_DATABASE_URI 
 
