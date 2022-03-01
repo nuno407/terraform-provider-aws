@@ -12,8 +12,8 @@ ENV  PYTHON_VERSION=3.8
 #
 # Install system packages
 #
-RUN apk update \
-    && apt add software-properties-common \
+RUN apt -y update \
+    && apt -y --no-install-recommends install software-properties-common \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt -y update \
     && apt -y upgrade \
