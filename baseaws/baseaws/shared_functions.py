@@ -1140,9 +1140,54 @@ class ContainerServices():
             StreamName=stream_name,
             Fragments=list_frags
         )
+        
+
+        ######## % ########
+        logging.info(response2['ContentType'])
+
+        import subprocess
+
+        # Defining temporary files names
+        input_name = "ztest2.webm"
+        output_name = "output_video.mp4"
+        logs_name = "logs.txt"
+        
         # Read all bytes from http response body
         # (botocore.response.StreamingBody)
         video_chunk = response2['Payload'].read()
+        
+        # Save video chunks to file
+        with open(input_name, 'wb') as infile: 
+            infile.write(video_chunk)
+
+        subprocess.run(["ls", "-l"])
+        with open(logs_name, 'w') as logs_write:
+            # Convert .avi input file into .mp4 using ffmpeg
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
+                                        "1", output_name],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True)
+                                            
+            # Save conversion logs into txt file
+            for line in conv_logs.stdout:
+                logs_write.write(line)
+        # with open(logs_name, 'w') as logs_write:
+        # Convert .avi input file into .mp4 using ffmpeg
+        # conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-crf",
+        #                             "1", "-c:v", "libx264", output_name],
+        #                             stdout=subprocess.PIPE,
+        #                             stderr=subprocess.STDOUT,
+        #                             universal_newlines=True)
+        # Save conversion logs into txt file
+            for line in conv_logs.stdout:
+                logs_write.write(line)
+        subprocess.run(["ls", "-l"])
+        # Load bytes from converted output file
+        with open(output_name, "rb") as output_file:
+            output_video = output_file.read()
+
+        ######## % ########
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Test clip download completed!", timestamp)
-        return video_chunk
+        return output_video #video_chunk
