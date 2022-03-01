@@ -30,8 +30,7 @@ RUN echo ' '
 RUN echo ${FIFTYONE_DATABASE_URI}
 
 # The Teams client 
-#RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone
-RUN pip --no-cache-dir install --index-url https://06709950312695cd@pypi.fiftyone.ai fiftyone
+RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone
 
 ARG FIFTYONE_DATABASE_URI 
 
