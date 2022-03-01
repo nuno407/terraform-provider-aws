@@ -888,7 +888,8 @@ class ContainerServices():
                       "json": "application/json",
                       "mp4": "video/mp4",
                       "avi": "video/x-msvideo",
-                      "txt": "text/plain"
+                      "txt": "text/plain",
+                      "webm":"video/webm"
                     }
         file_extension = key_path.split('.')[-1]
 
@@ -1080,3 +1081,68 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
         
+    def get_kinesis_test(self, creds, stream_name, start_time, end_time, selector):
+        """"""
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Downloading test clip (stream: %s)..", timestamp,
+                                                              stream_name)
+        kinesis_client = boto3.client('kinesisvideo',
+                                        region_name='eu-central-1',
+                                        aws_access_key_id=creds['AccessKeyId'],
+                                        aws_secret_access_key=creds['SecretAccessKey'],
+                                        aws_session_token=creds['SessionToken'])
+
+        # Getting endpoint URL for GET_CLIP
+        response_list = kinesis_client.get_data_endpoint(StreamName=stream_name,
+                                                    APIName='LIST_FRAGMENTS')
+        response_get = kinesis_client.get_data_endpoint(StreamName=stream_name,
+                                                    APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
+
+        endpoint_response_list = response_list['DataEndpoint']
+        endpoint_response_get = response_get['DataEndpoint']
+
+        ########################################################################################################
+
+        list_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response_list,
+                                    region_name='eu-central-1',
+                                    aws_access_key_id=creds['AccessKeyId'],
+                                    aws_secret_access_key=creds['SecretAccessKey'],
+                                    aws_session_token=creds['SessionToken'])
+
+        response1 = list_client.list_fragments(
+            StreamName=stream_name,
+            MaxResults=1000,
+            FragmentSelector={
+                'FragmentSelectorType': selector,
+                'TimestampRange': {
+                    'StartTimestamp': start_time,
+                    'EndTimestamp': end_time
+                }
+            }
+        )
+
+        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp((d['ProducerTimestamp'])))
+
+        # for fragment in newlist:
+        #     print(fragment['ProducerTimestamp'])
+        list_frags = [frag['FragmentNumber'] for frag in newlist]
+
+        #######################################################################################################
+
+        get_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response_get,
+                                    region_name='eu-central-1',
+                                    aws_access_key_id=creds['AccessKeyId'],
+                                    aws_secret_access_key=creds['SecretAccessKey'],
+                                    aws_session_token=creds['SessionToken'])
+        response2 = get_client.get_media_for_fragment_list(
+            StreamName=stream_name,
+            Fragments=list_frags
+        )
+        # Read all bytes from http response body
+        # (botocore.response.StreamingBody)
+        video_chunk = response2['Payload'].read()
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        logging.info("[%s]  Test clip download completed!", timestamp)
+        return video_chunk
