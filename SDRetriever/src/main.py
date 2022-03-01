@@ -145,13 +145,14 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                                          end_time,
                                                          selector)
         # Upload video clip into raw data S3 bucket
+        s3_test_path = s3_filename + clip_ext
         container_services.upload_file(s3_client,
                                     video_test_clip,
                                     container_services.raw_s3,
-                                    s3_path)
+                                    s3_test_path)
     except Exception:
         logging.info("\n######################## Exception #########################")
-        logging.exception("ERROR: Failed to get kinesis test clip (%s)!!", s3_path)
+        logging.exception("ERROR: Failed to get kinesis test clip (%s)!!", s3_test_path)
         logging.info("############################################################\n")
         #return record_data, hq_request
 
