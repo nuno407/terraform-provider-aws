@@ -1164,7 +1164,7 @@ class ContainerServices():
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
             conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
-                                        "1", output_name],
+                                        "0", output_name],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
@@ -1190,4 +1190,5 @@ class ContainerServices():
         ######## % ########
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
         logging.info("[%s]  Test clip download completed!", timestamp)
+        subprocess.run(["rm", input_name, output_name, logs_name])
         return output_video #video_chunk

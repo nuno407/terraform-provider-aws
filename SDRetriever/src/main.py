@@ -145,7 +145,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                                          end_time,
                                                          selector)
         # Upload video clip into raw data S3 bucket
-        s3_test_path = s3_filename + ".webm"
+        s3_test_path = s3_filename + clip_ext #".webm"
         container_services.upload_file(s3_client,
                                     video_test_clip,
                                     container_services.raw_s3,
