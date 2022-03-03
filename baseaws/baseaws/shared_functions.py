@@ -517,7 +517,7 @@ class ContainerServices():
             logging.info("Dataset with (Id: %s) created!", bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name))
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
             logging.info("############################################################\n")
         
 
