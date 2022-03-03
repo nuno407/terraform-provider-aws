@@ -7,6 +7,9 @@ import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
+import fityone as fo
+import eta.core.frameutils as etaf
+from baseaws.voxel_functions import create_dataset, add_sample, update_sample
 
 
 class ContainerServices():
@@ -503,6 +506,20 @@ class ContainerServices():
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
+
+## ADDED Voxel51 code
+        s3split = data["s3_path"].split("/")
+        bucket_name = s3split[1]
+        try:
+            # Create dataset with the bucket_name
+            create_dataset(bucket_name)
+            # Create logs message
+            logging.info("Dataset with (Id: %s) created!", bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name))
+            logging.info("############################################################\n")
+        
 
 
     @staticmethod
