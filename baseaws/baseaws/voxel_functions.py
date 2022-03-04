@@ -1,4 +1,4 @@
-import fityone as fo
+import fiftyone as fo
 import eta.core.frameutils as etaf
 
 def create_dataset(bucket_name):
@@ -7,6 +7,7 @@ def create_dataset(bucket_name):
         dataset = fo.load_dataset(bucket_name)
     else:
         dataset = fo.Dataset(bucket_name,True)
+
 
 def add_sample(data_set,sample_info):
    
