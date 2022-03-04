@@ -521,7 +521,7 @@ class ContainerServices():
             add_sample(bucket_name,sample)
             
             # Create logs message
-            logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
+            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -602,11 +602,11 @@ class ContainerServices():
                 # Create dataset with the bucket_name if it doesn't exist
                 create_dataset(bucket_name)
                 
-                #Add  te«he video to the dataset
+                #Add  the video to the dataset
                 add_sample(bucket_name,sample)
                 
                 # Create logs message
-                logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
+                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
             except Exception:
                 logging.info("\n######################## Exception #########################")
                 logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -804,7 +804,7 @@ class ContainerServices():
             add_sample(bucket_name,sample)
                 
             # Create logs message
-            logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
+            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
