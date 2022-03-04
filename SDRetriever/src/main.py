@@ -95,8 +95,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     else:
         s3_folder = container_services.sdr_folder['debug']
 
-    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
-    s3_path = s3_folder + s3_filename + clip_ext
+    s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to) +"_original"
+    s3_path = s3_filename + clip_ext
 
     # Check if there is a file with the same name already
     # stored on the S3 bucket (to avoid multiple processing of a given
@@ -137,6 +137,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                    s3_path)
     
     ################ test clip below
+    
     try:
         # Get Kinesis clip using received message parameters
         video_test_clip = container_services.get_kinesis_test(role_credentials,
@@ -145,7 +146,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                                          end_time,
                                                          selector)
         # Upload video clip into raw data S3 bucket
-        s3_test_path = s3_filename + clip_ext #".webm"
+        s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to) + "_converted"
+        s3_test_path = s3_folder + s3_filename + clip_ext #".webm"
         container_services.upload_file(s3_client,
                                     video_test_clip,
                                     container_services.raw_s3,
