@@ -1,7 +1,7 @@
-import fiftyone as fo
-import eta.core.frameutils as etaf
 
 def create_dataset(bucket_name):
+    import fiftyone as fo
+    import eta.core.frameutils as etaf
 
     if (fo.dataset_exists(bucket_name)):
         dataset = fo.load_dataset(bucket_name)
@@ -10,7 +10,9 @@ def create_dataset(bucket_name):
 
 
 def add_sample(data_set,sample_info):
-   
+    import fiftyone as fo
+    import eta.core.frameutils as etaf
+
     dataset = fo.load_dataset(data_set)
 
 # Simple FiftyOne Sample object    
@@ -61,7 +63,9 @@ def add_sample(data_set,sample_info):
 # dataset.add_sample(sample)
 
 def update_sample(data_set,sample_info):
-   
+    import fiftyone as fo
+    import eta.core.frameutils as etaf
+
     dataset = fo.load_dataset(data_set)
 
     filepath = sample_info["s3_path"]
