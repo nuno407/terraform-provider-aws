@@ -7,9 +7,9 @@ import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
-import fiftyone as fo
-import eta.core.frameutils as etaf
-from baseaws.voxel_functions import create_dataset, add_sample, update_sample
+# import fiftyone as fo
+# import eta.core.frameutils as etaf
+# from baseaws.voxel_functions import create_dataset, add_sample, update_sample
 
 
 class ContainerServices():
@@ -507,27 +507,27 @@ class ContainerServices():
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
 
-## ADDED Voxel51 code
-        s3split = data["s3_path"].split("/")
-        bucket_name = s3split[1]
+# ## ADDED Voxel51 code
+#         s3split = data["s3_path"].split("/")
+#         bucket_name = s3split[1]
 
-        sample = {}
-        sample["s3_path"] = data["s3_path"]
+#         sample = {}
+#         sample["s3_path"] = data["s3_path"]
         
 
-        try:
-            # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)
+#         try:
+#             # Create dataset with the bucket_name if it doesn't exist
+#             create_dataset(bucket_name)
             
-            #Add  te«he video to the dataset
-            #add_sample(bucket_name,sample):
+#             #Add  te«he video to the dataset
+#             #add_sample(bucket_name,sample):
             
-            # Create logs message
-            logging.info("Dataset with (Id: %s) created!", bucket_name)
-        except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-            logging.info("############################################################\n")
+#             # Create logs message
+#             logging.info("Dataset with (Id: %s) created!", bucket_name)
+#         except Exception:
+#             logging.info("\n######################## Exception #########################")
+#             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+#             logging.info("############################################################\n")
         
 
 

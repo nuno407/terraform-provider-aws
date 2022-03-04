@@ -1,6 +1,6 @@
-import fiftyone as fo
-import eta.core.frameutils as etaf
-
+# import fiftyone as fo
+# import eta.core.frameutils as etaf
+""" 
 def create_dataset(bucket_name):
 
     if (fo.dataset_exists(bucket_name)):
@@ -100,3 +100,4 @@ def update_sample(data_set,sample_info):
 
 
     sample.save()
+"""
