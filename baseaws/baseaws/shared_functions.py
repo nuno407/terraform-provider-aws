@@ -7,7 +7,7 @@ import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
-import fityone as fo
+import fiftyone as fo
 import eta.core.frameutils as etaf
 from baseaws.voxel_functions import create_dataset, add_sample, update_sample
 
@@ -510,9 +510,18 @@ class ContainerServices():
 ## ADDED Voxel51 code
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[1]
+
+        sample = {}
+        sample["s3_path"] = data["s3_path"]
+        
+
         try:
-            # Create dataset with the bucket_name
+            # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)
+            
+            #Add  te«he video to the dataset
+            #add_sample(bucket_name,sample):
+            
             # Create logs message
             logging.info("Dataset with (Id: %s) created!", bucket_name)
         except Exception:
