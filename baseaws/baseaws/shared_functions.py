@@ -589,6 +589,30 @@ class ContainerServices():
             # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
 
+
+            ## ADDED Voxel51 code
+            s3split = data["s3_path"].split("/")
+            bucket_name = s3split[1]
+
+            sample = {}
+            sample["s3_path"] = data["s3_path"]
+            
+
+            try:
+                # Create dataset with the bucket_name if it doesn't exist
+                create_dataset(bucket_name)
+                
+                #Add  te«he video to the dataset
+                #add_sample(bucket_name,sample):
+                
+                # Create logs message
+                logging.info("Dataset with (Id: %s) created!", bucket_name)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+                logging.info("############################################################\n")
+            
+
     @staticmethod
     def update_outputs_db(data, table_algo_out, table_rec, timestamp, unique_id, source):
         """Inserts a new item on the algorithm output collection and, if
@@ -752,6 +776,7 @@ class ContainerServices():
         try:
             # Insert previous built item
             table_algo_out.insert_one(item_db)
+            
 
         except errors.DuplicateKeyError:
             # Raise error exception if duplicated item is found
@@ -762,6 +787,30 @@ class ContainerServices():
             logging.info("############################################################\n")
 
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
+
+
+        ## ADDED Voxel51 code
+        s3split = data["s3_path"].split("/")
+        bucket_name = s3split[1]
+
+        sample = {}
+        sample["s3_path"] = data["s3_path"]
+            
+        try:
+            # Create dataset with the bucket_name if it doesn't exist
+            create_dataset(bucket_name)
+             
+            #Add  te«he video to the dataset
+            #add_sample(bucket_name,sample):
+                
+            # Create logs message
+            logging.info("Dataset with (Id: %s) created!", bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.info("############################################################\n")
+
+
 
     def connect_to_docdb(self, data, attributes):
         """Main DB access function that processes the info received
