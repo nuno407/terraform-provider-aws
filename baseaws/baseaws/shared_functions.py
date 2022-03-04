@@ -507,7 +507,7 @@ class ContainerServices():
 
 ## ADDED Voxel51 code
         s3split = data["s3_path"].split("/")
-        bucket_name = s3split[1]
+        bucket_name = s3split[0]
 
         sample = {}
         sample["s3_path"] = data["s3_path"]
@@ -518,10 +518,10 @@ class ContainerServices():
             create_dataset(bucket_name)
             
             #Add  te«he video to the dataset
-            #add_sample(bucket_name,sample):
+            add_sample(bucket_name,sample)
             
             # Create logs message
-            logging.info("Dataset with (Id: %s) created!", bucket_name)
+            logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -592,7 +592,7 @@ class ContainerServices():
 
             ## ADDED Voxel51 code
             s3split = data["s3_path"].split("/")
-            bucket_name = s3split[1]
+            bucket_name = s3split[0]
 
             sample = {}
             sample["s3_path"] = data["s3_path"]
@@ -603,10 +603,10 @@ class ContainerServices():
                 create_dataset(bucket_name)
                 
                 #Add  te«he video to the dataset
-                #add_sample(bucket_name,sample):
+                add_sample(bucket_name,sample)
                 
                 # Create logs message
-                logging.info("Dataset with (Id: %s) created!", bucket_name)
+                logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
             except Exception:
                 logging.info("\n######################## Exception #########################")
                 logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -791,7 +791,7 @@ class ContainerServices():
 
         ## ADDED Voxel51 code
         s3split = data["s3_path"].split("/")
-        bucket_name = s3split[1]
+        bucket_name = s3split[0]
 
         sample = {}
         sample["s3_path"] = data["s3_path"]
@@ -800,11 +800,11 @@ class ContainerServices():
             # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)
              
-            #Add  te«he video to the dataset
-            #add_sample(bucket_name,sample):
+            #Add  the video to the dataset
+            add_sample(bucket_name,sample)
                 
             # Create logs message
-            logging.info("Dataset with (Id: %s) created!", bucket_name)
+            logging.info("[%s] Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)

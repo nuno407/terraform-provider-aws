@@ -5,8 +5,10 @@ def create_dataset(bucket_name):
 
     if (fo.dataset_exists(bucket_name)):
         dataset = fo.load_dataset(bucket_name)
+        dataset.compute_metadata()
     else:
         dataset = fo.Dataset(bucket_name,True)
+        dataset.compute_metadata()
 
 
 def add_sample(data_set,sample_info):
@@ -21,7 +23,7 @@ def add_sample(data_set,sample_info):
     sample = fo.Sample(filepath=sample_info["s3_path"])
     
     dataset.add_sample(sample)
-
+    dataset.compute_metadata()
 
 #  Full create FiftyOne Sample object
 # 
