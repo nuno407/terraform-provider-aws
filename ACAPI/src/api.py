@@ -1,6 +1,5 @@
 """Anonymize/CHC API script"""
 import logging
-from socket import MSG_BCAST
 import boto3
 import flask
 from baseaws.shared_functions import ContainerServices
