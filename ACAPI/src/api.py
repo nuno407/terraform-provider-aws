@@ -100,7 +100,7 @@ def anonymization():
 
             thread = threading.Thread(target=upload_and_send_msg, 
                                       kwargs={
-                                              'chunk': chunk,
+                                              'chunk': chunk.read(),
                                               'path':video_upload_path,
                                               'api_queue':api_queue,
                                               'msg_body':msg_body
