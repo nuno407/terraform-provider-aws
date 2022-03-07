@@ -17,10 +17,14 @@ def add_sample(data_set,sample_info):
 
 # Simple FiftyOne Sample object    
     filepath = sample_info["s3_path"]
-   
-    sample = fo.Sample(filepath=sample_info["s3_path"])
-    
-    dataset.add_sample(sample)
+
+    #IF the sample already exists, update it's information, otherwise create a new one
+
+    if (dataset[filepath]):
+        sample = dataset[filepath]
+    else:
+        sample = fo.Sample(filepath=sample_info["s3_path"])      
+        dataset.add_sample(sample)
 
 #  Full create FiftyOne Sample object
 # 

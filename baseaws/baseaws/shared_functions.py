@@ -509,15 +509,17 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+
         sample = {}
-        sample["s3_path"] = data["s3_path"]
+        sample["s3_path"] = anon_video_path
         
 
         try:
             # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)
             
-            #Add  te«he video to the dataset
+            #Add  the video to the dataset if it doesn't exist, otherwise update it
             add_sample(bucket_name,sample)
             
             # Create logs message
@@ -590,12 +592,14 @@ class ContainerServices():
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
 
 
-            ## ADDED Voxel51 code
-            s3split = data["s3_path"].split("/")
-            bucket_name = s3split[0]
+        ## ADDED Voxel51 code
+        s3split = data["s3_path"].split("/")
+        bucket_name = s3split[0]
 
-            sample = {}
-            sample["s3_path"] = data["s3_path"]
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+
+        sample = {}
+        sample["s3_path"] = anon_video_path
             
 
             try:
@@ -793,8 +797,10 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+
         sample = {}
-        sample["s3_path"] = data["s3_path"]
+        sample["s3_path"] = anon_video_path
             
         try:
             # Create dataset with the bucket_name if it doesn't exist
