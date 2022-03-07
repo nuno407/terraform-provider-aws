@@ -1,13 +1,36 @@
 """Anonymize/CHC API script"""
 import logging
+from socket import MSG_BCAST
 import boto3
 import flask
 from baseaws.shared_functions import ContainerServices
+import threading
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v3.0"      # Version of the current container
+CONTAINER_VERSION = "v4.0"      # Version of the current container
 
 app = flask.Flask(__name__)
+
+
+def upload_and_send_msg(**kwargs):
+    """Uploads file to specified path, sends update message
+    to respective handler container
+    """
+    chunk = kwargs.get("chunk")
+    path = kwargs.get("path")
+    api_queue = kwargs.get("api_queue")
+    msg_body = kwargs.get("msg_body")
+
+    # Upload converted output file to S3 bucket
+    container_services.upload_file(s3_client,
+                                    chunk,
+                                    container_services.anonymized_s3,
+                                    path)
+
+    # Send message to input queue of metadata container
+    container_services.send_message(sqs_client,
+                                    api_queue,
+                                    msg_body)
 
 @app.route("/alive", methods=["GET"])
 def alive():
@@ -60,13 +83,7 @@ def anonymization():
             # the algorithm that processed the file
             path, file_extension = s3_path.split('.')
             video_upload_path = path + "_anonymized.avi"
-
-            # Upload converted output file to S3 bucket
-            container_services.upload_file(s3_client,
-                                           chunk,
-                                           container_services.anonymized_s3,
-                                           video_upload_path)
-
+            
             # Build message body
             msg_body = {}
             # Processing info
@@ -78,19 +95,24 @@ def anonymization():
             msg_body['video_path'] = video_upload_path
             # Metadata file (json) path
             msg_body['meta_path'] = "-"
-
-            # Send message to input queue of metadata container
+            
+            # Define SQSQ to send message to 
             api_queue = container_services.sqs_queues_list["API_Anonymize"]
 
-            container_services.send_message(sqs_client,
-                                            api_queue,
-                                            msg_body)
-
+            thread = threading.Thread(target=upload_and_send_msg, 
+                                      kwargs={
+                                              'chunk': chunk,
+                                              'path':video_upload_path,
+                                              'api_queue':api_queue,
+                                              'msg_body':msg_body
+                                             }
+                                     )
+            thread.start()
             logging.info("-----------------------------------------------")
 
-            response_msg = 'Stored received video on S3 bucket!'
-            response = flask.jsonify(code='200', message=response_msg)
-            response.status_code = 200
+            response_msg = 'Accepted video storage request!'
+            response = flask.jsonify(code='202', message=response_msg)
+            response.status_code = 202
             return response
 
     # Return error code 400 if one or more parameters are missing
@@ -133,10 +155,6 @@ def camera_check():
             path, file_extension = s3_path.split('.')
             meta_upload_path = path + "_chc.json"
 
-            container_services.upload_file(s3_client,
-                                           meta_body,
-                                           container_services.anonymized_s3,
-                                           meta_upload_path)
             # Build message body
             msg_body = {}
             # Processing info
@@ -149,18 +167,23 @@ def camera_check():
             # Metadata file (json) path
             msg_body['meta_path'] = meta_upload_path
 
-            # Send message to input queue of metadata container
+            # Define SQSQ to send message to 
             api_queue = container_services.sqs_queues_list["API_CHC"]
 
-            container_services.send_message(sqs_client,
-                                            api_queue,
-                                            msg_body)
-
+            thread = threading.Thread(target=upload_and_send_msg, 
+                                      kwargs={
+                                              'chunk': meta_body,
+                                              'path':meta_upload_path,
+                                              'api_queue':api_queue,
+                                              'msg_body':msg_body
+                                             }
+                                     )
+            thread.start()
             logging.info("-----------------------------------------------")
 
-            response_msg = 'Stored received video on S3 bucket!'
-            response = flask.jsonify(code='200', message=response_msg)
-            response.status_code = 200
+            response_msg = 'Accepted video storage request!'
+            response = flask.jsonify(code='202', message=response_msg)
+            response.status_code = 202
             return response
 
         # Return error code 400 if one or more parameters are missing
