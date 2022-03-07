@@ -602,19 +602,19 @@ class ContainerServices():
         sample["s3_path"] = anon_video_path
             
 
-            try:
-                # Create dataset with the bucket_name if it doesn't exist
-                create_dataset(bucket_name)
+        try:
+            # Create dataset with the bucket_name if it doesn't exist
+            create_dataset(bucket_name)
+               
+            #Add  the video to the dataset
+            add_sample(bucket_name,sample)
                 
-                #Add  the video to the dataset
-                add_sample(bucket_name,sample)
-                
-                # Create logs message
-                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-            except Exception:
-                logging.info("\n######################## Exception #########################")
-                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-                logging.info("############################################################\n")
+            # Create logs message
+            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.info("############################################################\n")
             
 
     @staticmethod
