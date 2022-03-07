@@ -171,7 +171,7 @@ def camera_check():
 
             thread = threading.Thread(target=upload_and_send_msg, 
                                       kwargs={
-                                              'chunk': meta_body,
+                                              'chunk': meta_body.read(),
                                               'path':meta_upload_path,
                                               'api_queue':api_queue,
                                               'msg_body':msg_body
