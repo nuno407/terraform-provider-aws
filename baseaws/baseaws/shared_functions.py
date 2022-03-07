@@ -509,7 +509,7 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"]
 
         sample = {}
         sample["s3_path"] = anon_video_path
@@ -596,7 +596,7 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"]
 
         sample = {}
         sample["s3_path"] = anon_video_path
@@ -797,7 +797,7 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/".data["s3_path"]
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"]
 
         sample = {}
         sample["s3_path"] = anon_video_path
