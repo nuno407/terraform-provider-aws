@@ -1,3 +1,4 @@
+from datetime import timedelta as td, datetime
 
 def create_dataset(bucket_name):
     import fiftyone as fo
@@ -15,16 +16,13 @@ def add_sample(data_set,sample_info):
 
     dataset = fo.load_dataset(data_set)
 
-# Simple FiftyOne Sample object    
-    filepath = sample_info["s3_path"]
 
     #IF the sample already exists, update it's information, otherwise create a new one
 
-#    if (dataset[filepath]):
-#        sample = dataset[filepath]
-#    else:
-    sample = fo.Sample(filepath=sample_info["s3_path"])      
-    dataset.add_sample(sample)
+    if (fo.dataset.match_tags(("pipeline_id", sample_info["_id"])) != null):
+        sample = fo.dataset.match_tags(("pipeline_id", sample_info["_id"]))
+    else:
+        sample = fo.Sample(filepath=sample_info["s3_path"])      
 
 #  Full create FiftyOne Sample object
 # 
@@ -32,18 +30,18 @@ def add_sample(data_set,sample_info):
 #     sample = fo.Sample(filepath=filepath)
 # 
 #     # Parse and populate labels and metadata on sample
-#     meta_avail_bool = sample_info["metadata_available"] == "Yes"
-#     sample["metadata_available"] = meta_avail_bool
+    meta_avail_bool = sample_info["metadata_available"] == "Yes"
+    sample["metadata_available"] = meta_avail_bool
 # 
-#     sample["pipeline_id"] = sample_info["_id"]
-#     sample["pipeline_stage"] = sample_info["just created"] #and other stages, to validate where the sample is in terms of processing
+    sample["pipeline_id"] = sample_info["_id"]
+    sample["pipeline_stage"] = sample_info["just created"] #and other stages, to validate where the sample is in terms of processing
 # 
-#     sample["cameraID"] = sample_info["recording_overview"]["cameraID"]
-#     sample["recording_resolution"] = sample_info["recording_overview"]["resolution"]
+    sample["cameraID"] = sample_info["recording_overview"]["cameraID"]
+    sample["recording_resolution"] = sample_info["recording_overview"]["resolution"]
 # 
-#     recording_time = sample_info["recording_overview"]["time"]
-#     recording_datetime = datetime.strptime(recording_time, "%Y-%m-%d %H:%M:%S")
-#     sample["recording_time"] = recording_datetime
+    recording_time = sample_info["recording_overview"]["time"]
+    recording_datetime = datetime.strptime(recording_time, "%Y-%m-%d %H:%M:%S")
+    sample["recording_time"] = recording_datetime
 # 
 #     # Add results as Regression Labels
 #     for algo_results in sample_info["results"]:
@@ -61,9 +59,9 @@ def add_sample(data_set,sample_info):
 #             sample.frames[frame_number][label_field] = label
 # 
 # 
-# dataset = fo.load_dataset(data_set)
-# # Add samples to dataset
-# dataset.add_sample(sample)
+    dataset = fo.load_dataset(data_set)
+    # Add sample to dataset
+    dataset.add_sample(sample)
 
 def update_sample(data_set,sample_info):
     import fiftyone as fo

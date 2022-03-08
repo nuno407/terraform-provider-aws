@@ -511,7 +511,7 @@ class ContainerServices():
 
         anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
-        sample = {}
+        sample = item_db
         sample["s3_path"] = anon_video_path
         
 
@@ -604,10 +604,10 @@ class ContainerServices():
 
         try:
             # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)
+#           create_dataset(bucket_name)
                
             #Add  the video to the dataset
-            add_sample(bucket_name,sample)
+#            add_sample(bucket_name,sample)
                 
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
@@ -804,10 +804,10 @@ class ContainerServices():
             
         try:
             # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)
+#           create_dataset(bucket_name)
              
             #Add  the video to the dataset
-            add_sample(bucket_name,sample)
+#            add_sample(bucket_name,sample)
                 
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
