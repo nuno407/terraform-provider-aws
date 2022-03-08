@@ -505,7 +505,7 @@ class ContainerServices():
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
 
-## ADDED Voxel51 code
+        ## ADDED Voxel51 code
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
@@ -598,17 +598,15 @@ class ContainerServices():
 
         anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
-        sample = {}
+        sample = item_db
         sample["s3_path"] = anon_video_path
             
 
         try:
             # Create dataset with the bucket_name if it doesn't exist
-#           create_dataset(bucket_name)
-               
+            create_dataset(bucket_name)        
             #Add  the video to the dataset
-#            add_sample(bucket_name,sample)
-                
+            add_sample(bucket_name,sample)
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
@@ -793,29 +791,29 @@ class ContainerServices():
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
 
 
-        ## ADDED Voxel51 code
+## ADDED Voxel51 code
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
         anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
-        sample = {}
+        sample = item_db
         sample["s3_path"] = anon_video_path
-            
+        
+
         try:
             # Create dataset with the bucket_name if it doesn't exist
-#           create_dataset(bucket_name)
-             
-            #Add  the video to the dataset
-#            add_sample(bucket_name,sample)
-                
+            create_dataset(bucket_name)
+            
+            #Add  the video to the dataset if it doesn't exist, otherwise update it
+            add_sample(bucket_name,sample)
+            
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
             logging.info("############################################################\n")
-
 
 
     def connect_to_docdb(self, data, attributes):
