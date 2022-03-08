@@ -508,30 +508,6 @@ class ContainerServices():
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
 
-# ## ADDED Voxel51 code
-#         s3split = data["s3_path"].split("/")
-#         bucket_name = s3split[1]
-
-#         sample = {}
-#         sample["s3_path"] = data["s3_path"]
-        
-
-#         try:
-#             # Create dataset with the bucket_name if it doesn't exist
-#             create_dataset(bucket_name)
-            
-#             #Add  te«he video to the dataset
-#             #add_sample(bucket_name,sample):
-            
-#             # Create logs message
-#             logging.info("Dataset with (Id: %s) created!", bucket_name)
-#         except Exception:
-#             logging.info("\n######################## Exception #########################")
-#             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-#             logging.info("############################################################\n")
-        
-
-
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
         """Inserts a new item (or updates it if already exists) on the
