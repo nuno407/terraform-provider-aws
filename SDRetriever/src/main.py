@@ -1,11 +1,11 @@
 """Anonymize container script"""
 import json
 import logging
-import boto3
-from baseaws.shared_functions import ContainerServices
 from datetime import timedelta as td, datetime
 import subprocess
 from operator import itemgetter
+import boto3
+from baseaws.shared_functions import ContainerServices
 
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.1"      # Version of the current container
@@ -117,28 +117,9 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     role_credentials = assumed_role_object['Credentials']
 
-    # try:
-    #     # Get Kinesis clip using received message parameters
-    #     video_clip = container_services.get_kinesis_clip(role_credentials,
-    #                                                      stream_name,
-    #                                                      start_time,
-    #                                                      end_time,
-    #                                                      selector)
-    # except Exception:
-    #     logging.info("\n######################## Exception #########################")
-    #     logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
-    #     logging.info("############################################################\n")
-    #     return record_data, hq_request
-
-    # # Upload video clip into raw data S3 bucket
-    # container_services.upload_file(s3_client,
-    #                                video_clip,
-    #                                container_services.raw_s3,
-    #                                s3_path)
-    
     try:
         # Get Kinesis clip using received message parameters
-        video_clip = container_services.get_kinesis_test(role_credentials,
+        video_clip = container_services.get_kinesis_clip(role_credentials,
                                                          stream_name,
                                                          start_time,
                                                          end_time,
@@ -150,7 +131,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                                     s3_path)
     except Exception:
         logging.info("\n######################## Exception #########################")
-        logging.exception("ERROR: Failed to get kinesis test clip (%s)!!", s3_path)
+        logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
         logging.info("############################################################\n")
         return record_data, hq_request
 

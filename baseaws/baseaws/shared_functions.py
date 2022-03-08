@@ -2,7 +2,8 @@
 import json
 import logging
 import os
-from datetime import timedelta as td, datetime
+import subprocess
+from datetime import timedelta as datetime #,td
 import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
@@ -1039,38 +1040,46 @@ class ContainerServices():
                                   (can only be either 'PRODUCER_TIMESTAMP' or
                                   'SERVER_TIMESTAMP')]
         Returns:
-            video_clip {bytes} -- [Received chunk in bytes format]
+            output_video {bytes} -- [Received chunk in bytes format]
         """
+        # Generate processing start message
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-        logging.info("[%s]  Downloading clip (stream: %s)..", timestamp,
+        logging.info("[%s]  Downloading test clip (stream: %s)..", timestamp,
                                                               stream_name)
 
-        # Create a kinesis client with temporary STS credentials
-        # to enable cross-account access
+        # Create Kinesis client
         kinesis_client = boto3.client('kinesisvideo',
-                                      region_name='eu-central-1',
-                                      aws_access_key_id=creds['AccessKeyId'],
-                                      aws_secret_access_key=creds['SecretAccessKey'],
-                                      aws_session_token=creds['SessionToken'])
+                                        region_name='eu-central-1',
+                                        aws_access_key_id=creds['AccessKeyId'],
+                                        aws_secret_access_key=creds['SecretAccessKey'],
+                                        aws_session_token=creds['SessionToken'])
 
-        # Getting endpoint URL for GET_CLIP
-        response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                    APIName='GET_CLIP')
+        # Getting endpoint URL for LIST_FRAGMENTS
+        response_list = kinesis_client.get_data_endpoint(StreamName=stream_name,
+                                                    APIName='LIST_FRAGMENTS')
 
-        endpoint_response = response['DataEndpoint']
+        # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
+        response_get = kinesis_client.get_data_endpoint(StreamName=stream_name,
+                                                    APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
 
-        # Create client using received endpoint URL
-        media_client = boto3.client('kinesis-video-archived-media',
-                                    endpoint_url=endpoint_response,
+        # Fetch DataEndpoint field 
+        endpoint_response_list = response_list['DataEndpoint']
+        endpoint_response_get = response_get['DataEndpoint']
+
+        ### List fragments step ###
+        # Create Kinesis archive media client for list_fragments()
+        list_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response_list,
                                     region_name='eu-central-1',
                                     aws_access_key_id=creds['AccessKeyId'],
                                     aws_secret_access_key=creds['SecretAccessKey'],
                                     aws_session_token=creds['SessionToken'])
 
-        # Send request to get desired clip
-        response_media = media_client.get_clip(
+        # Get all fragments within timestamp range (start_time, end_time)
+        response1 = list_client.list_fragments(
             StreamName=stream_name,
-            ClipFragmentSelector={
+            MaxResults=1000,
+            FragmentSelector={
                 'FragmentSelectorType': selector,
                 'TimestampRange': {
                     'StartTimestamp': start_time,
@@ -1079,14 +1088,65 @@ class ContainerServices():
             }
         )
 
+        # Sort fragments by their timestamp
+        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp((d['ProducerTimestamp'])))
+
+        # Create comprehension list with sorted fragments
+        list_frags = [frag['FragmentNumber'] for frag in newlist]
+
+        ### Get media step ###
+        # Create Kinesis archive media client for get_media_for_fragment_list()
+        get_client = boto3.client('kinesis-video-archived-media',
+                                    endpoint_url=endpoint_response_get,
+                                    region_name='eu-central-1',
+                                    aws_access_key_id=creds['AccessKeyId'],
+                                    aws_secret_access_key=creds['SecretAccessKey'],
+                                    aws_session_token=creds['SessionToken'])
+
+        # Fetch all 2sec fragments from previously sorted list
+        response2 = get_client.get_media_for_fragment_list(
+            StreamName=stream_name,
+            Fragments=list_frags
+        )
+
+        ### Conversion step (webm -> mp4) ###
+        # Defining temporary files names
+        input_name = "received_file.webm"
+        output_name = "converted_file.mp4"
+        logs_name = "logs.txt"
+
         # Read all bytes from http response body
         # (botocore.response.StreamingBody)
-        video_chunk = response_media['Payload'].read()
+        video_chunk = response2['Payload'].read()
 
+        # Save video chunks to file
+        with open(input_name, 'wb') as infile: 
+            infile.write(video_chunk)
+
+        with open(logs_name, 'w') as logs_write:
+            # Convert .avi input file into .mp4 using ffmpeg
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
+                                        "0", "-filter:v", "fps=15.72", output_name],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True)
+
+            # Save conversion logs into txt file
+            for line in conv_logs.stdout:
+                logs_write.write(line)
+
+        # Load bytes from converted output file
+        with open(output_name, "rb") as output_file:
+            output_video = output_file.read()
+
+        # Remove temporary files from storage
+        subprocess.run(["rm", input_name, output_name, logs_name])
+
+        # Generate processing end message
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-        logging.info("[%s]  Clip download completed!", timestamp)
+        logging.info("[%s]  Test clip download completed!", timestamp)
 
-        return video_chunk
+        return output_video 
 
     ##### Logs/Misc. functions ####################################################################
     def display_processed_msg(self, key_path, uid=None):
@@ -1107,114 +1167,4 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
         
-    def get_kinesis_test(self, creds, stream_name, start_time, end_time, selector):
-        """"""
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-        logging.info("[%s]  Downloading test clip (stream: %s)..", timestamp,
-                                                              stream_name)
-        kinesis_client = boto3.client('kinesisvideo',
-                                        region_name='eu-central-1',
-                                        aws_access_key_id=creds['AccessKeyId'],
-                                        aws_secret_access_key=creds['SecretAccessKey'],
-                                        aws_session_token=creds['SessionToken'])
-
-        # Getting endpoint URL for GET_CLIP
-        response_list = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                    APIName='LIST_FRAGMENTS')
-        response_get = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                    APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
-
-        endpoint_response_list = response_list['DataEndpoint']
-        endpoint_response_get = response_get['DataEndpoint']
-
-        ########################################################################################################
-
-        list_client = boto3.client('kinesis-video-archived-media',
-                                    endpoint_url=endpoint_response_list,
-                                    region_name='eu-central-1',
-                                    aws_access_key_id=creds['AccessKeyId'],
-                                    aws_secret_access_key=creds['SecretAccessKey'],
-                                    aws_session_token=creds['SessionToken'])
-
-        response1 = list_client.list_fragments(
-            StreamName=stream_name,
-            MaxResults=1000,
-            FragmentSelector={
-                'FragmentSelectorType': selector,
-                'TimestampRange': {
-                    'StartTimestamp': start_time,
-                    'EndTimestamp': end_time
-                }
-            }
-        )
-
-        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp((d['ProducerTimestamp'])))
-
-        # for fragment in newlist:
-        #     print(fragment['ProducerTimestamp'])
-        list_frags = [frag['FragmentNumber'] for frag in newlist]
-
-        #######################################################################################################
-
-        get_client = boto3.client('kinesis-video-archived-media',
-                                    endpoint_url=endpoint_response_get,
-                                    region_name='eu-central-1',
-                                    aws_access_key_id=creds['AccessKeyId'],
-                                    aws_secret_access_key=creds['SecretAccessKey'],
-                                    aws_session_token=creds['SessionToken'])
-        response2 = get_client.get_media_for_fragment_list(
-            StreamName=stream_name,
-            Fragments=list_frags
-        )
-        
-
-        ######## % ########
-        logging.info(response2['ContentType'])
-
-        import subprocess
-
-        # Defining temporary files names
-        input_name = "ztest2.webm"
-        output_name = "output_video.mp4"
-        logs_name = "logs.txt"
-        
-        # Read all bytes from http response body
-        # (botocore.response.StreamingBody)
-        video_chunk = response2['Payload'].read()
-        
-        # Save video chunks to file
-        with open(input_name, 'wb') as infile: 
-            infile.write(video_chunk)
-
-        subprocess.run(["ls", "-l"])
-        with open(logs_name, 'w') as logs_write:
-            # Convert .avi input file into .mp4 using ffmpeg
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
-                                        "0", "-filter:v", "fps=15.72", output_name],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT,
-                                        universal_newlines=True)
-                                            
-            # Save conversion logs into txt file
-            for line in conv_logs.stdout:
-                logs_write.write(line)
-        # with open(logs_name, 'w') as logs_write:
-        # Convert .avi input file into .mp4 using ffmpeg
-        # conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-crf",
-        #                             "1", "-c:v", "libx264", output_name],
-        #                             stdout=subprocess.PIPE,
-        #                             stderr=subprocess.STDOUT,
-        #                             universal_newlines=True)
-        # Save conversion logs into txt file
-            for line in conv_logs.stdout:
-                logs_write.write(line)
-        subprocess.run(["ls", "-l"])
-        # Load bytes from converted output file
-        with open(output_name, "rb") as output_file:
-            output_video = output_file.read()
-
-        ######## % ########
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-        logging.info("[%s]  Test clip download completed!", timestamp)
-        subprocess.run(["rm", input_name, output_name, logs_name])
-        return output_video #video_chunk
+    
