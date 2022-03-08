@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
         "./baseaws"
-    ]
+    ],
+    "python.formatting.provider": "autopep8"
 }

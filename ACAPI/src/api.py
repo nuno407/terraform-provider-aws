@@ -1,12 +1,12 @@
 """Anonymize/CHC API script"""
 import logging
+import threading
 import boto3
 import flask
 from baseaws.shared_functions import ContainerServices
-import threading
 
 CONTAINER_NAME = "ACAPI"    # Name of the current container
-CONTAINER_VERSION = "v4.0"      # Version of the current container
+CONTAINER_VERSION = "v4.1"      # Version of the current container
 
 app = flask.Flask(__name__)
 
@@ -14,7 +14,15 @@ app = flask.Flask(__name__)
 def upload_and_send_msg(**kwargs):
     """Uploads file to specified path, sends update message
     to respective handler container
+
+    Arguments:
+        kwargs {dict} -- [dictionary containing chunk, path, api_queue and msg_body]:
+            chunk {bytes} -- [binary object containing video file to be uploaded to S3 bucket]
+            path {string} -- [S3 path with target location for video upload]
+            api_queue {string} -- [name of SQSQ of corresponding handler that needs to be updated]
+            msg_body {dict} -- [dictionary containing update info to be sent in SQSQ message]
     """
+    # Get data from kwargs
     chunk = kwargs.get("chunk")
     path = kwargs.get("path")
     api_queue = kwargs.get("api_queue")
@@ -22,14 +30,15 @@ def upload_and_send_msg(**kwargs):
 
     # Upload converted output file to S3 bucket
     container_services.upload_file(s3_client,
-                                    chunk,
-                                    container_services.anonymized_s3,
-                                    path)
+                                   chunk,
+                                   container_services.anonymized_s3,
+                                   path)
 
     # Send message to input queue of metadata container
     container_services.send_message(sqs_client,
                                     api_queue,
                                     msg_body)
+
 
 @app.route("/alive", methods=["GET"])
 def alive():
@@ -41,6 +50,7 @@ def alive():
     """
     return flask.jsonify(code='200', message='Ok')
 
+
 @app.route("/ready", methods=["GET"])
 def ready():
     """Returns status code 200 if ready
@@ -50,6 +60,7 @@ def ready():
         flask.jsonify -- [json with the status code + response message]
     """
     return flask.jsonify(code='200', message='Ready')
+
 
 @app.route("/anonymized", methods=["POST"])
 def anonymization():
@@ -80,9 +91,9 @@ def anonymization():
 
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
-            path, file_extension = s3_path.split('.')
+            path = s3_path.split('.')[0]
             video_upload_path = path + "_anonymized.avi"
-            
+
             # Build message body
             msg_body = {}
             # Processing info
@@ -94,18 +105,21 @@ def anonymization():
             msg_body['video_path'] = video_upload_path
             # Metadata file (json) path
             msg_body['meta_path'] = "-"
-            
-            # Define SQSQ to send message to 
+
+            # Define SQSQ to send message to
             api_queue = container_services.sqs_queues_list["API_Anonymize"]
 
-            thread = threading.Thread(target=upload_and_send_msg, 
+            # Call thread function with request parameters
+            thread = threading.Thread(target=upload_and_send_msg,
                                       kwargs={
-                                              'chunk': chunk.read(),
-                                              'path':video_upload_path,
-                                              'api_queue':api_queue,
-                                              'msg_body':msg_body
-                                             }
-                                     )
+                                          'chunk': chunk.read(),
+                                          'path': video_upload_path,
+                                          'api_queue': api_queue,
+                                          'msg_body': msg_body
+                                      }
+                                      )
+
+            # Start thread processing
             thread.start()
             logging.info("-----------------------------------------------")
 
@@ -119,6 +133,7 @@ def anonymization():
     response = flask.jsonify(code='400', message=response_msg)
     response.status_code = 400
     return response
+
 
 @app.route("/cameracheck", methods=["POST"])
 def camera_check():
@@ -151,7 +166,7 @@ def camera_check():
 
             # Rename metadata file to be stored by adding the name of
             # the algorithm that processed the file
-            path, file_extension = s3_path.split('.')
+            path = s3_path.split('.')[0]
             meta_upload_path = path + "_chc.json"
 
             # Build message body
@@ -166,17 +181,20 @@ def camera_check():
             # Metadata file (json) path
             msg_body['meta_path'] = meta_upload_path
 
-            # Define SQSQ to send message to 
+            # Define SQSQ to send message to
             api_queue = container_services.sqs_queues_list["API_CHC"]
 
-            thread = threading.Thread(target=upload_and_send_msg, 
+            # Call thread function with request parameters
+            thread = threading.Thread(target=upload_and_send_msg,
                                       kwargs={
-                                              'chunk': meta_body.read(),
-                                              'path':meta_upload_path,
-                                              'api_queue':api_queue,
-                                              'msg_body':msg_body
-                                             }
-                                     )
+                                          'chunk': meta_body.read(),
+                                          'path': meta_upload_path,
+                                          'api_queue': api_queue,
+                                          'msg_body': msg_body
+                                      }
+                                      )
+
+            # Start thread processing
             thread.start()
             logging.info("-----------------------------------------------")
 
@@ -190,6 +208,12 @@ def camera_check():
         response = flask.jsonify(code='400', message=response_msg)
         response.status_code = 400
         return response
+
+    # Return error code 405 if wrong method
+    response_msg = 'Method not allowed!'
+    response = flask.jsonify(code='405', message=response_msg)
+    response.status_code = 405
+    return response
 
 
 if __name__ == '__main__':
