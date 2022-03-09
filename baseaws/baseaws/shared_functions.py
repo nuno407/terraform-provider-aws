@@ -580,6 +580,7 @@ class ContainerServices():
             anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
             sample = update_dict["$set"]
+            sample["_id"] = unique_id
             sample["s3_path"] = anon_video_path
                 
 
