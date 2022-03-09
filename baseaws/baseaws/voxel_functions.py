@@ -112,7 +112,7 @@ def update_sample(data_set,sample_info):
       
     except Exception:
         sample = fo.Sample(filepath=sample_info["s3_path"])    
-
+        dataset.add_sample(sample)
  
 
 
