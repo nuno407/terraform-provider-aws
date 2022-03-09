@@ -573,6 +573,30 @@ class ContainerServices():
             # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
 
+            ## ADDED Voxel51 code
+            s3split = data["s3_path"].split("/")
+            bucket_name = s3split[0]
+
+            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+
+            sample = update_dict["$set"]
+            sample["s3_path"] = anon_video_path
+                
+
+            try:
+                # Create dataset with the bucket_name if it doesn't exist
+                create_dataset(bucket_name)        
+                #Add  the video to the dataset
+                update_sample(bucket_name,sample)
+                # Create logs message
+                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+                logging.info("############################################################\n")
+
+
+
         else:
             # Build item structure and add info from msg received
             item_db = {
@@ -592,27 +616,27 @@ class ContainerServices():
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
 
 
-        ## ADDED Voxel51 code
-        s3split = data["s3_path"].split("/")
-        bucket_name = s3split[0]
+            ## ADDED Voxel51 code
+            s3split = data["s3_path"].split("/")
+            bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
-        sample = item_db
-        sample["s3_path"] = anon_video_path
-            
+            sample = item_db
+            sample["s3_path"] = anon_video_path
+                
 
-        try:
-            # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)        
-            #Add  the video to the dataset
-            update_sample(bucket_name,sample)
-            # Create logs message
-            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-        except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-            logging.info("############################################################\n")
+            try:
+                # Create dataset with the bucket_name if it doesn't exist
+                create_dataset(bucket_name)        
+                #Add  the video to the dataset
+                update_sample(bucket_name,sample)
+                # Create logs message
+                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+                logging.info("############################################################\n")
             
 
     @staticmethod

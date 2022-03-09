@@ -39,6 +39,7 @@ def add_sample(data_set,sample_info):
 
     #Setup mandatory field
     sample["pipeline_id"] = sample_info["_id"]
+    # if sample_info.get("metadata_available")
 
     #Validate and populate optional fields 
     if sample_info["metadata_available"]:
@@ -201,4 +202,4 @@ def update_sample(data_set,sample_info):
 # 
     
     # Add sample to dataset
-    dataset.add_sample(sample)
+    sample.save()
