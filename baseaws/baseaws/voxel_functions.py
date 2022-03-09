@@ -97,6 +97,7 @@ def add_sample(data_set,sample_info):
     dataset.add_sample(sample)
 
 def update_sample(data_set,sample_info):
+    import logging
     import fiftyone as fo
     import eta.core.frameutils as etaf
     from fiftyone import ViewField as F
