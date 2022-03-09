@@ -520,7 +520,7 @@ class ContainerServices():
             create_dataset(bucket_name)
             
             #Add  the video to the dataset if it doesn't exist, otherwise update it
-            add_sample(bucket_name,sample)
+            update_sample(bucket_name,sample)
             
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
@@ -606,7 +606,7 @@ class ContainerServices():
             # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)        
             #Add  the video to the dataset
-            add_sample(bucket_name,sample)
+            update_sample(bucket_name,sample)
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
         except Exception:
@@ -806,7 +806,7 @@ class ContainerServices():
             create_dataset(bucket_name)
             
             #Add  the video to the dataset if it doesn't exist, otherwise update it
-            add_sample(bucket_name,sample)
+            update_sample(bucket_name,sample)
             
             # Create logs message
             logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
