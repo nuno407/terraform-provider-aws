@@ -3,15 +3,11 @@ import json
 import logging
 import os
 import subprocess
-from datetime import timedelta as datetime #,td
+from datetime import datetime #timedelta as td,
 import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
-# import fiftyone as fo
-# import eta.core.frameutils as etaf
-# from baseaws.voxel_functions import create_dataset, add_sample, update_sample
-
 
 class ContainerServices():
     """ContainerServices
