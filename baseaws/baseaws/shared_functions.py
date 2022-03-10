@@ -512,6 +512,7 @@ class ContainerServices():
         anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
         sample = item_db
+        sample["video_id"] = item_db["_id"]
         sample["s3_path"] = anon_video_path
         
 
@@ -625,7 +626,7 @@ class ContainerServices():
 
             sample = item_db
             sample["s3_path"] = anon_video_path
-                
+            sample["video_id"] = item_db["_id"]    
 
             try:
                 # Create dataset with the bucket_name if it doesn't exist
@@ -823,7 +824,17 @@ class ContainerServices():
         anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
         sample = item_db
+
+        sample["algorithms"] = {}
+
+        if source == "CHC":
+            sample["algorithms"][item_db['_id']] = {"results":item_db["results"], "output_paths":item_db['output_paths']}
+        else:
+            sample["algorithms"][item_db['_id']] = {"output_paths":item_db['output_paths']}
+
+            
         sample["s3_path"] = anon_video_path
+        sample["video_id"] = item_db["pipeline_id"]
         
 
         try:
