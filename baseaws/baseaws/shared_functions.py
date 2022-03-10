@@ -7,7 +7,7 @@ import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
-from baseaws.voxel_functions import create_dataset, add_sample, update_sample
+from baseaws.voxel_functions import create_dataset, update_sample
 
 
 class ContainerServices():
