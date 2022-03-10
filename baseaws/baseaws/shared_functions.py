@@ -835,7 +835,14 @@ class ContainerServices():
             
         sample["s3_path"] = anon_video_path
         sample["video_id"] = item_db["pipeline_id"]
-        
+
+        #################################################
+        # RETRIEVE RECORDING ITEM FROM DOCDB
+        item_rec = table_rec.find_one({'_id': unique_id})
+        '''
+        Insert here code to save item_rec into sample dict
+        '''
+        #################################################
 
         try:
             # Create dataset with the bucket_name if it doesn't exist
