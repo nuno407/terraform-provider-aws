@@ -1010,6 +1010,75 @@ class VideoCHC(Resource):
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
 
+
+# Parameters parser for getVideoSignals endpoint (Swagger documentation)
+videosignals_parser = reqparse.RequestParser()
+videosignals_parser.add_argument('videoID', type=str, required=True, help='Name of the video file', location='args')
+
+# Custom model for getVideoUrl code 200 response (Swagger documentation)
+get_videosignals_200_model = api.model("Video_Signals_200", {
+    'message': fields.String(example="<recording_id>"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/getVideoSignals/<string:videoID>')
+class VideoSignals(Resource):
+    @api.response(200, 'Success', get_videosignals_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(videosignals_parser, validate=True)
+    def get(self, videoID):
+        try:
+            # Define DB collection to get recording info from
+            collection_rec = container_services.db_tables["recording"]
+
+            # Create a MongoDB client, open a connection to Amazon DocumentDB
+            # as a replica set and specify the read preference as
+            # secondary preferred
+            client = create_mongo_client()
+
+            # Specify the database to be used
+            db = client[DB_NAME]
+
+            ##Specify the collection to be used
+            col = db[collection_rec]
+
+            # Get all info from the table with output video available
+            item = col.find_one({"_id" : videoID})
+            # TODO: DEFINE A BETTER APPROACH TO FIND ALL VIDEOS AVAILABLE
+
+            # Close the connection
+            client.close()
+
+            # Iterate received items and Camera HealthChecks blocks for each one
+            response_msg = {}
+
+            for CHCs_item in item['results_CHC']:
+                if (CHCs_item['source'] == "MDF"):
+                    #logging.info(CHCs_item['source'])                
+                    #response_msg[CHCs_item['source']] = CHCs_item['signals_sync'] # TODO:uncomment after signals implementation
+                    response_msg[CHCs_item['source']] = CHCs_item['CHBs_sync'] 
+                else:    
+                    #logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
+                    #response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['signals_sync'] # TODO:uncomment after signals implementation
+                    response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
+
+                #logging.info(response_msg)
+
+            return flask.jsonify(message=response_msg, statusCode="200")
+        except (NameError, LookupError):
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+            
+
+
+
 # Custom model for getTableData code 200 response (Swagger documentation)
 tabledata_nest_model = api.model("tabledata_nest", {
     'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
