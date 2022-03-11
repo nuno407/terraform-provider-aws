@@ -838,10 +838,14 @@ class ContainerServices():
 
         #################################################
         # RETRIEVE RECORDING ITEM FROM DOCDB
+        # FOR TEMPORARY TESTS IN DEV
         item_rec = table_rec.find_one({'_id': unique_id})
-        '''
-        Insert here code to save item_rec into sample dict
-        '''
+        
+        sample["MDF_available"] = item_rec ["MDF_available"]
+        sample["recording_overview"] = item_rec ["recording_overview"]
+        sample["results_CHC"] = item_rec ["results_CHC"]
+
+
         #################################################
 
         try:

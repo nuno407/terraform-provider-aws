@@ -42,10 +42,6 @@ def update_sample(data_set,sample_info):
     sample["video_id"] = sample_info["video_id"]
 
     #Validate and populate optional fields 
-    try:
-        sample["metadata_available"] = sample_info["metadata_available"]
-    except Exception:
-        logging.info("No metadata_available")
 
     try:
         sample["pipeline_stage"] = sample_info["pipeline_stage"]
@@ -80,6 +76,11 @@ def update_sample(data_set,sample_info):
         logging.info("No data_status")        
 
     try:
+        sample["algorithm_id"] = sample_info["algorithm_id"]
+    except Exception:
+        logging.info("No algorithm_id")        
+
+    try:
         sample["from_container"] = sample_info["from_container"]
     except Exception:
         logging.info("No from_container")        
@@ -108,6 +109,16 @@ def update_sample(data_set,sample_info):
         sample["algorithms"] = sample_info["algorithms"]
     except Exception:
         logging.info("No algorithms")   
+
+    try:
+        sample["MDF_available"] = sample_info["MDF_available"]
+    except Exception:
+        logging.info("No MDF_available")      
+    
+    try:
+        sample["results_CHC"] = sample_info["results_CHC"]
+    except Exception:
+        logging.info("No results_CHC")   
       
 
 
