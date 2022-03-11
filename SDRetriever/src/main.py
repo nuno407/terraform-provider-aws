@@ -371,7 +371,7 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
         delta = video_frame_dt-video_start_dt
         delta_new = str(delta).replace(".", ":")
         # Store relative video timestamp for each frame and its corresponding CameraViewBlocked value
-        frame_ts_chb[delta_new] = frame_camera_view[frame] #HERE - delta_new é o timestamp final, frame_ts_chb é o dicionário final que vai dumped
+        frame_ts_chb[delta_new] = frame_camera_view[frame]
 
     ############################################################################################################ FOR DEBUG
     # Convert concatenated dictionary into json and then into bytes so
@@ -606,7 +606,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                         }                        
 
     #############################################
-    compact_mdf = {} #HERE
+    compact_mdf = {}
     start_frame = 0
     end_frame = 0
     #############################################
