@@ -297,17 +297,9 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
     for frame in data_json['frames']:
         # Collect relative timestamp for each frame
         frame_ts[frame['number']] = frame['timestamp']
-        
-        # Get keys for this frame
-        keys = list(frame.keys())
 
-        # remove undesired
-        keys.remove("number")
-        keys.remove("timestamp")
-    
-        # Add remaining frame data to output
-        signals = {key:frame[key] for key in keys}
-        frame_camera_view[frame['number']] = signals
+        # Collect signals from key 'signals'
+        frame_camera_view[frame['number']] = frame['signals']
        
 
     ###############################
