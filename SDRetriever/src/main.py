@@ -276,20 +276,36 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
     return final_info
 
 def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data_json, stream_name):
-    """TODO
+    """_summary_
 
-    Arguments:
-        TODO
+    Args:
+        container_services (_type_): _description_
+        s3_client (_type_): _description_
+        epoch_from (_type_): _description_
+        epoch_to (_type_): _description_
+        data_json (_type_): _description_
+        stream_name (_type_): _description_
+
+    Returns:
+        _type_: _description_
     """
     # Collect frame data and store it in separate dictionaries
     frame_ts = {}
-    frame_chb = {}
+    frame_camera_view = {}
 
     for frame in data_json['frames']:
         # Collect relative timestamp for each frame
         frame_ts[frame['number']] = frame['timestamp']
         # Collect CameraViewBlocked value for each frame
-        frame_chb[frame['number']] = frame['CameraViewBlocked']
+        frame_camera_view[frame['number']] = {
+            'CameraViewShifted':frame['CameraViewShifted'],
+            'CameraViewBlocked':frame['CameraViewBlocked'],
+            'CameraViewEstimation_r':frame["CameraViewEstimation_r"],
+            'CameraViewEstimation_s':frame["CameraViewEstimation_s"],
+            'CameraViewEstimation_tx':frame["CameraViewEstimation_tx"],
+            'CameraViewEstimation_ty':frame["CameraViewEstimation_ty"],
+        }
+       
 
     ###############################
     # Convert frame relative timestamps to real epoch timestamp
@@ -352,7 +368,7 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
         delta = video_frame_dt-video_start_dt
         delta_new = str(delta).replace(".", ":")
         # Store relative video timestamp for each frame and its corresponding CameraViewBlocked value
-        frame_ts_chb[delta_new] = float(frame_chb[frame])
+        frame_ts_chb[delta_new] = frame_camera_view[frame] #HERE - delta_new é o timestamp final, frame_ts_chb é o dicionário final que vai dumped
 
     ############################################################################################################ FOR DEBUG
     # Convert concatenated dictionary into json and then into bytes so
@@ -587,7 +603,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                         }                        
 
     #############################################
-    compact_mdf = {}
+    compact_mdf = {} #HERE
     start_frame = 0
     end_frame = 0
     #############################################
