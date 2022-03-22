@@ -1,6 +1,7 @@
 """
 Metadata API 
 """
+from datetime import timedelta
 import logging
 import flask
 from flask import make_response
@@ -1053,17 +1054,11 @@ class VideoSignals(Resource):
             # Iterate received items and Camera HealthChecks blocks for each one
             response_msg = {}
 
-            for CHCs_item in item['results_CHC']:
-                if (CHCs_item['source'] == "MDF"):
-                    #logging.info(CHCs_item['source'])                
-                    #response_msg[CHCs_item['source']] = CHCs_item['signals_sync'] # TODO:uncomment after signals implementation
-                    response_msg[CHCs_item['source']] = CHCs_item['CHBs_sync'] 
+            for chc_result in item['results_CHC']:
+                if (chc_result['source'] == "MDF"):
+                    response_msg[chc_result['source']] = self.create_signals_object(chc_result, item['recording_overview'])
                 else:    
-                    #logging.info(CHCs_item['algo_out_id'].split('_')[-1])                
-                    #response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['signals_sync'] # TODO:uncomment after signals implementation
-                    response_msg[CHCs_item['algo_out_id'].split('_')[-1]] = CHCs_item['CHBs_sync']
-
-                #logging.info(response_msg)
+                    response_msg[chc_result['algo_out_id'].split('_')[-1]] = self.create_signals_object(chc_result, item['recording_overview'])
 
             return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError):
@@ -1076,7 +1071,31 @@ class VideoSignals(Resource):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
             
+    def create_signals_object(self, chc_result, recording_info):
+        result_signals = {}
+        relevant_signals = ["interior_camera_health_response_cvb", "interior_camera_health_response_cve", "CameraViewBlocked", "CameraViewShifted", "interior_camera_health_response_audio_blocked", "interior_camera_health_response_audio_distorted", "interior_camera_health_response_audio_signal"]
+        if 'CHBs_sync' in chc_result:
+            if len(chc_result['CHBs_sync']) > 0 and type(list(chc_result['CHBs_sync'].values())[0]) is dict:
+                for timestamp, signals in chc_result['CHBs_sync'].items():
+                    result_signals[timestamp] = {key: signals[key] for key in relevant_signals if key in signals}
 
+            else:
+                for k, v in chc_result['CHBs_sync'].items():
+                    result_signals[k] = {}
+                    result_signals[k]['CameraViewBlocked'] = v
+        elif 'CHBs' in chc_result:
+            # spread non-sync CHBs evenly over video time
+            hours, minutes, seconds = recording_info['length'].split(':', 2)
+            total_seconds = timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds)).total_seconds()
+            chbs = chc_result['CHBs']
+            increment = float(total_seconds)/len(chbs)
+            time = 0.0
+            for chb in chbs:
+                timestr = str(timedelta(seconds=time))
+                result_signals[timestr] = {}
+                result_signals[timestr]['CameraViewBlocked'] = float(chb)
+                time += increment
+        return result_signals
 
 
 # Custom model for getTableData code 200 response (Swagger documentation)

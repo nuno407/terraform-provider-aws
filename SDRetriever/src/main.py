@@ -195,10 +195,8 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
     Arguments:
         TODO
     """
-    aux_list = []
+    compact_frames = []
 
-    key_set = set(("CameraViewBlocked", "cvb", "cve"))
-    
     final_info = {
                 "partial_timestamps": {},
                 "frames": [],
@@ -210,7 +208,7 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
 
     for partial_mdf in files_dict:
 
-        aux_frames_list = []
+        pts_frames_list = []
 
         # Partial timestamps  ###############################################
         first_split = files_dict[partial_mdf]["filename"].split("._stream2_")
@@ -222,36 +220,40 @@ def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epo
         chunk_epoch_start = int(datetime_object.timestamp())
 
         # Frames  ###########################################################
-        for frame in files_dict[partial_mdf]["frame"]:
+        for pts_frame in files_dict[partial_mdf]["frame"]:
 
-            aux_frames_list.append(int(frame["number"]))
+            pts_frames_list.append(int(pts_frame["number"]))
 
             frame_data = {
-                        "number": int(frame["number"]),
-                        "timestamp": int(frame["timestamp"])
+                        "number": int(pts_frame["number"]),
+                        "timestamp": int(pts_frame["timestamp"]),
+                        "signals": {}
             }
 
-            if 'objectlist' in frame.keys():
-                for item in frame['objectlist']:
-                    if item['id'] == '1':
-                        frame_data["CameraViewBlocked"] = item['floatAttributes'][0]['value']
-                    if item['id'] == '4':
-                        frame_data["cvb"] = item['floatAttributes'][0]['value']
-                    if item['id'] == '5':
-                        frame_data["cve"] = item['floatAttributes'][0]['value']
+            if 'objectlist' in pts_frame.keys():
+                for item in pts_frame['objectlist']:
+                    if 'boolAttributes' in item:
+                        for attribute in item['boolAttributes']:
+                            frame_data['signals'][attribute['name']] = (attribute['value'] == 'true')
+                    if 'floatAttributes' in item:
+                        for attribute in item['floatAttributes']:
+                            frame_data['signals'][attribute['name']] = float(attribute['value'])
+                    if 'integerAttributes' in item:
+                        for attribute in item['integerAttributes']:
+                            frame_data['signals'][attribute['name']] = int(attribute['value'])
                         
-            if key_set.issubset(frame_data.keys()):
-                aux_list.append(frame_data)
+            if len(frame_data['signals']) > 0:
+                compact_frames.append(frame_data)
 
         # Partial timestamps full info #########################################
         final_info["partial_timestamps"][human_timestamp] = {
             "filename": files_dict[partial_mdf]["filename"], 
             "pts_start": int(files_dict[partial_mdf]["chunk"]["pts_start"]),
             "converted_time": chunk_epoch_start,
-            "frames_list": aux_frames_list
+            "frames_list": pts_frames_list
         }
 
-    final_info["frames"] = sorted(aux_list, key=lambda x: int(itemgetter("number")(x)))
+    final_info["frames"] = sorted(compact_frames, key=lambda x: int(itemgetter("number")(x)))
 
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
@@ -700,10 +702,10 @@ def calculate_chc_periods(compact_mdf, start_frame, end_frame):
     #################################### Identify frames with cvb and cve equal to 1 #################################################################
 
     for frame in compact_mdf['frames']:
-        if 'cvb' in frame and 'cve' in frame and 'timestamp' in frame and (frame["cvb"] == "1" or frame["cve"] == "1"):
-            if frame["number"] >= start_frame and frame["number"] <= end_frame:
-                frames_with_cv.append(frame["number"])
-                frame_times[frame["number"]] = frame["timestamp"]
+        if 'interior_camera_health_response_cvb' in frame['signals'] and 'interior_camera_health_response_cve' in frame['signals'] and 'timestamp' in frame and (frame['signals']['interior_camera_health_response_cvb'] == '1' or frame['signals']['interior_camera_health_response_cve'] == '1'):
+            if frame['number'] >= start_frame and frame['number'] <= end_frame:
+                frames_with_cv.append(frame['number'])
+                frame_times[frame['number']] = frame['timestamp']
 
     #################################### Group frames into events with tolerance #####################################################################
 
