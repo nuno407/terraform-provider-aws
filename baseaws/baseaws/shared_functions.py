@@ -8,6 +8,7 @@ import pytz
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
 from pymongo import MongoClient, errors
+from baseaws.voxel_functions import create_dataset, update_sample
 
 class ContainerServices():
     """ContainerServices
@@ -504,6 +505,33 @@ class ContainerServices():
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
 
+        ## ADDED Voxel51 code
+        s3split = data["s3_path"].split("/")
+        bucket_name = s3split[0]
+
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+
+        sample = item_db
+        sample["video_id"] = item_db["_id"]
+        sample["s3_path"] = anon_video_path
+        
+
+        try:
+            # Create dataset with the bucket_name if it doesn't exist
+            create_dataset(bucket_name)
+            
+            #Add  the video to the dataset if it doesn't exist, otherwise update it
+            update_sample(bucket_name,sample)
+            
+            # Create logs message
+            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.info("############################################################\n")
+        
+
+
     @staticmethod
     def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
         """Inserts a new item (or updates it if already exists) on the
@@ -546,6 +574,31 @@ class ContainerServices():
             # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
 
+            ## ADDED Voxel51 code
+            s3split = data["s3_path"].split("/")
+            bucket_name = s3split[0]
+
+            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+
+            sample = update_dict["$set"]
+            sample["video_id"] = unique_id
+            sample["s3_path"] = anon_video_path
+                
+
+            try:
+                # Create dataset with the bucket_name if it doesn't exist
+                create_dataset(bucket_name)        
+                #Add  the video to the dataset
+                update_sample(bucket_name,sample)
+                # Create logs message
+                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+                logging.info("############################################################\n")
+
+
+
         else:
             # Build item structure and add info from msg received
             item_db = {
@@ -563,6 +616,30 @@ class ContainerServices():
 
             # Create logs message
             logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
+
+
+            ## ADDED Voxel51 code
+            s3split = data["s3_path"].split("/")
+            bucket_name = s3split[0]
+
+            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+
+            sample = item_db
+            sample["s3_path"] = anon_video_path
+            sample["video_id"] = item_db["_id"]    
+
+            try:
+                # Create dataset with the bucket_name if it doesn't exist
+                create_dataset(bucket_name)        
+                #Add  the video to the dataset
+                update_sample(bucket_name,sample)
+                # Create logs message
+                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+            except Exception:
+                logging.info("\n######################## Exception #########################")
+                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+                logging.info("############################################################\n")
+            
 
     @staticmethod
     def update_outputs_db(data, table_algo_out, table_rec, timestamp, unique_id, source):
@@ -727,6 +804,7 @@ class ContainerServices():
         try:
             # Insert previous built item
             table_algo_out.insert_one(item_db)
+            
 
         except errors.DuplicateKeyError:
             # Raise error exception if duplicated item is found
@@ -737,6 +815,53 @@ class ContainerServices():
             logging.info("############################################################\n")
 
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
+
+
+## ADDED Voxel51 code
+        s3split = data["s3_path"].split("/")
+        bucket_name = s3split[0]
+
+        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+
+        sample = item_db
+
+        sample["algorithms"] = {}
+
+        if source == "CHC":
+            sample["algorithms"][item_db['_id']] = {"results":item_db["results"], "output_paths":item_db['output_paths']}
+        else:
+            sample["algorithms"][item_db['_id']] = {"output_paths":item_db['output_paths']}
+
+            
+        sample["s3_path"] = anon_video_path
+        sample["video_id"] = item_db["pipeline_id"]
+
+        #################################################
+        # RETRIEVE RECORDING ITEM FROM DOCDB
+        # FOR TEMPORARY TESTS IN DEV
+        item_rec = table_rec.find_one({'_id': unique_id})
+        
+        sample["MDF_available"] = item_rec ["MDF_available"]
+        sample["recording_overview"] = item_rec ["recording_overview"]
+        sample["results_CHC"] = item_rec ["results_CHC"]
+
+
+        #################################################
+
+        try:
+            # Create dataset with the bucket_name if it doesn't exist
+            create_dataset(bucket_name)
+            
+            #Add  the video to the dataset if it doesn't exist, otherwise update it
+            update_sample(bucket_name,sample)
+            
+            # Create logs message
+            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.info("############################################################\n")
+
 
     def connect_to_docdb(self, data, attributes):
         """Main DB access function that processes the info received
