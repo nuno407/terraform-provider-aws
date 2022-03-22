@@ -1,12 +1,15 @@
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.5-alpine3.12
 
-RUN mkdir -p /app
 WORKDIR /app
 
 # Install ffmpeg program (to convert .avi to .mp4)
 RUN apk update
 RUN apk upgrade
 RUN apk add ffmpeg
+
+# Run as non-root user and group
+RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
+USER 1000:3000
 
 # Copy required directories to docker container
 COPY ./Anonymize/src/ /app/src/
@@ -21,6 +24,4 @@ WORKDIR /app/src
 RUN pip install -r requirements.txt
 
 # Run anonymize python script
-#CMD [ "python", "./api.py", ";", "python", "./main.py" ]
-RUN ["chmod", "+x", "start_container.sh"]
 CMD ["sh", "start_container.sh"]
