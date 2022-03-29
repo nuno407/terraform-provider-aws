@@ -4,11 +4,11 @@ WORKDIR /app
 
 # Run as non-root user and group
 RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
-USER 1000:3000
+USER 1000
 
 # Copy required directories to docker container
-COPY ./Selector/src/ /app/src/
-COPY ./baseaws/ /app/package/
+COPY --chown=1000:3000 ./Selector/src/ /app/src/
+COPY --chown=1000:3000 ./baseaws/ /app/package/
 
 # Install BaseAws package (custom)
 WORKDIR /app/package
