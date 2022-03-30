@@ -20,7 +20,7 @@ def update_sample(data_set,sample_info):
     dataset = fo.load_dataset(data_set)
 
 
-    #IF the sample already exists, update it's information, otherwise create a new one
+    #If the sample already exists, update it's information, otherwise create a new one
 
     try:
         sample = dataset.one(F("video_id") == sample_info["video_id"])
