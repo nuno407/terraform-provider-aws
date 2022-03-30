@@ -48,11 +48,12 @@ RUN apt -y update \
     && mkdir /fiftyone
 
 ENV ROOT_DIR=/fiftyone
-RUN mkdir -p ${ROOT_DIR}
 
 # Run as non-root user and group
 RUN groupadd -r -g 3000 docker-group && useradd --no-log-init -r -g docker-group -u 1000 docker
-RUN chown 1000:3000 ${ROOT_DIR}
+RUN chown 1000:3000 /fiftyone
+RUN mkdir -p /home/docker
+RUN chown 1000:3000 /home/docker
 
 USER 1000
 
@@ -79,7 +80,7 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
 
 
 # Correction, so that Voxel doesn't break if the DB is already populated
-RUN mkdir -p ${ROOT_DIR}/db
+RUN mkdir ${ROOT_DIR}/db
 RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
 ##### END Voxel51 code
