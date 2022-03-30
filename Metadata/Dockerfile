@@ -6,7 +6,6 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 # Your install token
 
 # The Python version to install
-#ARG PYTHON_VERSION=3.8
 ENV  PYTHON_VERSION=3.8
 
 #
