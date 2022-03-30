@@ -81,7 +81,7 @@ RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 #FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.5-alpine3.12
 
 # Necessary to install regex library
-RUN apk add build-base
+#RUN apk add build-base
 
 WORKDIR /app
 
