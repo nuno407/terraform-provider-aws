@@ -75,7 +75,7 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATASET_ZOO_DIR=${ROOT_DIR}/zoo/datasets \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
     #FIFTYONE_DATABASE_URI="mongodb://fiftyonedevcloud:llNzXprqdDi7Rdc0@dataexploration-dev-shard-00-00.ci6wy.mongodb.net:27017,dataexploration-dev-shard-00-01.ci6wy.mongodb.net:27017,dataexploration-dev-shard-00-02.ci6wy.mongodb.net:27017/?ssl=true&replicaSet=atlas-gimhss-shard-0&authSource=admin&retryWrites=true&w=majority" \
-    FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
+    #FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
     FIFTYONE_DATABASE_VALIDATION=false
 
 
