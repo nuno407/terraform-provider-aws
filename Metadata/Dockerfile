@@ -47,6 +47,14 @@ RUN apt -y update \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir /fiftyone
 
+ENV ROOT_DIR=/fiftyone
+RUN mkdir -p ${ROOT_DIR}
+
+# Run as non-root user and group
+RUN groupadd -r -g 3000 docker-group && useradd --no-log-init -r -g docker-group -u 1000 docker
+RUN chown 1000:3000 ${ROOT_DIR}
+
+USER 1000
 
 ARG TOKEN
 
@@ -59,7 +67,6 @@ RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fif
 
 ARG FIFTYONE_DATABASE_URI 
 
-ENV ROOT_DIR=/fiftyone
 
 ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
@@ -86,8 +93,8 @@ RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 WORKDIR /app
 
 # Run as non-root user and group
-RUN groupadd -r -g 3000 docker-group && useradd --no-log-init -r -g docker-group -u 1000 docker
-USER 1000
+#RUN groupadd -r -g 3000 docker-group && useradd --no-log-init -r -g docker-group -u 1000 docker
+#USER 1000
 
 # Copy required directories to docker container
 COPY --chown=1000:3000 ./Metadata/src/ /app/src/
