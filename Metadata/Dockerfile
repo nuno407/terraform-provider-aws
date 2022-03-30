@@ -86,7 +86,7 @@ RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 WORKDIR /app
 
 # Run as non-root user and group
-RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
+RUN groupadd -r -g 3000 docker-group && useradd --no-log-init -r -g docker-group -u 1000 docker
 USER 1000
 
 # Copy required directories to docker container
