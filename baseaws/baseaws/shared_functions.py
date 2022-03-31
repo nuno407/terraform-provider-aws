@@ -509,7 +509,7 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
         sample = item_db
         sample["video_id"] = item_db["_id"]
@@ -578,7 +578,7 @@ class ContainerServices():
             s3split = data["s3_path"].split("/")
             bucket_name = s3split[0]
 
-            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
             sample = update_dict["$set"]
             sample["video_id"] = unique_id
@@ -622,7 +622,7 @@ class ContainerServices():
             s3split = data["s3_path"].split("/")
             bucket_name = s3split[0]
 
-            anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
             sample = item_db
             sample["s3_path"] = anon_video_path
@@ -821,7 +821,7 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://dev-rcd-anonymized-video-files/"+data["s3_path"][:-4]+'_anonymized.mp4'
+        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
         sample = item_db
 
