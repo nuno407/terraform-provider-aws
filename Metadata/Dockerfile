@@ -50,6 +50,7 @@ RUN apt -y update \
 
 
 ARG TOKEN
+ARG FIFTYONE_DATABASE_URI 
 
 RUN echo ${TOKEN}
 RUN echo ' '
@@ -58,7 +59,7 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 # The Teams client 
 RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone
 
-ARG FIFTYONE_DATABASE_URI 
+
 
 ENV ROOT_DIR=/fiftyone
 
