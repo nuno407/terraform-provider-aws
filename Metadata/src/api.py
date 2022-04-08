@@ -3,8 +3,9 @@ Metadata API
 """
 from datetime import timedelta
 import logging
+from math import ceil
 import flask
-from flask import make_response
+from flask import make_response, request
 from flask_cors import CORS
 from pymongo import MongoClient, collection
 import json
@@ -1106,6 +1107,8 @@ tabledata_nest_model = api.model("tabledata_nest", {
 
 get_tabledata_200_model = api.model("Get_tabledata_200", {
     'message': fields.Nested(tabledata_nest_model),
+    'pages': fields.Integer(example=5),
+    'total': fields.Integer(example=95),
     'statusCode': fields.String(example="200")
 })
 
@@ -1119,6 +1122,12 @@ class TableData(Resource):
         """
         Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
         """
+
+        # Get the query parameters from the request
+        page_size = request.args.get('size', 20, int)
+        page = request.args.get('page', 1, int)
+        skip_entries = (page - 1) * page_size
+
         try:
             # Define DB collection name to get recording info from
             name_recording_collection = container_services.db_tables["recording"]
@@ -1145,11 +1154,32 @@ class TableData(Resource):
             aggregation_pipeline.append({'$unwind': '$pipeline_execution'})
             aggregation_pipeline.append({'$match':{'pipeline_execution.data_status':'complete'}})
             aggregation_pipeline.append({'$sort': {'recording_overview.time':1}})
-            recording_items = recording_collection.aggregate(aggregation_pipeline)
+
+            # Code to be removed after full migration to MongoDB is finished
+            pipeline_result = {}
+            count_pipeline = aggregation_pipeline.copy()
+            count_pipeline.append({'$count': 'number_recordings'})
+            aggregation_pipeline.append({'$skip': skip_entries})
+            aggregation_pipeline.append({'$limit': page_size})
+            pipeline_result['result'] = recording_collection.aggregate(aggregation_pipeline)
+            pipeline_result['count'] = recording_collection.aggregate(count_pipeline).next()
+
+            ## Code to be used after full migration to MongoDB is finished
+            # count_facet = [{'$count': 'number_recordings'}]
+            # result_facet = [
+            #     {'$skip': skip_entries},
+            #     {'$limit': page_size}
+            # ]
+            # aggregation_pipeline.append({'$facet': {'count': count_facet, 'result': result_facet}})
+            
+            # pipeline_result = recording_collection.aggregate(aggregation_pipeline).next()
+
+            number_recordings = int(pipeline_result['count']['number_recordings'])
+            number_pages = ceil(float(number_recordings) / page_size)
 
             response_msg = []
 
-            for recording_item in recording_items:
+            for recording_item in pipeline_result['result']:
                 pipeline_item = recording_item['pipeline_execution']
                 table_data_dict = {}
 
@@ -1192,7 +1222,7 @@ class TableData(Resource):
 
             #logging.info(response_msg)
            
-            return flask.jsonify(message=response_msg, statusCode="200")
+            return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
         except (NameError, LookupError):
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
