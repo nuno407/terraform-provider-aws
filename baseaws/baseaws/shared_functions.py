@@ -505,7 +505,7 @@ class ContainerServices():
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
             logging.info("############################################################\n")
 
-        ## ADDED Voxel51 code
+        ## ADDED Voxel51 code - for RAW videos dataset
         #s3split = data["s3_path"].split("/")
         #bucket_name = s3split[0]
 
