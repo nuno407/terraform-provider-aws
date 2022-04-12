@@ -8,6 +8,25 @@ from flask_cors import CORS
 from flask_restx import Api, Resource, reqparse, fields
 from api.config import service
 
+class ReverseProxied(object):
+    # Inspired by: http://flask.pocoo.org/snippets/35/
+    def __init__(self, wsgi_app, app):
+        self.wsgi_app = wsgi_app
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '/api')
+        if script_name:
+            if script_name.startswith('/'):
+                environ['SCRIPT_NAME'] = script_name
+                path_info = environ['PATH_INFO']
+                if path_info.startswith(script_name):
+                    environ['PATH_INFO'] = path_info[len(script_name):]
+            else:
+                self.app.warning("'prefix' must start with a '/'!")
+
+        return self.wsgi_app(environ, start_response)
+
 # API response messages
 ERROR_400_MSG = 'Invalid or missing argument(s)'
 ERROR_404_MSG = 'Method not found'
@@ -15,6 +34,7 @@ ERROR_500_MSG = 'Internal Server Error'
 
 # API instance initialisation
 app = flask.Flask(__name__)
+app.wsgi_app = ReverseProxied(app.wsgi_app, app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Swagger documentation initialisation
@@ -139,7 +159,7 @@ class VideoSignals(Resource):
     @api.expect(videosignals_parser, validate=True)
     def get(self, video_id):
         """
-        Gets all the signals that are recorded with the video (MDF) or postprocessed afterwards (e.g. CHC)
+        Gets all the signals that are recorded with the video (MDF) or postprocessed afterwards (eg CHC)
         """
         try:
             video_signals = service.get_video_signals(video_id)
@@ -163,30 +183,51 @@ get_tabledata_200_model = api.model("Get_tabledata_200", {
     'total': fields.Integer(example=95),
     'statusCode': fields.String(example="200")
 })
-@api.route('/getTableData', defaults={'requested_id': None})
-@api.route('/getTableData/<requested_id>')
+@api.route('/getTableData')
 class TableData(Resource):
     @api.response(200, 'Success', get_tabledata_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
-    def get(self, requested_id):
+    def get(self):
         """
         Gets the recording overview list so it can be viewed in Recording overview table in the Front End
         """
-
         # Get the query parameters from the request
         page_size = request.args.get('size', 20, int)
         page = request.args.get('page', 1, int)
 
 
         try:
-            if requested_id == None:
-                response_msg, number_recordings, number_pages = service.get_table_data(page_size, page)
-            else:
-                response_msg = service.get_single_recording(requested_id)
-                number_pages = 1
-                number_recordings = 1
+            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page)
             return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
+        except (NameError, LookupError, ValueError):
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+
+get_single_tabledata_200_model = api.model("Get_single_tabledata_200", {
+    'message': fields.String("recording_overview: ['deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1637316243575_1637316303540', 'True', '5', '15' , '00:30:00', status, '00:09:00', 23-11-2021 14:32, 600x480, 'yuj2hi_01_InteriorRecorder']"),
+    'statusCode': fields.String(example="200")
+})
+
+# Parameters parser for getTableData endpoint (Swagger documentation)
+tabledata_parser = reqparse.RequestParser()
+tabledata_parser.add_argument('requested_id', type=str, required=True, help='Name of the video file', location='args')
+@api.route('/getTableData/<requested_id>')
+class SingleTableData(Resource):
+    @api.response(200, 'Success', get_single_tabledata_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    @api.expect(tabledata_parser, validate=True)
+    def get(self, requested_id):
+        """
+        Gets the recording for the Recording detail page in the Front End
+        """
+        try:
+            response_msg = service.get_single_recording(requested_id)
+            return flask.jsonify(message=response_msg, statusCode="200")
         except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
@@ -221,3 +262,4 @@ class VideoUrl(Resource):
         except Exception:
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+

@@ -158,8 +158,6 @@ def test_get_single_table_data_200(client):
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert data['message'] == recording
-    assert data['pages'] == 1
-    assert data['total'] == 1
     assert data['statusCode'] == '200'
     controller.service.get_single_recording.assert_called_once_with('foo_video_id')
 
