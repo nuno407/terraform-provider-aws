@@ -6,3 +6,4 @@ flask_cors
 mongosanitizer
 regex
 pytest
+mongomock

@@ -46,6 +46,12 @@ error_400_model = api.model("Error_400", {
     'statusCode': fields.String(example="400")
 })
 
+# Common models used in most endpoints
+error_404_model = api.model("Error_404", {
+    'message': fields.String(example=ERROR_404_MSG),
+    'statusCode': fields.String(example="404")
+})
+
 error_500_model = api.model("Error_500", {
     'message': fields.String(example=ERROR_500_MSG),
     'statusCode': fields.String(example="500")
@@ -102,21 +108,18 @@ class VideoFeed(Resource):
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(video_parser, validate=True)
     def get(self, bucket, folder, file):
+        """
+        Gets the URL of a video file for direct access or embedding as a video stream
+        """
         try:
             url  = service.create_video_url(bucket, folder, file)
             return flask.jsonify(message=url, statusCode="200")
-        except (NameError, LookupError):
-            generate_exception_logs()
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as error_log:
-            generate_exception_logs()
-            api.abort(400, message=str(error_log), statusCode = "400")
-        except Exception:
+        except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-
-
-
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 # Parameters parser for getVideoSignals endpoint (Swagger documentation)
 videosignals_parser = reqparse.RequestParser()
@@ -135,18 +138,18 @@ class VideoSignals(Resource):
     @api.response(500, ERROR_500_MSG, error_500_model)
     @api.expect(videosignals_parser, validate=True)
     def get(self, video_id):
+        """
+        Gets all the signals that are recorded with the video (MDF) or postprocessed afterwards (e.g. CHC)
+        """
         try:
             video_signals = service.get_video_signals(video_id)
             return flask.jsonify(message=video_signals, statusCode="200")
-        except (NameError, LookupError):
-            generate_exception_logs()
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as error_log:
-            generate_exception_logs()
-            api.abort(400, message=str(error_log), statusCode = "400")
-        except Exception:
+        except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
             
 # Custom model for getTableData code 200 response (Swagger documentation)
 tabledata_nest_model = api.model("tabledata_nest", {
@@ -168,7 +171,7 @@ class TableData(Resource):
     @api.response(500, ERROR_500_MSG, error_500_model)
     def get(self, requested_id):
         """
-        Returns the recording overview parameter available for each DB item so it can be viewed in Recording overview table in the Front End
+        Gets the recording overview list so it can be viewed in Recording overview table in the Front End
         """
 
         # Get the query parameters from the request
@@ -184,28 +187,12 @@ class TableData(Resource):
                 number_pages = 1
                 number_recordings = 1
             return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
-        except (NameError, LookupError):
-            generate_exception_logs()
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as error_log:
-            generate_exception_logs()
-            api.abort(400, message=str(error_log), statusCode = "400")
-        except Exception:
+        except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
-
-
-
-# Custom model for getAllUrls code 200 response (Swagger documentation)
-url_nest_model = api.model("url_nest", {
-    'item_1_id': fields.String(example="<video_url_1>"),
-    'item_2_id': fields.String(example="<video_url_2>"),
-})
-
-get_urls_200_model = api.model("Get_urls_200", {
-    'message': fields.Nested(url_nest_model),
-    'statusCode': fields.String(example="200")
-})
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
 
 # Custom model for getAnonymizedVideoUrl code 200 response (Swagger documentation)
 get_anonymized_video_url_200_model = api.model("get_anonymized_video_url_200", {
@@ -215,6 +202,9 @@ get_anonymized_video_url_200_model = api.model("get_anonymized_video_url_200", {
 
 @api.route('/getAnonymizedVideoUrl/<recording_id>')
 class VideoUrl(Resource):
+    """
+    Gets the URL of an anonymized version of a video file for direct access or embedding as a video stream
+    """
     @api.response(200, 'Success', get_anonymized_video_url_200_model)
     @api.response(400, ERROR_400_MSG, error_400_model)
     @api.response(500, ERROR_500_MSG, error_500_model)
@@ -225,12 +215,9 @@ class VideoUrl(Resource):
         try:
             video_url = service.create_anonymized_video_url(recording_id)
             return flask.jsonify(message=video_url, statusCode="200")
-        except (NameError, LookupError):
-            generate_exception_logs()
-            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-        except AssertionError as error_log:
-            generate_exception_logs()
-            api.abort(400, message=str(error_log), statusCode = "400")
-        except Exception:
+        except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")

@@ -1,33 +1,38 @@
 from math import ceil
-from pymongo import MongoClient
+import pymongo
 
 DB_NAME = "DB_data_ingestion"
 
 class Persistence:
 
-    def __init__(self, db_config, db_tables, use_local_tunnel):
-        if use_local_tunnel == False:
-            client = MongoClient(db_config['cluster_endpoint'], 
-                            username=db_config['username'],
-                            password=db_config['password'],
-                            tls=db_config['tls'],
-                            tlsCAFile=db_config['tlsCAFile'],
-                            replicaSet=db_config['replicaSet'],
-                            readPreference=db_config['readPreference'],
-                            retryWrites=db_config['retryWrites']
+    def __init__(self, db_config, db_tables, use_local_tunnel, client = None):
+        # for unit testing allow a mongomock client to be injected with the last parameter
+        if client == None:
+            if use_local_tunnel == False:
+                client = pymongo.MongoClient(db_config['cluster_endpoint'], 
+                                username=db_config['username'],
+                                password=db_config['password'],
+                                tls=db_config['tls'],
+                                tlsCAFile=db_config['tlsCAFile'],
+                                replicaSet=db_config['replicaSet'],
+                                readPreference=db_config['readPreference'],
+                                retryWrites=db_config['retryWrites']
+                                )
+            else:
+                client = pymongo.MongoClient('127.0.0.1:27018', 
+                                username=db_config['username'],
+                                password=db_config['password'],
+                                tls=db_config['tls'],
+                                tlsAllowInvalidCertificates=True,
+                                directConnection=True
                             )
-        else:
-            client = MongoClient('127.0.0.1:27018', 
-                         username=db_config['username'],
-                         password=db_config['password'],
-                         tls=db_config['tls'],
-                         tlsAllowInvalidCertificates=True,
-                         directConnection=True
-                        )
         db_client = client[DB_NAME]
         self.__recordings = db_client[db_tables['recording']]
         self.__pipeline_executions = db_client[db_tables['pipeline_exec']]
         self.__algo_output = db_client[db_tables['algo_output']]
+
+
+        
 
     def get_recording(self, id):
         return self.__recordings.find_one({'_id': id})
@@ -35,8 +40,9 @@ class Persistence:
     def get_single_recording(self, recording_id):
         aggregation_pipeline = [{'$match': {'_id': recording_id}}]
         aggregation_pipeline.extend(self.__generate_recording_list_query())
-        result = self.__recordings.aggregate(aggregation_pipeline).next()
-        return result
+        result = list(self.__recordings.aggregate(aggregation_pipeline))
+        if(len(result) == 0): raise LookupError('Recording ID ' + recording_id + ' not found')
+        else: return result[0]
 
     def get_recording_list(self, page_size, page):
         # Get all videos that entered processing phase or the specific one video
@@ -49,7 +55,7 @@ class Persistence:
         aggregation_pipeline.append({'$skip': skip_entries})
         aggregation_pipeline.append({'$limit': page_size})
         pipeline_result = {}
-        pipeline_result['result'] = self.__recordings.aggregate(aggregation_pipeline)
+        pipeline_result['result'] = list(self.__recordings.aggregate(aggregation_pipeline))
         pipeline_result['count'] = self.__recordings.aggregate(count_pipeline).next()
 
         ## Code to be used after full migration to MongoDB is finished
