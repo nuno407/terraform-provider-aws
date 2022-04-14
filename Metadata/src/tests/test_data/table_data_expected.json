@@ -1,0 +1,58 @@
+[
+{
+    "tenant": "datanauts",
+    "_id": "datanauts_DATANAUTS_TEST_01_InteriorRecorder_1648816099208_1648816231480",
+    "processing_list": ["Anonymize", "CHC"],
+    "snapshots": "0",
+    "data_status": "complete",
+    "last_updated": "2022-04-01 13:08:14",
+    "length": "0:02:13",
+    "time": "2022-04-01 12:28:19",
+    "resolution": "640x360",
+    "deviceID": "DATANAUTS_TEST_01",
+    "lengthCHC": 15.859872611465,
+    "number_CHC_events": 1
+},
+{
+    "tenant": "srxfut2internal20",
+    "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648821954670_1648822585972",
+    "processing_list": ["Anonymize", "CHC"],
+    "snapshots": "0",
+    "data_status": "complete",
+    "last_updated": "2022-04-01 20:02:54",
+    "length": "0:10:31",
+    "time": "2022-04-01 14:05:54",
+    "resolution": "640x360",
+    "deviceID": "rc_srx_qa_na_fut2_003",
+    "lengthCHC": 0.0,
+    "number_CHC_events": 0
+},
+{
+    "tenant": "srxfut2internal20",
+    "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835387254",
+    "processing_list": ["Anonymize", "CHC"],
+    "snapshots": "0",
+    "data_status": "complete",
+    "last_updated": "2022-04-01 19:16:49",
+    "length": "0:02:08",
+    "time": "2022-04-01 17:47:40",
+    "resolution": "1280x720",
+    "deviceID": "rc_srx_qa_na_fut2_003",
+    "lengthCHC": 15.859872611465,
+    "number_CHC_events": 1
+},
+{
+    "tenant": "srxfut2internal20",
+    "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
+    "processing_list": ["Anonymize", "CHC"],
+    "snapshots": "0",
+    "data_status": "complete",
+    "last_updated": "2022-04-01 19:16:49",
+    "length": "0:02:08",
+    "time": "2022-04-01 17:47:40",
+    "resolution": "640x360",
+    "deviceID": "rc_srx_qa_na_fut2_003",
+    "lengthCHC": 15.859872611465,
+    "number_CHC_events": 1
+}
+]

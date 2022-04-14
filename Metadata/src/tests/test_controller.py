@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 sys.modules['api.config'] = MagicMock()
-from src.api import controller
-from src.api.controller import ERROR_400_MSG, ERROR_500_MSG
+from api import controller
+from api.controller import ERROR_400_MSG, ERROR_500_MSG
 
 @pytest.fixture
 def client():

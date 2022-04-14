@@ -1,0 +1,9 @@
+{
+    "_id" : "srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202_Anonymize",
+    "algorithm_id" : "Anonymize",
+    "pipeline_id" : "srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202",
+    "output_paths" : {
+        "metadata" : "-",
+        "video" : "qa-rcd-anonymized-video-files/Debug_Lync/srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202_anonymized.mp4"
+    }
+}

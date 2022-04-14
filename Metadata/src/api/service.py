@@ -52,14 +52,14 @@ class ApiService:
             # Get video path and split it into bucket and key
             s3_path = entry['output_paths']['video']
             bucket, path = s3_path.split("/", 1)
-            url = self.create_video_url(bucket, path)
+            url = self.__create_video_url(bucket, path)
         return url
 
     def create_video_url(self, bucket, folder, file):
         path = folder + file
-        return self.create_video_url(bucket, path)
+        return self.__create_video_url(bucket, path)
 
-    def create_video_url(self, bucket, path):
+    def __create_video_url(self, bucket, path):
         params_s3 = {'Bucket': bucket, 'Key': path}
         url = self.__s3.generate_presigned_url('get_object',
                                                             Params = params_s3)
@@ -118,7 +118,7 @@ class ApiService:
         return number, duration
 
     def __check_and_get_lq_video_info(self, entry_id):
-        recorder_name_matcher = re.match(".+_([^_]+)_\d+_\d+", entry_id)
+        recorder_name_matcher = re.match(r".+_([^_]+)_\d+_\d+", entry_id)
         if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
             logging.warning(f'Could not parse recorder information from {entry_id}')
             return None
@@ -126,7 +126,6 @@ class ApiService:
         if recorder_name_matcher.group(1) != 'TrainingRecorder':
             logging.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
             return None
-        
         lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
         lq_entry = self.__db.get_single_recording(lq_id)
         if not lq_entry:
