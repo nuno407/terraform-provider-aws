@@ -1,0 +1,119 @@
+{
+    "MessageId": "5028386c-69b4-4e63-b581-28747f00362e",
+    "ReceiptHandle": "AQEBe757HqzxT/YE/r4zAuBEo6TZJ35G4aB8XHxguqCuM1emzkMns1DC93C64sAyDM8sXJ2PTXfkJaAMUtpHGoSB6zbnyhBEnHi4bkLFxXDFjUSm2NHACevwxifEpHpzwXgUKi3AyyUEGzAQGes9f2O+KLN30O3llau5esMdaLILVY8Wjf3u0gT/d2DbXsx68vrfwvaUsOdXkNHS0MCfWyzdi4gjdiIUgsF9EIHzhI3PMEDNGf+5LTt1E5NFVc1tfSGGbxlVme84adkjQEeTdNVIpqXa7h6p4nBKjFlP0pbKGvV6z4tW+BpSCDZUColEkw9RPFitTE+bDHXJaAi4Uc9E51Hknrv4M0ebDdkusfEATBG/QEsrIfMuRNsVL6OIY9uTsJdoNPqlQfsayv02WI04KwlpN/Q+Lkzz9y2kJ0EUk=",
+    "MD5OfBody": "1d1a72e9b964b800cc66103399f81001",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "af977797-7daf-5b56-9ac6-2d50230c2630",
+        "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
+        "Message": {
+            "topic": "com.bosch.rcc/DATANAUTS_TEST_01/things/twin/events/modified",
+            "headers": {
+                "orig_adapter": "hono-mqtt",
+                "qos": "1",
+                "device_id": "com.bosch.rcc:DATANAUTS_TEST_01",
+                "uber-trace-id": "0a7152601364edc6:dc6b58e3c190aed4:ea8ba1c532dd6b84: 1",
+                "creation-time": "1649237091377",
+                "kafka.timestamp": "1649237091377",
+                "kafka.topic": "hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub",
+                "orig_address": "telemetry",
+                "kafka.key": "com.bosch.rcc:DATANAUTS_TEST_01",
+                "ditto-originator": "integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub",
+                "response-required": false,
+                "version": 2,
+                "requested-acks": [],
+                "content-type": "application/json",
+                "correlation-id": "75cbd23b-98e6-45d5-b787-864e0438a91b"
+            },
+            "path": "/features/com.bosch.ivs.videorecorder.UploadRecordingEvent",
+            "value": {
+                "properties": {
+                    "header": {
+                        "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+                        "timestamp_ms": 1649237091127,
+                        "message_id": "15db5de0-db32-41d8-88b6-3f846c5a108c",
+                        "device_id": "DATANAUTS_TEST_01",
+                        "boot_id": "83170eb9-a6d6-4055-8ab3-cedaa7927702"
+                    },
+                    "correlation_id": "f1979337-a753-4e22-b7d6-4f96bf5b8aa3",
+                    "recording_id": "InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985",
+                    "recorder_name": "InteriorRecorder",
+                    "chunk_descriptions": [
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_1.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237017037,
+                            "end_timestamp_ms": 1649237028479,
+                            "payload_size": 493790
+                        },
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_2.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237028494,
+                            "end_timestamp_ms": 1649237039935,
+                            "payload_size": 414841
+                        },
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_3.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237039937,
+                            "end_timestamp_ms": 1649237051371,
+                            "payload_size": 467391
+                        },
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_4.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237051373,
+                            "end_timestamp_ms": 1649237062801,
+                            "payload_size": 425257
+                        },
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_5.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237062803,
+                            "end_timestamp_ms": 1649237074339,
+                            "payload_size": 454351
+                        },
+                        {
+                            "uuid": "InteriorRecorder_InteriorRecorder-9a07f446-22f8-4d1a-9fdb-b8b2db5b6985_6.mp4",
+                            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                            "start_timestamp_ms": 1649237074342,
+                            "end_timestamp_ms": 1649237085771,
+                            "payload_size": 395445
+                        }
+                    ],
+                    "command_status": {
+                        "status_code": "COMMAND_STATUS_CODE__OK"
+                    }
+                }
+            },
+            "extra": {
+                "attributes": {
+                    "vin": "unknown",
+                    "tenant": "datanauts",
+                    "vehicleType": "CARMODEL__FIAT_500_312"
+                }
+            },
+            "revision": 1582,
+            "timestamp": "2022-04-06T09: 24: 51.430019123Z"
+        },
+        "Timestamp": "2022-04-06T09:24:51.624Z",
+        "SignatureVersion": "1",
+        "Signature": "KxgMrij4lz60PJ+6skZchNZou9X8QOmX0v2qYKw7Uxxxtti9hSG3hOqBZXln+R0Dhs3OpWGy0RZgfNSUMp1kVV7+XGDeE+7x9xKocPuFHkGJOIdxy3LH6fn4QYIGEEHKvCIt2PVQ212RRV1E/YAL9uCwK80Y/xYo2uXuYszqjf94o3d49N23JRO6dA3qpd/wZpVydq6oYpkryLSZFD4KEpUOME2QbT2kbhtb8Sj0ThfmmeJYG55WjwB7Qa4cw2udjkNJvFGE+Dig32a3hYH8TlXZ4/U2W567s4Vv+a3hcUZZQwXsKMOUoWw+lt3pxWYiTC4CaAttt0jG0TGycRv6AQ==",
+        "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:23a2a7a5-1fd3-4bbe-b766-1da13b0577d9",
+        "MessageAttributes": {
+            "eventType": {
+                "Type": "String",
+                "Value": "com.bosch.ivs.videorecorder.UploadRecordingEvent"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "datanauts"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1649237091663"
+    }
+}

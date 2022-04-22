@@ -1013,7 +1013,8 @@ class ContainerServices():
                       "mp4": "video/mp4",
                       "avi": "video/x-msvideo",
                       "txt": "text/plain",
-                      "webm":"video/webm"
+                      "webm":"video/webm",
+                      'jpeg': 'image/jpeg'
                     }
         file_extension = key_path.split('.')[-1]
 

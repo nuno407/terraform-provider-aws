@@ -1,0 +1,119 @@
+{
+    "Type": "Notification",
+    "MessageId": "55d848e4-b46f-576b-9a50-125b70fa5c0d",
+    "TopicArn": "arn:aws:sns:eu-central-1: 736745337734:prod-inputEventsTerraform",
+    "Message": {
+        "topic": "com.bosch.rcc/CANARY_AM_TEST_01/things/twin/events/modified",
+        "headers": {
+            "orig_adapter": "hono-mqtt",
+            "qos": "1",
+            "device_id": "com.bosch.rcc:CANARY_AM_TEST_01",
+            "uber-trace-id": "ce018e2a3a71c6ff:95ccd3e9e3870506:6b1c648a84e7bdd5:1",
+            "creation-time": "1648738900890",
+            "kafka.timestamp": "1648738900890",
+            "kafka.topic": "hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub",
+            "orig_address": "telemetry",
+            "kafka.key": "com.bosch.rcc:CANARY_AM_TEST_01",
+            "ditto-originator": "integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub",
+            "response-required": false,
+            "version": 2,
+            "requested-acks": [],
+            "content-type": "application/json",
+            "correlation-id": "637a0657-9ed6-4764-8d79-8adae1dd50f8"
+        },
+        "path": "/features/com.bosch.ivs.videorecorder.UploadRecordingEvent",
+        "value": {
+            "properties": {
+                "header": {
+                    "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+                    "timestamp_ms": 1648738900886,
+                    "message_id": "f03d0426-cb47-4ff8-a20a-bd75daa3b6ff",
+                    "device_id": "CANARY_AM_TEST_01",
+                    "boot_id": "bf35349a-4b53-4555-a3b3-5f145a72831c"
+                },
+                "correlation_id": "373011ed-37a0-40d4-8827-f37f86581a13",
+                "recording_id": "InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87",
+                "recorder_name": "InteriorRecorder",
+                "chunk_descriptions": [
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_1",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738820350,
+                        "end_timestamp_ms": 1648738831350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_2",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738831350,
+                        "end_timestamp_ms": 1648738842350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_3",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738842350,
+                        "end_timestamp_ms": 1648738853350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_4",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738853350,
+                        "end_timestamp_ms": 1648738864350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_5",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738864350,
+                        "end_timestamp_ms": 1648738875350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_6",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738875350,
+                        "end_timestamp_ms": 1648738886350,
+                        "payload_size": 380695
+                    },
+                    {
+                        "uuid": "InteriorRecorder_InteriorRecorder-5c964165-6d57-4fa5-a4db-5a01129f4a87_7",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1648738886350,
+                        "end_timestamp_ms": 1648738897350,
+                        "payload_size": 380695
+                    }
+                ],
+                "command_status": {
+                    "status_code": "COMMAND_STATUS_CODE__OK",
+                    "details": "COMMAND_STATUS_CODE__OK"
+                }
+            }
+        },
+        "extra": {
+            "attributes": {
+                "vin": "unknownvin",
+                "tenant": "TEST_TENANT",
+                "vehicleType": "CARMODEL__GENERIC"
+            }
+        },
+        "revision": 134161,
+        "timestamp": "2022-03-31T15:01:40.994726993Z"
+    },
+    "Timestamp": "2022-03-31T15: 01: 41.056Z",
+    "SignatureVersion": "1",
+    "Signature": "T1QfadLZoLuenL94FGlqudS6h1vRsHqjSorcq/J8IMoKh1TpN/519NcKymlIlQvscwkU2kNORkH2ZVMukwvuDNmDW38muEqeAQ2FQF9ooXVEhnlhy+IKwszFikw7ZWni8LkCkPH9bLLK86K5jetGshh2EoRAfPpOjZ7rWbwsTuBgXY0gWk9TEyxJhd8FeUrGBt2YGZc/dTEbK4mZaotQmy70+kk1lLcjTHomVSjzd7SYSWKHrMYV0jeNwMq7xHYDPNW2A4W6FypWqbZ9WinXWqJld3NA+xodm9HViSHmg4jlTP3ee+Y99Rvhm2vLiqkmT/noY70psefF520q8D9Rcg==",
+    "SigningCertURL": "https: //sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:23a2a7a5-1fd3-4bbe-b766-1da13b0577d9",
+    "MessageAttributes": {
+        "eventType": {
+            "Type": "String",
+            "Value": "com.bosch.ivs.videorecorder.UploadRecordingEvent"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "TEST_TENANT"
+        }
+    }
+}
