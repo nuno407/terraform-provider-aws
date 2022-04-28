@@ -1,4 +1,6 @@
+from ast import operator
 from datetime import timedelta
+import json
 import logging
 import re
 
@@ -65,10 +67,102 @@ class ApiService:
                                                             Params = params_s3)
         return url
 
-    def get_table_data(self, page_size, page):
-        recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page)
+    def get_table_data(self, page_size, page, query, operator, sorting, direction):
+        additional_query = None
+        if query and operator:
+            additional_query = self.__parse_query(query, operator)
+        sorting_query = None
+        if sorting and direction:
+            sorting_query = self.__parse_sorting(sorting, direction)
+
+        recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
         return table_data, number_recordings, number_pages
+        
+    # State all valid query fields and their corresponding database field path
+    __query_fields = {
+                    "_id": "_id",
+                    "processing_list": "pipeline_execution.processing_list",
+                    'snapshots': 'recording_overview.#snapshots',
+                    'data_status': 'pipeline_execution.data_status',
+                    'last_updated': 'pipeline_execution.last_updated',
+                    'length': 'recording_overview.length',
+                    'time': 'recording_overview.time',
+                    'resolution': 'recording_overview.resolution',
+                    'deviceID': 'recording_overview.deviceID'
+                    }
+
+    def __parse_query(self, query, logic_operator):
+        # State all valid logical operators and their corresponding mongo query
+        logic_operators = {
+                        "or":"$or",
+                        "and":"$and"
+                        }
+
+        # State all valid query operators and their corresponding ongo operators 
+        # (used for validation and later conversion)
+        operators = {
+                        "==":"$eq",
+                        ">":"$gt",
+                        "<":"$lt",
+                        "!=":"$ne",
+                        "has":"$regex"
+                        }
+
+        # Check if operator is valid
+        assert logic_operator.lower() in logic_operators.keys(), "Invalid/Forbidden logical operator"
+
+        # Check if all query fields are valid
+        assert [fieldname for fieldname in query.keys() if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
+
+        # Create empty list that will contain all sub queries received
+        query_list = []
+        
+        for fieldname, field_query in query.items():
+            operator = list(field_query.keys())[0]
+            operation_value = field_query[operator]
+
+            ## OPERATOR VALIDATION + CONVERSION
+            # Check if operator is valid 
+            assert operator in operators.keys(), "Invalid/Forbidden query operators"
+
+            # Convert the operator to mongo syntax
+            mongo_operator = operators[operator]
+
+            ## VALUE VALIDATION
+            # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
+            # NOTE: spaces are allowed in the value string
+            assert re.findall("^[a-zA-Z0-9_:.\s-]*$", str(operation_value)) != [], "Invalid/Forbidden query values"
+
+            # Create subquery. 
+            # NOTE: $exists -> used to make sure items without
+            # the parameter set in key are not also returned
+            subquery = {self.__query_fields[fieldname]:{'$exists': 'true', mongo_operator:operation_value}}
+
+            # Append subquery to list
+            query_list.append(subquery)
+
+        # Append selected logical operator to query
+        # NOTE: Resulting format -> { <AND/OR>: [<subquery1>, <subquery2>, ...] },
+        #       which translates into: <subquery1> AND/OR <subquery2> AND/OR ... 
+        return {logic_operators[logic_operator.lower()]: query_list}
+
+        
+    def __parse_sorting(self, sorting, direction):
+        directions = {
+            "asc": 1,
+            "dsc": -1
+        }
+
+        # Check if operator is valid
+        assert direction.lower() in directions.keys(), "Invalid/Forbidden sorting direction"
+
+        # Check if the sorting field is valid
+        assert sorting in self.__query_fields.keys(), "Invalid/Forbidden sorting field"
+
+        return {self.__query_fields[sorting]: directions[direction]}
+
+
 
     def get_single_recording(self, recording_id):
         recording_item = self.__db.get_single_recording(recording_id)

@@ -44,9 +44,9 @@ class Persistence:
         if(len(result) == 0): raise LookupError('Recording ID ' + recording_id + ' not found')
         else: return result[0]
 
-    def get_recording_list(self, page_size, page):
+    def get_recording_list(self, page_size, page, additional_query, order):
         # Get all videos that entered processing phase or the specific one video
-        aggregation_pipeline = self.__generate_recording_list_query()
+        aggregation_pipeline = self.__generate_recording_list_query(additional_query, order)
         
         # Code to be removed after full migration to MongoDB is finished
         count_pipeline = aggregation_pipeline.copy()
@@ -73,12 +73,17 @@ class Persistence:
 
         return pipeline_result['result'], number_recordings, number_pages
 
-    def __generate_recording_list_query(self):
+    def __generate_recording_list_query(self, additional_query = None, sorting = None):
         aggregation = []
         aggregation.append({'$lookup': {'from':self.__pipeline_executions.name, 'localField':'_id', 'foreignField':'_id', 'as': 'pipeline_execution'}})
         aggregation.append({'$unwind': '$pipeline_execution'})
         aggregation.append({'$match':{'pipeline_execution.data_status':'complete'}})
-        aggregation.append({'$sort': {'recording_overview.time':1}})
+        if(additional_query):
+            aggregation.append({'$match': additional_query})
+        if(sorting):
+            aggregation.append({'$sort': sorting})
+        else:
+            aggregation.append({'$sort': {'recording_overview.time':1}})
         return aggregation
 
     def get_algo_output(self, algo, recording_id):

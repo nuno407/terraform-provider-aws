@@ -84,7 +84,7 @@ def test_get_recording_list(persistence):
     prepare_recordings_data(recordings, pipeline_execs)
 
     # WHEN
-    recording_list, total, pages = db.get_recording_list(10, 1)
+    recording_list, total, pages = db.get_recording_list(10, 1, None, None)
 
     # THEN
     assert(len(recording_list) == 2)
@@ -99,7 +99,7 @@ def test_get_recording_list_paged(persistence):
     prepare_recordings_data(recordings, pipeline_execs)
 
     # WHEN
-    recording_list, total, pages = db.get_recording_list(1, 1)
+    recording_list, total, pages = db.get_recording_list(1, 1, None, None)
 
     # THEN
     assert(len(recording_list) == 1)
@@ -114,7 +114,7 @@ def test_get_empty_recording_list(persistence):
     prepare_recordings_data(recordings, pipeline_execs, 'failed')
 
     # WHEN
-    recording_list, total, pages = db.get_recording_list(10, 1)
+    recording_list, total, pages = db.get_recording_list(10, 1, None, None)
 
     # THEN
     assert(len(recording_list) == 0)

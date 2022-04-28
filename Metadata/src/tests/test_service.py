@@ -65,7 +65,7 @@ def test_get_table_data():
     db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
 
     # WHEN
-    result, _, _ = service.get_table_data(10, 1)
+    result, _, _ = service.get_table_data(10, 1, None, None)
 
     # THEN
     expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected.json'), 'r').read()

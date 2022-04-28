@@ -3,6 +3,7 @@ Metadata API
 """
 import logging
 import flask
+import yaml
 from flask import make_response, request
 from flask_cors import CORS
 from flask_restx import Api, Resource, reqparse, fields
@@ -196,13 +197,105 @@ class TableData(Resource):
         page_size = request.args.get('size', 20, int)
         page = request.args.get('page', 1, int)
 
-
         try:
-            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page)
+            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, None, None)
             return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
         except (NameError, LookupError, ValueError):
             generate_exception_logs()
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+
+    def post(self):
+        """
+        Returns the table items filtered and sorted with custom queries
+
+        ## Example of query request body
+
+        It is possible to query for items where:
+        - The **processed algorithms list** contains **anonymization** (i.e. parameter "processing_list" contains "Anonymize")
+
+        - The **id** of the recording contains the word **"driverpr"** (i.e. parameter "_id" has the substring "driverpr")
+
+        then, the request arguments should be the following:  
+        - **query:** `{ 'processing_list': {'==' : 'Anonymize'}, '_id': {'has' : 'driverpr'} }`
+
+        - **logic_operator:** `AND` (if both conditions are required) or `OR` (if only one condition needs to be met)
+        ---
+
+        ## Currently supported operators (for query argument)
+
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `==` | Equal (or contained in an array field) |
+        | `!=` | Not equal (or not present in an array field) |
+        | `>` | Greater than |
+        | `<` | Less than |
+        | `has` | Contains substring |
+
+        ---
+
+        ## Currently supported logical operators (for logical_operator argument)
+
+        | Operator | Description |
+        | ----------- | ----------- |
+        | `AND` / `and` |  All parameter:value conditions must be met |
+        | `OR` / `or` | At least one parameter:value condition must be met |
+
+        ---
+        
+        ## Resulting query format
+
+            QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
+
+        where:
+        - `<subquery_x>`  -  corresponds to x<sup>th</sup> condition stated on the query argument (e.g. {'parameter_x': {'operator_x' : 'value_x'}} )  
+
+        - `<logic_operator>` - corresponds to the logical operator used link two or more expressions (currently supported logical operators: AND, OR).
+        <br/>
+
+        **Note:** The usage of logical operators is limited to one of them (and not both) per request, i.e.:
+        - `<subquery_1> AND <subquery_2> AND ...` or `<subquery_1> OR <subquery_2> OR ...` are supported
+
+        - `<subquery_1> OR <subquery_2> AND ...` is not currently supported
+
+        """
+        # Get the query parameters from the request
+        page_size = request.args.get('size', 20, int)
+        page = request.args.get('page', 1, int)
+
+        query = None
+        operator = None
+        sorting = "time"
+        direction = "asc"
+        try:
+            if(request.json):
+                raw_query = request.json.get('query')
+                if(raw_query):
+                    query = yaml.load(raw_query, yaml.SafeLoader)
+                raw_operator = request.json.get('logic_operator')
+                if(raw_operator):
+                    operator = yaml.load(raw_operator, yaml.SafeLoader)
+                raw_sorting = request.json.get('sorting')
+                if(raw_sorting):
+                    sorting = yaml.load(raw_sorting, yaml.SafeLoader)
+                raw_direction = request.json.get('direction')
+                if(raw_direction):
+                    direction = yaml.load(raw_direction, yaml.SafeLoader)
+        except:
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+
+        try:
+            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, query, operator, sorting, direction)
+            return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
+        except (NameError, LookupError, ValueError):
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except AssertionError as error_log:
+            generate_exception_logs()
+            api.abort(400, message=str(error_log), statusCode = "400")
         except Exception:
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
