@@ -1034,7 +1034,7 @@ def main():
                 elif "Timestamp" in message:
                     logging.info("Message timestamp: %s"%(message["Timestamp"]))
                 if event_type =="com.bosch.ivs.videorecorder.UploadRecordingEvent":
-                    if tenant == "datanauts":
+                    if tenant != "TEST_TENANT":
                         message_ = body["Message"] if "Message" in body else body
                         if type(message_) == str: message_ = json.loads(body["Message"])
                         if "chunk_descriptions" in message_["value"]["properties"].keys():
