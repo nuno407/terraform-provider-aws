@@ -9,6 +9,7 @@ def create_dataset(bucket_name):
         dataset = fo.load_dataset(bucket_name)
     else:
         dataset = fo.Dataset(bucket_name,True)
+        dataset.permanent = True
 
 
 def update_sample(data_set,sample_info):
