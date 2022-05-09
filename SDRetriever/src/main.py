@@ -69,7 +69,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
                      dict_body['streamName'])
         return record_data, hq_request
 
-    logging.info(message)
+    #logging.info(message)
     ##########################################
 
     try:
@@ -914,14 +914,19 @@ def event_type_identifier(message):
     eventType = None
     tenant = None
     message_attrib = None
-    body = json.loads(message["Body"])
-    if "MessageAttributes" in body: 
-        message_attrib = body["MessageAttributes"]
+    if "MessageAttributes" in message: 
+        message_attrib = message["MessageAttributes"]
     else:
-        message_ = json.loads(body["Message"])
-        if "MessageAttributes" in message_: 
-            message_attrib = message_["MessageAttributes"]
+        body = json.loads(message["Body"])
+        if "MessageAttributes" in body: 
+            message_attrib = body["MessageAttributes"]
+        else:
+            message_ = json.loads(body["Message"])
+            if "MessageAttributes" in message_: 
+                message_attrib = message_["MessageAttributes"]
     if message_attrib is None: 
+        logging.info("ERROR: Could not parse this message:\n")
+        logging.info(message)
         return eventType, tenant
     if "eventType" in message_attrib:
         if "Value" in message_attrib["eventType"]: 
