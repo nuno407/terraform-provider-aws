@@ -1,13 +1,13 @@
 
 #### VOXEL 51 
 
+
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 
 # Your install token
 
 # The Python version to install
-#ARG PYTHON_VERSION=3.8
-ENV  PYTHON_VERSION=3.8
+ENV  PYTHON_VERSION=3.9
 
 #
 # Install system packages
@@ -44,9 +44,15 @@ RUN apt -y update \
         s3fs \
         awscli \ 
     && ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python \
+    && ln -s /usr/local/lib/python${PYTHON_VERSION} /usr/local/lib/python \
     && curl https://bootstrap.pypa.io/get-pip.py | python \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir /fiftyone
+
+ENV ROOT_DIR=/fiftyone
+
+
+RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
 
 ARG TOKEN
@@ -56,26 +62,42 @@ RUN echo ${TOKEN}
 RUN echo ' '
 RUN echo ${FIFTYONE_DATABASE_URI}
 
-# The Teams client 
-RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone
+
+# The Teams client version to install, or "latest"
+ARG TEAMS_APP_VERSION==0.2.0rc0
+ARG TEAMS_VERSION==0.8.1rc0
+RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
+        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
+    else \
+        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
+    fi
+#
+# Configure shared storage
+#
+# The name of the shared directory in the container that should be
+# volume-mounted by users to persist data loaded into FiftyOne
 
 
-
-ENV ROOT_DIR=/fiftyone
 
 ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
     FIFTYONE_DEFAULT_DATASET_DIR=${ROOT_DIR}/default \
     FIFTYONE_DATASET_ZOO_DIR=${ROOT_DIR}/zoo/datasets \
+    FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
+#    FIFTYONE_DATABASE_NAME=fiftyone-rc \
+    FIFTYONE_DATABASE_ADMIN=true \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
-    #FIFTYONE_DATABASE_URI="mongodb://fiftyonedevcloud:llNzXprqdDi7Rdc0@dataexploration-dev-shard-00-00.ci6wy.mongodb.net:27017,dataexploration-dev-shard-00-01.ci6wy.mongodb.net:27017,dataexploration-dev-shard-00-02.ci6wy.mongodb.net:27017/?ssl=true&replicaSet=atlas-gimhss-shard-0&authSource=admin&retryWrites=true&w=majority" \
     FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
     FIFTYONE_DATABASE_VALIDATION=false
 
 
+
+
 # Correction, so that Voxel doesn't break if the DB is already populated
-RUN mkdir -p ${ROOT_DIR}/db
-RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
+RUN mkdir ${ROOT_DIR}/db
+#RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
+
+
 
 ##### END Voxel51 code
 
