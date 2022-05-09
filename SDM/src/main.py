@@ -77,6 +77,11 @@ def processing_sdm(container_services, body):
 
     return relay_data
 
+def log_message(message, queue):
+    logging.info("\n######################################\n")
+    logging.info("Message contents from %s:\n"%(queue))
+    logging.info(message)
+    logging.info("\n######################################\n")
 
 def main():
     """Main function"""
@@ -107,6 +112,8 @@ def main():
         message = container_services.listen_to_input_queue(sqs_client)
 
         if message:
+            # save some messages as examples for development
+            log_message(message, container_services.sqs_queues_list['input'])
             # Processing step
             relay_list = processing_sdm(container_services, message['Body'])
 

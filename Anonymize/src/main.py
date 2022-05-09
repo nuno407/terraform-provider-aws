@@ -191,6 +191,11 @@ def update_processing(client, container_services, body):
 
     return relay_data, output_info
 
+def log_message(message, queue):
+    logging.info("\n######################################\n")
+    logging.info("Message contents from %s:\n"%(queue))
+    logging.info(message)
+    logging.info("\n######################################\n")
 
 def main():
     """Main function"""
@@ -227,6 +232,8 @@ def main():
         message = container_services.listen_to_input_queue(sqs_client)
 
         if message:
+            # save some messages as examples for development
+            log_message(message, container_services.sqs_queues_list['input'])
             # Processing request
             request_processing(s3_client,
                                container_services,
@@ -241,6 +248,8 @@ def main():
                                                                api_sqs_queue)
 
         if message_api:
+            # save some messages as examples for development
+            log_message(message, api_sqs_queue)
             # Processing update
             relay_list, out_s3 = update_processing(s3_client,
                                                    container_services,
