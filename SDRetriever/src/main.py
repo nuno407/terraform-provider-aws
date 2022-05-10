@@ -940,6 +940,12 @@ def event_type_identifier(message):
             tenant = message_attrib["tenant"]["StringValue"]
     return eventType, tenant
 
+def log_message(message, queue):
+    logging.info("\n######################################\n")
+    logging.info("Message contents from %s:\n"%(queue))
+    logging.info(message)
+    logging.info("\n######################################\n")
+
 def main():
     """Main function"""
 
@@ -974,6 +980,8 @@ def main():
             message = container_services.listen_to_input_queue(sqs_client)
 
             if message:
+                # save some messages as examples for development
+                log_message(message, container_services.sqs_queues_list['input'])
                 # Get and store kinesis video clip
                 rec_data, hq_data = transfer_kinesis_clip(s3_client,
                                                         sts_client,
@@ -1028,7 +1036,9 @@ def main():
                 sqs_client, api_sqs_queue)
 
             # diferentiate between message type (video/snapshot)
-            if message: 
+            if message:
+                # save some messages as examples for development
+                log_message(message, api_sqs_queue)
                 # the message body comes formatted as a string, needs to be parsed to json
                 body = json.loads(message["Body"])
                 # the message _in_ the body is also formatted as a string, needs to be parsed to json

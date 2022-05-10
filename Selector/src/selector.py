@@ -28,6 +28,7 @@ class Selector():
         message = self.__container_services.listen_to_input_queue(self.__sqs_client)
 
         if message:
+            self.log_message(message, self.__container_services.__queues['input'])            
             # Processing request
             self.__process_selector_message(message)
 
@@ -92,8 +93,11 @@ class Selector():
     def handle_hq_queue(self):
         # Check input SQS queue for new messages
         message = self.__container_services.listen_to_input_queue(self.__sqs_client, self.__hq_queue)
+        
 
         if message:
+            # save some messages as examples for development
+            self.log_message(message, self.__hq_queue)
             # Processing request
             self.__process_hq_message(message)
 
@@ -115,3 +119,9 @@ class Selector():
 
         else:
             logging.info("Not a valid Message")   
+    
+    def log_message(message, queue):
+        logging.info("\n######################################\n")
+        logging.info("Message contents from %s:\n"%(queue))
+        logging.info(message)
+        logging.info("\n######################################\n")
