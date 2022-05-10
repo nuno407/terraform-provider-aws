@@ -940,7 +940,7 @@ def event_type_identifier(message):
             tenant = message_attrib["tenant"]["StringValue"]
     return eventType, tenant
 
-def log_message(message, queue):
+def log_message(message, queue=CONTAINER_NAME):
     logging.info("\n######################################\n")
     logging.info("Message contents from %s:\n"%(queue))
     logging.info(message)
@@ -981,7 +981,7 @@ def main():
 
             if message:
                 # save some messages as examples for development
-                log_message(message, container_services.sqs_queues_list['input'])
+                log_message(message, CONTAINER_NAME)
                 # Get and store kinesis video clip
                 rec_data, hq_data = transfer_kinesis_clip(s3_client,
                                                         sts_client,

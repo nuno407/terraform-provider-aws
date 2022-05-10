@@ -5,6 +5,7 @@ import logging
 import urllib3
 from urllib3 import Retry
 from api_token_manager import ApiTokenManager
+from container_scripts.Anonymize.src.main import CONTAINER_NAME
 
 class Selector():
     def __init__(self, sqs_client, container_services):
@@ -28,7 +29,7 @@ class Selector():
         message = self.__container_services.listen_to_input_queue(self.__sqs_client)
 
         if message:
-            self.log_message(message, self.__container_services.__queues['input'])            
+            self.log_message(message, CONTAINER_NAME)            
             # Processing request
             self.__process_selector_message(message)
 
@@ -120,7 +121,7 @@ class Selector():
         else:
             logging.info("Not a valid Message")   
     
-    def log_message(message, queue):
+    def log_message(message, queue=CONTAINER_NAME):
         logging.info("\n######################################\n")
         logging.info("Message contents from %s:\n"%(queue))
         logging.info(message)

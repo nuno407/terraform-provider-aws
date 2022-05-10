@@ -191,7 +191,7 @@ def update_processing(client, container_services, body):
 
     return relay_data, output_info
 
-def log_message(message, queue):
+def log_message(message, queue=CONTAINER_NAME):
     logging.info("\n######################################\n")
     logging.info("Message contents from %s:\n"%(queue))
     logging.info(message)
@@ -233,7 +233,7 @@ def main():
 
         if message:
             # save some messages as examples for development
-            log_message(message, container_services.sqs_queues_list['input'])
+            log_message(message)
             # Processing request
             request_processing(s3_client,
                                container_services,
