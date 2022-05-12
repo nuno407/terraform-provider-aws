@@ -47,6 +47,9 @@ class ApiService:
                 time += increment
         return result_signals
 
+    def update_video_description(self, id, description):
+        self.__db.update_recording_description(id, description)
+
     def create_anonymized_video_url(self, recording_id):
         url = None
         entry = self.__db.get_algo_output("Anonymize", recording_id)
@@ -199,6 +202,7 @@ class ApiService:
         recording_object['time'] = recording_item['recording_overview']['time']                
         recording_object['resolution'] = recording_item['recording_overview']['resolution']        
         recording_object['deviceID'] = recording_item['recording_overview']['deviceID']
+        recording_object['description'] = recording_item['recording_overview'].get('description')
         return recording_object
 
     def __calculate_chc_events(self, chc_periods):

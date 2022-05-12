@@ -31,8 +31,11 @@ class Persistence:
         self.__pipeline_executions = db_client[db_tables['pipeline_exec']]
         self.__algo_output = db_client[db_tables['algo_output']]
 
-
-        
+    def update_recording_description(self, id, description):
+        self.__recordings.update_one(
+            { "_id" : id },
+            { "$set": { 'recording_overview.description' : description } }
+        )
 
     def get_recording(self, id):
         return self.__recordings.find_one({'_id': id})
@@ -89,3 +92,5 @@ class Persistence:
     def get_algo_output(self, algo, recording_id):
         entry = self.__algo_output.find_one({"algorithm_id":algo, "pipeline_id": recording_id})
         return entry
+
+    

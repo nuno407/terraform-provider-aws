@@ -172,6 +172,32 @@ class VideoSignals(Resource):
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
             
+# Custom model for updateVideoUrl code 200 response
+update_videodescription_200_model = api.model("Video_Description_200", {
+    'message': fields.String(example="<video_description>"),
+    'statusCode': fields.String(example="200")
+})
+
+@api.route('/videoDescription/<string:video_id>')
+class VideoDescription(Resource):
+    @api.response(200, 'Success', update_videodescription_200_model)
+    @api.response(400, ERROR_400_MSG, error_400_model)
+    @api.response(500, ERROR_500_MSG, error_500_model)
+    def put(self, video_id):
+        """
+        Update description field on Recording.
+        """
+        try:
+            description = request.json['description']
+            service.update_video_description(video_id, description)
+            return flask.jsonify(statusCode="200")
+        except (NameError, LookupError, ValueError):
+            generate_exception_logs()
+            api.abort(400, message=ERROR_400_MSG, statusCode = "400")
+        except Exception:
+            generate_exception_logs()
+            api.abort(500, message=ERROR_500_MSG, statusCode = "500")
+            
 # Custom model for getTableData code 200 response (Swagger documentation)
 tabledata_nest_model = api.model("tabledata_nest", {
     'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),

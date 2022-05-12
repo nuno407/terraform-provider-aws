@@ -20,6 +20,18 @@ def persistence():
     client, recordings, pipeline_execs, algo_outputs = db_client()
     return Persistence(None, db_tables, False, client), recordings, pipeline_execs, algo_outputs
 
+def test_update_recording_description(persistence):
+    # GIVEN
+    db, recordings, pipeline_execs, algo_outputs = persistence
+    recordings.insert_one({'_id': 'foo', 'recording_overview':{'description' : 'bar'}})
+
+    # WHEN
+    db.update_recording_description('foo','Hello World!')
+
+    # THEN
+    recording = recordings.find_one({'_id': 'foo'})
+    assert(recording['recording_overview']['description'] == 'Hello World!')
+
 def test_get_recording(persistence):
     # GIVEN
     db, recordings, pipeline_execs, algo_outputs = persistence

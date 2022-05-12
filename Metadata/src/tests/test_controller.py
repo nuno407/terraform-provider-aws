@@ -113,6 +113,42 @@ def test_get_video_signals_500(client):
     # WHEN-THEN
     assert_returns_500(client, video_signals_url)
 
+video_description_url = '/videoDescription/foo_video_id'
+def test_update_video_description_200(client):
+    # GIVEN
+    description = 'Hello World!'
+    description_obj = {'description': description}
+    controller.service.update_video_description = Mock()
+    
+    # WHEN
+    resp = client.put(video_description_url, json = description_obj)
+
+    # THEN
+    assert resp.status_code == 200
+    controller.service.update_video_description.assert_called_once_with('foo_video_id', description)
+
+def test_update_video_description_400(client):
+    # GIVEN
+    description = 'Hello World!'
+    description_obj = {'description': description}
+    controller.service.update_video_description = Mock(side_effect=LookupError('injected'))
+    
+    # WHEN
+    resp = client.put(video_description_url, json = description_obj)
+    # THEN
+    assert resp.status_code == 400
+
+def test_update_video_description_500(client):
+    # GIVEN
+    description = 'Hello World!'
+    description_obj = {'description': description}
+    controller.service.update_video_description = Mock(side_effect=Exception('generic exception'))
+    
+    # WHEN
+    resp = client.put(video_description_url, json = description_obj)
+    #THEN
+    assert resp.status_code == 500
+
 all_table_data_url = '/getTableData?page=2&size=10'
 def test_get_table_data_200(client):
     # GIVEN

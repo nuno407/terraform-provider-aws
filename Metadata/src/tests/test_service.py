@@ -116,3 +116,16 @@ def test_get_single_recording():
     expected = json.loads(expectedstr)
     assert(result == expected)
     assert(db.get_single_recording.call_count == 2)
+
+def test_update_video_description():
+    # GIVEN
+    id = 'foo'
+    description = 'bar'
+    db.update_recording_description = Mock()
+
+    # WHEN
+    service.update_video_description(id, description)
+
+    # THEN
+    
+    db.update_recording_description.assert_called_once_with(id, description)
