@@ -5,6 +5,7 @@ from datetime import timedelta as td, datetime
 import subprocess
 from operator import itemgetter
 import os
+import time
 import boto3
 from typing import TypeVar
 from baseaws.shared_functions import ContainerServices
@@ -58,7 +59,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     dict_attr = dict_msg['MessageAttributes']
     device = dict_attr['deviceId']['Value']
 
-    record_data = {}
+    # Build dictionary with info to store on DB (Recording collection)
+    record_data = {}    
     hq_request = {}
 
     ###########################################
@@ -72,6 +74,9 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     #logging.info(message)
     ##########################################
 
+    record_data["recording_overview"] = {}
+    record_data["recording_overview"]['deviceID'] = device
+
     try:
         # Info from received message
         stream_name = dict_body['streamName']
@@ -83,6 +88,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         epoch_to = dict_body['footageTo']
         end_time = datetime.fromtimestamp(
             epoch_to/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+
+        record_data["recording_overview"]['time'] = str(start_time)
 
     except Exception:
         logging.info(
@@ -108,6 +115,8 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     s3_filename = stream_name + "_" + str(epoch_from) + "_" + str(epoch_to)
     s3_path = s3_folder + s3_filename + clip_ext
+    record_data["_id"] = s3_filename
+    record_data["s3_path"] = container_services.raw_s3 + "/" + s3_path
 
     # Check if there is a file with the same name already
     # stored on the S3 bucket (to avoid multiple processing of a given
@@ -120,7 +129,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     # Skips processing if video file is a duplicate
     if response_list['KeyCount'] > 0:
         logging.info(
-            "\nWARNING: Recording (path: %s) already exists on the S3 bucket and will be skipped!!\n", s3_path)
+            "\nWARNING: Recording (path: %s) already exists on the S3 bucket and thus the download will be skipped!!\n", s3_path)
         return record_data, hq_request
 
     # Requests credentials to assume specific cross-account role
@@ -178,21 +187,16 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     video_seconds = round(float(video_info["format"]["duration"]))
     video_duration = str(td(seconds=video_seconds))
 
-    # Build dictionary with info to store on DB (Recording collection)
-    record_data["_id"] = s3_filename
-    record_data["s3_path"] = container_services.raw_s3 + "/" + s3_path
-    record_data["recording_overview"] = {
-        'length': video_duration,
-        'time': str(start_time),
-        'deviceID': device,
-        'resolution': video_resolution,
-        '#snapshots': "0",
-        'snapshots_paths': {}
+    # fill the dictionary
+    record_data["recording_overview"]['length'] = video_duration
+    record_data["recording_overview"]['resolution'] = video_resolution
+    record_data["recording_overview"]['#snapshots'] = "0"
+    record_data["recording_overview"]['snapshots_paths'] = {
     }
 
     # Generate dictionary with info to send to Selector container for
     # HQ data request
-    if not 'TrainingRecorder' in stream_name:
+    if 'TrainingRecorder' not in stream_name:
         hq_request = {
             "streamName": stream_name,
             "deviceId": device,
@@ -410,6 +414,24 @@ def generate_sync_data(container_services, s3_client, epoch_from, epoch_to, data
 
     return s3_file_extension, start_frame, end_frame
 
+def json_raise_on_duplicates(ordered_pairs):
+    """Convert duplicate keys to JSON array or if JSON objects, merges them."""
+    d = {}
+    for (k, v) in ordered_pairs:
+        if k in d:
+            if type(d[k]) is dict and type(v) is dict:
+                for(sub_k, sub_v) in v.items():
+                    d[k][sub_k] = sub_v
+            elif type(d[k]) is list:
+                d[k].append(v)
+            else:
+                d[k] = [d[k],v]
+        else:
+           d[k] = v
+    return d
+
+
+
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
@@ -580,7 +602,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
 
                 # Read all bytes from http response body
                 # (botocore.response.StreamingBody) and convert them into json format
-                json_temp = json.loads(metadata_file.decode("utf-8"))
+                json_temp = json.loads(metadata_file.decode("utf-8"), object_pairs_hook=json_raise_on_duplicates)
 
                 # Add filename to the json file (for debug)
                 json_temp["filename"] = file_entry['Key']
