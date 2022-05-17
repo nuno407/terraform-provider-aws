@@ -28,7 +28,7 @@ class Selector():
         message = self.__container_services.listen_to_input_queue(self.__sqs_client)
 
         if message:
-            self.log_message(message, "selector")            
+            self.log_message(message)            
             # Processing request
             self.__process_selector_message(message)
 
@@ -97,7 +97,7 @@ class Selector():
 
         if message:
             # save some messages as examples for development
-            self.log_message(message, self.__hq_queue)
+            self.log_message(message, "selector HQ")
             # Processing request
             self.__process_hq_message(message)
 
