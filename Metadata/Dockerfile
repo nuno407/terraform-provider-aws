@@ -64,8 +64,8 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 
 
 # The Teams client version to install, or "latest"
-ARG TEAMS_APP_VERSION==0.2.0rc0
-ARG TEAMS_VERSION==0.8.1rc0
+ARG TEAMS_APP_VERSION==0.1.0
+ARG TEAMS_VERSION==0.8.0
 RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
         pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
     else \
