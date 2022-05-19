@@ -120,7 +120,7 @@ class Selector():
         else:
             logging.info("Not a valid Message")   
     
-    def log_message(message, queue="selector"):
+    def log_message(self, message, queue="selector"):
         logging.info("\n######################################\n")
         logging.info("Message contents from %s:\n"%(queue))
         logging.info(message)
