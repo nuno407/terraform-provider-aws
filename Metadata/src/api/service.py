@@ -72,7 +72,7 @@ class ApiService:
         
     # State all valid query fields and their corresponding database field path
     __query_fields = {
-                    "_id": "_id",
+                    "_id": "video_id",
                     "processing_list": "pipeline_execution.processing_list",
                     'snapshots': 'recording_overview.#snapshots',
                     'data_status': 'pipeline_execution.data_status',
