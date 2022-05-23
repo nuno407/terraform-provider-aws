@@ -224,7 +224,7 @@ class TableData(Resource):
         page = request.args.get('page', 1, int)
 
         try:
-            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, None, None)
+            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, None, None, None, None)
             return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
         except (NameError, LookupError, ValueError):
             generate_exception_logs()

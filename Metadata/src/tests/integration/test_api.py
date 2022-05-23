@@ -21,7 +21,7 @@ mockdb_client = mongomock.MongoClient()
 recordings = mockdb_client.DB_data_ingestion.recording
 pipeline_execs = mockdb_client.DB_data_ingestion.pipeline_exec
 algo_outputs = mockdb_client.DB_data_ingestion.algo_output
-persistence = Persistence(None, db_tables, False, mockdb_client)
+persistence = Persistence(None, db_tables, mockdb_client)
 s3mock = MagicMock()
 
 controller.service = ApiService(persistence, s3mock)

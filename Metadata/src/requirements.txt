@@ -3,7 +3,7 @@ pytz
 requests
 flask
 flask_cors
-pymongo
+pymongo[srv]
 flask_restx
 mongosanitizer
 regex
