@@ -38,28 +38,19 @@ class Persistence:
     def get_recording_list(self, page_size, page, additional_query, order):
         # Get all videos that entered processing phase or the specific one video
         aggregation_pipeline = self.__generate_recording_list_query(additional_query, order)
-        
-        # Code to be removed after full migration to MongoDB is finished
-        count_pipeline = aggregation_pipeline.copy()
-        count_pipeline.append({'$count': 'number_recordings'})
+
         skip_entries = (page - 1) * page_size
-        aggregation_pipeline.append({'$skip': skip_entries})
-        aggregation_pipeline.append({'$limit': page_size})
-        pipeline_result = {}
-        pipeline_result['result'] = list(self.__recordings.aggregate(aggregation_pipeline))
-        pipeline_result['count'] = self.__recordings.aggregate(count_pipeline).next()
-
-        ## Code to be used after full migration to MongoDB is finished
-        # count_facet = [{'$count': 'number_recordings'}]
-        # result_facet = [
-        #     {'$skip': skip_entries},
-        #     {'$limit': page_size}
-        # ]
-        # aggregation_pipeline.append({'$facet': {'count': count_facet, 'result': result_facet}})
+        count_facet = [{'$count': 'number_recordings'}]
+        result_facet = [
+            {'$skip': skip_entries},
+            {'$limit': page_size}
+        ]
+        aggregation_pipeline.append({'$facet': {'count': count_facet, 'result': result_facet}})
         
-        # pipeline_result = self.__recordings.aggregate(aggregation_pipeline).next()
+        pipeline_result = self.__recordings.aggregate(aggregation_pipeline).next()
 
-        number_recordings = int(pipeline_result['count']['number_recordings'])
+        count_result = pipeline_result['count']
+        number_recordings = int(count_result[0]['number_recordings']) if count_result else 0
         number_pages = ceil(float(number_recordings) / page_size)
 
         return pipeline_result['result'], number_recordings, number_pages
