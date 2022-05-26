@@ -24,7 +24,6 @@ class ContainerServices():
         self.__db_tables = {}
         self.__s3_buckets = {'raw': "", 'anonymized': ""}
         self.__s3_ignore = {'raw': "", 'anonymized': ""}
-        self.__docdb_whitelist = {}
         self.__sdr_folder = {}
         self.__sdr_blacklist = {}
         self.__rcc_info = {}
@@ -83,11 +82,6 @@ class ContainerServices():
     def anonymized_s3_ignore(self):
         """anonymized_s3_ignore variable"""
         return self.__s3_ignore['anonymized']
-
-    @property
-    def docdb_whitelist(self):
-        """docdb_whitelist variable"""
-        return self.__docdb_whitelist
 
     @property
     def sdr_folder(self):
@@ -172,9 +166,6 @@ class ContainerServices():
         # the processing container
         self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
         self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
-
-        # List of all parameters whitelisted for docdb queries
-        self.__docdb_whitelist = dict_body['docdb_key_whitelists']
 
         # Name of the Raw S3 bucket folders where to store RCC KVS clips
         self.__sdr_folder = dict_body['sdr_dest_folder']
@@ -351,52 +342,45 @@ class ContainerServices():
 
     ##### DB related functions #########################################################
     @staticmethod
-    def create_db_client(db_config):
-        """Creates MongoDB client and returns a DB object based on
-        the set configurations so that an user can access the respective
-        AWS DocumentDB resource
+    def get_db_connstring():
+        connstring = os.environ.get('FIFTYONE_DATABASE_URI')
+        return connstring
 
-        Arguments:
-            db_config {dict} -- [dict containing the configurations to be used
-                                 on the docdb client creation]
+
+    @staticmethod
+    def create_db_client():
+        """Creates MongoDB client and returns a DB object based on
+        the set configurations so that a user can access the respective
+        MongoDB resource
+
         Returns:
             db {MongoDB database object} -- [Object that can be used to
                                              access a given database
                                              and its collections]
         """
-        # Create the necessary client for AWS secrets manager access
-        secrets_client = boto3.client('secretsmanager',
-                                      region_name=db_config['region_name'])
+        connection_string = ContainerServices.get_db_connstring()
 
-        # Get password and username from secrets manager
-        response = secrets_client.get_secret_value(SecretId=db_config['secret_name'])
-        str_response = response['SecretString']
-
-        # Converts response body from string to dict
-        # (in order to perform index access)
-        new_body = str_response.replace("\'", "\"")
-        secret_info = json.loads(new_body)
-
-        # Create a MongoDB client, open a connection to Amazon DocumentDB
-        # as a replica set and specify the read preference as
-        # secondary preferred
-        client = MongoClient(db_config['cluster_endpoint'],
-                             username=secret_info['username'],
-                             password=secret_info['password'],
-                             tls=db_config['tls'],
-                             tlsCAFile=db_config['tlsCAFile'],
-                             replicaSet=db_config['replicaSet'],
-                             readPreference=db_config['readPreference'],
-                             retryWrites=db_config['retryWrites']
-                            )
+        # Create a MongoDB client and open the connection to MongoDB
+        client = MongoClient(connection_string)
 
         # Specify the database to be used
-        db = client[db_config['db']]
+        db = client["DataIngestion"]
 
         return db
 
     @staticmethod
-    def generate_recording_item(data, table_rec, timestamp):
+    def calculate_chc_events(chc_periods):
+        duration = 0.0
+        number = 0
+        for period in chc_periods:
+            duration += period['duration']
+            if period['duration'] > 0.0:
+                number += 1
+
+        return number, duration
+
+    @staticmethod
+    def generate_recording_item(data, table_rec, table_sig, timestamp):
         """Inserts a new item on the recordings collection and, if there is
         a metadata full file available for that item, processes that info
         and adds it to the item
@@ -413,13 +397,18 @@ class ContainerServices():
                                    update logs]
         """
         # Build item structure and add info from msg received
-        item_db = {
-                    '_id': data["_id"],
-                    's3_path': data["s3_path"],
-                    'MDF_available': data["MDF_available"],
-                    'recording_overview': data["recording_overview"],
-                    'results_CHC': []
+        recording_item = {
+                    'video_id': data['_id'],
+                    'filepath': 's3://' + data['s3_path'],
+                    'MDF_available': data['MDF_available'],
+                    'recording_overview': {k:v for (k, v) in data['recording_overview'].items() if k!='resolution'},
+                    'resolution': data['recording_overview']['resolution'],
+                    '_media_type': 'video',
+                    'chunk': 'Chunk0',
                 }
+        recording_item['recording_overview']['tenantID'] = data['_id'].split("_",1)[0]
+        recording_item['recording_overview']['number_chc_events'] = 0
+        recording_item['recording_overview']['chc_duration'] = 0
 
         # Fetch metadata file if it exists
         if data["MDF_available"] == "Yes":
@@ -440,34 +429,24 @@ class ContainerServices():
             # Decode and convert file contents into json format
             result_info = json.loads(response['Body'].read().decode("utf-8"))
 
-            # Get info to populate CHC blocked events arrays (CHC)
-            chb_array = []
-
-            # Check all frames
-            for frame in result_info['frame']:
-                # Validate every frame (check if it has objectlist parameter)
-                if 'objectlist' in frame.keys():
-                    for item in frame['objectlist']:
-                        # Check for item with ID = 1
-                        # (it has the CameraViewBlocked info)
-                        if item['id'] == '1':
-                            chb_value = item['floatAttributes'][0]['value']
-                            chb_array.append(chb_value)
-                else:
-                    chb_array.append("0")
-
             # Add array from metadata full file to created item
-            mdf_data = {
+            signals_item = {
+                        'recording': data['_id'],
                         'algo_out_id': "-",
                         'source': "MDF",
-                        'CHBs': chb_array,
-                        'CHBs_sync': {},
-                        'CHC_periods': []
+                        'signals': {},
+                        'CHC_periods': [],
                        }
 
             # NOTE: Condition added due to some MDF files still not having this info
             if 'chc_periods' in result_info:
-                mdf_data['CHC_periods'] = result_info['chc_periods']
+                chc_periods = result_info['chc_periods']
+                signals_item['CHC_periods'] = chc_periods
+                chc_number, chc_duration = ContainerServices.calculate_chc_events(chc_periods)
+                signals_item['number_chc_events'] = chc_number
+                recording_item['recording_overview']['number_chc_events'] = chc_number
+                signals_item['chc_duration'] = chc_duration
+                recording_item['recording_overview']['chc_duration'] = chc_duration
 
             # Add sync data if available
             if data["sync_file_ext"]:
@@ -482,24 +461,23 @@ class ContainerServices():
                 # Decode and convert file contents into json format
                 result_sync = json.loads(response['Body'].read().decode("utf-8"))
 
-                mdf_data['CHBs_sync'] = result_sync
+                signals_item['signals'] = result_sync
 
-            item_db['results_CHC'].append(mdf_data)
+                try:
+                    # Upsert signals item
+                    table_sig.update_one({'recording': data["_id"]}, {'$set': signals_item}, upsert=True)
+                    # Create logs message
+                    logging.info("[%s]  Signals DB item (video_id: %s) upserted!", timestamp, data["_id"])
+                except Exception:
+                    logging.info("\n######################## Exception #########################")
+                    logging.exception("Warning: Unable to create or replace signals item for id: %s", data["_id"])
+            logging.info("############################################################\n")
 
         try:
-            # Insert previous built item on the Recording collection
-            table_rec.insert_one(item_db)
+            # Upsert previous built item on the Recording collection
+            table_rec.update_one({'video_id': data["_id"]}, {'$set': recording_item}, upsert=True)
             # Create logs message
-            logging.info("[%s]  Recording DB item (Id: %s) created!", timestamp, data["_id"])
-        except errors.DuplicateKeyError:
-            # Re-write item (necessary in rare cases SDRetriever message
-            # arrives after SDM update -> item already exists so needs to be replaced)
-            table_rec.replace_one({'_id': data["_id"]}, item_db)
-            # Create logs message
-            logging.info("\n######################## Exception #########################")
-            logging.exception("The following exception occured during execution:")
-            logging.info("\n[%s] Recording DB item (Id: %s) replaced!", timestamp, data["_id"])
-            logging.info("############################################################\n")
+            logging.info("[%s]  Recording DB item (video_id: %s) upserted!", timestamp, data["_id"])
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
@@ -529,7 +507,6 @@ class ContainerServices():
         #    logging.info("\n######################## Exception #########################")
         #    logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
         #    logging.info("############################################################\n")
-        
 
 
     @staticmethod
@@ -642,7 +619,7 @@ class ContainerServices():
             
 
     @staticmethod
-    def update_outputs_db(data, table_algo_out, table_rec, timestamp, unique_id, source):
+    def update_outputs_db(data, table_algo_out, table_sig, rec_object, timestamp, unique_id, source):
         """Inserts a new item on the algorithm output collection and, if
         there is a CHC file available for that item, processes
         that info and adds it to the item (plus updates the respective
@@ -655,10 +632,12 @@ class ContainerServices():
                                                       access/update the
                                                       algorithm output
                                                       collection information]
-            table_rec {MongoDB collection object} -- [Object used to
+            table_sig {MongoDB collection object} -- [Object used to
                                                       access/update the
-                                                      recordings
+                                                      signals
                                                       collection information]
+            rec_object {MongoDB document} -- [Object used to
+                                                      read recording information for Voxel]
             timestamp {string} -- [Current timestamp to be used on status
                                    update logs]
             unique_id {string} -- [Name of the recording (coincides with the
@@ -672,34 +651,33 @@ class ContainerServices():
         run_id = unique_id + '_' + source
         
         # Item creation (common parameters)
-        item_db = {
+        algo_item = {
                     '_id': run_id,
                     'algorithm_id': source,
                     'pipeline_id': unique_id
                 }
 
         # Populate output_paths parameter
-        item_db['output_paths'] = {}
+        algo_item['output_paths'] = {}
 
         # Check if there is a metadata file path available
         if outputs['meta_path'] == "-":
-            item_db['output_paths']["metadata"] = "-"
+            algo_item['output_paths']["metadata"] = "-"
         else:
             metadata_path = outputs['bucket'] + '/' + outputs['meta_path']
-            item_db['output_paths']["metadata"] = metadata_path
+            algo_item['output_paths']["metadata"] = metadata_path
 
         # Check if there is a video file path available
         if outputs['video_path'] == "-":
-            item_db['output_paths']["video"] = "-"
+            algo_item['output_paths']["video"] = "-"
         else:
             video_path = outputs['bucket'] + '/' + outputs['video_path']
-            item_db['output_paths']["video"] = video_path
+            algo_item['output_paths']["video"] = video_path
 
         # Compute results from CHC processing
         if source == "CHC":
             # Build default results structure
-            item_db['results'] = {
-                                    'CHBs': [],
+            algo_item['results'] = {
                                     'CHBs_sync': {},
                                     'CHC_periods': []
                                 }
@@ -717,93 +695,82 @@ class ContainerServices():
             # Decode and convert file contents into json format
             result_info = json.loads(response['Body'].read().decode("utf-8"))
 
-            # Get info to populate CHC blocked events arrays (CHC)
-            chb_array = []
-
-            # Check all frames
-            for frame in result_info['frame']:
-                # Validate every frame (check if it has objectlist parameter)
-                if 'objectlist' in frame.keys():
-                    for item in frame['objectlist']:
-                        # Check for item with ID = 1
-                        # (it has the CameraViewBlocked info)
-                        if item['id'] == '1':
-                            chb_value = item['floatAttributes'][0]['value']
-                            chb_array.append(chb_value)
-                else:
-                    chb_array.append("0")
-
-            # Add array from ivs_chain metadata file to created item
-            item_db['results']['CHBs'] = chb_array
-
             ############################################################################################################################################################################################################################
             ############################################################################################################################################################################################################################
 
             # Collect frame data and store it in separate dictionaries
             frame_ts = {}
-            frame_chb = {}
+            frame_signals = {}
 
             for frame in result_info['frame']:
 
                 if 'objectlist' in frame.keys():
                     # Collect relative timestamp for each frame
                     frame_ts[frame['number']] = frame['timestamp64']
+                    frame_signals[frame['number']] = {}
 
                     for item in frame['objectlist']:
-                        # Check for item with ID = 1
-                        # (it has the CameraViewBlocked info)
-                        if item['id'] == '1':
-                            frame_chb[frame['number']] = item['floatAttributes'][0]['value']
-
-
+                        if 'boolAttributes' in item:
+                            for attribute in item['boolAttributes']:
+                                frame_signals[frame['number']][attribute['name']] = (
+                                    attribute['value'] == 'true')
+                        if 'floatAttributes' in item:
+                            for attribute in item['floatAttributes']:
+                                frame_signals[frame['number']][attribute['name']
+                                                    ] = float(attribute['value'])
+                        if 'integerAttributes' in item:
+                            for attribute in item['integerAttributes']:
+                                frame_signals[frame['number']][attribute['name']] = int(
+                                    attribute['value'])
 
             frame_ref_ts = int(frame_ts[list(frame_ts.keys())[0]])
             frame_ref_dt = datetime.fromtimestamp(frame_ref_ts/1000.0)
             ###############################
 
-            frame_ts_chb = {}
+            frame_ts_signals = {}
 
             for frame, value_ts in frame_ts.items():
                 frame_dt = datetime.fromtimestamp(int(value_ts)/1000.0)
                 delta = str(frame_dt-frame_ref_dt)
                 video_ts = delta.replace(".", ":")
-                frame_ts_chb[video_ts] = float(frame_chb[frame])
+                frame_ts_signals[video_ts] = frame_signals[frame]
 
 
             # Add video sync data processed from ivs_chain metadata file to created item
-            item_db['results']['CHBs_sync'] = frame_ts_chb
+            algo_item['results']['CHBs_sync'] = frame_ts_signals
             
             # Add CHC event periods processed from ivs_chain metadata file to created item
             compact_mdf_metadata = generate_compact_mdf_metadata(result_info)
             chc_periods = calculate_chc_periods(compact_mdf_metadata)
-            item_db['results']['CHC_periods'] = chc_periods
+            algo_item['results']['CHC_periods'] = chc_periods
             ############################################################################################################################################################################################################################
             ############################################################################################################################################################################################################################
 
             # Add array from CHC output file to recording DB item
-            chc_data = {
+            signals_item = {
                         'algo_out_id': run_id,
+                        'recording': unique_id,
                         'source': "CHC",
-                        'CHBs': chb_array,
-                        'CHBs_sync': frame_ts_chb,
+                        'signals': frame_ts_signals,
                         'CHC_periods': chc_periods
                        }
             try:
-                # Update recording DB item (appends chc_data to results list)
-                table_rec.update_one({'_id': unique_id}, {'$push': {'results_CHC': chc_data}})
+                # upsert signals DB item
+                sig_query = {'recording': unique_id, 'algo_out_id': run_id}
+                table_sig.update_one(sig_query, {'$set': signals_item}, upsert=True)
 
                 # Create logs message
-                logging.info("[%s]  Recording DB item (Id: %s) updated!", timestamp, unique_id)
+                logging.info("[%s]  Signals DB item (algo id: %s) updated!", timestamp, run_id)
 
             except Exception:
                 logging.info("\n######################## Exception #########################")
                 logging.exception("The following exception occured during execution:")
-                logging.info(chc_data)
+                logging.info(signals_item)
                 logging.info("############################################################\n")
 
         try:
             # Insert previous built item
-            table_algo_out.insert_one(item_db)
+            table_algo_out.insert_one(algo_item)
             
 
         except errors.DuplicateKeyError:
@@ -811,7 +778,7 @@ class ContainerServices():
             # NOTE: In this case, the old item is not overriden!
             logging.info("\n######################## Exception #########################")
             logging.exception("The following exception occured during execution:")
-            logging.info(item_db)
+            logging.info(algo_item)
             logging.info("############################################################\n")
 
         logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
@@ -823,28 +790,22 @@ class ContainerServices():
 
         anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
 
-        sample = item_db
+        sample = algo_item
 
         sample["algorithms"] = {}
 
         if source == "CHC":
-            sample["algorithms"][item_db['_id']] = {"results":item_db["results"], "output_paths":item_db['output_paths']}
+            sample["algorithms"][algo_item['_id']] = {"results":algo_item["results"], "output_paths":algo_item['output_paths']}
         else:
-            sample["algorithms"][item_db['_id']] = {"output_paths":item_db['output_paths']}
+            sample["algorithms"][algo_item['_id']] = {"output_paths":algo_item['output_paths']}
 
             
         sample["s3_path"] = anon_video_path
-        sample["video_id"] = item_db["pipeline_id"]
+        sample["video_id"] = algo_item["pipeline_id"]
 
         #################################################
-        # RETRIEVE RECORDING ITEM FROM DOCDB
-        # FOR TEMPORARY TESTS IN DEV
-        item_rec = table_rec.find_one({'_id': unique_id})
-        
-        sample["MDF_available"] = item_rec ["MDF_available"]
-        sample["recording_overview"] = item_rec ["recording_overview"]
-        sample["results_CHC"] = item_rec ["results_CHC"]
-
+        sample["MDF_available"] = rec_object ["MDF_available"]
+        sample["recording_overview"] = rec_object ["recording_overview"]
 
         #################################################
 
@@ -863,7 +824,7 @@ class ContainerServices():
             logging.info("############################################################\n")
 
 
-    def connect_to_docdb(self, data, attributes):
+    def upsert_data_to_db(self, data, attributes):
         """Main DB access function that processes the info received
         from a sqs message and calls the corresponding functions
         necessary to create/update DB items
@@ -876,12 +837,13 @@ class ContainerServices():
                                   define which operations are performed]
         """
         # Create DocDB client
-        db = self.create_db_client(self.__docdb_config)
+        db = self.create_db_client()
 
         # Specify the tables to be used
         table_pipe = db[self.__db_tables['pipeline_exec']]
         table_algo_out = db[self.__db_tables['algo_output']]
-        table_rec = db[self.__db_tables['recording']]
+        table_rec = db[self.__db_tables['recordings']]
+        table_sig = db[self.__db_tables['signals']]
 
         # Create timestamp for the current time
         timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
@@ -895,7 +857,7 @@ class ContainerServices():
         # way from the other containers
         if source == "SDRetriever":
             # Call respective processing function
-            self.generate_recording_item(data, table_rec, timestamp)
+            self.generate_recording_item(data, table_rec, table_sig, timestamp)
             return
 
         #################### NOTE: Pipeline execution collection handling ####################
@@ -920,24 +882,26 @@ class ContainerServices():
         ############################################ DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
         ##########################################################################################
         # Check if item with that name already exists
-        response_rec = table_rec.find_one({'_id': unique_id})
+        response_rec = table_rec.find_one({'video_id': unique_id})
         if response_rec:
             pass
         else:
             # Create empty item for the recording
             item_db = {
-                       '_id': unique_id,
-                       's3_path': self.__s3_buckets['raw'] + "/" + data["s3_path"],
+                       'video_id': unique_id,
+                       'filepath': "s3://" + self.__s3_buckets['raw'] + "/" + data["s3_path"],
                        'MDF_available': "No",
                        'recording_overview':{
                                              "length": "",
                                              "time": "",
                                              "deviceID": "",
-                                             "resolution": "",
+                                             "tenantID": "",
                                              "#snapshots": "",
                                              "snapshots_paths": {}
                                             },
-                        "results_CHC": []
+                        "resolution": "",
+                        "chunk": "Chunk0",
+                        "_media_type": "video"
                 }
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
@@ -953,7 +917,8 @@ class ContainerServices():
             # Call respective processing function
             self.update_outputs_db(data,
                                    table_algo_out,
-                                   table_rec,
+                                   table_sig,
+                                   response_rec,
                                    timestamp,
                                    unique_id,
                                    source)

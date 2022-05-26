@@ -69,7 +69,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     if tenant == "TEST_TENANT":
         logging.info("WARNING: Message skipped (TEST_TENANT | %s)",
                      dict_body['streamName'])
-        return record_data, hq_request
+        return None, None
 
     #logging.info(message)
     ##########################################
@@ -98,7 +98,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
             "ERROR: Message (id: %s) contains unsupported info!", message['MessageId'])
         logging.info(
             "############################################################\n")
-        return record_data, hq_request
+        return None, None
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
@@ -156,7 +156,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
         logging.info(
             "############################################################\n")
-        return record_data, hq_request
+        return None, None
 
     ################ NOTE: Extract info details from video ###############
 

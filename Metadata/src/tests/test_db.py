@@ -18,7 +18,7 @@ def db_client():
 @pytest.fixture(scope='function')
 def persistence():
     client, recordings, pipeline_execs, algo_outputs = db_client()
-    return Persistence(None, db_tables, False, client), recordings, pipeline_execs, algo_outputs
+    return Persistence(None, db_tables, client), recordings, pipeline_execs, algo_outputs
 
 def test_update_recording_description(persistence):
     # GIVEN

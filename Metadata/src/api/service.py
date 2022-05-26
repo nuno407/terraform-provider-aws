@@ -12,39 +12,27 @@ class ApiService:
         self.__s3 = s3
 
     def get_video_signals(self, video_id):
-        recording_item = self.__db.get_recording(video_id)
+        recording_item = self.__db.get_signals(video_id)
         signals = {}
-        for chc_result in recording_item['results_CHC']:
-            if (chc_result['source'] == "MDF"):
-                signals[chc_result['source']] = self.__create_video_signals_object(chc_result, recording_item['recording_overview'])
+        for signal_group in recording_item['signals']:
+            if (signal_group['source'] == "MDF"):
+                signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
             else:    
-                signals[chc_result['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(chc_result, recording_item['recording_overview'])
+                signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
         return signals
 
-    def __create_video_signals_object(self, chc_result, recording_info):
+    def __create_video_signals_object(self, chc_result):
         result_signals = {}
         relevant_signals = ["interior_camera_health_response_cvb", "interior_camera_health_response_cve", "CameraViewBlocked", "CameraViewShifted", "interior_camera_health_response_audio_blocked", "interior_camera_health_response_audio_distorted", "interior_camera_health_response_audio_signal"]
-        if 'CHBs_sync' in chc_result:
-            if len(chc_result['CHBs_sync']) > 0 and type(list(chc_result['CHBs_sync'].values())[0]) is dict:
-                for timestamp, signals in chc_result['CHBs_sync'].items():
-                    result_signals[timestamp] = {key: signals[key] for key in relevant_signals if key in signals}
+        if chc_result['signals'] and len(chc_result['signals']) > 0 and type(list(chc_result['signals'].values())[0]) is dict:
+            for timestamp, signals in chc_result['signals'].items():
+                result_signals[timestamp] = {key: signals[key] for key in relevant_signals if key in signals}
 
-            else:
-                for k, v in chc_result['CHBs_sync'].items():
-                    result_signals[k] = {}
-                    result_signals[k]['CameraViewBlocked'] = v
-        elif 'CHBs' in chc_result:
-            # spread non-sync CHBs evenly over video time
-            hours, minutes, seconds = recording_info['length'].split(':', 2)
-            total_seconds = timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds)).total_seconds()
-            chbs = chc_result['CHBs']
-            increment = float(total_seconds)/len(chbs)
-            time = 0.0
-            for chb in chbs:
-                timestr = str(timedelta(seconds=time))
-                result_signals[timestr] = {}
-                result_signals[timestr]['CameraViewBlocked'] = float(chb)
-                time += increment
+        elif chc_result['signals'] and type(chc_result['signals']):
+            for k, v in chc_result['signals'].items():
+                result_signals[k] = {}
+                result_signals[k]['CameraViewBlocked'] = v
+
         return result_signals
 
     def update_video_description(self, id, description):
@@ -84,7 +72,7 @@ class ApiService:
         
     # State all valid query fields and their corresponding database field path
     __query_fields = {
-                    "_id": "_id",
+                    "_id": "video_id",
                     "processing_list": "pipeline_execution.processing_list",
                     'snapshots': 'recording_overview.#snapshots',
                     'data_status': 'pipeline_execution.data_status',
@@ -92,7 +80,8 @@ class ApiService:
                     'length': 'recording_overview.length',
                     'time': 'recording_overview.time',
                     'resolution': 'recording_overview.resolution',
-                    'deviceID': 'recording_overview.deviceID'
+                    'deviceID': 'recording_overview.deviceID',
+                    'tenantID': 'recording_overview.tenantID'
                     }
 
     def __parse_query(self, query, logic_operator):
@@ -182,25 +171,16 @@ class ApiService:
         # Add CHC information
         recording_object['number_CHC_events'] = ''      
         recording_object['lengthCHC'] = ''
-        for chc_result in recording_item['results_CHC']:
-            try:
-                number_chc, duration_chc = self.__calculate_chc_events(chc_result['CHC_periods'])
-                recording_object['number_CHC_events'] = number_chc
-                recording_object['lengthCHC'] = duration_chc
-            
-            except Exception:
-                #logging.info("No CHC periods present")
-                pass
 
-        recording_object['tenant'] = recording_item['_id'].split("_",1)[0]
-        recording_object['_id'] = recording_item['_id']
+        recording_object['tenant'] = recording_item['recording_overview']['tenantID']
+        recording_object['_id'] = recording_item['video_id']
         recording_object['processing_list'] = recording_item['pipeline_execution']['processing_list']
         recording_object['snapshots'] = recording_item['recording_overview']['#snapshots']
         recording_object['data_status'] = recording_item['pipeline_execution']['data_status']                
         recording_object['last_updated'] = recording_item['pipeline_execution']['last_updated'].split(".",1)[0].replace("T"," ")
         recording_object['length'] = recording_item['recording_overview']['length']
         recording_object['time'] = recording_item['recording_overview']['time']                
-        recording_object['resolution'] = recording_item['recording_overview']['resolution']        
+        recording_object['resolution'] = recording_item['resolution']        
         recording_object['deviceID'] = recording_item['recording_overview']['deviceID']
         recording_object['description'] = recording_item['recording_overview'].get('description')
         return recording_object
@@ -225,8 +205,9 @@ class ApiService:
             logging.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
             return None
         lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
-        lq_entry = self.__db.get_single_recording(lq_id)
-        if not lq_entry:
+        try:
+            lq_entry = self.__db.get_single_recording(lq_id)
+        except:
             return None
         lq_video_details = lq_entry.get('recording_overview')
 
@@ -234,7 +215,7 @@ class ApiService:
         lq_video['id'] = lq_id
         lq_video['length'] = lq_video_details['length']
         lq_video['time'] = lq_video_details['time']                
-        lq_video['resolution'] = lq_video_details['resolution']        
+        lq_video['resolution'] = lq_entry['resolution']        
         lq_video['snapshots'] = lq_video_details['#snapshots']
 
         return lq_video

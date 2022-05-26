@@ -19,5 +19,6 @@ if __name__ == '__main__':
     if os.getenv('LOCAL_DEBUG', False):
         app.run("127.0.0.1", port=7777, use_reloader=True, debug=True)
     else:
-        app.run("0.0.0.0", port=5000, use_reloader=False, debug=False)
+        from waitress import serve
+        serve(app, listen="*:5000", url_scheme="https")
     
