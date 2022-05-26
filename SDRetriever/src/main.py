@@ -613,6 +613,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
                 # Increase counter for number of files received
                 chunks_total += 1
 
+                logging.info(files_dict)
+
     # Check if there are partial chunk MDF files
     if not files_dict or chunks_total == 0:
         logging.info(
