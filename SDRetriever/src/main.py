@@ -1013,7 +1013,7 @@ def main():
                                                         container_services,
                                                         message)
 
-                logging.info(rec_data)
+                logging.info("Logs rec_data : %s" % (rec_data))
 
 
                 # Checks if recording received is valid for
