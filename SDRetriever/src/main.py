@@ -866,7 +866,7 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
                     try:
                         # check if the file is in the location
                         response = rcc_s3_client.list_objects_v2(
-                            Bucket='rcc-prod-device-data',  # qa-rcd-raw-video-files
+                            Bucket=container_services.rcc_info['s3_bucket'], #'rcc-prod-device-data',  # qa-rcd-raw-video-files
                             Prefix=folder+file_name,
                             Delimiter="/"
                         )
