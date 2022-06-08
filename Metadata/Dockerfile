@@ -7,14 +7,14 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 # Your install token
 
 # The Python version to install
-ENV  PYTHON_VERSION=3.9
+ENV PYTHON_VERSION=3.9
 
 #
 # Install system packages
 #
 RUN apt -y update \
     && apt -y --no-install-recommends install software-properties-common \
-    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && add-apt-repository -y 'ppa:deadsnakes/ppa' \
     && apt -y update \
     && apt -y upgrade \
     && apt -y --no-install-recommends install tzdata \
