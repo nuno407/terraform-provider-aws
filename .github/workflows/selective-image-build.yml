@@ -1,7 +1,15 @@
 name: Build Docker image and update k8s config for changed services
 
 on:
+  push:
+    branches:
+      - feature/MC-27235-selective-build
   workflow_dispatch:
+
+env:
+  AWS_DEFAULT_REGION: eu-central-1
+  AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
+  EXCLUDED_DIRS: '.github|baseaws'
 
 permissions:
   id-token: write
@@ -11,10 +19,96 @@ jobs:
   determine-changed-services:
     name: Determine which services to build
     runs-on: ubuntu-latest
-    environment: dev
+    outputs:
+      services: ${{ steps.changed-services.outputs.services }}
+      git-tag: ${{steps.git-tag-name.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.CONTAINER_SCRIPTS_SSH_KEY }}
 
+      - name: Determine changed services
+        id: changed-services
+        run: |
+          # Get all changed dirs
+          git diff --name-only ${{ github.event.before }}..${{ github.event.after }} | cut -d'/' -f1 | uniq > directories.txt
+
+          echo "### Build summary" >> "$GITHUB_STEP_SUMMARY"
+
+          # If there was a change in baseaws
+          if grep -Fq "baseaws" directories.txt >/dev/null 2>&1; then
+          echo "Baseaws was changed, therefore all dependent services will be built!" >> $GITHUB_STEP_SUMMARY
+            touch dependent_services.txt
+            for d in */ ; do
+              # Collect on baseaws dependent services
+              if grep -Fq "baseaws" ${d}Dockerfile >/dev/null 2>&1; then
+                echo $d | cut -d'/' -f1 >> dependent_services.txt
+              fi
+            done
+            # Append to other changed directories
+            cat dependent_services.txt >> directories.txt
+          fi
+
+          # Remove duplicates and check for directory existence
+          sort directories.txt | uniq | awk '{if(system("[ ! -d " $0 " ]") != 0)print}' > filtered.txt
+
+          # Filter for service dirs only
+          grep -vE $EXCLUDED_DIRS filtered.txt > services.txt || touch services.txt
+
+          # Add quotes and convert to comma separated
+          services_array=$(sed -e 's/\(.*\)/"\1"/' services.txt | paste -s -d ",")
+
+          echo "The following services will be built: [${services_array}]"
+          echo "These services will be built [$services_array]" >> $GITHUB_STEP_SUMMARY
+          echo "::set-output name=services::[$services_array]"
+
+      - name: Git tag & push
+        id: git-tag-name
+        run: |
+          TAG=$(date +%F)-$(git rev-parse --short HEAD)
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a $TAG -m "Created on $(date +'%F %T')"
+          git push origin $TAG
+          echo "::set-output name=tag::$TAG"
+
+      - name: Add summary
+        if: steps.changed-services.outputs.services == '[]'
+        run: |
+          echo "No service change detected, nothing to build." >> $GITHUB_STEP_SUMMARY
+
+
+  build-image:
+    needs: determine-changed-services
+    name: Build image for
+    runs-on: ubuntu-latest
+    if: needs.determine-changed-services.outputs.services != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{fromJSON(needs.determine-changed-services.outputs.services)}}
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.6.1
         with:
-          ssh-key: ${{ secrets.CONTAINER_SCRIPTS_SSH_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.3.3
+
+      - name: Build and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          SERVICE_LOWERCASE=$(echo ${{ matrix.service }} | tr '[:upper:]' '[:lower:]')
+          TAG=$ECR_REGISTRY/$SERVICE_LOWERCASE:${{ needs.determine-changed-services.outputs.git-tag }}
+          docker build -f ./${{ matrix.service }}/Dockerfile -t $TAG --build-arg TOKEN=${{ secrets.FIFTYONE_TOKEN }} .
+          docker push $TAG
