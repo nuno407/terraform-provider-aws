@@ -3,13 +3,13 @@ name: Build Docker image and update k8s config for changed services
 on:
   push:
     branches:
-      - feature/MC-27235-selective-build
+      - master
   workflow_dispatch:
 
 env:
   AWS_DEFAULT_REGION: eu-central-1
   AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
-  EXCLUDED_DIRS: '.github|baseaws'
+  EXCLUDED_DIRS: '[".git", ".github", ".vscode", "baseaws"]'
 
 permissions:
   id-token: write
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.changed-services.outputs.services }}
-      git-tag: ${{steps.git-tag-name.outputs.tag }}
+      git-tag: ${{ steps.git-tag-push.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,45 +29,24 @@ jobs:
           fetch-depth: 0
           ssh-key: ${{ secrets.CONTAINER_SCRIPTS_SSH_KEY }}
 
-      - name: Determine changed services
+      - name: Determine services to build
         id: changed-services
-        run: |
-          # Get all changed dirs
-          git diff --name-only ${{ github.event.before }}..${{ github.event.after }} | cut -d'/' -f1 | uniq > directories.txt
-
-          echo "### Build summary" >> "$GITHUB_STEP_SUMMARY"
-
-          # If there was a change in baseaws
-          if grep -Fq "baseaws" directories.txt >/dev/null 2>&1; then
-          echo "Baseaws was changed, therefore all dependent services will be built!" >> $GITHUB_STEP_SUMMARY
-            touch dependent_services.txt
-            for d in */ ; do
-              # Collect on baseaws dependent services
-              if grep -Fq "baseaws" ${d}Dockerfile >/dev/null 2>&1; then
-                echo $d | cut -d'/' -f1 >> dependent_services.txt
-              fi
-            done
-            # Append to other changed directories
-            cat dependent_services.txt >> directories.txt
-          fi
-
-          # Remove duplicates and check for directory existence
-          sort directories.txt | uniq | awk '{if(system("[ ! -d " $0 " ]") != 0)print}' > filtered.txt
-
-          # Filter for service dirs only
-          grep -vE $EXCLUDED_DIRS filtered.txt > services.txt || touch services.txt
-
-          # Add quotes and convert to comma separated
-          services_array=$(sed -e 's/\(.*\)/"\1"/' services.txt | paste -s -d ",")
-
-          echo "The following services will be built: [${services_array}]"
-          echo "These services will be built [$services_array]" >> $GITHUB_STEP_SUMMARY
-          echo "::set-output name=services::[$services_array]"
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_AFTER: ${{ github.event.after }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: python ./.github/workflows/determine_services_to_build.py
 
       - name: Git tag & push
-        id: git-tag-name
+        id: git-tag-push
+        if: steps.changed-services.outputs.services != '[]'
         run: |
           TAG=$(date +%F)-$(git rev-parse --short HEAD)
+          if [ '${{ github.ref_name }}' != 'master' ]; then
+            SANITIZED_BRANCH_NAME=$(echo ${{ github.ref_name }} | tr '/' '-' | tr -dc '[:alnum:]-' | tr '[:upper:]' '[:lower:]')
+            TAG=$TAG-$SANITIZED_BRANCH_NAME
+          fi
+          echo "Using this git tag: $TAG"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git tag -a $TAG -m "Created on $(date +'%F %T')"
@@ -112,3 +91,5 @@ jobs:
           TAG=$ECR_REGISTRY/$SERVICE_LOWERCASE:${{ needs.determine-changed-services.outputs.git-tag }}
           docker build -f ./${{ matrix.service }}/Dockerfile -t $TAG --build-arg TOKEN=${{ secrets.FIFTYONE_TOKEN }} .
           docker push $TAG
+          echo "Service ${{ matrix.service }} was built and pushed." >> $GITHUB_STEP_SUMMARY
+          echo "Image tag: $TAG" >> $GITHUB_STEP_SUMMARY
