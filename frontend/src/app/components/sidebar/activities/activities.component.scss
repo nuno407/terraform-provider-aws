@@ -1,0 +1,22 @@
+.items {
+  display: flex;
+  margin-top: 10px;
+  flex-flow: row wrap;
+
+  .activity-container {
+    margin-right: 20px;
+
+    .activities {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .radio-button {
+      margin: 5px;
+    }
+
+    .block {
+      display: block;
+    }
+  }
+}

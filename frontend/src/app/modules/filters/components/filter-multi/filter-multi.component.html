@@ -1,0 +1,15 @@
+<button mat-icon-button class="filter-button" [matMenuTriggerFor]="menu"><mat-icon fontIcon="bosch-ic-filter" style="margin-left: 0px"></mat-icon>{{ filterLabel }}</button>
+
+<mat-menu class="menu-panel" #menu="matMenu">
+  <div class="menu-content">
+    {{ '' // Angular Material bug with menu hover style. See: https://stackoverflow.com/questions/50264638/how-to-disable-the-hover-effect-of-material-ui-button-inside-of-a-styled-compone }}
+    <div mat-menu-item appFilterItem style="background-color: transparent; text-align-last: center" class="filter-item" (click)="selectAllClick()" [disableRipple]="true">
+      <button mat-icon-button class="select-all-button">
+        {{ selectAllLabel }}
+      </button>
+    </div>
+    <div *ngFor="let option of options" mat-menu-item appFilterItem style="background-color: transparent" class="filter-item" (click)="checkboxClick(option)" [disableRipple]="true">
+      <mat-checkbox [checked]="checkedOptions.has(option)">{{ option | translate }}</mat-checkbox>
+    </div>
+  </div>
+</mat-menu>

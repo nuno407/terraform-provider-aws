@@ -1,0 +1,24 @@
+<div class="close-layout" fxLayout="row" fxLayoutAlign="space-between start">
+  <h2 mat-dialog-title>{{ 'RECORDING_DETAILS.title' | translate }}</h2>
+  <button mat-dialog-close><mat-icon fontIcon="bosch-ic-close"></mat-icon></button>
+</div>
+<mat-dialog-content>
+  <table class="mat-table" aria-describedby="recording-table">
+    <tr class="mat-header-row">
+      <th class="mat-header-cell" scope="col">{{ 'APP.recordingId' | translate }}</th>
+      <th class="mat-header-cell" scope="col">{{ 'APP.dateTime' | translate }}</th>
+      <th class="mat-header-cell" scope="col">{{ 'APP.status' | translate }}</th>
+      <th class="mat-header-cell" scope="col">{{ 'APP.incidentID' | translate }}</th>
+    </tr>
+    <tr class="mat-row" *ngIf="recording">
+      <td class="mat-cell">{{ recording._id }}</td>
+      <td class="mat-cell">{{ recording.time }}</td>
+      <td class="mat-cell">{{ recording.data_status }}</td>
+      <td class="mat-cell">-</td>
+    </tr>
+  </table>
+  <div class="content">
+    <app-video-player (frame)="currentFrame = $event" [fps]="fps" *ngIf="recording" class="video"
+      [style.flex-basis]="getVideoPlayerWidth()" [recording]="recording"></app-video-player>
+  </div>
+</mat-dialog-content>

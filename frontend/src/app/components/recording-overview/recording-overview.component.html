@@ -1,0 +1,140 @@
+<bci-page-content>
+  <div class="outerContainer">
+    <div fxLayout="row" fxLayoutGap="10px" class="container" fxLayoutAlign="start center" fxFill>
+      <div fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around stretch" class="filter-box" fxFlex>
+        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start center">
+          <label>Filter: </label>
+          <input
+            [(ngModel)]="queryParam"
+            class="input"
+            type="text"
+            placeholder="'_id': {'has': 'srxdriverpr'}"
+            [title]="filterHelpText"
+          >
+          <mat-radio-group class="query-radio-group" fxFlex="noshrink" (change)="retrieveRecordingList()" [(ngModel)]="queryLogicOperator" >
+            <mat-radio-button class="playback-rate-button" value="AND">AND</mat-radio-button>
+            <mat-radio-button class="playback-rate-button" value="OR">OR</mat-radio-button>
+          </mat-radio-group>
+        </div>
+        <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="start center">
+          <label>Order: </label>
+          <input
+          [(ngModel)]="sortingParam"
+          class="input"
+          type="text"
+          placeholder="time" 
+          [title]="orderHelpText"
+          >
+          <mat-radio-group class="query-radio-group" fxFlex="noshrink" (change)="retrieveRecordingList()" [(ngModel)]="sortingOrder" >
+            <mat-radio-button class="playback-rate-button" value="asc">ascending</mat-radio-button>
+            <mat-radio-button class="playback-rate-button" value="dsc">descending</mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </div>
+      <button type="button" mat-raised-button class="clean_button" (click)="retrieveRecordingList()">Query</button>
+      <button type="button" mat-raised-button class="clean_button" (click)="filterLast()">Last 24 hours</button>
+      <button type="button" mat-raised-button class="clean_button" (click)="filterChcEvents()">>0 CHC events</button>
+      <button type="button" mat-raised-button class="clean_button" (click)="deleteInputQueryText(); retrieveRecordingList();">Clean Query</button>
+    </div>
+  </div>
+  <mat-paginator [length]=numberOfEntries
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50, 100]"
+            [pageIndex]="page - 1"
+            (page)="page = $event.pageIndex + 1; pageSize = $event.pageSize; retrieveRecordingList()"
+            showFirstLastButtons="true"
+            aria-label="Select page"
+            class="paginator">
+  </mat-paginator>
+  <div [style.top]="headerTop" class="head">
+    <div class="filter-item zero-column"></div>
+    <div class="filter-item first-column">
+      <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'tenant' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'tenant' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('tenant')" style="cursor:pointer">Tenant</span> -->
+      <span class="column-header">Tenant</span>
+    </div>
+    <div class="filter-item second-column" style="margin-left: 1%;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'deviceID' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'deviceID' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'deviceID'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('deviceID')" style="cursor:pointer">Device ID</span>
+    </div>
+    <div class="filter-item third-column" style="margin-left: 3%;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'length' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'length' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'length'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('length')" style="cursor:pointer">Length</span>
+    </div>
+    <div class="filter-item fourth-column">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'time' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'time' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'time'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('time')" style="cursor:pointer">Recording DateTime</span>
+    </div>
+    <div class="filter-item fifth-column" style="justify-content: center;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'resolution' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'resolution' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'resolution'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('resolution')" style="cursor:pointer">Resolution</span>
+    </div>
+    <div class="filter-item six-column" style="margin-left: 2%;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'data_status' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'data_status' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'data_status'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('data_status')" style="cursor:pointer">Status</span>
+    </div>
+    <div class="filter-item seven-column">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'processing_list' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'processing_list' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'processing_list'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('processing_list')" style="cursor:pointer">Algorithms</span>
+    </div>
+    <div class="filter-item eight-column" style="margin-left: 2%;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'last_updated' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'last_updated' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'last_updated'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('last_updated')" style="cursor:pointer">Processing DateTime</span>
+    </div>
+    <div class="filter-item nine-column" style="justify-content: center;">
+      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'snapshots' && sortingOrder=='asc'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'snapshots' && sortingOrder=='dsc'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'snapshots'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('snapshots')" style="cursor:pointer"># Snapshots</span>
+    </div>
+    <div class="filter-item ten-column" >
+      <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('number_CHC_events')" style="cursor:pointer"># CHC events</span> -->
+      <span class="column-header"># CHC events</span>
+    </div>
+    <div class="filter-item eleven-column">
+      <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
+      <span class="column-header" (click)="sortBy('lengthCHC')" style="cursor:pointer">CHC length</span> -->
+      <span class="column-header">CHC length</span>
+    </div>
+  </div>
+  <bci-activity-indicator [hidden]="isLoaded || error" class="loading-indicator"></bci-activity-indicator>
+  <div class="virtual-scroll-viewport" [hidden]="!isLoaded || error">
+    <div class="list-row" *ngFor="let video of videoList">
+      <div *ngIf="video" style="display: flex" (click)="showDetailDialog(video._id)">
+        <div class="list-item zero-column" ></div>
+        <div class="list-item first-column" >{{video.tenant}}</div>
+        <div class="list-item second-column" style="margin-left: 1%;">{{video.deviceID}}</div>
+        <div class="list-item third-column" style="margin-left: 3%;">{{video.length}}</div>
+        <div class="list-item fourth-column" >{{video.time}}</div>
+        <div class="list-item fifth-column" style="justify-content: center;">{{video.resolution}}</div>
+        <div class="list-item six-column" style="margin-left: 2%;">{{ video.data_status }}</div>
+        <div class="list-item seven-column">{{video.processing_list}}</div>
+        <div class="list-item eight-column" style="margin-left: 2%;">{{video.last_updated}}</div>
+        <div class="list-item nine-column" style="justify-content: center;">{{video.snapshots}}</div>
+        <div class="list-item ten-column">{{video.number_CHC_events}}</div>
+        <div class="list-item eleven-column">{{video.lengthCHC}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="error-display" [hidden]="!error">
+    <label class="error-label">Error executing query: {{error}}</label>
+  </div>
+</bci-page-content>

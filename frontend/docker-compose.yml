@@ -1,0 +1,21 @@
+version: '3.5' 
+services:
+    app: 
+      build:
+        context: .
+        args:
+          NPM_EMAIL: -USE-YOUR-OWN-ARTIFACTORY-KEY-
+          NPM_AUTH: -USE-YOUR-OWN-ARTIFACTORY-KEY-
+      ports: 
+        - '4200:80'
+      environment:
+        - API_URL=https://ai-test.bosch-ridecare.com/api/
+        - IDENTITY_PROVIDER=Azure-RideCareStage
+        - AWS_COGNITO_REGION=eu-central-1
+        - AWS_COGNITO_IDENTITY_POOL_ID=eu-central-1:21068fdd-2d6f-4b30-809b-91f0cae03503
+        - AWS_COGNITO_USER_POOLS_ID=eu-central-1_Oc2WZsLqc
+        - AWS_COGNITO_USER_POOLS_WEB_CLIENT_ID=jk163jb8n5dgr1esr67rnkdmr
+        - AWS_COGNITO_OAUTH_DOMAIN=dev-ridecare.auth.eu-central-1.amazoncognito.com
+        - OWN_URL=http://localhost:4200
+
+

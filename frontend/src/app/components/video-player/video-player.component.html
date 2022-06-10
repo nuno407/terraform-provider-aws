@@ -1,0 +1,96 @@
+<div class="video-player">
+  <!-- Iframe with source video loaded from s3 bucket-->
+  <video #video>
+    <source *ngIf="safeSrc != null" [src]="safeSrc" type="video/mp4" />
+  </video>
+  <div class="controls">
+    <div class="left">
+      <div>
+        <button mat-button (click)="seekFrames(-1)">
+          <mat-icon fontIcon="bosch-ic-skip-backward-frame"></mat-icon>
+        </button>
+        <button mat-button (click)="reverse()">
+          <mat-icon fontIcon="bosch-ic-back-left"></mat-icon>
+        </button>
+        <button mat-button (click)="togglePlay()">
+          <mat-icon [fontIcon]="playState === playStates.Pause ? 'bosch-ic-play' : 'bosch-ic-pause'"></mat-icon>
+        </button>
+        <button mat-button (click)="forward()">
+          <mat-icon fontIcon="bosch-ic-forward-right"></mat-icon>
+        </button>
+        <button mat-button (click)="seekFrames(1)">
+          <mat-icon fontIcon="bosch-ic-skip-forward-frame"></mat-icon>
+        </button>
+      </div>
+      <div>
+        <mat-radio-group (change)="playbackRateChange($event)" class="playback-rate-group" [(ngModel)]="playbackRate">
+          <mat-radio-button class="playback-rate-button" [value]="0.25">0.25x</mat-radio-button>
+          <mat-radio-button class="playback-rate-button" [value]="0.5">0.5x</mat-radio-button>
+          <mat-radio-button class="playback-rate-button" [value]="1">1x</mat-radio-button>
+          <mat-radio-button class="playback-rate-button" [value]="1.5">1.5x</mat-radio-button>
+          <mat-radio-button class="playback-rate-button" [value]="2">2x</mat-radio-button>
+        </mat-radio-group>
+      </div>
+    </div>
+
+    <div class="time">
+      <div>{{ currentTime * 1000 | date: 'mm:ss,SSS' }} / {{ totalTime * 1000 |
+        date: 'mm:ss,SSS' }}</div>
+      <div class="fps">{{ currentFrame | number: '4.0-0' | noComma }} ({{ fps | number: '1.2-2' }} fps)</div>
+    </div>
+  </div>
+</div>
+<div class="timeline-area">
+  <div class="timeline">
+    <div class="progress-bar" (mousedown)="playHeaderClick($event)">
+      <app-line-chart #lineChart class="line-chart" (zoomRangeChange)="zoomChangedByChart($event)" (totalDurationChange)="chartTotalTime = $event; updateScalingVideoToDiagram()" 
+      [recording]="recording" >
+      </app-line-chart>
+      <div #verticalBar [style.marginLeft]="playheaderPercentage + '%'" [hidden]="playheaderHidden" class="vertical-bar"></div>
+      <mat-slider [hidden]="(currentZoomWindowEnd - currentZoomWindowStart) >= 95" min="0"
+        [max]="maxStartPercentage" [value]="currentZoomWindowStart" (input)="this.lineChart.disableAnimations(); slideScrollBar($event);" (change)="this.lineChart.enableAnimations()"></mat-slider>
+    </div>
+  </div>
+  <div class="signals-sidebar">
+    <mat-expansion-panel class="expansion-panel">
+      <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon fontIcon="bosch-ic-label" class="expansion-panel-icon"></mat-icon>
+              {{'RECORDING_DETAILS.labels' | translate}}
+          </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="labels" >
+        <div *ngFor="let label of labels">
+          <div class="label" [style]="getLabelStyle(label)"></div>
+        </div>
+      </div>
+      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 0)"
+        [style.left]="labels[selectedLabelIndex].start + '%'" class="cursor"></div>
+      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 1)"
+        [style.left]="labels[selectedLabelIndex].end + '%'" class="cursor"></div>
+    </mat-expansion-panel>
+    <mat-expansion-panel class="expansion-panel">
+      <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon fontIcon="bosch-ic-chart-line-checkmark" class="expansion-panel-icon"></mat-icon>
+              {{'RECORDING_DETAILS.signals' | translate}}
+          </mat-panel-title>
+      </mat-expansion-panel-header>
+    <div class="signal-selection">
+      <app-signal-selection (selectedSignals)="lineChart.signals=$event" [signalsToSelect]="signalsToSelect"></app-signal-selection>
+    </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel class="expansion-panel" expanded="true">
+      <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon fontIcon="bosch-ic-document-text" class="expansion-panel-icon"></mat-icon>
+              {{'RECORDING_DETAILS.description' | translate}}
+          </mat-panel-title>
+      </mat-expansion-panel-header>
+      <textarea [(ngModel)]="Description"></textarea>
+      <button type="button" mat-raised-button (click)="saveDescription()" [hidden]="saveDescriptionButtonHidden" [disabled]="saveDescriptionButtonDisabled">
+        <mat-icon fontIcon="bosch-ic-save" class="expansion-panel-icon"></mat-icon>
+      </button>
+    </mat-expansion-panel>
+  </div>
+</div>

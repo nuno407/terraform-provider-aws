@@ -1,0 +1,29 @@
+<div class="frame">
+  <div class="dots">
+    <div class="dot" *ngIf="data?.activities.nonPhysicalAggression.selected > 0">
+      {{ data?.activities.nonPhysicalAggression.values[data?.activities.nonPhysicalAggression.selected].identifier }}
+    </div>
+    <div class="dot" *ngIf="data?.activities.physicalAggression.selected > 0">
+      {{ data?.activities.physicalAggression.values[data?.activities.physicalAggression.selected].identifier }}
+    </div>
+    <div class="dot" *ngIf="data?.activities.physicalAggression.weapon.value">
+      {{ data?.activities.physicalAggression.weapon.identifier }}
+    </div>
+  </div>
+  <div class="times">
+    <span (click)="_selectFrame('start')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame == 'start'"
+      >{{ data?.start?.seconds * 1000 | date: 'mm:ss' }}:{{ data?.start?.frame % fps | number: '2.0-0' }}</span
+    >
+    -
+    <span (click)="_selectFrame('end')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame == 'end'"
+      >{{ data?.end?.seconds * 1000 | date: 'mm:ss' }}:{{ data?.end?.frame % fps | number: '2.0-0' }}</span
+    >
+  </div>
+  <div class="buttons">
+    <a class="blue-link" (click)="_editLabel()"><mat-icon [fontIcon]="inEditMode ? 'bosch-ic-checkmark' : 'bosch-ic-edit'"></mat-icon></a>
+    <a class="blue-link" (click)="_toggleVisibility()"
+      ><mat-icon [fontIcon]="visibility ? 'bosch-ic-watch-on' : 'bosch-ic-watch-off-disabled-light'"></mat-icon
+    ></a>
+    <a class="blue-link" (click)="_delete()"><mat-icon fontIcon="bosch-ic-delete"></mat-icon></a>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+// colors according to Bosch styleguide
+// see: https://brandguide.bosch.com/document/448/en#/digital-basic-elements/colors
+$blue25: #003e64;
+$blue30: #004975;
+$blue35: #005587;
+$blue40: #00629a;
+$blue45: #006ead;
+$blue50: #007bc0;
+$blue60: #0096e8;
+$blue70: #56b0ff;
+
+$gray20: #2e3033;
+$gray30: #43464a;
+$gray40: #595e62;
+$gray60: #8a9097;
+$gray70: #a4abb3;
+$gray80: #c1c7cc;
+$gray85: #d0d4d8;
+$gray90: #e0e2e5;
+$gray95: #eff1f2;
+
+$purple45: #b12ea9;
+$purple95: #f7eef6;
+
+$white: #ffffff;
+$black: #000000;
+
+$yellow: rgb(255, 240, 51, 0.7);
+
+$screenBackgroundColor: $gray95;
+$detailPanelBackgroundColor: $white;
+$linkFontColor: $blue45; //applies to filter links and other links
+$activeMenuItemBackgroundColor: $blue50;
+$backLinkColor: $black;
+$tableBorderBottomColor: #bfc0c2;
+$bright-pink: $purple95;
+$violet: $purple45;

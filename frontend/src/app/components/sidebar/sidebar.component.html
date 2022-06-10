@@ -1,0 +1,29 @@
+<mat-tab-group mat-align-tabs="start">
+  <mat-tab label="{{ 'RECORDING_DETAILS.labels' | translate }}">
+    <div class="content">
+      <div class="top">
+        <a class="blue-link" (click)="addLabel()"
+          ><mat-icon style="margin-right: 4px" fontIcon="bosch-ic-add"></mat-icon>{{ 'RECORDING_DETAILS.addLabel' | translate }}</a
+        >
+      </div>
+      <div class="timeframes">
+        <app-label-entry
+          *ngFor="let label of labels; index as i"
+          [data]="label"
+          [fps]="fps"
+          [inEditMode]="selectedLabelIndex == i"
+          (edit)="onLabelEdit(i, $event)"
+          (selectFrame)="onFrameSelect($event)"
+          (delete)="onLabelDelete(i)"
+          (toggleVisibility)="onVisibilityToggle(i, $event)"
+        ></app-label-entry>
+      </div>
+      <div class="labels">
+        <div class="title">{{ 'RECORDING_DETAILS.activities' | translate }}</div>
+        <app-activities></app-activities>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="{{ 'RECORDING_DETAILS.settings' | translate }}">{{ 'RECORDING_DETAILS.videoSettings' | translate }}</mat-tab>
+  <mat-tab label="{{ 'RECORDING_DETAILS.report' | translate }}">{{ 'RECORDING_DETAILS.reportIssue' | translate }}</mat-tab>
+</mat-tab-group>

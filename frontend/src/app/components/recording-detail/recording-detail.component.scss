@@ -1,0 +1,98 @@
+@import 'src/styles/global/colors';
+
+:host{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.close-layout {
+  color: $backLinkColor;
+}
+
+.title {
+  font-size: larger;
+  font-weight: bold;
+  padding-bottom: 1rem;
+}
+
+.content {
+  //display: flex;
+  flex-direction: row;
+  align-content: stretch;
+  margin-top: 20px;
+
+  .video {
+    flex: 0 0 60%;
+  }
+
+  .labeling {
+    flex: 1 1 40%;
+  }
+
+  .handle {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 5px;
+    cursor: pointer;
+
+    .background {
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      left: calc(50% - 1px);
+      background: $gray80;
+      pointer-events: none;
+    }
+
+    mat-icon {
+      transform: rotate(90deg);
+      pointer-events: none;
+      background: $gray95;
+    }
+  }
+
+  .handle:hover {
+    .background {
+      background: $gray60;
+    }
+  }
+}
+
+table {
+  width: 100%;
+  background-color: transparent;
+  margin-bottom: 2rem;
+}
+
+table.mat-table tr.mat-header-row {
+  border-bottom: 1px solid $black;
+}
+
+table.mat-table tr.mat-row td.mat-cell {
+  border-bottom: 1px solid $tableBorderBottomColor;
+}
+
+.upload-button {
+  color: $blue45;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  color: $blue35;
+}
+
+.upload-button:hover span {
+  text-decoration: underline;
+}
+
+.upload-button:active {
+  color: $blue25;
+}
+
+.mat-dialog-content {
+  max-height: unset !important;
+  flex: 1 0 0;
+}

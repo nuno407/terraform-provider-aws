@@ -1,0 +1,30 @@
+<bci-content>
+  <bci-sidebar [sidebarLinks]="sidebarLinks" [applicationTitle]="title">
+    <bci-header logoRoute="/recording-overview" header>
+      <div style="flex-grow: 1"></div>
+      <a class="header-link" style="padding-right: 2rem" [routerLink] [matMenuTriggerFor]="menu"> <mat-icon fontIcon="bosch-ic-imprint"></mat-icon></a>
+      <mat-menu #menu="matMenu">
+        <a mat-menu-item href="https://www.bosch.de/en/corporate-information/?prevent-auto-open-privacy-settings=1" rel="noopener noreferrer" target="_blank">{{ 'HOME.imprint' | translate }}</a>
+        <a mat-menu-item href="https://www.bosch.de/en/legal-notice/?prevent-auto-open-privacy-settings=1" rel="noopener noreferrer" target="_blank"> {{ 'HOME.legalNotice' | translate }}</a>
+        <a mat-menu-item href="https://www.bosch.de/en/data-protection-notice/?prevent-auto-open-privacy-settings=1" rel="noopener noreferrer" target="_blank">{{ 'HOME.dataProtectionNotice' | translate }}</a>
+        <a mat-menu-item href=""> {{ 'HOME.legal' | translate }}</a>
+      </mat-menu>
+      <a class="header-link" appFilterItem style="padding-right: 2rem" [routerLink]> <mat-icon fontIcon="bosch-ic-keys-user-access"></mat-icon></a>
+      <a class="header-link" appFilterItem style="padding-right: 2rem" [routerLink] [matMenuTriggerFor]="test">
+        <mat-icon style="padding-right: 8px" fontIcon="bosch-ic-user"></mat-icon> <span class="mobile">{{ email }}</span></a
+      >
+      <mat-menu #test="matMenu">
+        <a mat-menu-item style="display: flex; align-items: center" (click)="onChangeTenant()">{{ 'TENANT_SELECTION.changeTenant' | translate }}</a>
+        <a mat-menu-item [routerLink]="['/mfa-settings']">MFA Settings</a>
+        <a appFilterItem mat-menu-item style="pointer-events: none">{{ 'LANGUAGE.language' | translate }}</a>
+        <div appFilterItem mat-menu-item style="background-color: transparent; margin-top: 0">
+          <app-language-selector></app-language-selector>
+        </div>
+        <button appFilterItem mat-raised-button class="custom-button" (click)="onLogoutClick()">Log Out</button>
+      </mat-menu>
+    </bci-header>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </bci-sidebar>
+</bci-content>

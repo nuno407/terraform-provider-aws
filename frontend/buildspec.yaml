@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+    variables:
+        S3_BUCKET: "<S3_BUCKET_HERE>"
+        APP_NAME: "front_end_rc_angular"
+        BUILD_ENV : $AWS_BUILD_ENV
+
+phases:
+  install:
+    commands:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG --build-arg NPM_EMAIL=$NPM_EMAIL --build-arg NPM_AUTH=$NPM_AUTH --build-arg AWS_ENV_BUILD=${AWS_BUILD_ENV} .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      #- aws s3 sync dist/ arn:aws:s3:::angbosch --delete
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+cache:
+  paths:
+    - 'node_modules'
+    - '/root/.npm/**/*'
+
+#artifacts:
+#files:
+#- dist/**/*

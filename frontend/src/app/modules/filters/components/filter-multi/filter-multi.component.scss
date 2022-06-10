@@ -1,0 +1,27 @@
+@import 'src/styles/global/colors';
+
+.menu-content {
+  padding: 1rem;
+}
+
+::ng-deep .mat-menu-panel.menu-panel {
+  max-width: none;
+}
+
+.filter-button {
+  width: 100%;
+  color: $linkFontColor;
+}
+
+.select-all-button {
+  width: 100%;
+  color: $linkFontColor;
+}
+
+.filter-item {
+  overflow: visible;
+}
+
+.contains-input {
+  width: auto;
+}

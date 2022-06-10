@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (C) 2019 Robert Bosch GmbH Copyright (C) 2019 Robert Bosch Manufacturing Solutions GmbH, Germany. All rights reserved.
+  -->
+<button mat-icon-button class="filter-button" [matMenuTriggerFor]="menu">
+  <mat-icon fontIcon="bosch-ic-filter" style="margin-left: 0px"></mat-icon>
+  {{ filterLabel }}
+</button>
+
+<mat-menu class="menu-panel" #menu="matMenu">
+  <div class="menu-content">
+    <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioAllId)" [disableRipple]="true" style="background-color: transparent">
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioAllId">{{ 'FILTER.all' | translate }}</mat-radio-button>
+    </div>
+    <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioContainsId)" [disableRipple]="true" style="background-color: transparent; display: flex; align-items: center">
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioContainsId">{{ 'FILTER.contains' | translate }}</mat-radio-button>
+      <bci-datetime-picker
+        style="width: 420px"
+        (newDateSelected)="dateSelected($event)"
+        class="bci-datetime-picker"
+        format-date="dd.MM.yyyy"
+        range-date-time="true"
+        min-date="1577829600000"
+        max-date="1982927200000"
+        hide-seconds="false"
+        hide-time="false"
+        date-time-picker-id="picker2"
+      ></bci-datetime-picker>
+    </div>
+  </div>
+</mat-menu>

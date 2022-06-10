@@ -1,0 +1,62 @@
+@import 'node_modules/@bci-web-core/common-styles/sass/bci/bci-variables';
+@import 'src/styles/global/colors';
+
+::ng-deep .mat-menu-panel .mat-menu-content .mat-menu-item {
+  padding: 0;
+  height: 40px;
+  line-height: 40px;
+}
+
+.mat-menu-item {
+  margin: 1rem 1rem 0 1rem;
+  font-weight: 400;
+}
+
+.custom-button {
+  margin: 2rem 1rem 1rem;
+}
+
+.mat-icon {
+  max-height: 3rem;
+  max-width: 3rem;
+}
+
+.content {
+  flex-grow: 1;
+  overflow: auto;
+  height: 100%;
+}
+
+.header-link {
+  color: $boschBlack;
+}
+
+.header-link:hover {
+  color: $blue50;
+}
+
+.header-link:active {
+  color: $blue30;
+}
+
+@media only screen and (max-width: 1152px) {
+  .mobile {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  :host bci-header::ng-deep .bci-header-container {
+    .header-logo {
+      display: none;
+    }
+
+    .header-content {
+      margin-right: 0;
+    }
+  }
+}
+
+::ng-deep .breadcrumb > * a {
+  pointer-events: none !important;
+}

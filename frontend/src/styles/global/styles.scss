@@ -1,0 +1,134 @@
+$path-to-assets: '~@bci-web-core/common-styles';
+
+@import '~@bci-web-core/material-theme/sass/theme';
+@import '~@bci-web-core/common-styles/sass/bci-styles';
+/* You can add global styles to this file, and also import other style files */
+@import '~@bci-web-core/common-styles/sass/bci/bosch-ic';
+
+@import 'colors';
+
+// removes the grey highlight effect after a button was clicked
+// see: https://stackoverflow.com/questions/53741232/angular-material-button-remove-autofocus
+.mat-button-focus-overlay {
+  background-color: transparent !important;
+}
+
+:root {
+  --amplify-font-family: 'Bosch-Sans';
+  --amplify-primary-color: rgb(18, 99, 152);
+  --amplify-primary-tint: #008ecf;
+  --amplify-primary-shade: #008ecf;
+}
+
+// style override for header component
+.header-content {
+  margin-left: 0px !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.header-content .breadcrumbs bci-breadcrumb {
+  font-weight: 600 !important;
+  font-size: 20px !important;
+}
+
+bci-breadcrumb a {
+  color: $black !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+}
+
+.bci-content-container::before {
+  height: 10px !important;
+}
+
+.bci-content-container {
+  padding-top: 10px !important;
+}
+
+mat-sidenav {
+  background-color: $gray20 !important;
+}
+
+.title {
+  font-weight: bold !important;
+}
+
+.mat-list-item.active {
+  border-left-color: $blue50 !important;
+  background-color: $blue50 !important;
+  border-top-color: $blue50 !important;
+  border-bottom-color: $blue50 !important;
+}
+
+.mat-list-item.active:hover {
+  border-left-color: $blue60 !important;
+  background-color: $blue60 !important;
+  border-top-color: $blue60 !important;
+  border-bottom-color: $blue60 !important;
+}
+
+.mat-list-item.active:active {
+  border-left-color: $blue70 !important;
+  background-color: $blue70 !important;
+  border-top-color: $blue70 !important;
+  border-bottom-color: $blue70 !important;
+}
+
+.mat-list-item:hover {
+  border-left-color: $gray30 !important;
+  background-color: $gray30 !important;
+  border-top-color: $gray30 !important;
+  border-bottom-color: $gray30 !important;
+}
+
+.mat-list-item:active {
+  border-left-color: $gray40 !important;
+  background-color: $gray40 !important;
+  border-top-color: $gray40 !important;
+  border-bottom-color: $gray40 !important;
+}
+
+.mat-list-item {
+  transition: none !important;
+}
+
+button.mat-raised-button {
+  background-color: #197cbe !important;
+}
+
+button.mat-raised-button:active {
+  background-color: $blue40 !important;
+}
+
+button.mat-raised-button:hover {
+  background-color: #126398 !important;
+}
+
+mat-cell {
+  background-color: unset !important;
+}
+
+mat-row:hover {
+  background-color: $gray90 !important;
+}
+
+.column-header {
+  font-weight: 600;
+}
+
+.blue-link {
+  color: $blue50;
+  cursor: pointer;
+}
+
+.blue-link:hover {
+  color: $blue40;
+  text-decoration: underline;
+}
+
+.blue-link:active {
+  color: $blue30;
+}

@@ -1,0 +1,51 @@
+@import 'src/styles/global/colors';
+
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background-color: $white;
+}
+
+mat-tab-group {
+  flex-grow: 1;
+}
+
+::ng-deep .mat-tab-body-wrapper {
+  flex-grow: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: calc(100% - 40px);
+}
+
+.top {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.timeframes {
+  flex-grow: 1;
+}
+
+.labels {
+  border-top: solid 0.125rem $gray80;
+  padding-top: 16px;
+}
+
+.label {
+  margin-right: 16px;
+  margin-top: 16px;
+}
+
+.label:last-of-type {
+  margin-right: 0;
+}
+
+.frame:last-of-type {
+  border-bottom: none;
+}

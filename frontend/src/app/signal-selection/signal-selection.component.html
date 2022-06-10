@@ -1,0 +1,12 @@
+<div class="signal-selection-root">
+<section *ngFor="let group of signalsToSelect?.groups ?? []">
+    <mat-checkbox [checked]="allSelected(group)" [indeterminate]="someSelected(group)"
+        (change)="selectAll(group, $event); updateSelectedSignals()" >{{group.name}}</mat-checkbox>
+    <ul style="list-style-type: none;">
+        <li *ngFor="let signal of group?.signals ?? []">
+            <mat-checkbox [(ngModel)]="signal.enabled" (change)="updateSelectedSignals()" >{{signal.name}}
+            </mat-checkbox>
+        </li>
+    </ul>
+</section>
+</div>

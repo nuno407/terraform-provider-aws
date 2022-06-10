@@ -1,0 +1,29 @@
+<div class="row">
+  <div style="display: flex;">
+    <div style="flex-grow: 1;"></div>
+    <button class="close-button" mat-icon-button tabindex="-1" (click)="closeDialog()">
+      <em class="bosch-ic bosch-ic-clickable bosch-ic-close"></em>
+    </button>
+  </div>
+  <h4>{{'TENANT_SELECTION.selectTenant' | translate}}: <span
+      *ngIf="tenants?.length > 0; else none">{{selectedTenant}}</span>
+    <ng-template #none>{{'TENANT_SELECTION.none' |translate}}</ng-template>
+  </h4>
+</div>
+<div *ngIf="tenants?.length !== 1" class="row">
+  <div *ngIf="tenants?.length > 1">
+    {{'TENANT_SELECTION.textMultipleTenants' | translate}}
+    <div class="row">
+      <mat-label style="padding-right: 20px">{{'TENANT_SELECTION.chooseTenant' | translate}}</mat-label>
+      <mat-form-field>
+        <mat-select [(ngModel)]="selectedTenant" (selectionChange)="selectTenant()">
+          <mat-option>{{'TENANT_SELECTION.chooseTenant' | translate}}</mat-option>
+          <mat-option *ngFor="let tenant of tenants" value="{{tenant}}">{{tenant}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+  <div *ngIf="tenants.length < 1">
+    {{ 'TENANT_SELECTION.textNoTenants' | translate }}
+  </div>
+</div>

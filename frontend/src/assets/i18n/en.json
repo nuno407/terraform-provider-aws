@@ -1,0 +1,82 @@
+{
+  "APP": {
+    "name": "RideCare Dev Cloud",
+    "notSelected": "Not selected",
+    "notAvailable": "Not available",
+    "recordingId": "Recording ID",
+    "status": "Status",
+    "uploaded": "Uploaded",
+    "uploading": "Uploading",
+    "notUploaded": "Not uploaded",
+    "requestUpload": "Upload",
+    "checkAvailability": "Check availability",
+    "labeled": "Labeled",
+    "vin": "VIN",
+    "deviceSN": "Device S/N",
+    "brand": "Brand",
+    "model": "Model",
+    "licensePlate": "Licence plate",
+    "homeLocation": "Home location",
+    "messageId": "Message ID",
+    "incident": "Incident",
+    "incidentID": "Incident ID",
+    "severity": "Severity",
+    "dateTime": "Date, Time",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "contains": "Contains",
+    "loading": "Loading...",
+    "no": "No",
+    "yes": "Yes"
+  },
+  "RECORDING_OVERVIEW": {
+    "title": "Recording Overview",
+    "noData": "No recording data available"
+  },
+  "RECORDING_DETAILS": {
+    "backText": "Back to Recording Overview",
+    "title": "Recording Details",
+    "videoSettings": "Video Settings",
+    "reportIssue": "Report an issue",
+    "activities": "Activities",
+    "addLabel": "Add Label",
+    "signals": "Signals",
+    "labels": "Labels",
+    "settings": "Settings",
+    "report": "Report",
+    "description": "Description"
+  },
+  "SIDEBAR": {
+    "imprint": "Imprint",
+    "logoutMessage": "Do you want to log out?"
+  },
+  "LANGUAGE": {
+    "language": "Language",
+    "selectLanguage": "Select language"
+  },
+  "TENANT_SELECTION": {
+    "selectTenant": "Please select a customer",
+    "none": "None",
+    "textMultipleTenants": "Looks like you have access to multiple tenants. For which tenants would you like to register a device today?",
+    "textNoTenants": "Looks like you do not have permission to install the device. Please contact support.ridecare@bosch.com",
+    "chooseTenant": "Choose customer",
+    "changeTenant": "Change Customer"
+  },
+  "HOME": {
+    "languageSelect": "Language",
+    "imprint": "Corporate Information",
+    "legal": "Licenses",
+    "legalNotice": "Legal Notice",
+    "dataProtectionNotice": "Data Protection Notice"
+  },
+  "FILTER": {
+    "all": "All",
+    "filterOne": "Filter (1)",
+    "filterN": "Filter ({{n}})",
+    "unselectAll": "Unselect all",
+    "selectAll": "Select all",
+    "contains": "Contains",
+    "eg": "e.g."
+  }
+}

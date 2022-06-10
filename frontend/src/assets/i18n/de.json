@@ -1,0 +1,82 @@
+{
+  "APP": {
+    "name": "RideCare",
+    "notSelected": "Nicht ausgewählt",
+    "notAvailable": "Nicht verfügbar",
+    "recordingId": "Aufnahme ID",
+    "status": "Status",
+    "uploaded": "Hochgeladen",
+    "uploading": "Lädt hoch",
+    "notUploaded": "Nicht hochgeladen",
+    "requestUpload": "Hochladen",
+    "checkAvailability": "Verfügbarkeit überprüfen",
+    "labeled": "Gelabelt",
+    "vin": "FIN",
+    "deviceSN": "Geräte S/N",
+    "brand": "Marke",
+    "model": "Model",
+    "licensePlate": "Kennzeichen",
+    "homeLocation": "Basisstation",
+    "messageId": "Message ID",
+    "incident": "Ereignis",
+    "incidentID": "Ereignis ID",
+    "severity": "Schweregrad",
+    "dateTime": "Datum, Uhrzeit",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "contains": "Beinhaltet",
+    "loading": "Lädt...",
+    "no": "Nein",
+    "yes": "Ja"
+  },
+  "RECORDING_OVERVIEW": {
+    "title": "Aufnahmenübersicht",
+    "noData": "Keine Aufnahmen verfügbar"
+  },
+  "RECORDING_DETAILS": {
+    "backText": "Zurück zur Aufnahmenübersicht",
+    "title": "Aufnahmedetails",
+    "videoSettings": "Video Einstellungen",
+    "reportIssue": "Problem melden",
+    "activities": "Aktivitäten",
+    "addLabel": "Label hinzufügen",
+    "signals": "Signale",
+    "labels": "Labels",
+    "settings": "Einstellungen",
+    "report": "Report",
+    "description": "Beschreibung"
+  },
+  "SIDEBAR": {
+    "imprint": "Impressum",
+    "logoutMessage": "Möchest Du dich ausloggen?"
+  },
+  "LANGUAGE": {
+    "language": "Sprache",
+    "selectLanguage": "Sprache auswählen"
+  },
+  "TENANT_SELECTION": {
+    "selectTenant": "Bitte wählen Sie einen Mandanten aus",
+    "none": "Keiner",
+    "textMultipleTenants": "Es stehen mehrere Mandanten zur Auswahl. Für welchen Mandanten soll ein Gerät registriert werden?",
+    "textNoTenants": "Sie haben nicht die notwendigen Rechte das Gerät zu installieren. Bitte kontaktieren Sie support.ridecare@bosch.com",
+    "chooseTenant": "Mandant auswählen",
+    "changeTenant": "Kunden ändern"
+  },
+  "HOME": {
+    "languageSelect": "Sprache",
+    "imprint": "Impressum",
+    "legal": "Lizenzen",
+    "legalNotice": "Rechtliche Hinweise",
+    "dataProtectionNotice": "Datenschutz"
+  },
+  "FILTER": {
+    "all": "Alle",
+    "filterOne": "Filter (1)",
+    "filterN": "Filter ({{n}})",
+    "unselectAll": "Nichts auswählen",
+    "selectAll": "Alles auswählen",
+    "contains": "Enthält",
+    "eg": "z.B."
+  }
+}
