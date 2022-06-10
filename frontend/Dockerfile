@@ -12,12 +12,12 @@ USER node
 RUN npm config set registry https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/
 ARG NPM_AUTH
 ARG NPM_EMAIL
-COPY .npmrc.docker .npmrc
-COPY package.json package-lock.json* ./
+COPY frontend/.npmrc.docker .npmrc
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm ci && npm cache clean --force
 
-COPY ./src ./src
-COPY angular.json tsconfig* ./
+COPY frontend/src ./src
+COPY frontend/angular.json frontend/tsconfig* ./
 RUN npm run build
 
 # Stage 2: Serve app with nginx server
@@ -28,7 +28,7 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:nginx-unprivile
 USER 101
 
 # Copy the build output to replace the default nginx contents.
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 COPY --chown=101 --from=build /home/node/app/dist/ /usr/share/nginx/html
 
 # Expose port 80

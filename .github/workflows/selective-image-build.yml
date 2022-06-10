@@ -91,7 +91,12 @@ jobs:
         run: |
           SERVICE_LOWERCASE=$(echo ${{ matrix.service }} | tr '[:upper:]' '[:lower:]')
           TAG=$ECR_REGISTRY/$SERVICE_LOWERCASE:${{ needs.determine-changed-services.outputs.git-tag }}
-          docker build -f ./${{ matrix.service }}/Dockerfile -t $TAG --build-arg TOKEN=${{ secrets.FIFTYONE_TOKEN }} .
+          docker build -f ./${{ matrix.service }}/Dockerfile -t $TAG \
+            --build-arg TOKEN=${{ secrets.FIFTYONE_TOKEN }} \
+            --build-arg NPM_AUTH=${{ secrets.NPM_AUTH }} \
+            --build-arg NPM_EMAIL=${{ secrets.NPM_EMAIL}} \
+            .
+          
           docker push $TAG
           echo "Service ${{ matrix.service }} was built and pushed." >> $GITHUB_STEP_SUMMARY
           echo "Image tag: $TAG" >> $GITHUB_STEP_SUMMARY
