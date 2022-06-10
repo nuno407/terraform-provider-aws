@@ -10,6 +10,8 @@ env:
   AWS_DEFAULT_REGION: eu-central-1
   AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
   EXCLUDED_DIRS: '[".git", ".github", ".vscode", "baseaws"]'
+  GITHUB_ACTIONS_USER: "GitHub Actions"
+  GITHUB_ACTIONS_EMAIL: "<41898282+github-actions[bot]@users.noreply.github.com>"
 
 permissions:
   id-token: write
@@ -47,8 +49,8 @@ jobs:
             TAG=$TAG-$SANITIZED_BRANCH_NAME
           fi
           echo "Using this git tag: $TAG"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email ${GITHUB_ACTIONS_EMAIL}
+          git config --local user.name ${GITHUB_ACTIONS_USER}
           git tag -a $TAG -m "Created on $(date +'%F %T')"
           git push origin $TAG
           echo "::set-output name=tag::$TAG"
@@ -93,3 +95,47 @@ jobs:
           docker push $TAG
           echo "Service ${{ matrix.service }} was built and pushed." >> $GITHUB_STEP_SUMMARY
           echo "Image tag: $TAG" >> $GITHUB_STEP_SUMMARY
+
+  update-image-tag:
+    name: Update image tags in dev K8s manifests
+    if: github.ref_name == 'master'
+    needs: [determine-changed-services, build-image]
+    runs-on: ubuntu-latest
+    env:
+      ECR_REPO: 081962623310.dkr.ecr.eu-central-1.amazonaws.com
+      NEW_TAG: ${{ needs.determine-changed-services.outputs.git-tag }}
+
+    steps:
+      - name: Checkout kubernetes_config
+        uses: actions/checkout@v3
+        with:
+          repository: bosch-rc-dev/kubernetes_config
+          ssh-key: ${{ secrets.K8S_CONFIG_SSH_KEY }}
+
+      - name: Update image tags on kubernetes_config
+        run: |
+          SERVICES=${{ toJson(needs.determine-changed-services.outputs.services) }}
+          echo $SERVICES | jq -c '.[]' | tr -d '\"' | while read SERVICE; do
+            SERVICE_LOWER=$(echo $SERVICE | tr '[:upper:]' '[:lower:]')
+            SERVICE_UPPER=$(echo $SERVICE | tr '[:lower:]' '[:upper:]')
+            pushd apps/dev/$SERVICE_LOWER/ > /dev/null
+          
+            kustomize edit set image "<CONTAINER_IMAGE_TAG_${SERVICE_UPPER}>=${ECR_REPO}/${SERVICE_LOWER}:${NEW_TAG}"
+            echo "##### ${SERVICE}: Updated images in Kustomize file"
+            echo
+            cat kustomization.yaml
+            echo
+            git add kustomization.yaml
+            popd > /dev/null
+          done
+
+      - name: Commit new image tags
+        run: |
+          git config --local user.email ${GITHUB_ACTIONS_EMAIL}
+          git config --local user.name ${GITHUB_ACTIONS_USER}
+          SERVICES=${{ toJson(needs.determine-changed-services.outputs.services) }}
+          git commit \
+            -m "[Image Update] Update images to ${NEW_TAG}" \
+            -m "Updated services: '${SERVICES}'" \
+            -m "Images are using code of Git tag https://github.com/bosch-rc-dev/container_scripts/tree/${NEW_TAG}"
+          git push
