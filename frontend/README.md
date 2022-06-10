@@ -19,6 +19,7 @@ Those script / command definitions can be found in the `package.json`.
 For a deployment in a docker environment, e.g. Kubernetes or docker compose, the Dockerfile build needs to be executed first.
 This will build the default configuration of Angular, which will read its configuration from environment variables at the start of the container.
 The following environment variables need to be filled:
+
 | Variable                               | Description                                                                                           | Example value (dev environment)                     |
 | :------------------------------------- | :---------------------------------------------------------------------------------------------------- | :-------------------------------------------------- |
 | `API_URL`                              | URL of the backend to use                                                                             | `https://ai-dev.bosch-ridecare.com/api/`            |
