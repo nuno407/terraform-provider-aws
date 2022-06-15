@@ -10,6 +10,9 @@ import boto3
 from pymongo import MongoClient, errors
 from baseaws.voxel_functions import create_dataset, update_sample
 
+VIDEO_FORMATS = ['avi','mp4']
+IMAGE_FORMATS = ['jpeg','jpg','png']
+
 class ContainerServices():
     """ContainerServices
 
@@ -397,13 +400,22 @@ class ContainerServices():
                                    update logs]
         """
         # Build item structure and add info from msg received
+        
+        s3split = data["s3_path"].split("/")
+        filetype = s3split[-1].split(".")[-1]
+
+        if filetype in IMAGE_FORMATS:
+            media_type = 'image'
+        else:
+            media_type = 'video'
+
         recording_item = {
                     'video_id': data['_id'],
                     'filepath': 's3://' + data['s3_path'],
                     'MDF_available': data['MDF_available'],
                     'recording_overview': {k:v for (k, v) in data['recording_overview'].items() if k!='resolution'},
                     'resolution': data['recording_overview']['resolution'],
-                    '_media_type': 'video',
+                    '_media_type': media_type,
                     'chunk': 'Chunk0',
                 }
         recording_item['recording_overview']['tenantID'] = data['_id'].split("_",1)[0]
@@ -554,12 +566,19 @@ class ContainerServices():
             ## ADDED Voxel51 code
             s3split = data["s3_path"].split("/")
             bucket_name = s3split[0]
+            
+            filetype = s3split[-1].split(".")[-1]
 
-            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
-
+            if filetype in IMAGE_FORMATS:
+                bucket_name = bucket_name+"_snapshots"
+                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
+            elif filetype in VIDEO_FORMATS:
+                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
+            else:
+                raise ValueError("Unknown file format %s"%filetype)
             sample = update_dict["$set"]
             sample["video_id"] = unique_id
-            sample["s3_path"] = anon_video_path
+            sample["s3_path"] = anonymized_path
                 
 
             try:
@@ -599,10 +618,17 @@ class ContainerServices():
             s3split = data["s3_path"].split("/")
             bucket_name = s3split[0]
 
-            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
-
+            filetype = s3split[-1].split(".")[-1]
+            if filetype in IMAGE_FORMATS:
+                bucket_name = bucket_name+"_snapshots"
+                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
+            elif filetype in VIDEO_FORMATS:
+                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
+            else:
+                raise ValueError("Unknown file format %s"%filetype)
+            
             sample = item_db
-            sample["s3_path"] = anon_video_path
+            sample["s3_path"] = anonymized_path
             sample["video_id"] = item_db["_id"]    
 
             try:
@@ -668,11 +694,16 @@ class ContainerServices():
             algo_item['output_paths']["metadata"] = metadata_path
 
         # Check if there is a video file path available
-        if outputs['video_path'] == "-":
+        if outputs['media_path'] == "-":
+            algo_item['output_paths']["video"] = "-"
+        else:
+            media_path = outputs['bucket'] + '/' + outputs['media_path']
+            algo_item['output_paths']["video"] = media_path
+        """ if outputs['video_path'] == "-":
             algo_item['output_paths']["video"] = "-"
         else:
             video_path = outputs['bucket'] + '/' + outputs['video_path']
-            algo_item['output_paths']["video"] = video_path
+            algo_item['output_paths']["video"] = video_path """
 
         # Compute results from CHC processing
         if source == "CHC":
@@ -788,7 +819,14 @@ class ContainerServices():
         s3split = data["s3_path"].split("/")
         bucket_name = s3split[0]
 
-        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
+        filetype = s3split[-1].split(".")[-1]
+        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
+
+        if filetype == "jpeg" or filetype == "png":
+            bucket_name = bucket_name+"_snapshots"
+
+        if filetype == "jpeg":
+            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
 
         sample = algo_item
 
@@ -879,6 +917,16 @@ class ContainerServices():
                                 self.__container['name'])
 
 
+
+        s3split = data["s3_path"].split("/")
+        filetype = s3split[-1].split(".")[-1]
+
+        if filetype in IMAGE_FORMATS:
+            media_type = 'image'
+        else:
+            media_type = 'video'
+
+            
         ############################################ DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
         ##########################################################################################
         # Check if item with that name already exists
@@ -901,12 +949,14 @@ class ContainerServices():
                                             },
                         "resolution": "",
                         "chunk": "Chunk0",
-                        "_media_type": "video"
+                        "_media_type": media_type
                 }
             # Insert previous built item on the Recording collection
             table_rec.insert_one(item_db)
             # Create logs message
             logging.info("[%s]  Recording DB empty item (Id: %s) created!", timestamp, unique_id)
+            logging.info("data:")
+            logging.info(data)
         ###########################################################################################
         ###########################################################################################
 

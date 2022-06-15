@@ -430,8 +430,6 @@ def json_raise_on_duplicates(ordered_pairs):
            d[k] = v
     return d
 
-
-
 def concatenate_metadata_full(s3_client, sts_client, container_services, message):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
@@ -848,7 +846,7 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
 
             # check if file is already on DevCloud (searching for its name)
             response = qa_s3_client.list_objects_v2(
-                Bucket=container_services.raw_s3,  # qa-rcd-raw-video-files
+                Bucket=container_services.raw_s3,  # qa/dev-rcd-raw-video-files
                 Prefix='Debug_Lync/'+new_name,
                 Delimiter="/"
             )
@@ -866,7 +864,7 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
                     try:
                         # check if the file is in the location
                         response = rcc_s3_client.list_objects_v2(
-                            Bucket=container_services.rcc_info['s3_bucket'], #'rcc-prod-device-data',  # qa-rcd-raw-video-files
+                            Bucket=container_services.rcc_info['s3_bucket'], #'rcc-prod/dev-device-data',
                             Prefix=folder+file_name,
                             Delimiter="/"
                         )
@@ -976,9 +974,7 @@ def main():
 
     # Define configuration for logging messages
     logging.basicConfig(format='%(message)s', level=logging.INFO)
-
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
-                 CONTAINER_VERSION)
+    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',region_name='eu-central-1')
@@ -986,8 +982,7 @@ def main():
     sts_client = boto3.client('sts',region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
-    container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION)
+    container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
@@ -1006,12 +1001,9 @@ def main():
 
             if message:
                 # save some messages as examples for development
-                log_message(message, CONTAINER_NAME)
+                #log_message(message, CONTAINER_NAME)
                 # Get and store kinesis video clip
-                rec_data, hq_data = transfer_kinesis_clip(s3_client,
-                                                        sts_client,
-                                                        container_services,
-                                                        message)
+                rec_data, hq_data = transfer_kinesis_clip(s3_client, sts_client, container_services, message)
 
                 logging.info("Logs rec_data : %s" % (rec_data))
 
@@ -1022,17 +1014,12 @@ def main():
                     # Send message to secondary input queue (HQ_Request)
                     # of Selector container
                     hq_selector_queue = container_services.sqs_queues_list["HQ_Selector"]
-                    container_services.send_message(sqs_client,
-                                                    hq_selector_queue,
-                                                    hq_data)
+                    container_services.send_message(sqs_client, hq_selector_queue, hq_data)
 
                 # Checks if recording received is valid
                 if rec_data:
                     # Concatenate all metadata related to processed clip
-                    meta_available, sync_ext = concatenate_metadata_full(s3_client,
-                                                                        sts_client,
-                                                                        container_services,
-                                                                        message)
+                    meta_available, sync_ext = concatenate_metadata_full(s3_client,sts_client,container_services,message)
 
                     # Add parameter with info about metadata availability
                     rec_data["MDF_available"] = meta_available
@@ -1042,16 +1029,29 @@ def main():
 
                     # Send message to input queue of metadata container
                     metadata_queue = container_services.sqs_queues_list["Metadata"]
-                    container_services.send_message(sqs_client,
-                                                    metadata_queue,
-                                                    rec_data)
+                    container_services.send_message(sqs_client,metadata_queue,rec_data)
 
                 # Delete message after processing
-                container_services.delete_message(sqs_client,
-                                                message['ReceiptHandle'])
+                container_services.delete_message(sqs_client,message['ReceiptHandle'])
             # if no video message was found, look for snapshots
             else: video_flag = 0
-            if video_flag == 0: snapshot_flag=MAX_CONSECUTIVE
+            if video_flag == 0: 
+                snapshot_flag=MAX_CONSECUTIVE
+                # "arn:aws:iam::213279581081:role/dev-DevCloud"
+                s3_role = container_services.rcc_info["role"]
+                sts_session = "AssumeRoleSession2"
+
+                # Requests credentials to assume specific cross-account role
+                assumed_role_object = sts_client.assume_role(RoleArn=s3_role,RoleSessionName=sts_session)
+                role_creds = assumed_role_object['Credentials']
+
+                # Create a S3 client with temporary STS credentials
+                # to enable cross-account access
+                rcc_s3_client = boto3.client('s3',
+                                            region_name='eu-central-1',
+                                            aws_access_key_id=role_creds['AccessKeyId'],
+                                            aws_secret_access_key=role_creds['SecretAccessKey'],
+                                            aws_session_token=role_creds['SessionToken'])
         # if it is time to look for snapshots
         if snapshot_flag:
             snapshot_flag += -1
@@ -1060,8 +1060,7 @@ def main():
             api_sqs_queue = container_services.sqs_queues_list['Selector']
 
             # get a message from the Selector SQS queue
-            message = container_services.listen_to_input_queue(
-                sqs_client, api_sqs_queue)
+            message = container_services.listen_to_input_queue(sqs_client, api_sqs_queue)
 
             # diferentiate between message type (video/snapshot)
             if message:
@@ -1081,38 +1080,20 @@ def main():
                         message_ = body["Message"] if "Message" in body else body
                         if type(message_) == str: message_ = json.loads(body["Message"])
                         if "chunk_descriptions" in message_["value"]["properties"].keys():
-                            logging.info(
-                                "Tenant is %s, processing files..." % (tenant))
+                            logging.info("Tenant is %s, processing files..." % (tenant))
 
-                            # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
-                            # "arn:aws:iam::213279581081:role/dev-DevCloud"
-                            s3_role = container_services.rcc_info["role"]
-                            sts_session = "AssumeRoleSession2"
-
-                            # Requests credentials to assume specific cross-account role
-                            assumed_role_object = sts_client.assume_role(RoleArn=s3_role,
-                                                                        RoleSessionName=sts_session)
-                            role_creds = assumed_role_object['Credentials']
-
-                            # Create a S3 client with temporary STS credentials
-                            # to enable cross-account access
-                            rcc_s3_client = boto3.client('s3',
-                                                        region_name='eu-central-1',
-                                                        aws_access_key_id=role_creds['AccessKeyId'],
-                                                        aws_secret_access_key=role_creds['SecretAccessKey'],
-                                                        aws_session_token=role_creds['SessionToken'])
+                            
 
                             # transfer snapshots mentioned in the message
-                            transfer_to_devcloud(
-                                message_, tenant, rcc_s3_client, s3_client, container_services)
+                            transfer_to_devcloud(message_, tenant, rcc_s3_client, s3_client, container_services)
                         else:
                             logging.info("WARNING: No files found in message")
                             logging.info(message)
                     else:
-                        logging.info(
-                            "WARNING: Message skipped (Tenant is %s)", tenant)
+                        logging.info("WARNING: Message skipped (Tenant is %s)", tenant)
                 else:
                     logging.info("WARNING: Message skipped (MessageType is %s)", event_type)
+            #    container_services.delete_message(sqs_client,message['ReceiptHandle'])
             # if no snapshot message was found, look for videos
             else: snapshot_flag = 0
             if snapshot_flag == 0: video_flag=MAX_CONSECUTIVE

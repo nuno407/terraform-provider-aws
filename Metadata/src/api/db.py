@@ -60,6 +60,8 @@ class Persistence:
         aggregation.append({'$lookup': {'from':self.__pipeline_executions.name, 'localField':'video_id', 'foreignField':'_id', 'as': 'pipeline_execution'}})
         aggregation.append({'$unwind': '$pipeline_execution'})
         aggregation.append({'$match':{'pipeline_execution.data_status':'complete'}})
+        aggregation.append({'$match': {'_media_type':"video"}})
+
         if(additional_query):
             aggregation.append({'$match': additional_query})
         if(sorting):

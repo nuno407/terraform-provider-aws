@@ -66,9 +66,9 @@ def main():
         message = container_services.listen_to_input_queue(sqs_client)
 
         if message:
+            logging.info(message)
             # Processing step
-            relay_list = processing_metadata(container_services,
-                                             message['Body'])
+            relay_list = processing_metadata(container_services, message['Body'])
 
             # Insert/update data in db
             container_services.upsert_data_to_db(relay_list,
@@ -76,13 +76,10 @@ def main():
 
             # Send message to output queue of metadata container
             output_queue = container_services.sqs_queues_list["Output"]
-            container_services.send_message(sqs_client,
-                                            output_queue,
-                                            relay_list)
+            container_services.send_message(sqs_client, output_queue, relay_list)
 
             # Delete message after processing
-            container_services.delete_message(sqs_client,
-                                              message['ReceiptHandle'])
+            container_services.delete_message(sqs_client, message['ReceiptHandle'])
 
 if __name__ == '__main__':
     main()

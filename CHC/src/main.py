@@ -8,7 +8,8 @@ import requests
 
 CONTAINER_NAME = "CHC"    # Name of the current container
 CONTAINER_VERSION = "v3.0"      # Version of the current container
-
+VIDEO_FORMATS = ['mp4','avi']
+IMAGE_FORMATS = ['jpeg','jpg','png']
 
 def request_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)
@@ -30,9 +31,7 @@ def request_processing(client, container_services, body):
     dict_body = json.loads(new_body)
 
     # Download target file to be processed (camera health check)
-    raw_file = container_services.download_file(client,
-                                                container_services.raw_s3,
-                                                dict_body["s3_path"])
+    raw_file = container_services.download_file(client,container_services.raw_s3,dict_body["s3_path"])
 
     # Create a random uuid to identify a given camera health check process
     uid = str(uuid.uuid4())
@@ -44,7 +43,8 @@ def request_processing(client, container_services, body):
     payload = {'uid': uid,
                'path': dict_body["s3_path"],
                'mode': 'chc'}
-    files = [('video', raw_file)]
+    file_format = 'video' if dict_body["s3_path"].split('.')[-1] in VIDEO_FORMATS else 'image'
+    files = [(file_format, raw_file)]
 
     # Define settings for API request
     ip_pod = container_services.ivs_api["address"]
@@ -94,14 +94,12 @@ def update_processing(client, container_services, body):
     msg_body = json.loads(new_body)
 
     # Retrives relay_list based on uid received from api message
-    relay_data = container_services.update_pending_queue(client,
-                                                         msg_body['uid'],
-                                                         "read")
+    relay_data = container_services.update_pending_queue(client,msg_body['uid'],"read")
 
     # Retrieve output info from received message
     output_info = {}
     output_info['bucket'] = msg_body['bucket']
-    output_info['video_path'] = msg_body['video_path']
+    output_info['media_path'] = msg_body['media_path']
     output_info['meta_path'] = msg_body['meta_path']
 
     # Remove current step/container from the processing_steps
@@ -118,12 +116,8 @@ def update_processing(client, container_services, body):
         relay_data["data_status"] = "complete"
 
     # Remove uid entry from pending queue
-    container_services.update_pending_queue(client,
-                                            msg_body['uid'],
-                                            "delete")
-
-    container_services.display_processed_msg(relay_data["s3_path"],
-                                             msg_body['uid'])
+    container_services.update_pending_queue(client,msg_body['uid'],"delete")
+    container_services.display_processed_msg(relay_data["s3_path"],msg_body['uid'])
 
     return relay_data, output_info
 
@@ -139,18 +133,14 @@ def main():
     # Define configuration for logging messages
     logging.basicConfig(format='%(message)s', level=logging.INFO)
 
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
-                                                   CONTAINER_VERSION)
+    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    s3_client = boto3.client('s3',
-                             region_name='eu-central-1')
-    sqs_client = boto3.client('sqs',
-                              region_name='eu-central-1')
+    s3_client = boto3.client('s3',region_name='eu-central-1')
+    sqs_client = boto3.client('sqs',region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
-    container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION)
+    container_services = ContainerServices(container=CONTAINER_NAME,version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
@@ -169,36 +159,29 @@ def main():
 
         if message:
             # save some messages as examples for development
-            log_message(message)
+            #log_message(message)
             # Processing request
-            request_processing(s3_client,
-                               container_services,
-                               message['Body'])
+            request_processing(s3_client,container_services,message['Body'])
 
             # Delete message after processing
             container_services.delete_message(sqs_client,
                                               message['ReceiptHandle'])
 
         # Check API SQS queue for new update messages
-        message_api = container_services.listen_to_input_queue(sqs_client,
-                                                               api_sqs_queue)
+        message_api = container_services.listen_to_input_queue(sqs_client,api_sqs_queue)
 
         if message_api:
             # save some messages as examples for development
-            log_message(message, api_sqs_queue)
+            #log_message(message, api_sqs_queue)
             # Processing update
-            relay_list, out_s3 = update_processing(s3_client,
-                                                   container_services,
-                                                   message_api['Body'])
+            relay_list, out_s3 = update_processing(s3_client,container_services,message_api['Body'])
 
             # Send message to input queue of the next processing step
             # (if applicable)
             if relay_list["processing_steps"]:
                 next_step = relay_list["processing_steps"][0]
                 next_queue = container_services.sqs_queues_list[next_step]
-                container_services.send_message(sqs_client,
-                                                next_queue,
-                                                relay_list)
+                container_services.send_message(sqs_client,next_queue,relay_list)
 
             # Add the algorithm output info to the relay_list sent
             # to the metadata container so that an item for this processing
@@ -207,14 +190,10 @@ def main():
 
             # Send message to input queue of metadata container
             metadata_queue = container_services.sqs_queues_list["Metadata"]
-            container_services.send_message(sqs_client,
-                                            metadata_queue,
-                                            relay_list)
+            container_services.send_message(sqs_client,metadata_queue,relay_list)
 
             # Delete message after processing
-            container_services.delete_message(sqs_client,
-                                              message_api['ReceiptHandle'],
-                                              api_sqs_queue)
+            container_services.delete_message(sqs_client,message_api['ReceiptHandle'],api_sqs_queue)
 
 
 if __name__ == '__main__':

@@ -17,8 +17,8 @@ def upload_and_send_msg(**kwargs):
 
     Arguments:
         kwargs {dict} -- [dictionary containing chunk, path, api_queue and msg_body]:
-            chunk {bytes} -- [binary object containing video file to be uploaded to S3 bucket]
-            path {string} -- [S3 path with target location for video upload]
+            chunk {bytes} -- [binary object containing file to be uploaded to S3 bucket]
+            path {string} -- [S3 path with target location for file upload]
             api_queue {string} -- [name of SQSQ of corresponding handler that needs to be updated]
             msg_body {dict} -- [dictionary containing update info to be sent in SQSQ message]
     """
@@ -28,16 +28,14 @@ def upload_and_send_msg(**kwargs):
     api_queue = kwargs.get("api_queue")
     msg_body = kwargs.get("msg_body")
 
-    # Upload converted output file to S3 bucket
+    # Upload file to S3 bucket
     container_services.upload_file(s3_client,
                                    chunk,
                                    container_services.anonymized_s3,
                                    path)
 
     # Send message to input queue of metadata container
-    container_services.send_message(sqs_client,
-                                    api_queue,
-                                    msg_body)
+    container_services.send_message(sqs_client,api_queue,msg_body)
 
 
 @app.route("/alive", methods=["GET"])
@@ -82,7 +80,7 @@ def anonymization():
 
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
-            chunk = flask.request.files["file"]
+            file = flask.request.files["file"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
 
@@ -91,8 +89,8 @@ def anonymization():
 
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
-            path = s3_path.split('.')[0]
-            video_upload_path = path + "_anonymized.avi"
+            path, file_format = s3_path.split('.')
+            file_upload_path = path + "_anonymized." + file_format
 
             # Build message body
             msg_body = {}
@@ -102,18 +100,17 @@ def anonymization():
             # Output files bucket
             msg_body['bucket'] = container_services.anonymized_s3
             # Video file path
-            msg_body['video_path'] = video_upload_path
+            msg_body['media_path'] = file_upload_path
             # Metadata file (json) path
             msg_body['meta_path'] = "-"
 
             # Define SQSQ to send message to
             api_queue = container_services.sqs_queues_list["API_Anonymize"]
-
             # Call thread function with request parameters
             thread = threading.Thread(target=upload_and_send_msg,
                                       kwargs={
-                                          'chunk': chunk.read(),
-                                          'path': video_upload_path,
+                                          'chunk': file.read(),
+                                          'path': file_upload_path,
                                           'api_queue': api_queue,
                                           'msg_body': msg_body
                                       }
@@ -156,9 +153,9 @@ def camera_check():
             # Get info attached to request (file -> video;
             # uid -> video process id; path -> s3 path)
             # metadata -> chc results json
+            file = flask.request.files["metadata"]
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
-            meta_body = flask.request.files["metadata"]
 
             # Upload received video to S3 bucket
             logging.info("-----------------------------------------------")
@@ -166,8 +163,8 @@ def camera_check():
 
             # Rename metadata file to be stored by adding the name of
             # the algorithm that processed the file
-            path = s3_path.split('.')[0]
-            meta_upload_path = path + "_chc.json"
+            path, _ = s3_path.split('.')
+            file_upload_path = path + "_chc.json"
 
             # Build message body
             msg_body = {}
@@ -177,9 +174,9 @@ def camera_check():
             # Output files bucket
             msg_body['bucket'] = container_services.anonymized_s3
             # Video file path
-            msg_body['video_path'] = "-"
+            msg_body['media_path'] = "-"
             # Metadata file (json) path
-            msg_body['meta_path'] = meta_upload_path
+            msg_body['meta_path'] = file_upload_path
 
             # Define SQSQ to send message to
             api_queue = container_services.sqs_queues_list["API_CHC"]
@@ -187,8 +184,8 @@ def camera_check():
             # Call thread function with request parameters
             thread = threading.Thread(target=upload_and_send_msg,
                                       kwargs={
-                                          'chunk': meta_body.read(),
-                                          'path': meta_upload_path,
+                                          'chunk': file.read(),
+                                          'path': file_upload_path,
                                           'api_queue': api_queue,
                                           'msg_body': msg_body
                                       }
