@@ -73,6 +73,7 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #    fi
 
 RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
+
 #
 # Configure shared storage
 #
