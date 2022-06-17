@@ -64,13 +64,15 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 
 
 # The Teams client version to install, or "latest"
-ARG TEAMS_APP_VERSION==0.1.0
-ARG TEAMS_VERSION==0.8.0
-RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
-        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
-    else \
-        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
-    fi
+#ARG TEAMS_APP_VERSION==0.1.0
+#ARG TEAMS_VERSION==0.8.0
+#RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
+#        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
+#    else \
+#        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
+#    fi
+
+RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 #
 # Configure shared storage
 #
