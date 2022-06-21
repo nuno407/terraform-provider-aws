@@ -78,7 +78,7 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
 RUN echo $FIFTYONE_DATABASE_URI
 
 #Copy startup file
-COPY ./config/src/ /fiftyone/
+COPY voxel51/config/src/ /fiftyone/
 
 # Correction, so that Voxel doesn't break if the DB is already populated
 RUN mkdir ${ROOT_DIR}/db
