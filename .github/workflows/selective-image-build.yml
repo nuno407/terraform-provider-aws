@@ -38,7 +38,8 @@ jobs:
       - name: Determine services to build
         id: changed-services
         env:
-          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          # Compare pushes to master with event.before and branch builds with master
+          GITHUB_EVENT_BEFORE: ${{ github.ref_name == 'master' && github.event.before || 'origin/master' }}
           GITHUB_EVENT_AFTER: ${{ github.event.after }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           INPUT_SERVICES: ${{ inputs.services }}
