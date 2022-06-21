@@ -56,8 +56,8 @@ jobs:
           echo "Using this git tag: $TAG"
           git config --local user.email ${GITHUB_ACTIONS_EMAIL}
           git config --local user.name ${GITHUB_ACTIONS_USER}
-          git tag -a $TAG -m "Created on $(date +'%F %T')"
-          git push origin $TAG
+          git tag -f -a $TAG -m "Created on $(date +'%F %T')"
+          git push origin $TAG -f
           echo "::set-output name=tag::$TAG"
 
       - name: Add summary
