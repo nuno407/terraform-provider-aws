@@ -8,6 +8,7 @@ def summary(text):
     print(text)
     os.environ['GITHUB_STEP_SUMMARY'] = os.environ.get('GITHUB_STEP_SUMMARY', '') + text
 
+
 def determine_changed_directories():
     # Get all changed directories
     process = subprocess.run(f"git diff --name-only {os.environ.get('GITHUB_EVENT_BEFORE')}..{ os.environ.get('GITHUB_EVENT_AFTER') }", capture_output=True, shell=True)
@@ -43,13 +44,18 @@ def determine_changed_directories():
 
 changed_directories = []
 if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
-    summary("Manual run triggered therefore all services will be built!")
-    changed_directories = list(map(lambda file: file.name, filter(lambda file: file.is_dir(), os.scandir(os.getcwd()))))
+    if os.environ.get('INPUT_SERVICES'):
+        input_services = os.environ.get('INPUT_SERVICES').split(',')
+        input_services = list(map(lambda name: Path(name.strip()), input_services))
+    else:
+        input_services = os.scandir(os.getcwd())
+    changed_directories = list(map(lambda file: file.name, filter(lambda file: file.is_dir(), input_services)))
+    summary(f"Manual run triggered therefore selected services will be built.")
 elif os.environ.get('GITHUB_EVENT_NAME') == 'push':
     summary("Automated run therefore only changed services will be built!")
     changed_directories = determine_changed_directories()
 
 changed_services = list(filter(lambda f: f not in json.loads(os.environ['EXCLUDED_DIRS']), changed_directories))
 
-print(f"The following services will be built: {changed_services}")
+summary(f"The following services will be built: {changed_services}")
 print(f"::set-output name=services::{json.dumps(changed_services)}")

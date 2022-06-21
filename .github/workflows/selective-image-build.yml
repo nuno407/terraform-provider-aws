@@ -5,6 +5,10 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      services:
+        description: Services to build separated by comma, leave empty for all
+        required: false
 
 env:
   AWS_DEFAULT_REGION: eu-central-1
@@ -37,6 +41,7 @@ jobs:
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
           GITHUB_EVENT_AFTER: ${{ github.event.after }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          INPUT_SERVICES: ${{ inputs.services }}
         run: python ./.github/workflows/determine_services_to_build.py
 
       - name: Git tag & push
