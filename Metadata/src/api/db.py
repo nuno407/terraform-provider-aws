@@ -17,7 +17,7 @@ class Persistence:
 
     def update_recording_description(self, id, description):
         self.__recordings.update_one(
-            { "_id" : id },
+            { "video_id" : id },
             { "$set": { 'recording_overview.description' : description } }
         )
 

@@ -4,10 +4,12 @@ import json
 import logging
 import re
 
+from api.db import Persistence
+
 
 class ApiService:
 
-    def __init__(self, db, s3):
+    def __init__(self, db: Persistence, s3):
         self.__db = db
         self.__s3 = s3
 
