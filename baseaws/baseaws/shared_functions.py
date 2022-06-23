@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from signal import SIGTERM, signal
 import subprocess
 from datetime import datetime #timedelta as td,
 import pytz
@@ -1280,4 +1281,12 @@ class ContainerServices():
             logging.info("-> uid: %s", uid)
         logging.info("-> timestamp: %s\n", timestamp)
         
-    
+        
+# inspired by https://stackoverflow.com/a/31464349
+class GracefulExit:
+    continue_running = True
+    def __init__(self):
+        signal(SIGTERM, self.handle_sigterm)
+
+    def handle_sigterm(self, *args):
+        self.continue_running = False

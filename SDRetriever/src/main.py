@@ -2,13 +2,14 @@
 import json
 import logging
 from datetime import timedelta as td, datetime
+from signal import SIGTERM, signal
 import subprocess
 from operator import itemgetter
 import os
 import time
 import boto3
 from typing import TypeVar
-from baseaws.shared_functions import ContainerServices
+from baseaws.shared_functions import ContainerServices, GracefulExit
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 MAX_CONSECUTIVE = 25
@@ -971,6 +972,8 @@ def log_message(message, queue=CONTAINER_NAME):
 
 def main():
     """Main function"""
+    # Allow graceful exit
+    graceful_exit = GracefulExit()    
 
     # Define configuration for logging messages
     logging.basicConfig(format='%(message)s', level=logging.INFO)
@@ -992,7 +995,7 @@ def main():
     # prepare counters
     video_flag = MAX_CONSECUTIVE
     snapshot_flag = MAX_CONSECUTIVE
-    while(True):
+    while(graceful_exit.continue_running):
         # if it is time to look for videos
         if video_flag:
             video_flag += -1
@@ -1097,5 +1100,7 @@ def main():
             # if no snapshot message was found, look for videos
             else: snapshot_flag = 0
             if snapshot_flag == 0: video_flag=MAX_CONSECUTIVE
+    logging.info('\nSDRetriever exited gracefully')
+
 if __name__ == '__main__':
     main()
