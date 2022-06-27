@@ -1287,7 +1287,6 @@ class GracefulExit:
     continue_running = True
     def __init__(self):
         signal(SIGTERM, self.handle_sigterm)
-        signal(SIGSTOP, self.handle_sigterm)
 
     def handle_sigterm(self, signum, frame):
         logging.info("Received termination request with signal %s. Trying to shutdown gracefully.", Signals(signum).name)
