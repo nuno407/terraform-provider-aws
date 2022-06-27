@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-from signal import SIGTERM, signal
+from signal import SIGSTOP, SIGTERM, Signals, signal
 import subprocess
 from datetime import datetime #timedelta as td,
 import pytz
@@ -1287,6 +1287,8 @@ class GracefulExit:
     continue_running = True
     def __init__(self):
         signal(SIGTERM, self.handle_sigterm)
+        signal(SIGSTOP, self.handle_sigterm)
 
-    def handle_sigterm(self, *args):
+    def handle_sigterm(self, signum, frame):
+        logging.info("Received termination request with signal %s. Trying to shutdown gracefully.", Signals(signum).name)
         self.continue_running = False
