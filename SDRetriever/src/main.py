@@ -1040,6 +1040,10 @@ def main():
             else: video_flag = 0
             if video_flag == 0: 
                 snapshot_flag=MAX_CONSECUTIVE
+        # if it is time to look for snapshots
+        if snapshot_flag:
+            if snapshot_flag == MAX_CONSECUTIVE:
+                ## initialize RCC S3 client here to make sure the role credentials are renewed regularly
                 # "arn:aws:iam::213279581081:role/dev-DevCloud"
                 s3_role = container_services.rcc_info["role"]
                 sts_session = "AssumeRoleSession2"
@@ -1055,8 +1059,8 @@ def main():
                                             aws_access_key_id=role_creds['AccessKeyId'],
                                             aws_secret_access_key=role_creds['SecretAccessKey'],
                                             aws_session_token=role_creds['SessionToken'])
-        # if it is time to look for snapshots
-        if snapshot_flag:
+
+
             snapshot_flag += -1
             # process for snaphots
             # access the old selector queue "qa-terraform-queue-selector"
