@@ -33,7 +33,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ssh-key: ${{ secrets.CONTAINER_SCRIPTS_SSH_KEY }}
 
       - name: Determine services to build
         id: changed-services
