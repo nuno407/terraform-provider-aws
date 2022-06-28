@@ -3,3 +3,5 @@ metadata-docker-compose.yaml
 sdm-docker-compose.yaml
 __pycache__ 
 .pytest_cache
+build
+*.egg-info
