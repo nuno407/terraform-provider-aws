@@ -5,6 +5,7 @@ import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
 import requests
+from requests.status_codes import codes as status_codes
 import subprocess
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
@@ -12,7 +13,7 @@ CONTAINER_VERSION = "v8.0"      # Version of the current container
 VIDEO_FORMATS = ['mp4','avi']
 IMAGE_FORMATS = ['jpeg','jpg','png']
 
-def request_processing(client, container_services, body):
+def request_processing(client, container_services, body)->bool:
     """Converts the message body to json format (for easier variable access)
     and sends an API request for the ivs feature chain container with the
     file downloaded to be processed.
@@ -59,10 +60,12 @@ def request_processing(client, container_services, body):
         response = requests.post(addr, files=files, data=payload)
         logging.info("API POST request sent! (uid: %s)", uid)
         logging.info("IVS Chain response: %s", response.text)
+        return response.status_code == status_codes.ok
     except requests.exceptions.ConnectionError:
         logging.info("\n######################## Exception #########################")
         logging.exception("The following exception occured during execution:")
         logging.info("############################################################\n")
+        return False
 
     # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
@@ -218,10 +221,11 @@ def main():
             # save some messages as examples for development
             #log_message(message)
             # Processing request
-            request_processing(s3_client, container_services, message['Body'])
+            success = request_processing(s3_client, container_services, message['Body'])
 
             # Delete message after processing
-            container_services.delete_message(sqs_client, message['ReceiptHandle'])
+            if success:
+                container_services.delete_message(sqs_client, message['ReceiptHandle'])
 
         # Check API SQS queue for new update messages
         message_api = container_services.listen_to_input_queue(sqs_client, api_sqs_queue)
