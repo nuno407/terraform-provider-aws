@@ -197,7 +197,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # Generate dictionary with info to send to Selector container for
     # HQ data request
-    if 'TrainingRecorder' not in stream_name:
+    if 'InteriorRecorder' in stream_name:
         hq_request = {
             "streamName": stream_name,
             "deviceId": device,
@@ -206,6 +206,26 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         }
 
     return record_data, hq_request
+
+
+def video_recording_type(message):
+    """identify the recording type of a particular upload message
+
+    Args:
+        message (str): JSON message from SDRetriever SQS queue
+
+    Returns:
+        video_recording_type (str): The type of the video event: InteriorRecorder, TrainingRecorder, or FrontRecorder
+    """
+    video_recording_types = ["InteriorRecorder","TrainingRecorder","FrontRecorder"]
+    message_body = message['Body'].replace("\'", "\"")
+    dict_msg = json.loads(message_body)
+    message_field = json.loads(dict_msg['Message'])
+    streamName = message_field['streamName']
+    for video_recording_type in video_recording_types:
+        if video_recording_type in streamName:
+            return video_recording_type
+    return None
 
 def generate_compact_mdf_metadata(container_services, s3_client, epoch_from, epoch_to, files_dict, stream_name):
     """TODO
@@ -1003,39 +1023,42 @@ def main():
             message = container_services.listen_to_input_queue(sqs_client)
 
             if message:
-                # save some messages as examples for development
-                #log_message(message, CONTAINER_NAME)
-                # Get and store kinesis video clip
-                rec_data, hq_data = transfer_kinesis_clip(s3_client, sts_client, container_services, message)
+                if video_recording_type(message) == 'FrontRecorder':
+                    # Ignore and delete message
+                    logging.info("INFO: Found 'FrontRecorder' video recorder, ignoring." % (rec_data))
+                    container_services.delete_message(sqs_client,message['ReceiptHandle'])
+                else:
+                    # Get and store kinesis video clip
+                    rec_data, hq_data = transfer_kinesis_clip(s3_client, sts_client, container_services, message)
 
-                logging.info("Logs rec_data : %s" % (rec_data))
+                    logging.info("Logs rec_data : %s" % (rec_data))
 
 
-                # Checks if recording received is valid for
-                # HQ data request
-                if hq_data:
-                    # Send message to secondary input queue (HQ_Request)
-                    # of Selector container
-                    hq_selector_queue = container_services.sqs_queues_list["HQ_Selector"]
-                    container_services.send_message(sqs_client, hq_selector_queue, hq_data)
+                    # Checks if recording received is valid for
+                    # HQ data request
+                    if hq_data:
+                        # Send message to secondary input queue (HQ_Request)
+                        # of Selector container
+                        hq_selector_queue = container_services.sqs_queues_list["HQ_Selector"]
+                        container_services.send_message(sqs_client, hq_selector_queue, hq_data)
 
-                # Checks if recording received is valid
-                if rec_data:
-                    # Concatenate all metadata related to processed clip
-                    meta_available, sync_ext = concatenate_metadata_full(s3_client,sts_client,container_services,message)
+                    # Checks if recording received is valid
+                    if rec_data:
+                        # Concatenate all metadata related to processed clip
+                        meta_available, sync_ext = concatenate_metadata_full(s3_client,sts_client,container_services,message)
 
-                    # Add parameter with info about metadata availability
-                    rec_data["MDF_available"] = meta_available
+                        # Add parameter with info about metadata availability
+                        rec_data["MDF_available"] = meta_available
 
-                    # Add parameter with video sync data
-                    rec_data["sync_file_ext"] = sync_ext
+                        # Add parameter with video sync data
+                        rec_data["sync_file_ext"] = sync_ext
 
-                    # Send message to input queue of metadata container
-                    metadata_queue = container_services.sqs_queues_list["Metadata"]
-                    container_services.send_message(sqs_client,metadata_queue,rec_data)
+                        # Send message to input queue of metadata container
+                        metadata_queue = container_services.sqs_queues_list["Metadata"]
+                        container_services.send_message(sqs_client,metadata_queue,rec_data)
 
-                # Delete message after processing
-                container_services.delete_message(sqs_client,message['ReceiptHandle'])
+                    # Delete message after processing
+                    container_services.delete_message(sqs_client,message['ReceiptHandle'])
             # if no video message was found, look for snapshots
             else: video_flag = 0
             if video_flag == 0: 
