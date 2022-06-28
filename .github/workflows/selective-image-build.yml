@@ -163,7 +163,7 @@ jobs:
             SERVICE_UPPER=$(echo $SERVICE | tr '[:lower:]' '[:upper:]')
             pushd apps/dev/$SERVICE_LOWER/ > /dev/null
           
-            echo "${SERVICE}: ${ECR_REPO}/${SERVICE_LOWER}:${NEW_TAG}"" >> $GITHUB_STEP_SUMMARY
+            echo "${SERVICE}: ${ECR_REPO}/${SERVICE_LOWER}:${NEW_TAG}" >> $GITHUB_STEP_SUMMARY
           
             kustomize edit set image "<CONTAINER_IMAGE_TAG_${SERVICE_UPPER}>=${ECR_REPO}/${SERVICE_LOWER}:${NEW_TAG}"
             echo "##### ${SERVICE}: Updated images in Kustomize file"
