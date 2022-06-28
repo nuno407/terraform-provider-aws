@@ -97,9 +97,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-${{ matrix.service }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ matrix.service }}-${{ github.sha }}
+          # If no cache is found for exact key, search in previous commits for cache on same service and other services
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.service }}-buildx-
+            ${{ runner.os }}-buildx-${{ matrix.service }}-
+            ${{ runner.os }}-buildx-
 
       - name: Prepare environment vars
         id: prepare-tag
