@@ -1025,7 +1025,7 @@ def main():
             if message:
                 if video_recording_type(message) == 'FrontRecorder':
                     # Ignore and delete message
-                    logging.info("INFO: Found 'FrontRecorder' video recorder, ignoring." % (rec_data))
+                    logging.info("INFO: Found 'FrontRecorder' video recorder, ignoring.")
                     container_services.delete_message(sqs_client,message['ReceiptHandle'])
                 else:
                     # Get and store kinesis video clip
