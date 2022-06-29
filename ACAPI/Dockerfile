@@ -21,4 +21,4 @@ COPY --chown=1000:3000 ./ACAPI/src/ /app/src/
 WORKDIR /app/src
 
 # Run AC_API python script
-ENTRYPOINT [ "python", "main.py"]
+ENTRYPOINT [ "python", "api.py"]
