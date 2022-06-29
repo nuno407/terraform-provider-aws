@@ -6,13 +6,9 @@ from signal import SIGSTOP, SIGTERM, Signals, signal
 import subprocess
 from datetime import datetime #timedelta as td,
 import pytz
-from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 import boto3
-from pymongo import MongoClient, errors
-from baseaws.voxel_functions import create_dataset, update_sample
-
-VIDEO_FORMATS = ['avi','mp4']
-IMAGE_FORMATS = ['jpeg','jpg','png']
+from pymongo import MongoClient
+from pymongo.database import Database
 
 class ContainerServices():
     """ContainerServices
@@ -36,9 +32,6 @@ class ContainerServices():
 
         # Container info
         self.__container = {'name': container, 'version': version}
-
-        # Time format
-        self.__time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
         # Bucket and path for the config file #'dev-rcd-config-files'
         self.__config = {
@@ -126,6 +119,11 @@ class ContainerServices():
     def api_endpoints(self):
         """ API End Points variable """
         return self.__apiendpoints  # To be modify on dated 16 Jan'2022
+
+    @property
+    def time_format(self):
+        """ Time format """
+        return "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
     def load_config_vars(self, client):
@@ -259,7 +257,7 @@ class ContainerServices():
             message = response['Messages'][0]
             timestamp = str(datetime.now(
                                         tz=pytz.UTC
-                                        ).strftime(self.__time_format))
+                                        ).strftime(self.time_format))
             logging.info("\n-----------------------------------------------")
             logging.info("Message received!")
             logging.info("-> id:  %s", message['MessageId'])
@@ -331,7 +329,7 @@ class ContainerServices():
                                         MessageBody=str(data)
                                        )
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  Message sent to %s queue", timestamp,
                                                        dest_queue)
 
@@ -352,7 +350,7 @@ class ContainerServices():
 
 
     @staticmethod
-    def create_db_client():
+    def create_db_client()->Database:
         """Creates MongoDB client and returns a DB object based on
         the set configurations so that a user can access the respective
         MongoDB resource
@@ -372,608 +370,6 @@ class ContainerServices():
 
         return db
 
-    @staticmethod
-    def calculate_chc_events(chc_periods):
-        duration = 0.0
-        number = 0
-        for period in chc_periods:
-            duration += period['duration']
-            if period['duration'] > 0.0:
-                number += 1
-
-        return number, duration
-
-    @staticmethod
-    def generate_recording_item(data, table_rec, table_sig, timestamp):
-        """Inserts a new item on the recordings collection and, if there is
-        a metadata full file available for that item, processes that info
-        and adds it to the item
-
-        Arguments:
-            data {dict} -- [info set from the sqs message received
-                            that will be used to populate the newly
-                            created DB item]
-            table_rec {MongoDB collection object} -- [Object used to
-                                                      access/update the
-                                                      recordings collection
-                                                      information]
-            timestamp {string} -- [Current timestamp to be used on status
-                                   update logs]
-        """
-        # Build item structure and add info from msg received
-        
-        s3split = data["s3_path"].split("/")
-        filetype = s3split[-1].split(".")[-1]
-
-        if filetype in IMAGE_FORMATS:
-            media_type = 'image'
-        else:
-            media_type = 'video'
-
-        recording_item = {
-                    'video_id': data['_id'],
-                    'filepath': 's3://' + data['s3_path'],
-                    'MDF_available': data['MDF_available'],
-                    'recording_overview': {k:v for (k, v) in data['recording_overview'].items() if k!='resolution'},
-                    'resolution': data['recording_overview']['resolution'],
-                    '_media_type': media_type,
-                    'chunk': 'Chunk0',
-                }
-        recording_item['recording_overview']['tenantID'] = data['_id'].split("_",1)[0]
-        recording_item['recording_overview']['number_chc_events'] = 0
-        recording_item['recording_overview']['chc_duration'] = 0
-
-        # Fetch metadata file if it exists
-        if data["MDF_available"] == "Yes":
-
-            # Create S3 client to download metadata
-            s3_client = boto3.client('s3',
-                        region_name='eu-central-1')
-
-            s3_bucket, video_key = data["s3_path"].split("/", 1)
-            s3_key = video_key.split(".")[0] + '_metadata_full.json'
-
-            # Download metadata json file
-            response = s3_client.get_object(
-                                                Bucket=s3_bucket,
-                                                Key=s3_key
-                                            )
-
-            # Decode and convert file contents into json format
-            result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-            # Add array from metadata full file to created item
-            signals_item = {
-                        'recording': data['_id'],
-                        'algo_out_id': "-",
-                        'source': "MDF",
-                        'signals': {},
-                        'CHC_periods': [],
-                       }
-
-            # NOTE: Condition added due to some MDF files still not having this info
-            if 'chc_periods' in result_info:
-                chc_periods = result_info['chc_periods']
-                signals_item['CHC_periods'] = chc_periods
-                chc_number, chc_duration = ContainerServices.calculate_chc_events(chc_periods)
-                signals_item['number_chc_events'] = chc_number
-                recording_item['recording_overview']['number_chc_events'] = chc_number
-                signals_item['chc_duration'] = chc_duration
-                recording_item['recording_overview']['chc_duration'] = chc_duration
-
-            # Add sync data if available
-            if data["sync_file_ext"]:
-                s3_key = video_key.split(".")[0] + data["sync_file_ext"]
-
-                # Download metadata json file
-                response = s3_client.get_object(
-                                                Bucket=s3_bucket,
-                                                Key=s3_key
-                                            )
-
-                # Decode and convert file contents into json format
-                result_sync = json.loads(response['Body'].read().decode("utf-8"))
-
-                signals_item['signals'] = result_sync
-
-                try:
-                    # Upsert signals item
-                    table_sig.update_one({'recording': data["_id"]}, {'$set': signals_item}, upsert=True)
-                    # Create logs message
-                    logging.info("[%s]  Signals DB item (video_id: %s) upserted!", timestamp, data["_id"])
-                except Exception:
-                    logging.info("\n######################## Exception #########################")
-                    logging.exception("Warning: Unable to create or replace signals item for id: %s", data["_id"])
-            logging.info("############################################################\n")
-
-        try:
-            # Upsert previous built item on the Recording collection
-            table_rec.update_one({'video_id': data["_id"]}, {'$set': recording_item}, upsert=True)
-            # Create logs message
-            logging.info("[%s]  Recording DB item (video_id: %s) upserted!", timestamp, data["_id"])
-        except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create or replace recording item for id: %s", data["_id"])
-            logging.info("############################################################\n")
-
-        ## ADDED Voxel51 code - for RAW videos dataset
-        #s3split = data["s3_path"].split("/")
-        #bucket_name = s3split[0]
-
-        #anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.mp4'
-
-        #sample = item_db
-        #sample["video_id"] = item_db["_id"]
-        #sample["s3_path"] = anon_video_path
-        
-
-        #try:
-            # Create dataset with the bucket_name if it doesn't exist
-        #    create_dataset(bucket_name)
-            
-            #Add  the video to the dataset if it doesn't exist, otherwise update it
-        #    update_sample(bucket_name,sample)
-            
-            # Create logs message
-        #    logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-        #except Exception:
-        #    logging.info("\n######################## Exception #########################")
-        #    logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-        #    logging.info("############################################################\n")
-
-
-    @staticmethod
-    def update_pipeline_db(data, table_pipe, timestamp, unique_id, source, container_name):
-        """Inserts a new item (or updates it if already exists) on the
-        pipeline execution collection
-
-        Arguments:
-            data {dict} -- [info set from the received sqs message
-                            that is used to populate the created/updated
-                            item]
-            table_pipe {MongoDB collection object} -- [Object used to
-                                                      access/update the
-                                                      pipeline execution
-                                                      collection information]
-            timestamp {string} -- [Current timestamp to be used on status
-                                   update logs]
-            unique_id {string} -- [Name of the recording (coincides with the
-                                   name of the item to be created/updated
-                                   in this function]
-            source {string} -- [Name of the container which is the source
-                                of the info received on the sqs message]
-            container_name {string} -- [Name of the current container]
-        """
-        # Initialise variables used in both item creation and update
-        status = data['data_status']
-
-        # Check if item with that name already exists
-        response = table_pipe.find_one({'_id': unique_id})
-
-        if response:
-            # Update the existing records
-            update_dict = {
-                            "$set":{
-                                    "data_status": status,
-                                    "info_source": source,
-                                    "last_updated": timestamp
-                                   }
-                          }
-            table_pipe.update_one({'_id': unique_id}, update_dict)
-
-            # Create logs message
-            logging.info("[%s]  Pipeline Exec DB item (Id: %s) updated!", timestamp, unique_id)
-
-            ## ADDED Voxel51 code
-            s3split = data["s3_path"].split("/")
-            bucket_name = s3split[0]
-            
-            filetype = s3split[-1].split(".")[-1]
-
-            if filetype in IMAGE_FORMATS:
-                bucket_name = bucket_name+"_snapshots"
-                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
-            elif filetype in VIDEO_FORMATS:
-                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
-            else:
-                raise ValueError("Unknown file format %s"%filetype)
-            sample = update_dict["$set"]
-            sample["video_id"] = unique_id
-            sample["s3_path"] = anonymized_path
-                
-
-            try:
-                # Create dataset with the bucket_name if it doesn't exist
-                create_dataset(bucket_name)        
-                #Add  the video to the dataset
-                update_sample(bucket_name,sample)
-                # Create logs message
-                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-            except Exception:
-                logging.info("\n######################## Exception #########################")
-                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-                logging.info("############################################################\n")
-
-
-
-        else:
-            # Build item structure and add info from msg received
-            item_db = {
-                        '_id': unique_id,
-                        'data_status': status,
-                        'from_container': container_name,
-                        'info_source': source,
-                        'last_updated': timestamp,
-                        'processing_list': data['processing_steps'],
-                        's3_path': data['s3_path']
-                    }
-
-            # Insert previous built item
-            table_pipe.insert_one(item_db)
-
-            # Create logs message
-            logging.info("[%s]  Pipeline Exec DB item (Id: %s) created!", timestamp, unique_id)
-
-
-            ## ADDED Voxel51 code
-            s3split = data["s3_path"].split("/")
-            bucket_name = s3split[0]
-
-            filetype = s3split[-1].split(".")[-1]
-            if filetype in IMAGE_FORMATS:
-                bucket_name = bucket_name+"_snapshots"
-                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
-            elif filetype in VIDEO_FORMATS:
-                anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
-            else:
-                raise ValueError("Unknown file format %s"%filetype)
-            
-            sample = item_db
-            sample["s3_path"] = anonymized_path
-            sample["video_id"] = item_db["_id"]    
-
-            try:
-                # Create dataset with the bucket_name if it doesn't exist
-                create_dataset(bucket_name)        
-                #Add  the video to the dataset
-                update_sample(bucket_name,sample)
-                # Create logs message
-                logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-            except Exception:
-                logging.info("\n######################## Exception #########################")
-                logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-                logging.info("############################################################\n")
-            
-
-    @staticmethod
-    def update_outputs_db(data, table_algo_out, table_sig, rec_object, timestamp, unique_id, source):
-        """Inserts a new item on the algorithm output collection and, if
-        there is a CHC file available for that item, processes
-        that info and adds it to the item (plus updates the respective
-        recordings collection item with that CHC info)
-
-        Arguments:
-            data {dict} -- [info set from the received sqs message
-                            that is used to populate the created item]
-            table_algo_out {MongoDB collection object} -- [Object used to
-                                                      access/update the
-                                                      algorithm output
-                                                      collection information]
-            table_sig {MongoDB collection object} -- [Object used to
-                                                      access/update the
-                                                      signals
-                                                      collection information]
-            rec_object {MongoDB document} -- [Object used to
-                                                      read recording information for Voxel]
-            timestamp {string} -- [Current timestamp to be used on status
-                                   update logs]
-            unique_id {string} -- [Name of the recording (coincides with the
-                                   name of the item to be created/updated
-                                   in this function]
-            source {string} -- [Name of the container which is the source
-                                of the info received on the sqs message]
-        """
-        # Initialise variables used in item creation
-        outputs = data['output']
-        run_id = unique_id + '_' + source
-        
-        # Item creation (common parameters)
-        algo_item = {
-                    '_id': run_id,
-                    'algorithm_id': source,
-                    'pipeline_id': unique_id
-                }
-
-        # Populate output_paths parameter
-        algo_item['output_paths'] = {}
-
-        # Check if there is a metadata file path available
-        if outputs['meta_path'] == "-":
-            algo_item['output_paths']["metadata"] = "-"
-        else:
-            metadata_path = outputs['bucket'] + '/' + outputs['meta_path']
-            algo_item['output_paths']["metadata"] = metadata_path
-
-        # Check if there is a video file path available
-        if outputs['media_path'] == "-":
-            algo_item['output_paths']["video"] = "-"
-        else:
-            media_path = outputs['bucket'] + '/' + outputs['media_path']
-            algo_item['output_paths']["video"] = media_path
-        """ if outputs['video_path'] == "-":
-            algo_item['output_paths']["video"] = "-"
-        else:
-            video_path = outputs['bucket'] + '/' + outputs['video_path']
-            algo_item['output_paths']["video"] = video_path """
-
-        # Compute results from CHC processing
-        if source == "CHC":
-            # Build default results structure
-            algo_item['results'] = {
-                                    'CHBs_sync': {},
-                                    'CHC_periods': []
-                                }
-
-            # Create S3 client to download metadata
-            s3_client = boto3.client('s3',
-                        region_name='eu-central-1')
-
-            # Download metadata json file
-            response = s3_client.get_object(
-                Bucket=outputs['bucket'],
-                Key=outputs['meta_path']
-            )
-
-            # Decode and convert file contents into json format
-            result_info = json.loads(response['Body'].read().decode("utf-8"))
-
-            ############################################################################################################################################################################################################################
-            ############################################################################################################################################################################################################################
-
-            # Collect frame data and store it in separate dictionaries
-            frame_ts = {}
-            frame_signals = {}
-
-            for frame in result_info['frame']:
-
-                if 'objectlist' in frame.keys():
-                    # Collect relative timestamp for each frame
-                    frame_ts[frame['number']] = frame['timestamp64']
-                    frame_signals[frame['number']] = {}
-
-                    for item in frame['objectlist']:
-                        if 'boolAttributes' in item:
-                            for attribute in item['boolAttributes']:
-                                frame_signals[frame['number']][attribute['name']] = (
-                                    attribute['value'] == 'true')
-                        if 'floatAttributes' in item:
-                            for attribute in item['floatAttributes']:
-                                frame_signals[frame['number']][attribute['name']
-                                                    ] = float(attribute['value'])
-                        if 'integerAttributes' in item:
-                            for attribute in item['integerAttributes']:
-                                frame_signals[frame['number']][attribute['name']] = int(
-                                    attribute['value'])
-
-            frame_ref_ts = int(frame_ts[list(frame_ts.keys())[0]])
-            frame_ref_dt = datetime.fromtimestamp(frame_ref_ts/1000.0)
-            ###############################
-
-            frame_ts_signals = {}
-
-            for frame, value_ts in frame_ts.items():
-                frame_dt = datetime.fromtimestamp(int(value_ts)/1000.0)
-                delta = str(frame_dt-frame_ref_dt)
-                video_ts = delta.replace(".", ":")
-                frame_ts_signals[video_ts] = frame_signals[frame]
-
-
-            # Add video sync data processed from ivs_chain metadata file to created item
-            algo_item['results']['CHBs_sync'] = frame_ts_signals
-            
-            # Add CHC event periods processed from ivs_chain metadata file to created item
-            compact_mdf_metadata = generate_compact_mdf_metadata(result_info)
-            chc_periods = calculate_chc_periods(compact_mdf_metadata)
-            algo_item['results']['CHC_periods'] = chc_periods
-            ############################################################################################################################################################################################################################
-            ############################################################################################################################################################################################################################
-
-            # Add array from CHC output file to recording DB item
-            signals_item = {
-                        'algo_out_id': run_id,
-                        'recording': unique_id,
-                        'source': "CHC",
-                        'signals': frame_ts_signals,
-                        'CHC_periods': chc_periods
-                       }
-            try:
-                # upsert signals DB item
-                sig_query = {'recording': unique_id, 'algo_out_id': run_id}
-                table_sig.update_one(sig_query, {'$set': signals_item}, upsert=True)
-
-                # Create logs message
-                logging.info("[%s]  Signals DB item (algo id: %s) updated!", timestamp, run_id)
-
-            except Exception:
-                logging.info("\n######################## Exception #########################")
-                logging.exception("The following exception occured during execution:")
-                logging.info(signals_item)
-                logging.info("############################################################\n")
-
-        try:
-            # Insert previous built item
-            table_algo_out.insert_one(algo_item)
-            
-
-        except errors.DuplicateKeyError:
-            # Raise error exception if duplicated item is found
-            # NOTE: In this case, the old item is not overriden!
-            logging.info("\n######################## Exception #########################")
-            logging.exception("The following exception occured during execution:")
-            logging.info(algo_item)
-            logging.info("############################################################\n")
-
-        logging.info("[%s]  Algo Output DB item (run_id: %s) created!", timestamp, run_id)
-
-
-## ADDED Voxel51 code
-        s3split = data["s3_path"].split("/")
-        bucket_name = s3split[0]
-
-        filetype = s3split[-1].split(".")[-1]
-        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-4]+'_anonymized.'+filetype
-
-        if filetype == "jpeg" or filetype == "png":
-            bucket_name = bucket_name+"_snapshots"
-
-        if filetype == "jpeg":
-            anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+data["s3_path"][:-5]+'_anonymized.'+filetype
-
-        sample = algo_item
-
-        sample["algorithms"] = {}
-
-        if source == "CHC":
-            sample["algorithms"][algo_item['_id']] = {"results":algo_item["results"], "output_paths":algo_item['output_paths']}
-        else:
-            sample["algorithms"][algo_item['_id']] = {"output_paths":algo_item['output_paths']}
-
-            
-        sample["s3_path"] = anon_video_path
-        sample["video_id"] = algo_item["pipeline_id"]
-
-        #################################################
-        sample["MDF_available"] = rec_object ["MDF_available"]
-        sample["recording_overview"] = rec_object ["recording_overview"]
-
-        #################################################
-
-        try:
-            # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)
-            
-            #Add  the video to the dataset if it doesn't exist, otherwise update it
-            update_sample(bucket_name,sample)
-            
-            # Create logs message
-            logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
-        except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
-            logging.info("############################################################\n")
-
-
-    def upsert_data_to_db(self, data, attributes):
-        """Main DB access function that processes the info received
-        from a sqs message and calls the corresponding functions
-        necessary to create/update DB items
-
-        Arguments:
-            data {dict} -- [info set from the received sqs message
-                            that is used to populate the DB items]
-            attributes {dict} -- [attributes from the received sqs message
-                                  that is used to populate DB items or to
-                                  define which operations are performed]
-        """
-        # Create DocDB client
-        db = self.create_db_client()
-
-        # Specify the tables to be used
-        table_pipe = db[self.__db_tables['pipeline_exec']]
-        table_algo_out = db[self.__db_tables['algo_output']]
-        table_rec = db[self.__db_tables['recordings']]
-        table_sig = db[self.__db_tables['signals']]
-
-        # Create timestamp for the current time
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
-
-        # Get source container name
-        source = attributes['SourceContainer']['StringValue']
-
-        #################### NOTE: Recording collection handling ##################
-
-        # SDRetriever container info is processed in a different
-        # way from the other containers
-        if source == "SDRetriever":
-            # Call respective processing function
-            self.generate_recording_item(data, table_rec, table_sig, timestamp)
-            return
-
-        #################### NOTE: Pipeline execution collection handling ####################
-
-        # Get filename (id) from message received
-        # Note: If source container is SDRetriever then:
-        #            data["s3_path"] = bucket + key
-        #       Otherwise, for all other containers:
-        #            data["s3_path"] = key
-        #
-        unique_id = os.path.basename(data["s3_path"]).split(".")[0]
-
-        # Call respective processing function
-        self.update_pipeline_db(data,
-                                table_pipe,
-                                timestamp,
-                                unique_id,
-                                source,
-                                self.__container['name'])
-
-
-
-        s3split = data["s3_path"].split("/")
-        filetype = s3split[-1].split(".")[-1]
-
-        if filetype in IMAGE_FORMATS:
-            media_type = 'image'
-        else:
-            media_type = 'video'
-
-            
-        ############################################ DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
-        ##########################################################################################
-        # Check if item with that name already exists
-        response_rec = table_rec.find_one({'video_id': unique_id})
-        if response_rec:
-            pass
-        else:
-            # Create empty item for the recording
-            item_db = {
-                       'video_id': unique_id,
-                       'filepath': "s3://" + self.__s3_buckets['raw'] + "/" + data["s3_path"],
-                       'MDF_available': "No",
-                       'recording_overview':{
-                                             "length": "",
-                                             "time": "",
-                                             "deviceID": "",
-                                             "tenantID": "",
-                                             "#snapshots": "",
-                                             "snapshots_paths": {}
-                                            },
-                        "resolution": "",
-                        "chunk": "Chunk0",
-                        "_media_type": media_type
-                }
-            # Insert previous built item on the Recording collection
-            table_rec.insert_one(item_db)
-            # Create logs message
-            logging.info("[%s]  Recording DB empty item (Id: %s) created!", timestamp, unique_id)
-            logging.info("data:")
-            logging.info(data)
-        ###########################################################################################
-        ###########################################################################################
-
-
-        #################### NOTE: Algorithm output collection handling ####################
-        # Create/Update item on Algorithm Output DB
-        if 'output' in data:
-            # Call respective processing function
-            self.update_outputs_db(data,
-                                   table_algo_out,
-                                   table_sig,
-                                   response_rec,
-                                   timestamp,
-                                   unique_id,
-                                   source)
-
     ##### S3 related functions ####################################################################
     def download_file(self, client, s3_bucket, file_path):
         """Retrieves a given file from the selected s3 bucket
@@ -988,7 +384,7 @@ class ContainerServices():
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         full_path = s3_bucket+'/'+file_path
         logging.info("[%s]  Downloading file (path: %s)..", timestamp,
                                                             full_path)
@@ -1002,7 +398,7 @@ class ContainerServices():
         # (botocore.response.StreamingBody)
         object_file = response['Body'].read()
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  Download completed!", timestamp)
 
         return object_file
@@ -1018,7 +414,7 @@ class ContainerServices():
                                   used for the file in the destination s3
                                   bucket (e.g. 'uber/test_file_s3.txt')]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         full_path = s3_bucket+'/'+key_path
         logging.info("[%s]  Uploading file (path: %s)..", timestamp,
                                                           full_path)
@@ -1042,7 +438,7 @@ class ContainerServices():
                           ContentType=type_dict[file_extension]
                         )
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  Upload completed!", timestamp)
 
     def update_pending_queue(self, client, uid, mode, dict_body=None):
@@ -1134,7 +530,7 @@ class ContainerServices():
                           ContentType="application/json"
                         )
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  S3 Pending queue updated (mode: %s | uid: %s)!", timestamp,
                                                                              mode,
                                                                              uid)
@@ -1157,7 +553,7 @@ class ContainerServices():
             output_video {bytes} -- [Received chunk in bytes format]
         """
         # Generate processing start message
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  Downloading test clip (stream: %s)..", timestamp,
                                                               stream_name)
 
@@ -1257,7 +653,7 @@ class ContainerServices():
         subprocess.run(["rm", input_name, output_name, logs_name])
 
         # Generate processing end message
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("[%s]  Test clip download completed!", timestamp)
 
         return output_video 
@@ -1274,7 +670,7 @@ class ContainerServices():
                              processing containers to keep track of the
                              process of a given file. Optional]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.__time_format))
+        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         logging.info("\nProcessing complete!")
         logging.info("-> key: %s", key_path)
         if uid:
