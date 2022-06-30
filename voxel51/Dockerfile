@@ -71,6 +71,8 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #    fi
 
 RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
+
+
 #
 # Configure shared storage
 #
@@ -92,7 +94,6 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
     FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
     FIFTYONE_DATABASE_VALIDATION=false
-
 
 
 
