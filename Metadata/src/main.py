@@ -1,5 +1,4 @@
 """Metadata container script"""
-import datetime
 import json
 import logging
 import os
@@ -8,6 +7,7 @@ import boto3
 import pytz
 from baseaws.shared_functions import ContainerServices
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
+from datetime import datetime
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
