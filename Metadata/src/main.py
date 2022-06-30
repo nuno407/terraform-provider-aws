@@ -5,7 +5,7 @@ import os
 from typing import Optional, Tuple
 import boto3
 import pytz
-from baseaws.shared_functions import ContainerServices
+from baseaws.shared_functions import ContainerServices, GracefulExit
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 from datetime import datetime
 from pymongo.collection import Collection
@@ -211,7 +211,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         #Add  the video to the dataset
         update_sample(bucket_name,sample)
         # Create logs message
-        logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+        logging.info("Voxel Dataset with (Id: %s) created!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -237,7 +237,7 @@ def download_and_synchronize_chc(bucket: str, key: str)->Tuple[dict, dict]:
 
         # Collect frame data and store it in separate dictionaries
         frame_ts = {}
-        frame_signals = {}
+        frame_signals: dict = {}
 
         for frame in mdf['frame']:
 
@@ -278,7 +278,7 @@ def download_and_synchronize_chc(bucket: str, key: str)->Tuple[dict, dict]:
 
         return frame_ts_signals, chc_periods
 
-def process_outputs(video_id: str, message: dict, table_algo_out: Collection, table_sig: Collection, source: str)->Optional[dict]:
+def process_outputs(video_id: str, message: dict, table_algo_out: Collection, table_sig: Collection, source: str):
     """Inserts a new item on the algorithm output collection and, if
     there is a CHC file available for that item, processes
     that info and adds it to the item (plus updates the respective
@@ -308,14 +308,14 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
     # check that data has at least the absolute minimum of required fields
     if not (all(k in message for k in ('output', 's3_path')) and 'bucket' in message['output']):
         logging.error("\nNot able to create an entry because output or s3_path is missing!")
-        return None
+        return
 
     # Initialise variables used in item creation
     outputs = message['output']
     run_id = video_id + '_' + source
     
     # Item creation (common parameters)
-    algo_item = {
+    algo_item: dict = {
                 '_id': run_id,
                 'algorithm_id': source,
                 'pipeline_id': video_id,
@@ -336,6 +336,7 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
     if source == "CHC" and 'meta_path' in outputs and 'bucket' in outputs:
         synchronized, chc_periods = download_and_synchronize_chc(outputs['bucket'], outputs['meta_path'])
 
+        algo_item['results'] = {}
         # Add video sync data processed from ivs_chain metadata file to created item
         algo_item['results']['CHBs_sync'] = synchronized
         algo_item['results']['CHC_periods'] = chc_periods
@@ -408,7 +409,7 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         update_sample(bucket_name,sample)
         
         # Create logs message
-        logging.info("[%s]  Dataset with (Id: %s) created!", timestamp, bucket_name)
+        logging.info("Voxel dataset with (Id: %s) created!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -449,7 +450,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
     if source == "SDRetriever":
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
-        if recording_item and recording_item["MDF_available"] == "Yes" and message.get("sync_file_ext"):
+        if recording_item and recording_item.get("MDF_available", "No") == "Yes" and message.get("sync_file_ext"):
             upsert_signals_item(recording_item['video_id'], message['s3_path'], 
                                             message['sync_file_ext'], table_sig)
         else:
@@ -564,9 +565,12 @@ def main():
     # initialize DB client
     db_client = container_services.create_db_client()
 
+    # use graceful exit
+    graceful_exit = GracefulExit()
+
     logging.info("\nListening to input queue(s)..\n\n")
 
-    while(True):
+    while(graceful_exit.continue_running):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
 
