@@ -1,0 +1,15 @@
+version: 2
+registries:
+  npm-bosch:
+    type: npm-registry
+    url: https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/
+    username: ${{secrets.NPM_EMAIL}}
+    password: ${{secrets.NPM_AUTH}}
+updates:
+  - package-ecosystem: npm
+    directory: "/frontend"
+    registries:
+      - npm-bosch
+    # Check the npm registry for updates every day (weekdays)
+    schedule:
+      interval: "daily"
