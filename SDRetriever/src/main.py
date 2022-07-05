@@ -612,32 +612,32 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
         # download them from S3 and store them on the files_dict dictionary
         for index, file_entry in enumerate(response_list['Contents']):
             file_name = file_entry['Key']
+            if file_name.endswith('.zip') or file_name.endswith('.json'):
+                if file_name.endswith('.zip'):
+                    # Download metadata file from RCC S3 bucket
+                    compressed_metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
+                    metadata_file = gzip.decompress(compressed_metadata_file)
 
-            if file_name.endswith('.zip'):
-                # Download metadata file from RCC S3 bucket
-                compressed_metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
-                metadata_file = gzip.decompress(compressed_metadata_file)
+                # Process only json files
+                elif file_name.endswith('.json'):
+                    # Download metadata file from RCC S3 bucket
+                    metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
 
-            # Process only json files
-            elif file_name.endswith('.json'):
-                # Download metadata file from RCC S3 bucket
-                metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
+                # Read all bytes from http response body
+                # (botocore.response.StreamingBody) and convert them into json format
+                json_temp = json.loads(metadata_file.decode("utf-8"), object_pairs_hook=json_raise_on_duplicates)
 
-            # Read all bytes from http response body
-            # (botocore.response.StreamingBody) and convert them into json format
-            json_temp = json.loads(metadata_file.decode("utf-8"), object_pairs_hook=json_raise_on_duplicates)
+                # Add filename to the json file (for debug)
+                json_temp["filename"] = file_name
 
-            # Add filename to the json file (for debug)
-            json_temp["filename"] = file_name
+                # Store json file on the dictionary based on the index
+                files_dict[chunks_total] = json_temp
 
-            # Store json file on the dictionary based on the index
-            files_dict[chunks_total] = json_temp
+                # Increase counter for number of files received
+                chunks_total += 1
 
-            # Increase counter for number of files received
-            chunks_total += 1
-
-            logging.info("Files dict details: ")
-            logging.info(files_dict)           
+                logging.info("Files dict details: ")
+                logging.info(files_dict)           
 
     # Check if there are partial chunk MDF files
     if not files_dict or chunks_total == 0:
