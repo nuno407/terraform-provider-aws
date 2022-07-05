@@ -1126,7 +1126,7 @@ def main():
                 else:
                     logging.info("WARNING: Message skipped (MessageType is %s)", event_type)
 
-                container_services.delete_message(sqs_client,message['ReceiptHandle'])
+                container_services.delete_message(sqs_client, message['ReceiptHandle'], api_sqs_queue)
             # if no snapshot message was found, look for videos
             else: snapshot_flag = 0
             if snapshot_flag == 0: video_flag=MAX_CONSECUTIVE
