@@ -1110,9 +1110,7 @@ def main():
                         message_ = body["Message"] if "Message" in body else body
                         if type(message_) == str: message_ = json.loads(body["Message"])
                         if "chunk_descriptions" in message_["value"]["properties"].keys():
-                            logging.info("Tenant is %s, processing files..." % (tenant))
-
-                            
+                            logging.info("Tenant is %s, processing files..." % tenant)
 
                             # transfer snapshots mentioned in the message
                             transfer_to_devcloud(message_, tenant, rcc_s3_client, s3_client, container_services)
@@ -1123,7 +1121,8 @@ def main():
                         logging.info("WARNING: Message skipped (Tenant is %s)", tenant)
                 else:
                     logging.info("WARNING: Message skipped (MessageType is %s)", event_type)
-            #    container_services.delete_message(sqs_client,message['ReceiptHandle'])
+
+                container_services.delete_message(sqs_client,message['ReceiptHandle'])
             # if no snapshot message was found, look for videos
             else: snapshot_flag = 0
             if snapshot_flag == 0: video_flag=MAX_CONSECUTIVE
