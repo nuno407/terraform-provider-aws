@@ -173,19 +173,28 @@ class ApiService:
         # Add CHC information
         recording_object['number_CHC_events'] = ''      
         recording_object['lengthCHC'] = ''
+        
+        recording_overview = recording_item.get('recording_overview',{})
+        recording_object['tenant'] = recording_overview.get('tenantID','-')
+        recording_object['snapshots'] = recording_overview.get('#snapshots','-')
+        recording_object['length'] = recording_overview.get('length','-')
+        recording_object['time'] = recording_overview.get('time','-')   
+        recording_object['deviceID'] = recording_overview.get('deviceID','-')
+        recording_object['description'] = recording_overview.get('description')
 
-        recording_object['tenant'] = recording_item['recording_overview']['tenantID']
-        recording_object['_id'] = recording_item['video_id']
-        recording_object['processing_list'] = recording_item['pipeline_execution']['processing_list']
-        recording_object['snapshots'] = recording_item['recording_overview']['#snapshots']
-        recording_object['data_status'] = recording_item['pipeline_execution']['data_status']                
-        recording_object['last_updated'] = recording_item['pipeline_execution']['last_updated'].split(".",1)[0].replace("T"," ")
-        recording_object['length'] = recording_item['recording_overview']['length']
-        recording_object['time'] = recording_item['recording_overview']['time']                
-        recording_object['resolution'] = recording_item['resolution']        
-        recording_object['deviceID'] = recording_item['recording_overview']['deviceID']
-        recording_object['description'] = recording_item['recording_overview'].get('description')
+        recording_object['_id'] = recording_item.get('video_id')
+        recording_object['resolution'] = recording_item.get('resolution','-')      
+        
+
+        pipeline_execution = recording_item.get('pipeline_execution',{})
+        recording_object['processing_list'] = pipeline_execution.get('processing_list','-')      
+        recording_object['data_status'] = pipeline_execution.get('data_status','-')                      
+        recording_object['last_updated'] = pipeline_execution.get('last_updated','2020-01-01T00:00:00.1Z').split(".",1)[0].replace("T"," ")
+                    
+        
         return recording_object
+
+        
 
     def __calculate_chc_events(self, chc_periods):
         duration = 0.0
