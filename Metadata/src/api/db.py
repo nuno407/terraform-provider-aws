@@ -67,7 +67,7 @@ class Persistence:
         if(sorting):
             aggregation.append({'$sort': sorting})
         else:
-            aggregation.append({'$sort': {'recording_overview.time':1}})
+            aggregation.append({'$sort': {'recording_overview.time':-1}})
         return aggregation
 
     def get_algo_output(self, algo, recording_id):
