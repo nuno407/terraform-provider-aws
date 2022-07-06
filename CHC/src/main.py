@@ -1,6 +1,7 @@
 """CHC container script"""
 import json
 import logging
+from time import sleep
 import uuid
 import boto3
 from baseaws.shared_functions import ContainerServices
@@ -161,15 +162,23 @@ def main():
         message = container_services.listen_to_input_queue(sqs_client)
 
         if message:
-            # save some messages as examples for development
-            #log_message(message)
-            # Processing request
-            success = request_processing(s3_client,container_services,message['Body'])
-
-            # Delete message after processing
-            if success:
-                container_services.delete_message(sqs_client,
-                                              message['ReceiptHandle'])
+            message_finished = False
+            while not message_finished:
+                # Processing request
+                message_finished = request_processing(s3_client, container_services, message['Body'])
+                if message_finished:
+                    logging.info('Successfully requested processing on feature chain.')
+                    # Delete message after successful processing
+                    container_services.delete_message(sqs_client, message['ReceiptHandle'])
+                else:
+                    # The IVS queue is full, so tell SQS that the current message will need a longer time and then wait for 10 minutes
+                    try:
+                        container_services.update_message_visibility(sqs_client, message['ReceiptHandle'], 3600)
+                        logging.info('Feature chain request queue is full, waiting 10 more minutes and retrying.')
+                        sleep(600)
+                    except Exception:
+                        logging.warning('Feature chain request queue is full and message visibility timeout cannot be extended.\nReturning message to the queue.')
+                        message_finished = True
 
         # Check API SQS queue for new update messages
         message_api = container_services.listen_to_input_queue(sqs_client,api_sqs_queue)

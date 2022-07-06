@@ -293,6 +293,35 @@ class ContainerServices():
         logging.info("-----------------------------------------------")
         logging.info("\n\nListening to input queue(s)..\n")
 
+    def update_message_visibility(self, client, receipt_handle, seconds, input_queue=None):
+        """ Updates the visibility timeout of an SQS message to allow longer processing
+            Arguments:
+            client {boto3.client} -- [client used to access the SQS service]
+            receipt_handle {string} -- [Receipt that identifies the received
+                                        message to be modified]
+            seconds {int} -- [new visibility timeout starting from now on]
+            input_queue {string} -- [Name of the input queue the message is on.
+                                     If None, the default input queue
+                                     (defined in self.__queues['input']) is
+                                     used instead]
+        """
+        if not input_queue:
+            # Get URL for container default input SQS queue
+            input_queue = self.__queues['input']
+
+        input_queue_url = self.get_sqs_queue_url(client, input_queue)
+
+
+        # Delete received message
+        client.change_message_visibility(
+                                QueueUrl=input_queue_url,
+                                ReceiptHandle=receipt_handle,
+                                VisibilityTimeout=seconds
+                            )
+
+        logging.info("-----------------------------------------------")
+        logging.info("\n\nListening to input queue(s)..\n")
+
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message
         with that information to the target queue
