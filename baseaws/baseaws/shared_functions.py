@@ -242,7 +242,6 @@ class ContainerServices():
             MessageAttributeNames=[
                 'All'
             ],
-            VisibilityTimeout=0,
             WaitTimeSeconds=20
         )
 
