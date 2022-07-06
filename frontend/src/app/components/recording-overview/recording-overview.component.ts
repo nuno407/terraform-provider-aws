@@ -23,7 +23,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   queryParam: string = '';
   queryLogicOperator: string = 'AND';
   sortingParam: string = '';
-  sortingOrder: string = 'asc';
+  sortingOrder: string = 'desc';
 
   videoList: Message[] = [];
 
