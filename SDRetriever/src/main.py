@@ -1035,10 +1035,7 @@ def main():
                 else:
                     # Get and store kinesis video clip
                     rec_data, hq_data = transfer_kinesis_clip(s3_client, sts_client, container_services, message)
-
-                    logging.info("Logs rec_data : %s" % (rec_data))
-
-
+                    #logging.info("Logs rec_data : %s" % (rec_data))
                     # Checks if recording received is valid for
                     # HQ data request
                     if hq_data:
