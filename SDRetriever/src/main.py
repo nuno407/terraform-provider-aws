@@ -1027,6 +1027,7 @@ def main():
             message = container_services.listen_to_input_queue(sqs_client)
 
             if message:
+                log_message(message)
                 if video_recording_type(message) == 'FrontRecorder':
                     # Ignore and delete message
                     logging.info("INFO: Found 'FrontRecorder' video recorder, ignoring.")
