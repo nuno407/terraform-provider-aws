@@ -31,6 +31,8 @@ def update_sample(data_set,sample_info):
         dataset.add_sample(sample)
 
     for (i,j) in sample_info.items():
+            if i.startswith('_'):
+                i="ivs"+i
             sample[i] = j
 
     #  Full create FiftyOne Sample object
@@ -44,6 +46,8 @@ def update_sample(data_set,sample_info):
 
     if (sample_info.get('recording_overview',1)==1):
         for (i,j) in sample_info.get('recording_overview').items():
+            if i.startswith('_'):
+                i="ivs"+i
             sample[i] = j
         try:
             recording_time = sample_info["recording_overview"]["time"]
