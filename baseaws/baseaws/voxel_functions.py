@@ -29,8 +29,10 @@ def update_sample(data_set,sample_info):
     except Exception:
         sample = fo.Sample(filepath=sample_info["s3_path"])    
         dataset.add_sample(sample)
- 
-    sample = sample_info.copy()
+
+    for (i,j) in sample_info.items():
+            sample.update({i:j})
+
 
     #  Full create FiftyOne Sample object
     # 
@@ -40,6 +42,7 @@ def update_sample(data_set,sample_info):
     #     # Parse and populate labels and metadata on sample
 
     
+
     if 'recording_overview' in sample_info:
         for (i,j) in sample_info.get('recording_overview').items():
             sample.update({i:j})
