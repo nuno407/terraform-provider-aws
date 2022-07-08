@@ -56,7 +56,9 @@ def update_sample(data_set,sample_info):
         else:
             logging.info("No time")
     else:
-        logging.info(sample_info)
+        logging.info(sample_info.get('recording_overview'))
+
+
    
     # Add sample to dataset
     sample.save()

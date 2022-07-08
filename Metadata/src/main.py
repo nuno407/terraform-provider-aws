@@ -216,6 +216,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
         logging.info("############################################################\n")
+
     return upsert_item
 
 def download_and_synchronize_chc(bucket: str, key: str)->Tuple[dict, dict]:
@@ -456,8 +457,8 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
             create_dataset(bucket_name)
         
             #Add  the video to the dataset if it doesn't exist, otherwise update it
-            update_sample(bucket_name,sample)
-        
+            update_sample(bucket_name,recording_item)
+
             # Create logs message
             logging.info("Voxel sample with (Id: %s) created!", bucket_name)
         except Exception:
