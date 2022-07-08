@@ -49,11 +49,10 @@ def update_sample(data_set,sample_info):
             if i.startswith('_'):
                 i="ivs"+i
             sample[i] = j
-        try:
-            recording_time = sample_info["recording_overview"]["time"]
-            recording_datetime = datetime.strptime(recording_time, "%Y-%m-%d %H:%M:%S")
-            sample["recording_time"] = recording_datetime
-        except Exception:
+        if 'time' in sample["recording_overview"]:
+            time = sample["recording_overview"]["time"]
+            sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
+        else:
             logging.info("No time")
     else:
         logging.info("No recording_overview")
