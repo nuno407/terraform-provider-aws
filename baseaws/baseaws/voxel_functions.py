@@ -31,8 +31,7 @@ def update_sample(data_set,sample_info):
         dataset.add_sample(sample)
 
     for (i,j) in sample_info.items():
-            sample.update({i:j})
-
+            sample[i] = j
 
     #  Full create FiftyOne Sample object
     # 
@@ -43,14 +42,14 @@ def update_sample(data_set,sample_info):
 
     
 
-    if 'recording_overview' in sample_info:
+    if (sample_info.get('recording_overview',1)==1):
         for (i,j) in sample_info.get('recording_overview').items():
-            sample.update({i:j})
-        if 'time' in sample["recording_overview"]:
-        
-            time = sample["recording_overview"]["time"]
-            sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
-        else:
+            sample[i] = j
+        try:
+            recording_time = sample_info["recording_overview"]["time"]
+            recording_datetime = datetime.strptime(recording_time, "%Y-%m-%d %H:%M:%S")
+            sample["recording_time"] = recording_datetime
+        except Exception:
             logging.info("No time")
     else:
         logging.info("No recording_overview")
