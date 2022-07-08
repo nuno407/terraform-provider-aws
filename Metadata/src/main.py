@@ -211,7 +211,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         #Add  the video to the dataset
         update_sample(bucket_name,sample)
         # Create logs message
-        logging.info("Voxel Dataset with (Id: %s) created!", bucket_name)
+        logging.info("Voxel sample with (Id: %s) created!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -409,7 +409,7 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         update_sample(bucket_name,sample)
         
         # Create logs message
-        logging.info("Voxel dataset with (Id: %s) created!", bucket_name)
+        logging.info("Voxel sample with (Id: %s) created!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -450,6 +450,21 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
     if source == "SDRetriever":
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
+
+        try:
+            # Create dataset with the bucket_name if it doesn't exist
+            create_dataset(bucket_name)
+        
+            #Add  the video to the dataset if it doesn't exist, otherwise update it
+            update_sample(bucket_name,sample)
+        
+            # Create logs message
+            logging.info("Voxel sample with (Id: %s) created!", bucket_name)
+        except Exception:
+            logging.info("\n######################## Exception #########################")
+            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.info("############################################################\n")
+
         if recording_item and recording_item.get("MDF_available", "No") == "Yes" and message.get("sync_file_ext"):
             upsert_signals_item(recording_item['video_id'], message['s3_path'], 
                                             message['sync_file_ext'], table_sig)
