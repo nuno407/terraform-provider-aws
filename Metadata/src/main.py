@@ -463,15 +463,12 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
     if filetype == "jpeg":
         anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][message["s3_path"].find("/")+1:-5]+'_anonymized.'+filetype
 
-
-
     
     # generate recording entry with retrieval of SDRetriever message
     if source == "SDRetriever":
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
         recording_item["s3_path"] = anon_video_path
-        recording_item["video_id"] = algo_item["pipeline_id"]
         logging.info("Recording Item")
         logging.info(recording_item)
         try:
