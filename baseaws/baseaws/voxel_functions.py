@@ -52,7 +52,8 @@ def update_sample(data_set,sample_info):
             sample[i] = j
         if 'time' in sample["recording_overview"]:
             time = sample["recording_overview"]["time"]
-            sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
+            #sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
+            sample["recording_time"] = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
         else:
             logging.info("No time")
     else:

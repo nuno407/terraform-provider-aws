@@ -214,7 +214,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         logging.info("Voxel sample with (Id: %s) created!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+        logging.exception("Warning: Unable to create dataset with (Id: %s) on update_pipeline_db !", bucket_name)
         logging.info("############################################################\n")
 
     return upsert_item
@@ -413,7 +413,7 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         logging.info("Voxel sample with (Id: %s) created from process_outputs!", bucket_name)
     except Exception:
         logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+        logging.exception("Warning: Unable to process Voxel entry with (Id: %s) on process_outputs!", bucket_name)
         logging.info("############################################################\n")
 
 
@@ -481,7 +481,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
             logging.info("Voxel sample with (Id: %s) updated from SDRetriever!", bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
+            logging.exception("Warning: Unable to process Voxel entry with (Id: %s) on upsert_data_to_db!", bucket_name)
             logging.info("############################################################\n")
 
         if recording_item and recording_item.get("MDF_available", "No") == "Yes" and message.get("sync_file_ext"):
