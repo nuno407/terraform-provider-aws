@@ -20,8 +20,8 @@ def update_sample(data_set,sample_info):
 
     dataset = fo.load_dataset(data_set)
 
-    logging.info("Sample info:")
-    logging.info(sample_info)
+    #logging.info("Sample info:")
+    #logging.info(sample_info)
             
     #If the sample already exists, update it's information, otherwise create a new one
 
@@ -50,12 +50,10 @@ def update_sample(data_set,sample_info):
             if i.startswith('_'):
                 i="ivs"+i
             sample[i] = j
-            logging.info(i,j)
         if 'time' in sample["recording_overview"]:
             time = sample["recording_overview"]["time"]
             #sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
             sample["recording_time"] = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-
             logging.info(sample["recording_time"])
         else:
             logging.info("No time")
@@ -63,7 +61,11 @@ def update_sample(data_set,sample_info):
         logging.info("No items in recording overview")
         logging.info(sample_info.get('recording_overview'))
    
-    logging.info("Sample updates")
-    logging.info(sample)
+
+    if 'filepath' in sample:
+        sample.remove('filepath')
+
+    #logging.info("Sample updates")
+    #logging.info(sample)
     # Add sample to dataset
     sample.save()
