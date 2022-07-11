@@ -469,6 +469,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
         recording_item["s3_path"] = anon_video_path
+
         logging.info("Recording Item")
         logging.info(recording_item)
         try:
