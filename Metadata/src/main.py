@@ -411,7 +411,6 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         
         # Create logs message
         logging.info("Voxel sample with (Id: %s) created from process_outputs!", bucket_name)
-
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -448,6 +447,9 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
 
     #################### NOTE: Recording collection handling ##################
 
+    logging.info("Message")
+    logging.info(message)
+
     #Voxel variables
     s3split = message["s3_path"].split("/")
     bucket_name = s3split[0]
@@ -468,7 +470,6 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         recording_item = upsert_recording_item(message, table_rec)
         logging.info("Recording Item")
         logging.info(recording_item)
-
         try:
             # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)

@@ -20,7 +20,9 @@ def update_sample(data_set,sample_info):
 
     dataset = fo.load_dataset(data_set)
 
-
+    logging.info("Sample info:")
+    logging.info(sample_info.get('sample_info'))
+            
     #If the sample already exists, update it's information, otherwise create a new one
 
     try:
