@@ -410,7 +410,8 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         update_sample(bucket_name,sample)
         
         # Create logs message
-        logging.info("Voxel sample with (Id: %s) created!", bucket_name)
+        logging.info("Voxel sample with (Id: %s) created from process_outputs!", bucket_name)
+
     except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)
@@ -447,10 +448,26 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
 
     #################### NOTE: Recording collection handling ##################
 
+    #Voxel variables
+    s3split = message["s3_path"].split("/")
+    bucket_name = s3split[0]
+
+    filetype = s3split[-1].split(".")[-1]
+    anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-4]+'_anonymized.'+filetype
+
+    if filetype == "jpeg" or filetype == "png":
+        bucket_name = bucket_name+"_snapshots"
+
+    if filetype == "jpeg":
+        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-5]+'_anonymized.'+filetype
+
+
     # generate recording entry with retrieval of SDRetriever message
     if source == "SDRetriever":
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
+        logging.info("Recording Item")
+        logging.info(recording_item)
 
         try:
             # Create dataset with the bucket_name if it doesn't exist
@@ -458,9 +475,8 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         
             #Add  the video to the dataset if it doesn't exist, otherwise update it
             update_sample(bucket_name,recording_item)
-
             # Create logs message
-            logging.info("Voxel sample with (Id: %s) created!", bucket_name)
+            logging.info("Voxel sample with (Id: %s) updated from SDRetriever!", bucket_name)
         except Exception:
             logging.info("\n######################## Exception #########################")
             logging.exception("Warning: Unable to create dataset with (Id: %s) !", bucket_name)

@@ -43,9 +43,7 @@ def update_sample(data_set,sample_info):
     #     # Parse and populate labels and metadata on sample
 
     
-
-
-    if 'recording_overview' in sample_info and type(sample_info['recording_overview'])== dict:
+    if 'recording_overview' in sample_info:
         for (i,j) in sample_info.get('recording_overview').items():
             if i.startswith('_'):
                 i="ivs"+i
@@ -56,9 +54,8 @@ def update_sample(data_set,sample_info):
         else:
             logging.info("No time")
     else:
+        logging.info("No items in recording overview")
         logging.info(sample_info.get('recording_overview'))
-
-
    
     # Add sample to dataset
     sample.save()
