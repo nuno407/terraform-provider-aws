@@ -10,7 +10,7 @@ import time
 import boto3
 import gzip
 from typing import TypeVar
-from baseaws.shared_functions import ContainerServices, GracefulExit
+from baseaws.shared_functions import ContainerServices, GracefulExit, StsHelper
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 MAX_CONSECUTIVE = 25
@@ -18,7 +18,7 @@ MAX_CONSECUTIVE = 25
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
 
 
-def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
+def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: ContainerServices, message: dict):
     """Converts the message body to json format (for easier variable access),
     gets video clip from RCC Kinesis video stream and stores the received
     clip on the raw data S3 bucket to be later processed by the data
@@ -27,8 +27,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
     Arguments:
         s3_client {boto3.client} -- [client used to access
                                      the S3 service]
-        sts_client {boto3.client} -- [client used to assume
-                                      a given cross-account IAM role]
+        rcc_role {shared_functions.StsHelper} -- client that holds the RCC role
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         message {dict} -- [dict with the received message content
@@ -104,10 +103,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
     selector = 'PRODUCER_TIMESTAMP'
-    # "arn:aws:iam::213279581081:role/dev-DevCloud"
-    stream_role = container_services.rcc_info["role"]
     clip_ext = ".mp4"
-    sts_session = "AssumeRoleSession1"
 
     # Defining s3 path to store KVS clip
     if "srxdriverpr" in stream_name:
@@ -135,10 +131,7 @@ def transfer_kinesis_clip(s3_client, sts_client, container_services, message):
         return record_data, hq_request
 
     # Requests credentials to assume specific cross-account role
-    assumed_role_object = sts_client.assume_role(RoleArn=stream_role,
-                                                 RoleSessionName=sts_session)
-
-    role_credentials = assumed_role_object['Credentials']
+    role_credentials = rcc_role.get_credentials()
 
     try:
         # Get Kinesis clip using received message parameters
@@ -452,7 +445,7 @@ def json_raise_on_duplicates(ordered_pairs):
            d[k] = v
     return d
 
-def concatenate_metadata_full(s3_client, sts_client, container_services, message):
+def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services: ContainerServices, message: dict):
     """Converts the message body to json format (for easier variable access),
     gets all metadata_full json files from RCC S3 bucket related to
     the previous processed video clip, concatenates all the info
@@ -461,8 +454,7 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     Arguments:
         s3_client {boto3.client} -- [client used to access
                                      the S3 service]
-        sts_client {boto3.client} -- [client used to assume
-                                      a given cross-account IAM role]
+        rcc_role {shared_functions.StsHelper} -- client that holds the RCC role
         container_services {BaseAws.shared_functions.ContainerServices}
                             -- [class containing the shared aws functions]
         message {dict} -- [dict with the received message content
@@ -502,16 +494,8 @@ def concatenate_metadata_full(s3_client, sts_client, container_services, message
     # availability of the metadata files
     metadata_available = "Yes"
 
-    # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
-    # "arn:aws:iam::213279581081:role/dev-DevCloud"
-    s3_role = container_services.rcc_info["role"]
-    sts_session = "AssumeRoleSession2"
-
     # Requests credentials to assume specific cross-account role
-    assumed_role_object = sts_client.assume_role(RoleArn=s3_role,
-                                                 RoleSessionName=sts_session)
-
-    role_creds = assumed_role_object['Credentials']
+    role_creds = rcc_role.get_credentials()
 
     # Create a S3 client with temporary STS credentials
     # to enable cross-account access
@@ -1014,6 +998,11 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
+    # Initialize helper for RCC credentials
+    sts_role_name = container_services.rcc_info["role"]
+    sts_session_name = "DevCloud-SDRetriever"
+    rcc_role = StsHelper(sts_client, sts_role_name, sts_session_name)
+
     logging.info("\nListening to input queue(s)..\n")
     
     # prepare counters
@@ -1034,7 +1023,7 @@ def main():
                     container_services.delete_message(sqs_client,message['ReceiptHandle'])
                 else:
                     # Get and store kinesis video clip
-                    rec_data, hq_data = transfer_kinesis_clip(s3_client, sts_client, container_services, message)
+                    rec_data, hq_data = transfer_kinesis_clip(s3_client, rcc_role, container_services, message)
                     #logging.info("Logs rec_data : %s" % (rec_data))
                     # Checks if recording received is valid for
                     # HQ data request
@@ -1047,7 +1036,7 @@ def main():
                     # Checks if recording received is valid
                     if rec_data:
                         # Concatenate all metadata related to processed clip
-                        meta_available, sync_ext = concatenate_metadata_full(s3_client,sts_client,container_services,message)
+                        meta_available, sync_ext = concatenate_metadata_full(s3_client,rcc_role,container_services,message)
 
                         # Add parameter with info about metadata availability
                         rec_data["MDF_available"] = meta_available
@@ -1067,23 +1056,6 @@ def main():
                 snapshot_flag=MAX_CONSECUTIVE
         # if it is time to look for snapshots
         if snapshot_flag:
-            if snapshot_flag == MAX_CONSECUTIVE:
-                ## initialize RCC S3 client here to make sure the role credentials are renewed regularly
-                # "arn:aws:iam::213279581081:role/dev-DevCloud"
-                s3_role = container_services.rcc_info["role"]
-                sts_session = "AssumeRoleSession2"
-
-                # Requests credentials to assume specific cross-account role
-                assumed_role_object = sts_client.assume_role(RoleArn=s3_role,RoleSessionName=sts_session)
-                role_creds = assumed_role_object['Credentials']
-
-                # Create a S3 client with temporary STS credentials
-                # to enable cross-account access
-                rcc_s3_client = boto3.client('s3',
-                                            region_name='eu-central-1',
-                                            aws_access_key_id=role_creds['AccessKeyId'],
-                                            aws_secret_access_key=role_creds['SecretAccessKey'],
-                                            aws_session_token=role_creds['SessionToken'])
 
 
             snapshot_flag += -1
@@ -1114,6 +1086,14 @@ def main():
                         if "chunk_descriptions" in message_["value"]["properties"].keys():
                             logging.info("Tenant is %s, processing files..." % tenant)
 
+                            # Create a S3 client with temporary STS credentials
+                            # to enable cross-account access
+                            role_creds = rcc_role.get_credentials()
+                            rcc_s3_client = boto3.client('s3',
+                                                        region_name='eu-central-1',
+                                                        aws_access_key_id=role_creds['AccessKeyId'],
+                                                        aws_secret_access_key=role_creds['SecretAccessKey'],
+                                                        aws_session_token=role_creds['SessionToken'])
                             # transfer snapshots mentioned in the message
                             transfer_to_devcloud(message_, tenant, rcc_s3_client, s3_client, container_services)
                         else:
