@@ -220,13 +220,13 @@ class ApiService:
             lq_entry = self.__db.get_single_recording(lq_id)
         except:
             return None
-        lq_video_details = lq_entry.get('recording_overview')
+        lq_video_details = lq_entry.get('recording_overview', {})
 
         lq_video = {}
         lq_video['id'] = lq_id
-        lq_video['length'] = lq_video_details['length']
-        lq_video['time'] = lq_video_details['time']                
-        lq_video['resolution'] = lq_entry['resolution']        
-        lq_video['snapshots'] = lq_video_details['#snapshots']
+        if 'length' in lq_video_details: lq_video['length'] = lq_video_details['length']
+        if 'time' in lq_video_details: lq_video['time'] = lq_video_details['time']                
+        if 'resolution' in lq_entry: lq_video['resolution'] = lq_entry['resolution']        
+        if '#snapshots' in lq_video_details: lq_video['snapshots'] = lq_video_details['#snapshots']
 
         return lq_video
