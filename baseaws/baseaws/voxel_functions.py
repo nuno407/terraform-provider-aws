@@ -54,6 +54,10 @@ def update_sample(data_set,sample_info):
             time = sample["recording_overview"]["time"]
             #sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
             sample["recording_time"] = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+            sample["Hour"] = sample["recording_time"].strftime("%H")
+            sample["Day"] = sample["recording_time"].strftime("%d")
+            sample["Month"] = sample["recording_time"].strftime("%b")
+            sample["Year"] = sample["recording_time"].strftime("%Y")            
             logging.info(sample["recording_time"])
         else:
             logging.info("No time")
