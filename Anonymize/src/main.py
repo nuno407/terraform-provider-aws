@@ -234,7 +234,7 @@ def main():
                         logging.info('Feature chain request queue is full, waiting 10 more minutes and retrying.')
                         sleep(600)
                     except Exception:
-                        logging.warning('Feature chain request queue is full and message visibility timeout cannot be extended.\nReturning message to the queue.')
+                        logging.exception('Feature chain request queue is full and message visibility timeout cannot be extended.\nReturning message to the queue.')
                         message_finished = True
 
         # Check API SQS queue for new update messages
