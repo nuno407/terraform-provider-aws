@@ -8,6 +8,7 @@ from baseaws.shared_functions import ContainerServices
 import requests
 from requests.status_codes import codes as status_codes
 import subprocess
+import dns.resolver
 
 CONTAINER_NAME = "Anonymize"    # Name of the current container
 CONTAINER_VERSION = "v8.0"      # Version of the current container
@@ -48,27 +49,34 @@ def request_processing(client, container_services, body)->bool:
                'mode': 'anonymize'}
     file_format = 'video' if dict_body["s3_path"].split('.')[-1] in VIDEO_FORMATS else 'image'
     files = [(file_format, raw_file)]
+
     # Define settings for API request
-    ip_pod = container_services.ivs_api["address"]
     port_pod = container_services.ivs_api["port"]
     req_command = container_services.ivs_api["endpoint"]
+    hostname_ivs = container_services.ivs_api["address"]
+    ip_addresses = dns.resolver.resolve(hostname_ivs, 'A')
 
-    # Build address for request
-    addr = 'http://{}:{}/{}'.format(ip_pod, port_pod, req_command)
+    for ip in ip_addresses:
+        # Build address for request
+        url = 'http://{}:{}/{}'.format(ip, port_pod, req_command)
+        result = do_ivs_request(url, files, payload)
+        if result:
+            return True
+    return False
 
+def do_ivs_request(addr, files, payload)->bool:
     # Send API request (POST)
     try:
         response = requests.post(addr, files=files, data=payload)
-        logging.info("API POST request sent! (uid: %s)", uid)
+        logging.info("API POST request sent! (uid: %s)", payload['uid'])
         logging.info("IVS Chain response: %s", response.text)
         return response.status_code == status_codes.ok
-    except requests.exceptions.ConnectionError:
+    except Exception:
         logging.info("\n######################## Exception #########################")
         logging.exception("The following exception occured during execution:")
         logging.info("############################################################\n")
         return False
 
-    # TODO: ADD EXCEPTION HANDLING IF API NOT AVAILABLE (except Exception as e:)
 
 def update_processing(client, container_services, body):
     """Converts the message body to json format (for easier variable access)

@@ -3,3 +3,4 @@ pytz
 requests
 flask
 pymongo
+dnspython
