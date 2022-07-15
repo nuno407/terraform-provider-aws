@@ -696,7 +696,7 @@ class ContainerServices():
               logging.info("No logs.")
 
         # Load bytes from converted output file
-        with open(output_name, "rb") as output_file:
+        with open(output_name_copied, "rb") as output_file:
             output_video_copied = output_file.read()
 
         subprocess.run(["rm", input_name, output_name_copied, logs_name_copied])
