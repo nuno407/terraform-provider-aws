@@ -663,8 +663,7 @@ class ContainerServices():
 
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
-                                        "0", "-filter:v", "fps=15.72", output_name],
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-movflags", "faststart", "-c:v", "copy", output_name],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)

@@ -167,6 +167,9 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
 
+    # Delete temporary input file
+    subprocess.run(["rm", input_name])
+
     # Convert bytes from ffprobe output to string
     decoded_info = (result.stdout).decode("utf-8")
 
