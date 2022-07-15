@@ -23,6 +23,7 @@
 
 .filter-item {
   display: flex;
+  cursor: pointer;
   /* flex-direction: column; */
 }
 
@@ -71,7 +72,6 @@
   align-items: center;
   overflow-x: auto;
   overflow-y: auto;
-  
 }
 
 .upload-button {

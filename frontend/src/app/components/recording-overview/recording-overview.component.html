@@ -22,7 +22,7 @@
           [(ngModel)]="sortingParam"
           class="input"
           type="text"
-          placeholder="time" 
+          placeholder="time"
           [title]="orderHelpText"
           >
           <mat-radio-group class="query-radio-group" fxFlex="noshrink" (change)="retrieveRecordingList()" [(ngModel)]="sortingOrder" >
@@ -53,53 +53,53 @@
       <span class="column-header" (click)="sortBy('tenant')" style="cursor:pointer">Tenant</span> -->
       <span class="column-header">Tenant</span>
     </div>
-    <div class="filter-item second-column" style="margin-left: 1%;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'deviceID' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'deviceID' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'deviceID'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('deviceID')" style="cursor:pointer">Device ID</span>
+    <div (click)="sortBy('deviceID')" class="filter-item second-column" style="margin-left: 1%;">
+      <mat-icon *ngIf="sortingParam == 'deviceID' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'deviceID' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'deviceID'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Device ID</span>
     </div>
-    <div class="filter-item third-column" style="margin-left: 3%;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'length' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'length' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'length'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('length')" style="cursor:pointer">Length</span>
+    <div (click)="sortBy('length')" class="filter-item third-column" style="margin-left: 3%;">
+      <mat-icon *ngIf="sortingParam == 'length' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'length' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'length'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Length</span>
     </div>
-    <div class="filter-item fourth-column">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'time' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'time' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'time'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('time')" style="cursor:pointer">Recording DateTime</span>
+    <div (click)="sortBy('time')" class="filter-item fourth-column">
+      <mat-icon *ngIf="sortingParam == 'time' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'time' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'time'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Recording DateTime</span>
     </div>
-    <div class="filter-item fifth-column" style="justify-content: center;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'resolution' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'resolution' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'resolution'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('resolution')" style="cursor:pointer">Resolution</span>
+    <div (click)="sortBy('resolution')" class="filter-item fifth-column" style="justify-content: center;">
+      <mat-icon *ngIf="sortingParam == 'resolution' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'resolution' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'resolution'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Resolution</span>
     </div>
-    <div class="filter-item six-column" style="margin-left: 2%;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'data_status' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'data_status' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'data_status'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('data_status')" style="cursor:pointer">Status</span>
+    <div (click)="sortBy('data_status')" class="filter-item six-column" style="margin-left: 2%;">
+      <mat-icon *ngIf="sortingParam == 'data_status' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'data_status' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'data_status'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Status</span>
     </div>
-    <div class="filter-item seven-column">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'processing_list' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'processing_list' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'processing_list'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('processing_list')" style="cursor:pointer">Algorithms</span>
+    <div (click)="sortBy('processing_list')" class="filter-item seven-column">
+      <mat-icon *ngIf="sortingParam == 'processing_list' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'processing_list' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'processing_list'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Algorithms</span>
     </div>
-    <div class="filter-item eight-column" style="margin-left: 2%;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'last_updated' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'last_updated' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'last_updated'" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('last_updated')" style="cursor:pointer">Processing DateTime</span>
+    <div (click)="sortBy('last_updated')" class="filter-item eight-column" style="margin-left: 2%;">
+      <mat-icon *ngIf="sortingParam == 'last_updated' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'last_updated' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'last_updated'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header">Processing DateTime</span>
     </div>
-    <div class="filter-item nine-column" style="justify-content: center;">
-      <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'snapshots' && sortingOrder=='asc'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'snapshots' && sortingOrder=='dsc'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
-      <mat-icon fontIcon="bosch-ic-up-down" *ngIf="sortingParam != 'snapshots'" (click)="sortBy('snapshots')" style="cursor:pointer"></mat-icon>
-      <span class="column-header" (click)="sortBy('snapshots')" style="cursor:pointer"># Snapshots</span>
+    <div (click)="sortBy('snapshots')" class="filter-item nine-column" style="justify-content: center;">
+      <mat-icon *ngIf="sortingParam == 'snapshots' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+      <mat-icon *ngIf="sortingParam == 'snapshots' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+      <mat-icon *ngIf="sortingParam != 'snapshots'" fontIcon="bosch-ic-up-down"></mat-icon>
+      <span class="column-header"># Snapshots</span>
     </div>
     <div class="filter-item ten-column" >
       <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
