@@ -47,7 +47,6 @@
             class="paginator">
   </mat-paginator>
   <div [style.top]="headerTop" class="head">
-    <div class="filter-item zero-column"></div>
     <div class="filter-item first-column">
       <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'tenant' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
       <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'tenant' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
@@ -119,7 +118,6 @@
   <div class="virtual-scroll-viewport" [hidden]="!isLoaded || error">
     <div class="list-row" *ngFor="let video of videoList">
       <div *ngIf="video" style="display: flex" (click)="showDetailDialog(video._id)">
-        <div class="list-item zero-column" ></div>
         <div class="list-item first-column" >{{video.tenant}}</div>
         <div class="list-item second-column" style="margin-left: 1%;">{{video.deviceID}}</div>
         <div class="list-item third-column" style="margin-left: 3%;">{{video.length}}</div>
