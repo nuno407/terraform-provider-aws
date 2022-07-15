@@ -662,15 +662,17 @@ class ContainerServices():
         # Save video chunks to file
         with open(input_name, 'wb') as infile: 
             infile.write(video_chunk)
-
+        
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale", "0",
-                                         "-filter:v", "fps=15.72", output_name], universal_newlines=True)
-
+            logging.info("Converting file..")
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-q:v", "0", "-filter:v", "fps=15.72",
+                                         output_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            logging.info("Converted, writting logs..")
             # Save conversion logs into txt file
             for line in conv_logs.stdout:
                 logs_write.write(line)
+            logging.info("Written.")
 
         # Load bytes from converted output file
         with open(output_name, "rb") as output_file:
@@ -681,13 +683,17 @@ class ContainerServices():
 
         with open(logs_name_copied, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
+            logging.info("Converting file..")
             conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-movflags", "faststart", "-c:v", "copy",
                                          output_name_copied], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-
+            logging.info("Converted, writting logs..")
             # Save conversion logs into txt file
             if conv_logs.stdout:
                 for line in conv_logs.stdout:
                     logs_write.write(line)
+                logging.info("Written.")
+            else:
+              logging.info("No logs.")
 
         # Load bytes from converted output file
         with open(output_name, "rb") as output_file:
