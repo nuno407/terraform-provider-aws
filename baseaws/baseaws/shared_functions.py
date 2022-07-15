@@ -685,8 +685,9 @@ class ContainerServices():
                                          output_name_copied], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
 
             # Save conversion logs into txt file
-            for line in conv_logs.stdout:
-                logs_write.write(line)
+            if conv_logs.stdout:
+                for line in conv_logs.stdout:
+                    logs_write.write(line)
 
         # Load bytes from converted output file
         with open(output_name, "rb") as output_file:

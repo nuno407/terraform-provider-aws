@@ -135,29 +135,25 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
 
     try:
         # Get Kinesis clip using received message parameters
-        video_clip, video_clip_copied = container_services.get_kinesis_clip(role_credentials,
-                                                         stream_name,
-                                                         start_time,
-                                                         end_time,
-                                                         selector)
-        # Upload video clip into raw data S3 bucket
-        container_services.upload_file(s3_client,
-                                       video_clip,
-                                       container_services.raw_s3,
-                                       s3_path)
-        
-        s3_path_copied = s3_folder + s3_filename +"_copied"+ clip_ext
-        container_services.upload_file(s3_client,
-                                       video_clip_copied,
-                                       container_services.raw_s3,
-                                       s3_path_copied)
+        video_clip, video_clip_copied = container_services.get_kinesis_clip(
+            role_credentials, stream_name, start_time, end_time, selector)
 
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
-        logging.info(
-            "############################################################\n")
+        logging.info("######################## Exception #########################")
+        logging.exception("ERROR: Failed to get Kinesis clip (%s)!!", s3_path)
+        logging.info("############################################################")
+        return None, None
+    try:
+
+        # Upload video clip into raw data S3 bucket
+        container_services.upload_file(s3_client, video_clip, container_services.raw_s3, s3_path)
+        s3_path_copied = s3_folder + s3_filename + "_copied" + clip_ext
+        container_services.upload_file(s3_client, video_clip_copied, container_services.raw_s3, s3_path_copied)
+
+    except Exception:
+        logging.info("######################## Exception #########################")
+        logging.exception("ERROR: Failed to upload video clip to raw S3(%s)!!", s3_path)
+        logging.info("############################################################")
         return None, None
 
     ################ NOTE: Extract info details from video ###############
