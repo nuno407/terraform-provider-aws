@@ -135,7 +135,7 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
 
     try:
         # Get Kinesis clip using received message parameters
-        video_clip = container_services.get_kinesis_clip(role_credentials,
+        video_clip, video_clip_copied = container_services.get_kinesis_clip(role_credentials,
                                                          stream_name,
                                                          start_time,
                                                          end_time,
@@ -145,6 +145,13 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
                                        video_clip,
                                        container_services.raw_s3,
                                        s3_path)
+        
+        s3_path_copied = s3_folder + s3_filename +"_copied"+ clip_ext
+        container_services.upload_file(s3_client,
+                                       video_clip_copied,
+                                       container_services.raw_s3,
+                                       s3_path_copied)
+
     except Exception:
         logging.info(
             "\n######################## Exception #########################")
@@ -166,6 +173,9 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
                              input_name],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
+
+    # Delete temporary input file
+    subprocess.run(["rm", input_name])
 
     # Convert bytes from ffprobe output to string
     decoded_info = (result.stdout).decode("utf-8")
