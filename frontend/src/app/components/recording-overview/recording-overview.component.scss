@@ -21,16 +21,25 @@
   background-color: #00000000;
 }
 
+.recordings-table {
+  width: 100%;
+  table-layout: fixed;
+  background-color: transparent;
+  min-width: 1400px;
+}
+
+.header-row {
+  border-bottom: 0.06rem solid $black;
+}
+
 .filter-item {
-  display: flex;
   cursor: pointer;
-  /* flex-direction: column; */
+  display: flex;
+  align-items: center;
 }
 
 .column {
-  flex-basis: 10%;
-  min-width: auto;
-  margin-left: 1rem;
+  padding-left: 1.0rem;
 }
 
 .virtual-scroll-viewport {
@@ -44,8 +53,9 @@
 }
 
 .list-row {
-  border-bottom: 2px solid black;
+  border-bottom: 0.06rem solid $tableBorderBottomColor;
   cursor: pointer;
+  overflow-wrap: anywhere;
 }
 
 .list-row:hover {
@@ -53,11 +63,7 @@
 }
 
 .list-item {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  overflow-x: auto;
-  overflow-y: auto;
+  height: 2.5rem;
 }
 
 .upload-button {
