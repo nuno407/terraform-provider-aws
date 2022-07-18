@@ -96,3 +96,20 @@ table.mat-table tr.mat-row td.mat-cell {
   max-height: unset !important;
   flex: 1 0 0;
 }
+
+.highlightable:hover {
+  color: $blue50;
+}
+.highlightable:active {
+  color: $blue50;
+}
+.close-button {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: transparent;
+}
+
+.close-button:focus {
+  outline: 1px dotted ButtonText;
+}
