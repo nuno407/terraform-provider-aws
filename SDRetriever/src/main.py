@@ -573,14 +573,10 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
         ##################################################################
 
         # Construct timestamp part of the s3 path (folder)
-        time_path = "year={}/month={}/day={}/hour={}".format(next_year,
-                                                             next_month,
-                                                             next_day,
-                                                             next_hour)
+        time_path = "year={}/month={}/day={}/hour={}".format(next_year, next_month, next_day, next_hour)
 
         # Build s3 key prefix
-        key_prefix = tenant + "/" + device + "/" + \
-            time_path + "/" + recorder + "_" + rec_prefix
+        key_prefix = tenant + "/" + device + "/" + time_path + "/" + recorder + "_" + rec_prefix
 
         # Get list of all files with the same key prefix as the one
         # received on the message
@@ -591,16 +587,16 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
 
         # Check if response_list is not empty
         if response_list['KeyCount'] == 0:
-            logging.info(
-                "\nWARNING: No metadata files with prefix: %s were found!!", key_prefix)
+            logging.warning( "No metadata files with prefix: %s were found!!", key_prefix)
             continue
 
         # Cycle through the received list of matching files,
         # download them from S3 and store them on the files_dict dictionary
         for index, file_entry in enumerate(response_list['Contents']):
             file_name = file_entry['Key']
-            if file_name.endswith('.zip') or file_name.endswith('.json'):
-                if file_name.endswith('.zip'):
+            if file_name.endswith('.json.zip') or file_name.endswith('.json'):
+                logging.info(f"METADATA: Found {file_name}")
+                if file_name.endswith('.json.zip'):
                     # Download metadata file from RCC S3 bucket
                     compressed_metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
                     metadata_file = gzip.decompress(compressed_metadata_file)
@@ -625,14 +621,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
 
     # Check if there are partial chunk MDF files
     if not files_dict or chunks_total == 0:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.info(
-            "WARNING: No valid metadata files with prefix: %s were found!!", key_prefix)
-        logging.info("Please check files_dict dictionary content below:")
-        logging.info(files_dict)
-        logging.info(
-            "############################################################\n")
+        logging.warning("No valid metadata files with prefix: %s were found", key_prefix)
         metadata_available = "No"
         sync_file_ext = ""
         return metadata_available, sync_file_ext
@@ -1035,7 +1024,8 @@ def main():
 
                     # Checks if recording received is valid
                     if rec_data:
-                        # Concatenate all metadata related to processed clip
+                        
+                        # Concatenate all metadata related to processed clip 
                         meta_available, sync_ext = concatenate_metadata_full(s3_client,rcc_role,container_services,message)
 
                         # Add parameter with info about metadata availability
@@ -1097,7 +1087,7 @@ def main():
                             # transfer snapshots mentioned in the message
                             transfer_to_devcloud(message_, tenant, rcc_s3_client, s3_client, container_services)
                         else:
-                            logging.info("WARNING: No files found in message")
+                            logging.warning("No files found in message")
                             logging.info(message)
                     else:
                         logging.info("WARNING: Message skipped (Tenant is %s)", tenant)
