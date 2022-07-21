@@ -14,6 +14,8 @@ from baseaws.shared_functions import ContainerServices, GracefulExit, StsHelper
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 MAX_CONSECUTIVE = 25
+FRAME_BUFFER = 120*1000 # seconds * 1000 milliseconds
+
 """This version added snapshot support."""
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
 
@@ -198,8 +200,8 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
         hq_request = {
             "streamName": stream_name,
             "deviceId": device,
-            "footageFrom": epoch_from,
-            "footageTo": epoch_to
+            "footageFrom": epoch_from - FRAME_BUFFER,
+            "footageTo": epoch_to + FRAME_BUFFER
         }
 
     return record_data, hq_request
