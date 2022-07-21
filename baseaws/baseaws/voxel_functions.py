@@ -35,6 +35,8 @@ def update_sample(data_set,sample_info):
     for (i,j) in sample_info.items():
             if i.startswith('_'):
                 i="ivs"+i
+            if i.startswith('filepath'):
+                i="ivs_"+i    
             sample[i] = j
 
     #  Full create FiftyOne Sample object
@@ -66,10 +68,10 @@ def update_sample(data_set,sample_info):
         logging.info(sample_info.get('recording_overview'))
    
 
-    if 'filepath' in sample:
-        sample.remove('filepath')
+    #if 'filepath' in sample:
+    #    sample.remove('filepath')
 
     #logging.info("Sample updates")
-    #logging.info(sample)
+    logging.info(sample)
     # Add sample to dataset
     sample.save()
