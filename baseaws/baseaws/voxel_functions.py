@@ -25,6 +25,9 @@ def update_sample(data_set,sample_info):
             
     #If the sample already exists, update it's information, otherwise create a new one
 
+    if 'filepath' in sample_info:
+        sample_info.remove('filepath')
+
     try:
         sample = dataset.one(F("video_id") == sample_info["video_id"])
       
@@ -68,10 +71,8 @@ def update_sample(data_set,sample_info):
         logging.info(sample_info.get('recording_overview'))
    
 
-    #if 'filepath' in sample:
-    #    sample.remove('filepath')
 
     #logging.info("Sample updates")
-    logging.info(sample)
+    #logging.info(sample)
     # Add sample to dataset
     sample.save()
