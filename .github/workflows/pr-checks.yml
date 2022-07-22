@@ -1,0 +1,32 @@
+name: Scan code
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+
+jobs:
+  sonarqube-scan:
+    name: Sonarqube scan on code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Sonarqube scan
+        id: sonarqube-scan
+        uses: ./.github/actions/scan-code
+        timeout-minutes: 5
+        with:
+          baseDir: "./"
+          url: ${{ secrets.SONAR_HOST_URL }}
+          token: ${{ secrets.SONAR_TOKEN }}
+          args:  >
+            -Dsonar.pullrequest.key=${{ github.event.number }}
+            -Dsonar.pullrequest.branch=${{ github.head_ref }}
+            -Dsonar.pullrequest.base=master
+      - name: Sonarqube quality gate status
+        run: "echo quality gate result: ${{steps.sonarqube-baseaws-scan.outputs.scan-success}}"

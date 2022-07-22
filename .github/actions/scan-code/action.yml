@@ -5,12 +5,14 @@ inputs:
     description: Path to base directory
     required: true
   url:
-    description: url
+    description: Url to Sonarqube instance
     required: true
   token:
-    description: token
+    description: Access token for Sonarqube instance
     required: true
-
+  args:
+    description: Additional args for the SonarQube scanner
+    required: false
 outputs:
   scan-success:
     description: "Result of the scan"
@@ -23,6 +25,7 @@ runs:
       uses: sonarsource/sonarqube-scan-action@master
       with:
         projectBaseDir: ./${{ inputs.baseDir }}
+        args: ${{ inputs.args }}
       env:
         SONAR_TOKEN: ${{ inputs.token }}
         SONAR_HOST_URL: ${{ inputs.url }}
