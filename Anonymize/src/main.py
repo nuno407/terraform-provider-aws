@@ -54,7 +54,12 @@ def request_processing(client, container_services, body)->bool:
     port_pod = container_services.ivs_api["port"]
     req_command = container_services.ivs_api["endpoint"]
     hostname_ivs = container_services.ivs_api["address"]
-    ip_addresses = dns.resolver.resolve(hostname_ivs, 'A')
+
+    try:
+        ip_addresses = dns.resolver.resolve(hostname_ivs, 'A')
+    except dns.resolver.NXDOMAIN:
+        logging.exception("Currently no IVS pods are reachable:")
+        return False
 
     for ip in ip_addresses:
         # Build address for request
@@ -63,6 +68,7 @@ def request_processing(client, container_services, body)->bool:
         if result:
             return True
     return False
+
 
 def do_ivs_request(addr, files, payload)->bool:
     # Send API request (POST)
@@ -73,7 +79,7 @@ def do_ivs_request(addr, files, payload)->bool:
         return response.status_code == status_codes.ok
     except Exception:
         logging.info("\n######################## Exception #########################")
-        logging.exception("The following exception occured during execution:")
+        logging.exception("The following exception occurred during execution:")
         logging.info("############################################################\n")
         return False
 
@@ -138,7 +144,7 @@ def update_processing(client, container_services, body):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
-            
+
             # Save conversion logs into txt file
             for line in conv_logs.stdout:
                 logs_write.write(line)
@@ -155,7 +161,7 @@ def update_processing(client, container_services, body):
         # Load bytes from logs file
         with open(logs_name, "rb") as logs_bytes:
             logs_file = logs_bytes.read()
-        
+
         # Upload conversion logs to S3 bucket
         container_services.upload_file(client,logs_file,container_services.anonymized_s3,logs_path)
 
