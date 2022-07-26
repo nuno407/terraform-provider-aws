@@ -133,6 +133,13 @@ def update_processing(client, container_services, body):
         # Download target file to be converted
         avi_video = container_services.download_file(client, container_services.anonymized_s3, media_path)
 
+        #TEST CODE
+        avi_path = "TestAvi" + media_path
+        container_services.upload_file(client,avi_video,container_services.anonymized_s3,avi_path)
+        logging.info("\n.avi uploaded!\n")
+        
+        ############
+
         # Store input video file into current working directory
         with open(input_name, "wb") as input_file:
             input_file.write(avi_video)
