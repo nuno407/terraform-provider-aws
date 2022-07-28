@@ -1,0 +1,37 @@
+name: Sonarqube Scan
+description: Perform Sonarqube Scan
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  url:
+    description: url
+    required: true
+  token:
+    description: token
+    required: true
+
+outputs:
+  scan-success:
+    description: "Result of the scan"
+    value: ${{ steps.quality-gate-check.outputs.quality-gate-status }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      with:
+        projectBaseDir: ./${{ inputs.baseDir }}
+      env:
+        SONAR_TOKEN: ${{ inputs.token }}
+        SONAR_HOST_URL: ${{ inputs.url }}
+
+    - name: SonarQube Quality Gate check
+      id: quality-gate-check
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      env:
+        SONAR_TOKEN: ${{ inputs.token }}
+        SONAR_HOST_URL: ${{ inputs.url }}
+      with:
+        scanMetadataReportFile: ${{ inputs.baseDir }}/.scannerwork/report-task.txt
