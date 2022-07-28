@@ -162,7 +162,7 @@ jobs:
   update-image-tag:
     name: Update image tags in dev K8s manifests
     if: github.ref_name == 'master'
-    needs: [build-image, scan-project]
+    needs: [build-image, determine-changed-services, scan-project]
     runs-on: ubuntu-latest
     env:
       ECR_REPO: 081962623310.dkr.ecr.eu-central-1.amazonaws.com
