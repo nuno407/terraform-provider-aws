@@ -65,6 +65,24 @@ jobs:
         run: |
           echo "No service change detected, nothing to build." >> $GITHUB_STEP_SUMMARY
 
+  scan-project:
+    name: Scan project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Sonarqube scan
+        id: sonarqube-scan
+        uses: ./.github/actions/scan-code
+        timeout-minutes: 5
+        with:
+          baseDir: "./"
+          url: ${{ secrets.SONAR_HOST_URL }}
+          token: ${{ secrets.SONAR_TOKEN }}
+      - name: Sonarqube quality gate status
+        run: "echo quality gate result: ${{steps.sonarqube-baseaws-scan.outputs.scan-success}}"
 
   build-image:
     needs: determine-changed-services
@@ -78,6 +96,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1.6.1
@@ -142,7 +162,7 @@ jobs:
   update-image-tag:
     name: Update image tags in dev K8s manifests
     if: github.ref_name == 'master'
-    needs: [determine-changed-services, build-image]
+    needs: [build-image, scan-project]
     runs-on: ubuntu-latest
     env:
       ECR_REPO: 081962623310.dkr.ecr.eu-central-1.amazonaws.com
