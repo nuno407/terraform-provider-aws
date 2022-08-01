@@ -474,6 +474,11 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
                                         (i.e. if the process failed at some
                                         point), its value is "No"]
     """
+    vrec_type = video_recording_type(message)
+    if vrec_type != 'InteriorRecorder':
+        logging.info(f"Not allowed to ingest metadata from {vrec_type}")
+        return "No", ""
+
     input_sqs = container_services.input_queue
     logging.info("\nProcessing %s SQS message (Concatenation)..\n", input_sqs)
 
