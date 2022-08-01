@@ -14,7 +14,7 @@ from baseaws.shared_functions import ContainerServices, GracefulExit, StsHelper
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 MAX_CONSECUTIVE = 25
-FRAME_BUFFER = 120*1000 # seconds * 1000 milliseconds
+FRAME_BUFFER = 0 #120*1000 # seconds * 1000 milliseconds
 
 """This version added snapshot support."""
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
