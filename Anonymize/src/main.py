@@ -139,8 +139,7 @@ def update_processing(client, container_services, body):
 
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-b:v",
-                                        "27648k", output_name],
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-movflags", "faststart", "-c:v", "copy", output_name],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
