@@ -2,13 +2,13 @@ excludes:
   paths:
     - pattern: ".github/**"
       reason: "BUILD_TOOL_OF"
-      description: "Github actions and workflows are not included in a build"
+      comment: "Github actions and workflows are not included in a build"
     - pattern: ".vscode/**"
       reason: "BUILD_TOOL_OF"
-      description: "Configuration for developer environment only"
+      comment: "Configuration for developer environment only"
     - pattern: "**/tests/**"
       reason: "TEST_OF"
-      description: "Tests of the micro services"
+      comment: "Tests of the micro services"
   scopes:
     - pattern: "devDependencies"
       reason: "DEV_DEPENDENCY_OF"
