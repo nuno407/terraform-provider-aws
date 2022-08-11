@@ -9,6 +9,8 @@ from flask_cors import CORS
 from flask_restx import Api, Resource, reqparse, fields
 from api.config import service
 
+_logger = logging.getLogger('metadata_api.' + __name__)
+
 class ReverseProxied(object):
     # Inspired by: http://flask.pocoo.org/snippets/35/
     def __init__(self, wsgi_app, app):
@@ -50,9 +52,7 @@ def generate_exception_logs():
     """
     Generates exception logs to be displayed during container execution
     """
-    logging.info("\n######################## Exception #########################")
-    logging.exception("The following exception occured during execution:")
-    logging.info("############################################################\n")
+    _logger.exception("The following exception occured during execution:")
 
 
 

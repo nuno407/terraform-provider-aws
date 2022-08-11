@@ -1,0 +1,76 @@
+{
+    "resolution": {
+        "width": "1920",
+        "height": "1080"
+    },
+    "chunk": {
+        "pts_start": 16893464,
+        "pts_end": 21015045,
+        "utc_start": 1659962815,
+        "utc_end": 1659962818
+    },
+    "frame": [
+        {
+            "number": "171",
+            "timestamp": "18267324",
+            "timestamp64": "18267324",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "IAmFalse",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "NearlyOne",
+                            "value": "0.99"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "integerAttributes": [
+                        {
+                            "name": "SoZero",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "172",
+            "timestamp": "19641185",
+            "timestamp64": "19641185",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "IAmTrue",
+                            "value": "true"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "NearlyOne",
+                            "value": "0.999"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "integerAttributes": [
+                        {
+                            "name": "MinusOne",
+                            "value": "-1"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

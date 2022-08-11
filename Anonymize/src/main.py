@@ -27,7 +27,7 @@ def request_processing(client, container_services, body)->bool:
         body {string} -- [string containing the body info from the
                           received message]
     """
-    logging.info("Processing pipeline message..\n")
+    _logger.info("Processing pipeline message..\n")
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -58,7 +58,7 @@ def request_processing(client, container_services, body)->bool:
     try:
         ip_addresses = dns.resolver.resolve(hostname_ivs, 'A')
     except dns.resolver.NXDOMAIN:
-        logging.exception("Currently no IVS pods are reachable:")
+        _logger.exception("Currently no IVS pods are reachable:")
         return False
 
     for ip in ip_addresses:
@@ -74,13 +74,11 @@ def do_ivs_request(addr, files, payload)->bool:
     # Send API request (POST)
     try:
         response = requests.post(addr, files=files, data=payload)
-        logging.info("API POST request sent! (uid: %s)", payload['uid'])
-        logging.info("IVS Chain response: %s", response.text)
+        _logger.info("API POST request sent! (uid: %s)", payload['uid'])
+        _logger.info("IVS Chain response: %s", response.text)
         return response.status_code == status_codes.ok
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("The following exception occurred during execution:")
-        logging.info("############################################################\n")
+        _logger.exception("Error requesting processing at IVS.")
         return False
 
 
@@ -103,7 +101,7 @@ def update_processing(client, container_services, body):
                                information, where the CHC video will be
                                stored]
     """
-    logging.info("Processing API message..\n")
+    _logger.info("Processing API message..\n")
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -121,7 +119,7 @@ def update_processing(client, container_services, body):
     media_path = msg_body['media_path']
     path, file_format = media_path.split('.')
     if file_format in VIDEO_FORMATS:
-        logging.info("Starting conversion (AVI to MP4) process..\n")
+        _logger.info("Starting conversion (AVI to MP4) process..\n")
         mp4_path = path + ".mp4"
         logs_path = path.split("_Anonymize")[0] + "_conversion_logs.txt"
 
@@ -152,7 +150,7 @@ def update_processing(client, container_services, body):
         with open(output_name, "rb") as output_file:
             output_video = output_file.read()
 
-        logging.info("\nConversion complete!\n")
+        _logger.info("\nConversion complete!\n")
 
         # Upload converted output file to S3 bucket
         container_services.upload_file(client,output_video,container_services.anonymized_s3,mp4_path)
@@ -195,18 +193,12 @@ def update_processing(client, container_services, body):
     return relay_data, output_info
 
 def log_message(message, queue=CONTAINER_NAME):
-    logging.info("\n######################################\n")
-    logging.info("Message contents from %s:\n"%(queue))
-    logging.info(message)
-    logging.info("\n######################################\n")
+    _logger.info("Message contents from %s:\n"%(queue))
+    _logger.info(message)
 
 def main():
     """Main function"""
-
-    # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                                                    CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
@@ -224,7 +216,7 @@ def main():
     # and doesn't need to be declared here)
     api_sqs_queue = container_services.sqs_queues_list['API_Anonymize']
 
-    logging.info("\nListening to input queue(s)..\n")
+    _logger.info("\nListening to input queue(s)..\n")
 
     # Main loop
     while(True):
@@ -237,17 +229,17 @@ def main():
                 # Processing request
                 message_finished = request_processing(s3_client, container_services, message['Body'])
                 if message_finished:
-                    logging.info('Successfully requested processing on feature chain.')
+                    _logger.info('Successfully requested processing on feature chain.')
                     # Delete message after successful processing
                     container_services.delete_message(sqs_client, message['ReceiptHandle'])
                 else:
                     # The IVS queue is full, so tell SQS that the current message will need a longer time and then wait for 10 minutes
                     try:
                         container_services.update_message_visibility(sqs_client, message['ReceiptHandle'], 3600)
-                        logging.info('Feature chain request queue is full, waiting 10 more minutes and retrying.')
+                        _logger.info('Feature chain request queue is full, waiting 10 more minutes and retrying.')
                         sleep(600)
                     except Exception:
-                        logging.exception('Feature chain request queue is full and message visibility timeout cannot be extended.\nReturning message to the queue.')
+                        _logger.exception('Feature chain request queue is full and message visibility timeout cannot be extended.\nReturning message to the queue.')
                         message_finished = True
 
         # Check API SQS queue for new update messages
@@ -280,4 +272,5 @@ def main():
 
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('anonymize')
     main()

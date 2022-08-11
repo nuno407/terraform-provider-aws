@@ -10,6 +10,11 @@ import boto3
 from pymongo import MongoClient
 from pymongo.database import Database
 
+VIDEO_FORMATS = ['avi','mp4']
+IMAGE_FORMATS = ['jpeg','jpg','png']
+
+_logger = logging.getLogger(__name__)
+
 class ContainerServices():
     """ContainerServices
 
@@ -41,9 +46,6 @@ class ContainerServices():
         self.__secretmanagers = {} # To be modify on dated 16 Jan'2022
 
         self.__apiendpoints = {} # To be modify on dated 16 Jan'2022
-
-        # Define configuration for logging messages
-        logging.basicConfig(format='%(message)s', level=logging.INFO)
 
     @property
     def sqs_queues_list(self):
@@ -134,7 +136,7 @@ class ContainerServices():
             client {boto3.client} -- [client used to access the S3 service]
         """
         full_path = self.__config['bucket']+'/'+self.__config['file']
-        logging.info("Loading parameters from: %s ..", full_path)
+        _logger.info("Loading parameters from: %s ..", full_path)
 
         # Send request to access the config file (json)
         response = client.get_object(
@@ -188,7 +190,7 @@ class ContainerServices():
         # Documentdb information for client login
         self.__docdb_config = dict_body['docdb_config']
 
-        logging.info("Load complete!\n")
+        _logger.info("Load complete!\n")
 
     ##### SQS related functions ########################################################
     @staticmethod
@@ -201,9 +203,11 @@ class ContainerServices():
         Returns:
             queue_url {string} -- [URL of the SQS queue]
         """
+        _logger.debug('Getting queue URL for %s', queue_name)
         # Request for queue url
         response = client.get_queue_url(QueueName=queue_name)
         queue_url = response['QueueUrl']
+        _logger.debug('Got queue URL for %s', queue_name)
 
         return queue_url
 
@@ -231,8 +235,9 @@ class ContainerServices():
             input_queue = self.__queues['input']
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
-
+        
         # Receive message(s)
+        _logger.debug('Receiving input message...')
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
@@ -254,16 +259,26 @@ class ContainerServices():
             # (by default, it only receives 1 message
             # per enquiry - set above by MaxNumberOfMessages parameter)
             message = response['Messages'][0]
-            timestamp = str(datetime.now(
-                                        tz=pytz.UTC
-                                        ).strftime(self.time_format))
-            logging.info("\n-----------------------------------------------")
-            logging.info("Message received!")
-            logging.info("-> id:  %s", message['MessageId'])
-            logging.info("-> queue:  %s", input_queue)
-            logging.info("-> timestamp: %s\n", timestamp)
+            _logger.info("Message [%s] received!", message['MessageId'])
+            _logger.debug("-> queue:  %s", input_queue)
+        else:
+            _logger.debug('No Message received.')
 
         return message
+
+    @staticmethod
+    def configure_logging(component_name: str)->logging.Logger:
+        str_level = os.environ.get('LOGLEVEL', 'INFO')
+        log_level = logging.getLevelName(str_level)
+        str_root_level = os.environ.get('ROOT_LOGLEVEL', 'INFO')
+        log_root_level = logging.getLevelName(str_root_level)
+
+        logging.basicConfig(format='%(asctime)s %(name)s\t%(levelname)s\t%(message)s', level=log_root_level)
+        logging.getLogger('baseaws').setLevel(log_level)
+        logger = logging.getLogger(component_name)
+        logger.setLevel(log_level)
+        return logger
+
 
     def delete_message(self, client, receipt_handle, input_queue=None):
         """Deletes received SQS message
@@ -285,13 +300,12 @@ class ContainerServices():
 
 
         # Delete received message
+        _logger.debug('Deleting message [%s]', receipt_handle)
         client.delete_message(
                                 QueueUrl=input_queue_url,
                                 ReceiptHandle=receipt_handle
                             )
-
-        logging.info("-----------------------------------------------")
-        logging.info("\n\nListening to input queue(s)..\n")
+        _logger.info('Deleted message [%s]', receipt_handle)
 
     def update_message_visibility(self, client, receipt_handle, seconds, input_queue=None):
         """ Updates the visibility timeout of an SQS message to allow longer processing
@@ -319,8 +333,7 @@ class ContainerServices():
                                 VisibilityTimeout=seconds
                             )
 
-        logging.info("-----------------------------------------------")
-        logging.info("\n\nListening to input queue(s)..\n")
+        _logger.info("Listening to input queue(s)..")
 
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message
@@ -350,16 +363,14 @@ class ContainerServices():
                         }
 
         # Send message to SQS queue
-        response = client.send_message(
+        _logger.debug('Sending message to [%s]', dest_queue)
+        client.send_message(
                                         QueueUrl=destination_queue_url,
                                         DelaySeconds=1,
                                         MessageAttributes=msg_attributes,
                                         MessageBody=str(data)
                                        )
-
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  Message sent to %s queue", timestamp,
-                                                       dest_queue)
+        _logger.info("Message sent to [%s]", dest_queue)
 
     @staticmethod
     def get_message_body(message):
@@ -399,7 +410,8 @@ class ContainerServices():
         return db
 
     ##### S3 related functions ####################################################################
-    def download_file(self, client, s3_bucket, file_path):
+    @staticmethod
+    def download_file(client, s3_bucket: str, file_path:str)->bytearray:
         """Retrieves a given file from the selected s3 bucket
 
         Arguments:
@@ -412,10 +424,8 @@ class ContainerServices():
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         full_path = s3_bucket+'/'+file_path
-        logging.info("[%s]  Downloading file (path: %s)..", timestamp,
-                                                            full_path)
+        _logger.debug("Downloading [%s]..", full_path)
 
         response = client.get_object(
                                         Bucket=s3_bucket,
@@ -426,12 +436,12 @@ class ContainerServices():
         # (botocore.response.StreamingBody)
         object_file = response['Body'].read()
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  Download completed!", timestamp)
+        _logger.info("Downloaded [%s]", full_path)
 
         return object_file
 
-    def upload_file(self, client, object_body, s3_bucket, key_path):
+    @staticmethod
+    def upload_file(client, object_body, s3_bucket, key_path):
         """Stores a given file in the selected s3 bucket
 
         Arguments:
@@ -442,10 +452,8 @@ class ContainerServices():
                                   used for the file in the destination s3
                                   bucket (e.g. 'uber/test_file_s3.txt')]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
         full_path = s3_bucket+'/'+key_path
-        logging.info("[%s]  Uploading file (path: %s)..", timestamp,
-                                                          full_path)
+        _logger.debug("Uploading [%s]..", full_path)
 
         # TODO: ADD THIS INFO TO CONFIG FILE
         type_dict = {
@@ -466,8 +474,7 @@ class ContainerServices():
                           ContentType=type_dict[file_extension]
                         )
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  Upload completed!", timestamp)
+        _logger.info("Uploaded [%s]", key_path)
 
     def update_pending_queue(self, client, uid, mode, dict_body=None):
         """Inserts a new item on the algorithm output collection and, if
@@ -544,7 +551,7 @@ class ContainerServices():
             del result_info[uid]
 
         else:
-            logging.info("\nWARNING: Operation (%s) not supported!!\n", mode)
+            _logger.error("\nWARNING: Operation (%s) not supported!!\n", mode)
 
         # Encode and convert updated json into bytes to be uploaded
         object_body = json.dumps(result_info, indent=4, sort_keys=True).encode('utf-8')
@@ -558,10 +565,7 @@ class ContainerServices():
                           ContentType="application/json"
                         )
 
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  S3 Pending queue updated (mode: %s | uid: %s)!", timestamp,
-                                                                             mode,
-                                                                             uid)
+        _logger.info("S3 Pending queue updated (mode: %s | uid: %s)!", mode, uid)
 
         return relay_data
 
@@ -581,9 +585,7 @@ class ContainerServices():
             output_video {bytes} -- [Received chunk in bytes format]
         """
         # Generate processing start message
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  Downloading test clip (stream: %s)..", timestamp,
-                                                              stream_name)
+        _logger.info("Downloading test clip from stream [%s]..", stream_name)
 
         # Create Kinesis client
         kinesis_client = boto3.client('kinesisvideo',
@@ -626,6 +628,8 @@ class ContainerServices():
             }
         )
 
+        _logger.debug('Got fragments for test clip on [%s]', stream_name)
+
         # Sort fragments by their timestamp
         newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp((d['ProducerTimestamp'])))
 
@@ -647,6 +651,8 @@ class ContainerServices():
             Fragments=list_frags
         )
 
+        _logger.debug('Got video file for test clip on [%s]', stream_name)
+
         ### Conversion step (webm -> mp4) ###
         # Defining temporary files names
         input_name = "received_file.webm"
@@ -663,10 +669,13 @@ class ContainerServices():
 
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-movflags", "faststart", "-c:v", "copy", output_name],
+            _logger.debug('Starting ffmpeg conversion')
+            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
+                                        "0", "-filter:v", "fps=15.72", output_name],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
+            _logger.debug('Finished ffmpeg conversion')
 
             # Save conversion logs into txt file
             for line in conv_logs.stdout:
@@ -680,13 +689,13 @@ class ContainerServices():
         subprocess.run(["rm", input_name, output_name, logs_name])
 
         # Generate processing end message
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("[%s]  Test clip download completed!", timestamp)
+        _logger.info("Test clip download completed!")
 
         return output_video 
 
     ##### Logs/Misc. functions ####################################################################
-    def display_processed_msg(self, key_path, uid=None):
+    @staticmethod
+    def display_processed_msg(key_path, uid=None):
         """Displays status message for processing completion
 
         Arguments:
@@ -697,23 +706,22 @@ class ContainerServices():
                              processing containers to keep track of the
                              process of a given file. Optional]
         """
-        timestamp = str(datetime.now(tz=pytz.UTC).strftime(self.time_format))
-        logging.info("\nProcessing complete!")
-        logging.info("-> key: %s", key_path)
-        if uid:
-            logging.info("-> uid: %s", uid)
-        logging.info("-> timestamp: %s\n", timestamp)
+        _logger.info("\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
         
         
 # inspired by https://stackoverflow.com/a/31464349
 class GracefulExit:
-    continue_running = True
+    @property
+    def continue_running(self):
+        return self.__continue_running
+
     def __init__(self):
+        self.__continue_running = True
         signal(SIGTERM, self.handle_sigterm)
 
     def handle_sigterm(self, signum, frame):
-        logging.info("Received termination request with signal %s. Trying to shutdown gracefully.", Signals(signum).name)
-        self.continue_running = False
+        _logger.critical("Received termination request with signal %s. Trying to shutdown gracefully.", Signals(signum).name)
+        self.__continue_running = False
 
 class StsHelper:
     def __init__(self, sts_client, role: str, role_session: str) -> None:

@@ -5,6 +5,7 @@ import logging
 import os
 
 from api.controller import app
+from baseaws.shared_functions import ContainerServices
 
 # DocumentDB info
 DB_NAME = "DB_data_ingestion"
@@ -12,8 +13,7 @@ DB_NAME = "DB_data_ingestion"
 if __name__ == '__main__':
 
     # Define configuration for logging messages
-    logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO,
-                        datefmt="%H:%M:%S")
+    _logger = ContainerServices.configure_logging('metadata_api')
 
     # Start API process
     if os.getenv('LOCAL_DEBUG', False):

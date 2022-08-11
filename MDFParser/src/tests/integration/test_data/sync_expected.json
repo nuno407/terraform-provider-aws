@@ -1,0 +1,23 @@
+{
+    "0:00:01":{
+        "IAmFalse": false,
+        "NearlyOne": 0.99,
+        "SoZero": 0,
+        "interior_camera_health_response_cvb": 1,
+        "interior_camera_health_response_cve": 1
+    },
+    "0:00:02":{
+        "IAmTrue": true,
+        "NearlyOne": 0.999,
+        "MinusOne": -1,
+        "interior_camera_health_response_cvb": 1,
+        "interior_camera_health_response_cve": 1
+    },
+    "0:00:03":{
+        "IAmTrue": true,
+        "NearlyOne": 0.999,
+        "MinusOne": -1,
+        "interior_camera_health_response_cvb": 0,
+        "interior_camera_health_response_cve": 0
+    }
+}

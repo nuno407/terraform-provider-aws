@@ -6,6 +6,8 @@ import urllib3
 from urllib3 import Retry
 from api_token_manager import ApiTokenManager
 
+_logger = logging.getLogger('selector.' + __name__)
+
 class Selector():
     def __init__(self, sqs_client, container_services):
         self.__sqs_client = sqs_client
@@ -38,7 +40,7 @@ class Selector():
 
     def __process_selector_message(self, message):
         message_body = self.__container_services.get_message_body(message)
-        logging.info(f"Processing selector pipeline message..\n{message_body}")
+        _logger.info(f"Processing selector pipeline message..\n{message_body}")
 
         # Picking Device Id from header
         if "value" in message_body:
@@ -61,12 +63,12 @@ class Selector():
                                 self.request_footage_api(device_id, prev_timestamp, post_timestamp)
 
         else:
-            logging.info("Not a valid Message")   
+            _logger.info("Not a valid Message")   
 
     def request_footage_api(self, device_id, from_timestamp, to_timestamp):
         auth_token = self.__api_token_manager.get_token()
         if not auth_token:
-            logging.error('Could not get auth token for Footage API. Skipping request.')
+            _logger.error('Could not get auth token for Footage API. Skipping request.')
             return
         
         payload = {'from': str(from_timestamp), 'to': str(to_timestamp), 'recorder': 'TRAINING'}
@@ -78,17 +80,17 @@ class Selector():
         body = json.dumps(payload)
 
         try:
-            logging.info(f'Requesting footage upload from url "{url}" with timestamp from {from_timestamp} to {to_timestamp}')
+            _logger.info(f'Requesting footage upload from url "{url}" with timestamp from {from_timestamp} to {to_timestamp}')
             response = self.__http_client.request('POST', url, headers=headers, body=body)
 
             if(response.status >= 200 and response.status <300):
-                logging.info(f'Successfully requested footage with response code {response.status}')
+                _logger.info(f'Successfully requested footage with response code {response.status}')
             else:
-                logging.warning(f'Unexpected response when requesting footage: {response}')
+                _logger.warning(f'Unexpected response when requesting footage: {response}')
                 if response.content:
-                    logging.warning(f'Details: {response.content}')
+                    _logger.warning(f'Details: {response.content}')
         except Exception as error:
-            logging.error(f'Unexpected error occured when requesting footage: {error}')
+            _logger.error(f'Unexpected error occured when requesting footage: {error}')
 
     def handle_hq_queue(self):
         # Check input SQS queue for new messages
@@ -107,7 +109,7 @@ class Selector():
 
     def __process_hq_message(self, message):
         message_body = self.__container_services.get_message_body(message)
-        logging.info(f"Processing HQ pipeline message..\n{message_body}")
+        _logger.info(f"Processing HQ pipeline message..\n{message_body}")
 
         # Picking Device Id from header
         if all(property in message_body for property in('deviceId', 'footageFrom', 'footageTo')):
@@ -118,10 +120,8 @@ class Selector():
             self.request_footage_api(device_id, from_timestamp, to_timestamp)
 
         else:
-            logging.info("Not a valid Message")   
+            _logger.info("Not a valid Message")   
     
     def log_message(self, message, queue="selector"):
-        logging.info("\n######################################\n")
-        logging.info("Message contents from %s:\n"%(queue))
-        logging.info(message)
-        logging.info("\n######################################\n")
+        _logger.info("Message contents from %s:\n"%(queue))
+        _logger.info(message)

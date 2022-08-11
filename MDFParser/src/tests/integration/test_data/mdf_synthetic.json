@@ -1,0 +1,131 @@
+{
+    "resolution": {
+        "width": "1920",
+        "height": "1080"
+    },
+    "chunk": {
+        "pts_start": 16893463,
+        "pts_end": 22388907,
+        "utc_start": 1659962815,
+        "utc_end": 1659962819
+    },
+    "frame": [
+        {
+            "number": "171",
+            "timestamp": "18267324",
+            "timestamp64": "18267324",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "IAmFalse",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "NearlyOne",
+                            "value": "0.99"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "integerAttributes": [
+                        {
+                            "name": "SoZero",
+                            "value": "0"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "1"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "172",
+            "timestamp": "19641185",
+            "timestamp64": "19641185",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "IAmTrue",
+                            "value": "true"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "NearlyOne",
+                            "value": "0.999"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "integerAttributes": [
+                        {
+                            "name": "MinusOne",
+                            "value": "-1"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "1"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "173",
+            "timestamp": "21015046",
+            "timestamp64": "21015046",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "IAmTrue",
+                            "value": "true"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "NearlyOne",
+                            "value": "0.999"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "integerAttributes": [
+                        {
+                            "name": "MinusOne",
+                            "value": "-1"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "0"
+                        },
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

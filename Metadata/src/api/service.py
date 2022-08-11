@@ -1,11 +1,9 @@
-from ast import operator
-from datetime import timedelta
-import json
 import logging
 import re
 
 from api.db import Persistence
 
+_logger = logging.getLogger('metadata_api.' + __name__)
 
 class ApiService:
 
@@ -209,11 +207,11 @@ class ApiService:
     def __check_and_get_lq_video_info(self, entry_id):
         recorder_name_matcher = re.match(r".+_([^_]+)_\d+_\d+", entry_id)
         if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
-            logging.warning(f'Could not parse recorder information from {entry_id}')
+            _logger.warning(f'Could not parse recorder information from {entry_id}')
             return None
         
         if recorder_name_matcher.group(1) != 'TrainingRecorder':
-            logging.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
+            _logger.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
             return None
         lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
         try:

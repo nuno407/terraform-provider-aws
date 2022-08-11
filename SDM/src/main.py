@@ -1,6 +1,5 @@
 """SDM container script"""
 import json
-import logging
 import boto3
 from baseaws.shared_functions import ContainerServices
 
@@ -64,19 +63,19 @@ def processing_sdm(container_services, sqs_message):
     # if somehting went wrong with the file parsing
     if msp is None or file_name is None or file_format is None:
         if msp is None:
-            logging.info("WARNING: File %s will not be processed - File is outside MSP folders.", file_name)
+            _logger.info("WARNING: File %s will not be processed - File is outside MSP folders.", file_name)
         if file_name is None:
-            logging.info("WARNING: Could not parse file name.")
+            _logger.info("WARNING: Could not parse file name.")
         if file_format is None:
-            logging.info("WARNING: Could not parse file format.")
-        logging.info("Message dump:")
-        logging.info(sqs_message)
+            _logger.info("WARNING: Could not parse file format.")
+        _logger.info("Message dump:")
+        _logger.info(sqs_message)
         return relay_data
 
     # TODO: find place to store file formats (video/image) - container_scripts, global var, env var, ...?
     if file_format in VIDEO_FORMATS:
 
-        logging.info("Processing video message..")
+        _logger.info("Processing video message..")
         # Creates relay list to be used by other containers
         relay_data["processing_steps"] = container_services.msp_steps[msp].copy()
         relay_data["s3_path"] = s3_path
@@ -91,7 +90,7 @@ def processing_sdm(container_services, sqs_message):
         The processing is the same right now, but it might make sense to make it just anonymization for speedup
         """
         
-        logging.info("Processing snapshot message..")
+        _logger.info("Processing snapshot message..")
         # Creates relay list to be used by other containers
         relay_data["processing_steps"] = container_services.msp_steps[msp].copy()
         # to skip image CHC
@@ -101,26 +100,22 @@ def processing_sdm(container_services, sqs_message):
         container_services.display_processed_msg(relay_data["s3_path"])
 
     elif file_format in container_services.raw_s3_ignore:
-        logging.info("WARNING: File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
+        _logger.info("WARNING: File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
     
     else:
-        logging.info("WARNING: File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
+        _logger.info("WARNING: File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
     
     return relay_data
 
 
 def log_message(message, queue=CONTAINER_NAME):
-    logging.info("\n######################################\n")
-    logging.info("Message contents from %s:\n"%(queue))
-    logging.info(message)
-    logging.info("\n######################################\n")
+    _logger.info("Message contents from %s: [%s]", queue, message)
 
 def main():
     """Main function"""
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3', region_name='eu-central-1')
@@ -132,7 +127,7 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars(s3_client)
 
-    logging.info("\nListening to input queue(s)..\n\n")
+    _logger.info("\nListening to input queue(s)..\n\n")
 
     while(True):
         # Check input SQS queue for new messages
@@ -164,4 +159,5 @@ def main():
 
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('sdm')
     main()

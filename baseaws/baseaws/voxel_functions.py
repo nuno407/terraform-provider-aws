@@ -1,4 +1,7 @@
 from datetime import timedelta as td, datetime
+import logging
+
+_logger = logging.getLogger(__name__)
 
 def create_dataset(bucket_name):
     import fiftyone as fo
@@ -13,18 +16,13 @@ def create_dataset(bucket_name):
 
 
 def update_sample(data_set,sample_info):
-    import logging
     import fiftyone as fo
     import eta.core.frameutils as etaf
     from fiftyone import ViewField as F
 
     dataset = fo.load_dataset(data_set)
 
-    #logging.info("Sample info:")
-    #logging.info(sample_info)
-            
     #If the sample already exists, update it's information, otherwise create a new one
-
     if 'filepath' in sample_info:
         sample_info.remove('filepath')
 
@@ -63,16 +61,12 @@ def update_sample(data_set,sample_info):
             sample["Day"] = sample["recording_time"].strftime("%d")
             sample["Month"] = sample["recording_time"].strftime("%b")
             sample["Year"] = sample["recording_time"].strftime("%Y")            
-            logging.info(sample["recording_time"])
+            _logger.info(sample["recording_time"])
         else:
-            logging.info("No time")
+            _logger.info("No time")
     else:
-        logging.info("No items in recording overview")
-        logging.info(sample_info.get('recording_overview'))
-   
+        _logger.info("No items in recording overview")
+        _logger.info(sample_info.get('recording_overview'))
 
-
-    #logging.info("Sample updates")
-    #logging.info(sample)
     # Add sample to dataset
     sample.save()

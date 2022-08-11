@@ -1,5 +1,4 @@
 """Selector container script"""
-import logging
 import boto3
 from selector import Selector
 from baseaws.shared_functions import ContainerServices
@@ -12,9 +11,7 @@ def main():
     """Main function"""
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                                                    CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
@@ -41,4 +38,5 @@ def main():
         
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('selector')
     main()

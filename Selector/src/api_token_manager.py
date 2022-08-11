@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import boto3
 import urllib3
 
+_logger = logging.getLogger('selector.' + __name__)
 class ApiTokenManager():
 
     def __init__(self, token_endpoint, secret_id):
@@ -20,7 +21,7 @@ class ApiTokenManager():
     def get_token(self):
         current_timestamp_s = int(datetime.now().timestamp())
         if self.__access_token and self.__token_expires > current_timestamp_s:
-            logging.info(f'using cached token which expires at {self.__token_expires}')
+            _logger.info(f'using cached token which expires at {self.__token_expires}')
             return self.__access_token
         else:
             if self.__secret:
@@ -35,7 +36,7 @@ class ApiTokenManager():
                     # Warning has already been logged
                     return None
             else:
-                logging.error('Not getting token because the secret is empty.')
+                _logger.error('Not getting token because the secret is empty.')
                 return None
 
     def __request_token(self):
@@ -53,16 +54,16 @@ class ApiTokenManager():
         encoded_body = urlencode(body)
 
         try:
-            logging.debug(f'Auth token request: Endpoint: {self.__token_endpoint}, Headers: {headers}, Body: {body}')
+            _logger.debug(f'Auth token request: Endpoint: {self.__token_endpoint}, Headers: {headers}, Body: {body}')
             response = self.__http_client.request('POST', self.__token_endpoint, headers=headers, body=encoded_body)
             
             if response.status == 200:
                 json_response = json.loads(response.data.decode('utf-8'))
-                logging.info('Successfully requested auth token')
+                _logger.info('Successfully requested auth token')
                 return json_response
             else:
-                logging.warning("Error getting access token, status: %s, cause: %s", response.status, response.data)
+                _logger.warning("Error getting access token, status: %s, cause: %s", response.status, response.data)
                 return None
         except json.JSONDecodeError:
-            logging.warning("String could not be converted to JSON")
+            _logger.warning("String could not be converted to JSON")
             return None

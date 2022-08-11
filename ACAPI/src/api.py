@@ -84,8 +84,7 @@ def anonymization():
             uid = flask.request.form["uid"]
             s3_path = flask.request.form["path"]
 
-            logging.info("-----------------------------------------------")
-            logging.info("API status update:")
+            _logger.info("API status update:")
 
             # Rename file to be stored by adding the name of
             # the algorithm that processed the file
@@ -118,7 +117,7 @@ def anonymization():
 
             # Start thread processing
             thread.start()
-            logging.info("-----------------------------------------------")
+            _logger.info("-----------------------------------------------")
 
             response_msg = 'Accepted video storage request!'
             response = flask.jsonify(code='202', message=response_msg)
@@ -158,8 +157,7 @@ def camera_check():
             s3_path = flask.request.form["path"]
 
             # Upload received video to S3 bucket
-            logging.info("-----------------------------------------------")
-            logging.info("API status update:")
+            _logger.info("API status update:")
 
             # Rename metadata file to be stored by adding the name of
             # the algorithm that processed the file
@@ -193,7 +191,6 @@ def camera_check():
 
             # Start thread processing
             thread.start()
-            logging.info("-----------------------------------------------")
 
             response_msg = 'Accepted video storage request!'
             response = flask.jsonify(code='202', message=response_msg)
@@ -216,9 +213,7 @@ def camera_check():
 if __name__ == '__main__':
 
     # Define configuration for logging messages
-    FORMAT_LOG = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=FORMAT_LOG, level=logging.INFO,
-                        datefmt="%H:%M:%S")
+    _logger = ContainerServices.configure_logging('acapi')
 
     # Create the necessary clients for AWS services access
     s3_client = boto3.client('s3',

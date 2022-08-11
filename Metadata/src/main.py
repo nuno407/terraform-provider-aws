@@ -34,7 +34,7 @@ def upsert_recording_item(message: dict, table_rec: Collection)->Optional[dict]:
 
     # check that data has at least the absolute minimum of required fields
     if not all(k in message for k in ('_id', 's3_path')):
-        logging.error("\nNot able to create an entry because _id or s3_path is missing!")
+        _logger.error("Not able to create an entry because _id or s3_path is missing!")
         return None
 
     # Build item structure and add info from msg received
@@ -47,29 +47,28 @@ def upsert_recording_item(message: dict, table_rec: Collection)->Optional[dict]:
     else:
         media_type = 'video'
 
-    recording_overview: dict = message.get('recording_overview', {})
-    recording_item = {}
-    recording_item['video_id'] = message['_id']
-    recording_item['filepath'] = 's3://' + message['s3_path']
-    recording_item['MDF_available'] = message.get('MDF_available', 'No')
-    if len(recording_overview) > 0: recording_item['recording_overview'] = {k:v for (k, v) in recording_overview.items() if k!='resolution'}
-    if 'resolution' in recording_overview: recording_item['resolution'] = recording_overview['resolution']
-    recording_item['_media_type'] = media_type
-    recording_item['chunk'] = 'Chunk0'
-    
-    recording_item['recording_overview']['tenantID'] = message['_id'].split("_",1)[0]
-    recording_item['recording_overview']['number_chc_events'] = 0
-    recording_item['recording_overview']['chc_duration'] = 0
+    recording_item = {
+                'video_id': message['_id'],
+                '_media_type': media_type,
+                'filepath': 's3://' + message['s3_path'],
+                'recording_overview.tenantID': message['_id'].split("_",1)[0]
+            }
+    if 'recording_overview' in message:
+        for (k, v) in message['recording_overview'].items():
+            if k!='resolution':
+                recording_item['recording_overview.'+k] = v
+        if 'resolution' in message['recording_overview']: 
+            recording_item['resolution'] = message['recording_overview']['resolution']
+        if 'MDF_available' in message: recording_item['MDF_available'] = message['MDF_available']
+        elif 'signals' in message: recording_item['MDF_available'] = 'Yes'
 
     try:
         # Upsert previous built item on the Recording collection
         table_rec.update_one({'video_id': message["_id"]}, {'$set': recording_item}, upsert=True)
         # Create logs message
-        logging.info("Recording DB item (video_id: %s) upserted!", message["_id"])
+        _logger.info("Recording DB item (video_id: %s) upserted!", message["_id"])
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create or replace recording item for id: %s", message["_id"])
-        logging.info("############################################################\n")
+        _logger.exception("Unable to create or replace recording item for id [%s]", message["_id"])
 
     return recording_item
 
@@ -83,63 +82,29 @@ def calculate_chc_events(chc_periods):
 
     return number, duration
 
-def upsert_signals_item(video_id: str, s3_path: str, sync_file_extension: str, table_sig: Collection)->Optional[dict]:
-    # Create S3 client to download metadata
-    s3_client = boto3.client('s3',
-                region_name='eu-central-1')
+def upsert_signals_item(message: dict, table_sig: Collection)->Optional[dict]:
+    # verify message content
+    if not ('signals_file' in message and 'bucket' in message['signals_file'] and 'key' in message['signals_file']):
+        return None
 
-    s3_bucket, video_key = s3_path.split("/", 1)
-    s3_key = video_key.split(".")[0] + '_metadata_full.json'
+    s3_client = boto3.client('s3', 'eu-central-1')
+    signals_file_raw = ContainerServices.download_file(s3_client, message['signals_file']['bucket'], message['signals_file']['key'])
+    signals = json.loads(signals_file_raw.decode('UTF-8'))
 
-    # Download metadata json file
-    get_mdf_response = s3_client.get_object(
-                                        Bucket=s3_bucket,
-                                        Key=s3_key
-                                    )
-
-    # Decode and convert file contents into json format
-    mdf = json.loads(get_mdf_response['Body'].read().decode("utf-8"))
-
-    # Add array from metadata full file to created item
     signals_item = {
-                'recording': video_id,
+                'recording': message['_id'],
                 'source': "MDF",
-                'signals': {},
-                'CHC_periods': [],
+                'signals': signals
                 }
-
-    # NOTE: Condition added due to some MDF files still not having this info
-    if 'chc_periods' in mdf:
-        chc_periods = mdf['chc_periods']
-        signals_item['CHC_periods'] = chc_periods
-        chc_number, chc_duration = calculate_chc_events(chc_periods)
-        signals_item['number_chc_events'] = chc_number
-        signals_item['chc_duration'] = chc_duration
-
-    # Add sync data
-    s3_key = video_key.split(".")[0] + sync_file_extension
-
-    # Download metadata json file
-    get_sync_response = s3_client.get_object(
-                                    Bucket=s3_bucket,
-                                    Key=s3_key
-                                )
-
-    # Decode and convert file contents into json format
-    synchronized_signals = json.loads(get_sync_response['Body'].read().decode("utf-8"))
-
-    signals_item['signals'] = synchronized_signals
-
     try:
         # Upsert signals item
-        table_sig.update_one({'recording': video_id}, {'$set': signals_item}, upsert=True)
+        table_sig.update_one({'recording': message["_id"]}, {'$set': signals_item}, upsert=True)
         # Create logs message
-        logging.info("Signals DB item (video_id: %s) upserted!", video_id)
+        _logger.info("Signals DB item [%s] upserted!", message["_id"])
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create or replace signals item for id: %s", video_id)
-        logging.info("############################################################\n")
-    return signals_item
+        _logger.exception("Unable to create or replace signals item for id: [%s]", message["_id"])
+
+    return signals
 
 def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, source: str)->Optional[dict]:
     """Inserts a new item (or updates it if already exists) on the
@@ -161,7 +126,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
     """
     # check that data has at least the absolute minimum of required fields
     if not all(k in message for k in ('data_status', 's3_path')):
-        logging.error('Skipping pipeline collection update for %s as not all required fields are present in the message.', video_id)
+        _logger.error('Skipping pipeline collection update for %s as not all required fields are present in the message.', video_id)
         return None
 
     # Initialise pipeline item to upsert
@@ -182,11 +147,9 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         # Upsert pipeline executions item
         table_pipe.update_one({'_id': video_id}, {'$set': upsert_item}, upsert=True)
         # Create logs message
-        logging.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
+        _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create or replace pipeline executions item for id: %s", video_id)
-        logging.info("############################################################\n")
+        _logger.exception("Unable to create or replace pipeline executions item for id [%s]", video_id)
 
     ## Voxel51 code
     s3split = message["s3_path"].split("/")
@@ -211,11 +174,9 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         #Add  the video to the dataset
         update_sample(bucket_name,sample)
         # Create logs message
-        logging.info("Voxel sample with (Id: %s) created!", bucket_name)
+        _logger.info("Voxel sample [%s] created!", bucket_name)
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to create dataset with (Id: %s) on update_pipeline_db !", bucket_name)
-        logging.info("############################################################\n")
+        _logger.exception("Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
 
     return upsert_item
 
@@ -308,7 +269,7 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
     """
     # check that data has at least the absolute minimum of required fields
     if not (all(k in message for k in ('output', 's3_path')) and 'bucket' in message['output']):
-        logging.error("\nNot able to create an entry because output or s3_path is missing!")
+        _logger.error("Not able to create an entry because output or s3_path is missing!")
         return
 
     # Initialise variables used in item creation
@@ -355,26 +316,20 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
             table_sig.update_one(sig_query, {'$set': signals_item}, upsert=True)
 
             # Create logs message
-            logging.info("Signals DB item (algo id: %s) updated!", run_id)
+            _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
 
         except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("The following exception occured during updating the signals collection with CHC output:")
-            logging.info(signals_item)
-            logging.info("############################################################\n")
+            _logger.exception("Error updating the signals collection with CHC output [%s]", signals_item)
 
     try:
         # Insert previously built item
         table_algo_out.insert_one(algo_item)
-        logging.info("Algo Output DB item (run_id: %s) created!", run_id)
+        _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
 
     except DuplicateKeyError:
         # Raise error exception if duplicated item is found
         # NOTE: In this case, the old item is not overriden!
-        logging.info("\n######################## Exception #########################")
-        logging.exception("The following exception occured during inserting output item:")
-        logging.info(algo_item)
-        logging.info("############################################################\n")
+        _logger.exception("Error inserting output item [%s]", algo_item)
 
     ## Voxel51 code
     s3split = message["s3_path"].split("/")
@@ -410,11 +365,9 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
         update_sample(bucket_name,sample)
         
         # Create logs message
-        logging.info("Voxel sample with (Id: %s) created from process_outputs!", bucket_name)
+        _logger.info("Voxel sample [%s] created from process_outputs!", bucket_name)
     except Exception:
-        logging.info("\n######################## Exception #########################")
-        logging.exception("Warning: Unable to process Voxel entry with (Id: %s) on process_outputs!", bucket_name)
-        logging.info("############################################################\n")
+        _logger.exception("Unable to process Voxel entry [%s] on process_outputs!", bucket_name)
 
 
 def upsert_data_to_db(db: Database, container_services: ContainerServices, message: dict, message_attributes: dict):
@@ -433,7 +386,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
     if not('s3_path' in message and
             'SourceContainer' in message_attributes and
             'StringValue' in message_attributes['SourceContainer']):
-            logging.error('Skipping message due to neccessary content not being present.', message, message_attributes)
+            _logger.error('Skipping message due to neccessary content not being present.', message, message_attributes)
             return
 
     # Specify the tables to be used
@@ -446,9 +399,6 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
     source = message_attributes['SourceContainer']['StringValue']
 
     #################### NOTE: Recording collection handling ##################
-
-    #logging.info("Message")
-    #logging.info(message)
 
     #Voxel variables
     s3split = message["s3_path"].split("/")
@@ -464,13 +414,15 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][message["s3_path"].find("/")+1:-5]+'_anonymized.'+filetype
     
     # generate recording entry with retrieval of SDRetriever message
-    if source == "SDRetriever":
+    if source == "SDRetriever" or source == "MDFParser":
         # Call respective processing function
         recording_item = upsert_recording_item(message, table_rec)
+        if(recording_item == None):
+            return
+        signals = upsert_signals_item(message, table_sig)
         recording_item["s3_path"] = anon_video_path
+        recording_item['signals'] = signals
         
-        #logging.info("Recording Item")
-        #logging.info(recording_item)
         try:
             # Create dataset with the bucket_name if it doesn't exist
             create_dataset(bucket_name)
@@ -478,17 +430,10 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
             #Add  the video to the dataset if it doesn't exist, otherwise update it
             update_sample(bucket_name,recording_item)
             # Create logs message
-            logging.info("Voxel sample with (Id: %s) updated from SDRetriever!", bucket_name)
+            _logger.info("Voxel sample [%s] updated from SDRetriever!", bucket_name)
         except Exception:
-            logging.info("\n######################## Exception #########################")
-            logging.exception("Warning: Unable to process Voxel entry with (Id: %s) on upsert_data_to_db!", bucket_name)
-            logging.info("############################################################\n")
+            _logger.exception("Unable to process Voxel entry [%s] on upsert_data_to_db!", bucket_name)
 
-        if recording_item and recording_item.get("MDF_available", "No") == "Yes" and message.get("sync_file_ext"):
-            upsert_signals_item(recording_item['video_id'], message['s3_path'], 
-                                            message['sync_file_ext'], table_sig)
-        else:
-            logging.warning('Not creating signals entry for %s, because MDF is not available.', message['_id'])
         return
 
     #################### NOTE: Pipeline execution collection handling ####################
@@ -529,9 +474,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         # Insert previous built item on the Recording collection
         table_rec.insert_one(item_db)
         # Create logs message
-        logging.info("Recording DB empty item (Id: %s) created!", recording_id)
-        logging.info("data:")
-        logging.info(message)
+        _logger.info("Recording DB empty item [%s] created with data [%s]", recording_id, item_db)
     ###########################################################################################
     ###########################################################################################
 
@@ -559,7 +502,7 @@ def read_message(container_services: ContainerServices, body: str)->dict:
                             and to be sent via message to the output queue]
     """
 
-    logging.info("Processing pipeline message..\n")
+    _logger.info("Processing pipeline message..")
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -578,9 +521,7 @@ def main():
     """Main function"""
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                                                    CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
@@ -602,14 +543,14 @@ def main():
     # use graceful exit
     graceful_exit = GracefulExit()
 
-    logging.info("\nListening to input queue(s)..\n\n")
+    _logger.info("Listening to input queue(s)..")
 
     while(graceful_exit.continue_running):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
 
         if message:
-            logging.info(message)
+            _logger.info(message)
             # Processing step
             relay_list = read_message(container_services, message['Body'])
 
@@ -624,4 +565,5 @@ def main():
             container_services.delete_message(sqs_client, message['ReceiptHandle'])
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('metadata')
     main()

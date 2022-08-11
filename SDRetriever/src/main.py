@@ -1,16 +1,24 @@
-"""Anonymize container script"""
+"""Sensor Data Retriever - V6
+- removed metadata processing
+- imporved logging
+- improved code readibility
+"""
+
+CONTAINER_NAME = "SDRetriever"    # Name of the current container
+CONTAINER_VERSION = "v6"      # Version of the current container
+MAX_CONSECUTIVE = 5
+TENANT_BLACKLIST = {'TEST_TENANT'}
+
 import json
 import logging
 from datetime import timedelta as td, datetime
-from signal import SIGTERM, signal
 import subprocess
-from operator import itemgetter
 import os
-import time
 import boto3
 import gzip
 from typing import TypeVar
 from baseaws.shared_functions import ContainerServices, GracefulExit, StsHelper
+
 CONTAINER_NAME = "SDRetriever"    # Name of the current container
 CONTAINER_VERSION = "v5.2"      # Version of the current container
 MAX_CONSECUTIVE = 25
@@ -47,7 +55,7 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
                                 dictionary)]
     """
     input_sqs = container_services.input_queue
-    logging.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
+    _logger.info("Processing %s SQS message (Kinesis)..\n", input_sqs)
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -63,18 +71,16 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
     device = dict_attr['deviceId']['Value']
 
     # Build dictionary with info to store on DB (Recording collection)
-    record_data = {}    
+    record_data = {}
     hq_request = {}
 
     ###########################################
     # DEBUG
     tenant = dict_attr['tenant']['Value']
     if tenant == "TEST_TENANT":
-        logging.info("WARNING: Message skipped (TEST_TENANT | %s)",
-                     dict_body['streamName'])
+        _logger.info("Message skipped (TEST_TENANT | %s)", dict_body['streamName'])
         return None, None
 
-    #logging.info(message)
     ##########################################
 
     record_data["recording_overview"] = {}
@@ -95,12 +101,7 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
         record_data["recording_overview"]['time'] = str(start_time)
 
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception(
-            "ERROR: Message (id: %s) contains unsupported info!", message['MessageId'])
-        logging.info(
-            "############################################################\n")
+        _logger.exception("Message (id: %s) contains unsupported info [%s]", message['MessageId'], message)
         return None, None
 
     # TODO: ADD THE BELLOW INFO TO A CONFIG FILE
@@ -128,8 +129,7 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
 
     # Skips processing if video file is a duplicate
     if response_list['KeyCount'] > 0:
-        logging.info(
-            "\nWARNING: Recording (path: %s) already exists on the S3 bucket and thus the download will be skipped!!\n", s3_path)
+        _logger.warning('Recording (path: %s) already exists on the S3 bucket and thus the download will be skipped!!', s3_path)
         return record_data, hq_request
 
     # Requests credentials to assume specific cross-account role
@@ -148,11 +148,7 @@ def transfer_kinesis_clip(s3_client, rcc_role: StsHelper, container_services: Co
                                        container_services.raw_s3,
                                        s3_path)
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception("ERROR: Failed to get kinesis clip (%s)!!", s3_path)
-        logging.info(
-            "############################################################\n")
+        _logger.exception("Failed to get kinesis clip [%s]!!", s3_path)
         return None, None
 
     ################ NOTE: Extract info details from video ###############
@@ -445,9 +441,9 @@ def json_raise_on_duplicates(ordered_pairs):
             elif type(d[k]) is list:
                 d[k].append(v)
             else:
-                d[k] = [d[k],v]
+                d[k] = [d[k], v]
         else:
-           d[k] = v
+            d[k] = v
     return d
 
 def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services: ContainerServices, message: dict):
@@ -476,11 +472,11 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
     """
     vrec_type = video_recording_type(message)
     if vrec_type != 'InteriorRecorder':
-        logging.info(f"Not allowed to ingest metadata from {vrec_type}")
+        _logger.info(f"Not allowed to ingest metadata from {vrec_type}")
         return "No", ""
 
     input_sqs = container_services.input_queue
-    logging.info("\nProcessing %s SQS message (Concatenation)..\n", input_sqs)
+    _logger.info("Processing %s SQS message (Concatenation)..", input_sqs)
 
     # Converts message body from string to dict
     # (in order to perform index access)
@@ -537,8 +533,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
     # Convert start timestamp (Metadata) to datetime
     meta_start_time = datetime.fromtimestamp(upload_start/1000.0)
     # Round down to exact hour (i.e. 0min 0s)
-    round_start_time = meta_start_time.replace(
-        microsecond=0, second=0, minute=0)
+    round_start_time = meta_start_time.replace(microsecond=0, second=0, minute=0)
 
     # Convert end timestamp (Metadata) to datetime
     meta_end_time = datetime.fromtimestamp(upload_end/1000.0)
@@ -546,7 +541,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
     round_end_time = meta_end_time.replace(microsecond=0, second=0, minute=0)
 
     # Calculate delta between start and end timestamps
-    delta = round_end_time-round_start_time
+    delta = round_end_time - round_start_time
 
     # Convert delta from seconds to hours
     hours_conv = divmod(delta.seconds, 3600.0)[0]
@@ -587,14 +582,11 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
 
         # Get list of all files with the same key prefix as the one
         # received on the message
-        response_list = rcc_s3.list_objects_v2(
-            Bucket=bucket_origin,
-            Prefix=key_prefix
-        )
+        response_list = rcc_s3.list_objects_v2(Bucket=bucket_origin, Prefix=key_prefix)
 
         # Check if response_list is not empty
         if response_list['KeyCount'] == 0:
-            logging.warning( "No metadata files with prefix: %s were found!!", key_prefix)
+            _logger.warning("No metadata files with prefix [%s] were found!!", key_prefix)
             continue
 
         # Cycle through the received list of matching files,
@@ -602,7 +594,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
         for index, file_entry in enumerate(response_list['Contents']):
             file_name = file_entry['Key']
             if file_name.endswith('.json.zip') or file_name.endswith('.json'):
-                logging.info(f"METADATA: Found {file_name}")
+                _logger.info(f"METADATA: Found {file_name}")
                 if file_name.endswith('.json.zip'):
                     # Download metadata file from RCC S3 bucket
                     compressed_metadata_file = container_services.download_file(rcc_s3, bucket_origin, file_name)
@@ -628,7 +620,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
 
     # Check if there are partial chunk MDF files
     if not files_dict or chunks_total == 0:
-        logging.warning("No valid metadata files with prefix: %s were found", key_prefix)
+        _logger.warning("No valid metadata files with prefix: %s were found", key_prefix)
         metadata_available = "No"
         sync_file_ext = ""
         return metadata_available, sync_file_ext
@@ -675,12 +667,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
         final_dict["frame"] = newlist
 
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception(
-            "ERROR: The following error occured during the concatenation process:")
-        logging.info(
-            "############################################################\n")
+        _logger.exception("Error concatenating metadata")
         metadata_available = "No"
         sync_file_ext = ""
         return metadata_available, sync_file_ext
@@ -688,45 +675,35 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
     #############################################
     # Generate and store compact mdf json
     try:
-        logging.info("Generating metadata compact file..")
+        _logger.debug("Generating metadata compact file..")
         compact_mdf = generate_compact_mdf_metadata(container_services,
                                                     s3_client,
                                                     epoch_from,
                                                     epoch_to,
                                                     files_dict,
                                                     stream_name)
-        logging.info("Metadata compact file created!\n")
+        _logger.info("Metadata compact file created!\n")
 
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception(
-            "ERROR: The following error occured during the processing of the compact metadata:")
-        logging.info("\nMetadata compact file not created!")
-        logging.info(
-            "############################################################\n")
+        _logger.exception("Error processing the compact metadata")
+        _logger.info("Metadata compact file not created!")
         sync_file_ext = ""
 
     #############################################
     # Generate and store video sync json
     try:
-        logging.info("Generating Video sync info file..")
+        _logger.debug("Generating Video sync info file..")
         sync_file_ext, start_frame, end_frame = generate_sync_data(container_services,
                                                                    s3_client,
                                                                    epoch_from,
                                                                    epoch_to,
                                                                    compact_mdf,
                                                                    stream_name)
-        logging.info("Video sync info file created!\n")
+        _logger.info("Video sync info file created!\n")
 
     except Exception:
-        logging.info(
-            "\n######################## Exception #########################")
-        logging.exception(
-            "ERROR: The following error occured during the video data sync process:")
-        logging.info("\nVideo sync info file not created!")
-        logging.info(
-            "############################################################\n")
+        _logger.exception("Error during the video data sync process")
+        _logger.info("Video sync info file not created!")
         sync_file_ext = ""
 
     ##########################################
@@ -737,7 +714,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
     else:
         final_dict['chc_periods'] = []
 
-    logging.info("Generating metadata full file..")
+    _logger.debug("Generating metadata full file..")
     # Convert concatenated dictionary into json and then into bytes so
     # that it can be uploaded into the S3 bucket
     concatenated_file = (
@@ -758,7 +735,7 @@ def concatenate_metadata_full(s3_client, rcc_role: StsHelper, container_services
                                    concatenated_file,
                                    container_services.raw_s3,
                                    key_full_metadata)
-    logging.info("Metadata full file created!\n")
+    _logger.info("Metadata full file created!\n")
     ##########################################
 
     return metadata_available, sync_file_ext
@@ -805,6 +782,7 @@ def group_frames_to_events(frames, tolerance):
 
     return groups
 
+
 def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container_services):
     """Transfers every JPEG mentioned in an upoad notification message, 
     downloading from RCC S3 and uploading into DevCloud S3 bucket, 
@@ -828,7 +806,6 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
         is not the upload timestamp 'upload_from/to'. See video chunks for reference
     """
 
-    #message_snapshots = []
     # find snapshot device
     device = message["value"]["properties"]["header"]["device_id"]
 
@@ -875,10 +852,9 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
                         )
                     except Exception:
                         if folder == possible_locations[-1]:
-                            logging.info("WARNING: Could not find %s in RCC S3"% (file_name))
+                            _logger.warning("Could not find %s in RCC S3" % (file_name))
 
-                    # if it gets found on the location
-                    # stored where expected
+                    # if it gets found on the location, stored where expected
                     if "Contents" in response and response["Contents"][0]["Key"].endswith(file_name):
 
                         # download jpeg from RCC into container file-system
@@ -888,17 +864,17 @@ def transfer_to_devcloud(message, tenant, rcc_s3_client, qa_s3_client, container
                         # upload to DevCloud
                         with open(new_name, "rb") as f:
                             snapshot_bytes = f.read()
-                            container_services.upload_file(qa_s3_client,
-                                                           snapshot_bytes,
-                                                           container_services.raw_s3,
-                                                           'Debug_Lync/'+new_name)
+                            container_services.upload_file(qa_s3_client, snapshot_bytes, container_services.raw_s3, 'Debug_Lync/' + new_name)
 
                         # and delete it from the container
                         if os.path.exists(new_name):
                             os.remove(new_name)
+
+                        # stop search
                         break
         else:
-            logging.info("Found something other than a snapshot: %s"%(file_name))
+            _logger.info("Found something other than a snapshot: %s" % (file_name))
+
 
 def snapshot_path_generator(tenant: str, device: str, start: ST, end: ST):
     """Generate the list of possible folders between the range of two timestamps
@@ -912,25 +888,31 @@ def snapshot_path_generator(tenant: str, device: str, start: ST, end: ST):
     Returns:
         [str]: List with all possible paths between timestamp bounds, sorted old to new. 
     """
-    if not tenant or not device or not start or not end: return []
+    if not tenant or not device or not start or not end:
+        return []
     # cast to datetime format
     start_timestamp = datetime.fromtimestamp(start/1000.0) if type(start) != datetime else start
     end_timestamp = datetime.fromtimestamp(end/1000.0) if type(end) != datetime else end
-    if int(start.timestamp()) < 0 or int(end.timestamp()) < 0: return []
+    if int(start.timestamp()) < 0 or int(end.timestamp()) < 0:
+        return []
 
     dt = start_timestamp
     times = []
     # for all hourly intervals between start_timestamp and end_timestamp
     while dt <= end_timestamp or (dt.hour == end_timestamp.hour):
         # append its respective path to the list
-        times.append("%s/%s/year=%s/month=%s/day=%s/hour=%s/" %(tenant, device, dt.strftime("%Y"), dt.strftime("%m"), dt.strftime("%d"), dt.strftime("%H")))
+        times.append("%s/%s/year=%s/month=%s/day=%s/hour=%s/" %
+                     (tenant, device, dt.strftime("%Y"), dt.strftime("%m"), dt.strftime("%d"), dt.strftime("%H")))
         dt = dt + td(hours=1)
 
     # and return it
     return times
 
-def event_type_identifier(message):
+
+def event_type_identifier(message: dict):
     """Receive a message and find the event type of the upload.
+    This function is useful when the SQS queue gets events of different types.
+    If not the case, its usefulness is reduced to finding the tenant in the message body.
 
     Args:
         message (dict): SQS message to be parsed.
@@ -942,37 +924,35 @@ def event_type_identifier(message):
     eventType = None
     tenant = None
     message_attrib = None
-    if "MessageAttributes" in message: 
+    if "MessageAttributes" in message:
         message_attrib = message["MessageAttributes"]
     else:
         body = json.loads(message["Body"])
-        if "MessageAttributes" in body: 
+        if "MessageAttributes" in body:
             message_attrib = body["MessageAttributes"]
         else:
             message_ = json.loads(body["Message"])
-            if "MessageAttributes" in message_: 
+            if "MessageAttributes" in message_:
                 message_attrib = message_["MessageAttributes"]
-    if message_attrib is None: 
-        logging.info("ERROR: Could not parse this message:\n")
-        logging.info(message)
+    if message_attrib is None:
+        _logger.error("Could not parse this message: %s", message)
         return eventType, tenant
     if "eventType" in message_attrib:
-        if "Value" in message_attrib["eventType"]: 
+        if "Value" in message_attrib["eventType"]:
             eventType = message_attrib["eventType"]["Value"]
-        elif "StringValue" in message_attrib["eventType"]: 
+        elif "StringValue" in message_attrib["eventType"]:
             eventType = message_attrib["eventType"]["StringValue"]
     if 'tenant' in message_attrib:
-        if "Value" in message_attrib["tenant"]: 
+        if "Value" in message_attrib["tenant"]:
             tenant = message_attrib["tenant"]["Value"]
-        elif "StringValue" in message_attrib["tenant"]: 
+        elif "StringValue" in message_attrib["tenant"]:
             tenant = message_attrib["tenant"]["StringValue"]
     return eventType, tenant
 
+
 def log_message(message, queue=CONTAINER_NAME):
-    logging.info("\n######################################\n")
-    logging.info("Message contents from %s:\n"%(queue))
-    logging.info(message)
-    logging.info("\n######################################\n")
+    _logger.info("Message contents from %s:\n %s", queue, message)
+
 
 def main():
     """Main function"""
@@ -980,13 +960,12 @@ def main():
     graceful_exit = GracefulExit()    
 
     # Define configuration for logging messages
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-    logging.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    s3_client = boto3.client('s3',region_name='eu-central-1')
-    sqs_client = boto3.client('sqs',region_name='eu-central-1')
-    sts_client = boto3.client('sts',region_name='eu-central-1')
+    s3_client = boto3.client('s3', region_name='eu-central-1')
+    sqs_client = boto3.client('sqs', region_name='eu-central-1')
+    sts_client = boto3.client('sts', region_name='eu-central-1')
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
@@ -999,8 +978,8 @@ def main():
     sts_session_name = "DevCloud-SDRetriever"
     rcc_role = StsHelper(sts_client, sts_role_name, sts_session_name)
 
-    logging.info("\nListening to input queue(s)..\n")
-    
+    _logger.info("Listening to input queue(s)..")
+
     # prepare counters
     video_flag = MAX_CONSECUTIVE
     snapshot_flag = MAX_CONSECUTIVE
@@ -1011,16 +990,16 @@ def main():
             # Check input SQS queue for new messages
             message = container_services.listen_to_input_queue(sqs_client)
 
+            # after receiving a message
             if message:
                 log_message(message)
                 if video_recording_type(message) == 'FrontRecorder':
                     # Ignore and delete message
-                    logging.info("INFO: Found 'FrontRecorder' video recorder, ignoring.")
+                    _logger.info("Found 'FrontRecorder' video recorder, ignoring.")
                     container_services.delete_message(sqs_client,message['ReceiptHandle'])
                 else:
                     # Get and store kinesis video clip
                     rec_data, hq_data = transfer_kinesis_clip(s3_client, rcc_role, container_services, message)
-                    #logging.info("Logs rec_data : %s" % (rec_data))
                     # Checks if recording received is valid for
                     # HQ data request
                     if hq_data:
@@ -1057,31 +1036,46 @@ def main():
 
             snapshot_flag += -1
             # process for snaphots
+
             # access the old selector queue "qa-terraform-queue-selector"
             api_sqs_queue = container_services.sqs_queues_list['Selector']
 
             # get a message from the Selector SQS queue
             message = container_services.listen_to_input_queue(sqs_client, api_sqs_queue)
 
-            # diferentiate between message type (video/snapshot)
+            # after receiving a message
             if message:
+                # diferentiate between message type (video/snapshot)
+
                 # save some messages as examples for development
                 log_message(message, api_sqs_queue)
+                
                 # the message body comes formatted as a string, needs to be parsed to json
                 body = json.loads(message["Body"])
-                # the message _in_ the body is also formatted as a string, needs to be parsed to json
-                # Verify if the message exists inside Message field
-                event_type,tenant = event_type_identifier(message)
+                
+                # determine event type and upload tenant
+                event_type, tenant = event_type_identifier(message)
+
+                # log message timestamp
                 if "Attributes" in message and "SentTimestamp" in message["Attributes"]:
-                    logging.info("Message timestamp: %s"%(datetime.fromtimestamp(int(message["Attributes"]["SentTimestamp"])/1000.0)))
-                elif "Timestamp" in message:
-                    logging.info("Message timestamp: %s"%(message["Timestamp"]))
-                if event_type =="com.bosch.ivs.videorecorder.UploadRecordingEvent":
-                    if tenant != "TEST_TENANT":
+                    _logger.debug("Message timestamp: %s" % (datetime.fromtimestamp(int(message["Attributes"]["SentTimestamp"])/1000.0)))
+                elif "Timestamp" in message: 
+                    _logger.debug("Message timestamp: %s" % (message["Timestamp"]))
+                
+                # If we have an UploadRecordingEvent (used for snapshots)
+                if event_type == "com.bosch.ivs.videorecorder.UploadRecordingEvent":
+                    
+                    # and the tenant is not blacklisted
+                    if tenant not in TENANT_BLACKLIST:
+                        
+                        # get the message contents
                         message_ = body["Message"] if "Message" in body else body
-                        if type(message_) == str: message_ = json.loads(body["Message"])
+                        if type(message_) == str:
+                            message_ = json.loads(body["Message"])
+
+                        # and if it contains a set of chunks (each chunk would be a single snapshot)
                         if "chunk_descriptions" in message_["value"]["properties"].keys():
-                            logging.info("Tenant is %s, processing files..." % tenant)
+                            _logger.info("Tenant is %s, processing files..." % (tenant))
 
                             # Create a S3 client with temporary STS credentials
                             # to enable cross-account access
@@ -1094,18 +1088,19 @@ def main():
                             # transfer snapshots mentioned in the message
                             transfer_to_devcloud(message_, tenant, rcc_s3_client, s3_client, container_services)
                         else:
-                            logging.warning("No files found in message")
-                            logging.info(message)
+                            _logger.warning("No files found in message [%s]")
+                            _logger.info(message)
                     else:
-                        logging.info("WARNING: Message skipped (Tenant is %s)", tenant)
+                        _logger.warning("Message skipped (Tenant is %s)", tenant)
                 else:
-                    logging.info("WARNING: Message skipped (MessageType is %s)", event_type)
+                    _logger.warning("Message skipped (MessageType is %s)", event_type)
 
                 container_services.delete_message(sqs_client, message['ReceiptHandle'], api_sqs_queue)
             # if no snapshot message was found, look for videos
             else: snapshot_flag = 0
             if snapshot_flag == 0: video_flag=MAX_CONSECUTIVE
-    logging.info('\nSDRetriever exited gracefully')
+    _logger.info('\nSDRetriever exited gracefully')
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('sdretriever')
     main()
