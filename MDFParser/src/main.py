@@ -89,6 +89,7 @@ def process_request(mdf_s3_path: str, downloader: Downloader, uploader: Uploader
     # upload synchronized signals to s3 and store path in metadata
     try:
         metadata['signals_file'] = uploader.upload_signals(synchronized, mdf_s3_path)
+        metadata["s3_path"] = metadata['signals_file']['bucket']+"/"+metadata['signals_file']["key"] # added because Metadata expects this field to exist
     except Exception:
         _logger.exception('Error uploading synchronized signals to S3.')
         raise
