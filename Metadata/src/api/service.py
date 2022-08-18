@@ -1,6 +1,5 @@
 import logging
 import re
-from api import logger
 from api.db import Persistence
 
 _logger = logging.getLogger('metadata_api.' + __name__)
