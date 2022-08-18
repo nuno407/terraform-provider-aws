@@ -66,15 +66,17 @@ class ApiService:
         if sorting and direction:
             sorting_query = self.__parse_sorting(sorting, direction)
     
-        print("additional_query")
-        print(additional_query)
-
-        print("sorting_query")
-        print(sorting_query)
+        _logger.info("additional_query %s:\n"%(additional_query))
+        
+        _logger.info("sorting_query %s:\n"%(sorting_query))
+        
+       
         recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
-        print("number_recordings")
-        print(number_recordings)
+        
+        _logger.info("number_recordings %s:\n"%(number_recordings))
+
+
 
         return table_data, number_recordings, number_pages
         
