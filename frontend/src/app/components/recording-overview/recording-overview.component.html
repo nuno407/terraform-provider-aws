@@ -118,17 +118,21 @@
           <span class="column-header"># Snapshots</span>
         </span>
       </th>
-      <th class="column" >
-        <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-        <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-        <span class="column-header" (click)="sortBy('number_CHC_events')" style="cursor:pointer"># CHC events</span>
-        <span class="column-header"># CHC events</span>
+      <th (click)="sortBy('number_CHC_events')" class="column" >
+        <span class="filter-item">
+          <mat-icon *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam != 'number_CHC_events'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <span class="column-header"># CHC events</span>
+       </span>        
       </th>
-      <th class="column" >
-        <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
-        <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-        <span class="column-header" (click)="sortBy('lengthCHC')" style="cursor:pointer">CHC length</span>
-        <span class="column-header">CHC length</span>
+      <th (click)="sortBy('lengthCHC')" class="column" >
+        <span class="filter-item">
+          <mat-icon *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam != 'lengthCHC'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <span class="column-header">CHC length</span>
+       </span>        
       </th>
     </tr>
     <tr (click)="showDetailDialog(video._id)" *ngFor="let video of videoList" [hidden]="!isLoaded || error" class="virtual-scroll-viewport list-row">
