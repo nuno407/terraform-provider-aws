@@ -204,11 +204,11 @@ class ContainerServices():
         Returns:
             queue_url {string} -- [URL of the SQS queue]
         """
-        _logger.debug('Getting queue URL for %s', queue_name)
+        #_logger.debug('Getting queue URL for %s', queue_name)
         # Request for queue url
         response = client.get_queue_url(QueueName=queue_name)
         queue_url = response['QueueUrl']
-        _logger.debug('Got queue URL for %s', queue_name)
+        #_logger.debug('Got queue URL for %s', queue_name)
 
         return queue_url
 
@@ -238,7 +238,7 @@ class ContainerServices():
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Receive message(s)
-        _logger.debug('Receiving input message...')
+        #_logger.debug('Receiving input message...')
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
@@ -263,7 +263,8 @@ class ContainerServices():
             _logger.info("Message [%s] received!", message['MessageId'])
             _logger.debug("-> queue:  %s", input_queue)
         else:
-            _logger.debug('No Message received.')
+           # _logger.debug('No Message received.')
+           pass
 
         return message
 
