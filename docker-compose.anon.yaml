@@ -1,0 +1,70 @@
+#
+# for quick local testing
+#
+version: '3.3'
+
+services:
+  anon:
+    container_name: anon-handler
+    image: anon_ivschain:test-local
+    build:
+      dockerfile: anon_ivschain/Dockerfile
+      context: .
+    environment:
+      CONFIG_S3: ${CONFIG_S3:-local-rcd-config-files}
+      AWS_ENDPOINT: http://mockaws:4566
+      # localstack doesn't care
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      # localstack only works on us-east-1
+      AWS_REGION: us-east-1
+      NO_PROXY: 127.0.0.1,127.0.0.11,mockaws,ivschain
+      no_proxy: 127.0.0.1,127.0.0.11,mockaws,ivschain
+      # wait for localstack
+      START_DELAY_SECONDS: 20
+      IVS_FC_HOSTNAME: ivschain
+    depends_on:
+      - localstack
+      - ivschain
+  localstack:
+    container_name: mockaws
+    image: localstack/localstack
+    healthcheck:
+      test: ["CMD", "bash" ,"-c", "awslocal sqs list-queues && awslocal s3 ls"]
+      timeout: 5s
+      interval: 25s
+      retries: 5
+    environment:
+      SERVICES: s3,sqs
+      HTTP_PROXY: http://172.17.0.1:3128
+      HTTPS_PROXY: http://172.17.0.1:3128
+      #DEBUG: 1
+    ports:
+      - 4566:4566
+      - 8080:8080
+    volumes:
+      - ./.localdev/initscripts:/docker-entrypoint-initaws.d
+  ivschain:
+    container_name: ivschain
+    command:
+      - ./start_cloud_ivs.sh
+      - -i
+      - http://anon-handler:5000/
+      - -o
+      - /tmp/video_storage
+    # image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:22.07.experimental
+    # this old image below should work without GPU and CUDA, ivs fc should fallback to CPU
+    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:26467184d3e6c45c229895b30c898cdbd253b901
+    environment:
+      QUEUE_LENGTH: "1"
+      RESPONSE_ENDPOINT: http://anon-handler:5000/
+      NO_PROXY: 127.0.0.1,127.0.0.11,anon-handler
+      no_proxy: 127.0.0.1,127.0.0.11,anon-handler
+    volumes:
+      - ivschain_shm:/dev/shm
+
+volumes:
+  ivschain_shm:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

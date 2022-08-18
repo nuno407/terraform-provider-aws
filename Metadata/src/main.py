@@ -5,7 +5,7 @@ import os
 from typing import Optional, Tuple
 import boto3
 import pytz
-from baseaws.shared_functions import ContainerServices, GracefulExit
+from baseaws.shared_functions import ContainerServices, GracefulExit, VIDEO_FORMATS, IMAGE_FORMATS
 from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
 from datetime import datetime
 from pymongo.collection import Collection
@@ -15,9 +15,6 @@ from baseaws.voxel_functions import create_dataset, update_sample
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
-
-VIDEO_FORMATS = ['avi','mp4']
-IMAGE_FORMATS = ['jpeg','jpg','png']
 
 def upsert_recording_item(message: dict, table_rec: Collection)->Optional[dict]:
     """Inserts a new item on the recordings collection 

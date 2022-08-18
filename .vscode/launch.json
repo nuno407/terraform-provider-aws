@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run pytest in current file",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${fileDirname}",
+            "purpose": ["debug-test"],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "..\\..\\..\\baseaws",
+                "PYTEST_ADDOPTS": "--no-cov"
+            },
+        },
+        {
             "type": "pwa-chrome",
             "request": "launch",
             "runtimeExecutable": "/Applications/Chromium.app/Contents/MacOS/Chromium",

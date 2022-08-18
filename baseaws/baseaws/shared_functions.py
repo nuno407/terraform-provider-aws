@@ -2,18 +2,18 @@
 import json
 import logging
 import os
-from signal import SIGSTOP, SIGTERM, Signals, signal
 import subprocess
-from datetime import datetime #timedelta as td,
-import pytz
+from datetime import datetime  # timedelta as td,
+from signal import SIGTERM, Signals, signal
+
 import boto3
+import pytz
 from pymongo import MongoClient
 from pymongo.database import Database
 
-VIDEO_FORMATS = ['avi','mp4']
-IMAGE_FORMATS = ['jpeg','jpg','png']
-
 _logger = logging.getLogger(__name__)
+VIDEO_FORMATS = {'mp4','avi'}
+IMAGE_FORMATS = {'jpeg','jpg','png'}
 
 class ContainerServices():
     """ContainerServices
@@ -40,12 +40,12 @@ class ContainerServices():
 
         # Bucket and path for the config file #'dev-rcd-config-files'
         self.__config = {
-                          'bucket': os.environ['CONFIG_S3'],
-                          'file': 'containers/config_file_containers.json'
-                        }
-        self.__secretmanagers = {} # To be modify on dated 16 Jan'2022
+            'bucket': os.environ['CONFIG_S3'],
+            'file': 'containers/config_file_containers.json'
+        }
+        self.__secretmanagers = {}  # To be modify on dated 16 Jan'2022
 
-        self.__apiendpoints = {} # To be modify on dated 16 Jan'2022
+        self.__apiendpoints = {}  # To be modify on dated 16 Jan'2022
 
     @property
     def sqs_queues_list(self):
@@ -127,7 +127,6 @@ class ContainerServices():
         """ Time format """
         return "%Y-%m-%dT%H:%M:%S.%fZ"
 
-
     def load_config_vars(self, client):
         """Gets configuration json file from s3 bucket and initialises the
         respective class variables based on the info from that file
@@ -183,9 +182,11 @@ class ContainerServices():
         # Information of the ivs_chain endpoint (ip, port, endpoint name)
         self.__ivs_api = dict_body['ivs_api']
 
-        self.__secretmanagers = dict_body['secret_manager']   # To be modify on dated 16 Jan'2022
+        # To be modify on dated 16 Jan'2022
+        self.__secretmanagers = dict_body['secret_manager']
 
-        self.__apiendpoints = dict_body['api_endpoints']   # To be modify on dated 16 Jan'2022
+        # To be modify on dated 16 Jan'2022
+        self.__apiendpoints = dict_body['api_endpoints']
 
         # Documentdb information for client login
         self.__docdb_config = dict_body['docdb_config']
@@ -198,7 +199,7 @@ class ContainerServices():
         """Retrieves the URL for a given SQS queue
 
         Arguments:
-            client {boto3.client} -- [client used to access the SQS service]
+            client {boto3.client} -- [client used to acces£s the SQS service]
             queue_name {string} -- [Name of the SQS queue]
         Returns:
             queue_url {string} -- [URL of the SQS queue]
@@ -235,7 +236,7 @@ class ContainerServices():
             input_queue = self.__queues['input']
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
-        
+
         # Receive message(s)
         _logger.debug('Receiving input message...')
         response = client.receive_message(
@@ -298,7 +299,6 @@ class ContainerServices():
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
-
         # Delete received message
         _logger.debug('Deleting message [%s]', receipt_handle)
         client.delete_message(
@@ -325,13 +325,12 @@ class ContainerServices():
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
-
         # Delete received message
         client.change_message_visibility(
-                                QueueUrl=input_queue_url,
-                                ReceiptHandle=receipt_handle,
-                                VisibilityTimeout=seconds
-                            )
+            QueueUrl=input_queue_url,
+            ReceiptHandle=receipt_handle,
+            VisibilityTimeout=seconds
+        )
 
         _logger.info("Listening to input queue(s)..")
 
@@ -352,15 +351,15 @@ class ContainerServices():
 
         # Add attributes to message
         msg_attributes = {
-                            'SourceContainer': {
-                                'DataType': 'String',
-                                'StringValue': self.__container['name']
-                            },
-                            'ToQueue': {
-                                'DataType': 'String',
-                                'StringValue': dest_queue
-                            }
-                        }
+            'SourceContainer': {
+                'DataType': 'String',
+                'StringValue': self.__container['name']
+            },
+            'ToQueue': {
+                'DataType': 'String',
+                'StringValue': dest_queue
+            }
+        }
 
         # Send message to SQS queue
         _logger.debug('Sending message to [%s]', dest_queue)
@@ -387,9 +386,8 @@ class ContainerServices():
         connstring = os.environ.get('FIFTYONE_DATABASE_URI')
         return connstring
 
-
     @staticmethod
-    def create_db_client()->Database:
+    def create_db_client() -> Database:
         """Creates MongoDB client and returns a DB object based on
         the set configurations so that a user can access the respective
         MongoDB resource
@@ -428,9 +426,9 @@ class ContainerServices():
         _logger.debug("Downloading [%s]..", full_path)
 
         response = client.get_object(
-                                        Bucket=s3_bucket,
-                                        Key=file_path
-                                    )
+            Bucket=s3_bucket,
+            Key=file_path
+        )
 
         # Read all bytes from http response body
         # (botocore.response.StreamingBody)
@@ -457,22 +455,22 @@ class ContainerServices():
 
         # TODO: ADD THIS INFO TO CONFIG FILE
         type_dict = {
-                      "json": "application/json",
-                      "mp4": "video/mp4",
-                      "avi": "video/x-msvideo",
-                      "txt": "text/plain",
-                      "webm":"video/webm",
-                      'jpeg': 'image/jpeg'
-                    }
+            "json": "application/json",
+            "mp4": "video/mp4",
+            "avi": "video/x-msvideo",
+            "txt": "text/plain",
+            "webm": "video/webm",
+            'jpeg': 'image/jpeg'
+        }
         file_extension = key_path.split('.')[-1]
 
         client.put_object(
-                          Body=object_body,
-                          Bucket=s3_bucket,
-                          Key=key_path,
-                          ServerSideEncryption='aws:kms',
-                          ContentType=type_dict[file_extension]
-                        )
+            Body=object_body,
+            Bucket=s3_bucket,
+            Key=key_path,
+            ServerSideEncryption='aws:kms',
+            ContentType=type_dict[file_extension]
+        )
 
         _logger.info("Uploaded [%s]", key_path)
 
@@ -514,15 +512,15 @@ class ContainerServices():
         # Define key s3 paths for each container's pending queue json file
         # TODO: ADD THIS INFO TO CONFIG FILE
         key_paths = {
-                      "Anonymize": "containers/pending_queue_anonymize.json",
-                      "CHC": "containers/pending_queue_chc.json"
-                    }
+            "Anonymize": "containers/pending_queue_anonymize.json",
+            "CHC": "containers/pending_queue_chc.json"
+        }
 
         # Download pending queue json file
         response = client.get_object(
-                                      Bucket=self.__config['bucket'],
-                                      Key=key_paths[self.__container['name']]
-                                    )
+            Bucket=self.__config['bucket'],
+            Key=key_paths[self.__container['name']]
+        )
 
         # Decode and convert received bytes into json format
         result_info = json.loads(response['Body'].read().decode("utf-8"))
@@ -534,12 +532,13 @@ class ContainerServices():
 
         if mode == "insert":
             # Create current time timestamp to add to pending item info (for debug)
-            curr_time = str(datetime.now(tz=pytz.UTC).strftime('%Y-%m-%d %H:%M:%S'))
+            curr_time = str(datetime.now(
+                tz=pytz.UTC).strftime('%Y-%m-%d %H:%M:%S'))
 
             # Insert a new pending order on the downloaded file
             result_info[uid] = {
-                                "relay_list": dict_body,
-                                "creation_date": curr_time
+                "relay_list": dict_body,
+                "creation_date": curr_time
             }
 
         elif mode == "read":
@@ -554,16 +553,17 @@ class ContainerServices():
             _logger.error("\nWARNING: Operation (%s) not supported!!\n", mode)
 
         # Encode and convert updated json into bytes to be uploaded
-        object_body = json.dumps(result_info, indent=4, sort_keys=True).encode('utf-8')
+        object_body = json.dumps(
+            result_info, indent=4, sort_keys=True).encode('utf-8')
 
         # Upload updated json file
         client.put_object(
-                          Body=object_body,
-                          Bucket=self.__config['bucket'],
-                          Key=key_paths[self.__container['name']],
-                          ServerSideEncryption='aws:kms',
-                          ContentType="application/json"
-                        )
+            Body=object_body,
+            Bucket=self.__config['bucket'],
+            Key=key_paths[self.__container['name']],
+            ServerSideEncryption='aws:kms',
+            ContentType="application/json"
+        )
 
         _logger.info("S3 Pending queue updated (mode: %s | uid: %s)!", mode, uid)
 
@@ -589,31 +589,31 @@ class ContainerServices():
 
         # Create Kinesis client
         kinesis_client = boto3.client('kinesisvideo',
-                                        region_name='eu-central-1',
-                                        aws_access_key_id=creds['AccessKeyId'],
-                                        aws_secret_access_key=creds['SecretAccessKey'],
-                                        aws_session_token=creds['SessionToken'])
+                                      region_name='eu-central-1',
+                                      aws_access_key_id=creds['AccessKeyId'],
+                                      aws_secret_access_key=creds['SecretAccessKey'],
+                                      aws_session_token=creds['SessionToken'])
 
         # Getting endpoint URL for LIST_FRAGMENTS
         response_list = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                    APIName='LIST_FRAGMENTS')
+                                                         APIName='LIST_FRAGMENTS')
 
         # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
         response_get = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                    APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
+                                                        APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
 
-        # Fetch DataEndpoint field 
+        # Fetch DataEndpoint field
         endpoint_response_list = response_list['DataEndpoint']
         endpoint_response_get = response_get['DataEndpoint']
 
         ### List fragments step ###
         # Create Kinesis archive media client for list_fragments()
         list_client = boto3.client('kinesis-video-archived-media',
-                                    endpoint_url=endpoint_response_list,
-                                    region_name='eu-central-1',
-                                    aws_access_key_id=creds['AccessKeyId'],
-                                    aws_secret_access_key=creds['SecretAccessKey'],
-                                    aws_session_token=creds['SessionToken'])
+                                   endpoint_url=endpoint_response_list,
+                                   region_name='eu-central-1',
+                                   aws_access_key_id=creds['AccessKeyId'],
+                                   aws_secret_access_key=creds['SecretAccessKey'],
+                                   aws_session_token=creds['SessionToken'])
 
         # Get all fragments within timestamp range (start_time, end_time)
         response1 = list_client.list_fragments(
@@ -631,7 +631,8 @@ class ContainerServices():
         _logger.debug('Got fragments for test clip on [%s]', stream_name)
 
         # Sort fragments by their timestamp
-        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp((d['ProducerTimestamp'])))
+        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp(
+            (d['ProducerTimestamp'])))
 
         # Create comprehension list with sorted fragments
         list_frags = [frag['FragmentNumber'] for frag in newlist]
@@ -639,11 +640,11 @@ class ContainerServices():
         ### Get media step ###
         # Create Kinesis archive media client for get_media_for_fragment_list()
         get_client = boto3.client('kinesis-video-archived-media',
-                                    endpoint_url=endpoint_response_get,
-                                    region_name='eu-central-1',
-                                    aws_access_key_id=creds['AccessKeyId'],
-                                    aws_secret_access_key=creds['SecretAccessKey'],
-                                    aws_session_token=creds['SessionToken'])
+                                  endpoint_url=endpoint_response_get,
+                                  region_name='eu-central-1',
+                                  aws_access_key_id=creds['AccessKeyId'],
+                                  aws_secret_access_key=creds['SecretAccessKey'],
+                                  aws_session_token=creds['SessionToken'])
 
         # Fetch all 2sec fragments from previously sorted list
         response2 = get_client.get_media_for_fragment_list(
@@ -664,7 +665,7 @@ class ContainerServices():
         video_chunk = response2['Payload'].read()
 
         # Save video chunks to file
-        with open(input_name, 'wb') as infile: 
+        with open(input_name, 'wb') as infile:
             infile.write(video_chunk)
 
         with open(logs_name, 'w') as logs_write:
@@ -691,7 +692,7 @@ class ContainerServices():
         # Generate processing end message
         _logger.info("Test clip download completed!")
 
-        return output_video 
+        return output_video
 
     ##### Logs/Misc. functions ####################################################################
     @staticmethod
@@ -707,8 +708,8 @@ class ContainerServices():
                              process of a given file. Optional]
         """
         _logger.info("\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
-        
-        
+
+
 # inspired by https://stackoverflow.com/a/31464349
 class GracefulExit:
     @property
@@ -723,6 +724,7 @@ class GracefulExit:
         _logger.critical("Received termination request with signal %s. Trying to shutdown gracefully.", Signals(signum).name)
         self.__continue_running = False
 
+
 class StsHelper:
     def __init__(self, sts_client, role: str, role_session: str) -> None:
         self.__role = role
@@ -731,12 +733,19 @@ class StsHelper:
         self.__renew_credentials()
 
     def __renew_credentials(self):
-        assumed_role = self.__client.assume_role(RoleArn=self.__role,RoleSessionName=self.__role_session)
+        assumed_role = self.__client.assume_role(
+            RoleArn=self.__role, RoleSessionName=self.__role_session)
         self.__credentials = assumed_role['Credentials']
         self.__last_renew = datetime.now()
 
-    def get_credentials(self)->dict:
+    def get_credentials(self) -> dict:
         if (datetime.now() - self.__last_renew).total_seconds() > 1800:
             self.__renew_credentials()
         return self.__credentials
-        
+
+
+class AWSServiceClients():
+
+    def __init__(self, sqs_client: boto3.Session.client, s3_client: boto3.Session.client):
+        self.sqs_client = sqs_client
+        self.s3_client = s3_client

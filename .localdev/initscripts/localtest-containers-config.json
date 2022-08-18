@@ -1,0 +1,126 @@
+{
+    "sqs_queues_list": {
+        "SDM": "local-terraform-queue-s3-sdm",
+        "Anonymize": "local-terraform-queue-anonymize",
+        "API_Anonymize": "local-terraform-queue-api-anonymize",
+        "CHC": "local-terraform-queue-chc",
+        "API_CHC": "local-terraform-queue-api-chc",
+        "SDRetriever": "local-terraform-queue-download",
+        "Selector": "local-terraform-queue-selector",
+        "HQ_Selector": "local-terraform-queue-hq-request",
+        "Metadata": "local-terraform-queue-metadata",
+        "Output": "local-terraform-queue-output"
+    },
+    "msp_processing_steps": {
+        "Debug_Uber": [
+            "Anonymize"
+        ],
+        "Debug_Lyft": [
+            "CHC"
+        ],
+        "Debug_Lync": [
+            "Anonymize",
+            "CHC"
+        ],
+        "FUT2": [
+            "Anonymize",
+            "CHC"
+        ],
+        "Driver-PR": [
+            "Anonymize",
+            "CHC"
+        ]
+    },
+    "db_metadata_tables": {
+        "pipeline_exec": "local-pipeline-execution",
+        "algo_output": "local-algorithm-output",
+        "recording": "local-recording",
+        "recordings": "local-recordings",
+        "signals": "local-signals"
+    },
+    "s3_buckets": {
+        "raw": "local-rcd-raw-video-files",
+        "anonymized": "local-rcd-anonymized-video-files"
+    },
+    "s3_ignore_list": {
+        "raw": [
+            "txt",
+            "json"
+        ],
+        "anonymized": []
+    },
+    "docdb_key_whitelists": {
+        "dev-pipeline-execution": [
+            "_id",
+            "data_status",
+            "from_container",
+            "info_source",
+            "last_updated",
+            "processing_list",
+            "s3_path"
+        ],
+        "dev-algorithm-output": [
+            "_id",
+            "video_s3_path",
+            "meta_s3_path",
+            "algorithm_id",
+            "pipeline_id",
+            "results",
+            "run_id",
+            "results.frame.objectlist.floatAttributes.name",
+            "results.frame.objectlist.floatAttributes.value"
+        ],
+        "dev-recording": [
+            "_id",
+            "recording_overview",
+            "recording_overview.length",
+            "recording_overview.time",
+            "recording_overview.deviceID",
+            "recording_overview.resolution",
+            "recording_overview.#snapshots",
+            "recording_overview.snapshots_paths"
+        ]
+    },
+    "sdr_dest_folder": {
+        "debug": "Debug_Lync/",
+        "fut2": "FUT2/",
+        "driver_pr": "Driver-PR/"
+    },
+    "sdr_blacklist_tenants": {
+        "ignore": [
+            "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder",
+            "TEST_TENANT_HONEYBADGER_DEV_01",
+            "TEST_TENANT_HONEYBADGER_DEV_02",
+            "TEST_TENANT_HONEYBADGER_DEV_03",
+            "TEST_TENANT_HONEYBADGER_DEV_04"
+        ],
+        "store_only": []
+    },
+    "rcc_info": {
+        "role": "arn:aws:iam::213279581081:role/dev-DevCloud",
+        "s3_bucket": "rcc-dev-device-data"
+    },
+    "ivs_api": {
+        "address": "ivschain-svc.data-ingestion.svc.cluster.local",
+        "port": "8081",
+        "endpoint": "feature_chain"
+    },
+    "secret_manager": {
+        "selector": "footage_api_mdl"
+    },
+    "api_endpoints": {
+        "mdl_footage_endpoint": "https://dev.bosch-ridecare.com/footage/devices/{}/videofootage",
+        "selector_token_endpoint": "https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token"
+    },
+    "docdb_config": {
+        "cluster_endpoint": "data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com",
+        "tls": "true",
+        "tlsCAFile": "rds-combined-ca-bundle.pem",
+        "replicaSet": "rs0",
+        "readPreference": "secondaryPreferred",
+        "retryWrites": "false",
+        "db": "DB_data_ingestion",
+        "secret_name": "data-ingestion-cluster-credentials",
+        "region_name": "eu-central-1"
+    }
+}

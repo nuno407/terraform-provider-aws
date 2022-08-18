@@ -2,12 +2,25 @@ import os
 import subprocess
 import json
 from pathlib import Path
-
+from typing import List
 
 def summary(text):
     print(text)
     os.environ['GITHUB_STEP_SUMMARY'] = os.environ.get('GITHUB_STEP_SUMMARY', '') + text
 
+def add_all_dependant_directories(changed_directories: List[str], generic_dirname: str) -> List[str]:
+    """
+    iterates over directories searching for Dockerfile's that contains a given generic_dirname string
+    """
+    for file in os.scandir(os.getcwd()):
+        if file.is_dir():
+            dockerfile = Path(os.path.join(file.path, "Dockerfile"))
+            if dockerfile.is_file():
+                with open(dockerfile) as dockerfile_content:
+                    # If `generic_dirname` is referenced in a service's Dockerfile it depends on it
+                    if generic_dirname in dockerfile_content.read():
+                        changed_directories.add(file.name)
+    return changed_directories
 
 def determine_changed_directories():
     # Get all changed directories
@@ -26,15 +39,12 @@ def determine_changed_directories():
 
     if "baseaws" in changed_directories:
         summary("Baseaws was changed, therefore all dependent services will be built!")
-        for file in os.scandir(os.getcwd()):
-            if file.is_dir():
-                dockerfile = Path(os.path.join(file.path, "Dockerfile"))
-                if dockerfile.is_file():
-                    with open(dockerfile) as dockerfile_content:
-                        # If `baseaws` is referenced in a service's Dockerfile it depends on it
-                        if 'baseaws' in dockerfile_content.read():
-                            changed_directories.add(file.name)
+        changed_directories = add_all_dependant_directories(changed_directories, "baseaws")
+    if "basehandler" in changed_directories:
+        summary("basehandler was changed, building ivschain services")
+        changed_directories = add_all_dependant_directories(changed_directories, "basehandler")
 
+    changed_directories = set(changed_directories)
     # Remove directories which don't exist as git diff also lists deleted files
     existing_dirs = filter(lambda f: Path(f).is_dir(), changed_directories)
 
