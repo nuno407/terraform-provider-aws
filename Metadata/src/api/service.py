@@ -65,9 +65,17 @@ class ApiService:
         sorting_query = None
         if sorting and direction:
             sorting_query = self.__parse_sorting(sorting, direction)
+    
+        print("additional_query")
+        print(additional_query)
 
+        print("sorting_query")
+        print(sorting_query)
         recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
+        print("number_recordings")
+        print(number_recordings)
+
         return table_data, number_recordings, number_pages
         
     # State all valid query fields and their corresponding database field path
