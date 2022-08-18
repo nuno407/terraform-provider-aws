@@ -1,11 +1,12 @@
 boto3
 pytz
 requests
-flask
-flask_cors
 pymongo[srv]
-flask_restx
+flask_cors
 mongosanitizer
 regex
 PyYaml
 waitress
+werkzeug == 2.1.2
+flask == 2.1.2   
+flask-restx >= 0.5.1 
