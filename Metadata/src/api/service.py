@@ -1,6 +1,6 @@
 import logging
 import re
-
+from api import logger
 from api.db import Persistence
 
 _logger = logging.getLogger('metadata_api.' + __name__)
@@ -66,17 +66,13 @@ class ApiService:
         if sorting and direction:
             sorting_query = self.__parse_sorting(sorting, direction)
     
-        _logger.info("additional_query %s:\n"%(additional_query))
+        _logger.warning("additional_query %s: "%(additional_query))
+        _logger.warning("sorting_query %s: "%(sorting_query))
         
-        _logger.info("sorting_query %s:\n"%(sorting_query))
-        
-       
         recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
         
-        _logger.info("number_recordings %s:\n"%(number_recordings))
-
-
+        _logger.warning("number_recordings %s:\n"%(number_recordings))
 
         return table_data, number_recordings, number_pages
         
