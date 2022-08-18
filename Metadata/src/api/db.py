@@ -53,6 +53,9 @@ class Persistence:
         number_recordings = int(count_result[0]['number_recordings']) if count_result else 0
         number_pages = ceil(float(number_recordings) / page_size)
 
+        print("pipeline result")
+        print(pipeline_result['result'])
+
         return pipeline_result['result'], number_recordings, number_pages
 
     def __generate_recording_list_query(self, additional_query = None, sorting = None):

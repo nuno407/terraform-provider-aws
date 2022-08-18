@@ -119,15 +119,15 @@
         </span>
       </th>
       <th class="column" >
-        <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+        <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
         <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-        <span class="column-header" (click)="sortBy('number_CHC_events')" style="cursor:pointer"># CHC events</span> -->
+        <span class="column-header" (click)="sortBy('number_CHC_events')" style="cursor:pointer"># CHC events</span>
         <span class="column-header"># CHC events</span>
       </th>
       <th class="column" >
-        <!-- <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
+        <mat-icon fontIcon="bosch-ic-arrow-up" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='asc'" style="cursor:pointer"></mat-icon>
         <mat-icon fontIcon="bosch-ic-arrow-down" *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='dsc'" style="cursor:pointer"></mat-icon>
-        <span class="column-header" (click)="sortBy('lengthCHC')" style="cursor:pointer">CHC length</span> -->
+        <span class="column-header" (click)="sortBy('lengthCHC')" style="cursor:pointer">CHC length</span>
         <span class="column-header">CHC length</span>
       </th>
     </tr>
@@ -137,7 +137,7 @@
       <td class="column list-item">{{video.length}}</td>
       <td class="column list-item">{{video.time}}</td>
       <td class="column list-item">{{video.resolution}}</td>
-      <td class="column list-item">{{ video.data_status }}</td>
+      <td class="column list-item">{{video.data_status}}</td>
       <td class="column list-item">{{video.processing_list}}</td>
       <td class="column list-item">{{video.last_updated}}</td>
       <td class="column list-item">{{video.snapshots}}</td>

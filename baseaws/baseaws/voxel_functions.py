@@ -24,7 +24,7 @@ def update_sample(data_set,sample_info):
 
     #If the sample already exists, update it's information, otherwise create a new one
     if 'filepath' in sample_info:
-        sample_info.remove('filepath')
+        sample_info.pop('filepath')
 
     try:
         sample = dataset.one(F("video_id") == sample_info["video_id"])

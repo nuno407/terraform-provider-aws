@@ -168,9 +168,7 @@ class ApiService:
 
     def __map_recording_object(self, recording_item):
         recording_object = {}
-        # Add CHC information
-        recording_object['number_CHC_events'] = ''      
-        recording_object['lengthCHC'] = ''
+
         
         recording_overview = recording_item.get('recording_overview',{})
         recording_object['tenant'] = recording_overview.get('tenantID','-')
@@ -182,7 +180,9 @@ class ApiService:
 
         recording_object['_id'] = recording_item.get('video_id')
         recording_object['resolution'] = recording_item.get('resolution','-')      
-        
+
+        recording_object['number_CHC_events'] = recording_overview.get('number_chc_events','-')      
+        recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')   
 
         pipeline_execution = recording_item.get('pipeline_execution',{})
         recording_object['processing_list'] = pipeline_execution.get('processing_list','-')      
