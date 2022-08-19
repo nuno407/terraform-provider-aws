@@ -3,16 +3,20 @@ import logging
 import os
 import queue
 import uuid
-from typing import Protocol
 from abc import abstractmethod
+from time import perf_counter
+from typing import Protocol
+
 import requests
 from requests.status_codes import codes as status_codes
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices, VIDEO_FORMATS, IMAGE_FORMATS
+from baseaws.shared_functions import (IMAGE_FORMATS, VIDEO_FORMATS,
+                                      AWSServiceClients, ContainerServices)
 
 # defaults to 10h
 INTERNAL_QUEUE_TIMEOUT = os.getenv('INTERNAL_QUEUE_TIMEOUT', 36000)
 IVS_FC_HOSTNAME = os.getenv('IVS_FC_HOSTNAME', 'localhost')
+
 
 class PostProcessor(Protocol):
     """
@@ -29,7 +33,8 @@ class PostProcessor(Protocol):
         Args:
             message_body (dict): The message sent from processing algorithm that can be change.
         """
-        raise NotImplementedError() # protocol function defines the signature and has and empty body
+        raise NotImplementedError()  # protocol function defines the signature and has and empty body
+
 
 class NOOPPostProcessor(PostProcessor):
     """
@@ -37,6 +42,7 @@ class NOOPPostProcessor(PostProcessor):
     An instance of this type shall be passed to the MessageHandler if post processing is not needed.
 
     """
+
     def run(self, message_dict: dict) -> None:
         """
         NOOP function that doesn't do any post processing.
@@ -46,6 +52,7 @@ class NOOPPostProcessor(PostProcessor):
         """
         print(f'message {message_dict}')
         print('No post-processing required')
+
 
 class MessageHandler():
     """ Message handler """
@@ -75,7 +82,7 @@ class MessageHandler():
         self.__internal_queue = internal_queue
         self.__post_processor = post_processor
 
-    def request_processing(self, body : str, mode: str) -> bool:
+    def request_processing(self, body: str, mode: str) -> bool:
         """
         Responsible for making the POST request to the algorithm processing service.
         This return code of this function does not mean that the algorithm processing service completed it's processing with success,
@@ -97,12 +104,13 @@ class MessageHandler():
         new_body = body.replace("\'", "\"")
         dict_body: dict = json.loads(new_body)
 
-        raw_file = container_services.download_file(client, container_services.raw_s3, dict_body["s3_path"])
+        raw_file = container_services.download_file(
+            client, container_services.raw_s3, dict_body["s3_path"])
 
         uid = str(uuid.uuid4())
 
         payload = {'uid': uid, 'path': dict_body["s3_path"], 'mode': mode}
-        file_ext = os.path.splitext(dict_body["s3_path"])[1].replace('.','')
+        file_ext = os.path.splitext(dict_body["s3_path"])[1].replace('.', '')
 
         # Check if the extension is a known image format or video format
         if file_ext in VIDEO_FORMATS:
@@ -240,11 +248,13 @@ class MessageHandler():
         incoming_message = container_services.listen_to_input_queue(aws_clients.sqs_client)
 
         if incoming_message:
-
+            start_ivs_fc_time = perf_counter()
             self.handle_incoming_message(incoming_message, mode)
             try:
                 api_output_message = internal_queue.get(timeout=INTERNAL_QUEUE_TIMEOUT)
                 if api_output_message:
+                    stop_ivs_fc_time = perf_counter()
+                    logging.info(f"IVS feature chain approx reponse time :: {stop_ivs_fc_time - start_ivs_fc_time}")
                     self.handle_processing_output(incoming_message, api_output_message)
                     container_services.delete_message(aws_clients.sqs_client, incoming_message['ReceiptHandle'])
             except queue.Empty:
@@ -253,7 +263,6 @@ class MessageHandler():
                 logging.exception(f"error getting message from internal queue {err}")
                 logging.exception(f"message handler interrupted")
                 raise err
-
 
     def start(self, mode: str) -> None:
         """
