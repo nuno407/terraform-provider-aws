@@ -118,11 +118,11 @@
           <span class="column-header"># Snapshots</span>
         </span>
       </th>
-      <th (click)="sortBy('number_CHC_events')" class="column" >
+      <th (click)="sortBy('number_chc_events')" class="column" >
         <span class="filter-item">
-          <mat-icon *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
-          <mat-icon *ngIf="sortingParam == 'number_CHC_events' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
-          <mat-icon *ngIf="sortingParam != 'number_CHC_events'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam == 'number_chc_events' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam == 'number_chc_events' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam != 'number_chc_events'" fontIcon="bosch-ic-up-down"></mat-icon>
           <span class="column-header"># CHC events</span>
        </span>        
       </th>
@@ -145,7 +145,7 @@
       <td class="column list-item">{{video.processing_list}}</td>
       <td class="column list-item">{{video.last_updated}}</td>
       <td class="column list-item">{{video.snapshots}}</td>
-      <td class="column list-item">{{video.number_CHC_events}}</td>
+      <td class="column list-item">{{video.number_chc_events}}</td>
       <td class="column list-item">{{video.lengthCHC}}</td>
     </tr>
   </table>

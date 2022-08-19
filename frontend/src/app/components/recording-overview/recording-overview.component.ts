@@ -59,7 +59,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - length,\n\
   - time,\n\
   - resolution,\n\
-  - number_CHC_events,\n\
+  - number_chc_events,\n\
   - lengthCHC,\n\
   - deviceID"
 
