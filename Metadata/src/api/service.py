@@ -85,6 +85,8 @@ class ApiService:
                     'length': 'recording_overview.length',
                     'time': 'recording_overview.time',
                     'resolution': 'recording_overview.resolution',
+                    'number_CHC_events': 'recording_overview.number_CHC_events',
+                    'lengthCHC': 'recording_overview.lengthCHC',
                     'deviceID': 'recording_overview.deviceID',
                     'tenantID': 'recording_overview.tenantID'
                     }
