@@ -188,7 +188,7 @@ class ApiService:
         recording_object['_id'] = recording_item.get('video_id')
         recording_object['resolution'] = recording_item.get('resolution','-')      
 
-        recording_object['number_CHC_events'] = recording_overview.get('number_chc_events','-')      
+        recording_object['number_chc_events'] = recording_overview.get('number_chc_events','-')      
         recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')   
 
         pipeline_execution = recording_item.get('pipeline_execution',{})

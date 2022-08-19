@@ -19,7 +19,7 @@ export interface Message {
   _id: string;
   processing_list: [];
   snapshots: string;
-  number_CHC_events: string;
+  number_chc_events: string;
   lengthCHC: string;
   lq_video: LqVideoInfo;
   data_status: string;

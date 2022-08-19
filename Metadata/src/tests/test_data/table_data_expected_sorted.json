@@ -12,7 +12,7 @@
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
-        "number_CHC_events": 1
+        "number_chc_events": 1
     },
     {
         "tenant": "srxfut2internal20",
@@ -27,7 +27,7 @@
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
-        "number_CHC_events": 1
+        "number_chc_events": 1
     },
     {
         "tenant": "datanauts",
@@ -42,7 +42,7 @@
         "description": null,
         "deviceID": "DATANAUTS_TEST_01",
         "lengthCHC": 15.859872611465,
-        "number_CHC_events": 1
+        "number_chc_events": 1
     },
     {
         "tenant": "srxfut2internal20",
@@ -57,6 +57,6 @@
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 0.0,
-        "number_CHC_events": 0
+        "number_chc_events": 0
     }
     ]
