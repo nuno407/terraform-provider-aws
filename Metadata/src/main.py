@@ -48,12 +48,12 @@ def upsert_recording_item(message: dict, table_rec: Collection)->Optional[dict]:
                 'video_id': message['_id'],
                 '_media_type': media_type,
                 'filepath': 's3://' + message['s3_path'],
-                'recording_overview.tenantID': message['_id'].split("_",1)[0]
+                'recording_overview': {'tenantID': message['_id'].split("_",1)[0]}
             }
     if 'recording_overview' in message:
         for (k, v) in message['recording_overview'].items():
             if k!='resolution':
-                recording_item['recording_overview.'+k] = v
+                recording_item['recording_overview'][k] = v
         if 'resolution' in message['recording_overview']: 
             recording_item['resolution'] = message['recording_overview']['resolution']
         if 'MDF_available' in message: recording_item['MDF_available'] = message['MDF_available']
