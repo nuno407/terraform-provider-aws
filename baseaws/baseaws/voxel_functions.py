@@ -34,6 +34,7 @@ def update_sample(data_set,sample_info):
         dataset.add_sample(sample)
 
     for (i,j) in sample_info.items():
+            print (i)
             if i.startswith('_'):
                 i="ivs"+i
             if i.startswith('filepath'):
