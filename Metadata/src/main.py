@@ -416,9 +416,12 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
         recording_item = upsert_recording_item(message, table_rec)
         if(recording_item == None):
             return
-        signals = upsert_signals_item(message, table_sig)
-        recording_item["s3_path"] = anon_video_path
-        recording_item['signals'] = signals
+
+        if source == "MDFParser":    
+            signals = upsert_signals_item(message, table_sig)
+            recording_item['signals'] = signals
+        
+        recording_item["s3_path"] = anon_video_path        
         
         try:
             # Create dataset with the bucket_name if it doesn't exist
