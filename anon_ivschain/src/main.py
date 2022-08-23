@@ -20,12 +20,12 @@ CALLBACK_ENDPOINT = '/anonymized'
 
 MODE = "anonymize"
 
-def main():
-    logging.basicConfig(format='%(asctime)s: %(message)s',
-                        level=logging.INFO, datefmt="%H:%M:%S")
-    logging.info("Starting Container %s...\n", CONTAINER_NAME)
+_logger: logging.Logger
 
-    logging.info(f"Start delay {START_DELAY_SECONDS} seconds")
+def main():
+    _logger.info("Starting Container %s...\n", CONTAINER_NAME)
+
+    _logger.info(f"Start delay {START_DELAY_SECONDS} seconds")
     start_delay = int(START_DELAY_SECONDS)
     sleep(start_delay)
 
@@ -44,10 +44,11 @@ def main():
                                MODE,
                                CALLBACK_ENDPOINT,
                                AnonymizeCallbackEndpointCreator())
-    
+
     print(base_handler.setup_and_run)
     base_handler.setup_and_run(API_PORT, post_processor)
 
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('anon_ivschain')
     main()

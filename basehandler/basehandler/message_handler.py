@@ -13,6 +13,8 @@ from requests.status_codes import codes as status_codes
 from baseaws.shared_functions import (IMAGE_FORMATS, VIDEO_FORMATS,
                                       AWSServiceClients, ContainerServices)
 
+_logger = logging.getLogger(__name__)
+
 # defaults to 10h
 INTERNAL_QUEUE_TIMEOUT = os.getenv('INTERNAL_QUEUE_TIMEOUT', 36000)
 IVS_FC_HOSTNAME = os.getenv('IVS_FC_HOSTNAME', 'localhost')
@@ -82,6 +84,10 @@ class MessageHandler():
         self.__internal_queue = internal_queue
         self.__post_processor = post_processor
 
+    def parse_incoming_message_body(self, body: str) -> dict:
+        new_body = body.replace("\'", "\"")
+        return json.loads(new_body)
+
     def request_processing(self, body: str, mode: str) -> bool:
         """
         Responsible for making the POST request to the algorithm processing service.
@@ -95,14 +101,13 @@ class MessageHandler():
         Returns:
             bool: Returns True if the requests was successfully or false otherwise
         """
-        logging.info("Processing pipeline message..\n")
+        _logger.info("Processing pipeline message..\n")
         client = self.__aws_clients.s3_client
         container_services = self.__container_services
 
-        logging.info(f"Raw message body: {body}")
+        _logger.info(f"Raw message body: {body}")
 
-        new_body = body.replace("\'", "\"")
-        dict_body: dict = json.loads(new_body)
+        dict_body: dict = self.parse_incoming_message_body(body)
 
         raw_file = container_services.download_file(
             client, container_services.raw_s3, dict_body["s3_path"])
@@ -119,7 +124,8 @@ class MessageHandler():
             file_format = 'image'
         else:
             # Throw an error if the extension is not known
-            logging.exception(f"The snapshot/video {dict_body['s3_path']} has an unknown format {file_ext}")
+            _logger.exception(
+                f"The snapshot/video {dict_body['s3_path']} has an unknown format {file_ext}")
             return False
 
         files = [(file_format, raw_file)]
@@ -129,8 +135,8 @@ class MessageHandler():
 
         address = f'http://{IVS_FC_HOSTNAME}:{port_pod}/{req_command}'
         response = requests.post(address, files=files, data=payload)
-        logging.info("API POST request sent! (uid: %s)", payload['uid'])
-        logging.info("Response: %s", response.text)
+        _logger.info("API POST request sent! (uid: %s)", payload['uid'])
+        _logger.info("Response: %s", response.text)
         return response.status_code == status_codes.ok
 
     def update_processing(self, incoming_message_body: dict) -> dict:
@@ -179,7 +185,8 @@ class MessageHandler():
         aws_clients = self.__aws_clients
 
         incoming_message_body = incoming_message['Body']
-        parsed_incoming_message_body = json.loads(incoming_message_body.replace("\'", "\""))
+        parsed_incoming_message_body = json.loads(
+            incoming_message_body.replace("\'", "\""))
 
         post_processor.run(parsed_output_message_body)
 
@@ -197,8 +204,9 @@ class MessageHandler():
             next_step = relay_list["processing_steps"][0]
             next_queue = container_services.sqs_queues_list[next_step]
             relay_list_json = json.dumps(relay_list)
-            logging.info(f'sending message body: {relay_list_json}')
-            container_services.send_message(aws_clients.sqs_client, next_queue, relay_list_json)
+            _logger.info(f'sending message body: {relay_list_json}')
+            container_services.send_message(
+                aws_clients.sqs_client, next_queue, relay_list_json)
 
         # Add the algorithm output flag/info to the relay_list sent
         # to the metadata container so that an item for this processing
@@ -208,8 +216,9 @@ class MessageHandler():
         # Send message to input queue of metadata container
         metadata_queue = container_services.sqs_queues_list["Metadata"]
         relay_list_json = json.dumps(relay_list)
-        logging.info(f'sending message body: {relay_list_json}')
-        container_services.send_message(aws_clients.sqs_client, metadata_queue, relay_list_json)
+        _logger.info(f'sending message body: {relay_list_json}')
+        container_services.send_message(
+            aws_clients.sqs_client, metadata_queue, relay_list_json)
 
     def handle_incoming_message(self, incoming_message: dict, mode: str) -> None:
         """
@@ -222,9 +231,11 @@ class MessageHandler():
         Raises:
             RuntimeError: If the request wasn't successful.
         """
-        request_result = self.request_processing(incoming_message['Body'], mode)
+        request_result = self.request_processing(
+            incoming_message['Body'], mode)
         if not request_result:
-            raise RuntimeError('Unable to request processing to ivs feature chain')
+            raise RuntimeError(
+                'Unable to request processing to ivs feature chain')
 
     def on_process(self, mode: str) -> None:
         """
@@ -245,23 +256,34 @@ class MessageHandler():
         container_services = self.__container_services
         internal_queue = self.__internal_queue
         aws_clients = self.__aws_clients
-        incoming_message = container_services.listen_to_input_queue(aws_clients.sqs_client)
+        incoming_message = container_services.listen_to_input_queue(
+            aws_clients.sqs_client)
 
         if incoming_message:
             start_ivs_fc_time = perf_counter()
             self.handle_incoming_message(incoming_message, mode)
             try:
-                api_output_message = internal_queue.get(timeout=INTERNAL_QUEUE_TIMEOUT)
+                api_output_message = internal_queue.get(
+                    timeout=INTERNAL_QUEUE_TIMEOUT)
                 if api_output_message:
                     stop_ivs_fc_time = perf_counter()
-                    logging.info(f"IVS feature chain approx reponse time :: {stop_ivs_fc_time - start_ivs_fc_time}")
-                    self.handle_processing_output(incoming_message, api_output_message)
-                    container_services.delete_message(aws_clients.sqs_client, incoming_message['ReceiptHandle'])
+
+                    if isinstance(api_output_message, str):
+                        api_output_message = self.parse_incoming_message_body(api_output_message)
+
+                    _logger.info(
+                        f"IVS process completed: {api_output_message['media_path']} time in seconds :: {stop_ivs_fc_time - start_ivs_fc_time}")
+                    self.handle_processing_output(
+                        incoming_message, api_output_message)
+                    container_services.delete_message(
+                        aws_clients.sqs_client, incoming_message['ReceiptHandle'])
             except queue.Empty:
-                logging.exception(f'The timeout of {INTERNAL_QUEUE_TIMEOUT} seconds while waiting for the IVS Chain has been reached. The message was not deleted from the SQS Queue')
+                _logger.exception(
+                    f'The timeout of {INTERNAL_QUEUE_TIMEOUT} seconds while waiting for the IVS Chain has been reached. The message was not deleted from the SQS Queue')
             except Exception as err:
-                logging.exception(f"error getting message from internal queue {err}")
-                logging.exception(f"message handler interrupted")
+                _logger.exception(
+                    f"error getting message from internal queue {err}")
+                _logger.exception(f"message handler interrupted")
                 raise err
 
     def start(self, mode: str) -> None:
@@ -272,6 +294,6 @@ class MessageHandler():
             mode (str): IVS feature chain procesing mode.
         """
 
-        logging.info(f"Listening to SQS input queue(s).. \n")
+        _logger.info(f"Listening to SQS input queue(s).. \n")
         while(True):
             self.on_process(mode)

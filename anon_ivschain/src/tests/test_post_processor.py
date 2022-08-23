@@ -12,9 +12,10 @@ from post_processor import AnonymizePostProcessor
 class TestAnonymizePostProcessor():
 
     @mock.patch("builtins.open")
-    @mock.patch("post_processor.subprocess.Popen")
-    @mock.patch("post_processor.subprocess.run")
-    def test_run_anonymize_post_processor_1(self, subprocess_run: Mock, subprocess_open: Mock, open: Mock):
+    @mock.patch("os.stat")
+    @mock.patch("post_processor.subprocess.check_call")
+    def test_run_anonymize_post_processor_1(self, subprocess_check_call: Mock, os_stat: Mock, open: Mock):
+        print(subprocess_check_call, os_stat, open)
         # GIVEN
         aws_service = get_container_services_mock()
         aws_service.download_file = Mock(return_value=b'mocked_video_content')
@@ -33,13 +34,13 @@ class TestAnonymizePostProcessor():
         # THEN
 
         # Assert call to subprocess
-        subprocess_open.assert_called()
-        subprocess_args, _ = subprocess_open.call_args
-        list_command = subprocess_args[0]
+        os_stat.assert_called_once_with(AnonymizePostProcessor.INPUT_NAME)
+        command, _ = subprocess_check_call.call_args
+        command_str: str = str(command)
 
-        assert AnonymizePostProcessor.INPUT_NAME in list_command
-        assert AnonymizePostProcessor.OUTPUT_NAME in list_command
-        assert list_command[0] == 'ffmpeg'
+        assert AnonymizePostProcessor.INPUT_NAME in command_str
+        assert AnonymizePostProcessor.OUTPUT_NAME in command_str
+        assert 'ffmpeg' in command_str
 
         print(open.call_args_list)
 
@@ -57,9 +58,9 @@ class TestAnonymizePostProcessor():
 
 
     @mock.patch("builtins.open")
-    @mock.patch("post_processor.subprocess.Popen")
-    @mock.patch("post_processor.subprocess.run")
-    def test_run_anonymize_post_processor_2(self, subprocess_run: Mock, subprocess_open: Mock, open: Mock):
+    @mock.patch("post_processor.os.stat")
+    @mock.patch("post_processor.subprocess.check_call")
+    def test_run_anonymize_post_processor_2(self, subprocess_check_call: Mock, os_stat: Mock, open: Mock):
         # GIVEN
         aws_service = get_container_services_mock()
         aws_service.download_file = Mock(return_value=b'mocked_video_content')
@@ -78,13 +79,13 @@ class TestAnonymizePostProcessor():
         # THEN
 
         # Assert call to subprocess
-        subprocess_open.assert_called()
-        subprocess_args, _ = subprocess_open.call_args
-        list_command = subprocess_args[0]
+        os_stat.assert_called_once_with(AnonymizePostProcessor.INPUT_NAME)
+        command, _ = subprocess_check_call.call_args
+        command_str: str = str(command)
 
-        assert AnonymizePostProcessor.INPUT_NAME in list_command
-        assert AnonymizePostProcessor.OUTPUT_NAME in list_command
-        assert list_command[0] == 'ffmpeg'
+        assert AnonymizePostProcessor.INPUT_NAME in command_str
+        assert AnonymizePostProcessor.OUTPUT_NAME in command_str
+        assert 'ffmpeg' in command_str
 
         # Assert calls to temporary files
         open.assert_any_call(AnonymizePostProcessor.INPUT_NAME, 'wb')

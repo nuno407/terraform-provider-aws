@@ -19,13 +19,12 @@ CALLBACK_ENDPOINT = '/cameracheck'
 
 MODE = 'chc'
 
+_logger: logging.Logger
 
 def main():
-    logging.basicConfig(format='%(asctime)s: %(message)s',
-                        level=logging.INFO, datefmt="%H:%M:%S")
-    logging.info("Starting Container %s...\n", CONTAINER_NAME)
+    _logger.info("Starting Container %s...\n", CONTAINER_NAME)
 
-    logging.info(f"Start delay {START_DELAY_SECONDS} seconds")
+    _logger.info(f"Start delay {START_DELAY_SECONDS} seconds")
     start_delay = int(START_DELAY_SECONDS)
     sleep(start_delay)
 
@@ -46,4 +45,5 @@ def main():
 
 
 if __name__ == '__main__':
+    _logger = ContainerServices.configure_logging('chc_ivschain')
     main()

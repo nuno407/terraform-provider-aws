@@ -7,9 +7,11 @@ import main
 @patch('main.CHCCallbackEndpointCreator')
 @patch('main.BaseHandler')
 @patch('main.boto3.client')
-def test_main(boto3_client: Mock, base_handler: Mock, endpoint: Mock, aws_services: Mock, container_services: Mock):
+@patch('main._logger')
+def test_main(_logger: Mock, boto3_client: Mock, base_handler: Mock, endpoint: Mock, aws_services: Mock, container_services: Mock):
     # GIVEN
 
+    _logger.info = Mock()
     handler_object = Mock()
     base_handler.return_value = handler_object
     handler_object.setup_and_run = Mock()
@@ -20,6 +22,7 @@ def test_main(boto3_client: Mock, base_handler: Mock, endpoint: Mock, aws_servic
     main.main()
 
     # THEN
+    _logger.info.assert_any_call(ANY)
     container_services.assert_called_once_with(main.CONTAINER_NAME, main.CONTAINER_VERSION)
     boto3_client.assert_any_call('s3', region_name=main.AWS_REGION, endpoint_url=main.AWS_ENDPOINT)
     boto3_client.assert_any_call('sqs', region_name=main.AWS_REGION, endpoint_url=main.AWS_ENDPOINT)

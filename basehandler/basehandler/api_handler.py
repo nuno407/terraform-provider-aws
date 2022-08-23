@@ -37,12 +37,13 @@ class OutputEndpointNotifier():
     OutputEndpointParameters
     It is used by the Output endpoint to send information to the message handler.
     """
+
     def __init__(self, endpoint_params: OutputEndpointParameters):
         self.internal_queue = endpoint_params.internal_queue
         self.container_services = endpoint_params.container_services
         self.aws_clients = endpoint_params.aws_clients
 
-    def upload_and_notify(self, chunk : list, path : str, msg_body : dict) -> None:
+    def upload_and_notify(self, chunk: list, path: str, msg_body: dict) -> None:
         """
         Uploads file to specified path, sends update message to respective handler
 
@@ -66,9 +67,11 @@ class OutputEndpointNotifier():
         # Send message to input queue of metadata container
         self.internal_queue.put(msg_body)
 
+
 class NoHealth(logging.Filter):
     def filter(self, record):
         return 'GET /alive' not in record.getMessage()
+
 
 class APIHandler():
     """ APIHandler """
@@ -76,7 +79,7 @@ class APIHandler():
     def __init__(self,
                  endpoint_params: OutputEndpointParameters,
                  callback_blueprint: Blueprint,
-                  message_handler_thread: Thread) -> None:
+                 message_handler_thread: Thread) -> None:
         """
         Creates an APIHandler that will receive the callback from a processing request to the IVS Feature chain.
         It should receive a blueprint that post a message to the internal queue after receiving the callback request.
