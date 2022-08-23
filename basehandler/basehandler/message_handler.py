@@ -237,6 +237,7 @@ class MessageHandler():
             raise RuntimeError(
                 'Unable to request processing to ivs feature chain')
 
+
     def on_process(self, mode: str) -> None:
         """
         Function that will be run in a loop.
@@ -261,6 +262,7 @@ class MessageHandler():
 
         if incoming_message:
             start_ivs_fc_time = perf_counter()
+            artifact_key = self.parse_incoming_message_body(incoming_message['Body'])['s3_path']
             self.handle_incoming_message(incoming_message, mode)
             try:
                 api_output_message = internal_queue.get(
@@ -272,7 +274,7 @@ class MessageHandler():
                         api_output_message = self.parse_incoming_message_body(api_output_message)
 
                     _logger.info(
-                        f"IVS process completed: {api_output_message['media_path']} time in seconds :: {stop_ivs_fc_time - start_ivs_fc_time}")
+                        f"IVS process completed: {artifact_key} time in seconds :: {stop_ivs_fc_time - start_ivs_fc_time}")
                     self.handle_processing_output(
                         incoming_message, api_output_message)
                     container_services.delete_message(
