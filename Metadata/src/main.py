@@ -137,12 +137,23 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         'last_updated': timestamp,
         's3_path': message['s3_path']
     }
-    if 'processing_steps' in message: 
-        upsert_item['processing_list']= message['processing_steps']
+    current_data = table_pipe.find_one({'_id': video_id})
+    
+    if 'processing_steps' in message:
+
+        # Check if data already exists 
+        if 'processing_steps' in current_data:
+            # Make sure an upsert is made to the processing_steps
+            upsert_processing = set(current_data['processing_steps']).union(message['processing_steps'])
+            upsert_item['processing_list']= list(upsert_processing)
+        else:
+            # Create a new processing_list field in the object
+            upsert_item['processing_list']= message['processing_steps']
 
     try:
         # Upsert pipeline executions item
         table_pipe.update_one({'_id': video_id}, {'$set': upsert_item}, upsert=True)
+
         # Create logs message
         _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
     except Exception:
