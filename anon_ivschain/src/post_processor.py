@@ -57,14 +57,10 @@ class AnonymizePostProcessor():
                 _logger.debug(f'Anonymized artifact downloaded file size: {stat_result.st_size}')
 
                 # Convert .avi input file into .mp4 using ffmpeg
-                ffmpeg_command = ' '.join(["ffmpeg", "-i", self.INPUT_NAME, "-movflags", "faststart", "-c:v", "copy", self.OUTPUT_NAME])
+                ffmpeg_command = ' '.join(["ffmpeg", "-y" ,"-i", self.INPUT_NAME, "-movflags", "faststart", "-c:v", "copy", self.OUTPUT_NAME])
 
                 _logger.info('Starting ffmpeg process')
-                try:
-                    subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')
-                except CalledProcessError as err:
-                    print(f'Error converting file with ffmpeg: {err.returncode}')
-                    exit(1)
+                subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')
 
                 _logger.info("Conversion complete!")
 
@@ -75,9 +71,14 @@ class AnonymizePostProcessor():
                 # Upload converted output file to S3 bucket
                 self.container_services.upload_file(
                     self.aws_clients.s3_client, output_video, self.container_services.anonymized_s3, mp4_path)
-
+            except CalledProcessError as err:
+                print(f'Error converting file with ffmpeg: {err.returncode}')
+                exit(1)
             except Exception as err:
                 _logger.exception(f"Error during post-processing: {err}")
-
+                exit(1)
+            finally:
+                # Remove conversion video file
+                os.remove(self.OUTPUT_NAME)
         else:
             _logger.error(f"File format {file_format} is unknown")
