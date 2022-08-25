@@ -106,6 +106,7 @@ def upsert_signals_item(message: dict, table_sig: Collection)->Optional[dict]:
 def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, source: str)->Optional[dict]:
     """Inserts a new item (or updates it if already exists) on the
     pipeline execution collection
+    Remark: Dictionaries and lists will be replaced instead of upserted. 
 
     Arguments:
         video_id {string} -- [Name of the recording (coincides with the
@@ -138,17 +139,10 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         's3_path': message['s3_path']
     }
     current_data = table_pipe.find_one({'_id': video_id})
-    
-    if 'processing_steps' in message:
 
-        # Check if data already exists 
-        if 'processing_steps' in current_data:
-            # Make sure an upsert is made to the processing_steps
-            upsert_processing = set(current_data['processing_steps']).union(message['processing_steps'])
-            upsert_item['processing_list']= list(upsert_processing)
-        else:
-            # Create a new processing_list field in the object
-            upsert_item['processing_list']= message['processing_steps']
+    if 'processing_steps' in message:
+        # Create a new processing_list field in the object
+        upsert_item['processing_list']= message['processing_steps']
 
     try:
         # Upsert pipeline executions item
@@ -500,7 +494,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, messa
                                 source)
 
 def read_message(container_services: ContainerServices, body: str)->dict:
-    """Copies the relay list info received from other containers and
+    """Copies info received from other containers and
     converts it from string into a dictionary
 
     Arguments:

@@ -212,6 +212,7 @@ class MessageHandler():
         # to the metadata container so that an item for this processing
         # run can be created on the Algo Output DB
         relay_list['output'] = out_s3
+        del relay_list['processing_steps']
 
         # Send message to input queue of metadata container
         metadata_queue = container_services.sqs_queues_list["Metadata"]
