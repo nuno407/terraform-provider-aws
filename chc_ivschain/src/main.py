@@ -19,7 +19,7 @@ CALLBACK_ENDPOINT = '/cameracheck'
 
 MODE = 'chc'
 
-_logger: logging.Logger
+_logger: logging.Logger = None
 
 def main():
     _logger.info("Starting Container %s...\n", CONTAINER_NAME)

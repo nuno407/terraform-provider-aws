@@ -20,7 +20,7 @@ CALLBACK_ENDPOINT = '/anonymized'
 
 MODE = "anonymize"
 
-_logger: logging.Logger
+_logger: logging.Logger = None
 
 def main():
     _logger.info("Starting Container %s...\n", CONTAINER_NAME)
