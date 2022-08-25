@@ -257,7 +257,6 @@ class TestMessageHandler():
         # Metadata_queue
         assert kwargs_metadata[0] == 'mock_sqs' # Assert queque client
         assert kwargs_metadata[1] ==  QUEUE_MOCK_LIST['Metadata'] # Assert next algo
-        assert message_metadata['processing_steps'] == ["new_algo","CHC","Anonymize"]
         assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"
         assert message_metadata['data_status'] == 'processing'
 
@@ -299,7 +298,6 @@ class TestMessageHandler():
         # Next_queue
         assert kwargs_next_queue[0] == 'mock_sqs' # Assert queue client
         assert kwargs_next_queue[1] ==  QUEUE_MOCK_LIST['CHC'] # Assert next algo
-        assert message_next_queue['processing_steps'] == ["CHC","Anonymize"]
         assert message_next_queue['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_next_queue['data_status'] == 'processing'
 
@@ -307,7 +305,6 @@ class TestMessageHandler():
         # Metadata_queue
         assert kwargs_metadata[0] == 'mock_sqs' # Assert queue client
         assert kwargs_metadata[1] ==  QUEUE_MOCK_LIST['Metadata'] # Assert next algo
-        assert message_metadata['processing_steps'] == ["CHC","Anonymize"]
         assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_metadata['data_status'] == 'processing'
 
@@ -345,7 +342,6 @@ class TestMessageHandler():
         # Metadata_queue
         assert kwargs_metadata[0] == 'mock_sqs' # Assert queque client
         assert kwargs_metadata[1] ==  QUEUE_MOCK_LIST['Metadata'] # Assert next algo
-        assert message_metadata['processing_steps'] == []
         assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_metadata['data_status'] == 'complete'
 
