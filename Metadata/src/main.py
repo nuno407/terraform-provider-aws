@@ -138,7 +138,6 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         'last_updated': timestamp,
         's3_path': message['s3_path']
     }
-    current_data = table_pipe.find_one({'_id': video_id})
 
     if 'processing_steps' in message:
         # Create a new processing_list field in the object
@@ -147,7 +146,6 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
     try:
         # Upsert pipeline executions item
         table_pipe.update_one({'_id': video_id}, {'$set': upsert_item}, upsert=True)
-
         # Create logs message
         _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
     except Exception:
