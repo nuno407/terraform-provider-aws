@@ -1,0 +1,183 @@
+{
+    "snapshot_path_generator": [
+        {
+            "tenant": "datanauts",
+            "device": "DATANAUTS_TEST_01",
+            "start": 1650464740000,
+            "end": 1650465740000,
+            "results": [
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=15/"
+            ],
+            "obs":"simple test"
+        },
+        {
+            "tenant": "datanauts",
+            "device": "DATANAUTS_TEST_01",
+            "start": 1650465740000,
+            "end": 1650565740000,
+            "results": [
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=15/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=16/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=17/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=18/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=19/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=20/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=21/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=22/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=20/hour=23/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=00/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=01/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=02/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=03/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=04/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=05/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=06/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=07/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=08/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=09/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=10/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=11/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=12/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=13/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=14/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=15/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=16/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=17/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=18/",
+                "datanauts/DATANAUTS_TEST_01/year=2022/month=04/day=21/hour=19/"
+            ],
+            "obs":"test positive datetime range"
+        },
+        {
+            "tenant": "datanauts",
+            "device": "DATANAUTS_TEST_01",
+            "start": 1650565740000,
+            "end": 1650465740000,
+            "results": [],
+            "obs":"test negative datetime range (starts in present, ends in past, how does it handle?)"
+        },
+        {
+            "tenant": "CANARY",
+            "device": "CANARY_DEVICE_01",
+            "start": 1650465740000,
+            "end": -1650565740000,
+            "results": [],
+            "obs":"test negative datetime values"
+        },
+        {
+            "tenant": "",
+            "device": "CANARY_DEVICE_01",
+            "start": 1650465740000,
+            "end": 1650565740000,
+            "results": [],
+            "obs":"test handling of empty tenant"
+        },
+        {
+            "tenant": "TEST_TENANT",
+            "device": "",
+            "start": 1650465740000,
+            "end": 1650565740000,
+            "results": [],
+            "obs":"test handling of empty device"
+        },
+        {
+            "tenant": "TEST_TENANT",
+            "device": "TEST_DEVICE_01",
+            "start": null,
+            "end": 1650565740000,
+            "results": [],
+            "obs":"test handling of empty start"
+        },
+        {
+            "tenant": "TEST_TENANT",
+            "device": "TEST_DEVICE_01",
+            "start": 1650465740000,
+            "end": null,
+            "results": [],
+            "obs":"test handling of empty end"
+        },
+        {
+            "tenant": "",
+            "device": "",
+            "start": null,
+            "end": null,
+            "results": [],
+            "obs":"test handling of no arguments"
+        },
+        {
+            "tenant": "datanauts",
+            "device": "TEST_DEVICE_01",
+            "start": 1650465740000,
+            "end": 1650565740000,
+            "results": [
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=15/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=16/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=17/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=18/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=19/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=20/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=21/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=22/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=20/hour=23/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=00/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=01/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=02/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=03/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=04/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=05/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=06/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=07/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=08/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=09/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=10/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=11/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=12/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=13/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=14/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=15/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=16/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=17/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=18/",
+                "datanauts/TEST_DEVICE_01/year=2022/month=04/day=21/hour=19/"
+            ],
+            "obs":"test handling of inconsistent tenant+device (semantic)"
+        }
+    ],
+    "event_type_identifier": [
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/UploadRecordingEvent_datanauts_jpeg.json",
+            "eventType": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+            "tenant": "datanauts"
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/NoEventType_datanauts_jpeg.json",
+            "eventType": null,
+            "tenant": "datanauts"
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/RecordingEvent_NoTenant.json",
+            "eventType": "com.bosch.ivs.videorecorder.RecordingEvent",
+            "tenant": null
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/NoEventType_NoTenant_jpeg.json",
+            "eventType": null,
+            "tenant": null
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/RecordingEvent_TESTTENANT.json",
+            "eventType": "com.bosch.ivs.videorecorder.RecordingEvent",
+            "tenant": "TEST_TENANT"
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/UploadRecordingEvent_datanauts_mp4.json",
+            "eventType": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+            "tenant": "datanauts"
+        },
+        {
+            "path": "src/tests/artifacts/terraform_queue_selector/UploadRecordingEvent_TESTTENANT.json",
+            "eventType": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+            "tenant": "TEST_TENANT"
+        }
+    ]
+}

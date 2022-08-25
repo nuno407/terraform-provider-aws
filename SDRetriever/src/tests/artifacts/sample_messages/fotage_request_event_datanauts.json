@@ -1,0 +1,43 @@
+{
+    "MessageId": "f238a050-0e87-4086-9a8b-9fd268e8237b",
+    "ReceiptHandle": "AQEBe2ZkkfzAF7sBB9NYYT+suegDGKqedT0vqXmal3qXp1wv0QTyRCKaDbQNZYe/MpEWGu7MvO7g/IeQOShG7GMSP2L5bnwfhEtTWmiwTjjpP1S4sTr425GaR3WypsU0YxA890j7Zc+SksljaG01+zjmdGhAdtBD9FblOTcR6gr61eMkO8xWB7F3FMIiO+wJBiY42tiJRD0BRkpAoYJ18bi4WcW7kLkwM7uzWj71fqmdd0zxgrJHliAS/wR4HOBmXKBOoAc20UkseJ0MJZgqluYtayr0qo8EI/2MBYOb3nzPgx+Vtjx9XnXTpC0IkrCSP5/HiLMU7yi6BgDohVuXB/w5BL8+BNKUPVRe0h9nX7pBzBsTj70kabAZpotYfCWSmxvWFS3MuTG9nqGioZXMFkqlrO6ucCZrzeuJlZIDWm+KMS4=",
+    "MD5OfBody": "bc501582dc5d253591849ab571a066ab",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "08626abd-c311-5089-9643-30779cfaeac3",
+        "TopicArn": "arn:aws:sns:eu-central-1: 736745337734:prod-video-footage-events",
+        "Message": {
+            "streamName": "datanauts_DATANAUTS_TEST_01_InteriorRecorder",
+            "footageFrom": 1649433902920,
+            "footageTo": 1649433999910,
+            "uploadStarted": 1649434010677,
+            "uploadFinished": 1649434020747
+        },
+        "Timestamp": "2022-04-08T16: 07: 07.182Z",
+        "SignatureVersion": "1",
+        "Signature": "UUeAw2+yP5HBhzbGy44BGbh16Q+LHK6+kDTXbjC6dhyHDpBB/GvgBluywiC2AKoqFOU98E4pqF6nferMAJG47c3KuE1uYsx13a+bPdy34kaEbUhU7ckT5PqPOWMsyXeJwFWkcbM3HqH6um/ljTDBchkpuwSG3e/NDAFCrX5CDTD10kbazqjeV2ovROC42G4Wp8Mx53FoBiMK9Klb5h011mfYZ41REl08FSVUneJ2EAXFjZIf1Hyw0sxmqG7mvYkyygXAcVnvg60d8R0Owo53BsOjtRvo6I24zg5/X9h1T6DhRs74B6IjciCH3WzWLsAQcroaa6umHMyDRWqTNjrlmA==",
+        "SigningCertURL": "https: //sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-video-footage-events:dbba047e-c1ca-424b-971b-423d020df5de",
+        "MessageAttributes": {
+            "recorder": {
+                "Type": "String",
+                "Value": "INTERIOR"
+            },
+            "recordingId": {
+                "Type": "String",
+                "Value": "InteriorRecorder-45b76d64-b98f-4200-99ec-6d2880159de8"
+            },
+            "deviceId": {
+                "Type": "String",
+                "Value": "DATANAUTS_TEST_01"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "datanauts"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1649434027218"
+    }
+}

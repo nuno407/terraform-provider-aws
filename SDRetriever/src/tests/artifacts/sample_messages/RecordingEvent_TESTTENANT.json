@@ -1,0 +1,96 @@
+{
+    "MessageId": "97200155-c317-4f8b-ae19-11fc26faa751",
+    "ReceiptHandle": "AQEBdq5z4O/1MRNfDSMklxw1fqJL8jfkj+AoUAiOQOPCZg6OvVKRXTigLVs4wGIt88MD2YvVxOx3wRxn10KhT1cOK7UFqDep+bVjwchVJJfaVnga2i+Nlo4NEWoWJdT/6gaLNfq8w8wvRK9ppAmjyn9RrCgFUFTuyZ05ODklgtE61lVj3Ek1o+2xQ4Nzu8xzDu0ZtFMpTm063rKsx+Q9UyuB9guN+ttW+qJB1vEPWT8KoAjDR8JLb/nQzP1770g34NwBaIeynxjuHnEG8Oxf0gMbYrwqkFGzedwkMzw36BeQutFNjJGV9XXGksM4HzlwZS2k40JnwnGCL+MC1rvQP5j+oFcKUQMIKXkUOPx21+Dlr7Lafv9iRfPM2at+kC+qD8689/u0uob/REN/xk3MMyFmW54A0QG2Ea51ARYIoE8BJrc=",
+    "MD5OfBody": "c32b42e9040d09829382f53ea8aa53c3",
+    "Body": {
+        "topic": "com.bosch.rcc.dev/CANARY_AM_DEV_01/things/twin/events/modified",
+        "headers": {
+            "orig_adapter": "hono-mqtt",
+            "qos": "1",
+            "device_id": "com.bosch.rcc.dev:CANARY_AM_DEV_01",
+            "uber-trace-id": "3aad4cb1c5593e5b:40a84ffc98793caa:330038b63e52bcbc:1",
+            "creation-time": "1649584795396",
+            "kafka.timestamp": "1649584795396",
+            "kafka.topic": "hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub",
+            "orig_address": "telemetry",
+            "kafka.key": "com.bosch.rcc.dev:CANARY_AM_DEV_01",
+            "ditto-originator": "integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub",
+            "response-required": false,
+            "version": 2,
+            "requested-acks": [],
+            "content-type": "application/json",
+            "correlation-id": "973b0814-8d46-4fc8-bc6b-49dc1e79599f"
+        },
+        "path": "/features/com.bosch.ivs.videorecorder.RecordingEvent",
+        "value": {
+            "properties": {
+                "header": {
+                    "message_type": "com.bosch.ivs.videorecorder.RecordingEvent",
+                    "timestamp_ms": 1649584795392,
+                    "message_id": "29b43ca5-510b-4f04-a0b3-31bbee51b896",
+                    "device_id": "CANARY_AM_DEV_01",
+                    "boot_id": "0baaffce-94cc-4e77-ac32-b7ead9bad35b"
+                },
+                "correlation_id": "78b914ff-1089-4752-b167-19640c1b6da5",
+                "recording_info": [
+                    {
+                        "recording_id": "InteriorRecorder-78b914ff-1089-4752-b167-19640c1b6da5",
+                        "recorder_name": "InteriorRecorder",
+                        "recording_state": "RECORDING_STATE__STARTED",
+                        "start_timestamp_ms": 1649584735392,
+                        "stop_timestamp_ms": 0
+                    },
+                    {
+                        "recording_id": "FrontRecorder-78b914ff-1089-4752-b167-19640c1b6da5",
+                        "recorder_name": "FrontRecorder",
+                        "recording_state": "RECORDING_STATE__STARTED",
+                        "start_timestamp_ms": 1649584735392,
+                        "stop_timestamp_ms": 0
+                    },
+                    {
+                        "recording_id": "TrainingRecorder-78b914ff-1089-4752-b167-19640c1b6da5",
+                        "recorder_name": "TrainingRecorder",
+                        "recording_state": "RECORDING_STATE__STARTED",
+                        "start_timestamp_ms": 1649584735392,
+                        "stop_timestamp_ms": 0
+                    },
+                    {
+                        "recording_id": "TrainingMultiSnapshot-78b914ff-1089-4752-b167-19640c1b6da5",
+                        "recorder_name": "TrainingMultiSnapshot",
+                        "recording_state": "RECORDING_STATE__STARTED",
+                        "start_timestamp_ms": 1649584735392,
+                        "stop_timestamp_ms": 0
+                    }
+                ]
+            }
+        },
+        "extra": {
+            "attributes": {
+                "vin": "new vin",
+                "tenant": "TEST_TENANT",
+                "vehicleType": "CARMODEL__VW_GOLF_VIII",
+                "subjectId": "2bf754f4-8422-4db0-bf2b-56d3a6e91945"
+            }
+        },
+        "revision": 1144305,
+        "timestamp": "2022-04-10T09:59:55.447926534Z"
+    },
+    "Attributes": {
+        "SentTimestamp": "1649584795543"
+    },
+    "MD5OfMessageAttributes": "d5782520fe288c0e9da34711944c40c2",
+    "MessageAttributes": {
+        "eventType": {
+            "StringValue": "com.bosch.ivs.videorecorder.RecordingEvent",
+            "DataType": "String"
+        },
+        "subjectId": {
+            "StringValue": "2bf754f4-8422-4db0-bf2b-56d3a6e91945",
+            "DataType": "String"
+        },
+        "tenant": {
+            "StringValue": "TEST_TENANT",
+            "DataType": "String"
+        }
+    }
+}

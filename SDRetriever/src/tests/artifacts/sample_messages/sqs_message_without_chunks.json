@@ -1,0 +1,44 @@
+SQS snapshot message without ["value"]["properties"]["chunk_descriptions"] 
+{
+    "topic": "com.bosch.rcc/rc_srx_qa_002_por_syst/things/twin/events/modified", 
+    "headers": {
+        "orig_adapter": "hono-mqtt", 
+        "qos": "1", 
+        "device_id": "com.bosch.rcc:rc_srx_qa_002_por_syst", 
+        "uber-trace-id": "6e0d5543c9e13fa3:aca7aec6d51374d1: 45b53ace1ad895f2: 1", 
+        "creation-time": "1649088461880", "kafka.timestamp": "1649088461880", 
+        "kafka.topic": "hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub", 
+        "orig_address": "telemetry", "kafka.key": "com.bosch.rcc:rc_srx_qa_002_por_syst", 
+        "ditto-originator": "integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub", 
+        "response-required": False, 
+        "version": 2, 
+        "requested-acks": [], 
+        "content-type": "application/json", 
+        "correlation-id": "9bc59cad-a148-4fe9-8698-a95ce702c431"
+    }, 
+    "path": "/features/com.bosch.ivs.videorecorder.UploadRecordingEvent", 
+    "value": {
+        "properties": {
+            "header": {
+                "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent", 
+                "timestamp_ms": 1649088461546, 
+                "message_id": "c912cb39-26c9-4f93-9ecd-99cb426789be", 
+                "device_id": "rc_srx_qa_002_por_syst", 
+                "boot_id": "5a5774e9-5395-4605-bac2-2d29c1c94a97"
+            }, 
+            "correlation_id": "22b151f6-9f5d-4a50-89b5-1ae1f16a8006", 
+            "recording_id": "TrainingMultiSnapshot-5c8aa2e2-da10-4df6-a297-9a1f11acda8c", 
+            "command_status": {
+                "status_code": "COMMAND_STATUS_CODE__OK"
+            }
+        }
+    }, "extra": {
+        "attributes": {
+            "vin": "unknown", 
+            "tenant": "systestsrx", 
+            "vehicleType": "CARMODEL__FIAT_500_312"
+        }
+    }, 
+    "revision": 4144, 
+    "timestamp": "2022-04-04T16: 07: 41.894188545Z"
+}

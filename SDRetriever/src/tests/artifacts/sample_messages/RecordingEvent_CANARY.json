@@ -1,0 +1,108 @@
+{
+    "MessageId": "228c67b3-e971-4db3-bac6-b419efaf54f9",
+    "ReceiptHandle": "AQEBRQO6z2yBs4htuIOmNFSijNP6M24oktvfz60bpR5Jbv9m0kF4ntNke0rFPlt8zD4ijnaJijc+iuHVjBbqCokHG2tneyG7GmaurbSO3MyqZqco76+9rmnXv6hO9HCyz5seAFt+LShNnR5CG7VtrhnVzCvc1AKDokUVxmEQSKvymopR3is8Ay+aiot4Ki0lpgHnMvQuB4mRHCf62AJZgj8mG/ORv03Rn0ZRQUjUnJ+uA/vIINvF0XEcSIlRVQjhYpuOX2wXXTJzHSlRdcml8gHQmMrGWqEOF1FbJ/1zevgJAj5ZvQdcKMOVcb4dIbmbdC0LgpuRW8hsuNvJ4uY/9mupm/Oe4dbCOfF9CsQ66dFaU7LDXKPrw6wAnMfUPX35vQ51l0nrrru+PJINPvHWereTWynByPuXcBHy5Xnu/gHdySY=",
+    "MD5OfBody": "bcb9eff560e7bb5ffd9e510dc9bca0f5",
+    "Body": {
+        "topic": "com.bosch.rcc.dev/CANARY_AM_DEV_01/things/twin/events/modified",
+        "headers": {
+            "orig_adapter": "hono-mqtt",
+            "qos": "1",
+            "device_id": "com.bosch.rcc.dev:CANARY_AM_DEV_01",
+            "uber-trace-id": "8a28cd8dc9b41240:7d6ecd5cced52f23:624ab724481606a1:1",
+            "creation-time": "1649352451368",
+            "kafka.timestamp": "1649352451368",
+            "kafka.topic": "hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub",
+            "orig_address": "telemetry",
+            "kafka.key": "com.bosch.rcc.dev:CANARY_AM_DEV_01",
+            "ditto-originator": "integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub",
+            "response-required": false,
+            "version": 2,
+            "requested-acks": [],
+            "content-type": "application/json",
+            "correlation-id": "74dcef0a-17bb-4214-8bbe-dedd360906a7"
+        },
+        "path": "/features/com.bosch.ivs.videorecorder.RecordingEvent",
+        "value": {
+            "properties": {
+                "header": {
+                    "message_type": "com.bosch.ivs.videorecorder.RecordingEvent",
+                    "timestamp_ms": 1649352451361,
+                    "message_id": "6b65e695-7dd1-4f92-9444-979362c2aa52",
+                    "device_id": "CANARY_AM_DEV_01",
+                    "boot_id": "c0b23fce-5148-4995-95a5-bbb872af95fe"
+                },
+                "correlation_id": "69b9df94-f61c-45a5-bc5b-a98a68a4ffbc",
+                "recording_info": [
+                    {
+                        "recording_id": "InteriorRecorder-dec92af7-5cb1-4488-9f96-8c87faf233ce",
+                        "recorder_name": "InteriorRecorder",
+                        "recording_state": "RECORDING_STATE__STOPPED",
+                        "start_timestamp_ms": 1649352390865,
+                        "stop_timestamp_ms": 1649352451361,
+                        "events": [
+                            {
+                                "timestamp_ms": 1649352450865,
+                                "name": "camera_event",
+                                "value": "1"
+                            },
+                            {
+                                "timestamp_ms": 1649352510865,
+                                "name": "camera_event",
+                                "value": "0"
+                            }
+                        ]
+                    },
+                    {
+                        "recording_id": "FrontRecorder-dec92af7-5cb1-4488-9f96-8c87faf233ce",
+                        "recorder_name": "FrontRecorder",
+                        "recording_state": "RECORDING_STATE__STOPPED",
+                        "start_timestamp_ms": 1649352390865,
+                        "stop_timestamp_ms": 1649352451361
+                    },
+                    {
+                        "recording_id": "TrainingRecorder-dec92af7-5cb1-4488-9f96-8c87faf233ce",
+                        "recorder_name": "TrainingRecorder",
+                        "recording_state": "RECORDING_STATE__STOPPED",
+                        "start_timestamp_ms": 1649352390865,
+                        "stop_timestamp_ms": 1649352451361
+                    },
+                    {
+                        "recording_id": "TrainingMultiSnapshot-dec92af7-5cb1-4488-9f96-8c87faf233ce",
+                        "recorder_name": "TrainingMultiSnapshot",
+                        "recording_state": "RECORDING_STATE__STOPPED",
+                        "start_timestamp_ms": 1649352390865,
+                        "stop_timestamp_ms": 1649352451361
+                    }
+                ]
+            }
+        },
+        "extra": {
+            "attributes": {
+                "vin": "new vin",
+                "tenant": "TEST_TENANT",
+                "vehicleType": "CARMODEL__VW_GOLF_VIII",
+                "subjectId": "2bf754f4-8422-4db0-bf2b-56d3a6e91945"
+            }
+        },
+        "revision": 773808,
+        "timestamp": "2022-04-07T17:27:31.387143249Z"
+    },
+    "Attributes": {
+        "SentTimestamp": "1649352451478"
+    },
+    "MD5OfMessageAttributes": "d5782520fe288c0e9da34711944c40c2",
+    "MessageAttributes": {
+        "eventType": {
+            "StringValue": "com.bosch.ivs.videorecorder.RecordingEvent",
+            "DataType": "String"
+        },
+        "subjectId": {
+            "StringValue": "2bf754f4-8422-4db0-bf2b-56d3a6e91945",
+            "DataType": "String"
+        },
+        "tenant": {
+            "StringValue": "TEST_TENANT",
+            "DataType": "String"
+        }
+    }
+}
