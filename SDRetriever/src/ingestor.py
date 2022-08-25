@@ -1,5 +1,6 @@
 
 import gzip
+import os
 import json
 import logging as log
 import subprocess
@@ -459,8 +460,8 @@ class MetadataIngestor(Ingestor):
         
         # Notify MDFP with new metadata processing request
         #mdfp_queue = self.CS.sqs_queues_list["MDFParser"] # not on config, it was agreed we should walk away from it
-        #mdfp_queue = os.environ["QUEUE_MDFP"]
-        mdfp_queue = "dev-terraform-queue-mdf-parser"
+        mdfp_queue = os.environ["QUEUE_MDFP"]
+        
         if mdf_s3_path:
             message_for_mdfp = dict(_id=mdf_id, s3_path=f"s3://{self.CS.raw_s3}/{mdf_s3_path}")
             try:
