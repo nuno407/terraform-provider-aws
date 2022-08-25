@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from signal import SIGTERM, Signals, signal
 import subprocess
 from datetime import datetime  # timedelta as td,
 from signal import SIGTERM, Signals, signal
@@ -743,8 +744,7 @@ class StsHelper:
         if (datetime.now() - self.__last_renew).total_seconds() > 1800:
             self.__renew_credentials()
         return self.__credentials
-
-
+        
 class AWSServiceClients():
 
     def __init__(self, sqs_client: boto3.Session.client, s3_client: boto3.Session.client):
