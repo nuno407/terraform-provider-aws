@@ -161,7 +161,7 @@ jobs:
 
   update-image-tag:
     name: Update image tags in dev K8s manifests
-    if: github.ref_name == 'master'
+    #if: github.ref_name == 'master'
     needs: [build-image, determine-changed-services, scan-project]
     runs-on: ubuntu-latest
     env:

@@ -1,0 +1,2374 @@
+{
+    "messageid": "6a079463-ef6a-4511-99a0-d35b64bc1e80",
+    "message": {
+        "MessageId": "6a079463-ef6a-4511-99a0-d35b64bc1e80",
+        "ReceiptHandle": "AQEB/RGSp60zr37vpZ2JoxVxpw8cnlEoxRjFNiZni3S0riYa4EHFQu7dyQmkvsI8LT0OgiXX43G9A3Qnnt57GQlktkKT8gMVJ/LVkanEe2qdMyy4h69NhT1S3/aiW5AgckOBgGZkCKMVbo6352IWf6V/L6vGHdP3xtWdZgB1jm/y07LYWCWzoSf+3bwfAvPoFdW059y98Mq8OEOMShiVL46HGbYjDqr8bGO/XeiHFqtv1AWvvEG7ebQZfqSe2KRpLNWbNGca070qj6jIohDo/Id9vQ3QstdbRK981MKgBtqlk+CN1wsGcnJ70M76hWxQRDjoLrmSnHLaHnHzutKX7bDmTRl55wbTHBHZx6cW68v0AvjJbeExvL0Bh2a6p3JfP6MOGp1ZOHhMlK/l3EK2SZQ/SXCAT8D1gcFlpTy0RG38d5Y=",
+        "MD5OfBody": "4c966f02c1ad5f1f9c2657affe54a1e0",
+        "Body": {
+            "Type": "Notification",
+            "MessageId": "15c94b88-9815-53f2-84ad-10cac316963a",
+            "TopicArn": "arn:aws:sns:eu-central-1: 213279581081:dev-video-footage-events",
+            "Message": {
+                "streamName": "datanauts_DATANAUTS_DEV_01_InteriorRecorder",
+                "footageFrom": 1657297040802,
+                "footageTo": 1657297074110,
+                "uploadStarted": 1657297078505,
+                "uploadFinished": 1657297083111
+            },
+            "Timestamp": "2022-07-08T16: 18: 11.703Z",
+            "SignatureVersion": "1",
+            "Signature": "iRqA7Lg3/bBst/3qGbvl3S0XqtUfhoise0WAG0Ge3H6MPfnmBqKXb9qiv2QtZvKYdQ04Xpfurd4EntsT6Okx/5jZmVRfupgxoCwQ3SVX+5sUjz8sIXxWQEzS8YIo2vGiViRIHa7qq2i+h1eYl2vdNxdl+oGiV/ezaUygPcQ+Vx74bPCVOni07JpKKtVE+K20n9a4OoXch9vvEVkBcwRrhB6/0+1kH2krgriezP5hMxXEYHyYDLkEQ4X3ga7/vpJBNfgldHht/x4LuwaHLa3kgsgx/gBB4Cm6qO/ScEd1iInmixceYtv6cfguE+A7dCWjSelenPyDZQjqhD09T4ASOA==",
+            "SigningCertURL": "https: //sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+            "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events:e6853099-4723-45cc-b9ed-751484360ce8",
+            "MessageAttributes": {
+                "recorder": {
+                    "Type": "String",
+                    "Value": "INTERIOR"
+                },
+                "recordingId": {
+                    "Type": "String",
+                    "Value": "InteriorRecorder-29aa0e3b-985c-4f5b-bbc2-e88b04aac2a3"
+                },
+                "deviceId": {
+                    "Type": "String",
+                    "Value": "DATANAUTS_DEV_01"
+                },
+                "tenant": {
+                    "Type": "String",
+                    "Value": "datanauts"
+                }
+            }
+        },
+        "Attributes": {
+            "SentTimestamp": "1657297091751"
+        }
+    }
+    ,
+    "resolution": {
+        "width": "1920",
+        "height": "1080"
+    },
+    "chunk": {
+        "pts_end": 139244,
+        "pts_start": 127795,
+        "utc_end": 1657297074110,
+        "utc_start": 1657297040802
+    },
+    "frame": [
+        {
+            "number": "103",
+            "timestamp": "127795",
+            "timestamp64": "127795",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.573"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.850069"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-42.1958"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-31.5327"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.682007"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.811371"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "696"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "677"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "104",
+            "timestamp": "128813",
+            "timestamp64": "128813",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.74"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.845624"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-41.4422"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-31.8286"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "1.74631"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.917664"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "666"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "704"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "105",
+            "timestamp": "129767",
+            "timestamp64": "129767",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.781"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.903473"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-39.0804"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-35.5459"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.469696"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "1.57651"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "751"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "925"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "106",
+            "timestamp": "130785",
+            "timestamp64": "130785",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.688"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.620895"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-50.4558"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-46.936"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.969666"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.0486755"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "742"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "936"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "107",
+            "timestamp": "131802",
+            "timestamp64": "131802",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.532"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.951487"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-47.8334"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-48.7385"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "1.27393"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.362488"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "863"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "967"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "108",
+            "timestamp": "132756",
+            "timestamp64": "132756",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.374"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.848902"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-56.1199"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-57.0273"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.137268"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.393982"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "708"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "853"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "109",
+            "timestamp": "133774",
+            "timestamp64": "133774",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.208"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.699805"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-59.9961"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-41.5193"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.341217"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.0594177"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "610"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "838"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "110",
+            "timestamp": "134792",
+            "timestamp64": "134792",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.041"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.480689"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-59.6323"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-37.5361"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.463928"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "1.41269"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "650"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "889"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "111",
+            "timestamp": "135809",
+            "timestamp64": "135809",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.70853"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-60.5477"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-51.0465"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.299561"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.732269"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "603"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "838"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "112",
+            "timestamp": "136764",
+            "timestamp64": "136764",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.772381"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-60.3558"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-47.6"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.413452"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.978424"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "586"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "816"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "113",
+            "timestamp": "137781",
+            "timestamp64": "137781",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.55282"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-60.7097"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-42.1053"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.381378"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "1.58441"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "637"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "871"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        },
+        {
+            "number": "114",
+            "timestamp": "138799",
+            "timestamp64": "138799",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "1"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "1"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "floatAttributes": [
+                        {
+                            "name": "CameraViewEstimation_r",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_s",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_tx",
+                            "value": "0"
+                        },
+                        {
+                            "name": "CameraViewEstimation_ty",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "floatAttributes": [
+                        {
+                            "name": "background",
+                            "value": "1"
+                        },
+                        {
+                            "name": "backseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "ceiling",
+                            "value": "0"
+                        },
+                        {
+                            "name": "central_console",
+                            "value": "0"
+                        },
+                        {
+                            "name": "dashboard",
+                            "value": "0"
+                        },
+                        {
+                            "name": "door",
+                            "value": "0"
+                        },
+                        {
+                            "name": "frontseat",
+                            "value": "0"
+                        },
+                        {
+                            "name": "headrest",
+                            "value": "0"
+                        },
+                        {
+                            "name": "outdoor",
+                            "value": "0"
+                        },
+                        {
+                            "name": "person",
+                            "value": "0"
+                        },
+                        {
+                            "name": "pillar",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "floatAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.525035"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-59.9526"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-44.884"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.348145"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.288788"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "691"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "905"
+                        }
+                    ]
+                }
+            ],
+            "facelist": []
+        }
+    ]
+}
