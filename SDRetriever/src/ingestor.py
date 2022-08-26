@@ -376,9 +376,12 @@ class MetadataIngestor(Ingestor):
             mdf_data(list): list with frame metadata, sorted by relative index
         """
 
+        # this enables support for metadata version 0.4.2 from new IVS
+        key = 'chunk' if 'chunk' in chunks[0] else 'chunkPTS'
+
         # Calculate the bounds for partial timestamps - the start of the earliest and the end of the latest
-        starting_chunk_times = [int(chunks[id]['chunk']['pts_start']) for id in chunks.keys()]
-        ending_chunk_times = [int(chunks[id]['chunk']['pts_end']) for id in chunks.keys()]
+        starting_chunk_times = [int(chunks[id][key]['pts_start']) for id in chunks.keys()]
+        ending_chunk_times = [int(chunks[id][key]['pts_end']) for id in chunks.keys()]
         pts = {
             "pts_start": min(starting_chunk_times),
             "pts_end": max(ending_chunk_times),

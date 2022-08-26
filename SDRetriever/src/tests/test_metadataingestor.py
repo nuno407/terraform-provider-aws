@@ -1,11 +1,12 @@
-from ingestor import MetadataIngestor
-from datetime import datetime
-from unittest.mock import Mock, ANY, call
-from pytest import MonkeyPatch
-import pytest
-import pickle
 import json
-import gzip
+import os
+import pickle
+from datetime import datetime
+from unittest.mock import ANY, Mock, call
+
+import pytest
+from ingestor import MetadataIngestor
+
 
 @pytest.mark.usefixtures("msg_interior", "container_services", "s3_client", "sqs_client", "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
 class TestSnapshotIngestor:
@@ -85,7 +86,7 @@ class TestSnapshotIngestor:
             "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
         ))
         obj.CS.send_message = Mock()
-
+        os.environ["QUEUE_MDFP"] = "dev-terraform-queue-mdf-parser"
         result = obj.ingest(msg_interior)
 
         obj._upload_source_data.assert_called_once_with(metadata_full,ANY)
