@@ -113,12 +113,26 @@ def main():
 
                         # If we successfully ingested metadata, update the record
                         if source_data:
+                            # we have metadata
                             db_record_data.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
-                    # Send message to input queue of metadata container with the record data
-                    CS.send_message(SQS_CLIENT, metadata_queue, db_record_data)
-                    LOGGER.info(f"Message sent to {metadata_queue}", extra={"messageid": message.get('MessageId')})    
-                CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
-                LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
+                        
+                        elif source_data == False:
+                            # we don't have metadata available on RCC
+                            CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
+                            LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
+                        else:
+                            # we could not retrieve metadata but were supposed to, let the message be sent to deadletter
+                            pass
+                    elif db_record_data:
+                        # Send message to input queue of metadata container with the record data
+                        CS.send_message(SQS_CLIENT, metadata_queue, db_record_data)
+                        LOGGER.info(f"Message sent to {metadata_queue}", extra={"messageid": message.get('MessageId')})    
+                        # delete from input queue
+                        CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
+                        LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
+                else:
+                    CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
+                    LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
 
 
             elif identity in IMAGE:

@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TypeVar
 
 DT = TypeVar("DT",dict, None)
-TENANT_BLACKLIST = {'TEST_TENANT', 'herbie','jackalope'} # Tenants we receive messages from, but don't have access for 
+TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx'} # Tenants we receive messages from, but don't have access for 
 LOGGER = log.getLogger("SDRetriever")
 
 class Chunk(object):

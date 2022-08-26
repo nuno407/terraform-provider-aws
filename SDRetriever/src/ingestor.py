@@ -42,10 +42,31 @@ class Ingestor(object):
         # stored on target S3 bucket
         if s3_client is None:
             s3_client = self.RCC_S3_CLIENT
-        response_list = s3_client.list_objects_v2(
-            Bucket=self.CS.raw_s3 if bucket is None else bucket,
-            Prefix=s3_path
-        )
+        try:
+            response_list = s3_client.list_objects_v2(
+                Bucket=self.CS.raw_s3 if bucket is None else bucket,
+                Prefix=s3_path
+            )
+        except:
+            fields = s3_path.split("/")[0]
+            tenant = fields[0]
+            deviceid = fields[0]
+            try:
+                # can we access the tenant? (not by default, accessible tenants must be whitelisted on RCC by RideCare Cloud Operations)
+                prefix = f"{tenant}/"
+                response_list = s3_client.list_objects_v2(Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
+            except:
+                LOGGER.error(f"Could not access {bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {tenant}")
+            else:
+                prefix = f"{tenant}/{deviceid}/"
+                try:
+                    # does the device exist?
+                    response_list = s3_client.list_objects_v2(Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
+                except:
+                    LOGGER.error(f"Could not access folder {bucket}/{prefix} - Tenant {tenant} is accessible, but could not access device {deviceid}")
+                else:
+                    LOGGER.error(f"Could not access folder {s3_path}, something went wrong")
+            return False, dict()
         return response_list['KeyCount'] != 0, response_list
 
     @property
@@ -335,6 +356,8 @@ class MetadataIngestor(Ingestor):
             if not metadata_exists:
                 LOGGER.info(f"Did not find any files with prefix '{video_msg.recording_type}_{video_msg.recordingid}' on {bucket}/{video_msg.tenant}/{video_msg.deviceid}/{time_path}/", extra={"messageid": video_msg.messageid})
                 continue
+            if not response:
+                return
 
             '''Cycle through the received list of matching files, download them from S3 and store them on the files_dict dictionary'''
             for _, file_entry in enumerate(response['Contents']):
@@ -377,7 +400,7 @@ class MetadataIngestor(Ingestor):
         """
 
         # this enables support for metadata version 0.4.2 from new IVS
-        key = 'chunk' if 'chunk' in chunks[0] else 'chunkPTS'
+        key = 'chunk' if 'chunk' in chunks[0] else 'chunkPts'
 
         # Calculate the bounds for partial timestamps - the start of the earliest and the end of the latest
         starting_chunk_times = [int(chunks[id][key]['pts_start']) for id in chunks.keys()]
@@ -447,7 +470,7 @@ class MetadataIngestor(Ingestor):
         chunks = self._get_metadata_chunks(metadata_start_time, metadata_end_time, video_msg)
         if not chunks:
             LOGGER.info("Cannot ingest metadata from empty set of chunks", extra={"messageid": video_msg.messageid})
-            return
+            return False
         # Process the raw metadata into MDF (fields 'resolution', 'chunk', 'frame', 'chc_periods')
         resolution, pts, frames = self._process_chunks_into_mdf(chunks, video_msg)
 
