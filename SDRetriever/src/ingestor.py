@@ -32,7 +32,7 @@ class Ingestor(object):
         """Ingests the artifacts described in a message into the DevCloud"""
         pass
     
-    def check_if_exists(self, s3_path: str, bucket=None, s3_client=None) -> tuple:
+    def check_if_exists(self, s3_path: str, bucket=None, s3_client=None, messageid=None) -> tuple:
         """check_if_exists - Verify if path exists on target S3 bucket.
 
         Args:
@@ -56,16 +56,16 @@ class Ingestor(object):
                 prefix = f"{tenant}/"
                 response_list = s3_client.list_objects_v2(Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
             except:
-                LOGGER.error(f"Could not access {bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {tenant}")
+                LOGGER.error(f"Could not access {bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {tenant}", extra={"messageid": messageid})
             else:
                 prefix = f"{tenant}/{deviceid}/"
                 try:
                     # does the device exist?
                     response_list = s3_client.list_objects_v2(Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
                 except:
-                    LOGGER.error(f"Could not access folder {bucket}/{prefix} - Tenant {tenant} is accessible, but could not access device {deviceid}")
+                    LOGGER.error(f"Could not access folder {bucket}/{prefix} - Tenant {tenant} is accessible, but could not access device {deviceid}", extra={"messageid": messageid})
                 else:
-                    LOGGER.error(f"Could not access folder {s3_path}, something went wrong")
+                    LOGGER.error(f"Could not access folder {s3_path}, something went wrong", extra={"messageid": messageid})
             return False, dict()
         return response_list['KeyCount'] != 0, response_list
 
@@ -244,7 +244,7 @@ class SnapshotIngestor(Ingestor):
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
-                exists_on_devcloud, _ = self.check_if_exists('Debug_Lync/'+snap_name, self.CS.raw_s3, self.S3_CLIENT)
+                exists_on_devcloud, _ = self.check_if_exists('Debug_Lync/'+snap_name, self.CS.raw_s3, self.S3_CLIENT, snap_msg.messageid)
                 if not exists_on_devcloud:
 
                     # Determine where to search for the file on RCC S3
@@ -255,7 +255,7 @@ class SnapshotIngestor(Ingestor):
                     for folder in possible_locations:
                         
                         # If the file exists in this RCC folder
-                        found_on_rcc, _ = self.check_if_exists(folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT)
+                        found_on_rcc, _ = self.check_if_exists(folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT, snap_msg.messageid)
                         if found_on_rcc:
 
                             # Download jpeg from RCC 
@@ -352,7 +352,7 @@ class MetadataIngestor(Ingestor):
             
             '''Check if there are any files on S3 with the prefix i.e. if metadata chunks _may_ exist'''
             bucket = self.CS.rcc_info["s3_bucket"]
-            metadata_exists, response = self.check_if_exists(metadata_prefix, bucket)
+            metadata_exists, response = self.check_if_exists(metadata_prefix, bucket, video_msg.messageid)
             if not metadata_exists:
                 LOGGER.info(f"Did not find any files with prefix '{video_msg.recording_type}_{video_msg.recordingid}' on {bucket}/{video_msg.tenant}/{video_msg.deviceid}/{time_path}/", extra={"messageid": video_msg.messageid})
                 continue
@@ -452,7 +452,7 @@ class MetadataIngestor(Ingestor):
             self.CS.upload_file(self.S3_CLIENT, source_data_as_bytes, bucket, s3_path)
             LOGGER.info(f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
-            if self.check_if_exists(s3_path, bucket):
+            if self.check_if_exists(s3_path, bucket, video_msg.messageid):
                 LOGGER.error(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
             else:
                 LOGGER.error(f"File {s3_path} could not be uploaded onto {bucket} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
