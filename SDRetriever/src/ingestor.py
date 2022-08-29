@@ -48,9 +48,9 @@ class Ingestor(object):
                 Prefix=s3_path
             )
         except:
-            fields = s3_path.split("/")[0]
+            fields = s3_path.split("/") # just for relative paths
             tenant = fields[0]
-            deviceid = fields[0]
+            deviceid = fields[1]
             try:
                 # can we access the tenant? (not by default, accessible tenants must be whitelisted on RCC by RideCare Cloud Operations)
                 prefix = f"{tenant}/"
