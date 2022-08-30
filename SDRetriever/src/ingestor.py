@@ -403,13 +403,15 @@ class MetadataIngestor(Ingestor):
         key = 'chunk' if 'chunk' in chunks[0] else 'chunkPts'
 
         # Calculate the bounds for partial timestamps - the start of the earliest and the end of the latest
-        starting_chunk_times = [int(chunks[id][key]['pts_start']) for id in chunks.keys()]
-        ending_chunk_times = [int(chunks[id][key]['pts_end']) for id in chunks.keys()]
+        starting_chunk_time_pts = min([int(chunks[id][key]['pts_start']) for id in chunks.keys()])
+        starting_chunk_time_utc = min([int(chunks[id][key]['utc_start']) for id in chunks.keys()])
+        ending_chunk_time_pts = max([int(chunks[id][key]['pts_end']) for id in chunks.keys()])
+        ending_chunk_time_utc = max([int(chunks[id][key]['utc_end']) for id in chunks.keys()])
         pts = {
-            "pts_start": min(starting_chunk_times),
-            "pts_end": max(ending_chunk_times),
-            "utc_start":video_msg.footagefrom,
-            "utc_end":video_msg.footageto
+            "pts_start": starting_chunk_time_pts,
+            "pts_end": starting_chunk_time_utc,
+            "utc_start": ending_chunk_time_pts,
+            "utc_end": ending_chunk_time_utc
         }
 
         # Resolution is the same for the entire video
