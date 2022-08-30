@@ -106,24 +106,22 @@ def main():
 
                     # Process parsed message
                     db_record_data, request_metadata = VIDEO_ING.ingest(msg_obj)
-                    
                     # If metadata is to be downloaded - it's an interior recorder video
-                    if request_metadata:
+                    if db_record_data and request_metadata:
                         source_data = METADATA_ING.ingest(msg_obj)
 
                         # If we successfully ingested metadata, update the record
                         if source_data:
                             # we have metadata
                             db_record_data.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
-                        
-                        elif source_data == False:
-                            # we don't have metadata available on RCC
+                            # Send message to input queue of metadata container with the record data
+                            CS.send_message(SQS_CLIENT, metadata_queue, db_record_data)
+                            LOGGER.info(f"Message sent to {metadata_queue}", extra={"messageid": message.get('MessageId')})
+                            # delete from input queue
                             CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
                             LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
-                        else:
-                            # we could not retrieve metadata but were supposed to, let the message be sent to deadletter
-                            pass
-                    elif db_record_data:
+
+                    elif db_record_data and not request_metadata: # Training recorders
                         # Send message to input queue of metadata container with the record data
                         CS.send_message(SQS_CLIENT, metadata_queue, db_record_data)
                         LOGGER.info(f"Message sent to {metadata_queue}", extra={"messageid": message.get('MessageId')})    

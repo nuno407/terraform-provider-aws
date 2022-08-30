@@ -161,19 +161,18 @@ class VideoIngestor(Ingestor):
         # Build the cedord data to be sent into DB
         db_record_data = {
             "_id": s3_filename,
+            "MDF_available": "No",
+            "media_type":"video",
             "s3_path": self.CS.raw_s3 + "/" + s3_path,
-            "tenant":video_msg.tenant,
-            "deviceid":video_msg.deviceid,
             "footagefrom":video_msg.footagefrom,
             "footageto":video_msg.footageto,
-            "recording_overview": {
-                'length': str(td(seconds=video_seconds)),
-                'resolution': width + "x" + height,
-                '#snapshots': "0",
-                'snapshots_paths': {},
-                },
-            "MDF_available": "No",
+            "tenant":video_msg.tenant,
+            "deviceid":video_msg.deviceid,
+            'length': str(td(seconds=video_seconds)),
+            '#snapshots': str(0),
+            'snapshots_paths': [],
             "sync_file_ext": "",
+            'resolution': width + "x" + height,
             }
 
         # Generate dictionary with info to send to Selector container for training data request (high quality )
@@ -271,6 +270,7 @@ class SnapshotIngestor(Ingestor):
                                 "deviceid": snap_msg.deviceid,
                                 "timestamp": chunk.start_timestamp_ms,
                                 "tenant": snap_msg.tenant,
+                                "media_type": "image"
                             }
                             self.CS.send_message(self.SQS_CLIENT, self.metadata_queue, db_record_data)
                             LOGGER.info(f"Message sent to {self.metadata_queue} to create record for snapshot ", extra={"messageid": snap_msg.messageid})  
@@ -492,8 +492,9 @@ class MetadataIngestor(Ingestor):
             message_for_mdfp = dict(_id=mdf_id, s3_path=f"s3://{self.CS.raw_s3}/{mdf_s3_path}")
             try:
                 self.CS.send_message(self.SQS_CLIENT, mdfp_queue, message_for_mdfp)
+                return True
             except Exception as exception:
                 LOGGER.error(f"Could not send message to queue {mdfp_queue} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
         else:
             LOGGER.info(f"Will not send message to queue {mdfp_queue} as source data could not be uploaded ->", extra={"messageid": video_msg.messageid})
-        return bool(source_data)
+        return False
