@@ -402,13 +402,18 @@ class TestMessageHandler():
                             }
                             """
         }
-
         internal_queue_message = {
-            'uid':"uid",
-            'status':"processing completed",
-            'bucket':"container_services.anonymized_s3/chc_abc.a.b.e/d",
-            'media_path':"jasj.,-kdhkajshd",
-            'meta_path':"file_upload_path/path2/abc.opt"
+            'chunk': [0,1,23,4,56],
+            'path': "container_services.anonymized_s3/chc_abc.a.b.e/d",
+
+            'msg_body': {
+                'uid':"uid",
+                'status':'processing completed',
+                'bucket':"container_services.anonymized_s3/chc_abc.a.b.e/d",
+                'media_path':"jasj.,-kdhkajshd",
+                'meta_path':"file_upload_path/path2/abc.opt"
+            },
+            'status' : 'OK'
         }
 
 
@@ -426,7 +431,7 @@ class TestMessageHandler():
         manager.attach_mock(client._MessageHandler__container_services.delete_message, "container_services.delete_message")
 
         # WHEN
-        client.on_process('mode')
+        client.on_process('chc')
 
         # THEN
         calls_list = manager.mock_calls
@@ -438,6 +443,111 @@ class TestMessageHandler():
         assert calls_list[3][0] == "container_services.delete_message"
 
         ## Assert arguments
-        client.handle_incoming_message.assert_called_with(sqs_queue_message,'mode')
+        client.handle_incoming_message.assert_called_with(sqs_queue_message,'chc')
         client.handle_processing_output.assert_called_with(sqs_queue_message,internal_queue_message)
         client._MessageHandler__container_services.delete_message.assert_called_with(client._MessageHandler__aws_clients.sqs_client,sqs_queue_message['ReceiptHandle'])
+
+
+    def test_on_process2(self, client : MessageHandler):
+        # GIVEN
+        ## Queue Messages
+        sqs_queue_message = {
+            'ReceiptHandle' : '8765834756',
+            'Body'          : """
+                            {
+                                'processing_steps': ['Anonymize'],
+                                's3_path': 'Debug_Lync/TrainingMultiSnapshot_TrainingMultiSnapshot-15f62ba7-489f-49c2-b936-d387124dc3d1_249_1659823752.mp4',
+                                'data_status': 'received'
+                            }
+                            """
+        }
+        internal_queue_message = {
+            'chunk': None,
+            'path': None,
+
+            'msg_body': None,
+            'status' : 'ERROR'
+        }
+
+
+        ## Mocks
+        manager = Mock()
+
+        client.handle_incoming_message = Mock(return_value=None)
+        client.handle_processing_output = Mock(return_value=None)
+        client._MessageHandler__container_services.listen_to_input_queue = Mock(return_value=sqs_queue_message)
+        client._MessageHandler__internal_queue.get = Mock(return_value=internal_queue_message)
+
+        manager.attach_mock(client.handle_incoming_message, "handle_incoming_message")
+        manager.attach_mock(client._MessageHandler__internal_queue.get, "internal_queue.get")
+        manager.attach_mock(client.handle_processing_output, "handle_processing_output")
+        manager.attach_mock(client._MessageHandler__container_services.delete_message, "container_services.delete_message")
+
+        # WHEN
+        with pytest.raises(RuntimeError) as e:
+            client.on_process('chc')
+
+            # THEN
+            calls_list = manager.mock_calls
+
+            ## Assert call order
+            assert calls_list[0][0] == "handle_incoming_message"
+            assert calls_list[1][0] == "internal_queue.get"
+
+            ## Assert arguments
+            with pytest.raises(RuntimeError) as e:
+                client.handle_incoming_message.assert_called_with(sqs_queue_message,'chc')
+                client._MessageHandler__container_services.delete_message.assert_not_called()
+
+
+    def test_on_process3(self, client : MessageHandler):
+        # GIVEN
+        ## Queue Messages
+        sqs_queue_message = {
+            'ReceiptHandle' : '8765834756',
+            'Body'          : """
+                            {
+                                'processing_steps': ['Anonymize'],
+                                's3_path': 'Debug_Lync/TrainingMultiSnapshot_TrainingMultiSnapshot-15f62ba7-489f-49c2-b936-d387124dc3d1_249_1659823752.mp4',
+                                'data_status': 'received'
+                            }
+                            """
+        }
+        internal_queue_message = {
+            'chunk': None,
+            'path': None,
+
+            'msg_body': None,
+            'status' : 'unknown'
+        }
+
+
+        ## Mocks
+        manager = Mock()
+
+        client.handle_incoming_message = Mock(return_value=None)
+        client.handle_processing_output = Mock(return_value=None)
+        client._MessageHandler__container_services.listen_to_input_queue = Mock(return_value=sqs_queue_message)
+        client._MessageHandler__internal_queue.get = Mock(return_value=internal_queue_message)
+
+        manager.attach_mock(client.handle_incoming_message, "handle_incoming_message")
+        manager.attach_mock(client._MessageHandler__internal_queue.get, "internal_queue.get")
+        manager.attach_mock(client.handle_processing_output, "handle_processing_output")
+        manager.attach_mock(client._MessageHandler__container_services.delete_message, "container_services.delete_message")
+
+        # WHEN
+        with pytest.raises(RuntimeError) as e:
+            client.on_process('chc')
+
+            # THEN
+            calls_list = manager.mock_calls
+
+            ## Assert call order
+            assert calls_list[0][0] == "handle_incoming_message"
+            assert calls_list[1][0] == "internal_queue.get"
+
+            ## Assert arguments
+            with pytest.raises(RuntimeError) as e:
+                client.handle_incoming_message.assert_called_with(sqs_queue_message,'chc')
+                client._MessageHandler__container_services.delete_message.assert_not_called()
+

@@ -43,12 +43,14 @@ class TestApiHandler():
         # Mock Thread
         mock_object = MagicMock()
         mock_object.is_alive = Mock(return_value=args['run_message_handler_thread'])
+
+        mock_output_notifier = Mock()
+        mock_output_notifier.notify_error = Mock(return_value=None) 
     
         # Create clients
         output_parameters = Mock()
-        output_notifier = Mock()
         api_handler = APIHandler(output_parameters,
-            create_callback_blueprint(args['route_endpoint']), mock_object)
+            create_callback_blueprint(args['route_endpoint']), mock_object, mock_output_notifier)
     
         return api_handler
     
@@ -76,6 +78,15 @@ class TestApiHandler():
             # THEN
             assert response.status_code != 200
     
+    def test_processing_error_endpoint(self, client_api_handler: APIHandler):
+        # GIVEN
+        output_api = client_api_handler.create_routes()
+    
+        with output_api.test_client() as c:
+            response = c.post("/processingerror")
+    
+            # THEN
+            assert response.status_code == 200
     
     def test_alive_thread_endpoint(self, client_api_handler: APIHandler):
         # GIVEN
@@ -124,7 +135,7 @@ class TestApiHandler():
         args = {
             "chunk" : "aysdtauystduastd",
             "path" : "path/agcfhgcf/abc.txt",
-            "msg_body" : {"The message" :"abc"}
+            "msg_body" : {"The message" :"abc", "status" : "error"},
         }
 
         # WHEN
@@ -132,7 +143,10 @@ class TestApiHandler():
     
         # THEN
         assert client_output_notifier.internal_queue.qsize() == 1
-        assert client_output_notifier.internal_queue.get(0) == args['msg_body']
+
+        queue_msg = client_output_notifier.internal_queue.get(0)
+        assert queue_msg['status'] == "OK"
+        assert queue_msg['The message'] == "abc"
     
         upload_args, _ = client_output_notifier.container_services.upload_file.call_args
         assert args["chunk"] in upload_args
@@ -144,7 +158,7 @@ class TestApiHandler():
         args = {
             "chunk" : "aysdtauystduastd",
             "path" : "path/agcfhgcf/abc.txt",
-            "msg_body" : ["The message"]
+            "msg_body" : {"The message" : "abc"}
         }
         
         # WHEN
@@ -152,7 +166,10 @@ class TestApiHandler():
     
         # THEN
         assert client_output_notifier.internal_queue.qsize() == 1
-        assert client_output_notifier.internal_queue.get() == args['msg_body']
+
+        queue_msg = client_output_notifier.internal_queue.get(0)
+        assert queue_msg['status'] == "OK"
+        assert queue_msg['The message'] == "abc"
     
         upload_args, _ = client_output_notifier.container_services.upload_file.call_args
         assert args["chunk"] in upload_args
@@ -172,4 +189,16 @@ class TestApiHandler():
             client_output_notifier.upload_and_notify(**args)
             client_output_notifier.container_services.upload_file.assert_not_called()
             assert client_output_notifier.internal_queue.qsize() == 0
+
+
+    def test_notify_error(self, client_output_notifier : OutputEndpointNotifier):
+
+        # WHEN
+        client_output_notifier.notify_error()
+    
+        # THEN
+        assert client_output_notifier.internal_queue.qsize() == 1
+
+        queue_msg = client_output_notifier.internal_queue.get(0)
+        assert queue_msg['status'] == "ERROR"
     
