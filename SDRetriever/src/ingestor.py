@@ -352,7 +352,8 @@ class MetadataIngestor(Ingestor):
             
             '''Check if there are any files on S3 with the prefix i.e. if metadata chunks _may_ exist'''
             bucket = self.CS.rcc_info["s3_bucket"]
-            metadata_exists, response = self.check_if_exists(metadata_prefix, bucket, video_msg.messageid)
+            metadata_exists, response = self.check_if_exists(metadata_prefix, bucket, messageid = video_msg.messageid)
+
             if not metadata_exists:
                 LOGGER.info(f"Did not find any files with prefix '{video_msg.recording_type}_{video_msg.recordingid}' on {bucket}/{video_msg.tenant}/{video_msg.deviceid}/{time_path}/", extra={"messageid": video_msg.messageid})
                 continue
@@ -454,7 +455,7 @@ class MetadataIngestor(Ingestor):
             self.CS.upload_file(self.S3_CLIENT, source_data_as_bytes, bucket, s3_path)
             LOGGER.info(f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
-            if self.check_if_exists(s3_path, bucket, video_msg.messageid):
+            if self.check_if_exists(s3_path, bucket, messageid = video_msg.messageid):
                 LOGGER.error(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
             else:
                 LOGGER.error(f"File {s3_path} could not be uploaded onto {bucket} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
