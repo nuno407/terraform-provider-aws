@@ -75,8 +75,8 @@ class BaseHandler():
             aws_clients,
             internal_queue)
 
-        endpoint_notifier = OutputEndpointNotifier(self.endpoint_params)
-        self.callback_blueprint = blueprint_creator.create(route_endpoint, endpoint_notifier)
+        self.endpoint_notifier = OutputEndpointNotifier(self.endpoint_params)
+        self.callback_blueprint = blueprint_creator.create(route_endpoint, self.endpoint_notifier)
 
     def validate_container_services_config(self):
         """
@@ -116,7 +116,8 @@ class BaseHandler():
 
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
-                                 message_handler_thread)
+                                 message_handler_thread,
+                                 self.endpoint_notifier)
 
         # This thread will never end
         # WARNING: possible race-condition if the processing is too fast

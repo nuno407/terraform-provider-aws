@@ -43,6 +43,19 @@ class OutputEndpointNotifier():
         self.container_services = endpoint_params.container_services
         self.aws_clients = endpoint_params.aws_clients
 
+    def notify_error(self) -> None:
+        """
+        Notifies the message handler that an error as ocurred on processing of the current message
+        """
+        msg_body = {
+                'chunk': None,
+                'path': None,
+                'msg_body': None,
+                'status' : 'ERROR'}
+
+        self.internal_queue.put(msg_body)
+        
+
     def upload_and_notify(self, chunk: list, path: str, msg_body: dict) -> None:
         """
         Uploads file to specified path, sends update message to respective handler
@@ -56,13 +69,16 @@ class OutputEndpointNotifier():
             TypeError: If msg_body is not parsed from JSON format
         """
 
-        # Make sure that a the message is parsed
-        if not (isinstance(msg_body, dict) or isinstance(msg_body, set) or isinstance(msg_body, list)):
+        # Make sure that the message is parsed
+        if not isinstance(msg_body, dict):
             raise TypeError("Message body needs to be parsed from JSON")
 
         # Upload file to S3 bucket
         self.container_services.upload_file(
             self.aws_clients.s3_client, chunk, self.container_services.anonymized_s3, path)
+
+        # Set status to OK
+        msg_body['status'] = 'OK'
 
         # Send message to input queue of metadata container
         self.internal_queue.put(msg_body)
@@ -79,7 +95,8 @@ class APIHandler():
     def __init__(self,
                  endpoint_params: OutputEndpointParameters,
                  callback_blueprint: Blueprint,
-                 message_handler_thread: Thread) -> None:
+                 message_handler_thread: Thread,
+                 endpoint_notifier : OutputEndpointNotifier) -> None:
         """
         Creates an APIHandler that will receive the callback from a processing request to the IVS Feature chain.
         It should receive a blueprint that post a message to the internal queue after receiving the callback request.
@@ -89,11 +106,13 @@ class APIHandler():
             endpoint_params (OutputEndpointParameters):
             callback_blueprint (Blueprint): flask blueprint to be registered by the app when creating the routes.
             message_handler_thread (Thread): reference to the message_handler_thread to be available in the alive healthcheck endpoint
+            endpoint_notifier (OutputEndpointNotifier): To notify in case of an error ocurred
         """
         self.container_services = endpoint_params.container_services
         self.callback_blueprint = callback_blueprint
         self.mode = endpoint_params.mode
         self.message_handler_thread = message_handler_thread
+        self.endpoint_notifier = endpoint_notifier
 
         app = Flask(__name__)
         self.app = app
@@ -115,5 +134,13 @@ class APIHandler():
                 return flask.Response(status=200, response='Ok')
             else:
                 return flask.Response(status=500, response='Message handler thread error')
+
+
+        @app.route("/processingerror", methods=["POST"])
+        def handle_processing_error():
+            
+            self.endpoint_notifier.notify_error()
+            return flask.Response(status=200, response='Ok')
+
 
         return app

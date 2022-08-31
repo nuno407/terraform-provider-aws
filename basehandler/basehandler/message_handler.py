@@ -71,6 +71,15 @@ class MessageHandler():
 
         Remarks:
         The internal queue is just used as synchronization mechanism to avoid race conditions, it's size can't grow bigger then 1.
+
+        The message pass on the internal queue has to have the following format:
+                {
+                'chunk': None,
+                'path': None,
+                'msg_body': None,
+                'status' : 'ERROR'
+                }
+
         Args:
             container_services (ContainerServices): An instance of ContainerServices
             aws_clients (AWSServiceClients): An instance of AWSServicesClients containing the required clients
@@ -266,13 +275,20 @@ class MessageHandler():
             artifact_key = self.parse_incoming_message_body(incoming_message['Body'])['s3_path']
             self.handle_incoming_message(incoming_message, mode)
             try:
+
+                # Wait for message to reach internal queue
                 api_output_message = internal_queue.get(
                     timeout=INTERNAL_QUEUE_TIMEOUT)
-                if api_output_message:
-                    stop_ivs_fc_time = perf_counter()
 
+                if api_output_message:
+
+                    stop_ivs_fc_time = perf_counter()
                     if isinstance(api_output_message, str):
                         api_output_message = self.parse_incoming_message_body(api_output_message)
+
+                    # If the status message is not OK raises an exception 
+                    if api_output_message['status'] != 'OK':
+                        raise RuntimeError(f"The IVS Chain as failed to process artifact: {artifact_key}")
 
                     _logger.info(
                         f"IVS process completed: {artifact_key} time in seconds :: {stop_ivs_fc_time - start_ivs_fc_time}")
@@ -291,7 +307,7 @@ class MessageHandler():
 
     def start(self, mode: str) -> None:
         """
-        main consumer loop function
+        Main consumer loop function
 
         Args:
             mode (str): IVS feature chain procesing mode.
