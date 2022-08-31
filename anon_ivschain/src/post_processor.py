@@ -3,7 +3,7 @@ import os
 import subprocess
 from subprocess import CalledProcessError
 
-from baseaws.shared_functions import (VIDEO_FORMATS, AWSServiceClients,
+from baseaws.shared_functions import (IMAGE_FORMATS, VIDEO_FORMATS, AWSServiceClients,
                                       ContainerServices)
 
 _logger = ContainerServices.configure_logging('AnonymizePostProcessor')
@@ -80,5 +80,7 @@ class AnonymizePostProcessor():
             finally:
                 # Remove conversion video file
                 os.remove(self.OUTPUT_NAME)
+        elif file_format in IMAGE_FORMATS:
+            _logger.info("No conversion needed, artifact is an image")
         else:
             _logger.error(f"File format {file_format} is unknown")
