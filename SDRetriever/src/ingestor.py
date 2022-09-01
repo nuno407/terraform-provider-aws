@@ -9,6 +9,7 @@ from datetime import datetime
 from datetime import timedelta as td
 from operator import itemgetter
 from typing import TypeVar
+from botocore.exceptions import ClientError
 
 import boto3
 
@@ -256,10 +257,14 @@ class SnapshotIngestor(Ingestor):
                         # If the file exists in this RCC folder
                         found_on_rcc, _ = self.check_if_exists(folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT, snap_msg.messageid)
                         if found_on_rcc:
-
                             # Download jpeg from RCC 
-                            snapshot_bytes = self.CS.download_file(self.RCC_S3_CLIENT, RCC_S3_bucket, folder+chunk.uuid)
-
+                            try:
+                                snapshot_bytes = self.CS.download_file(self.RCC_S3_CLIENT, RCC_S3_bucket, folder+chunk.uuid)
+                            except ClientError as e:
+                                flag_do_not_delete = True
+                                if e.response['Error']['Code'] == 'NoSuchKey':
+                                    LOGGER.exception(f"Download failed because file was found but could not be downloaded on {RCC_S3_bucket}/{folder+chunk.uuid} - {e}. Will try again later.", extra={"messageid": snap_msg.messageid})
+                                break
                             # Upload to DevCloud
                             self.CS.upload_file(self.S3_CLIENT, snapshot_bytes, self.CS.raw_s3, 'Debug_Lync/'+snap_name)
                             LOGGER.info(f"Successfully uploaded to {self.CS.raw_s3}/{'Debug_Lync/'+snap_name}", extra={"messageid": snap_msg.messageid})
