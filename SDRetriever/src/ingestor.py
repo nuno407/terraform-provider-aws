@@ -406,13 +406,14 @@ class MetadataIngestor(Ingestor):
         """
 
         # this enables support for metadata version 0.4.2 from new IVS
-        key = 'chunk' if 'chunk' in chunks[0] else 'chunkPts'
+        pts_key = 'chunk' if 'chunk' in chunks[0] else 'chunkPts'
+        utc_key = 'chunk' if 'chunk' in chunks[0] else 'chunkUtc'
 
         # Calculate the bounds for partial timestamps - the start of the earliest and the end of the latest
-        starting_chunk_time_pts = min([int(chunks[id][key]['pts_start']) for id in chunks.keys()])
-        starting_chunk_time_utc = min([int(chunks[id][key]['utc_start']) for id in chunks.keys()])
-        ending_chunk_time_pts = max([int(chunks[id][key]['pts_end']) for id in chunks.keys()])
-        ending_chunk_time_utc = max([int(chunks[id][key]['utc_end']) for id in chunks.keys()])
+        starting_chunk_time_pts = min([int(chunks[id][pts_key]['pts_start']) for id in chunks.keys()])
+        starting_chunk_time_utc = min([int(chunks[id][utc_key]['utc_start']) for id in chunks.keys()])
+        ending_chunk_time_pts = max([int(chunks[id][pts_key]['pts_end']) for id in chunks.keys()])
+        ending_chunk_time_utc = max([int(chunks[id][utc_key]['utc_end']) for id in chunks.keys()])
         pts = {
             "pts_start": starting_chunk_time_pts,
             "pts_end": starting_chunk_time_utc,
