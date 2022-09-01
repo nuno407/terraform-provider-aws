@@ -416,8 +416,8 @@ class MetadataIngestor(Ingestor):
         ending_chunk_time_utc = max([int(chunks[id][utc_key]['utc_end']) for id in chunks.keys()])
         pts = {
             "pts_start": starting_chunk_time_pts,
-            "pts_end": starting_chunk_time_utc,
-            "utc_start": ending_chunk_time_pts,
+            "pts_end": ending_chunk_time_pts,
+            "utc_start": starting_chunk_time_utc,
             "utc_end": ending_chunk_time_utc
         }
 
