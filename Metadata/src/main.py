@@ -7,13 +7,13 @@ from typing import Optional, Tuple
 from typing_extensions import Self
 import boto3
 import pytz
-#from api.db import Persistence
-#from api.service import ApiService
+import pytimeparse
+from mdfparser.chc_counter import ChcCounter
+from consumer.chc_synchronizer import ChcSynchronizer
 from consumer.db import Persistence
 from consumer.service import RelatedMediaService
 from baseaws.shared_functions import ContainerServices, GracefulExit, VIDEO_FORMATS, IMAGE_FORMATS
-from baseaws.chc_periods_functions import calculate_chc_periods, generate_compact_mdf_metadata
-from datetime import datetime
+from datetime import datetime, timedelta
 from pymongo.collection import Collection
 from pymongo.database import Database
 from baseaws.voxel_functions import create_dataset, update_sample
@@ -276,66 +276,26 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
 
     return upsert_item
 
+def download_and_synchronize_chc(video_id: str, recordings_collection: Collection, bucket: str, key: str)->Tuple[dict, dict]:
+        # get video length from the original recording entry
+        recording_entry = recordings_collection.find_one({'video_id': video_id})
+        if not('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
+            raise ValueError('Recording entry for video_id %s does not have a length information.' % video_id)
+        video_length = timedelta(seconds=pytimeparse.parse(recording_entry['recording_overview']['length']))
+        
+        # do the synchronisation
+        chc_syncer = ChcSynchronizer()
+        chc_dict = chc_syncer.download(bucket, key)
+        chc_sync = chc_syncer.synchronize(chc_dict, video_length)
+        chc_sync_parsed = {str(ts): signals for ts, signals in chc_sync.items()}
 
-def download_and_synchronize_chc(bucket: str, key: str) -> Tuple[dict, dict]:
-    # Create S3 client to download metadata
-    s3_client = boto3.client('s3',
-                             region_name='eu-central-1')
+        # calculate CHC metrics
+        chc_counter = ChcCounter()
+        chc_metrics = chc_counter.process(chc_sync)
 
-    # Download metadata json file
-    mdf_download = s3_client.get_object(
-        Bucket=bucket,
-        Key=key
-    )
+        return chc_sync_parsed, chc_metrics['recording_overview']
 
-    # Decode and convert file contents into json format
-    mdf = json.loads(mdf_download['Body'].read().decode("utf-8"))
-
-    # Collect frame data and store it in separate dictionaries
-    frame_ts = {}
-    frame_signals: dict = {}
-
-    for frame in mdf['frame']:
-
-        if 'objectlist' in frame.keys():
-            # Collect relative timestamp for each frame
-            frame_ts[frame['number']] = frame['timestamp64']
-            frame_signals[frame['number']] = {}
-
-            for item in frame['objectlist']:
-                if 'boolAttributes' in item:
-                    for attribute in item['boolAttributes']:
-                        frame_signals[frame['number']][attribute['name']] = (
-                            attribute['value'] == 'true')
-                if 'floatAttributes' in item:
-                    for attribute in item['floatAttributes']:
-                        frame_signals[frame['number']][attribute['name']
-                                                       ] = float(attribute['value'])
-                if 'integerAttributes' in item:
-                    for attribute in item['integerAttributes']:
-                        frame_signals[frame['number']][attribute['name']] = int(
-                            attribute['value'])
-
-    frame_ref_ts = int(frame_ts[list(frame_ts.keys())[0]])
-    frame_ref_dt = datetime.fromtimestamp(frame_ref_ts/1000.0)
-    ###############################
-
-    frame_ts_signals = {}
-    for frame, value_ts in frame_ts.items():
-        frame_dt = datetime.fromtimestamp(int(value_ts)/1000.0)
-        delta = str(frame_dt-frame_ref_dt)
-        video_ts = delta.replace(".", ":")
-        frame_ts_signals[video_ts] = frame_signals[frame]
-
-    ###############################
-    ### CHC periods - outdated! ###
-    compact_mdf_metadata = generate_compact_mdf_metadata(mdf)
-    chc_periods = calculate_chc_periods(compact_mdf_metadata)
-
-    return frame_ts_signals, chc_periods
-
-
-def process_outputs(video_id: str, message: dict, table_algo_out: Collection, table_sig: Collection, source: str):
+def process_outputs(video_id: str, message: dict, collection_algo_out: Collection, collection_recordings: Collection, collection_signals: Collection, source: str):
     """Inserts a new item on the algorithm output collection and, if
     there is a CHC file available for that item, processes
     that info and adds it to the item (plus updates the respective
@@ -344,11 +304,11 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
     Arguments:
         message {dict} -- [info set from the received sqs message
                         that is used to populate the created item]
-        table_algo_out {MongoDB collection object} -- [Object used to
+        collection_algo_out {MongoDB collection object} -- [Object used to
                                                     access/update the
                                                     algorithm output
                                                     collection information]
-        table_sig {MongoDB collection object} -- [Object used to
+        collection_signals {MongoDB collection object} -- [Object used to
                                                     access/update the
                                                     signals
                                                     collection information]
@@ -390,37 +350,40 @@ def process_outputs(video_id: str, message: dict, table_algo_out: Collection, ta
 
     # Compute results from CHC processing
     if source == "CHC" and 'meta_path' in outputs and 'bucket' in outputs:
-        synchronized, chc_periods = download_and_synchronize_chc(outputs['bucket'], outputs['meta_path'])
-
-        # Add video sync data processed from ivs_chain metadata file to created item
-        algo_item.update({
-            'results':{
-                'CHBs_sync': synchronized,
-                'CHC_periods': chc_periods
-            }})
-        signals_item = {
-            'algo_out_id': run_id,
-            'recording': video_id,
-            'source': "CHC",
-            'signals': synchronized,
-            'CHC_periods': chc_periods
-        }
         try:
-            # upsert signals DB item
-            sig_query = {'recording': video_id, 'algo_out_id': run_id}
-            table_sig.update_one(sig_query, {'$set': signals_item}, upsert=True)
+            synchronized, chc_metrics = download_and_synchronize_chc(video_id, collection_recordings, outputs['bucket'], outputs['meta_path'])
 
-            # Create logs message
-            _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
+            # Add video sync data processed from ivs_chain metadata file to created item
+            algo_item.update({
+                'results':{
+                    'CHBs_sync': synchronized,
+                    'CHC_metrics': chc_metrics
+                }})
+        
+            signals_item = {
+                        'algo_out_id': run_id,
+                        'recording': video_id,
+                        'source': "CHC",
+                        'signals': synchronized,
+                        }
+            try:
+                # upsert signals DB item
+                sig_query = {'recording': video_id, 'algo_out_id': run_id}
+                collection_signals.update_one(sig_query, {'$set': signals_item}, upsert=True)
 
+                # Create logs message
+                _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
+
+            except Exception:
+                _logger.exception("Error updating the signals collection with CHC output [%s]", signals_item)
         except Exception:
-            _logger.exception("Error updating the signals collection with CHC output [%s]", signals_item)
+            _logger.exception("Error synchronizing CHC output [%s]", outputs)
 
     try:
         # Insert previously built item
-        #table_algo_out.insert_one(algo_item,)
+        #collection_algo_out.insert_one(algo_item,)
         query = {'_id':run_id}
-        table_algo_out.update_one(query, {'$set': algo_item}, upsert=True)
+        collection_algo_out.update_one(query, {'$set': algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
 
     except Exception as e:
@@ -570,7 +533,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
                 
         # Create/Update item on Algorithm Output DB if message is about algo output
         if 'output' in message:
-            process_outputs(recording_id, message, collection_algo_output, collection_signals, source)
+            process_outputs(recording_id, message, collection_algo_output, collection_recordings, collection_signals, source)
     else:
         _logger.info(f"Unexpected message source {source} - {message}, {message_attributes}")
 

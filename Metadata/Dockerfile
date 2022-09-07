@@ -105,6 +105,11 @@ COPY ./baseaws/ /app/package/
 WORKDIR /app/package
 RUN pip install .
 
+# Install MDFParser dependency
+COPY ./MDFParser/ /app/MDFParser/
+WORKDIR /app/MDFParser
+RUN pip install .
+
 # Copy module
 COPY ./Metadata/src/ /app/src/
 WORKDIR /app/src

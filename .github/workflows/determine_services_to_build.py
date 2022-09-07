@@ -2,13 +2,13 @@ import os
 import subprocess
 import json
 from pathlib import Path
-from typing import List
+from typing import Set
 
 def summary(text):
     print(text)
     os.environ['GITHUB_STEP_SUMMARY'] = os.environ.get('GITHUB_STEP_SUMMARY', '') + text
 
-def add_all_dependant_directories(changed_directories: List[str], generic_dirname: str) -> List[str]:
+def add_all_dependant_directories(changed_directories: Set[str], generic_dirname: str) -> Set[str]:
     """
     iterates over directories searching for Dockerfile's that contains a given generic_dirname string
     """
@@ -43,6 +43,9 @@ def determine_changed_directories():
     if "basehandler" in changed_directories:
         summary("basehandler was changed, building ivschain services")
         changed_directories = add_all_dependant_directories(changed_directories, "basehandler")
+    if "MDFParser" in changed_directories:
+        summary("MDFParser was changed, building ivschain services")
+        changed_directories = add_all_dependant_directories(changed_directories, "MDFParser")
 
     changed_directories = set(changed_directories)
     # Remove directories which don't exist as git diff also lists deleted files
@@ -55,7 +58,7 @@ def determine_changed_directories():
 changed_directories = []
 if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
     if os.environ.get('INPUT_SERVICES'):
-        input_services = os.environ.get('INPUT_SERVICES').split(',')
+        input_services = os.environ.get('INPUT_SERVICES', '').split(',')
         input_services = list(map(lambda name: Path(name.strip()), input_services))
     else:
         input_services = os.scandir(os.getcwd())
