@@ -21,6 +21,8 @@ def update_sample(data_set,sample_info):
     from fiftyone import ViewField as F
 
     dataset = fo.load_dataset(data_set)
+    
+    
 
     #If the sample already exists, update it's information, otherwise create a new one
     if 'filepath' in sample_info:
@@ -33,8 +35,10 @@ def update_sample(data_set,sample_info):
         sample = fo.Sample(filepath=sample_info["s3_path"])    
         dataset.add_sample(sample)
 
+    _logger.info("sample_info: %s !", sample_info)
+
     for (i,j) in sample_info.items():
-            print (i)
+            #print (i)
             if i.startswith('_'):
                 i="ivs"+i
             if i.startswith('filepath'):
@@ -48,12 +52,19 @@ def update_sample(data_set,sample_info):
     # 
     #     # Parse and populate labels and metadata on sample
 
+ 
     
     if 'recording_overview' in sample_info:
-        for (i,j) in sample_info.get('recording_overview').items():
-            if i.startswith('_'):
-                i="ivs"+i
-            sample[i] = j
+        for (k,l) in sample_info.get('recording_overview').items():
+            if k.startswith('_'):
+                k="ivs"+k
+            try:
+                print (k)
+                print (l)
+                sample[str(k)] = l
+            except Exception as e:
+                _logger.exception(f"sample[{k}] = {l}, {type(l)}")
+                _logger.exception(f"{e}")
         if 'time' in sample["recording_overview"]:
             time = sample["recording_overview"]["time"]
             #sample.update({'recording_time': datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
@@ -68,6 +79,8 @@ def update_sample(data_set,sample_info):
     else:
         _logger.info("No items in recording overview")
         _logger.info(sample_info.get('recording_overview'))
+
+    #_logger.info("sample: %s !", sample)
 
     # Add sample to dataset
     sample.save()

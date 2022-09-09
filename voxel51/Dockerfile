@@ -49,9 +49,7 @@ RUN apt -y update \
 
 ENV ROOT_DIR=/fiftyone
 
-
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
-
 
 ARG TOKEN
 ARG FIFTYONE_DATABASE_URI 
@@ -79,8 +77,6 @@ RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fif
 # The name of the shared directory in the container that should be
 # volume-mounted by users to persist data loaded into FiftyOne
 
-
-
 ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
     FIFTYONE_DEFAULT_DATASET_DIR=${ROOT_DIR}/default \
@@ -96,11 +92,10 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_VALIDATION=false
 
 
-
 # Correction, so that Voxel doesn't break if the DB is already populated
 RUN mkdir ${ROOT_DIR}/db
 #RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
-##### END Voxel51 code
 
+#Launch Voxel front-end and bind it to port 5151
 CMD hypercorn fiftyone.teams.app:app --bind 0.0.0.0:5151

@@ -28,6 +28,15 @@ class Persistence:
         if(len(result) == 0): raise LookupError('Recording ID ' + id + ' not found')
         else: return result[0]
 
+
+    def get_media_entry(self, recording_id):
+        aggregation = [{'$match': {'video_id': recording_id}}]
+        result = list(self.__recordings.aggregate(aggregation))
+        if(len(result) == 0): raise LookupError('Recording ID ' + recording_id + ' not found')
+        else: return result[0]
+
+
+
     def get_single_recording(self, recording_id):
         aggregation = [{'$match': {'video_id': recording_id}}]
         aggregation.extend(self.__generate_recording_list_query())
@@ -63,7 +72,7 @@ class Persistence:
         aggregation.append({'$match': {'_media_type':"video"}})
         aggregation.append({'$lookup': {'from':self.__pipeline_executions.name, 'localField':'video_id', 'foreignField':'_id', 'as': 'pipeline_execution'}})
         aggregation.append({'$unwind': '$pipeline_execution'})
-        aggregation.append({'$match':{'pipeline_execution.data_status':'complete'}})
+        #aggregation.append({'$match':{'pipeline_execution.data_status':'complete'}})
 
         if(additional_query):
             aggregation.append({'$match': additional_query})
@@ -76,5 +85,4 @@ class Persistence:
     def get_algo_output(self, algo, recording_id):
         entry = self.__algo_output.find_one({"algorithm_id":algo, "pipeline_id": recording_id})
         return entry
-
     

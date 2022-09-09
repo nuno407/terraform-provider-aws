@@ -1,5 +1,6 @@
 import logging
 import re
+from unittest.util import strclass
 from api.db import Persistence
 
 _logger = logging.getLogger('metadata_api.' + __name__)
@@ -8,16 +9,37 @@ class ApiService:
 
     def __init__(self, db: Persistence, s3):
         self.__db = db
-        self.__s3 = s3
+        self.__s3 = s3       
 
-    def get_video_signals(self, video_id):
-        recording_item = self.__db.get_signals(video_id)
+    def get_video_signals(self, video_id:str):
         signals = {}
-        for signal_group in recording_item['signals']:
-            if (signal_group['source'] == "MDF"):
-                signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
-            else:    
-                signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
+        recording_item = self.__db.get_signals(video_id)
+        
+        if "Training" in video_id:
+            # training data needs to share mdf from the interior recorder 
+            # (may change in the future if algo teams decide to use training recorder's metadata)
+            # these changes are meant to support both instances
+            
+            for signal_group in recording_item['signals']:
+                if signal_group['source'] in {"MDF", "MDFParser"}:
+                    signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+                else:    
+                    signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
+            
+            if 'MDF' not in signals and 'MDFParser' not in signals:
+                inteiror_id = video_id.replace("Training","Interior")
+                interior_item = self.__db.get_signals(inteiror_id)
+                for signal_group in interior_item['signals']:
+                    if signal_group['source'] in {"MDF", "MDFParser"}:
+                        signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+
+        elif "Interior" in video_id:
+            for signal_group in recording_item['signals']:
+                if (signal_group['source'] in {"MDF", "MDFParser"}):
+                    signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+                else:    
+                    signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
+        _logger.info(f"{video_id} got signal fields {signals.keys()}")
         return signals
 
     def __create_video_signals_object(self, chc_result):
@@ -161,7 +183,11 @@ class ApiService:
 
         return {self.__query_fields[sorting]: directions[direction]}
 
-
+               
+    def get_media_entry(self, recording_id):
+        recording_item = self.__db.get_media_entry(recording_id)
+        result = self.__map_recording_object(recording_item)
+        return result
 
     def get_single_recording(self, recording_id):
         recording_item = self.__db.get_single_recording(recording_id)
@@ -176,18 +202,17 @@ class ApiService:
     def __map_recording_object(self, recording_item):
         recording_object = {}
 
-        
         recording_overview = recording_item.get('recording_overview',{})
         recording_object['tenant'] = recording_overview.get('tenantID','-')
-        recording_object['snapshots'] = recording_overview.get('#snapshots','-')
+        recording_object['snapshots'] = recording_overview.get('#snapshots','-') # the front-end cannot access the field if we set as '#snapshots'
+        recording_object['#snapshots'] = recording_overview.get('#snapshots','-') # the front-end cannot access the field if we set as '#snapshots'
+        recording_object['snapshots_paths'] = recording_overview.get('snapshots_paths',"")
         recording_object['length'] = recording_overview.get('length','-')
         recording_object['time'] = recording_overview.get('time','-')   
         recording_object['deviceID'] = recording_overview.get('deviceID','-')
         recording_object['description'] = recording_overview.get('description')
-
         recording_object['_id'] = recording_item.get('video_id')
         recording_object['resolution'] = recording_item.get('resolution','-')      
-
         recording_object['number_chc_events'] = recording_overview.get('number_chc_events','-')      
         recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')   
 
@@ -196,7 +221,6 @@ class ApiService:
         recording_object['data_status'] = pipeline_execution.get('data_status','-')                      
         recording_object['last_updated'] = pipeline_execution.get('last_updated','2020-01-01T00:00:00.1Z').split(".",1)[0].replace("T"," ")
                     
-        
         return recording_object
 
         

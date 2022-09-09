@@ -11,16 +11,17 @@ from api.service import ApiService
 sys.modules['api.config'] = MagicMock()
 from api import controller
 
-db_tables = { 'recording': 'recording', 'pipeline_exec': 'pipeline_exec', 'algo_output': 'algo_output'}
+db_tables = { 'recordings': 'recording', 'signals': 'signals', 'pipeline_exec': 'pipeline_exec', 'algo_output': 'algo_output'}
 our_recording = 'our_recording'
 other_recording = 'other_recording'
 our_algo = 'what_we_are_looking_for'
 other_algo = 'what_we_were_not_looking_for'
 
 mockdb_client = mongomock.MongoClient()
-recordings = mockdb_client.DB_data_ingestion.recording
-pipeline_execs = mockdb_client.DB_data_ingestion.pipeline_exec
-algo_outputs = mockdb_client.DB_data_ingestion.algo_output
+recordings = mockdb_client.DataIngestion.recordings
+signals = mockdb_client.DataIngestion.signals
+pipeline_execs = mockdb_client.DataIngestion.pipeline_exec
+algo_outputs = mockdb_client.DataIngestion.algo_output
 persistence = Persistence(None, db_tables, mockdb_client)
 s3mock = MagicMock()
 
