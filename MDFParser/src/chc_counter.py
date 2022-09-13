@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 from typing import Any, Optional, TypedDict, Union, cast
-from processor import Processor
+from .processor import Processor
 
 _logger = logging.getLogger('mdfparser.' + __name__)
 class ChcCounter(Processor):

@@ -6,11 +6,11 @@ import boto3
 import yaml
 
 from baseaws.shared_functions import ContainerServices, GracefulExit
-from downloader import Downloader
-from uploader import Uploader
-from synchronizer import Synchronizer
-from processor import Processor
-from chc_counter import ChcCounter
+from .downloader import Downloader
+from .uploader import Uploader
+from .synchronizer import Synchronizer
+from .processor import Processor
+from .chc_counter import ChcCounter
 
 CONTAINER_NAME = "MDFParser"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container

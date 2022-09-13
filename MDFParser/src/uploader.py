@@ -2,7 +2,7 @@ from datetime import timedelta
 import json
 import logging
 from typing import Union
-from s3_interaction import S3Interaction
+from .s3_interaction import S3Interaction
 
 from baseaws.shared_functions import ContainerServices
 
