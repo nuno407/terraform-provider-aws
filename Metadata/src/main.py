@@ -408,9 +408,9 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
 
     if source == "CHC":
         sample["algorithms"][algo_item['_id']] = {
-            "results": algo_item["results"], "output_paths": algo_item['output_paths']}
+            "results":algo_item.get("results"), "output_paths":algo_item.get("output_paths")}
     else:
-        sample["algorithms"][algo_item['_id']] = {"output_paths": algo_item['output_paths']}
+        sample["algorithms"][algo_item['_id']] = {"output_paths":algo_item.get("output_paths")}
 
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
