@@ -15,12 +15,16 @@ export class SignalsRetrieverService {
   getSignals(recordingId: string, fallbackRecordingId: string = undefined) : Observable<SignalGroup> {
     return this.metaDataApiService.getSyncVideoSignals(recordingId).pipe(
       map(response => {
-        if (!response.message.MDF && fallbackRecordingId ){
+        if (!(response.message.MDF || response.message.MDFParser) && fallbackRecordingId ){
           console.log('Falling back to LQ MDF..');
           return this.metaDataApiService.getSyncVideoSignals(fallbackRecordingId)
           .pipe(map(lq_response => {
             if(lq_response.message.MDF) {
               response.message.MDF = lq_response.message.MDF;
+              console.log('Acquired LQ MDF');
+            } 
+            else if(lq_response.message.MDFParser) {
+              response.message.MDFParser = lq_response.message.MDFParser;
               console.log('Acquired LQ MDF');
             } 
             return response;
@@ -50,7 +54,7 @@ export class SignalsRetrieverService {
   }
 
   private static timeFromString(timeStr: string) : Date {
-    let timeSplit = timeStr.split(":");
+    let timeSplit = timeStr.split(/[\.\:\,]/);
     let hours = Number(timeSplit[0]);
     let minutes = Number(timeSplit[1]);
     let seconds = Number(timeSplit[2]);
