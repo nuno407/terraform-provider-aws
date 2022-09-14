@@ -22,6 +22,17 @@ class Downloader(S3Interaction):
                 mdf['chunk']['utc_end'] = utc_end
             except Exception:
                 _logger.exception('Error recreating epoch timestamps from compact MDF.')
+        else:
+            # check for pts_end swapped with utc_start:
+            # unfortunately some many MDF files have been generated with this bug
+            # (https://github.com/bosch-rc-dev/container_scripts/commit/aba854b68862eb186db17507ceeb50d4d56445c0)
+            pts_end = mdf['chunk']['pts_end']
+            utc_start = mdf['chunk']['utc_start']
+            if (len(str(pts_end)) == 13 and str(pts_end).startswith('16')):
+                mdf['chunk']['pts_end'] = utc_start
+                mdf['chunk']['utc_start'] = pts_end
+                _logger.warning(
+                    'Auto-correcting swapped pts_end and utc_start in MDF file %s', mdf_path)
         _logger.debug('Finished metadata download from %s', mdf_path)
         return mdf
     
