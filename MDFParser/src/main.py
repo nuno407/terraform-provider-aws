@@ -22,7 +22,7 @@ _logger: logging.Logger
 def main():
     # External configuration that can be configured as kubernetes secret
     config: MdfParserConfig
-    with open(os.environ.get('CONFIG_FILE', '/app/config/config/yml'), 'r') as configfile:
+    with open(os.environ.get('CONFIG_FILE', '/app/config/config.yml'), 'r') as configfile:
         config = cast(MdfParserConfig, yaml.load(configfile, yaml.SafeLoader))
 
     _logger.info("Starting Container %s (%s)..\n",
