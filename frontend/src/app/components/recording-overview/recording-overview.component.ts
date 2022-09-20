@@ -49,7 +49,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - <\n\
   - !=\n\
   - has"
-  
+
   orderHelpText: string = "Available fields:\n\
   - _id,\n\
   - processing_list,\n\
@@ -127,12 +127,10 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   }
 
   filterChcEvents(){
-    // ToDo: Adapt filter after DB optimization
-
-    // let filter = "'results_CHC.0.CHC_periods.0': {$exists: true}";
-    // this.addQuery(filter);
-    // this.retrieveRecordingList();
-  }
+    let filter = "'number_chc_events': { '>': 0}";
+    this.addQuery(filter);
+    this.retrieveRecordingList();
+ }
 
   /**method for clear input text */
   deleteInputQueryText(){

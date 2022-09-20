@@ -412,7 +412,8 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
     else:
         sample["algorithms"][algo_item['_id']] = {"output_paths":algo_item.get("output_paths")}
 
-    sample.pop('results')
+    if sample["results"]:  sample.pop('results')
+
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
 
