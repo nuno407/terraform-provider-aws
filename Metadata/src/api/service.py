@@ -106,7 +106,7 @@ class ApiService:
                     'last_updated': 'pipeline_execution.last_updated',
                     'length': 'recording_overview.length',
                     'time': 'recording_overview.time',
-                    'resolution': 'recording_overview.resolution',
+                    'resolution': 'resolution',
                     'number_chc_events': 'recording_overview.number_chc_events',
                     'lengthCHC': 'recording_overview.chc_duration',
                     'deviceID': 'recording_overview.deviceID',
