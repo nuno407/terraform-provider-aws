@@ -19,10 +19,11 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       # localstack only works on us-east-1
       AWS_REGION: us-east-1
-      NO_PROXY: 127.0.0.1,127.0.0.11,mockaws,ivschain
-      no_proxy: 127.0.0.1,127.0.0.11,mockaws,ivschain
+      # BCN configs
+      # NO_PROXY: 127.0.0.1,127.0.0.11,mockaws,ivschain
+      # no_proxy: 127.0.0.1,127.0.0.11,mockaws,ivschain
       # wait for localstack
-      START_DELAY_SECONDS: 20
+      START_DELAY_SECONDS: 15
       IVS_FC_HOSTNAME: ivschain
     depends_on:
       - localstack
@@ -37,8 +38,9 @@ services:
       retries: 5
     environment:
       SERVICES: s3,sqs
-      HTTP_PROXY: http://172.17.0.1:3128
-      HTTPS_PROXY: http://172.17.0.1:3128
+      # BCN configs
+      # HTTP_PROXY: http://172.17.0.1:3128
+      # HTTPS_PROXY: http://172.17.0.1:3128
       #DEBUG: 1
     ports:
       - 4566:4566
@@ -64,8 +66,9 @@ services:
     environment:
       QUEUE_LENGTH: "1"
       RESPONSE_ENDPOINT: http://anon-handler:5000/
-      NO_PROXY: 127.0.0.1,127.0.0.11,anon-handler
-      no_proxy: 127.0.0.1,127.0.0.11,anon-handler
+      # BCN configs
+      # NO_PROXY: 127.0.0.1,127.0.0.11,anon-handler
+      # no_proxy: 127.0.0.1,127.0.0.11,anon-handler
     volumes:
       - ivschain_shm:/dev/shm
 

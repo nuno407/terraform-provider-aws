@@ -1,6 +1,6 @@
 import logging
 import os
-from time import sleep
+import time
 
 import boto3
 from callback_endpoint import AnonymizeCallbackEndpointCreator
@@ -22,12 +22,12 @@ MODE = "anonymize"
 
 _logger: logging.Logger = None
 
+
 def main():
     _logger.info("Starting Container %s...\n", CONTAINER_NAME)
-
     _logger.info(f"Start delay {START_DELAY_SECONDS} seconds")
     start_delay = int(START_DELAY_SECONDS)
-    sleep(start_delay)
+    time.sleep(start_delay)
 
     container_services = ContainerServices(CONTAINER_NAME, CONTAINER_VERSION)
     aws_clients = AWSServiceClients(
@@ -39,13 +39,12 @@ def main():
 
     post_processor = AnonymizePostProcessor(container_services, aws_clients)
     base_handler = BaseHandler(CONTAINER_NAME,
-                                container_services,
-                                aws_clients,
+                               container_services,
+                               aws_clients,
                                MODE,
                                CALLBACK_ENDPOINT,
                                AnonymizeCallbackEndpointCreator())
 
-    print(base_handler.setup_and_run)
     base_handler.setup_and_run(API_PORT, post_processor)
 
 

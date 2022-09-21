@@ -8,7 +8,8 @@ from flask import Blueprint
 from baseaws.shared_functions import AWSServiceClients, ContainerServices
 from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
                                      OutputEndpointParameters)
-from basehandler.message_handler import PostProcessor, MessageHandler, NOOPPostProcessor
+from basehandler.message_handler import (MessageHandler, NOOPPostProcessor,
+                                         PostProcessor)
 
 INTERNAL_QUEUE_MAX_SIZE = os.getenv('INTERNAL_QUEUE_MAX_SIZE', 1)
 
@@ -30,7 +31,7 @@ class CallbackBlueprintCreator(Protocol):
             NotImplementedError: In case the didn't get implemented by the derived class
 
         Returns:
-            Blueprint: A blueprint of an endpoint to be added to the API 
+            Blueprint: A blueprint of an endpoint to be added to the API
         """
         # protocol function defines the signature and has and empty body
         raise NotImplementedError()
@@ -103,16 +104,18 @@ class BaseHandler():
         """
 
         # MessageHandler will be executed in a new thread
-        messsage_handler = MessageHandler(
+        message_handler = MessageHandler(
             self.endpoint_params.container_services,
             self.endpoint_params.aws_clients,
             self.container_name,
             self.endpoint_params.internal_queue,
             post_processor
         )
+        import basehandler.message_handler as msg_handler
+        msg_handler.wait_for_featurechain()
 
         message_handler_thread = threading.Thread(
-            target=messsage_handler.start, kwargs={'mode': self.mode})
+            target=message_handler.start, kwargs={'mode': self.mode})
 
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,

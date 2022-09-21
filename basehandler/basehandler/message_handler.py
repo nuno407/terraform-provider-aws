@@ -7,6 +7,7 @@ from abc import abstractmethod
 from time import perf_counter
 from typing import Protocol
 
+import backoff
 import requests
 from requests.status_codes import codes as status_codes
 
@@ -18,7 +19,9 @@ _logger = logging.getLogger(__name__)
 # defaults to 10h
 INTERNAL_QUEUE_TIMEOUT = os.getenv('INTERNAL_QUEUE_TIMEOUT', 36000)
 IVS_FC_HOSTNAME = os.getenv('IVS_FC_HOSTNAME', 'localhost')
-
+IVS_FC_PORT = os.getenv('IVS_FC_PORT', '8081')
+IVS_FC_STATUS_ENDPOINT = f'http://{IVS_FC_HOSTNAME}:{IVS_FC_PORT}/status'
+IVS_FC_MAX_WAIT = os.getenv('IVS_FC_MAX_WAIT', '120')
 
 class PostProcessor(Protocol):
     """
@@ -286,7 +289,7 @@ class MessageHandler():
                     if isinstance(api_output_message, str):
                         api_output_message = self.parse_incoming_message_body(api_output_message)
 
-                    # If the status message is not OK raises an exception 
+                    # If the status message is not OK raises an exception
                     if api_output_message['status'] != 'OK':
                         raise RuntimeError(f"The IVS Chain as failed to process artifact: {artifact_key}")
 
@@ -316,3 +319,21 @@ class MessageHandler():
         _logger.info(f"Listening to SQS input queue(s).. \n")
         while(True):
             self.on_process(mode)
+
+def on_backoff_handler(details):
+    _logger.info('Backing off {wait:0.1f} seconds after {tries} tries'.format(**details))
+
+def on_success_handler(details):
+    _logger.info(f"Got response from IVSFC API: {IVS_FC_STATUS_ENDPOINT} after {details['elapsed']:0.1f} seconds")
+
+@backoff.on_exception(
+    backoff.expo,
+    requests.exceptions.RequestException,
+    max_time=IVS_FC_MAX_WAIT,
+    raise_on_giveup=True,
+    on_backoff=on_backoff_handler,
+    on_success=on_success_handler
+)
+def wait_for_featurechain():
+    _logger.info(f'Waiting for IVSFC API on: {IVS_FC_STATUS_ENDPOINT}')
+    requests.get(IVS_FC_STATUS_ENDPOINT)

@@ -1,6 +1,6 @@
 import logging
 import os
-from time import sleep
+import time
 
 import boto3
 from callback_endpoint import CHCCallbackEndpointCreator
@@ -21,12 +21,12 @@ MODE = 'chc'
 
 _logger: logging.Logger = None
 
+
 def main():
     _logger.info("Starting Container %s...\n", CONTAINER_NAME)
-
     _logger.info(f"Start delay {START_DELAY_SECONDS} seconds")
     start_delay = int(START_DELAY_SECONDS)
-    sleep(start_delay)
+    time.sleep(start_delay)
 
     container_services = ContainerServices(CONTAINER_NAME, CONTAINER_VERSION)
     aws_clients = AWSServiceClients(

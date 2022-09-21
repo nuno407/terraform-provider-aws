@@ -1,1 +1,0 @@
-$env:PYTHONPATH="..\baseaws"; pytest

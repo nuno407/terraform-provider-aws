@@ -54,7 +54,6 @@ class OutputEndpointNotifier():
                 'status' : 'ERROR'}
 
         self.internal_queue.put(msg_body)
-        
 
     def upload_and_notify(self, chunk: list, path: str, msg_body: dict) -> None:
         """
@@ -138,7 +137,6 @@ class APIHandler():
 
         @app.route("/processingerror", methods=["POST"])
         def handle_processing_error():
-            
             self.endpoint_notifier.notify_error()
             return flask.Response(status=200, response='Ok')
 
