@@ -17,7 +17,10 @@ CONTAINER_NAME = "SDRetriever" # Name of the current container
 CONTAINER_VERSION = "v6" # Version of the current container
 METADATA_FILE_EXT = '_metadata_full.json' # file format for metadata stored on DevCloud raw S3
 VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"] # Known types of video recorder services (SRX)
+VIDEO_WITH_METADATA = ["InteriorRecorder"] # Video recorder services that include metadata
 IMAGE = ["TrainingMultiSnapshot"] # Known types of snapshot recorder services (SRX)
+MESSAGE_VISIBILITY_EXTENSION_HOURS = [0.5, 3, 12, 12]
+MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 
 log.basicConfig(format='%(levelname)s %(message)s') # Global log message formatting
 LOGGER = log.getLogger("SDRetriever")
@@ -103,9 +106,20 @@ def main():
 
                 # If ingestable 
                 if msg_obj.validate():
+                    request_metadata = identity in VIDEO_WITH_METADATA
+
+                    if request_metadata:
+                        # check if metadata is fully available before ingesting video
+                        if not METADATA_ING.check_metadata_exists_and_is_complete(msg_obj):
+                            # in case it is not available yet, prolong the message visibility timeout and put it back in the queue
+                            receive_count = msg_obj.receive_count
+                            prolong_time = min(MESSAGE_VISIBILITY_EXTENSION_HOURS[min(receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS)-1)] * 3600, MAX_MESSAGE_VISIBILITY_TIMEOUT)
+                            LOGGER.info(f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={"messageid": message.get('MessageId')})
+                            CS.update_message_visibility(SQS_CLIENT, msg_obj.receipthandle, prolong_time)
+                            continue
 
                     # Process parsed message
-                    db_record_data, request_metadata = VIDEO_ING.ingest(msg_obj)
+                    db_record_data = VIDEO_ING.ingest(msg_obj)
                     # If metadata is to be downloaded - it's an interior recorder video
                     if db_record_data and request_metadata:
                         source_data = METADATA_ING.ingest(msg_obj)
@@ -129,8 +143,8 @@ def main():
                         CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
                         LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
                 else:
-                    CS.delete_message(SQS_CLIENT, msg_obj.receipthandle, source)
-                    LOGGER.info(f"Message deleted from {source}", extra={"messageid": message.get('MessageId')})
+                    # non-parseable messages should go to DLQ
+                    LOGGER.error(f"Message not parseable, not deleting it.", extra={"messageid": message.get('MessageId')})
 
 
             elif identity in IMAGE:

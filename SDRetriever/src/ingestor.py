@@ -3,15 +3,18 @@ import gzip
 import os
 import json
 import logging as log
+import re
 import subprocess
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from datetime import timedelta as td
 from operator import itemgetter
-from typing import TypeVar
+from typing import Iterator, List, TypeVar
 from botocore.exceptions import ClientError
 
 import boto3
+
+from .message import VideoMessage
 
 METADATA_FILE_EXT = '_metadata_full.json' # file format for metadata stored on DevCloud raw S3
 FRAME_BUFFER = 120*1000 # 2minin milliseconds
@@ -33,7 +36,7 @@ class Ingestor(object):
         """Ingests the artifacts described in a message into the DevCloud"""
         pass
     
-    def check_if_exists(self, s3_path: str, bucket=None, s3_client=None, messageid=None) -> tuple:
+    def check_if_exists(self, s3_path: str, bucket=None, s3_client=None, messageid=None) -> tuple[bool, dict]:
         """check_if_exists - Verify if path exists on target S3 bucket.
 
         Args:
@@ -68,7 +71,8 @@ class Ingestor(object):
                 else:
                     LOGGER.error(f"Could not access folder {s3_path}, something went wrong", extra={"messageid": messageid})
             return False, dict()
-        return response_list['KeyCount'] != 0, response_list
+        
+        return False if response_list is None else response_list.get('KeyCount', 0) != 0, response_list
 
     @property
     def RCC_S3_CLIENT(self):
@@ -189,7 +193,7 @@ class VideoIngestor(Ingestor):
             hq_selector_queue = self.CS.sqs_queues_list["HQ_Selector"]
             self.CS.send_message(self.SQS_CLIENT, hq_selector_queue, hq_request)
 
-        return db_record_data, is_interior_recording
+        return db_record_data
 
 
 class SnapshotIngestor(Ingestor):
@@ -318,7 +322,49 @@ class MetadataIngestor(Ingestor):
                 d[k] = v
         return d
 
-    def _get_metadata_chunks(self, metadata_start_time, metadata_end_time, video_msg):
+    def _get_chunks_lookup_paths(self, message: VideoMessage) -> Iterator[str]:
+        # Find the time bounds for the metadata
+        metadata_start_time = message.uploadstarted.replace(microsecond=0, second=0, minute=0)
+        metadata_end_time = message.uploadfinished.replace(microsecond=0, second=0, minute=0)
+
+        # Calculate hours delta between start and end timestamps
+        delta = metadata_end_time - metadata_start_time
+        start_minutes = metadata_start_time.minute
+        total_hours = int(delta.total_seconds() / 3600 + start_minutes / 60) + delta.days * 24 + 1
+
+        for hour in range(total_hours):
+            # Calculate the bounds for the hour
+            upload_ts = metadata_start_time + timedelta(hours=hour)
+
+            # Create the lookup path
+            lookup_path = f"{message.tenant}/{message.deviceid}/year={upload_ts.year}/month={upload_ts.month:02}/day={upload_ts.day:02}/hour={upload_ts.hour:02}/{message.recording_type}_{message.recordingid}"
+
+            yield lookup_path
+
+    def check_metadata_exists_and_is_complete(self, message: VideoMessage):
+        """Check if metadata exists and is complete.
+        """
+
+        # Get all lookup paths
+        lookup_paths = self._get_chunks_lookup_paths(message)
+        bucket = self.CS.rcc_info["s3_bucket"]
+        if len(list(lookup_paths)) == 0:
+            LOGGER.info(f"No metadata chunk paths found for {message.recordingid}", extra={"messageid": message.messageid})
+            return False
+
+        for path in lookup_paths:
+            metadata_exists, response = self.check_if_exists(path, bucket, messageid = message.messageid)
+            if not metadata_exists:
+                return False
+            filenames = [file_entry['Key'] for _, file_entry in response['Contents']]
+            for videofile in [filename for filename in filenames if filename.endswith('.mp4')]:
+                rexp = re.compile(videofile + r"\..+\.json(\.zip)?")
+                if len(list(filter(rexp.match, filenames))) == 0:
+                    return False
+        return True
+
+
+    def _get_metadata_chunks(self, video_msg):
         """Download metadata chunks from RCC S3
 
         Args:
@@ -329,41 +375,13 @@ class MetadataIngestor(Ingestor):
         Returns:
             chunks (dict): Dictionary with all raw metadata chunks between the bounds defined, indexed by their relative order. Defaults to {}}.
         """
-
-        chunks = {}
-        chunks_count = 0
-
-        # Calculate hours delta between start and end timestamps
-        delta = metadata_end_time - metadata_start_time
-        hours_conv = divmod(delta.seconds, 3600.0)[0]
-        delta_hours = round(hours_conv) + delta.days*24 + 1
         
         # Generate a timestamp path for each hour within the calculated delta and get all files that match the key prefix
-        for temp_hour in range(int(delta_hours)):
-
-            '''Build s3 key prefix'''
-
-            # Increment the start timestamp by the number of hours defined in temp_hour to generate the next timestamp path
-            next_time = metadata_start_time + td(hours=temp_hour)
-
-            # NOTE: S3 RCC Naming convention fix
-            next_year = next_time.year
-            next_month = f"{next_time.month:02}"
-            next_day = f"{next_time.day:02}"
-            next_hour = f"{next_time.hour:02}"
-            time_path = "year={}/month={}/day={}/hour={}".format(next_year, next_month, next_day, next_hour)
-            metadata_prefix = video_msg.tenant + "/" + video_msg.deviceid + "/" + \
-                time_path + "/" + video_msg.recording_type + "_" + video_msg.recordingid
+        for metadata_prefix in self._get_chunks_lookup_paths(video_msg):
             
             '''Check if there are any files on S3 with the prefix i.e. if metadata chunks _may_ exist'''
             bucket = self.CS.rcc_info["s3_bucket"]
             metadata_exists, response = self.check_if_exists(metadata_prefix, bucket, messageid = video_msg.messageid)
-
-            if not metadata_exists:
-                LOGGER.info(f"Did not find any files with prefix '{video_msg.recording_type}_{video_msg.recordingid}' on {bucket}/{video_msg.tenant}/{video_msg.deviceid}/{time_path}/", extra={"messageid": video_msg.messageid})
-                continue
-            if not response:
-                return
 
             '''Cycle through the received list of matching files, download them from S3 and store them on the files_dict dictionary'''
             for _, file_entry in enumerate(response['Contents']):
@@ -470,13 +488,8 @@ class MetadataIngestor(Ingestor):
         return _id, s3_path
         
     def ingest(self, video_msg):
-
-        # Find the time bounds for the metadata
-        metadata_start_time = video_msg.uploadstarted.replace(microsecond=0, second=0, minute=0)
-        metadata_end_time = video_msg.uploadfinished.replace(microsecond=0, second=0, minute=0)
-
         # Fetch metadata chunks from RCC S3
-        chunks = self._get_metadata_chunks(metadata_start_time, metadata_end_time, video_msg)
+        chunks = self._get_metadata_chunks(video_msg)
         if not chunks:
             LOGGER.info("Cannot ingest metadata from empty set of chunks", extra={"messageid": video_msg.messageid})
             return False

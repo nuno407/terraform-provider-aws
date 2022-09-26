@@ -243,7 +243,8 @@ class ContainerServices():
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
-                'SentTimestamp'
+                'SentTimestamp',
+                'ApproximateReceiveCount'
             ],
             MaxNumberOfMessages=1,
             MessageAttributeNames=[

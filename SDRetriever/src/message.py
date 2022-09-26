@@ -2,9 +2,8 @@ import json
 import logging as log
 from abc import abstractmethod, abstractproperty
 from datetime import datetime
-from typing import TypeVar
+from typing import Optional
 
-DT = TypeVar("DT",dict, None)
 TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx'} # Tenants we receive messages from, but don't have access for 
 LOGGER = log.getLogger("SDRetriever")
 
@@ -41,7 +40,7 @@ class Message(object):
         pass
 
     @property
-    def messageid(self) -> str:
+    def messageid(self) -> Optional[str]:
         messageid = None
         if "MessageId" in self.raw_message:
             messageid = self.raw_message.get("MessageId")
@@ -50,13 +49,23 @@ class Message(object):
         return messageid
 
     @property
-    def receipthandle(self) -> str:
+    def receipthandle(self) -> Optional[str]:
         receipthandle = None
         if "ReceiptHandle" in self.raw_message:
             receipthandle = self.raw_message.get("ReceiptHandle")
         else:
             LOGGER.error("Field 'ReceiptHandle' not found in 'InputMessage'", extra={"messageid": self.messageid})
         return receipthandle
+
+    @property
+    def receive_count(self) -> int:
+        receive_count = 0
+        if 'ApproximateReceiveCount' in self.attributes:
+            receive_count = self.attributes['ApproximateReceiveCount']
+            receive_count = int(receive_count)
+        else:
+            LOGGER.error("Field 'ApproximateReceiveCount' not found in 'Attributes'", extra={"messageid": self.messageid})
+        return receive_count
 
     @property
     def attributes(self) -> dict:
@@ -104,7 +113,7 @@ class Message(object):
         return messageattributes
 
     @property
-    def timestamp(self) -> datetime:
+    def timestamp(self) -> Optional[datetime]:
         timestamp = None
         if "timestamp" in self.body:
             timestamp = self.body.get("timestamp")
@@ -121,7 +130,7 @@ class Message(object):
         return timestamp
 
     @property
-    def tenant(self) -> str:
+    def tenant(self) -> Optional[str]:
         tenant = None
         if "tenant" in self.messageattributes:
             tenant = self.messageattributes.get("tenant")
@@ -254,20 +263,20 @@ class VideoMessage(Message):
         return footageto
 
     @property
-    def uploadstarted(self) -> DT:
+    def uploadstarted(self) -> Optional[datetime]:
         uploadstarted = None
         if 'uploadStarted' in self.message:
-            uploadstarted = self.message.get("uploadStarted")
+            uploadstarted = self.message["uploadStarted"]
             uploadstarted = datetime.fromtimestamp(uploadstarted/1000.0)
         else:
             LOGGER.error("Field 'uploadStarted' not found in 'Message'", extra={"messageid": self.messageid})
         return uploadstarted
 
     @property
-    def uploadfinished(self) -> DT:
+    def uploadfinished(self) -> Optional[datetime]:
         uploadfinished = None
         if 'uploadFinished' in self.message:
-            uploadfinished = self.message.get("uploadFinished")
+            uploadfinished = self.message["uploadFinished"]
             uploadfinished = datetime.fromtimestamp(uploadfinished/1000.0)
         else:
             LOGGER.error("Field 'uploadFinished' not found in 'Message'", extra={"messageid": self.messageid})
@@ -279,7 +288,7 @@ class VideoMessage(Message):
             deviceid = self.messageattributes.get("deviceId")['Value']
         else:
             LOGGER.error("Field 'deviceId' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
-            return
+            return ''
         return deviceid
 
 
@@ -312,10 +321,10 @@ class SnapshotMessage(Message):
         return chunks
 
     @property
-    def senttimestamp(self) -> DT:
+    def senttimestamp(self) -> Optional[datetime]:
         senttimestamp = None
         if 'SentTimestamp' in self.attributes:
-            senttimestamp = self.attributes.get('SentTimestamp')
+            senttimestamp = self.attributes['SentTimestamp']
             senttimestamp = datetime.fromtimestamp(int(senttimestamp)/1000.0)
         else:
             LOGGER.error("Field 'SentTimestamp' not found in 'Attributes'", extra={"messageid": self.messageid})
@@ -324,7 +333,7 @@ class SnapshotMessage(Message):
     @property
     def eventtype(self) -> str:
         if "eventType" in self.messageattributes:
-            eventtype = self.messageattributes.get("eventType")
+            eventtype = self.messageattributes["eventType"]
             # some messages have "Value" - UploadRecordingEvent and others "StringValue" - RecordingEvent
             # Something to check upon, maybe align w/ other teams
             if "Value" in eventtype:
@@ -334,23 +343,23 @@ class SnapshotMessage(Message):
             eventtype = eventtype.split('.')[-1]
         else:
             LOGGER.error("Field 'eventtype' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
-            return
+            return ''
         return eventtype
 
     @property
     def deviceid(self) -> str:
         if 'device_id' in self.header:
-            device_id = self.header.get("device_id").split(":")[-1]
+            device_id = self.header["device_id"].split(":")[-1]
         else:
             LOGGER.error("Field 'device_id' not found in 'header'", extra={"messageid": self.messageid})
-            return
+            return ''
         return device_id
 
     @property
     def header(self) -> dict:
         header = {}
         if 'header' in self.properties:
-            header = self.properties.get("header")
+            header = self.properties["header"]
         else:
             LOGGER.error("Field 'header' not found in 'properties'", extra={"messageid": self.messageid})
         return header
@@ -359,7 +368,7 @@ class SnapshotMessage(Message):
     def properties(self) -> dict:
         properties = {}
         if 'properties' in self.value:
-            properties = self.value.get("properties")
+            properties = self.value["properties"]
         else:
             LOGGER.error("Field 'properties' not found in 'value'", extra={"messageid": self.messageid})
         return properties
@@ -368,9 +377,9 @@ class SnapshotMessage(Message):
     def value(self) -> dict:
         value = {}
         if 'value' in self.body:
-            value = self.body.get("value")
+            value = self.body["value"]
         elif 'value' in self.message:
-            value = self.message.get("value")
+            value = self.message["value"]
         else:
             LOGGER.error("Field 'value' not found in 'Message' nor 'Body'", extra={"messageid": self.messageid})
         return value
