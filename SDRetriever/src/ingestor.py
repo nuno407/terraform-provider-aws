@@ -375,7 +375,10 @@ class MetadataIngestor(Ingestor):
         Returns:
             chunks (dict): Dictionary with all raw metadata chunks between the bounds defined, indexed by their relative order. Defaults to {}}.
         """
-        
+
+        chunks = {}
+        chunks_count = 0
+
         # Generate a timestamp path for each hour within the calculated delta and get all files that match the key prefix
         for metadata_prefix in self._get_chunks_lookup_paths(video_msg):
             
