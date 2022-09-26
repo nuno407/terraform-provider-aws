@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 
 import boto3
 
-from .message import VideoMessage
+from message import VideoMessage
 
 METADATA_FILE_EXT = '_metadata_full.json' # file format for metadata stored on DevCloud raw S3
 FRAME_BUFFER = 120*1000 # 2minin milliseconds
