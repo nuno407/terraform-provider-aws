@@ -3,7 +3,7 @@ import json
 import os
 from pytest import fixture, raises
 import pytimeparse
-from synchronizer import Synchronizer, InvalidMdfException
+from mdfparser.synchronizer import Synchronizer, InvalidMdfException
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -11,12 +11,12 @@ __location__ = os.path.realpath(
 class TestSynchronizer:
     @fixture
     def mdf_data(self) -> dict:
-        with open(os.path.join(__location__, './test_data/mdf_synthetic.json'), 'r') as f:
+        with open(os.path.join(__location__, './test_assets/test_data/mdf_synthetic.json'), 'r') as f:
             return json.loads(f.read())
 
     @fixture
     def sync_data_expected(self) -> dict:
-        with open(os.path.join(__location__, './test_data/sync_expected.json'), 'r') as f:
+        with open(os.path.join(__location__, './test_assets/test_data/sync_expected.json'), 'r') as f:
             raw_json = json.loads(f.read())
             return {timedelta(seconds=pytimeparse.parse(k)): v for k, v in raw_json.items()}
 

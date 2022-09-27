@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from pytest import fixture
-from chc_counter import ChcCounter
+from mdfparser.chc_counter import ChcCounter
 
 class TestChcCounter:
     @fixture

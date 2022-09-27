@@ -3,7 +3,7 @@ import logging
 from typing import Any, Union
 
 from pytest import LogCaptureFixture
-from processor import Processor
+from mdfparser.processor import Processor
 
 class SampleProcessor(Processor):
     def _process(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]])->dict[str, Any]:

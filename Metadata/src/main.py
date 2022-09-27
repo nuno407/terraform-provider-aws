@@ -14,7 +14,7 @@ from consumer.db import Persistence
 from consumer.service import RelatedMediaService
 from baseaws.shared_functions import ContainerServices, GracefulExit, VIDEO_FORMATS, IMAGE_FORMATS
 from datetime import datetime, timedelta
-from pymongo.collection import Collection
+from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from baseaws.voxel_functions import create_dataset, update_sample
 
@@ -24,14 +24,14 @@ CONTAINER_VERSION = "v6.2"     # Version of the current container
 _logger = ContainerServices.configure_logging('metadata')
 
 
-def create_recording_item(message: dict, table_rec: Collection, service: RelatedMediaService) -> Optional[dict]:
+def create_recording_item(message: dict, collection_rec: Collection, service: RelatedMediaService) -> Optional[dict]:
     """Inserts a new item on the recordings collection 
 
     Arguments:
         message {dict} -- [info set from the sqs message received
                         that will be used to populate the newly
                         created DB item]
-        table_rec {MongoDB collection object} -- [Object used to
+        collection_rec {MongoDB collection object} -- [Object used to
                                                     access/update the
                                                     recordings collection
                                                     information]
@@ -73,17 +73,19 @@ def create_recording_item(message: dict, table_rec: Collection, service: Related
         # Set reference to snapshots on source video
         for media_path in source_videos:            
             try:
-                table_rec.update_one({'video_id': media_path}, {'$inc': {'recording_overview.#snapshots':1}, '$push': {'recording_overview.snapshots_paths':message['_id']}})
+                recording = collection_rec.find_one_and_update({'video_id': media_path}, {'$inc': {'recording_overview.#snapshots': 1}, '$push': {
+                                                               'recording_overview.snapshots_paths': message['_id']}}, upsert=False, return_document=ReturnDocument.AFTER)
                 _logger.info("Associated video to snapshot - %s" % media_path)
-                update_voxel_media(table_rec.find_one({'video_id':media_path}))
+                update_voxel_media(recording)
             except Exception as e:
-                _logger.exception("Unable to update snapshot information for id [%s] - %s" % (media_path, e))
-        
+                _logger.exception(
+                    "Unable to update snapshot information for id [%s] - %s" % (media_path, e))
 
     elif file_format in VIDEO_FORMATS:
-        
+
         # Identify stored snapshots that belong to this recording
-        snapshot_paths = service.get_related(message['tenant'], message['deviceid'], message['footagefrom'], message['footageto'], message['media_type'])
+        snapshot_paths = service.get_related(
+            message['tenant'], message['deviceid'], message['footagefrom'], message['footageto'], message['media_type'])
         snapshots_paths = []
         if snapshot_paths:
             for snapshot_path in snapshot_paths:
@@ -96,7 +98,7 @@ def create_recording_item(message: dict, table_rec: Collection, service: Related
             '_media_type': message['media_type'],
             'filepath': 's3://' + message['s3_path'],
             'recording_overview': {
-                'tenantID': message['tenant'], 
+                'tenantID': message['tenant'],
                 'deviceID': message['deviceid'],
                 'length': message['length'],
                 #'snapshots_paths': message['snapshots_paths'],
@@ -110,58 +112,65 @@ def create_recording_item(message: dict, table_rec: Collection, service: Related
 
         # Set reference to source video on snapshots
         for media_path in snapshot_paths:
-            try: # we have the key for snapshots named as 'video_id' due to legacy reasons... 
-                table_rec.update_one({'video_id': media_path}, {'$push': {'recording_overview.source_videos': message['_id']}})
-                
+            try:  # we have the key for snapshots named as 'video_id' due to legacy reasons...
+                recording = collection_rec.find_one_and_update({'video_id': media_path}, {'$push': {
+                                                               'recording_overview.source_videos': message['_id']}}, upsert=False, return_document=ReturnDocument.AFTER)
+
                 _logger.info("Associated snapshot to video - %s", media_path)
-                # Create dataset with the bucket_name if it doesn't exist
-                update_voxel_media(table_rec.find_one({'video_id':media_path}))
+                update_voxel_media(recording)
             except Exception:
                 _logger.exception("Unable to upsert snapshot [%s]", media_path)
 
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
-            table_rec.update_one({'video_id': message["_id"]}, {'$set': recording_item}, upsert=True)
-            _logger.info("Upserted recording DB item for item %s" % message["_id"])
-            return recording_item
+            collection_rec.update_one({'video_id': message["_id"]}, {
+                                      '$set': recording_item}, upsert=True)
+            _logger.info("Upserted recording DB item for item %s" %
+                         message["_id"])
         except Exception as e:
-            _logger.exception("Unable to create or replace recording item for item %s - %s" % (message["_id"], e))
+            _logger.exception(
+                "Unable to create or replace recording item for item %s - %s" % (message["_id"], e))
+        return recording_item
     else:
         _logger.error(f"Unknown file format {file_format}")
-    
+        return None
 
-def update_voxel_media(sample):
-    
-    def __get_s3_path(raw_path)->tuple[str, str]:
-        print(raw_path) # s3://bucket/folder/ridecare_snapshot_1662080178308.jpeg
+
+def update_voxel_media(sample: dict):
+
+    def __get_s3_path(raw_path) -> tuple[str, str]:
+        print(raw_path)  # s3://bucket/folder/ridecare_snapshot_1662080178308.jpeg
         import re
         match = re.match(r'^s3://([^/]+)/(.*)$', raw_path)
-        
+
         if(match is None or len(match.groups()) != 2):
             raise ValueError('Invalid path: ' + raw_path)
-        
+
         bucket = match.group(1)
         key = match.group(2)
         return bucket, key
 
     # Voxel51 code
-    _ , filepath = __get_s3_path(sample["filepath"])
+    _, filepath = __get_s3_path(sample["filepath"])
     s3split = filepath.split("/")
     bucket_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
-    sample.pop("_id")
+    sample.pop("_id", None)
 
     if filetype in IMAGE_FORMATS:
         bucket_name = bucket_name+"_snapshots"
-        anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+filepath[:-5]+'_anonymized.'+filetype
+        anonymized_path = "s3://" + \
+            os.environ['ANON_S3']+"/"+filepath[:-5]+'_anonymized.'+filetype
     elif filetype in VIDEO_FORMATS:
-        anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+filepath[:-4]+'_anonymized.'+filetype
+        anonymized_path = "s3://" + \
+            os.environ['ANON_S3']+"/"+filepath[:-4]+'_anonymized.'+filetype
     else:
         raise ValueError("Unknown file format %s" % filetype)
     sample["s3_path"] = anonymized_path
     """
-    {'video_id': 'ridecare_device_snapshot_1662080178308', '_id': ObjectId('6319c606d5e09ed78d407912'), '_media_type': 'image', 'filepath': 's3://bucket/folder/ridecare_snapshot_1662080178308.jpeg', 'recording_overview': {'tenantID': 'ridecare', 'deviceID': 'device', 'source_videos': ['ridecare_device_recording_1662080172308_1662080561893']}}
+    {'video_id': 'ridecare_device_snapshot_1662080178308', '_id': ObjectId('6319c606d5e09ed78d407912'), '_media_type': 'image', 'filepath': 's3://bucket/folder/ridecare_snapshot_1662080178308.jpeg', 'recording_overview': {
+                                                                           'tenantID': 'ridecare', 'deviceID': 'device', 'source_videos': ['ridecare_device_recording_1662080172308_1662080561893']}}
     3
     """
     try:
@@ -172,16 +181,20 @@ def update_voxel_media(sample):
         # Create logs message
         _logger.info("Voxel sample [%s] created!", bucket_name)
     except Exception:
-        _logger.exception("Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
+        _logger.exception(
+            "Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
 
 
-def upsert_mdf_data(message: dict, table_sig: Collection, table_rec: Collection) -> Optional[dict]:
+def upsert_mdf_data(message: dict, collection_sig: Collection, collection_rec: Collection) -> tuple[Optional[dict], Optional[dict]]:
     # verify message content
     if not ('signals_file' in message and 'bucket' in message['signals_file'] and 'key' in message['signals_file']):
-        return None
+        _logger.warning(
+            "Expected fields for upserting MDF data are not present in the message.")
+        return None, None
 
     s3_client = boto3.client('s3', 'eu-central-1')
-    signals_file_raw = ContainerServices.download_file(s3_client, message['signals_file']['bucket'], message['signals_file']['key'])
+    signals_file_raw = ContainerServices.download_file(
+        s3_client, message['signals_file']['bucket'], message['signals_file']['key'])
     signals = json.loads(signals_file_raw.decode('UTF-8'))
     try:
         # Upsert signals item
@@ -189,21 +202,24 @@ def upsert_mdf_data(message: dict, table_sig: Collection, table_rec: Collection)
             'recording_overview.number_chc_events': message['recording_overview']['number_chc_events'],
             'recording_overview.chc_duration': message['recording_overview']['chc_duration']
         }
-        signals_data = {'source': "MDFParser",'signals': signals}
-        table_rec.update_one({'video_id': message["_id"]}, {'$set': mdf_data}, upsert=True)
-        table_sig.update_one({'recording': message["_id"], 'source': {'$regex':'MDF.*'}}, {'$set': signals_data}, upsert=True)
+        signals_data = {'source': "MDFParser", 'signals': signals}
+        recording = collection_rec.find_one_and_update({'video_id': message["_id"]}, {
+                                                       '$set': mdf_data}, upsert=True, return_document=ReturnDocument.AFTER)
+        collection_sig.update_one({'recording': message["_id"], 'source': {
+                                  '$regex': 'MDF.*'}}, {'$set': signals_data}, upsert=True)
         # Create logs message
         _logger.info("Signals DB item [%s] upserted!", message["_id"])
+        return recording, signals
     except Exception:
-        _logger.exception("Unable to create or replace signals item for id: [%s]", message["_id"])
-
-    return mdf_data
+        _logger.exception(
+            "Unable to create or replace signals item for id: [%s]", message["_id"])
+        return None, None
 
 
 def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, source: str) -> Optional[dict]:
     """Inserts a new item (or updates it if already exists) on the
     pipeline execution collection
-    Remark: Dictionaries and lists will be replaced instead of upserted. 
+    Remark: Dictionaries and lists will be replaced instead of upserted.
 
     Arguments:
         video_id {string} -- [Name of the recording (coincides with the
@@ -226,7 +242,8 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         return None
 
     # Initialise pipeline item to upsert
-    timestamp = str(datetime.now(tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+    timestamp = str(datetime.now(
+        tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
     upsert_item = {
         '_id': video_id,
@@ -242,11 +259,13 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
 
     try:
         # Upsert pipeline executions item
-        table_pipe.update_one({'_id': video_id}, {'$set': upsert_item}, upsert=True)
+        table_pipe.update_one({'_id': video_id}, {
+                              '$set': upsert_item}, upsert=True)
         # Create logs message
         _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
     except Exception:
-        _logger.exception("Unable to create or replace pipeline executions item for id [%s]", video_id)
+        _logger.exception(
+            "Unable to create or replace pipeline executions item for id [%s]", video_id)
 
     # Voxel51 code
     s3split = message["s3_path"].split("/")
@@ -256,12 +275,17 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
 
     if filetype in IMAGE_FORMATS:
         bucket_name = bucket_name+"_snapshots"
-        anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-5]+'_anonymized.'+filetype
+        anonymized_path = "s3://" + \
+            os.environ['ANON_S3']+"/" + \
+                message["s3_path"][:-5]+'_anonymized.'+filetype
     elif filetype in VIDEO_FORMATS:
-        anonymized_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-4]+'_anonymized.'+filetype
+        anonymized_path = "s3://" + \
+            os.environ['ANON_S3']+"/" + \
+                message["s3_path"][:-4]+'_anonymized.'+filetype
     else:
         raise ValueError("Unknown file format %s" % filetype)
-    sample = upsert_item.copy() # with dicts either we make a copy or both variables will reference the same object
+    # with dicts either we make a copy or both variables will reference the same object
+    sample = upsert_item.copy()
     sample.update({"video_id": video_id, "s3_path": anonymized_path})
 
     try:
@@ -272,28 +296,34 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         # Create logs message
         _logger.info("Voxel sample [%s] created!", bucket_name)
     except Exception:
-        _logger.exception("Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
+        _logger.exception(
+            "Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
 
     return upsert_item
 
-def download_and_synchronize_chc(video_id: str, recordings_collection: Collection, bucket: str, key: str)->Tuple[dict, dict]:
-        # get video length from the original recording entry
-        recording_entry = recordings_collection.find_one({'video_id': video_id})
-        if not('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
-            raise ValueError('Recording entry for video_id %s does not have a length information.' % video_id)
-        video_length = timedelta(seconds=pytimeparse.parse(recording_entry['recording_overview']['length']))
-        
-        # do the synchronisation
-        chc_syncer = ChcSynchronizer()
-        chc_dict = chc_syncer.download(bucket, key)
-        chc_sync = chc_syncer.synchronize(chc_dict, video_length)
-        chc_sync_parsed = {str(ts): signals for ts, signals in chc_sync.items()}
 
-        # calculate CHC metrics
-        chc_counter = ChcCounter()
-        chc_metrics = chc_counter.process(chc_sync)
+def download_and_synchronize_chc(video_id: str, recordings_collection: Collection, bucket: str, key: str) -> Tuple[dict, dict]:
+    # get video length from the original recording entry
+    recording_entry = recordings_collection.find_one({'video_id': video_id})
+    if not('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
+        raise ValueError(
+            'Recording entry for video_id %s does not have a length information.' % video_id)
+    video_length = timedelta(seconds=pytimeparse.parse(
+        recording_entry['recording_overview']['length']))
 
-        return chc_sync_parsed, chc_metrics['recording_overview']
+    # do the synchronisation
+    chc_syncer = ChcSynchronizer()
+    chc_dict = chc_syncer.download(bucket, key)
+    chc_sync = chc_syncer.synchronize(chc_dict, video_length)
+    chc_sync_parsed = {str(ts): signals for ts,
+                        signals in chc_sync.items()}
+
+    # calculate CHC metrics
+    chc_counter = ChcCounter()
+    chc_metrics = chc_counter.process(chc_sync)
+
+    return chc_sync_parsed, chc_metrics['recording_overview']
+
 
 def process_outputs(video_id: str, message: dict, collection_algo_out: Collection, collection_recordings: Collection, collection_signals: Collection, source: str):
     """Inserts a new item on the algorithm output collection and, if
@@ -324,7 +354,8 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
     """
     # check that data has at least the absolute minimum of required fields
     if not (all(k in message for k in ('output', 's3_path')) and 'bucket' in message['output']):
-        _logger.error("Not able to create an entry because output or s3_path is missing!")
+        _logger.error(
+            "Not able to create an entry because output or s3_path is missing!")
         return
 
     # Initialise variables used in item creation
@@ -334,11 +365,13 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
 
     # Check if there is a metadata file path available
     if 'meta_path' in outputs and outputs['meta_path'] != "-":
-        output_paths = {'metadata': f"{outputs['bucket']}/{outputs['meta_path']}"}
+        output_paths = {
+            'metadata': f"{outputs['bucket']}/{outputs['meta_path']}"}
 
     # Check if there is a video file path available
     if "media_path" in outputs and outputs['media_path'] != "-":
-        output_paths = {'video': f"{outputs['bucket']}/{outputs['media_path']}"}
+        output_paths = {
+            'video': f"{outputs['bucket']}/{outputs['media_path']}"}
 
     # Item creation (common parameters)
     algo_item: dict = {
@@ -351,56 +384,64 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
     # Compute results from CHC processing
     if source == "CHC" and 'meta_path' in outputs and 'bucket' in outputs:
         try:
-            synchronized, chc_metrics = download_and_synchronize_chc(video_id, collection_recordings, outputs['bucket'], outputs['meta_path'])
+            synchronized, chc_metrics = download_and_synchronize_chc(
+                video_id, collection_recordings, outputs['bucket'], outputs['meta_path'])
 
             # Add video sync data processed from ivs_chain metadata file to created item
             algo_item.update({
-                'results':{
+                'results': {
                     'CHBs_sync': synchronized,
                     'CHC_metrics': chc_metrics
                 }})
-        
+
             signals_item = {
-                        'algo_out_id': run_id,
-                        'recording': video_id,
+                'algo_out_id': run_id,
+                'recording': video_id,
                         'source': "CHC",
                         'signals': synchronized,
-                        }
+            }
             try:
                 # upsert signals DB item
                 sig_query = {'recording': video_id, 'algo_out_id': run_id}
-                collection_signals.update_one(sig_query, {'$set': signals_item}, upsert=True)
+                collection_signals.update_one(
+                    sig_query, {'$set': signals_item}, upsert=True)
 
                 # Create logs message
                 _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
 
             except Exception:
-                _logger.exception("Error updating the signals collection with CHC output [%s]", signals_item)
+                _logger.exception(
+                    "Error updating the signals collection with CHC output [%s]", signals_item)
         except Exception:
             _logger.exception("Error synchronizing CHC output [%s]", outputs)
 
     try:
         # Insert previously built item
         #collection_algo_out.insert_one(algo_item,)
-        query = {'_id':run_id}
+        query = {'_id': run_id}
         collection_algo_out.update_one(query, {'$set': algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
 
     except Exception as e:
-        _logger.exception(f"Error updating the algo output collection with item {algo_item} - {e}")
+        _logger.exception(
+            f"Error updating the algo output collection with item {algo_item} - {e}")
 
     # Voxel51 code
     s3split = message["s3_path"].split("/")
     bucket_name = s3split[0]
 
     filetype = s3split[-1].split(".")[-1]
-    anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-4]+'_anonymized.'+filetype
+    anon_video_path = "s3://" + \
+        os.environ['ANON_S3']+"/"+ \
+            message["s3_path"][:-4]+'_anonymized.'+filetype
 
     if filetype == "jpeg" or filetype == "png":
         bucket_name = bucket_name+"_snapshots"
 
     if filetype == "jpeg":
-        anon_video_path = "s3://"+os.environ['ANON_S3']+"/"+message["s3_path"][:-5]+'_anonymized.'+filetype
+        anon_video_path = "s3://" + \
+            os.environ['ANON_S3']+"/"+ \
+                message["s3_path"][:-5]+'_anonymized.'+filetype
 
     sample = algo_item
 
@@ -408,11 +449,13 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
 
     if source == "CHC":
         sample["algorithms"][algo_item['_id']] = {
-            "results":algo_item.get("results"), "output_paths":algo_item.get("output_paths")}
+            "results": algo_item.get("results"), "output_paths": algo_item.get("output_paths")}
     else:
-        sample["algorithms"][algo_item['_id']] = {"output_paths":algo_item.get("output_paths")}
+        sample["algorithms"][algo_item['_id']] = {
+            "output_paths": algo_item.get("output_paths")}
 
-    if 'results' in sample:  sample.pop('results')
+    if 'results' in sample:
+        sample.pop('results')
 
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
@@ -425,9 +468,11 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
         update_sample(bucket_name, sample)
 
         # Create logs message
-        _logger.info("Voxel sample [%s] created from process_outputs!", bucket_name)
+        _logger.info(
+            "Voxel sample [%s] created from process_outputs!", bucket_name)
     except Exception:
-        _logger.exception("Unable to process Voxel entry [%s] on process_outputs!", bucket_name)
+        _logger.exception(
+            "Unable to process Voxel entry [%s] on process_outputs!", bucket_name)
 
 
 def upsert_data_to_db(db: Database, container_services: ContainerServices, service: RelatedMediaService, message: dict, message_attributes: dict):
@@ -443,10 +488,10 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
                                 define which operations are performed]
     """
     # Validate the message
-    if not('s3_path' in message and
-            'SourceContainer' in message_attributes and
+    if not('SourceContainer' in message_attributes and
             'StringValue' in message_attributes['SourceContainer']):
-        _logger.error('Skipping message due to neccessary content not being present.', message, message_attributes)
+        _logger.error(
+            'Skipping message due to neccessary content not being present.', message, message_attributes)
         return
 
     # Specify the tables to be used
@@ -459,80 +504,40 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
     source = message_attributes['SourceContainer']['StringValue']
 
     #################### NOTE: Recording collection handling ##################
-
-    # Voxel variables
-    s3split = message["s3_path"].split("/")
-    file_format = message["s3_path"].split(".")[-1]
-    bucket_name = s3split[1] if file_format in VIDEO_FORMATS else s3split[1]+"_snapshots"
-    name = message["s3_path"][message["s3_path"].find("/")+1:-4]
-    if name[-1] == '.':
-        name = name[0:-1]
-    anon_s3_path = f"s3://{os.environ['ANON_S3']}/{name}_anonymized.{file_format}"
-
     # If the message is related to our data ingestion
-    if source in {"SDRetriever", "MDFParser"}:
-        recording_item = {'video_id': message['_id']} # default value for Voxel
+    if source == 'SDRetriever':
+        file_format = message.get("s3_path", '').split(".")[-1]
         if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
             # Call respective processing function
-            recording_item = create_recording_item(message, collection_recordings, service)
-            if not recording_item:
+            recording = create_recording_item(message, collection_recordings, service)
+            if not recording:
                 # something went wrong when creating the new db record
+                _logger.warning("No recording item created on DB.")
                 return
+            update_voxel_media(recording)
+        else:
+            _logger.warning(
+                f"Unexpected file format {file_format} from SDRetriever.")
+    elif source == "MDFParser":
+        recording, signals = upsert_mdf_data(
+            message, collection_signals, collection_recordings)
+        if not recording:
+            # something went wrong when looking up the recording record
+            _logger.warning("No recording item found on DB.")
+            return
+        # insert the signals to the voxel document
+        recording['signals'] = signals
+        update_voxel_media(recording)
 
-        elif source == "MDFParser":
-            signals = upsert_mdf_data(message, collection_signals, collection_recordings)
-            recording_item['signals'] = signals
-
-        # Update Voxel with sample
-        recording_item["s3_path"] = anon_s3_path
-        try:
-            # Create dataset with the bucket_name if it doesn't exist
-            create_dataset(bucket_name)
-            # Add the video to the dataset if it doesn't exist, otherwise update it
-            update_sample(bucket_name, recording_item)
-            # Create logs message
-            _logger.info("Voxel sample [%s] updated from SDRetriever!", bucket_name)
-        except Exception:
-            _logger.exception("Unable to process Voxel entry [%s] on upsert_data_to_db!", bucket_name)
-    
     # If the message is related to our data processing
     elif source in {"SDM", "Anonymize", "CHC", "anon_ivschain", "chc_ivschain"}:
-   
+
         recording_id = os.path.basename(message["s3_path"]).split(".")[0]
 
         # Call respective processing function
-        update_pipeline_db(recording_id, message, collection_pipeline_exec, source)
+        update_pipeline_db(recording_id, message,
+                           collection_pipeline_exec, source)
 
-        # This should never be necessary, right? If we are processing a video, its record must exist, asserting just in case
-        #assert collection_recordings.find_one({'video_id': recording_id})
-        
-        """ # DEBUG MANUAL UPLOADS (TODO: REMOVE AFTERWARDS)
-        ##########################################################################################
-        filetype = message["s3_path"].split(".")[-1]
-
-        if filetype in IMAGE_FORMATS:
-            media_type = 'image'
-        elif filetype in IMAGE_FORMATS:
-            media_type = 'video'
-        
-        # Check if item with that name already exists
-        response_rec = collection_recordings.find_one({'video_id': recording_id})
-        if response_rec:
-            pass
-        else:
-            # Create empty item for the recording
-            item_db = {
-                'video_id': recording_id,
-                'filepath': "s3://" + container_services.raw_s3 + "/" + message["s3_path"],
-                'MDF_available': "No",
-                "chunk": "Chunk0",
-                "_media_type": media_type
-            }
-            # Insert previous built item on the Recording collection
-            collection_recordings.insert_one(item_db)
-            # Create logs message
-            _logger.info("Recording DB empty item [%s] created with data [%s]", recording_id, item_db) """
-                
         # Create/Update item on Algorithm Output DB if message is about algo output
         if 'output' in message:
             process_outputs(recording_id, message, collection_algo_output, collection_recordings, collection_signals, source)

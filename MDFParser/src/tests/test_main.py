@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import main
+from mdfparser import main
 
 def test_extract_timestamps():
     # GIVEN

@@ -1,0 +1,2 @@
+input_queue: dev-terraform-queue-mdf-parser
+metadata_output_queue: dev-terraform-queue-metadata

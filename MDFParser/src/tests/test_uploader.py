@@ -4,7 +4,7 @@ from unittest.mock import ANY, Mock
 from pytest import fixture, raises
 
 from pytest_mock import MockerFixture
-from uploader import Uploader
+from mdfparser.uploader import Uploader
 
 data = { timedelta(minutes=5): {'foo': 2} }
 s3_path = 's3://bucket/key_metadata_full.json'
@@ -12,7 +12,7 @@ s3_path = 's3://bucket/key_metadata_full.json'
 class TestUploader:
     @fixture
     def container_services_mock(self, mocker: MockerFixture) -> Mock:
-        return mocker.patch('uploader.ContainerServices', autospec=True)
+        return mocker.patch('mdfparser.uploader.ContainerServices', autospec=True)
 
     @fixture
     def uploader(self) -> Uploader:

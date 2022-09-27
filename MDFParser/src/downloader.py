@@ -1,6 +1,6 @@
 import json
 import logging
-from .s3_interaction import S3Interaction
+from mdfparser.s3_interaction import S3Interaction
 
 from baseaws.shared_functions import ContainerServices
 

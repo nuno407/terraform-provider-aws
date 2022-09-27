@@ -3,14 +3,14 @@ from unittest.mock import ANY, Mock, patch
 from pytest import LogCaptureFixture, fixture, raises
 from pytest_mock import MockerFixture
 
-from downloader import Downloader
+from mdfparser.downloader import Downloader
     
 s3_path = 's3://bucket/key_metadata_full.json'
 
 class TestDownloader():
     @fixture
     def container_services_mock(self, mocker: MockerFixture) -> Mock:
-        return mocker.patch('downloader.ContainerServices', autospec=True)
+        return mocker.patch('mdfparser.downloader.ContainerServices', autospec=True)
 
     @fixture
     def downloader(self) -> Downloader:
