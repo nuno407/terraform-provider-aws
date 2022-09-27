@@ -2,19 +2,23 @@
 import json
 import logging
 import os
-from signal import SIGTERM, Signals, signal
 import subprocess
 from datetime import datetime  # timedelta as td,
-from signal import SIGTERM, Signals, signal
+from signal import SIGTERM
+from signal import Signals
+from signal import signal
 
 import boto3
 import pytz
+from expiringdict import ExpiringDict
 from pymongo import MongoClient
 from pymongo.database import Database
 
 _logger = logging.getLogger(__name__)
 VIDEO_FORMATS = {'mp4','avi'}
 IMAGE_FORMATS = {'jpeg','jpg','png'}
+MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
+MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 
 class ContainerServices():
     """ContainerServices
@@ -47,6 +51,9 @@ class ContainerServices():
         self.__secretmanagers = {}  # To be modify on dated 16 Jan'2022
 
         self.__apiendpoints = {}  # To be modify on dated 16 Jan'2022
+
+        self.__message_receive_times: ExpiringDict[str, datetime] = ExpiringDict(
+            max_len=1000, max_age_seconds=50400)
 
     @property
     def sqs_queues_list(self):
@@ -264,6 +271,8 @@ class ContainerServices():
             message = response['Messages'][0]
             _logger.info("Message [%s] received!", message['MessageId'])
             _logger.debug("-> queue:  %s", input_queue)
+            self.__message_receive_times[message['ReceiptHandle']] = datetime.now(
+            )
         else:
            # _logger.debug('No Message received.')
            pass
@@ -308,9 +317,10 @@ class ContainerServices():
                                 QueueUrl=input_queue_url,
                                 ReceiptHandle=receipt_handle
                             )
+        self.__message_receive_times.pop(receipt_handle, None)
         _logger.info('Deleted message [%s]', receipt_handle)
 
-    def update_message_visibility(self, client, receipt_handle, seconds, input_queue=None):
+    def update_message_visibility(self, client, receipt_handle: str, seconds: int, input_queue=None):
         """ Updates the visibility timeout of an SQS message to allow longer processing
             Arguments:
             client {boto3.client} -- [client used to access the SQS service]
@@ -328,6 +338,15 @@ class ContainerServices():
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
+        # Limit message visibility timeout to 12h
+        processing_time = int((datetime.now() - self.__message_receive_times.get(receipt_handle, datetime.now(
+        ))).total_seconds() + 1.0 + MESSAGE_VISIBILITY_TIMEOUT_BUFFER)
+        print(processing_time)
+        if seconds > MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time:
+            seconds = MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time
+            logging.debug(
+                "Limiting message visibility extension to %d seconds", seconds)
+
         # Delete received message
         client.change_message_visibility(
             QueueUrl=input_queue_url,
@@ -335,7 +354,8 @@ class ContainerServices():
             VisibilityTimeout=seconds
         )
 
-        _logger.info("Listening to input queue(s)..")
+        _logger.debug(
+            "Changed message visibility timeout to %d seconds", seconds)
 
     def send_message(self, client, dest_queue, data):
         """Prepares the message attributes + body and sends a message

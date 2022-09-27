@@ -7,11 +7,16 @@
 import logging as log
 
 import boto3
-from ingestor import MetadataIngestor, SnapshotIngestor, VideoIngestor
-from message import SnapshotMessage, VideoMessage
+from ingestor import MetadataIngestor
+from ingestor import SnapshotIngestor
+from ingestor import VideoIngestor
+from message import SnapshotMessage
+from message import VideoMessage
 from sourcecommuter import SourceCommuter
 
-from baseaws.shared_functions import ContainerServices, GracefulExit, StsHelper
+from baseaws.shared_functions import ContainerServices
+from baseaws.shared_functions import GracefulExit
+from baseaws.shared_functions import StsHelper
 
 CONTAINER_NAME = "SDRetriever" # Name of the current container
 CONTAINER_VERSION = "v6" # Version of the current container
@@ -20,7 +25,6 @@ VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"] # Known types 
 VIDEO_WITH_METADATA = ["InteriorRecorder"] # Video recorder services that include metadata
 IMAGE = ["TrainingMultiSnapshot"] # Known types of snapshot recorder services (SRX)
 MESSAGE_VISIBILITY_EXTENSION_HOURS = [0.5, 3, 12, 12]
-MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 
 log.basicConfig(format='%(levelname)s %(message)s') # Global log message formatting
 LOGGER = log.getLogger("SDRetriever")
@@ -113,7 +117,8 @@ def main():
                         if not METADATA_ING.check_metadata_exists_and_is_complete(msg_obj):
                             # in case it is not available yet, prolong the message visibility timeout and put it back in the queue
                             receive_count = msg_obj.receive_count
-                            prolong_time = min(MESSAGE_VISIBILITY_EXTENSION_HOURS[min(receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS)-1)] * 3600, MAX_MESSAGE_VISIBILITY_TIMEOUT)
+                            prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
+                                receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS)-1)] * 3600
                             LOGGER.info(f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={"messageid": message.get('MessageId')})
                             CS.update_message_visibility(SQS_CLIENT, msg_obj.receipthandle, prolong_time)
                             continue
