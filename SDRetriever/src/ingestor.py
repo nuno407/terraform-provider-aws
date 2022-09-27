@@ -348,9 +348,9 @@ class MetadataIngestor(Ingestor):
         """
 
         # Get all lookup paths
-        lookup_paths = self._get_chunks_lookup_paths(message)
+        lookup_paths = list(self._get_chunks_lookup_paths(message))
         bucket = self.CS.rcc_info["s3_bucket"]
-        if len(list(lookup_paths)) == 0:
+        if len(lookup_paths) == 0:
             LOGGER.info(f"No metadata chunk paths found for {message.recordingid}", extra={"messageid": message.messageid})
             return False
 
