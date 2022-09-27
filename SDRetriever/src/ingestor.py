@@ -1,19 +1,21 @@
 
 import gzip
-import os
 import json
 import logging as log
+import os
 import re
 import subprocess
 from abc import abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from datetime import timedelta as td
 from operator import itemgetter
-from typing import Iterator, List, TypeVar
-from botocore.exceptions import ClientError
+from typing import Iterator
+from typing import List
+from typing import TypeVar
 
 import boto3
-
+from botocore.exceptions import ClientError
 from message import VideoMessage
 
 METADATA_FILE_EXT = '_metadata_full.json' # file format for metadata stored on DevCloud raw S3
@@ -353,13 +355,19 @@ class MetadataIngestor(Ingestor):
             return False
 
         for path in lookup_paths:
-            metadata_exists, response = self.check_if_exists(path, bucket, messageid = message.messageid)
+            metadata_exists, response = self.check_if_exists(
+                path, bucket, messageid=message.messageid)
             if not metadata_exists:
+                LOGGER.info(f"Metadata does not exist for {message.recordingid} at {path}", extra={
+                            "messageid": message.messageid})
                 return False
-            filenames = [file_entry['Key'] for _, file_entry in response['Contents']]
+            filenames = [file_entry['Key']
+                         for _, file_entry in response['Contents']]
             for videofile in [filename for filename in filenames if filename.endswith('.mp4')]:
                 rexp = re.compile(videofile + r"\..+\.json(\.zip)?")
                 if len(list(filter(rexp.match, filenames))) == 0:
+                    LOGGER.debug(
+                        f"Metadata not completely available in filenames list: {filenames}")
                     return False
         return True
 
