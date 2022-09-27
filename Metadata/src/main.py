@@ -628,10 +628,6 @@ def main():
             # Insert/update data in db
             upsert_data_to_db(db_client, container_services, api_service, relay_list, message['MessageAttributes'])
 
-            # Send message to output queue of metadata container
-            output_queue = container_services.sqs_queues_list["Output"]
-            container_services.send_message(sqs_client, output_queue, relay_list)
-
             # Delete message after processing
             container_services.delete_message(sqs_client, message['ReceiptHandle'])
 
