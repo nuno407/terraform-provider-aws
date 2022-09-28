@@ -12,11 +12,16 @@ from datetime import timedelta as td
 from operator import itemgetter
 from typing import Iterator
 from typing import List
+from typing import Optional
 from typing import TypeVar
 
 import boto3
 from botocore.exceptions import ClientError
 from message import VideoMessage
+
+from baseaws.shared_functions import ContainerServices
+from baseaws.shared_functions import StsHelper
+from baseaws.timestamps import from_epoch_seconds_or_milliseconds
 
 METADATA_FILE_EXT = '_metadata_full.json' # file format for metadata stored on DevCloud raw S3
 FRAME_BUFFER = 120*1000 # 2minin milliseconds
@@ -25,7 +30,7 @@ LOGGER = log.getLogger("SDRetriever")
 
 class Ingestor(object):
     
-    def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
+    def __init__(self, container_services: ContainerServices, s3_client, sqs_client, sts_helper: StsHelper) -> None:
         self.CS = container_services
         self.S3_CLIENT = s3_client
         self.SQS_CLIENT = sqs_client
@@ -125,8 +130,7 @@ class VideoIngestor(Ingestor):
         video_info = json.loads(decoded_info)
         return video_info
 
-    def ingest(self, video_msg):
-
+    def ingest(self, video_msg: VideoMessage) -> Optional[dict]:
         '''Obtain video from KinesisVideoStreams and upload it to our raw data S3'''
         # Define the target path where to place the video
         if "srxdriverpr" in video_msg.streamname:
@@ -134,27 +138,30 @@ class VideoIngestor(Ingestor):
         else:
             s3_folder = self.CS.sdr_folder['debug']
 
-        s3_filename = f"{video_msg.streamname}_{video_msg.footagefrom}_{video_msg.footageto}"    
-        s3_path = s3_folder + s3_filename + self.clip_ext
-
         # Get clip from KinesisVideoStream
         try:
             # Requests credentials to assume specific cross-account role on Kinesis
             role_credentials = self.STS_HELPER.get_credentials()
-            video_from = datetime.fromtimestamp(video_msg.footagefrom/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-            video_to = datetime.fromtimestamp(video_msg.footageto/1000.0).strftime('%Y-%m-%d %H:%M:%S')
-            video_bytes = self.CS.get_kinesis_clip(role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
+            video_from = from_epoch_seconds_or_milliseconds(
+                video_msg.footagefrom)
+            video_to = from_epoch_seconds_or_milliseconds(video_msg.footageto)
+            video_bytes, video_start_ts, video_end_ts = self.CS.get_kinesis_clip(
+                role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
+            video_start = round(video_start_ts.timestamp() * 1000)
+            video_end = round(video_end_ts.timestamp() * 1000)
         except Exception as exception:
             LOGGER.error(f"Could not obtain Kinesis clip from stream {video_msg.streamname} between {repr(video_from)} and {repr(video_to)} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
-            return None, None
+            return None
 
         # Upload video clip into raw data S3 bucket
+        s3_filename = f"{video_msg.streamname}_{video_start}_{video_end}"
+        s3_path = s3_folder + s3_filename + self.clip_ext
         try:
             self.CS.upload_file(self.S3_CLIENT, video_bytes, self.CS.raw_s3, s3_path)
             LOGGER.info(f"Successfully uploaded to {self.CS.raw_s3}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
             LOGGER.error(f"Could not upload file to {s3_path} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
-            return None, None
+            return None
 
         '''Obtain video details via ffprobe and prepare data to be used to generate the video's entry on the database'''
 
@@ -171,8 +178,8 @@ class VideoIngestor(Ingestor):
             "MDF_available": "No",
             "media_type":"video",
             "s3_path": self.CS.raw_s3 + "/" + s3_path,
-            "footagefrom":video_msg.footagefrom,
-            "footageto":video_msg.footageto,
+            "footagefrom": video_start,
+            "footageto": video_end,
             "tenant":video_msg.tenant,
             "deviceid":video_msg.deviceid,
             'length': str(td(seconds=video_seconds)),
@@ -371,8 +378,7 @@ class MetadataIngestor(Ingestor):
                     return False
         return True
 
-
-    def _get_metadata_chunks(self, video_msg):
+    def _get_metadata_chunks(self, video_msg: dict):
         """Download metadata chunks from RCC S3
 
         Args:
@@ -498,7 +504,7 @@ class MetadataIngestor(Ingestor):
 
         return _id, s3_path
         
-    def ingest(self, video_msg):
+    def ingest(self, video_msg: dict):
         # Fetch metadata chunks from RCC S3
         chunks = self._get_metadata_chunks(video_msg)
         if not chunks:

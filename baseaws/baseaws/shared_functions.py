@@ -11,6 +11,9 @@ from signal import signal
 import boto3
 import pytz
 from expiringdict import ExpiringDict
+from mypy_boto3_kinesis_video_archived_media import \
+    KinesisVideoArchivedMediaClient
+from mypy_boto3_kinesisvideo import KinesisVideoClient
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -593,7 +596,7 @@ class ContainerServices():
         return relay_data
 
     ##### Kinesis related functions ###############################################################
-    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector):
+    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> tuple[bytes, datetime, datetime]:
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
@@ -611,35 +614,35 @@ class ContainerServices():
         _logger.info("Downloading test clip from stream [%s]..", stream_name)
 
         # Create Kinesis client
-        kinesis_client = boto3.client('kinesisvideo',
+        kinesis_client: KinesisVideoClient = boto3.client('kinesisvideo',
                                       region_name='eu-central-1',
                                       aws_access_key_id=creds['AccessKeyId'],
                                       aws_secret_access_key=creds['SecretAccessKey'],
                                       aws_session_token=creds['SessionToken'])
 
         # Getting endpoint URL for LIST_FRAGMENTS
-        response_list = kinesis_client.get_data_endpoint(StreamName=stream_name,
+        get_endpoint_list_fragments_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
                                                          APIName='LIST_FRAGMENTS')
 
         # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
-        response_get = kinesis_client.get_data_endpoint(StreamName=stream_name,
+        get_endpoint_get_media_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
                                                         APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
 
         # Fetch DataEndpoint field
-        endpoint_response_list = response_list['DataEndpoint']
-        endpoint_response_get = response_get['DataEndpoint']
+        list_fragments_url = get_endpoint_list_fragments_response['DataEndpoint']
+        get_media_url = get_endpoint_get_media_response['DataEndpoint']
 
         ### List fragments step ###
         # Create Kinesis archive media client for list_fragments()
-        list_client = boto3.client('kinesis-video-archived-media',
-                                   endpoint_url=endpoint_response_list,
+        list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
+                                                                              endpoint_url=list_fragments_url,
                                    region_name='eu-central-1',
                                    aws_access_key_id=creds['AccessKeyId'],
                                    aws_secret_access_key=creds['SecretAccessKey'],
                                    aws_session_token=creds['SessionToken'])
 
         # Get all fragments within timestamp range (start_time, end_time)
-        response1 = list_client.list_fragments(
+        list_fragments_response = list_fragments_client.list_fragments(
             StreamName=stream_name,
             MaxResults=1000,
             FragmentSelector={
@@ -653,26 +656,29 @@ class ContainerServices():
 
         _logger.debug('Got fragments for test clip on [%s]', stream_name)
 
-        # Sort fragments by their timestamp
-        newlist = sorted(response1['Fragments'], key=lambda d: datetime.timestamp(
+        # Sort fragments by their timestamp and store start and end timestamps
+        sorted_fragments = sorted(list_fragments_response['Fragments'], key=lambda d: datetime.timestamp(
             (d['ProducerTimestamp'])))
+        fragments_start_time = sorted_fragments[0]['ProducerTimestamp']
+        fragments_end_time = sorted_fragments[-1]['ProducerTimestamp']
 
         # Create comprehension list with sorted fragments
-        list_frags = [frag['FragmentNumber'] for frag in newlist]
+        fragment_numbers = [frag['FragmentNumber']
+                            for frag in sorted_fragments]
 
         ### Get media step ###
         # Create Kinesis archive media client for get_media_for_fragment_list()
-        get_client = boto3.client('kinesis-video-archived-media',
-                                  endpoint_url=endpoint_response_get,
+        get_media_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
+                                                                         endpoint_url=get_media_url,
                                   region_name='eu-central-1',
                                   aws_access_key_id=creds['AccessKeyId'],
                                   aws_secret_access_key=creds['SecretAccessKey'],
                                   aws_session_token=creds['SessionToken'])
 
         # Fetch all 2sec fragments from previously sorted list
-        response2 = get_client.get_media_for_fragment_list(
+        get_media_response = get_media_client.get_media_for_fragment_list(
             StreamName=stream_name,
-            Fragments=list_frags
+            Fragments=fragment_numbers
         )
 
         _logger.debug('Got video file for test clip on [%s]', stream_name)
@@ -685,7 +691,7 @@ class ContainerServices():
 
         # Read all bytes from http response body
         # (botocore.response.StreamingBody)
-        video_chunk = response2['Payload'].read()
+        video_chunk = get_media_response['Payload'].read()
 
         # Save video chunks to file
         with open(input_name, 'wb') as infile:
@@ -715,7 +721,7 @@ class ContainerServices():
         # Generate processing end message
         _logger.info("Test clip download completed!")
 
-        return output_video
+        return output_video, fragments_start_time, fragments_end_time
 
     ##### Logs/Misc. functions ####################################################################
     @staticmethod
