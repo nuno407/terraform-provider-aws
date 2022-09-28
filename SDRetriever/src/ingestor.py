@@ -362,7 +362,7 @@ class MetadataIngestor(Ingestor):
                             "messageid": message.messageid})
                 return False
             filenames = [file_entry['Key']
-                         for _, file_entry in response['Contents']]
+                         for file_entry in response['Contents']]
             for videofile in [filename for filename in filenames if filename.endswith('.mp4')]:
                 rexp = re.compile(videofile + r"\..+\.json(\.zip)?")
                 if len(list(filter(rexp.match, filenames))) == 0:
@@ -395,7 +395,7 @@ class MetadataIngestor(Ingestor):
             metadata_exists, response = self.check_if_exists(metadata_prefix, bucket, messageid = video_msg.messageid)
 
             '''Cycle through the received list of matching files, download them from S3 and store them on the files_dict dictionary'''
-            for _, file_entry in enumerate(response['Contents']):
+            for file_entry in response['Contents']:
                 file_name = file_entry['Key']
                 if file_name.endswith('.json.zip') or file_name.endswith('.json'):
                     if file_name.endswith('.json.zip'):
