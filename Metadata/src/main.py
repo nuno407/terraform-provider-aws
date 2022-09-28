@@ -2,21 +2,30 @@
 import json
 import logging
 import os
+from datetime import datetime
+from datetime import timedelta
 from time import strftime
-from typing import Optional, Tuple
-from typing_extensions import Self
+from typing import Optional
+from typing import Tuple
+
 import boto3
-import pytz
 import pytimeparse
-from mdfparser.chc_counter import ChcCounter
+import pytz
 from consumer.chc_synchronizer import ChcSynchronizer
 from consumer.db import Persistence
 from consumer.service import RelatedMediaService
-from baseaws.shared_functions import ContainerServices, GracefulExit, VIDEO_FORMATS, IMAGE_FORMATS
-from datetime import datetime, timedelta
-from pymongo.collection import Collection, ReturnDocument
+from mdfparser.chc_counter import ChcCounter
+from pymongo.collection import Collection
+from pymongo.collection import ReturnDocument
 from pymongo.database import Database
-from baseaws.voxel_functions import create_dataset, update_sample
+from typing_extensions import Self
+
+from baseaws.shared_functions import IMAGE_FORMATS
+from baseaws.shared_functions import VIDEO_FORMATS
+from baseaws.shared_functions import ContainerServices
+from baseaws.shared_functions import GracefulExit
+from baseaws.voxel_functions import create_dataset
+from baseaws.voxel_functions import update_sample
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
@@ -140,7 +149,6 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
 def update_voxel_media(sample: dict):
 
     def __get_s3_path(raw_path) -> tuple[str, str]:
-        print(raw_path)  # s3://bucket/folder/ridecare_snapshot_1662080178308.jpeg
         import re
         match = re.match(r'^s3://([^/]+)/(.*)$', raw_path)
 
@@ -569,7 +577,9 @@ def read_message(container_services: ContainerServices, body: str)->dict:
     # currently just sends the same msg that received
     relay_data = dict_body
 
-    container_services.display_processed_msg(relay_data["s3_path"])
+    s3_path = relay_data.get("s3_path", "s3://" + relay_data.get("signals_file", dict()).get(
+        "bucket", "") + "/" + relay_data.get("signals_file", dict()).get("key", ""))
+    container_services.display_processed_msg(s3_path)
 
     return relay_data
 
