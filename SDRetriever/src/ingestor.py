@@ -473,7 +473,7 @@ class MetadataIngestor(Ingestor):
 
         return resolution, pts, mdf_data
 
-    def _upload_source_data(self, source_data, video_msg):
+    def _upload_source_data(self, source_data, video_msg, video_id: str):
         """Store source data on our raw_s3 bucket
 
         Args:
@@ -488,10 +488,10 @@ class MetadataIngestor(Ingestor):
             s3_folder = self.CS.sdr_folder['driver_pr']
         else: 
             s3_folder = self.CS.sdr_folder['debug']
-        source_data_as_bytes = bytes(json.dumps(source_data, ensure_ascii=False, indent=4).encode('UTF-8'))
-        _id = f"{video_msg.streamname}_{video_msg.footagefrom}_{video_msg.footageto}"
+        source_data_as_bytes = bytes(json.dumps(
+            source_data, ensure_ascii=False, indent=4).encode('UTF-8'))
         bucket = self.CS.raw_s3
-        s3_path = f"{s3_folder}{_id}{METADATA_FILE_EXT}"
+        s3_path = f"{s3_folder}{video_id}{METADATA_FILE_EXT}"
         try:
             self.CS.upload_file(self.S3_CLIENT, source_data_as_bytes, bucket, s3_path)
             LOGGER.info(f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
@@ -502,9 +502,9 @@ class MetadataIngestor(Ingestor):
                 LOGGER.error(f"File {s3_path} could not be uploaded onto {bucket} -> {repr(exception)}", extra={"messageid": video_msg.messageid})
                 return
 
-        return _id, s3_path
+        return s3_path
         
-    def ingest(self, video_msg: dict):
+    def ingest(self, video_msg: VideoMessage, video_id: str):
         # Fetch metadata chunks from RCC S3
         chunks = self._get_metadata_chunks(video_msg)
         if not chunks:
@@ -521,14 +521,16 @@ class MetadataIngestor(Ingestor):
             "chunk":pts,
             "frame":frames
             }
-        mdf_id, mdf_s3_path = self._upload_source_data(source_data, video_msg)
+        mdf_s3_path = self._upload_source_data(
+            source_data, video_msg, video_id)
         
         # Notify MDFP with new metadata processing request
         #mdfp_queue = self.CS.sqs_queues_list["MDFParser"] # not on config, it was agreed we should walk away from it
         mdfp_queue = os.environ["QUEUE_MDFP"]
         
         if mdf_s3_path:
-            message_for_mdfp = dict(_id=mdf_id, s3_path=f"s3://{self.CS.raw_s3}/{mdf_s3_path}")
+            message_for_mdfp = dict(
+                _id=video_id, s3_path=f"s3://{self.CS.raw_s3}/{mdf_s3_path}")
             try:
                 self.CS.send_message(self.SQS_CLIENT, mdfp_queue, message_for_mdfp)
                 return True

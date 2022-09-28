@@ -127,7 +127,8 @@ def main():
                     db_record_data = VIDEO_ING.ingest(msg_obj)
                     # If metadata is to be downloaded - it's an interior recorder video
                     if db_record_data and request_metadata:
-                        source_data = METADATA_ING.ingest(msg_obj)
+                        source_data = METADATA_ING.ingest(
+                            msg_obj, db_record_data['_id'])
 
                         # If we successfully ingested metadata, update the record
                         if source_data:
