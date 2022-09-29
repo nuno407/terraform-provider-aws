@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 from datetime import datetime  # timedelta as td,
+from datetime import timedelta
 from signal import SIGTERM
 from signal import Signals
 from signal import signal
@@ -660,7 +661,10 @@ class ContainerServices():
         sorted_fragments = sorted(list_fragments_response['Fragments'], key=lambda d: datetime.timestamp(
             (d['ProducerTimestamp'])))
         fragments_start_time = sorted_fragments[0]['ProducerTimestamp']
-        fragments_end_time = sorted_fragments[-1]['ProducerTimestamp']
+        last_fragment_length = timedelta(
+            milliseconds=sorted_fragments[-1]['FragmentLengthInMilliseconds'])
+        fragments_end_time = sorted_fragments[-1]['ProducerTimestamp'] + \
+            last_fragment_length
 
         # Create comprehension list with sorted fragments
         fragment_numbers = [frag['FragmentNumber']
