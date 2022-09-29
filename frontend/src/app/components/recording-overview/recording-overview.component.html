@@ -107,7 +107,7 @@
           <mat-icon *ngIf="sortingParam == 'last_updated' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
           <mat-icon *ngIf="sortingParam == 'last_updated' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
           <mat-icon *ngIf="sortingParam != 'last_updated'" fontIcon="bosch-ic-up-down"></mat-icon>
-          <span class="column-header">Processing Time</span>
+          <span class="column-header">Last Updated</span>
         </span>
       </th>
       <th (click)="sortBy('snapshots')" class="column" style="justify-content: center;">
@@ -124,7 +124,7 @@
           <mat-icon *ngIf="sortingParam == 'number_chc_events' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
           <mat-icon *ngIf="sortingParam != 'number_chc_events'" fontIcon="bosch-ic-up-down"></mat-icon>
           <span class="column-header"># CHC events</span>
-       </span>        
+       </span>
       </th>
       <th (click)="sortBy('lengthCHC')" class="column" >
         <span class="filter-item">
@@ -132,7 +132,7 @@
           <mat-icon *ngIf="sortingParam == 'lengthCHC' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
           <mat-icon *ngIf="sortingParam != 'lengthCHC'" fontIcon="bosch-ic-up-down"></mat-icon>
           <span class="column-header">CHC length</span>
-       </span>        
+       </span>
       </th>
     </tr>
     <tr (click)="showDetailDialog(video._id)" *ngFor="let video of videoList" [hidden]="!isLoaded || error" class="virtual-scroll-viewport list-row">

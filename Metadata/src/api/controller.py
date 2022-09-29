@@ -2,6 +2,7 @@
 Metadata API 
 """
 import logging
+from unittest import skip
 import flask
 import yaml
 from flask import make_response, request
@@ -292,14 +293,22 @@ class TableData(Resource):
         page = request.args.get('page', 1, int)
 
         query = None
+        query_list = []
+        raw_query_list = []
         operator = None
         sorting = "time"
         direction = "asc"
         try:
             if(request.json):
-                raw_query = request.json.get('query')
-                if(raw_query):
-                    query = yaml.load(raw_query, yaml.SafeLoader)
+                raw_query_list=request.json.get('query').split(",")
+                if(len(raw_query_list)>0):
+                    for raw_subquery in raw_query_list:
+                        #handle } incidents
+                        if(raw_subquery == '{}'): continue
+                        if(raw_subquery.startswith("{") and not raw_subquery.endswith("}}")): raw_subquery = raw_subquery + "}"
+                        if(not raw_subquery.startswith("{") and raw_subquery.endswith("}}")): raw_subquery = "{" + raw_subquery
+                        if(not raw_subquery.startswith("{") or not raw_subquery.endswith("}")): raw_subquery = "{" + raw_subquery + "}"
+                        query_list.append(yaml.load(raw_subquery, yaml.SafeLoader))
                 raw_operator = request.json.get('logic_operator')
                 if(raw_operator):
                     operator = yaml.load(raw_operator, yaml.SafeLoader)
@@ -314,7 +323,7 @@ class TableData(Resource):
             api.abort(400, message=ERROR_400_MSG, statusCode = "400")
 
         try:
-            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, query, operator, sorting, direction)
+            response_msg, number_recordings, number_pages = service.get_table_data(page_size, page, query_list, operator, sorting, direction)
             return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
         except (NameError, LookupError, ValueError):
             generate_exception_logs()

@@ -20,7 +20,7 @@ export class ApiVideoCallService {
   /**END POINTS */
   endPGetTableData = "getTableData";
   endPGetVideoSignals = "getVideoSignals";
-  
+
   endPVideoUrl = "getAnonymizedVideoUrl";
   endPDescription = "videoDescription";
   endPbucket = "bucket";
@@ -42,13 +42,13 @@ export class ApiVideoCallService {
       'Content-Type': 'application/json'
     })
   }
-  
+
     //REFORMULAR END POINT NOME E ADICIONAR COLLECTION AO PARAMS
     getData(pageSize: number, page: number, queryParam: string, queryLogicOperator: string, sortingParam: string, sortingDirection: string): Observable<RecordingOverviewObject> {
       this.url = this.getBackendUrl();
-      return this.http.post<RecordingOverviewObject>(this.url + this.endPGetTableData, 
+      return this.http.post<RecordingOverviewObject>(this.url + this.endPGetTableData,
         {
-          'query': queryParam, 
+          'query': queryParam,
           'logic_operator': queryLogicOperator,
           'sorting': sortingParam,
           'direction': sortingDirection
@@ -90,7 +90,7 @@ export class ApiVideoCallService {
         );
     }
 
-    //get synchronized video signals endpoint  
+    //get synchronized video signals endpoint
     getSyncVideoSignals(id: string): Observable<VideoSignals> {
       this.url = this.getBackendUrl();
       return this.http.get<VideoSignals>(`${this.url}${this.endPGetVideoSignals}/${id}`)

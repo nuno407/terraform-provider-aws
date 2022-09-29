@@ -86,7 +86,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
     this.metadata.getData(
       this.pageSize,
       this.page,
-      this.prepareQuery(),
+      this.queryParam.trim(),
       this.queryLogicOperator,
       this.sortingParam,
       this.sortingOrder)
@@ -101,14 +101,6 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
           this.error = err.errorMessage;
         }
       });
-  }
-
-  prepareQuery() {
-    let query = this.queryParam.trim();
-    if(!query.startsWith("{") || !query.endsWith("}")) {
-      query = "{" + query + "}";
-    }
-    return query;
   }
 
   upload(event: MouseEvent) {

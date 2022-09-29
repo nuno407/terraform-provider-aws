@@ -87,13 +87,13 @@ class ApiService:
         if sorting and direction:
             sorting_query = self.__parse_sorting(sorting, direction)
     
-        _logger.warning("additional_query %s: "%(additional_query))
-        _logger.warning("sorting_query %s: "%(sorting_query))
+        _logger.info("additional_query %s: "%(additional_query))
+        _logger.info("sorting_query %s: "%(sorting_query))
         
         recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
         
-        _logger.warning("number_recordings %s:\n"%(number_recordings))
+        _logger.info("number_recordings %s:\n"%(number_recordings))
 
         return table_data, number_recordings, number_pages
         
@@ -134,34 +134,36 @@ class ApiService:
         assert logic_operator.lower() in logic_operators.keys(), "Invalid/Forbidden logical operator"
 
         # Check if all query fields are valid
-        assert [fieldname for fieldname in query.keys() if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
+        for subquery in query:
+            assert [fieldname for fieldname in subquery.keys() if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
 
         # Create empty list that will contain all sub queries received
         query_list = []
         
-        for fieldname, field_query in query.items():
-            operator = list(field_query.keys())[0]
-            operation_value = field_query[operator]
+        for query_item in query:
+            for fieldname, field_query in query_item.items():
+                operator = list(field_query.keys())[0]
+                operation_value = field_query[operator]
 
-            ## OPERATOR VALIDATION + CONVERSION
-            # Check if operator is valid 
-            assert operator in operators.keys(), "Invalid/Forbidden query operators"
+                ## OPERATOR VALIDATION + CONVERSION
+                # Check if operator is valid 
+                assert operator in operators.keys(), "Invalid/Forbidden query operators"
 
-            # Convert the operator to mongo syntax
-            mongo_operator = operators[operator]
+                # Convert the operator to mongo syntax
+                mongo_operator = operators[operator]
 
-            ## VALUE VALIDATION
-            # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
-            # NOTE: spaces are allowed in the value string
-            assert re.findall("^[a-zA-Z0-9_:.\s-]*$", str(operation_value)) != [], "Invalid/Forbidden query values"
+                ## VALUE VALIDATION
+                # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
+                # NOTE: spaces are allowed in the value string
+                assert re.findall("^[a-zA-Z0-9_:.\s-]*$", str(operation_value)) != [], "Invalid/Forbidden query values"
 
-            # Create subquery. 
-            # NOTE: $exists -> used to make sure items without
-            # the parameter set in key are not also returned
-            subquery = {self.__query_fields[fieldname]:{'$exists': 'true', mongo_operator:operation_value}}
+                # Create subquery. 
+                # NOTE: $exists -> used to make sure items without
+                # the parameter set in key are not also returned
+                subquery = {self.__query_fields[fieldname]:{'$exists': 'true', mongo_operator:operation_value}}
 
-            # Append subquery to list
-            query_list.append(subquery)
+                # Append subquery to list
+                query_list.append(subquery)
 
         # Append selected logical operator to query
         # NOTE: Resulting format -> { <AND/OR>: [<subquery1>, <subquery2>, ...] },
