@@ -65,6 +65,10 @@ class NOOPPostProcessor(PostProcessor):
 class MessageHandler():
     """ Message handler """
 
+    class __FileIsEmptyException(Exception):
+        def __init__(self, message):
+            super().__init__(message)
+
     def __init__(self, container_services: ContainerServices,  aws_clients: AWSServiceClients, consumer_name: str, internal_queue: queue.Queue, post_processor: PostProcessor) -> None:
         """
         Creates a MessageHandler service that will handle the messages between the algorithm processing service.
@@ -126,6 +130,9 @@ class MessageHandler():
 
         raw_file = container_services.download_file(
             client, container_services.raw_s3, dict_body["s3_path"])
+        if not raw_file:
+            raise self.__FileIsEmptyException(
+                f"File {dict_body['s3_path']} is empty")
 
         uid = str(uuid.uuid4())
 
@@ -279,8 +286,8 @@ class MessageHandler():
             start_ivs_fc_time = perf_counter()
             artifact_key = self.parse_incoming_message_body(
                 incoming_message['Body'])['s3_path']
-            self.handle_incoming_message(incoming_message, mode)
             try:
+                self.handle_incoming_message(incoming_message, mode)
 
                 # Wait for message to reach internal queue
                 api_output_message = internal_queue.get(
@@ -304,6 +311,11 @@ class MessageHandler():
                         incoming_message, api_output_message)
                     container_services.delete_message(
                         aws_clients.sqs_client, incoming_message['ReceiptHandle'])
+            except self.__FileIsEmptyException:
+                _logger.warning(
+                    f"Downloaded file {artifact_key} with zero bytes of length, skipping it")
+                container_services.delete_message(
+                    aws_clients.sqs_client, incoming_message['ReceiptHandle'])
             except queue.Empty:
                 _logger.exception(
                     f'The timeout of {INTERNAL_QUEUE_TIMEOUT} seconds while waiting for the IVS Chain has been reached. The message was not deleted from the SQS Queue')
