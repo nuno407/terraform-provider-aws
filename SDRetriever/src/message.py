@@ -4,7 +4,7 @@ from abc import abstractmethod, abstractproperty
 from datetime import datetime
 from typing import Optional
 
-TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris'} # Tenants we receive messages from, but don't have access for 
+TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris','deviceprep'} # Tenants we receive messages from, but don't have access for 
 LOGGER = log.getLogger("SDRetriever")
 
 class Chunk(object):
