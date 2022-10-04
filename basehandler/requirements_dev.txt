@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+pytest-mock
+-e ../base[testing]
+# install base module
+-e .

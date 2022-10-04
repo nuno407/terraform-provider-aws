@@ -5,7 +5,8 @@ from threading import Thread
 import flask
 from flask import Blueprint, Flask
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices
+from base.aws.shared_functions import AWSServiceClients
+from base.aws.container_services import ContainerServices
 
 
 class OutputEndpointParameters():

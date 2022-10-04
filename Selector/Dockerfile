@@ -6,19 +6,20 @@ WORKDIR /app
 RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
 USER 1000
 
-# Copy required directories to docker container
-COPY --chown=1000:3000 ./Selector/src/requirements.txt /app/src/requirements.txt
-WORKDIR /app/src
+# Add base library
+COPY --chown=1000:3000 ./base /app/base
+
+# Copy requirements.txt 
+COPY --chown=1000:3000 ./Selector/requirements.txt /app/Selector/requirements.txt
+WORKDIR /app/Selector
 RUN pip install -r requirements.txt
 
-# Install BaseAws package (custom)
-COPY --chown=1000:3000 ./baseaws/ /app/package/
-WORKDIR /app/package
-RUN pip install .
+# Copy application code
+COPY --chown=1000:3000 ./Selector/selector/ /app/Selector/selector
+COPY --chown=1000:3000 ./Selector/setup.py /app/Selector/setup.py
 
-# Copy module
-COPY --chown=1000:3000 ./Selector/src/ /app/src/
-WORKDIR /app/src
+WORKDIR /app/Selector
+RUN pip install -e .
 
-# Run selector python script
-ENTRYPOINT [ "python", "main.py"]
+# Run anon_ivschain main by its package name
+ENTRYPOINT [ "python", "-m", "selector.main" ]

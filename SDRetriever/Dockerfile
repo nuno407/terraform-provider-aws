@@ -11,18 +11,20 @@ RUN apk add ffmpeg
 RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
 USER 1000
 
-# Install dependencies
-COPY --chown=1000:3000 ./SDRetriever/src/requirements.txt /app/src/requirements.txt
-WORKDIR /app/src
+# Add base library
+COPY --chown=1000:3000 ./base /app/base
+
+# Copy requirements.txt 
+COPY --chown=1000:3000 ./SDRetriever/requirements.txt /app/SDRetriever/requirements.txt
+WORKDIR /app/SDRetriever
 RUN pip install -r requirements.txt
 
-# Install BaseAws package (custom)
-COPY --chown=1000:3000 ./baseaws/ /app/package/
-WORKDIR /app/package
-RUN pip install .
+# Copy application code
+COPY --chown=1000:3000 ./SDRetriever/sdretriever/ /app/SDRetriever/sdretriever
+COPY --chown=1000:3000 ./SDRetriever/setup.py /app/SDRetriever/setup.py
 
-# Copy module
-COPY --chown=1000:3000 ./SDRetriever/src/ /app/src/
-WORKDIR /app/src
-# Run SDRetriever python script
-ENTRYPOINT [ "python", "main.py"]
+WORKDIR /app/SDRetriever
+RUN pip install -e .
+
+# Run anon_ivschain main by its package name
+ENTRYPOINT [ "python", "-m", "sdretriever.main" ]

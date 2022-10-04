@@ -6,9 +6,9 @@ import pytest
 from flask import Blueprint
 import flask
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices
+from base.aws.shared_functions import AWSServiceClients
 from basehandler.api_handler import APIHandler, OutputEndpointParameters, OutputEndpointNotifier
-from baseaws.mock_functions import get_container_services_mock, QUEUE_MOCK_LIST
+from base.testing.mock_functions import get_container_services_mock
 from pytest_mock import MockerFixture
 
 def create_callback_blueprint(route_endpoint: str) -> Blueprint:

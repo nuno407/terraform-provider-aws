@@ -2,10 +2,10 @@ import os
 from unittest.mock import Mock, PropertyMock
 from unittest import mock
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices
+from base.aws.shared_functions import AWSServiceClients
 from basehandler.entrypoint import BaseHandler, CallbackBlueprintCreator
 from basehandler.api_handler import OutputEndpointNotifier
-from baseaws.mock_functions import get_container_services_mock, QUEUE_MOCK_LIST
+from base.testing.mock_functions import get_container_services_mock
 from flask import Blueprint
 import flask
 

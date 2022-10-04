@@ -1,0 +1,7 @@
+pytest
+pytest_cov
+mongomock
+pytest-mock
+
+# install the app itself
+-e .

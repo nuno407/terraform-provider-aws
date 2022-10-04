@@ -1,0 +1,4 @@
+boto3
+pyyaml
+boto3-stubs[s3]
+-e ../base[aws]

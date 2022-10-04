@@ -5,7 +5,8 @@ from typing import Protocol
 
 from flask import Blueprint
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices
+from base.aws.shared_functions import AWSServiceClients
+from base.aws.container_services import ContainerServices
 from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
                                      OutputEndpointParameters)
 from basehandler.message_handler import (MessageHandler, NOOPPostProcessor,

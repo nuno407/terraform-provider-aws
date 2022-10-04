@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+-e ../base[testing]
+
+# install the app itself
+-e .

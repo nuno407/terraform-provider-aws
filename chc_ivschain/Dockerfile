@@ -5,20 +5,24 @@ RUN addgroup -S -g 3000 docker-group && \
     adduser -S -D -G docker-group -u 1000 docker
 USER 1000
 
-COPY --chown=1000:3000 ./chc_ivschain/requirements.txt /app/src/requirements.txt
-WORKDIR /app/src
+# Add base library
+COPY --chown=1000:3000 ./base /app/base
+
+# Add basehandler library
+COPY --chown=1000:3000 ./basehandler /app/basehandler
+
+# Copy requirements.txt 
+COPY --chown=1000:3000 ./chc_ivschain/requirements.txt /app/chc_ivschain/requirements.txt
+WORKDIR /app/chc_ivschain
 RUN pip install -r requirements.txt
 
-COPY --chown=1000:3000 ./baseaws/ /app/package/
-WORKDIR /app/package
-RUN pip install .
+# Copy application code
+COPY --chown=1000:3000 ./chc_ivschain/chc_ivschain/ /app/chc_ivschain/chc_ivschain
+COPY --chown=1000:3000 ./chc_ivschain/setup.py /app/chc_ivschain/setup.py
 
-COPY --chown=1000:3000 ./basehandler/ /app/package/
-WORKDIR /app/package
-RUN pip install .
+WORKDIR /app/chc_ivschain
+RUN pip install -e .
 
-COPY --chown=1000:3000 ./chc_ivschain/src/ /app/src/
+# Run chc_ivschain main by its package name
+ENTRYPOINT [ "python", "-m", "chc_ivschain.main" ]
 
-WORKDIR /app/src
-
-ENTRYPOINT ["python", "main.py"]

@@ -1,0 +1,4 @@
+pytest
+pytest-cov
+# install base module
+-e .[all]

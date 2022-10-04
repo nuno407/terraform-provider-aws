@@ -1,0 +1,8 @@
+pytest
+pytimeparse
+pytest-mock
+pytest-cov
+mypy
+
+# install the app itself
+-e .

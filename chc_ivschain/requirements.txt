@@ -1,6 +1,4 @@
 boto3
-pytz
-requests
 flask
-pymongo
-backoff
+-e ../base[aws]
+-e ../basehandler

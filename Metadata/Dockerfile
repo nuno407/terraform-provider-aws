@@ -3,8 +3,6 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 
 # The Python version to install
 ENV PYTHON_VERSION=3.9
-# metadata service defaults to API mode
-ENV MODE='api'
 
 #
 # Install system packages
@@ -43,10 +41,22 @@ RUN apt -y update \
     && ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python \
     && ln -s /usr/local/lib/python${PYTHON_VERSION} /usr/local/lib/python \
     && curl https://bootstrap.pypa.io/get-pip.py | python \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir /fiftyone
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Run as non-root user and group
+RUN addgroup --system --gid 3000 docker-group && adduser --disabled-login --system --gid 3000 --uid 1000 docker
+# create fiftyone folder
+RUN mkdir /fiftyone
+RUN chown 1000:3000 -R /fiftyone
+
+USER 1000
 
 ENV ROOT_DIR=/fiftyone
+
+# Correction, so that Voxel doesn't break if the DB is already populated
+RUN mkdir ${ROOT_DIR}/db
+#RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
@@ -65,8 +75,6 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #    else \
 #        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
 #    fi
-
-RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 
 #
 # Configure shared storage
@@ -88,32 +96,25 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
     FIFTYONE_DATABASE_VALIDATION=false
 
-# Correction, so that Voxel doesn't break if the DB is already populated
-RUN mkdir ${ROOT_DIR}/db
-#RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
 ##### END Voxel51 code
 
-#FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.5-alpine3.12
-# Install dependencies
-COPY ./Metadata/src/requirements.txt /app/src/requirements.txt
-WORKDIR /app/src
-RUN pip install -r requirements.txt
+# Add base library
+COPY --chown=1000:3000 ./base /app/base
 
-# Install BaseAws package (custom)
-COPY ./baseaws/ /app/package/
-WORKDIR /app/package
-RUN pip install .
+# Copy requirements.txt 
+COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
+WORKDIR /app/Metadata
+# we should add fiftyone registry in order to install Voxel deps
+RUN pip install -r requirements.txt --index-url https://${TOKEN}@pypi.fiftyone.ai
 
-# Install MDFParser dependency
-COPY ./MDFParser/ /app/MDFParser/
-WORKDIR /app/MDFParser
-RUN pip install .
+# Copy application code
+COPY --chown=1000:3000 ./Metadata/metadata/ /app/Metadata/metadata
+COPY --chown=1000:3000 ./Metadata/setup.py /app/Metadata/setup.py
 
-# Copy module
-COPY ./Metadata/src/ /app/src/
-WORKDIR /app/src
+WORKDIR /app/Metadata
+RUN pip install -e .
 
-COPY --chmod=754 ./Metadata/entrypoint.sh /app/
+COPY ./Metadata/entrypoint.sh /app/
 
 ENTRYPOINT ["/app/entrypoint.sh"]

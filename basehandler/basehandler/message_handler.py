@@ -11,10 +11,9 @@ import backoff
 import requests
 from requests.status_codes import codes as status_codes
 
-from baseaws.shared_functions import IMAGE_FORMATS
-from baseaws.shared_functions import VIDEO_FORMATS
-from baseaws.shared_functions import AWSServiceClients
-from baseaws.shared_functions import ContainerServices
+from base.aws.shared_functions import AWSServiceClients
+from base.aws.container_services import ContainerServices
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
 _logger = logging.getLogger(__name__)
 
@@ -23,8 +22,7 @@ INTERNAL_QUEUE_TIMEOUT = os.getenv('INTERNAL_QUEUE_TIMEOUT', 36000)
 IVS_FC_HOSTNAME = os.getenv('IVS_FC_HOSTNAME', 'localhost')
 IVS_FC_PORT = os.getenv('IVS_FC_PORT', '8081')
 IVS_FC_STATUS_ENDPOINT = f'http://{IVS_FC_HOSTNAME}:{IVS_FC_PORT}/status'
-IVS_FC_MAX_WAIT = float(os.getenv('IVS_FC_MAX_WAIT', '120'))
-
+IVS_FC_MAX_WAIT = os.getenv('IVS_FC_MAX_WAIT', '120')
 
 class PostProcessor(Protocol):
     """
@@ -260,6 +258,7 @@ class MessageHandler():
             raise RuntimeError(
                 'Unable to request processing to ivs feature chain')
 
+
     def on_process(self, mode: str) -> None:
         """
         Function that will be run in a loop.
@@ -286,6 +285,8 @@ class MessageHandler():
             start_ivs_fc_time = perf_counter()
             artifact_key = self.parse_incoming_message_body(
                 incoming_message['Body'])['s3_path']
+            artifact_key = self.parse_incoming_message_body(incoming_message['Body'])['s3_path']
+            self.handle_incoming_message(incoming_message, mode)
             try:
                 self.handle_incoming_message(incoming_message, mode)
 
@@ -297,13 +298,11 @@ class MessageHandler():
 
                     stop_ivs_fc_time = perf_counter()
                     if isinstance(api_output_message, str):
-                        api_output_message = self.parse_incoming_message_body(
-                            api_output_message)
+                        api_output_message = self.parse_incoming_message_body(api_output_message)
 
                     # If the status message is not OK raises an exception
                     if api_output_message['status'] != 'OK':
-                        raise RuntimeError(
-                            f"The IVS Chain as failed to process artifact: {artifact_key}")
+                        raise RuntimeError(f"The IVS Chain as failed to process artifact: {artifact_key}")
 
                     _logger.info(
                         f"IVS process completed: {artifact_key} time in seconds :: {stop_ivs_fc_time - start_ivs_fc_time}")
@@ -334,19 +333,14 @@ class MessageHandler():
         """
 
         _logger.info(f"Listening to SQS input queue(s).. \n")
-        while (True):
+        while(True):
             self.on_process(mode)
 
-
 def on_backoff_handler(details):
-    _logger.info(
-        'Backing off {wait:0.1f} seconds after {tries} tries'.format(**details))
-
+    _logger.info('Backing off {wait:0.1f} seconds after {tries} tries'.format(**details))
 
 def on_success_handler(details):
-    _logger.info(
-        f"Got response from IVSFC API: {IVS_FC_STATUS_ENDPOINT} after {details['elapsed']:0.1f} seconds")
-
+    _logger.info(f"Got response from IVSFC API: {IVS_FC_STATUS_ENDPOINT} after {details['elapsed']:0.1f} seconds")
 
 @backoff.on_exception(
     backoff.expo,

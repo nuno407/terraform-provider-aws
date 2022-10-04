@@ -4,9 +4,9 @@ from unittest.mock import Mock, PropertyMock
 import pytest
 import requests
 
-from baseaws.shared_functions import AWSServiceClients, ContainerServices
+from base.aws.shared_functions import AWSServiceClients
 from basehandler.message_handler import MessageHandler, NOOPPostProcessor
-from baseaws.mock_functions import get_container_services_mock, QUEUE_MOCK_LIST
+from base.testing.mock_functions import get_container_services_mock, QUEUE_MOCK_LIST
 from pytest_mock import MockFixture
 
 class TestMessageHandler():
