@@ -1,11 +1,12 @@
 import json
 import logging as log
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
+from abc import abstractproperty
 from datetime import datetime
 from typing import Optional
 
 TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris','deviceprep'} # Tenants we receive messages from, but don't have access for 
-LOGGER = log.getLogger("SDRetriever")
+LOGGER = log.getLogger("SDRetriever." + __name__)
 
 class Chunk(object):
     """Representation of a single message chunk object"""

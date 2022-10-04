@@ -17,17 +17,17 @@ from typing import TypeVar
 
 import boto3
 from botocore.exceptions import ClientError
-from sdretriever.message import VideoMessage
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import StsHelper
 from base.timestamps import from_epoch_seconds_or_milliseconds
+from sdretriever.message import VideoMessage
 
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
 FRAME_BUFFER = 120*1000  # 2minin milliseconds
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
-LOGGER = log.getLogger("SDRetriever")
+LOGGER = log.getLogger("SDRetriever." + __name__)
 
 
 class Ingestor(object):
