@@ -13,7 +13,7 @@ on:
 env:
   AWS_DEFAULT_REGION: eu-central-1
   AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
-  EXCLUDED_DIRS: '[".git", ".github", ".vscode", ".localdev", "baseaws", "basehandler"]'
+  EXCLUDED_DIRS: '[".git", ".github", ".vscode", ".localdev", "base", "basehandler"]'
   GITHUB_ACTIONS_USER: "GitHub Actions"
   GITHUB_ACTIONS_EMAIL: "<41898282+github-actions[bot]@users.noreply.github.com>"
 
@@ -82,7 +82,7 @@ jobs:
           url: ${{ secrets.SONAR_HOST_URL }}
           token: ${{ secrets.SONAR_TOKEN }}
       - name: Sonarqube quality gate status
-        run: "echo quality gate result: ${{steps.sonarqube-baseaws-scan.outputs.scan-success}}"
+        run: "echo quality gate result: ${{steps.sonarqube-scan.outputs.scan-success}}"
 
   build-image:
     needs: determine-changed-services

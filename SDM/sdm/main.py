@@ -39,7 +39,7 @@ def processing_sdm(container_services, sqs_message):
     a relay list for the current file
 
     Arguments:
-        container_services {BaseAws.shared_functions.ContainerServices}
+        container_services {base.aws.container_services.ContainerServices}
                             -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from
                           the received message]

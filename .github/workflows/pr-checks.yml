@@ -29,4 +29,4 @@ jobs:
             -Dsonar.pullrequest.branch=${{ github.head_ref }}
             -Dsonar.pullrequest.base=master
       - name: Sonarqube quality gate status
-        run: "echo quality gate result: ${{steps.sonarqube-baseaws-scan.outputs.scan-success}}"
+        run: "echo quality gate result: ${{steps.sonarqube-scan.outputs.scan-success}}"

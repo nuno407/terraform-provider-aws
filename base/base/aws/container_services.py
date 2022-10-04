@@ -291,7 +291,7 @@ class ContainerServices():
         log_root_level = logging.getLevelName(str_root_level)
 
         logging.basicConfig(format='%(asctime)s %(name)s\t%(levelname)s\t%(message)s', level=log_root_level)
-        logging.getLogger('baseaws').setLevel(log_level)
+        logging.getLogger('base').setLevel(log_level)
         logger = logging.getLogger(component_name)
         logger.setLevel(log_level)
         return logger

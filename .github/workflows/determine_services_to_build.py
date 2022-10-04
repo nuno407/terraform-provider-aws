@@ -37,9 +37,9 @@ def determine_changed_directories():
 
     summary("### Build summary")
 
-    if "baseaws" in changed_directories:
-        summary("Baseaws was changed, therefore all dependent services will be built!")
-        changed_directories = add_all_dependant_directories(changed_directories, "baseaws")
+    if "base" in changed_directories:
+        summary("Base was changed, therefore all dependent services will be built!")
+        changed_directories = add_all_dependant_directories(changed_directories, "base")
     if "basehandler" in changed_directories:
         summary("basehandler was changed, building ivschain services")
         changed_directories = add_all_dependant_directories(changed_directories, "basehandler")

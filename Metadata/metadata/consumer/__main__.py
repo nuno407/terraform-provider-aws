@@ -552,7 +552,7 @@ def read_message(container_services: ContainerServices, body: str)->dict:
     converts it from string into a dictionary
 
     Arguments:
-        container_services {BaseAws.shared_functions.ContainerServices}
+        container_services {base.aws.container_services.ContainerServices}
                         -- [class containing the shared aws functions]
         body {string} -- [string containing the body info from
                           the received message]

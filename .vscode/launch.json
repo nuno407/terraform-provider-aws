@@ -14,7 +14,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {
-                "PYTHONPATH": "..\\..\\..\\baseaws",
+                "PYTHONPATH": "..\\..\\..\\base",
                 "PYTEST_ADDOPTS": "--no-cov"
             },
         },
