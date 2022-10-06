@@ -134,6 +134,14 @@
           <span class="column-header">CHC length</span>
        </span>
       </th>
+      <th (click)="sortBy('max_person_count')" class="column" >
+        <span class="filter-item">
+          <mat-icon *ngIf="sortingParam == 'max_person_count' && sortingOrder=='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam == 'max_person_count' && sortingOrder=='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam != 'max_person_count'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <span class="column-header">Max person count</span>
+       </span>
+      </th>
     </tr>
     <tr (click)="showDetailDialog(video._id)" *ngFor="let video of videoList" [hidden]="!isLoaded || error" class="virtual-scroll-viewport list-row">
       <td class="column list-item">{{video.tenant}}</td>
@@ -146,6 +154,7 @@
       <td class="column list-item">{{video.last_updated}}</td>
       <td class="column list-item">{{video.snapshots}}</td>
       <td class="column list-item">{{video.number_chc_events}}</td>
+      <td class="column list-item">{{video.max_person_count}}</td>
       <td class="column list-item">{{video.lengthCHC}}</td>
     </tr>
   </table>

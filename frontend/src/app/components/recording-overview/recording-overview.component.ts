@@ -60,6 +60,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - time,\n\
   - resolution,\n\
   - number_chc_events,\n\
+  - max_person_count,\n\
   - lengthCHC,\n\
   - deviceID"
 

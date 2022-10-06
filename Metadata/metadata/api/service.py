@@ -11,7 +11,8 @@ RELEVANT_DEVICE_SIGNALS = {
     "CameraViewShifted", 
     "interior_camera_health_response_audio_blocked", 
     "interior_camera_health_response_audio_distorted", 
-    "interior_camera_health_response_audio_signal"
+    "interior_camera_health_response_audio_signal",
+    "PersonCount_value"
 }
 
 class ApiService:
@@ -117,6 +118,7 @@ class ApiService:
                     'resolution': 'resolution',
                     'number_chc_events': 'recording_overview.number_chc_events',
                     'lengthCHC': 'recording_overview.chc_duration',
+                    'max_person_count': 'recording_overview.max_person_count',
                     'deviceID': 'recording_overview.deviceID',
                     'tenantID': 'recording_overview.tenantID'
                     }
@@ -224,8 +226,8 @@ class ApiService:
         recording_object['_id'] = recording_item.get('video_id')
         recording_object['resolution'] = recording_item.get('resolution','-')      
         recording_object['number_chc_events'] = recording_overview.get('number_chc_events','-')      
-        recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')   
-
+        recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')
+        recording_object['max_person_count'] = recording_overview.get('max_person_count','-')
         pipeline_execution = recording_item.get('pipeline_execution',{})
         recording_object['processing_list'] = pipeline_execution.get('processing_list','-')      
         recording_object['data_status'] = pipeline_execution.get('data_status','-')                      

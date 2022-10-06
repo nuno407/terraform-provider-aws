@@ -43,7 +43,8 @@ def main(config: MdfParserConfig):
     uploader = Uploader()
     synchronizer = Synchronizer()
     chc_counter = ChcCounter()
-    processors: list[Processor] = [chc_counter]
+    person_count = PersonCount()
+    processors: list[Processor] = [chc_counter, person_count]
 
     # AWS clients for container_services
     sqs_client = boto3.client('sqs',region_name='eu-central-1')
