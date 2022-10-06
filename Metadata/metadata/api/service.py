@@ -89,7 +89,7 @@ class ApiService:
 
     def get_table_data(self, page_size, page, query, operator, sorting, direction):
         additional_query = None
-        if query and operator:
+        if query[0] != {} and operator:
             additional_query = self.__parse_query(query, operator)
         sorting_query = None
         if sorting and direction:
