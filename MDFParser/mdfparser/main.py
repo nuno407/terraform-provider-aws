@@ -13,6 +13,7 @@ from mdfparser.synchronizer import Synchronizer
 from mdfparser.config import MdfParserConfig
 from base.processor import Processor
 from base.chc_counter import ChcCounter
+from base.person_count import PersonCount
 
 CONTAINER_NAME = "MDFParser"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
