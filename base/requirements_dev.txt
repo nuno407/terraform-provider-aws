@@ -1,4 +1,6 @@
 pytest
 pytest-cov
+# Adding voxel url
+--extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 # install base module
 -e .[all]

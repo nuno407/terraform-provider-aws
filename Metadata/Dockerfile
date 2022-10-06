@@ -106,7 +106,7 @@ COPY --chown=1000:3000 ./base /app/base
 COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
 WORKDIR /app/Metadata
 # we should add fiftyone registry in order to install Voxel deps
-RUN pip install -r requirements.txt --index-url https://${TOKEN}@pypi.fiftyone.ai
+RUN pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 # Copy application code
 COPY --chown=1000:3000 ./Metadata/metadata/ /app/Metadata/metadata

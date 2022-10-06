@@ -68,7 +68,7 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
 #    fi
 
-RUN pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
+RUN pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 
 
 #
