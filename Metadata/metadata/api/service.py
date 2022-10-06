@@ -4,6 +4,15 @@ from unittest.util import strclass
 from metadata.api.db import Persistence
 
 _logger = logging.getLogger('metadata_api.' + __name__)
+RELEVANT_DEVICE_SIGNALS = {
+    "interior_camera_health_response_cvb",
+    "interior_camera_health_response_cve", 
+    "CameraViewBlocked", 
+    "CameraViewShifted", 
+    "interior_camera_health_response_audio_blocked", 
+    "interior_camera_health_response_audio_distorted", 
+    "interior_camera_health_response_audio_signal"
+}
 
 class ApiService:
 
@@ -44,10 +53,9 @@ class ApiService:
 
     def __create_video_signals_object(self, chc_result):
         result_signals = {}
-        relevant_signals = ["interior_camera_health_response_cvb", "interior_camera_health_response_cve", "CameraViewBlocked", "CameraViewShifted", "interior_camera_health_response_audio_blocked", "interior_camera_health_response_audio_distorted", "interior_camera_health_response_audio_signal"]
         if chc_result['signals'] and len(chc_result['signals']) > 0 and type(list(chc_result['signals'].values())[0]) is dict:
             for timestamp, signals in chc_result['signals'].items():
-                result_signals[timestamp] = {key: signals[key] for key in relevant_signals if key in signals}
+                result_signals[timestamp] = {key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
 
         elif chc_result['signals'] and type(chc_result['signals']):
             for k, v in chc_result['signals'].items():

@@ -200,15 +200,12 @@ def upsert_mdf_data(message: dict, collection_sig: Collection, collection_rec: C
     signals = json.loads(signals_file_raw.decode('UTF-8'))
     try:
         # Upsert signals item
-        mdf_data = {
-            'recording_overview.number_chc_events': message['recording_overview']['number_chc_events'],
-            'recording_overview.chc_duration': message['recording_overview']['chc_duration']
-        }
+        aggregated_values = dict()
+        for key in message['recording_overview'].keys():
+            aggregated_values.update({eval(f'recording_overview.{key}'): message['recording_overview'][key]})
         signals_data = {'source': "MDFParser", 'signals': signals}
-        recording = collection_rec.find_one_and_update({'video_id': message["_id"]}, {
-                                                       '$set': mdf_data}, upsert=True, return_document=ReturnDocument.AFTER)
-        collection_sig.update_one({'recording': message["_id"], 'source': {
-                                  '$regex': 'MDF.*'}}, {'$set': signals_data}, upsert=True)
+        recording = collection_rec.find_one_and_update({'video_id': message["_id"]}, {'$set': aggregated_values}, upsert=True, return_document=ReturnDocument.AFTER)
+        collection_sig.update_one({'recording': message["_id"], 'source': {'$regex': 'MDF.*'}}, {'$set': signals_data}, upsert=True)
         # Create logs message
         _logger.info("Signals DB item [%s] upserted!", message["_id"])
         return recording, signals
