@@ -30,7 +30,7 @@ class Selector():
         message = self.__container_services.listen_to_input_queue(self.__sqs_client)
 
         if message:
-            self.log_message(message)            
+            self.log_message(message)
             # Processing request
             self.__process_selector_message(message)
 
@@ -47,7 +47,7 @@ class Selector():
             msg_header = message_body["value"]["properties"]["header"]
             device_id = msg_header.get('device_id')
             if "recording_info" in message_body["value"]["properties"]:
-                    
+
                 recording_info = message_body["value"]["properties"].get("recording_info")
                 for info in recording_info:
 
@@ -63,14 +63,14 @@ class Selector():
                                 self.request_footage_api(device_id, prev_timestamp, post_timestamp)
 
         else:
-            _logger.info("Not a valid Message")   
+            _logger.info("Not a valid Message")
 
     def request_footage_api(self, device_id, from_timestamp, to_timestamp):
         auth_token = self.__api_token_manager.get_token()
         if not auth_token:
             _logger.error('Could not get auth token for Footage API. Skipping request.')
             return
-        
+
         payload = {'from': str(from_timestamp), 'to': str(to_timestamp), 'recorder': 'TRAINING'}
         url = self.__container_services.api_endpoints["mdl_footage_endpoint"].format(device_id)
 
@@ -95,7 +95,7 @@ class Selector():
     def handle_hq_queue(self):
         # Check input SQS queue for new messages
         message = self.__container_services.listen_to_input_queue(self.__sqs_client, self.__hq_queue)
-        
+
 
         if message:
             # save some messages as examples for development
@@ -120,8 +120,8 @@ class Selector():
             self.request_footage_api(device_id, from_timestamp, to_timestamp)
 
         else:
-            _logger.info("Not a valid Message")   
-    
+            _logger.info("Not a valid Message")
+
     def log_message(self, message, queue="selector"):
         _logger.info("Message contents from %s:\n"%(queue))
         _logger.info(message)

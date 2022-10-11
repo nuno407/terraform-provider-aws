@@ -28,7 +28,7 @@ _logger = ContainerServices.configure_logging('metadata')
 
 
 def create_recording_item(message: dict, collection_rec: Collection, service: RelatedMediaService) -> Optional[dict]:
-    """Inserts a new item on the recordings collection 
+    """Inserts a new item on the recordings collection
 
     Arguments:
         message {dict} -- [info set from the sqs message received
@@ -60,21 +60,21 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
         if source_videos:
             for video in source_videos:
                 sources.append(video)
-        
+
         # Update snapshot record
         recording_item = {
             'video_id': message['_id'], # we have the key for snapshots named as 'video_id' due to legacy reasons...
             '_media_type': message['media_type'],
             'filepath': 's3://' + message['s3_path'],
             'recording_overview': {
-                'tenantID': message['tenant'], 
+                'tenantID': message['tenant'],
                 'deviceID': message['deviceid'],
                 'source_videos': sources
             }
         }
 
         # Set reference to snapshots on source video
-        for media_path in source_videos:            
+        for media_path in source_videos:
             try:
                 recording = collection_rec.find_one_and_update({'video_id': media_path}, {'$inc': {'recording_overview.#snapshots': 1}, '$push': {
                                                                'recording_overview.snapshots_paths': message['_id']}}, upsert=False, return_document=ReturnDocument.AFTER)

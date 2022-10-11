@@ -239,7 +239,7 @@ class SnapshotIngestor(Ingestor):
             end (ST, optional): The upper limit of the time range. Defaults to datetime.now().
 
         Returns:
-            [str]: List with all possible paths between timestamp bounds, sorted old to new. 
+            [str]: List with all possible paths between timestamp bounds, sorted old to new.
         """
         if not tenant or not device or not start or not end:
             return []

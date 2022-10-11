@@ -5,7 +5,7 @@ from base.aws.container_services import ContainerServices
 
 
 CONTAINER_NAME = "Selector"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container                     
+CONTAINER_VERSION = "v1.0"      # Version of the current container
 
 def main():
     """Main function"""
@@ -35,7 +35,7 @@ def main():
         #selector.handle_selector_queue()
         selector.handle_hq_queue()
 
-        
+
 
 if __name__ == '__main__':
     _logger = ContainerServices.configure_logging('selector')

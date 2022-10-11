@@ -28,7 +28,7 @@ class ChcSynchronizer:
         _logger.debug('Calculated a framerate of %f FPS', actual_fps)
         if not isclose(actual_fps, EXPECTED_FPS, abs_tol=0.1):
             _logger.warning(f'FPS mismatch when synchronizing CHC data: Actual FPS is {actual_fps} instead of the expected {EXPECTED_FPS}')
-        
+
         sync_frames = {}
         frame_offset = video_length/len(frames)
         for frame_number, frame in enumerate(frames):
@@ -45,7 +45,7 @@ class ChcSynchronizer:
                 signals.update(self.__extract_vars(item, float, 'floatAttributes'))
                 signals.update(self.__extract_vars(item, int, 'integerAttributes'))
         return signals
-    
+
     T = TypeVar('T', bool, float, int)
     def __extract_vars(self, frame_objects: dict, var_type: Type[T], sub_struct_name: str)->dict[str, T]:
         values = {}

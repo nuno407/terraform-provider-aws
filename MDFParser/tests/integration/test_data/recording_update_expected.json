@@ -1,11 +1,11 @@
 {
     "_id": "tenant_recording_1659962815000_1659962819000",
-    "recording_overview": 
+    "recording_overview":
     {
         "number_chc_events": 1,
         "chc_duration": 2.0
     },
-    "signals_file": 
+    "signals_file":
     {
         "bucket": "bucket",
         "key": "tenant_recording_1659962815000_1659962819000_signals.json"

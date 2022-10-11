@@ -4,7 +4,7 @@ from pytest import LogCaptureFixture, fixture, raises, mark
 from pytest_mock import MockerFixture
 
 from mdfparser.downloader import Downloader
-    
+
 s3_path = 's3://bucket/key_metadata_full.json'
 
 @mark.unit
@@ -53,7 +53,7 @@ class TestDownloader():
         assert(second_call.args[2] == 'key_compact_mdf.json')
         assert(result['chunk']['utc_start'] == 100)
         assert(result['chunk']['utc_end'] == 400)
-        
+
 
     def test_invalid_compact_mdf(self, caplog: LogCaptureFixture, downloader: Downloader, container_services_mock: Mock):
         # GIVEN

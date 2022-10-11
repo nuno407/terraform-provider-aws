@@ -41,7 +41,7 @@ class ApiTokenManager():
 
     def __request_token(self):
         client_id = self.__secret['client_id']
-        client_secret = self.__secret['client_secret']    
+        client_secret = self.__secret['client_secret']
         client_auth = base64.b64encode((client_id + ':' + client_secret).encode('utf-8')).decode('utf-8')
 
         headers = {}
@@ -56,7 +56,7 @@ class ApiTokenManager():
         try:
             _logger.debug(f'Auth token request: Endpoint: {self.__token_endpoint}, Headers: {headers}, Body: {body}')
             response = self.__http_client.request('POST', self.__token_endpoint, headers=headers, body=encoded_body)
-            
+
             if response.status == 200:
                 json_response = json.loads(response.data.decode('utf-8'))
                 _logger.info('Successfully requested auth token')

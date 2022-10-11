@@ -17,8 +17,8 @@ def create_dataset(bucket_name):
 def update_sample(data_set,sample_info):
 
     dataset = fo.load_dataset(data_set)
-    
-    
+
+
 
     #If the sample already exists, update it's information, otherwise create a new one
     if 'filepath' in sample_info:
@@ -26,9 +26,9 @@ def update_sample(data_set,sample_info):
 
     try:
         sample = dataset.one(F("video_id") == sample_info["video_id"])
-      
+
     except Exception:
-        sample = fo.Sample(filepath=sample_info["s3_path"])    
+        sample = fo.Sample(filepath=sample_info["s3_path"])
         dataset.add_sample(sample)
 
     _logger.info("sample_info: %s !", sample_info)
@@ -38,18 +38,18 @@ def update_sample(data_set,sample_info):
             if i.startswith('_'):
                 i="ivs"+i
             if i.startswith('filepath'):
-                i="ivs_"+i    
+                i="ivs_"+i
             sample[i] = j
 
     #  Full create FiftyOne Sample object
-    # 
+    #
     #     filepath = sample_info["s3_path"]
     #     sample = fo.Sample(filepath=filepath)
-    # 
+    #
     #     # Parse and populate labels and metadata on sample
 
- 
-    
+
+
     if 'recording_overview' in sample_info:
         for (k,l) in sample_info.get('recording_overview').items():
             if k.startswith('_'):
@@ -68,7 +68,7 @@ def update_sample(data_set,sample_info):
             sample["Hour"] = sample["recording_time"].strftime("%H")
             sample["Day"] = sample["recording_time"].strftime("%d")
             sample["Month"] = sample["recording_time"].strftime("%b")
-            sample["Year"] = sample["recording_time"].strftime("%Y")            
+            sample["Year"] = sample["recording_time"].strftime("%Y")
             _logger.info(sample["recording_time"])
         else:
             _logger.info("No time")

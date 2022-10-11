@@ -11,7 +11,7 @@ class SampleProcessor(Processor):
         _logger = logging.getLogger('mdfparser.' + __name__)
         _logger.info('Expect this log message!')
         return {'sample': 'processed'}
-    
+
     @property
     def name(self):
         return 'sample'

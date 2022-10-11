@@ -52,7 +52,7 @@ class TestMessageHandler():
 
         # WHEN
         return_val = client.request_processing(body_json,'anon')
-        
+
         # THEN
         assert return_val == True
         post_args, post_kwargs = requests.post.call_args
@@ -64,7 +64,7 @@ class TestMessageHandler():
         assert return_val == True
 
     def test_request_processing2(self, client: MessageHandler):
-        
+
         # GIVEN
         response_mock = Mock()
         response_mock.status_code = 200
@@ -116,7 +116,7 @@ class TestMessageHandler():
 
 
     def test_request_processing4(self, client: MessageHandler):
-        
+
         # GIVEN
         response_mock = Mock()
         response_mock.status_code = 200
@@ -137,7 +137,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="Anonymize")], indirect=True)
     def test_update_processing1(self, client: MessageHandler):
-        
+
         # GIVEN
         dict_incomming_msg = {
             'processing_steps': ['Anonymize', 'CHC'],
@@ -176,7 +176,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="CHC")], indirect=True)
     def test_update_processing3(self, client: MessageHandler):
-        
+
         # GIVEN
         dict_incomming_msg = {
             'processing_steps': ['new_algo','CHC'],
@@ -196,7 +196,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="new_algo")], indirect=True)
     def test_update_processing4(self, client: MessageHandler):
-        
+
         # GIVEN
         dict_incomming_msg = {
             'processing_steps': ['new_algo','CHC','Anonymize'],
@@ -218,7 +218,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="Anonymize")], indirect=True)
     def test_handle_processing_output1(self, client: MessageHandler):
-        
+
         # GIVEN
         incomming_msg = {
             "Body":    """{"processing_steps": ["new_algo","CHC","Anonymize"],
@@ -267,7 +267,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="new_algo")], indirect=True)
     def test_handle_processing_output2(self, client: MessageHandler):
-        
+
         # GIVEN
         incomming_msg = {
             "Body":    """{"processing_steps": ["new_algo","CHC","Anonymize"],
@@ -314,7 +314,7 @@ class TestMessageHandler():
 
     @pytest.mark.parametrize('client', [dict(consumer_name="Anonymize")], indirect=True)
     def test_handle_processing_output3(self, client : MessageHandler):
-        
+
         # GIVEN
         incomming_msg = {
             "Body":    """{"processing_steps": ["Anonymize"],
@@ -372,7 +372,7 @@ class TestMessageHandler():
 
 
     def test_handle_incoming_message2(self, client : MessageHandler):
-        
+
         # GIVEN
         return_val = client.request_processing = Mock(return_value=False)
 
@@ -550,4 +550,3 @@ class TestMessageHandler():
             with pytest.raises(RuntimeError) as e:
                 client.handle_incoming_message.assert_called_with(sqs_queue_message,'chc')
                 client._MessageHandler__container_services.delete_message.assert_not_called()
-

@@ -13,7 +13,7 @@ const awsmobile = {
 //    redirectSignIn: 'https://tube.dev.bosch-ridecare.com/recording-overview',
 //    redirectSignOut: 'https://tube.dev.bosch-ridecare.com/login',
     redirectSignIn: 'http://localhost:4200/recording-overview',
-    redirectSignOut: 'http://localhost:4200/login',    
+    redirectSignOut: 'http://localhost:4200/login',
     responseType: 'code', // or 'token', note that REFRESH token will only be generated when the responseType is code
   },
 };

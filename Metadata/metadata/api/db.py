@@ -55,7 +55,7 @@ class Persistence:
             {'$limit': page_size}
         ]
         aggregation_pipeline.append({'$facet': {'count': count_facet, 'result': result_facet}})
-        
+
         pipeline_result = self.__recordings.aggregate(aggregation_pipeline).next()
 
         count_result = pipeline_result['count']
@@ -85,4 +85,3 @@ class Persistence:
     def get_algo_output(self, algo, recording_id):
         entry = self.__algo_output.find_one({"algorithm_id":algo, "pipeline_id": recording_id})
         return entry
-    

@@ -7,4 +7,3 @@ export interface Query {
     processing_list: string[];
     s3_path: string;
  }
-

@@ -47,7 +47,7 @@ video_url_endpoint = '/getVideoUrl/foo/bar/baz'
 def test_get_video_url(client):
     # GIVEN
     s3mock.generate_presigned_url = Mock(return_value='demoUrl')
-    
+
     # WHEN
     resp = client.get(video_url_endpoint)
 
@@ -71,7 +71,7 @@ anon_video_url_endpoint = '/getAnonymizedVideoUrl/srxdriverpr1external07_rc_srx_
 def test_get_video_url(client):
     # GIVEN
     s3mock.generate_presigned_url = Mock(return_value='demoUrl')
-    
+
     # WHEN
     resp = client.get(anon_video_url_endpoint)
 

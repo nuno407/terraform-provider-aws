@@ -5,7 +5,7 @@ from abc import abstractproperty
 from datetime import datetime
 from typing import Optional
 
-TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris','deviceprep'} # Tenants we receive messages from, but don't have access for 
+TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris','deviceprep'} # Tenants we receive messages from, but don't have access for
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
 class Chunk(object):
@@ -17,7 +17,7 @@ class Chunk(object):
         self.start_timestamp_ms : str = chunk_description.get("start_timestamp_ms")
         self.end_timestamp_ms : str = chunk_description.get("end_timestamp_ms")
         self.payload_size : str = chunk_description.get("payload_size")
-        self.available : bool = self.upload_status == "UPLOAD_STATUS__ALREADY_UPLOADED" 
+        self.available : bool = self.upload_status == "UPLOAD_STATUS__ALREADY_UPLOADED"
 
 
     def __repr__(self) -> str:
@@ -174,7 +174,7 @@ class VideoMessage(Message):
         """
         video_recording_types = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
 
-        if self.streamname != "": 
+        if self.streamname != "":
             type = self.streamname
         elif self.recordingid != "":
             type = self.recordingid

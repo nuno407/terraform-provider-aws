@@ -118,6 +118,3 @@ export class ApiVideoCallService {
       return throwError(message);
    }
 }
-
-
-

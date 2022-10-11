@@ -22,11 +22,11 @@ export class SignalsRetrieverService {
             if(lq_response.message.MDF) {
               response.message.MDF = lq_response.message.MDF;
               console.log('Acquired LQ MDF');
-            } 
+            }
             else if(lq_response.message.MDFParser) {
               response.message.MDFParser = lq_response.message.MDFParser;
               console.log('Acquired LQ MDF');
-            } 
+            }
             return response;
           }))
         } else {

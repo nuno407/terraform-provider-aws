@@ -35,22 +35,22 @@ class Synchronizer:
             # timestamp calculation and processing
             frame_timestamp_epoch = (int(frame.get('timestamp')) - pts_start) * pts_to_epoch_factor + epoch_start
             frame_timestamp_absolute = from_epoch_seconds_or_milliseconds(frame_timestamp_epoch)
-            
+
             if frame_timestamp_absolute < recording_start or frame_timestamp_absolute > recording_end:
                 # skip frames of MDF that are outside the recording time
                 continue
-            
+
             # note that this timestamp will be relative to the beginning of the recording
             frame_timestamp = frame_timestamp_absolute - recording_start
 
-            signals = self.__get_frame_signals(frame)            
+            signals = self.__get_frame_signals(frame)
 
             if len(signals) > 0:
                 sync_frames[frame_timestamp] = signals
 
         _logger.debug('Finished synchronizing MDF from %s to %s', recording_epoch_from, recording_epoch_to)
         return sync_frames
-        
+
     def __get_frame_signals(self, frame: dict)->dict[str, Union[bool,float,int]]:
         signals: dict[str, Union[bool,float,int]] = {}
         if 'objectlist' in frame.keys():

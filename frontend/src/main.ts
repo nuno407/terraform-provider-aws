@@ -8,7 +8,7 @@ import { Amplify } from 'aws-amplify';
 
 if (environment.name == 'docker') {
     enableProdMode();
-}    
+}
 
 Amplify.configure({
       ...environment.amplifyConfig

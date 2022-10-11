@@ -35,7 +35,7 @@ class Downloader(S3Interaction):
                     'Auto-correcting swapped pts_end and utc_start in MDF file %s', mdf_path)
         _logger.debug('Finished metadata download from %s', mdf_path)
         return mdf
-    
+
     def __recreate_epoch_timestamps(self, bucket: str, mdf_key: str, mdf_pts_start: int, mdf_pts_end: int)->tuple[int, int]:
         key = mdf_key.replace('_metadata_full', '_compact_mdf')
         binary_data = ContainerServices.download_file(self._s3_client, bucket, key)
@@ -54,7 +54,7 @@ class Downloader(S3Interaction):
         epoch_start_mdf = (mdf_pts_start - pts_start) * pts_to_epoch_factor + epoch_start
         epoch_end_mdf = (mdf_pts_end - pts_end) * pts_to_epoch_factor + epoch_end
         return round(epoch_start_mdf), round(epoch_end_mdf)
-        
+
 class InvalidCompactMdfException(Exception):
     def __init__(self, message: str, *args: object) -> None:
         super().__init__(message, *args)

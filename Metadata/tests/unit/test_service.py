@@ -83,7 +83,7 @@ def test_get_table_data():
     db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
 
     # WHEN
-    result, _, _ = service.get_table_data(10, 1, None, None, 'length', 'asc') 
+    result, _, _ = service.get_table_data(10, 1, None, None, 'length', 'asc')
 
     # THEN
     expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected_sorted.json'), 'r').read()
@@ -96,7 +96,7 @@ def test_get_table_data():
     db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
 
     # WHEN
-    result, _, _ = service.get_table_data(10, 1, {'time': { '>': "2022-04-01 13:00:00" },'_id': { 'has': "srx" }}, 'and', 'length', 'dsc') 
+    result, _, _ = service.get_table_data(10, 1, {'time': { '>': "2022-04-01 13:00:00" },'_id': { 'has': "srx" }}, 'and', 'length', 'dsc')
 
     # THEN
     expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected_filtered_sorted.json'), 'r').read()
@@ -133,5 +133,5 @@ def test_update_video_description():
     service.update_video_description(id, description)
 
     # THEN
-    
+
     db.update_recording_description.assert_called_once_with(id, description)

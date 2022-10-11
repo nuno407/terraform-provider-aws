@@ -38,7 +38,7 @@ class InputMessage(TypedDict):
 def main(config: MdfParserConfig):
 
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,CONTAINER_VERSION)
-    
+
     # Logic classes
     downloader = Downloader()
     uploader = Uploader()
@@ -109,7 +109,7 @@ def process_request(mdf_s3_path: str, downloader: Downloader, uploader: Uploader
         raise
 
     return metadata
-        
+
 def extract_timestamps(filepath: str)->tuple[int, int]:
     match = re.search(r"_(\d{13,})_(\d{13,})_", filepath)
     if not match or len(match.groups())<2:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     ##
     # External configuration that can be configured as kubernetes secret
     _config = MdfParserConfig.load_config_from_yaml_file(os.environ.get('CONFIG_FILE', '/app/config/config.yml'))
-    
+
     # Instanciating main loop and injecting dependencies
     main(config=_config)
 else:

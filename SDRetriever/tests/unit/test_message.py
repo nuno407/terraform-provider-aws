@@ -32,7 +32,7 @@ class TestMessage:
         obj = Message(sqs_message)
         for field in self.fields:
             assert not eval(f"obj.{field}")
-    
+
     def test_valid_input(self):
         expected = {
             'messageid':'6615420b-68df-4b65-94e3-8e4ed63935f4',
@@ -47,10 +47,10 @@ class TestMessage:
             'deviceid':None,
             'tenant':'datanauts',
             'topicarn':'dev-video-footage-events',
-            'message':{'streamName': 'datanauts_DATANAUTS_DEV_01_TrainingRecorder', 
-                'footageFrom': 1657297040802, 
-                'footageTo': 1657297074110, 
-                'uploadStarted': 1657297192968, 
+            'message':{'streamName': 'datanauts_DATANAUTS_DEV_01_TrainingRecorder',
+                'footageFrom': 1657297040802,
+                'footageTo': 1657297074110,
+                'uploadStarted': 1657297192968,
                 'uploadFinished': 1657297196322
             },
             'body':'{\n  "Type" : "Notification",\n  "MessageId" : "d172193a-1f8c-5487-9867-427844fa2dce",\n  "TopicArn" : "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",\n  "Message" : "{\\"streamName\\":\\"datanauts_DATANAUTS_DEV_01_TrainingRecorder\\",\\"footageFrom\\":1657297040802,\\"footageTo\\":1657297074110,\\"uploadStarted\\":1657297192968,\\"uploadFinished\\":1657297196322}",\n  "Timestamp" : "2022-07-08T16:20:06.865Z",\n  "SignatureVersion" : "1",\n  "Signature" : "nAsyjqO90ZlZr/SF99sqeDy5wU8zbduZrPiSN+KeG88lzpEvIrytXie2TdC0LHqoKtp2FAKdO91bXyaSJthQLO/hmlnTX5GMG7H2wbnBDuELt2hQNdbU0Y1Jjg6d8DFcxVAVfV0KoUM6uBAiQdMYu+AxqshDL16/sB44TLcSujx3zXAdaS/6bPmayFu7ojWTQWZ0cUQQajzgRCb1OvT73utLSNQaAFh+2F3WPIk6gM1nyoKdii5X53CduO2GWjjX6sF9CqHANA+mJZ4dcD6KyG0SUrOqD/q4PRCVsyTNUd5oJ5+J9XfNnGZ4L1QgtTX36zkFsGjYQhVWiYVs6tVoRg==",\n  "SigningCertURL" : "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",\n  "UnsubscribeURL" : "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events:e6853099-4723-45cc-b9ed-751484360ce8",\n  "MessageAttributes" : {\n    "recorder" : {"Type":"String","Value":"TRAINING"},\n    "recordingId" : {"Type":"String","Value":"TrainingRecorder-b8f0525f-706c-431a-a93b-0e9a8b66fd6c"},\n    "deviceId" : {"Type":"String","Value":"DATANAUTS_DEV_01"},\n    "tenant" : {"Type":"String","Value":"datanauts"}\n  }\n}'
@@ -62,11 +62,11 @@ class TestMessage:
                 aux_timestamp = datetime.strptime(aux_timestamp, "%Y-%m-%dT%H:%M:%S").timestamp()
                 timestamp = datetime.fromtimestamp(aux_timestamp/1000.0).strftime('%Y-%m-%d %H:%M:%S')
                 assert obj.timestamp == timestamp
-            
+
             elif field == "body": # special case, body comes wrapped as string
                 aux_body = json.loads(expected["body"].replace("\'", "\""))
                 assert obj.body == aux_body
-            
+
             else:
                 assert eval(f"obj.{field}") == expected[f"{field}"]
 

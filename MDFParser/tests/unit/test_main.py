@@ -16,4 +16,3 @@ def test_extract_timestamps():
     # THEN
     assert(ts_from == last_hour)
     assert(ts_to == now)
-

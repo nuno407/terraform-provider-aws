@@ -1,6 +1,6 @@
 (function(window) {
     window["env"] = window["env"] || {};
-  
+
     // Environment variables
     window["env"]["environmentName"] = "docker";
     window["env"]["api"] = "${API_URL}";

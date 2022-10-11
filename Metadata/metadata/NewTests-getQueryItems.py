@@ -33,7 +33,7 @@ print("Invalid test - expected status code 400 : Invalid parameter:string operat
 print("Response: ")
 print(request_response.json())
 print()
-	
+
 
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{\"invalid\": { \"has\": \"CHC\"},\"_id\": { \"==\": \"pipeline_check_final\"},\"from_container\": { \"==\": \"Metadata\"}}/and"
 request_response = requests.get(url)
@@ -42,7 +42,7 @@ print("Invalid test - expected status code 400 : Invalid parameter (beginning)")
 print("Response: ")
 print(request_response.json())
 print()
-	
+
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{\"info_source\": { \"has\": \"CHC\"},\"_id\": { \"invalid\": \"pipeline_check_final\"},\"from_container\": { \"==\": \"Metadata\"}}/and"
 request_response = requests.get(url)
 status_code = request_response.status_code
@@ -50,7 +50,7 @@ print("Invalid test - expected status code 400 : Invalid parameter:string operat
 print("Response: ")
 print(request_response.json())
 print()
-	
+
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{\"info_source\": { \"has\": \"CHC\"},\"invalid\": { \"==\": \"pipeline_check_final\"},\"from_container\": { \"==\": \"Metadata\"}}/and"
 request_response = requests.get(url)
 status_code = request_response.status_code
@@ -74,7 +74,7 @@ print("Invalid test - expected status code 400 : Invalid parameter (end)")
 print("Response: ")
 print(request_response.json())
 print()
-	
+
 url = "http://a1323b91e580241648f511e4ff7e7070-788135993.eu-central-1.elb.amazonaws.com/getQueryItems/dev-pipeline-execution/{\"info_source\": { \"has\": \"$$$$\"},\"_id\": { \"==\": \"pipeline_check_final\"},\"from_container\": { \"==\": \"Metadata\"}}/and"
 request_response = requests.get(url)
 status_code = request_response.status_code

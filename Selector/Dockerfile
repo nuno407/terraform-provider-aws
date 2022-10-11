@@ -9,7 +9,7 @@ USER 1000
 # Add base library
 COPY --chown=1000:3000 ./base /app/base
 
-# Copy requirements.txt 
+# Copy requirements.txt
 COPY --chown=1000:3000 ./Selector/requirements.txt /app/Selector/requirements.txt
 WORKDIR /app/Selector
 RUN pip install -r requirements.txt

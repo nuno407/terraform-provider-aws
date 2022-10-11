@@ -10,3 +10,4 @@ coverage.xml
 .localdev/*.mp4
 .localdev/*.json
 .mypy_cache
+.venv

@@ -10,7 +10,7 @@ class RelatedMediaService:
 
     def __init__(self, db: Persistence, s3):
         self.__db = db
-        self.__s3 = s3       
+        self.__s3 = s3
 
 
     def get_related(self, tenant, deviceid, start, end, media_type):

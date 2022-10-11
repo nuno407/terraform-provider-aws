@@ -18,13 +18,13 @@ class Persistence:
 
 
     def get_video_snapshot_media(self, deviceID, tenantID, start, end, media_type):
-        
+
         result = []
         #If end is 0 it's a snapshot, get all videos
         if media_type == "image" :
-            aggregation = [{'$match': {'recording_overview.deviceID': deviceID, 'recording_overview.tenantID': tenantID, '_media_type' : "video"}}]            
+            aggregation = [{'$match': {'recording_overview.deviceID': deviceID, 'recording_overview.tenantID': tenantID, '_media_type' : "video"}}]
         #Else it's a video, get all snapshots
-        elif media_type == "video": 
+        elif media_type == "video":
             #all snapshots for that tennant and device
             aggregation = [{'$match': {'recording_overview.deviceID': deviceID, 'recording_overview.tenantID': tenantID, '_media_type' : "image"}}]
 
@@ -38,7 +38,7 @@ class Persistence:
                 #print('start: '+str(start)+' related_start_time: '+str(related_start_time)+' related_end_time: '+str(related_end_time))
                 if (int(start) >= int(related_start_time) and int(start) <= int(related_end_time) ):
                     result.append(related_item['video_id'])
-        elif media_type == "video":              
+        elif media_type == "video":
             for related_item in related:
                 name_split = related_item["video_id"].split("_")
                 related_time = name_split[-1]
@@ -48,7 +48,7 @@ class Persistence:
                     #Improve, replace all processing to be in the query
                     #aggregation.append({'$match': {'deviceID': deviceID, 'tenantID': tenantID, 'video_id': {'$regex' : "Snapshot"}, { '$convert': { 'input': { '$split': [ 'video_id', "-" ][-2] }, to: "int" } } :  { '$gt': video_start }, { '$convert': { 'input': { '$split': [ 'video_id', "-" ][-2] }, to: "int" } } :  { '$lt': video_end }}})
         return result
-        
+
     def get_media_entry(self, recording_id):
         recording_item = self.__db.get_media_entry(recording_id)
         result = self.__map_recording_object(recording_item)

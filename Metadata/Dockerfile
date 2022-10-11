@@ -102,7 +102,7 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
 # Add base library
 COPY --chown=1000:3000 ./base /app/base
 
-# Copy requirements.txt 
+# Copy requirements.txt
 COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
 WORKDIR /app/Metadata
 # we should add fiftyone registry in order to install Voxel deps

@@ -48,7 +48,7 @@ export class LineChartComponent {
 
   @Output() zoomRangeChange = new EventEmitter<[number, number]>();
   @Output() totalDurationChange = new EventEmitter<number>();
-  
+
   get labelSizePercentage(): number {
     return this.chart.chartArea.left / this.chart.chartArea.width;
   }

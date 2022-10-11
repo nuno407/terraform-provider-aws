@@ -1,5 +1,5 @@
 """
-Metadata API 
+Metadata API
 """
 import logging
 import os
@@ -21,4 +21,3 @@ if __name__ == '__main__':
     else:
         from waitress import serve
         serve(app, listen="*:5000", url_scheme="https")
-    

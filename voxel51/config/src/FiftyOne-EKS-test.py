@@ -9,5 +9,3 @@ session = fo.launch_app(dataset_zoo)
 
 
 session.wait(-1)
-
-

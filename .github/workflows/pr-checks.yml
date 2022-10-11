@@ -7,6 +7,16 @@ on:
       - master
 
 jobs:
+  pre-commit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Pre-commit check
+      uses: pre-commit/action@v3.0.0
+
   list-directories:
     name: List directories to test
     runs-on: ubuntu-latest
@@ -42,7 +52,7 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -61,7 +71,7 @@ jobs:
           pushd ${{ matrix.service }}
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
-      
+
       - name: Test ${{ matrix.service }} with pytest
         continue-on-error: true
         id: pytest

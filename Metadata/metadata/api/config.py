@@ -25,5 +25,3 @@ __db_connstring = container_services.get_db_connstring()
 __db_tables = container_services.db_tables
 db = Persistence(__db_connstring, __db_tables)
 service = ApiService(db, s3_client)
-
-

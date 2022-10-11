@@ -46,7 +46,7 @@ class ChcCounter(Processor):
                 ):
                 frames_with_cv.append(number)
 
-         ## group frames into events with tolerance 
+         ## group frames into events with tolerance
         frame_groups = self.__group_frames_to_events(frames_with_cv, 2)
 
         ## duration calculation
@@ -61,7 +61,7 @@ class ChcCounter(Processor):
                 #there is no frame after last CHC frame, so add the previous frame length to duration
                 frame_duration: timedelta = frames[frame_group[-1]]['timestamp'] - frames[frame_group[-1]-1]['timestamp']
                 ts_end = ts_last_frame + frame_duration
-            else: 
+            else:
                 #there is only one frame at all, so just assume 1 second CHC
                 ts_end = ts_last_frame + timedelta(seconds=1)
             duration = (ts_end - ts_first_frame).total_seconds()

@@ -15,7 +15,7 @@ export class SignalSelectionComponent {
     'CameraViewBlocked',
     'CameraViewShifted'
   ]
-  
+
   @Input()
   signalsToSelect: SignalGroup;
 
@@ -50,7 +50,7 @@ export class SignalSelectionComponent {
   someSelected(group: SignalGroup): boolean {
     return this.getSelected(group) == Selection.Some;
   }
-  
+
   allSelected(group: SignalGroup): boolean {
     return this.getSelected(group) == Selection.All;
   }
@@ -89,6 +89,6 @@ export class SignalSelectionComponent {
     this.selectedSignals.emit(this.signalsToSelect);
   }
 
-}  
+}
 
 enum Selection {None, Some, All}

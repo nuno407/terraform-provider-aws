@@ -10,12 +10,12 @@ from sdretriever.ingestor import MetadataIngestor
 @pytest.mark.unit
 @pytest.mark.usefixtures("msg_interior", "container_services", "s3_client", "sqs_client", "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
 class TestSnapshotIngestor:
-    
+
     @pytest.fixture
     def expected_rcc_folders(self):
         return [
-            'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/', 
-            'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=17/', 
+            'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/',
+            'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=17/',
             'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=18/'
         ]
 
@@ -46,11 +46,11 @@ class TestSnapshotIngestor:
         obj.check_if_exists = Mock(return_value=(True, response_dict))
 
         result = obj._get_metadata_chunks(metadata_start_time, metadata_end_time, msg_interior)
-        
-        obj.CS.download_file.assert_has_calls([call(ANY, obj.CS.rcc_info["s3_bucket"], file_name) for file_name in files_to_download], any_order=True)        
+
+        obj.CS.download_file.assert_has_calls([call(ANY, obj.CS.rcc_info["s3_bucket"], file_name) for file_name in files_to_download], any_order=True)
         obj.check_if_exists.assert_called_with("datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=18/InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26","dev-rcc-raw-video-data")
         assert result == {0: {1:2,3:4}, 1: {5:6,7:8}}
-    
+
     def test_process_chunks_into_mdf(self, obj, metadata_chunks, msg_interior):
         resolution, pts, mdf_data = obj._process_chunks_into_mdf(metadata_chunks, msg_interior)
         with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json","r") as f:
@@ -60,7 +60,7 @@ class TestSnapshotIngestor:
         assert resolution == expected_metadata["resolution"]
         assert mdf_data == expected_metadata["frame"]
         assert pts == expected_metadata["chunk"]
-    
+
     def test_upload_source_data(self, obj, source_data, msg_interior):
         (_id, s3_path) = obj._upload_source_data(source_data,msg_interior)
         expected_client = ANY
@@ -77,8 +77,8 @@ class TestSnapshotIngestor:
 
         obj._get_metadata_chunks = Mock(return_value=metadata_chunks)
         obj._process_chunks_into_mdf = Mock(return_value=(
-            metadata_full["resolution"], 
-            metadata_full["chunk"], 
+            metadata_full["resolution"],
+            metadata_full["chunk"],
             metadata_full["frame"]
         ))
         obj._upload_source_data = Mock(return_value=(
@@ -92,4 +92,3 @@ class TestSnapshotIngestor:
         obj._upload_source_data.assert_called_once_with(metadata_full,ANY)
         obj.CS.send_message.assert_called_once_with(ANY, "dev-terraform-queue-mdf-parser", ANY)
         assert result
-        

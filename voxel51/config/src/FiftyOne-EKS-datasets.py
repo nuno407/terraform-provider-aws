@@ -9,7 +9,7 @@ dataset_zoo = foz.load_zoo_dataset("quickstart-video")
 
 
 dataset_lync_dir = "/mnt/s3/Debug_Lync/"
-dataset_lync_type = fo.types.VideoDirectory  
+dataset_lync_type = fo.types.VideoDirectory
 
 # Import the dataset
 dataset_lync = fo.Dataset.from_dir(
@@ -24,5 +24,3 @@ session = fo.launch_app(dataset_lync)
 
 
 session.wait(-1)
-
-

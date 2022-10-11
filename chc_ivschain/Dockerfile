@@ -11,7 +11,7 @@ COPY --chown=1000:3000 ./base /app/base
 # Add basehandler library
 COPY --chown=1000:3000 ./basehandler /app/basehandler
 
-# Copy requirements.txt 
+# Copy requirements.txt
 COPY --chown=1000:3000 ./chc_ivschain/requirements.txt /app/chc_ivschain/requirements.txt
 WORKDIR /app/chc_ivschain
 RUN pip install -r requirements.txt
@@ -25,4 +25,3 @@ RUN pip install -e .
 
 # Run chc_ivschain main by its package name
 ENTRYPOINT [ "python", "-m", "chc_ivschain.main" ]
-

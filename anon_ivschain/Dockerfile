@@ -12,7 +12,7 @@ COPY --chown=1000:3000 ./base /app/base
 # Add basehandler library
 COPY --chown=1000:3000 ./basehandler /app/basehandler
 
-# Copy requirements.txt 
+# Copy requirements.txt
 COPY --chown=1000:3000 ./anon_ivschain/requirements.txt /app/anon_ivschain/requirements.txt
 WORKDIR /app/anon_ivschain
 RUN pip install -r requirements.txt

@@ -36,7 +36,7 @@ class TestMain:
         continue_running_mock = PropertyMock(side_effect=[True, False])
         type(graceful_exit_mock.return_value).continue_running = continue_running_mock
         return continue_running_mock
-    
+
     @fixture
     def mdf_parser_config(self) -> MdfParserConfig:
         return MdfParserConfig(input_queue='dev-terraform-queue-mdf-parser', metadata_output_queue='dev-terraform-queue-metadata')
@@ -68,7 +68,7 @@ class TestMain:
             expected_update = json.loads(f.read())
         with open(os.path.join(__location__, 'test_data/sync_expected.json'), 'r') as f:
             expected_sync = json.dumps(json.loads(f.read().encode('utf-8'))).encode('utf-8')
-        
+
         container_services_mock.return_value.send_message.assert_called_once_with(ANY, 'dev-terraform-queue-metadata', expected_update)
         container_services_mock.return_value.delete_message.assert_called_once_with(ANY, message['ReceiptHandle'], 'dev-terraform-queue-mdf-parser')
         container_services_mock.upload_file.assert_called_once_with(ANY, expected_sync, 'bucket', recording_name + '_signals.json')

@@ -109,7 +109,7 @@ class TestMain:
         input_message_snapshot_body_template["_id"] = "ridecare_device_snapshot_1692080178308"
         input_message_snapshot_body_template["s3_path"] = "bucket/folder/ridecare_snapshot_1692080178308.jpeg"
         input_message_snapshot_body_template["timestamp"] = 1692080178308
-        
+
         message = {
             'Body': json.dumps(input_message_snapshot_body_template).replace('\"', '\''),
             'MessageAttributes': message_attributes,
@@ -148,7 +148,7 @@ class TestMain:
         # assertions on included snapshot
         # print(snapshot_included_db_entry)
         assert(snapshot_included_db_entry['recording_overview']['source_videos'][0] == recording_db_entry['video_id'])
-        
+
         # assertions on excluded snapshot
         assert(snapshot_excluded_db_entry['recording_overview']['source_videos'] == [])
 
@@ -171,9 +171,9 @@ class TestMain:
         update_sample.assert_has_calls([
             call('folder_snapshots', snapshot_excluded_db_entry),
             call('folder', recording_db_entry),
-            
+
             # this verification will currently fail until the source_video field is correctly updated in voxel
             call('folder_snapshots', snapshot_included_db_entry)
-        ], 
+        ],
          any_order = True
         )

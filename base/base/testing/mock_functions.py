@@ -42,4 +42,3 @@ def get_container_services_mock() -> ContainerServices:
     type(service).anonymized_s3 = PropertyMock(return_value="anonimized_s3_mock")
 
     return service
-    

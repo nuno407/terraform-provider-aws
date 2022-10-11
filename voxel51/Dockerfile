@@ -1,4 +1,4 @@
-#### VOXEL 51 
+#### VOXEL 51
 
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 
@@ -40,7 +40,7 @@ RUN apt -y update \
         python${PYTHON_VERSION}-distutils \
         ffmpeg \
         s3fs \
-        awscli \ 
+        awscli \
     && ln -s /usr/bin/python${PYTHON_VERSION} /usr/local/bin/python \
     && ln -s /usr/local/lib/python${PYTHON_VERSION} /usr/local/lib/python \
     && curl https://bootstrap.pypa.io/get-pip.py | python \
@@ -52,7 +52,7 @@ ENV ROOT_DIR=/fiftyone
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
 ARG TOKEN
-ARG FIFTYONE_DATABASE_URI 
+ARG FIFTYONE_DATABASE_URI
 
 RUN echo ${TOKEN}
 RUN echo ' '

@@ -1,5 +1,5 @@
 """
-Metadata API 
+Metadata API
 """
 import logging
 from unittest import skip
@@ -172,7 +172,7 @@ class VideoSignals(Resource):
         except Exception:
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-            
+
 # Custom model for updateVideoUrl code 200 response
 update_videodescription_200_model = api.model("Video_Description_200", {
     'message': fields.String(example="<video_description>"),
@@ -198,7 +198,7 @@ class VideoDescription(Resource):
         except Exception:
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-            
+
 # Custom model for getTableData code 200 response (Swagger documentation)
 tabledata_nest_model = api.model("tabledata_nest", {
     'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
@@ -245,7 +245,7 @@ class TableData(Resource):
 
         - The **id** of the recording contains the word **"driverpr"** (i.e. parameter "_id" has the substring "driverpr")
 
-        then, the request arguments should be the following:  
+        then, the request arguments should be the following:
         - **query:** `{ 'processing_list': {'==' : 'Anonymize'}, '_id': {'has' : 'driverpr'} }`
 
         - **logic_operator:** `AND` (if both conditions are required) or `OR` (if only one condition needs to be met)
@@ -271,13 +271,13 @@ class TableData(Resource):
         | `OR` / `or` | At least one parameter:value condition must be met |
 
         ---
-        
+
         ## Resulting query format
 
             QUERY: <subquery_1> <logic_operator> <subquery_2> <logic_operator> ...
 
         where:
-        - `<subquery_x>`  -  corresponds to x<sup>th</sup> condition stated on the query argument (e.g. {'parameter_x': {'operator_x' : 'value_x'}} )  
+        - `<subquery_x>`  -  corresponds to x<sup>th</sup> condition stated on the query argument (e.g. {'parameter_x': {'operator_x' : 'value_x'}} )
 
         - `<logic_operator>` - corresponds to the logical operator used link two or more expressions (currently supported logical operators: AND, OR).
         <br/>
@@ -390,4 +390,3 @@ class VideoUrl(Resource):
         except Exception:
             generate_exception_logs()
             api.abort(500, message=ERROR_500_MSG, statusCode = "500")
-

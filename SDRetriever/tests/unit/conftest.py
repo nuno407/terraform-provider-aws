@@ -110,8 +110,8 @@ def metadata_chunks(metadata_files) -> dict[int,dict]:
 def snapshot_rcc_folders() -> list[str]:
     # folders where to look for - possible snapshot locations
     return [
-        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/', 
-        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=17/', 
+        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/',
+        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=17/',
         'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=18/'
         ]
 
@@ -119,8 +119,8 @@ def snapshot_rcc_folders() -> list[str]:
 def snapshot_rcc_paths() -> list[str]:
     # paths where the snapshots are located
     return [
-        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg', 
-        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg', 
+        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg',
+        'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg',
         ]
 
 @pytest.fixture

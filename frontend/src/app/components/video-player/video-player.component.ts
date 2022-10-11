@@ -31,7 +31,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('verticalBar') verticalBarElem;
 
   signalsToSelect: SignalGroup;
-  
+
   verticalBar: HTMLDivElement
   video: HTMLVideoElement;
 
@@ -57,7 +57,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   route: any;
 
   saveDescriptionButtonHidden: boolean  = true;
-  saveDescriptionButtonDisabled: boolean = false; 
+  saveDescriptionButtonDisabled: boolean = false;
 
   get playStates(): typeof PlayState {
     return PlayState;
@@ -124,7 +124,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     };
 
     const mappedKeys = {
-      'Space': () => this.togglePlay(), 
+      'Space': () => this.togglePlay(),
       'ArrowLeft': () => this.seekFrames(-1),
       'ArrowRight': () => this.seekFrames(1)
     };
@@ -139,7 +139,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
           return mappedKeys[e.code];
         })
       )
-      .subscribe((action) => { 
+      .subscribe((action) => {
         action();
       });
   }
@@ -203,7 +203,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     const percentageAtStart = this.currentZoomWindowStart;
     const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
     this.currentPercent.chartPercentage = percentageAtStart + 100.0 / (width * ( 1 - this.lineChart.labelSizePercentage)) * (event.offsetX - (this.lineChart.labelSizePercentage * width)) * zoomFactor;
-    
+
   }
 }
 
@@ -218,7 +218,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     var zoomWindowSize = this.currentZoomWindowEnd - this.currentZoomWindowStart;
     let newZoomRange: [number, number] = [event.value, event.value + zoomWindowSize];
     this.lineChart.zoomRange = newZoomRange;
-    
+
     // sliding does not raise the zoom changed event
     this.zoomChangedByChart(newZoomRange)
   }
@@ -352,5 +352,5 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     this.saveDescriptionButtonDisabled = false;
     });
   }
-  
+
 }

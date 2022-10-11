@@ -18,7 +18,7 @@ class TestChcCounter:
         timedelta(seconds=20): {'interior_camera_health_response_cvb': 0, 'interior_camera_health_response_cve': 0},
         }
 
-    
+
 
     def test_calculate_chc_periods(self, chc_counter: ChcCounter, simple_signals):
         # WHEN

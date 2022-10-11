@@ -14,7 +14,7 @@ USER 1000
 # Add base library
 COPY --chown=1000:3000 ./base /app/base
 
-# Copy requirements.txt 
+# Copy requirements.txt
 COPY --chown=1000:3000 ./SDRetriever/requirements.txt /app/SDRetriever/requirements.txt
 WORKDIR /app/SDRetriever
 RUN pip install -r requirements.txt

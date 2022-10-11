@@ -18,18 +18,18 @@ def identify_file(s3_path: str) -> tuple:
         tuple: (msp, file_name, file_format)
 
     """
-    if len(s3_path)<4: 
+    if len(s3_path)<4:
         return None, None, None
     try:
         msp, file_name = s3_path.split('/')
         # If key_value split fails, the file is stored outside the providers folders
         # so we must skip it
-    except: 
+    except:
         msp = None
         file_name = s3_path
-    try: 
+    try:
         file_format = file_name.split('.')[-1]
-    except: 
+    except:
         file_format = None
     return msp, file_name, file_format
 
@@ -53,7 +53,7 @@ def processing_sdm(container_services, sqs_message):
     # (in order to perform index access)
     new_body = sqs_message['Body'].replace("\'", "\"")
     sqs_body = json.loads(new_body)
-    
+
     # Access key value from msg body
     s3_path = sqs_body["Records"][0]["s3"]["object"]["key"]
 
@@ -81,15 +81,15 @@ def processing_sdm(container_services, sqs_message):
         relay_data["s3_path"] = s3_path
         relay_data["data_status"] = "received"
         container_services.display_processed_msg(relay_data["s3_path"])
-    
+
     elif file_format in IMAGE_FORMATS:
         """ Snapshot processing will only need to go through one stage - anonymization
         because both anony & CHC call upon the same transforming algorithms.
-        CHC just generates the json? 
-        
+        CHC just generates the json?
+
         The processing is the same right now, but it might make sense to make it just anonymization for speedup
         """
-        
+
         _logger.info("Processing snapshot message..")
         # Creates relay list to be used by other containers
         relay_data["processing_steps"] = container_services.msp_steps[msp].copy()
@@ -101,10 +101,10 @@ def processing_sdm(container_services, sqs_message):
 
     elif file_format in container_services.raw_s3_ignore:
         _logger.info("WARNING: File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
-    
+
     else:
         _logger.info("WARNING: File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
-    
+
     return relay_data
 
 

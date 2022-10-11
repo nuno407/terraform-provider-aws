@@ -43,7 +43,7 @@
 <div class="timeline-area">
   <div class="timeline">
     <div class="progress-bar" (mousedown)="playHeaderClick($event)">
-      <app-line-chart #lineChart class="line-chart" (zoomRangeChange)="zoomChangedByChart($event)" (totalDurationChange)="chartTotalTime = $event; updateScalingVideoToDiagram()" 
+      <app-line-chart #lineChart class="line-chart" (zoomRangeChange)="zoomChangedByChart($event)" (totalDurationChange)="chartTotalTime = $event; updateScalingVideoToDiagram()"
       [recording]="recording" >
       </app-line-chart>
       <div #verticalBar [style.marginLeft]="playheaderPercentage + '%'" [hidden]="playheaderHidden" class="vertical-bar"></div>

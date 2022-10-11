@@ -8,8 +8,8 @@ from sdretriever.ingestor import VideoIngestor
 @pytest.mark.unit
 @pytest.mark.usefixtures("container_services", "s3_client", "sqs_client", "sts_helper", "msg_interior")
 class TestVideoIngestor():
-    
-    
+
+
 
     @mock.patch("sdretriever.ingestor.subprocess.run")
     def test_ffmpeg_probe_video(self, mock_run, video_bytes, container_services, s3_client, sqs_client, sts_helper):
@@ -22,7 +22,7 @@ class TestVideoIngestor():
         mock_run.return_value = mock_stdout
         result = obj._ffmpeg_probe_video(video_bytes)
         assert result == {"something":"something else"}
-    
+
     @mock.patch("sdretriever.ingestor.subprocess.run")
     def test_ingest(self, mock_run, container_services, s3_client, sqs_client, sts_helper, msg_interior, video_bytes):
         mock_stdout = MagicMock()
@@ -35,7 +35,7 @@ class TestVideoIngestor():
 
         db_record_data, request_metadata = obj.ingest(msg_interior)
         os.remove("input_video.mp4")
-        
+
         expected_raw_path = "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110.mp4"
         expected_db_record_data = {
             "_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
