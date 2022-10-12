@@ -5,14 +5,16 @@ from typing import Protocol
 
 from flask import Blueprint
 
-from base.aws.shared_functions import AWSServiceClients
 from base.aws.container_services import ContainerServices
-from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
-                                     OutputEndpointParameters)
-from basehandler.message_handler import (MessageHandler, NOOPPostProcessor,
-                                         PostProcessor)
+from base.aws.shared_functions import AWSServiceClients
+from basehandler.api_handler import APIHandler
+from basehandler.api_handler import OutputEndpointNotifier
+from basehandler.api_handler import OutputEndpointParameters
+from basehandler.message_handler import MessageHandler
+from basehandler.message_handler import NOOPPostProcessor
+from basehandler.message_handler import PostProcessor
 
-INTERNAL_QUEUE_MAX_SIZE = os.getenv('INTERNAL_QUEUE_MAX_SIZE', 1)
+INTERNAL_QUEUE_MAX_SIZE = int(os.getenv('INTERNAL_QUEUE_MAX_SIZE', '1'))
 
 
 class CallbackBlueprintCreator(Protocol):
@@ -78,7 +80,8 @@ class BaseHandler():
             internal_queue)
 
         self.endpoint_notifier = OutputEndpointNotifier(self.endpoint_params)
-        self.callback_blueprint = blueprint_creator.create(route_endpoint, self.endpoint_notifier)
+        self.callback_blueprint = blueprint_creator.create(
+            route_endpoint, self.endpoint_notifier)
 
     def validate_container_services_config(self):
         """
@@ -112,6 +115,7 @@ class BaseHandler():
             self.endpoint_params.internal_queue,
             post_processor
         )
+
         import basehandler.message_handler as msg_handler
         msg_handler.wait_for_featurechain()
 
@@ -129,4 +133,4 @@ class BaseHandler():
         message_handler_thread.start()
 
         output_api = api_handler.create_routes()
-        output_api.run(host="0.0.0.0", port=api_port)
+        output_api.run(host="0.0.0.0", port=int(api_port))

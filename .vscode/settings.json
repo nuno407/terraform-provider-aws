@@ -10,8 +10,6 @@
     "python.sortImports.args": ["--sl"],
     "python.linting.mypyEnabled": true,
     "python.linting.pylintEnabled": true,
-
-
     "[python]": {
         "editor.defaultFormatter": "ms-python.python",
         "editor.formatOnSave": true,

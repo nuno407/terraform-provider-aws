@@ -1,13 +1,21 @@
-from datetime import timedelta
+"""Test processor module."""
 import logging
-from typing import Any, Union
+from datetime import timedelta
+from typing import Any
+from typing import Dict
+from typing import Union
 
 from pytest import LogCaptureFixture
+
 from base.processor import Processor
 
 
 class SampleProcessor(Processor):
-    def _process(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]])->dict[str, Any]:
+    """Sample processor class."""
+
+    def _process(self,
+                 _: Dict[timedelta, Dict[str, Union[bool, int, float]]]
+                 ) -> Dict[str, Any]:
         _logger = logging.getLogger('mdfparser.' + __name__)
         _logger.info('Expect this log message!')
         return {'sample': 'processed'}
@@ -16,10 +24,14 @@ class SampleProcessor(Processor):
     def name(self):
         return 'sample'
 
+
 class TestProcessor:
+    """Test processor class."""
+
     def test_sample_processor(self, caplog: LogCaptureFixture):
+        """Test sample processor"""
         # GIVEN
-        data = { timedelta(minutes=5): {'foo': 2} }
+        data = {timedelta(minutes=5): {'foo': 2}}
         processor = SampleProcessor()
         caplog.set_level(logging.DEBUG)
 
@@ -28,7 +40,7 @@ class TestProcessor:
 
         # THEN
         expected_data = {'sample': 'processed'}
-        assert(result == expected_data)
-        assert('Starting processing with sample' in caplog.text)
-        assert('Expect this log message!' in caplog.text)
-        assert('Finished processing sample' in caplog.text)
+        assert (result == expected_data)
+        assert ('Starting processing with sample' in caplog.text)
+        assert ('Expect this log message!' in caplog.text)
+        assert ('Finished processing sample' in caplog.text)

@@ -3,9 +3,11 @@ metadata-docker-compose.yaml
 sdm-docker-compose.yaml
 __pycache__
 .pytest_cache
+.mypy_cache
 build
 *.egg-info
 .coverage
+.coverage*
 coverage.xml
 .localdev/*.mp4
 .localdev/*.json

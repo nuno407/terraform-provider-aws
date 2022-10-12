@@ -1,6 +1,11 @@
+"""API service module."""
 import logging
 import re
-from unittest.util import strclass
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+
 from metadata.api.db import Persistence
 
 _logger = logging.getLogger('metadata_api.' + __name__)
@@ -15,13 +20,15 @@ RELEVANT_DEVICE_SIGNALS = {
     "PersonCount_value"
 }
 
+
 class ApiService:
+    """API service class."""
 
     def __init__(self, db: Persistence, s3):
         self.__db = db
         self.__s3 = s3
 
-    def get_video_signals(self, video_id:str):
+    def get_video_signals(self, video_id: str):
         signals = {}
         recording_item = self.__db.get_signals(video_id)
 
@@ -32,23 +39,28 @@ class ApiService:
 
             for signal_group in recording_item['signals']:
                 if signal_group['source'] in {"MDF", "MDFParser"}:
-                    signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+                    signals[signal_group['source']
+                            ] = self.__create_video_signals_object(signal_group)
                 else:
-                    signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
+                    signals[signal_group['algo_out_id'].split(
+                        '_')[-1]] = self.__create_video_signals_object(signal_group)
 
             if 'MDF' not in signals and 'MDFParser' not in signals:
-                inteiror_id = video_id.replace("Training","Interior")
+                inteiror_id = video_id.replace("Training", "Interior")
                 interior_item = self.__db.get_signals(inteiror_id)
                 for signal_group in interior_item['signals']:
                     if signal_group['source'] in {"MDF", "MDFParser"}:
-                        signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+                        signals[signal_group['source']] = self.__create_video_signals_object(
+                            signal_group)
 
         elif "Interior" in video_id:
             for signal_group in recording_item['signals']:
                 if (signal_group['source'] in {"MDF", "MDFParser"}):
-                    signals[signal_group['source']] = self.__create_video_signals_object(signal_group)
+                    signals[signal_group['source']
+                            ] = self.__create_video_signals_object(signal_group)
                 else:
-                    signals[signal_group['algo_out_id'].split('_')[-1]] = self.__create_video_signals_object(signal_group)
+                    signals[signal_group['algo_out_id'].split(
+                        '_')[-1]] = self.__create_video_signals_object(signal_group)
         _logger.info(f"{video_id} got signal fields {signals.keys()}")
         return signals
 
@@ -56,7 +68,8 @@ class ApiService:
         result_signals = {}
         if chc_result['signals'] and len(chc_result['signals']) > 0 and type(list(chc_result['signals'].values())[0]) is dict:
             for timestamp, signals in chc_result['signals'].items():
-                result_signals[timestamp] = {key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
+                result_signals[timestamp] = {
+                    key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
 
         elif chc_result['signals'] and type(chc_result['signals']):
             for k, v in chc_result['signals'].items():
@@ -85,67 +98,86 @@ class ApiService:
     def __create_video_url(self, bucket, path):
         params_s3 = {'Bucket': bucket, 'Key': path}
         url = self.__s3.generate_presigned_url('get_object',
-                                                            Params = params_s3)
+                                               Params=params_s3)
         return url
 
-    def get_table_data(self, page_size, page, query, operator, sorting, direction):
+    def get_table_data(self, page_size: int, page: int,
+                       query: Optional[List[dict]],
+                       operator: Optional[str],
+                       sorting: Optional[str],
+                       direction: Optional[str]) -> Tuple[List[Dict], int, int]:
+        """Gets table data from the database based on input parameters.
+        Args:
+            page_size (int): size of the page to be returned from the db.
+            page (int): page number.
+            query (Optional[List[dict]]): self-defined formatted for querying data in mongodb.
+            operator (Optional[str]): aggregation association operators (AND, OR).
+            sorting (Optional[str]): field used to sort the result set.
+            direction (Optional[str]): asc or desc for ascending or descending order.
+
+        Returns:
+            returning a tuple containing a list of dictionaries, the total count of recordings and the number of pages
+        """
         additional_query = None
-        if query[0] != {} and operator:
+        if query and query[0] != {} and operator:
             additional_query = self.__parse_query(query, operator)
         sorting_query = None
         if sorting and direction:
             sorting_query = self.__parse_sorting(sorting, direction)
 
-        _logger.info("additional_query %s: "%(additional_query))
-        _logger.info("sorting_query %s: "%(sorting_query))
+        _logger.info("additional_query %s: ", additional_query)
+        _logger.info("sorting_query %s: ", sorting_query)
 
-        recordings, number_recordings, number_pages = self.__db.get_recording_list(page_size, page, additional_query, sorting_query)
+        recordings, number_recordings, number_pages = self.__db.get_recording_list(
+            page_size, page, additional_query, sorting_query)
         table_data = [self.__map_recording_object(r) for r in recordings]
 
-        _logger.info("number_recordings %s:\n"%(number_recordings))
+        _logger.info("number_recordings %s:\n", number_recordings)
 
         return table_data, number_recordings, number_pages
 
     # State all valid query fields and their corresponding database field path
     __query_fields = {
-                    "_id": "video_id",
-                    "processing_list": "pipeline_execution.processing_list",
-                    'snapshots': 'recording_overview.#snapshots',
-                    'data_status': 'pipeline_execution.data_status',
-                    'last_updated': 'pipeline_execution.last_updated',
-                    'length': 'recording_overview.length',
-                    'time': 'recording_overview.time',
-                    'resolution': 'resolution',
-                    'number_chc_events': 'recording_overview.number_chc_events',
-                    'lengthCHC': 'recording_overview.chc_duration',
-                    'max_person_count': 'recording_overview.max_person_count',
-                    'deviceID': 'recording_overview.deviceID',
-                    'tenantID': 'recording_overview.tenantID'
-                    }
+        "_id": "video_id",
+        "processing_list": "pipeline_execution.processing_list",
+        'snapshots': 'recording_overview.#snapshots',
+        'data_status': 'pipeline_execution.data_status',
+        'last_updated': 'pipeline_execution.last_updated',
+        'length': 'recording_overview.length',
+        'time': 'recording_overview.time',
+        'resolution': 'resolution',
+        'number_chc_events': 'recording_overview.number_chc_events',
+        'lengthCHC': 'recording_overview.chc_duration',
+        'max_person_count': 'recording_overview.max_person_count',
+        'deviceID': 'recording_overview.deviceID',
+        'tenantID': 'recording_overview.tenantID'
+    }
 
     def __parse_query(self, query, logic_operator):
         # State all valid logical operators and their corresponding mongo query
         logic_operators = {
-                        "or":"$or",
-                        "and":"$and"
-                        }
+            "or": "$or",
+            "and": "$and"
+        }
 
         # State all valid query operators and their corresponding ongo operators
         # (used for validation and later conversion)
         operators = {
-                        "==":"$eq",
-                        ">":"$gt",
-                        "<":"$lt",
-                        "!=":"$ne",
-                        "has":"$regex"
-                        }
+            "==": "$eq",
+            ">": "$gt",
+            "<": "$lt",
+            "!=": "$ne",
+            "has": "$regex"
+        }
 
         # Check if operator is valid
-        assert logic_operator.lower() in logic_operators.keys(), "Invalid/Forbidden logical operator"
+        assert logic_operator.lower() in logic_operators.keys(
+        ), "Invalid/Forbidden logical operator"
 
         # Check if all query fields are valid
         for subquery in query:
-            assert [fieldname for fieldname in subquery.keys() if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
+            assert [fieldname for fieldname in subquery.keys(
+            ) if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
 
         # Create empty list that will contain all sub queries received
         query_list = []
@@ -155,22 +187,24 @@ class ApiService:
                 operator = list(field_query.keys())[0]
                 operation_value = field_query[operator]
 
-                ## OPERATOR VALIDATION + CONVERSION
+                # OPERATOR VALIDATION + CONVERSION
                 # Check if operator is valid
                 assert operator in operators.keys(), "Invalid/Forbidden query operators"
 
                 # Convert the operator to mongo syntax
                 mongo_operator = operators[operator]
 
-                ## VALUE VALIDATION
+                # VALUE VALIDATION
                 # Check if value is valid (i.e. alphanumeric and/or with characters _ : . -)
                 # NOTE: spaces are allowed in the value string
-                assert re.findall("^[a-zA-Z0-9_:.\s-]*$", str(operation_value)) != [], "Invalid/Forbidden query values"
+                assert re.findall(
+                    r"^[a-zA-Z0-9_:.\s-]*$", str(operation_value)) != [], "Invalid/Forbidden query values"
 
                 # Create subquery.
                 # NOTE: $exists -> used to make sure items without
                 # the parameter set in key are not also returned
-                subquery = {self.__query_fields[fieldname]:{'$exists': 'true', mongo_operator:operation_value}}
+                subquery = {self.__query_fields[fieldname]: {
+                    '$exists': 'true', mongo_operator: operation_value}}
 
                 # Append subquery to list
                 query_list.append(subquery)
@@ -180,8 +214,7 @@ class ApiService:
         #       which translates into: <subquery1> AND/OR <subquery2> AND/OR ...
         return {logic_operators[logic_operator.lower()]: query_list}
 
-
-    def __parse_sorting(self, sorting, direction):
+    def __parse_sorting(self, sorting: str, direction: str) -> Dict[str, int]:
         directions = {
             "asc": 1,
             "dsc": -1
@@ -194,7 +227,6 @@ class ApiService:
         assert sorting in self.__query_fields.keys(), "Invalid/Forbidden sorting field"
 
         return {self.__query_fields[sorting]: directions[direction]}
-
 
     def get_media_entry(self, recording_id):
         recording_item = self.__db.get_media_entry(recording_id)
@@ -214,28 +246,37 @@ class ApiService:
     def __map_recording_object(self, recording_item):
         recording_object = {}
 
-        recording_overview = recording_item.get('recording_overview',{})
-        recording_object['tenant'] = recording_overview.get('tenantID','-')
-        recording_object['snapshots'] = recording_overview.get('#snapshots','-') # the front-end cannot access the field if we set as '#snapshots'
-        recording_object['#snapshots'] = recording_overview.get('#snapshots','-') # the front-end cannot access the field if we set as '#snapshots'
-        recording_object['snapshots_paths'] = recording_overview.get('snapshots_paths',"")
-        recording_object['length'] = recording_overview.get('length','-')
-        recording_object['time'] = recording_overview.get('time','-')
-        recording_object['deviceID'] = recording_overview.get('deviceID','-')
+        recording_overview = recording_item.get('recording_overview', {})
+        recording_object['tenant'] = recording_overview.get('tenantID', '-')
+        # the front-end cannot access the field if we set as '#snapshots'
+        recording_object['snapshots'] = recording_overview.get(
+            '#snapshots', '-')
+        # the front-end cannot access the field if we set as '#snapshots'
+        recording_object['#snapshots'] = recording_overview.get(
+            '#snapshots', '-')
+        recording_object['snapshots_paths'] = recording_overview.get(
+            'snapshots_paths', "")
+        recording_object['length'] = recording_overview.get('length', '-')
+        recording_object['time'] = recording_overview.get('time', '-')
+        recording_object['deviceID'] = recording_overview.get('deviceID', '-')
         recording_object['description'] = recording_overview.get('description')
         recording_object['_id'] = recording_item.get('video_id')
-        recording_object['resolution'] = recording_item.get('resolution','-')
-        recording_object['number_chc_events'] = recording_overview.get('number_chc_events','-')
-        recording_object['lengthCHC'] = recording_overview.get('chc_duration','-')
-        recording_object['max_person_count'] = recording_overview.get('max_person_count','-')
-        pipeline_execution = recording_item.get('pipeline_execution',{})
-        recording_object['processing_list'] = pipeline_execution.get('processing_list','-')
-        recording_object['data_status'] = pipeline_execution.get('data_status','-')
-        recording_object['last_updated'] = pipeline_execution.get('last_updated','2020-01-01T00:00:00.1Z').split(".",1)[0].replace("T"," ")
+        recording_object['resolution'] = recording_item.get('resolution', '-')
+        recording_object['number_chc_events'] = recording_overview.get(
+            'number_chc_events', '-')
+        recording_object['lengthCHC'] = recording_overview.get(
+            'chc_duration', '-')
+        recording_object['max_person_count'] = recording_overview.get(
+            'max_person_count', '-')
+        pipeline_execution = recording_item.get('pipeline_execution', {})
+        recording_object['processing_list'] = pipeline_execution.get(
+            'processing_list', '-')
+        recording_object['data_status'] = pipeline_execution.get(
+            'data_status', '-')
+        recording_object['last_updated'] = pipeline_execution.get(
+            'last_updated', '2020-01-01T00:00:00.1Z').split(".", 1)[0].replace("T", " ")
 
         return recording_object
-
-
 
     def __calculate_chc_events(self, chc_periods):
         duration = 0.0
@@ -250,11 +291,13 @@ class ApiService:
     def __check_and_get_lq_video_info(self, entry_id):
         recorder_name_matcher = re.match(r".+_([^_]+)_\d+_\d+", entry_id)
         if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
-            _logger.warning(f'Could not parse recorder information from {entry_id}')
+            _logger.warning(
+                f'Could not parse recorder information from {entry_id}')
             return None
 
         if recorder_name_matcher.group(1) != 'TrainingRecorder':
-            _logger.debug(f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
+            _logger.debug(
+                f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
             return None
         lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
         try:
@@ -265,9 +308,13 @@ class ApiService:
 
         lq_video = {}
         lq_video['id'] = lq_id
-        if 'length' in lq_video_details: lq_video['length'] = lq_video_details['length']
-        if 'time' in lq_video_details: lq_video['time'] = lq_video_details['time']
-        if 'resolution' in lq_entry: lq_video['resolution'] = lq_entry['resolution']
-        if '#snapshots' in lq_video_details: lq_video['snapshots'] = lq_video_details['#snapshots']
+        if 'length' in lq_video_details:
+            lq_video['length'] = lq_video_details['length']
+        if 'time' in lq_video_details:
+            lq_video['time'] = lq_video_details['time']
+        if 'resolution' in lq_entry:
+            lq_video['resolution'] = lq_entry['resolution']
+        if '#snapshots' in lq_video_details:
+            lq_video['snapshots'] = lq_video_details['#snapshots']
 
         return lq_video

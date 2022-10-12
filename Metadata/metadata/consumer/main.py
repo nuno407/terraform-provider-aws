@@ -1,25 +1,28 @@
 """Metadata container script"""
 import json
-import logging
 import os
 from datetime import datetime
 from datetime import timedelta
-from time import strftime
-from typing import Optional, Tuple
+from typing import Optional
+from typing import Tuple
+
 import boto3
 import pytimeparse
 import pytz
-from base.chc_counter import ChcCounter
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
+from pymongo.collection import Collection
+from pymongo.collection import ReturnDocument
+from pymongo.database import Database
+
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
-from datetime import datetime, timedelta
-from pymongo.collection import Collection, ReturnDocument
-from pymongo.database import Database
-from base.voxel.voxel_functions import create_dataset, update_sample
+from base.chc_counter import ChcCounter
+from base.constants import IMAGE_FORMATS
+from base.constants import VIDEO_FORMATS
+from base.voxel.voxel_functions import create_dataset
+from base.voxel.voxel_functions import update_sample
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
@@ -50,11 +53,13 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
     if file_format in IMAGE_FORMATS:
 
         # Identify the video belonging to this snapshot
-        source_videos : list = service.get_related(message['tenant'], message['deviceid'], message['timestamp'], 0, message['media_type'])
+        source_videos: list = service.get_related(
+            message['tenant'], message['deviceid'], message['timestamp'], 0, message['media_type'])
 
         # A snapshot should only ever have 2 max source recordings - interior and training, front is disabled
         if len(source_videos) <= 2:
-            _logger.debug(f"Image {message['_id']} has {len(source_videos)} source videos: {source_videos}")
+            _logger.debug(
+                f"Image {message['_id']} has {len(source_videos)} source videos: {source_videos}")
 
         sources = []
         if source_videos:
@@ -63,7 +68,8 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
 
         # Update snapshot record
         recording_item = {
-            'video_id': message['_id'], # we have the key for snapshots named as 'video_id' due to legacy reasons...
+            # we have the key for snapshots named as 'video_id' due to legacy reasons...
+            'video_id': message['_id'],
             '_media_type': message['media_type'],
             'filepath': 's3://' + message['s3_path'],
             'recording_overview': {
@@ -104,9 +110,9 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
                 'tenantID': message['tenant'],
                 'deviceID': message['deviceid'],
                 'length': message['length'],
-                #'snapshots_paths': message['snapshots_paths'],
+                # 'snapshots_paths': message['snapshots_paths'],
                 'snapshots_paths': snapshots_paths,
-                #'#snapshots': message['#snapshots'],
+                # '#snapshots': message['#snapshots'],
                 '#snapshots': len(snapshot_paths),
                 'time': datetime.fromtimestamp(message['footagefrom']/1000.0).strftime('%Y-%m-%d %H:%M:%S')
             },
@@ -142,11 +148,11 @@ def create_recording_item(message: dict, collection_rec: Collection, service: Re
 
 def update_voxel_media(sample: dict):
 
-    def __get_s3_path(raw_path) -> tuple[str, str]:
+    def __get_s3_path(raw_path) -> Tuple[str, str]:
         import re
         match = re.match(r'^s3://([^/]+)/(.*)$', raw_path)
 
-        if(match is None or len(match.groups()) != 2):
+        if (match is None or len(match.groups()) != 2):
             raise ValueError('Invalid path: ' + raw_path)
 
         bucket = match.group(1)
@@ -187,7 +193,7 @@ def update_voxel_media(sample: dict):
             "Unable to create dataset [%s] on update_pipeline_db !", bucket_name)
 
 
-def upsert_mdf_data(message: dict, collection_sig: Collection, collection_rec: Collection) -> tuple[Optional[dict], Optional[dict]]:
+def upsert_mdf_data(message: dict, collection_sig: Collection, collection_rec: Collection) -> Tuple[Optional[dict], Optional[dict]]:
     # verify message content
     if not ('signals_file' in message and 'bucket' in message['signals_file'] and 'key' in message['signals_file']):
         _logger.warning(
@@ -202,10 +208,13 @@ def upsert_mdf_data(message: dict, collection_sig: Collection, collection_rec: C
         # Upsert signals item
         aggregated_values = dict()
         for key in message['recording_overview'].keys():
-            aggregated_values.update({eval(f'recording_overview.{key}'): message['recording_overview'][key]})
+            aggregated_values.update(
+                {eval(f'recording_overview.{key}'): message['recording_overview'][key]})
         signals_data = {'source': "MDFParser", 'signals': signals}
-        recording = collection_rec.find_one_and_update({'video_id': message["_id"]}, {'$set': aggregated_values}, upsert=True, return_document=ReturnDocument.AFTER)
-        collection_sig.update_one({'recording': message["_id"], 'source': {'$regex': 'MDF.*'}}, {'$set': signals_data}, upsert=True)
+        recording = collection_rec.find_one_and_update({'video_id': message["_id"]}, {
+                                                       '$set': aggregated_values}, upsert=True, return_document=ReturnDocument.AFTER)
+        collection_sig.update_one({'recording': message["_id"], 'source': {
+                                  '$regex': 'MDF.*'}}, {'$set': signals_data}, upsert=True)
         # Create logs message
         _logger.info("Signals DB item [%s] upserted!", message["_id"])
         return recording, signals
@@ -276,11 +285,11 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
         bucket_name = bucket_name+"_snapshots"
         anonymized_path = "s3://" + \
             os.environ['ANON_S3']+"/" + \
-                message["s3_path"][:-5]+'_anonymized.'+filetype
+            message["s3_path"][:-5]+'_anonymized.'+filetype
     elif filetype in VIDEO_FORMATS:
         anonymized_path = "s3://" + \
             os.environ['ANON_S3']+"/" + \
-                message["s3_path"][:-4]+'_anonymized.'+filetype
+            message["s3_path"][:-4]+'_anonymized.'+filetype
     else:
         raise ValueError("Unknown file format %s" % filetype)
     # with dicts either we make a copy or both variables will reference the same object
@@ -304,7 +313,7 @@ def update_pipeline_db(video_id: str, message: dict, table_pipe: Collection, sou
 def download_and_synchronize_chc(video_id: str, recordings_collection: Collection, bucket: str, key: str) -> Tuple[dict, dict]:
     # get video length from the original recording entry
     recording_entry = recordings_collection.find_one({'video_id': video_id})
-    if not('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
+    if not ('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
         raise ValueError(
             'Recording entry for video_id %s does not have a length information.' % video_id)
     video_length = timedelta(seconds=pytimeparse.parse(
@@ -315,7 +324,7 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     chc_dict = chc_syncer.download(bucket, key)
     chc_sync = chc_syncer.synchronize(chc_dict, video_length)
     chc_sync_parsed = {str(ts): signals for ts,
-                        signals in chc_sync.items()}
+                       signals in chc_sync.items()}
 
     # calculate CHC metrics
     chc_counter = ChcCounter()
@@ -396,8 +405,8 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
             signals_item = {
                 'algo_out_id': run_id,
                 'recording': video_id,
-                        'source': "CHC",
-                        'signals': synchronized,
+                'source': "CHC",
+                'signals': synchronized,
             }
             try:
                 # upsert signals DB item
@@ -416,7 +425,7 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
 
     try:
         # Insert previously built item
-        #collection_algo_out.insert_one(algo_item,)
+        # collection_algo_out.insert_one(algo_item,)
         query = {'_id': run_id}
         collection_algo_out.update_one(query, {'$set': algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
@@ -431,16 +440,16 @@ def process_outputs(video_id: str, message: dict, collection_algo_out: Collectio
 
     filetype = s3split[-1].split(".")[-1]
     anon_video_path = "s3://" + \
-        os.environ['ANON_S3']+"/"+ \
-            message["s3_path"][:-4]+'_anonymized.'+filetype
+        os.environ['ANON_S3']+"/" + \
+        message["s3_path"][:-4]+'_anonymized.'+filetype
 
     if filetype == "jpeg" or filetype == "png":
         bucket_name = bucket_name+"_snapshots"
 
     if filetype == "jpeg":
         anon_video_path = "s3://" + \
-            os.environ['ANON_S3']+"/"+ \
-                message["s3_path"][:-5]+'_anonymized.'+filetype
+            os.environ['ANON_S3']+"/" + \
+            message["s3_path"][:-5]+'_anonymized.'+filetype
 
     sample = algo_item
 
@@ -487,7 +496,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
                                 define which operations are performed]
     """
     # Validate the message
-    if not('SourceContainer' in message_attributes and
+    if not ('SourceContainer' in message_attributes and
             'StringValue' in message_attributes['SourceContainer']):
         _logger.error(
             'Skipping message due to neccessary content not being present. Message: %s  Atributes: %s', message, message_attributes)
@@ -508,7 +517,8 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
         file_format = message.get("s3_path", '').split(".")[-1]
         if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
             # Call respective processing function
-            recording = create_recording_item(message, collection_recordings, service)
+            recording = create_recording_item(
+                message, collection_recordings, service)
             if not recording:
                 # something went wrong when creating the new db record
                 _logger.warning("No recording item created on DB.")
@@ -539,12 +549,14 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices, servi
 
         # Create/Update item on Algorithm Output DB if message is about algo output
         if 'output' in message:
-            process_outputs(recording_id, message, collection_algo_output, collection_recordings, collection_signals, source)
+            process_outputs(recording_id, message, collection_algo_output,
+                            collection_recordings, collection_signals, source)
     else:
-        _logger.info(f"Unexpected message source {source} - {message}, {message_attributes}")
+        _logger.info(
+            f"Unexpected message source {source} - {message}, {message_attributes}")
 
 
-def read_message(container_services: ContainerServices, body: str)->dict:
+def read_message(container_services: ContainerServices, body: str) -> dict:
     """Copies info received from other containers and
     converts it from string into a dictionary
 
@@ -599,7 +611,8 @@ def main():
     db_client = container_services.create_db_client()
 
     # initialize service (to be removed, because it belongs to API)
-    persistence = Persistence(None, container_services.db_tables, db_client.client)
+    persistence = Persistence(
+        None, container_services.db_tables, db_client.client)
     api_service = RelatedMediaService(persistence, s3_client)
 
     # use graceful exit
@@ -607,7 +620,7 @@ def main():
 
     _logger.info("Listening to input queue(s)..")
 
-    while(graceful_exit.continue_running):
+    while (graceful_exit.continue_running):
         # Check input SQS queue for new messages
         message = container_services.listen_to_input_queue(sqs_client)
 
@@ -617,10 +630,12 @@ def main():
             relay_list = read_message(container_services, message['Body'])
 
             # Insert/update data in db
-            upsert_data_to_db(db_client, container_services, api_service, relay_list, message['MessageAttributes'])
+            upsert_data_to_db(db_client, container_services,
+                              api_service, relay_list, message['MessageAttributes'])
 
             # Delete message after processing
-            container_services.delete_message(sqs_client, message['ReceiptHandle'])
+            container_services.delete_message(
+                sqs_client, message['ReceiptHandle'])
 
 
 if __name__ == '__main__':

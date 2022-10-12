@@ -3,11 +3,9 @@ import json
 import logging
 import os
 import subprocess
-from datetime import datetime  # timedelta as td,
+from datetime import datetime
 from datetime import timedelta
-from signal import SIGTERM
-from signal import Signals
-from signal import signal
+from typing import Tuple
 
 import boto3
 import pytz
@@ -19,10 +17,11 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 _logger = logging.getLogger(__name__)
-VIDEO_FORMATS = {'mp4','avi'}
-IMAGE_FORMATS = {'jpeg','jpg','png'}
+VIDEO_FORMATS = {'mp4', 'avi'}
+IMAGE_FORMATS = {'jpeg', 'jpg', 'png'}
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
+
 
 class ContainerServices():
     """ContainerServices
@@ -277,25 +276,22 @@ class ContainerServices():
             _logger.debug("-> queue:  %s", input_queue)
             self.__message_receive_times[message['ReceiptHandle']] = datetime.now(
             )
-        else:
-           # _logger.debug('No Message received.')
-           pass
 
         return message
 
     @staticmethod
-    def configure_logging(component_name: str)->logging.Logger:
+    def configure_logging(component_name: str) -> logging.Logger:
         str_level = os.environ.get('LOGLEVEL', 'INFO')
         log_level = logging.getLevelName(str_level)
         str_root_level = os.environ.get('ROOT_LOGLEVEL', 'INFO')
         log_root_level = logging.getLevelName(str_root_level)
 
-        logging.basicConfig(format='%(asctime)s %(name)s\t%(levelname)s\t%(message)s', level=log_root_level)
+        logging.basicConfig(
+            format='%(asctime)s %(name)s\t%(levelname)s\t%(message)s', level=log_root_level)
         logging.getLogger('base').setLevel(log_level)
         logger = logging.getLogger(component_name)
         logger.setLevel(log_level)
         return logger
-
 
     def delete_message(self, client, receipt_handle, input_queue=None):
         """Deletes received SQS message
@@ -318,9 +314,9 @@ class ContainerServices():
         # Delete received message
         _logger.debug('Deleting message [%s]', receipt_handle)
         client.delete_message(
-                                QueueUrl=input_queue_url,
-                                ReceiptHandle=receipt_handle
-                            )
+            QueueUrl=input_queue_url,
+            ReceiptHandle=receipt_handle
+        )
         self.__message_receive_times.pop(receipt_handle, None)
         _logger.info('Deleted message [%s]', receipt_handle)
 
@@ -391,11 +387,11 @@ class ContainerServices():
         # Send message to SQS queue
         _logger.debug('Sending message to [%s]', dest_queue)
         client.send_message(
-                                        QueueUrl=destination_queue_url,
-                                        DelaySeconds=1,
-                                        MessageAttributes=msg_attributes,
-                                        MessageBody=str(data)
-                                       )
+            QueueUrl=destination_queue_url,
+            DelaySeconds=1,
+            MessageAttributes=msg_attributes,
+            MessageBody=str(data)
+        )
         _logger.info("Message sent to [%s]", dest_queue)
 
     @staticmethod
@@ -436,7 +432,7 @@ class ContainerServices():
 
     ##### S3 related functions ####################################################################
     @staticmethod
-    def download_file(client, s3_bucket: str, file_path:str)->bytearray:
+    def download_file(client, s3_bucket: str, file_path: str) -> bytearray:
         """Retrieves a given file from the selected s3 bucket
 
         Arguments:
@@ -592,12 +588,13 @@ class ContainerServices():
             ContentType="application/json"
         )
 
-        _logger.info("S3 Pending queue updated (mode: %s | uid: %s)!", mode, uid)
+        _logger.info(
+            "S3 Pending queue updated (mode: %s | uid: %s)!", mode, uid)
 
         return relay_data
 
     ##### Kinesis related functions ###############################################################
-    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> tuple[bytes, datetime, datetime]:
+    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
@@ -616,18 +613,18 @@ class ContainerServices():
 
         # Create Kinesis client
         kinesis_client: KinesisVideoClient = boto3.client('kinesisvideo',
-                                      region_name='eu-central-1',
-                                      aws_access_key_id=creds['AccessKeyId'],
-                                      aws_secret_access_key=creds['SecretAccessKey'],
-                                      aws_session_token=creds['SessionToken'])
+                                                          region_name='eu-central-1',
+                                                          aws_access_key_id=creds['AccessKeyId'],
+                                                          aws_secret_access_key=creds['SecretAccessKey'],
+                                                          aws_session_token=creds['SessionToken'])
 
         # Getting endpoint URL for LIST_FRAGMENTS
         get_endpoint_list_fragments_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                         APIName='LIST_FRAGMENTS')
+                                                                                APIName='LIST_FRAGMENTS')
 
         # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
         get_endpoint_get_media_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                        APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
+                                                                           APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
 
         # Fetch DataEndpoint field
         list_fragments_url = get_endpoint_list_fragments_response['DataEndpoint']
@@ -637,10 +634,10 @@ class ContainerServices():
         # Create Kinesis archive media client for list_fragments()
         list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
                                                                               endpoint_url=list_fragments_url,
-                                   region_name='eu-central-1',
-                                   aws_access_key_id=creds['AccessKeyId'],
-                                   aws_secret_access_key=creds['SecretAccessKey'],
-                                   aws_session_token=creds['SessionToken'])
+                                                                              region_name='eu-central-1',
+                                                                              aws_access_key_id=creds['AccessKeyId'],
+                                                                              aws_secret_access_key=creds['SecretAccessKey'],
+                                                                              aws_session_token=creds['SessionToken'])
 
         # Get all fragments within timestamp range (start_time, end_time)
         list_fragments_response = list_fragments_client.list_fragments(
@@ -674,10 +671,10 @@ class ContainerServices():
         # Create Kinesis archive media client for get_media_for_fragment_list()
         get_media_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
                                                                          endpoint_url=get_media_url,
-                                  region_name='eu-central-1',
-                                  aws_access_key_id=creds['AccessKeyId'],
-                                  aws_secret_access_key=creds['SecretAccessKey'],
-                                  aws_session_token=creds['SessionToken'])
+                                                                         region_name='eu-central-1',
+                                                                         aws_access_key_id=creds['AccessKeyId'],
+                                                                         aws_secret_access_key=creds['SecretAccessKey'],
+                                                                         aws_session_token=creds['SessionToken'])
 
         # Fetch all 2sec fragments from previously sorted list
         get_media_response = get_media_client.get_media_for_fragment_list(
@@ -705,10 +702,10 @@ class ContainerServices():
             # Convert .avi input file into .mp4 using ffmpeg
             _logger.debug('Starting ffmpeg conversion')
             conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
-                                        "0", "-filter:v", "fps=15.72", output_name],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT,
-                                        universal_newlines=True)
+                                          "0", "-filter:v", "fps=15.72", output_name],
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT,
+                                         universal_newlines=True)
             _logger.debug('Finished ffmpeg conversion')
 
             # Save conversion logs into txt file
@@ -740,4 +737,5 @@ class ContainerServices():
                              processing containers to keep track of the
                              process of a given file. Optional]
         """
-        _logger.info("\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
+        _logger.info(
+            "\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)

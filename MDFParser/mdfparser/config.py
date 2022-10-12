@@ -12,7 +12,7 @@ class MdfParserConfig():
         """Loads yaml file into MdfParserConfig object. Extra yaml fields are ignored.
 
         Args:
-            path (_type_): path of the yaml file containing the
+            path (_type_): path of the yaml file containing the config.
 
         Returns:
             MdfParserConfig: MdfParserConfig object containing passed yaml config

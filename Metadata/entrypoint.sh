@@ -4,9 +4,9 @@ MODE=${1:?'must provide a mode as argument, available options: [api, consumer]'}
 # using exec forfits the PID 1 from bash to the python process
 # this works better with k8s liveness command probe
 if [[ "${MODE}" == "api" ]]; then
-    exec python -m metadata.api
+    exec python -m metadata.api.main
 elif [[ "${MODE}" == "consumer" ]]; then
-    exec python -m metadata.consumer
+    exec python -m metadata.consumer.main
 else
     echo "invalid mode. Should be one of: [api, consumer]"
     exit 1

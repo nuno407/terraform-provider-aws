@@ -1,13 +1,15 @@
-import os
-from unittest.mock import Mock, PropertyMock
 from unittest import mock
+from unittest.mock import Mock
+
+import flask
+from flask import Blueprint
 
 from base.aws.shared_functions import AWSServiceClients
-from basehandler.entrypoint import BaseHandler, CallbackBlueprintCreator
-from basehandler.api_handler import OutputEndpointNotifier
 from base.testing.mock_functions import get_container_services_mock
-from flask import Blueprint
-import flask
+from basehandler.api_handler import OutputEndpointNotifier
+from basehandler.entrypoint import BaseHandler
+from basehandler.entrypoint import CallbackBlueprintCreator
+
 
 class MockCallbackEndpointCreator(CallbackBlueprintCreator):
     @staticmethod
@@ -23,47 +25,47 @@ class MockCallbackEndpointCreator(CallbackBlueprintCreator):
 
 def test_basehandler_creation():
     base_handler = BaseHandler("MOCK",
-                           get_container_services_mock(),
-                           AWSServiceClients("sqs","client"),
-                           'chc',
-                           "/callback",
-                           MockCallbackEndpointCreator())
+                               get_container_services_mock(),
+                               AWSServiceClients("sqs", "client"),
+                               'chc',
+                               "/callback",
+                               MockCallbackEndpointCreator())
 
     assert base_handler != None
+
 
 @mock.patch("basehandler.entrypoint.APIHandler")
 @mock.patch("basehandler.entrypoint.threading.Thread")
 @mock.patch("basehandler.entrypoint.MessageHandler")
-def test_basehandler_setup_and_run(message_handler_mock: Mock, thread_mock: Mock, api_handler_mock: Mock):
-
-    #GIVEN
+@mock.patch("basehandler.message_handler")
+def test_basehandler_setup_and_run(message_handler_module_mock: Mock, message_handler_mock: Mock, thread_mock: Mock, api_handler_mock: Mock):
     mock_object_message = Mock()
     mock_object_thread = Mock()
     mock_object_api_handler = Mock()
 
     mock_object_output_api_handler = Mock()
+    message_handler_module_mock = Mock()
+    message_handler_module_mock.wait_for_featurechain = Mock()
 
     mock_object_message.start = Mock(return_value=True)
     mock_object_thread.start = Mock(return_value=True)
-    mock_object_api_handler.create_routes = Mock(return_value=mock_object_output_api_handler)
+    mock_object_api_handler.create_routes = Mock(
+        return_value=mock_object_output_api_handler)
 
     mock_object_output_api_handler.run = Mock(return_value=True)
 
     api_handler_mock.return_value = mock_object_api_handler
     thread_mock.return_value = mock_object_thread
     message_handler_mock.return_value = mock_object_message
-    port = 2000
+    port = "2000"
 
-
-    # WHEN
     base_handler = BaseHandler("MOCK",
-                           get_container_services_mock(),
-                           AWSServiceClients("sqs","client"),
-                           'chc',
-                           "/callback",
-                           MockCallbackEndpointCreator())
+                               get_container_services_mock(),
+                               AWSServiceClients("sqs", "client"),
+                               'chc',
+                               "/callback",
+                               MockCallbackEndpointCreator())
 
-    # THEN
     base_handler.setup_and_run(port)
     thread_mock.assert_called()
     mock_object_thread.start.assert_called()

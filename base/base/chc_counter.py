@@ -1,26 +1,35 @@
-from datetime import timedelta
 import logging
-from typing import Any, Optional, TypedDict, Union, cast
+from datetime import timedelta
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import TypedDict
+from typing import Union
+from typing import cast
+
 from base.processor import Processor
 
+_logger = logging.getLogger(__name__)
 
-_logger = logging.getLogger( __name__)
+
 class ChcCounter(Processor):
     @property
     def name(self):
         return 'ChcCounter'
 
-    def _process(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]])->dict[str, Any]:
+    def _process(self, synchronized_signals: Dict[timedelta, Dict[str, Union[bool, int, float]]]) -> Dict[str, Any]:
         chc_periods = self.calculate_chc_periods(synchronized_signals)
         number_chc: int = len(chc_periods)
-        length_chc: float = sum([period['duration'] for period in chc_periods], 0.0)
-        return {'recording_overview':{
+        length_chc: float = sum([period['duration']
+                                for period in chc_periods], 0.0)
+        return {'recording_overview': {
             'number_chc_events': number_chc,
             'chc_duration': length_chc
         }}
 
     class __ChcPeriod(TypedDict):
-        frames: list[int]
+        frames: List[int]
         duration: float
 
     class __Frame(TypedDict, total=False):
@@ -28,16 +37,17 @@ class ChcCounter(Processor):
         interior_camera_health_response_cvb: Optional[float]
         interior_camera_health_response_cve: Optional[float]
 
-    def calculate_chc_periods(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]])->list[__ChcPeriod]:
-        ## add a frame index to the synchronized data
-        frames: dict[int, ChcCounter.__Frame] = {}
+    def calculate_chc_periods(self, synchronized_signals: Dict[timedelta, Dict[str, Union[bool, int, float]]]) -> List[__ChcPeriod]:
+        # add a frame index to the synchronized data
+        frames: Dict[int, ChcCounter.__Frame] = {}
         for i, timestamp in enumerate(synchronized_signals.keys()):
             frame = ChcCounter.__Frame(timestamp=timestamp)
-            frame.update(cast(ChcCounter.__Frame, synchronized_signals[timestamp]))
+            frame.update(
+                cast(ChcCounter.__Frame, synchronized_signals[timestamp]))
             frames[i] = frame
 
-        ## identify frames with cvb and cve equal to 1
-        frames_with_cv: list[int] = []
+        # identify frames with cvb and cve equal to 1
+        frames_with_cv: List[int] = []
         for number, frame in frames.items():
             if ('interior_camera_health_response_cvb' in frame and
                     'interior_camera_health_response_cve' in frame and
@@ -46,34 +56,36 @@ class ChcCounter(Processor):
                 ):
                 frames_with_cv.append(number)
 
-         ## group frames into events with tolerance
+         # group frames into events with tolerance
         frame_groups = self.__group_frames_to_events(frames_with_cv, 2)
 
-        ## duration calculation
-        chc_periods: list[ChcCounter.__ChcPeriod] = []
+        # duration calculation
+        chc_periods: List[ChcCounter.__ChcPeriod] = []
         for frame_group in frame_groups:
             ts_first_frame: timedelta = frames[frame_group[0]]['timestamp']
             ts_last_frame: timedelta = frames[frame_group[-1]]['timestamp']
-            if(len(frames)>frame_group[-1]+1):
-                #there is a frame after last CHC frame, so add one frame to duration
+            if (len(frames) > frame_group[-1]+1):
+                # there is a frame after last CHC frame, so add one frame to duration
                 ts_end: timedelta = frames[frame_group[-1]+1]['timestamp']
             elif frame_group[-1] != 0:
-                #there is no frame after last CHC frame, so add the previous frame length to duration
-                frame_duration: timedelta = frames[frame_group[-1]]['timestamp'] - frames[frame_group[-1]-1]['timestamp']
+                # there is no frame after last CHC frame, so add the previous frame length to duration
+                frame_duration: timedelta = frames[frame_group[-1]
+                                                   ]['timestamp'] - frames[frame_group[-1]-1]['timestamp']
                 ts_end = ts_last_frame + frame_duration
             else:
-                #there is only one frame at all, so just assume 1 second CHC
+                # there is only one frame at all, so just assume 1 second CHC
                 ts_end = ts_last_frame + timedelta(seconds=1)
             duration = (ts_end - ts_first_frame).total_seconds()
-            chc_period: ChcCounter.__ChcPeriod = {'frames': frame_group, 'duration': duration}
+            chc_period: ChcCounter.__ChcPeriod = {
+                'frames': frame_group, 'duration': duration}
             chc_periods.append(chc_period)
 
         _logger.info('Identified %s CHC periods', len(chc_periods))
 
         return chc_periods
 
-    def __group_frames_to_events(self, frames:list[int], tolerance:int)->list[list[int]]:
-        groups: list[list[int]] = []
+    def __group_frames_to_events(self, frames: List[int], tolerance: int) -> List[List[int]]:
+        groups: List[List[int]] = []
 
         if len(frames) < 1:
             return groups

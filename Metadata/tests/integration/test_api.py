@@ -1,21 +1,23 @@
+"""Metadata API integration tests."""
 import json
 import os
 import sys
+from unittest.mock import MagicMock
+from unittest.mock import Mock
+
 import mongomock
 import pytest
-from unittest.mock import MagicMock, Mock
+from metadata.api import controller
+from metadata.api.controller import init_controller
 from metadata.api.db import Persistence
 from metadata.api.service import ApiService
 
-
 sys.modules['api.config'] = MagicMock()
-from metadata.api import controller
 
-db_tables = { 'recordings': 'recording', 'signals': 'signals', 'pipeline_exec': 'pipeline_exec', 'algo_output': 'algo_output'}
-our_recording = 'our_recording'
-other_recording = 'other_recording'
-our_algo = 'what_we_are_looking_for'
-other_algo = 'what_we_were_not_looking_for'
+db_tables = {'recording': 'recording',
+             'signals': 'signals',
+             'pipeline_exec': 'pipeline_exec',
+             'algo_output': 'algo_output'}
 
 mockdb_client = mongomock.MongoClient()
 recordings = mockdb_client.DataIngestion.recordings
@@ -29,29 +31,37 @@ controller.service = ApiService(persistence, s3mock)
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-testrecordings = json.loads(open(os.path.join(__location__, 'test_data/recordings.json'), 'r').read())
-testexecs = json.loads(open(os.path.join(__location__, 'test_data/pipeline_executions.json'), 'r').read())
-testalgo = json.loads(open(os.path.join(__location__, 'test_data/algo_output.json'), 'r').read())
+testrecordings = json.loads(
+    open(os.path.join(__location__, 'test_data/recordings.json'), 'r').read())
+testexecs = json.loads(open(os.path.join(
+    __location__, 'test_data/pipeline_executions.json'), 'r').read())
+testalgo = json.loads(
+    open(os.path.join(__location__, 'test_data/algo_output.json'), 'r').read())
 recordings.insert_many(testrecordings)
 pipeline_execs.insert_many(testexecs)
 algo_outputs.insert_one(testalgo)
 
+
 @pytest.fixture
-def client():
-    controller.app.testing = True
-    with controller.app.test_client() as client:
-        return client
+def client_mock():
+    """Flask mocked client fixture."""
+    service = Mock()
+    app = init_controller(service)
+    app.testing = True
+    with app.test_client() as flask_client:
+        return flask_client
 
-video_url_endpoint = '/getVideoUrl/foo/bar/baz'
+
+VIDEO_URL_ENDPOINT = '/getVideoUrl/foo/bar/baz'
+ANON_VIDEO_URL_ENDPOINT = '/getAnonymizedVideoUrl/srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202'
+
+
 @pytest.mark.integration
-def test_get_video_url(client):
-    # GIVEN
+def test_get_video_url(client_mock: Mock):
     s3mock.generate_presigned_url = Mock(return_value='demoUrl')
 
-    # WHEN
-    resp = client.get(video_url_endpoint)
+    resp = client_mock.get(VIDEO_URL_ENDPOINT)
 
-    # THEN
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert data['message'] == 'demoUrl'
@@ -59,23 +69,19 @@ def test_get_video_url(client):
 
     s3mock.generate_presigned_url.assert_called_once()
     args = s3mock.generate_presigned_url.call_args.args
-    assert(args[0] == 'get_object')
+    assert (args[0] == 'get_object')
     kwargs = s3mock.generate_presigned_url.call_args.kwargs
     params = kwargs['Params']
-    assert(params['Bucket'] == 'foo')
-    assert(params['Key'] == 'barbaz')
+    assert (params['Bucket'] == 'foo')
+    assert (params['Key'] == 'barbaz')
 
 
-anon_video_url_endpoint = '/getAnonymizedVideoUrl/srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202'
 @pytest.mark.integration
-def test_get_video_url(client):
-    # GIVEN
+def test_get_video_url2(client_mock: Mock):
     s3mock.generate_presigned_url = Mock(return_value='demoUrl')
 
-    # WHEN
-    resp = client.get(anon_video_url_endpoint)
+    resp = client_mock.get(ANON_VIDEO_URL_ENDPOINT)
 
-    # THEN
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert data['message'] == 'demoUrl'
@@ -83,8 +89,8 @@ def test_get_video_url(client):
 
     s3mock.generate_presigned_url.assert_called_once()
     args = s3mock.generate_presigned_url.call_args.args
-    assert(args[0] == 'get_object')
+    assert (args[0] == 'get_object')
     kwargs = s3mock.generate_presigned_url.call_args.kwargs
     params = kwargs['Params']
-    assert(params['Bucket'] == 'qa-rcd-anonymized-video-files')
-    assert(params['Key'] == 'Debug_Lync/srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202_anonymized.mp4')
+    assert (params['Bucket'] == 'qa-rcd-anonymized-video-files')
+    assert (params['Key'] == 'Debug_Lync/srxdriverpr1external07_rc_srx_qa_driverpr1_007_InteriorRecorder_1645517710980_1645519350202_anonymized.mp4')

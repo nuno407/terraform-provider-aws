@@ -1,16 +1,18 @@
-import os
-from unittest import TestCase
-from unittest.mock import MagicMock, Mock
 import json
+import os
+from typing import Tuple
+from unittest.mock import MagicMock
+from unittest.mock import Mock
 
 import pytest
-
+from metadata.api.db import Persistence
 from metadata.api.service import ApiService
-
 
 db = MagicMock()
 s3 = MagicMock()
+db = MagicMock()
 service = ApiService(db, s3)
+
 
 @pytest.mark.unit
 def test_create_video_url():
@@ -25,14 +27,15 @@ def test_create_video_url():
     return_value = service.create_video_url(bucket, folder, file)
 
     # THEN
-    assert(return_value == url)
+    assert (return_value == url)
     s3.generate_presigned_url.assert_called_once()
     args = s3.generate_presigned_url.call_args.args
-    assert(args[0] == 'get_object')
+    assert (args[0] == 'get_object')
     kwargs = s3.generate_presigned_url.call_args.kwargs
     params = kwargs['Params']
-    assert(params['Bucket'] == bucket)
-    assert(params['Key'] == folder + file)
+    assert (params['Bucket'] == bucket)
+    assert (params['Key'] == folder + file)
+
 
 @pytest.mark.unit
 def test_create_anonymized_video_url():
@@ -41,7 +44,8 @@ def test_create_anonymized_video_url():
     path = 'foobar.mp4'
     bucket = 'baz'
     url = 'http://spam.egg/baz/'
-    db.get_algo_output = Mock(return_value={'output_paths': {'video': bucket + '/' + path}})
+    db.get_algo_output = Mock(
+        return_value={'output_paths': {'video': bucket + '/' + path}})
     s3.generate_presigned_url = Mock(return_value=url)
 
     # WHEN
@@ -51,78 +55,96 @@ def test_create_anonymized_video_url():
     # db-part
     db.get_algo_output.assert_called_once_with('Anonymize', recording_id)
     # s3-part
-    assert(return_value == url)
+    assert (return_value == url)
     s3.generate_presigned_url.assert_called_once()
     args = s3.generate_presigned_url.call_args.args
-    assert(args[0] == 'get_object')
+    assert (args[0] == 'get_object')
     kwargs = s3.generate_presigned_url.call_args.kwargs
     params = kwargs['Params']
-    assert(params['Bucket'] == bucket)
-    assert(params['Key'] == path)
+    assert (params['Bucket'] == bucket)
+    assert (params['Key'] == path)
+
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-@pytest.mark.unit
-def test_get_table_data():
-    # GIVEN
-    jsonstr = open(os.path.join(__location__, 'test_data/recording_aggregation_response.json'), 'r').read()
-    aggregation_result = json.loads(jsonstr)
-    db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
 
-    # WHEN
-    result, _, _ = service.get_table_data(10, 1, None, None, None, None)
 
-    # THEN
-    expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected.json'), 'r').read()
-    expected = json.loads(expectedstr)
-    assert(expected == result)
+def read_and_parse_test_data(filepath: str) -> dict:
+    """Read and parse test data.
 
-    # GIVEN
-    jsonstr = open(os.path.join(__location__, 'test_data/recording_aggregation_response_sorted.json'), 'r').read()
-    aggregation_result = json.loads(jsonstr)
-    db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
+    Args:
+        filepath (str): path to test data
+    Returns:
+        dict of the parsed content of test data file.
+    """
+    with open(os.path.join(
+            __location__, filepath), 'r', encoding='utf-8') as file_handle:
+        content = file_handle.read()
+        return json.loads(content)
 
-    # WHEN
-    result, _, _ = service.get_table_data(10, 1, None, None, 'length', 'asc')
-
-    # THEN
-    expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected_sorted.json'), 'r').read()
-    expected = json.loads(expectedstr)
-    assert(expected == result)
-
-    # GIVEN
-    jsonstr = open(os.path.join(__location__, 'test_data/recording_aggregation_response_filtered_sorted.json'), 'r').read()
-    aggregation_result = json.loads(jsonstr)
-    db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
-
-    # WHEN
-    result, _, _ = service.get_table_data(10, 1, {'time': { '>': "2022-04-01 13:00:00" },'_id': { 'has': "srx" }}, 'and', 'length', 'dsc')
-
-    # THEN
-    expectedstr = open(os.path.join(__location__, 'test_data/table_data_expected_filtered_sorted.json'), 'r').read()
-    expected = json.loads(expectedstr)
-    for i in expected: print(i)
-    print("===========================")
-    for i in result: print(i)
-    assert(expected == result)
 
 @pytest.mark.unit
+@pytest.mark.parametrize("aggregation_result_path,get_table_kwargs,expected_result_path", [
+    ('test_data/recording_aggregation_response.json',
+        {
+            'page_size': 10,
+            'page': 1,
+            'query': None,
+            'operator': None,
+            'sorting': None,
+            'direction': None
+        },
+     'test_data/table_data_expected.json'),
+    ('test_data/recording_aggregation_response_sorted.json',
+        {
+            'page_size': 10,
+            'page': 1,
+            'query': None,
+            'operator': None,
+            'sorting': 'length',
+            'direction': 'asc'
+        },
+     'test_data/table_data_expected_sorted.json'),
+    ('test_data/recording_aggregation_response_filtered_sorted.json',
+        {
+            'page_size': 10,
+            'page': 1,
+            'query': [{'time': {'>': "2022-04-01 13:00:00"}, '_id': {'has': "srx"}}],
+            'operator': 'and',
+            'sorting': 'length',
+            'direction': 'dsc'
+        },
+     'test_data/table_data_expected_filtered_sorted.json'),
+])
+def test_get_table_data(aggregation_result_path: str, get_table_kwargs: Tuple[str, dict, str], expected_result_path: str):
+    aggregation_result = read_and_parse_test_data(aggregation_result_path)
+    db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
+
+    result, _, _ = service.get_table_data(**get_table_kwargs)
+
+    expected = read_and_parse_test_data(expected_result_path)
+    assert expected == result
+
+
+@ pytest.mark.unit
 def test_get_single_recording():
-    # GIVEN
-    jsonstr = open(os.path.join(__location__, 'test_data/recording_aggregation_response.json'), 'r').read()
+    jsonstr = open(os.path.join(
+        __location__, 'test_data/recording_aggregation_response.json'), 'r').read()
     aggregation_result = json.loads(jsonstr)
-    db.get_single_recording = Mock(side_effect=[aggregation_result[2], aggregation_result[3]])
+    db.get_single_recording = Mock(
+        side_effect=[aggregation_result[2], aggregation_result[3]])
 
-    # WHEN
-    result = service.get_single_recording("srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835387254")
+    result = service.get_single_recording(
+        "srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835387254")
 
-    # THEN
-    expectedstr = open(os.path.join(__location__, 'test_data/single_recording_expected.json'), 'r').read()
+    expectedstr = open(os.path.join(
+        __location__, 'test_data/single_recording_expected.json'), 'r').read()
     expected = json.loads(expectedstr)
-    assert(result == expected)
-    assert(db.get_single_recording.call_count == 2)
+    assert (result == expected)
+    assert (db.get_single_recording.call_count == 2)
 
-@pytest.mark.unit
+
+@ pytest.mark.unit
 def test_update_video_description():
     # GIVEN
     id = 'foo'

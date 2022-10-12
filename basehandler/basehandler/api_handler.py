@@ -3,10 +3,11 @@ import queue
 from threading import Thread
 
 import flask
-from flask import Blueprint, Flask
+from flask import Blueprint
+from flask import Flask
 
-from base.aws.shared_functions import AWSServiceClients
 from base.aws.container_services import ContainerServices
+from base.aws.shared_functions import AWSServiceClients
 
 
 class OutputEndpointParameters():
@@ -49,10 +50,10 @@ class OutputEndpointNotifier():
         Notifies the message handler that an error as ocurred on processing of the current message
         """
         msg_body = {
-                'chunk': None,
-                'path': None,
-                'msg_body': None,
-                'status' : 'ERROR'}
+            'chunk': None,
+            'path': None,
+            'msg_body': None,
+            'status': 'ERROR'}
 
         self.internal_queue.put(msg_body)
 
@@ -96,7 +97,7 @@ class APIHandler():
                  endpoint_params: OutputEndpointParameters,
                  callback_blueprint: Blueprint,
                  message_handler_thread: Thread,
-                 endpoint_notifier : OutputEndpointNotifier) -> None:
+                 endpoint_notifier: OutputEndpointNotifier) -> None:
         """
         Creates an APIHandler that will receive the callback from a processing request to the IVS Feature chain.
         It should receive a blueprint that post a message to the internal queue after receiving the callback request.
@@ -135,11 +136,9 @@ class APIHandler():
             else:
                 return flask.Response(status=500, response='Message handler thread error')
 
-
         @app.route("/processingerror", methods=["POST"])
         def handle_processing_error():
             self.endpoint_notifier.notify_error()
             return flask.Response(status=200, response='Ok')
-
 
         return app

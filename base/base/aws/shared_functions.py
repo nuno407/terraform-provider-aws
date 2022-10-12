@@ -1,16 +1,7 @@
 """Shared functions class for communication with AWS services"""
-import json
-import logging
-import os
-import subprocess
-from datetime import datetime  # timedelta as td,
+from datetime import datetime
 
 import boto3
-import pytz
-from pymongo import MongoClient
-from pymongo.database import Database
-
-_logger = logging.getLogger(__name__)
 
 
 class StsHelper:
@@ -30,6 +21,7 @@ class StsHelper:
         if (datetime.now() - self.__last_renew).total_seconds() > 1800:
             self.__renew_credentials()
         return self.__credentials
+
 
 class AWSServiceClients():
 
