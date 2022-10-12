@@ -25,7 +25,6 @@ from sdretriever.message import VideoMessage
 
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
-FRAME_BUFFER = 120*1000  # 2minin milliseconds
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
@@ -121,10 +120,11 @@ class Ingestor(object):
 
 
 class VideoIngestor(Ingestor):
-    def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
+    def __init__(self, container_services, s3_client, sqs_client, sts_helper, frame_buffer=0) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
         self.clip_ext = ".mp4"
         self.STREAM_TIMESTAMP_TYPE = 'PRODUCER_TIMESTAMP'
+        self.frame_buffer = frame_buffer
 
     @staticmethod
     def _ffmpeg_probe_video(video_bytes) -> dict:
@@ -213,8 +213,8 @@ class VideoIngestor(Ingestor):
             hq_request = {
                 "streamName": f"{video_msg.tenant}_{video_msg.deviceid}_InteriorRecorder",
                 "deviceId": video_msg.deviceid,
-                "footageFrom": video_msg.footagefrom - FRAME_BUFFER,  # Selector needs
-                "footageTo": video_msg.footageto + FRAME_BUFFER
+                "footageFrom": video_msg.footagefrom - self.frame_buffer,
+                "footageTo": video_msg.footageto + self.frame_buffer
             }
             # Send message to secondary input queue of Selector container
             hq_selector_queue = self.CS.sqs_queues_list["HQ_Selector"]
@@ -244,16 +244,13 @@ class SnapshotIngestor(Ingestor):
         if not tenant or not device or not start or not end:
             return []
         # cast to datetime format
-        start_timestamp = datetime.fromtimestamp(
-            start/1000.0) if type(start) != datetime else start
-        end_timestamp = datetime.fromtimestamp(
-            end/1000.0) if type(end) != datetime else end
+        start_timestamp = datetime.fromtimestamp(start/1000.0) if type(start) != datetime else start
+        end_timestamp = datetime.fromtimestamp(end/1000.0) if type(end) != datetime else end
         if int(start.timestamp()) < 0 or int(end.timestamp()) < 0:
             return []
 
         dt = start_timestamp
         times = []
-        searches = dict()
         # for all hourly intervals between start_timestamp and end_timestamp
         while dt <= end_timestamp or (dt.hour == end_timestamp.hour):
             # append its respective path to the list
@@ -264,9 +261,8 @@ class SnapshotIngestor(Ingestor):
             times.append(
                 f"{tenant}/{device}/year={year}/month={month}/day={day}/hour={hour}/")
             dt = dt + td(hours=1)
-            searches.update({tenant: {device: {year: {month: {day: {hour}}}}}})
         # and return it
-        return times, searches
+        return times
 
     def ingest(self, snap_msg):
         flag_do_not_delete = False
@@ -275,10 +271,9 @@ class SnapshotIngestor(Ingestor):
         for chunk in snap_msg.chunks:
 
             # Our SRX device is in Portugal, 1h diff to AWS
-            timestamp_10 = datetime.fromtimestamp(
+            timestamp_10 = datetime.utcfromtimestamp(
                 chunk.start_timestamp_ms/1000.0)  # + td(hours=-1.0)
             if chunk.uuid.endswith(".jpeg"):
-
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
@@ -287,14 +282,11 @@ class SnapshotIngestor(Ingestor):
                 if not exists_on_devcloud:
 
                     # Determine where to search for the file on RCC S3
-                    possible_locations, searches = self._snapshot_path_generator(
+                    possible_locations = self._snapshot_path_generator(
                         snap_msg.tenant, snap_msg.deviceid, timestamp_10, datetime.now())
-                    LOGGER.debug(f"Generated search paths: {searches}", extra={
-                                 "messageid": snap_msg.messageid})
 
                     # For all those locations
                     for folder in possible_locations:
-
                         # If the file exists in this RCC folder
                         found_on_rcc, _ = self.check_if_exists(
                             folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT, snap_msg.messageid)
@@ -426,7 +418,7 @@ class MetadataIngestor(Ingestor):
                     return False
         return True
 
-    def _get_metadata_chunks(self, video_msg: dict):
+    def _get_metadata_chunks(self, video_msg: VideoMessage):
         """Download metadata chunks from RCC S3
 
         Args:

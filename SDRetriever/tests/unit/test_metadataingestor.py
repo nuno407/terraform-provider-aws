@@ -9,7 +9,7 @@ from sdretriever.ingestor import MetadataIngestor
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("msg_interior", "container_services", "s3_client", "sqs_client", "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
-class TestSnapshotIngestor:
+class TestMetadataIngestor:
 
     @pytest.fixture
     def expected_rcc_folders(self):
@@ -62,13 +62,12 @@ class TestSnapshotIngestor:
         assert pts == expected_metadata["chunk"]
 
     def test_upload_source_data(self, obj, source_data, msg_interior):
-        (_id, s3_path) = obj._upload_source_data(source_data,msg_interior)
+        s3_path = obj._upload_source_data(source_data,msg_interior, "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110")
         expected_client = ANY
         expected_source_bytes = bytes(json.dumps(source_data, ensure_ascii=False, indent=4).encode('UTF-8'))
         expected_path = "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
         expected_bucket = obj.CS.raw_s3
         obj.CS.upload_file.assert_called_with(expected_client, expected_source_bytes, expected_bucket, expected_path)
-        assert _id == "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110"
         assert s3_path == expected_path
 
     def test_ingest(self, obj, msg_interior, metadata_chunks, metadata_full):
@@ -87,8 +86,8 @@ class TestSnapshotIngestor:
         ))
         obj.CS.send_message = Mock()
         os.environ["QUEUE_MDFP"] = "dev-terraform-queue-mdf-parser"
-        result = obj.ingest(msg_interior)
+        result = obj.ingest(msg_interior, "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110")
 
-        obj._upload_source_data.assert_called_once_with(metadata_full,ANY)
+        obj._upload_source_data.assert_called_once_with(metadata_full,ANY, ANY)
         obj.CS.send_message.assert_called_once_with(ANY, "dev-terraform-queue-mdf-parser", ANY)
         assert result

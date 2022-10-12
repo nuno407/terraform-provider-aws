@@ -10,7 +10,7 @@ class SourceCommuter(object):
         if type(rules) == dict:
             self.sources = rules  # {source:max poll} or [source]
         else:
-            self.sources = {source:1 for source in rules}
+            self.sources = {source: 1 for source in rules}
         self.index = 0  # index of the currently used source
         self.current_source = list(self.sources)[self.index]
         self.counter = self.sources.get(self.current_source)  # number of polls left for current source
@@ -44,10 +44,10 @@ class SourceCommuter(object):
 
     def _promote(self) -> None:
         """Increase the number of max usages for the current source. Uses a factor of 2."""
-        self.sources.update({self.current_source: self.sources.get(self.current_source)*2})
+        self.sources.update({self.current_source: self.sources[self.current_source]*2})
 
     def _demote(self) -> None:
         """Decrease the number of max usages for the current source. Uses a factor of 2."""
-        current_max = self.sources.get(self.current_source)
+        current_max = self.sources[self.current_source]
         if current_max > 1:
             self.sources.update({self.current_source: current_max // 2})

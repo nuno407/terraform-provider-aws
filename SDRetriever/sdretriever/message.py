@@ -5,20 +5,19 @@ from abc import abstractproperty
 from datetime import datetime
 from typing import Optional
 
-TENANT_BLACKLIST = {'TEST_TENANT','herbie','jackalope','systestsrx','hacknorris','deviceprep'} # Tenants we receive messages from, but don't have access for
 LOGGER = log.getLogger("SDRetriever." + __name__)
+
 
 class Chunk(object):
     """Representation of a single message chunk object"""
 
     def __init__(self, chunk_description: dict = dict()) -> None:
-        self.uuid : str = chunk_description.get("uuid")
-        self.upload_status : str = chunk_description.get("upload_status")
-        self.start_timestamp_ms : str = chunk_description.get("start_timestamp_ms")
-        self.end_timestamp_ms : str = chunk_description.get("end_timestamp_ms")
-        self.payload_size : str = chunk_description.get("payload_size")
-        self.available : bool = self.upload_status == "UPLOAD_STATUS__ALREADY_UPLOADED"
-
+        self.uuid: Optional[str] = chunk_description.get("uuid")
+        self.upload_status: Optional[str] = chunk_description.get("upload_status")
+        self.start_timestamp_ms: Optional[str] = chunk_description.get("start_timestamp_ms")
+        self.end_timestamp_ms: Optional[str] = chunk_description.get("end_timestamp_ms")
+        self.payload_size: Optional[str] = chunk_description.get("payload_size")
+        self.available: Optional[bool] = self.upload_status == "UPLOAD_STATUS__ALREADY_UPLOADED"
 
     def __repr__(self) -> str:
         return f"{self.uuid}, [{self.start_timestamp_ms}, {self.end_timestamp_ms}]"
@@ -38,6 +37,24 @@ class Message(object):
 
     @abstractmethod
     def validate(self):
+        """Check for bad format and content of the message.
+        If format is bad, send message back to DLQ.
+        Last check before working on the message ingestion."""
+        pass
+
+    @abstractmethod
+    def is_irrelevant(self):
+        """Check if a message, independant of its format, is not relevant for us, e.g. regular messages that we ignore e.g. TEST_TENANT.
+        If irrelevant, delete, but if relevant, validate afterwards. Must be very strict and only give true positives, let everything else pass.
+
+        # if is_irrelevant:
+        #   delete
+        # otherwise:
+        #   if validate:
+        #       process
+        #   otherwise:
+        #       continue
+        """
         pass
 
     @property
@@ -65,7 +82,8 @@ class Message(object):
             receive_count = self.attributes['ApproximateReceiveCount']
             receive_count = int(receive_count)
         else:
-            LOGGER.error("Field 'ApproximateReceiveCount' not found in 'Attributes'", extra={"messageid": self.messageid})
+            LOGGER.error("Field 'ApproximateReceiveCount' not found in 'Attributes'",
+                         extra={"messageid": self.messageid})
         return receive_count
 
     @property
@@ -76,6 +94,7 @@ class Message(object):
         else:
             LOGGER.error("Field 'Attributes' not found in 'InputMessage'", extra={"messageid": self.messageid})
         return attributes
+
     @property
     def body(self) -> dict:
         body = {}
@@ -110,7 +129,8 @@ class Message(object):
             if type(messageattributes) == str:
                 messageattributes = json.loads(messageattributes.replace("\'", "\""))
         else:
-            LOGGER.error("Field 'MessageAttributes' not found at root nor in 'Body'", extra={"messageid": self.messageid})
+            LOGGER.error("Field 'MessageAttributes' not found at root nor in 'Body'",
+                         extra={"messageid": self.messageid})
         return messageattributes
 
     @property
@@ -184,44 +204,56 @@ class VideoMessage(Message):
                 return video_recording_type
 
     def validate(self) -> bool:
-        """Runtime tests to determine if message contents are usable
+        """Runtime tests to determine if message contents are usable.
 
         Returns:
-            bool: True if valid, else False
+            bool: True, False
         """
-        if self.tenant in TENANT_BLACKLIST:
-            LOGGER.info(f"Tenant {self.tenant} is blacklisted, message deemed invalid for ingestion", extra={"messageid": self.messageid})
+
+        if not self.topicarn:
+            LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
             return False
-        elif not self.topicarn:
-            LOGGER.info(f"Topic could not be identified, message deemed invalid for ingestion", extra={"messageid": self.messageid})
+        if not self.topicarn.endswith("video-footage-events"):
+            LOGGER.warning(f"Topic '{self.topicarn}' is not for video footage events",
+                           extra={"messageid": self.messageid})
             return False
-        elif not self.topicarn.endswith("video-footage-events"):
-            LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events, message deemed invalid for ingestion", extra={"messageid": self.messageid})
-            return False
-        elif self.streamname == "":
-            LOGGER.info("Could not find a stream name, message deemed invalid for ingestion", extra={"messageid": self.messageid})
-            return False
-        # All FrontRecorder data is to be ignored for now
-        elif self.video_recording_type() == 'FrontRecorder':
-            LOGGER.info("Found 'FrontRecorder' video recorder, message deemed invalid for ingestion", extra={"messageid": self.messageid})
+        if not self.streamname:
+            LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
             return False
         return True
 
+    def is_irrelevant(self, tenant_blacklist: list[str] = [], recorder_blacklist: list[str] = []) -> bool:
+        """Runtime tests to determine if message contents are not meant to be ingested. Signals only true positives for irrelevancy.
+
+        Returns:
+            bool: True, False
+        """
+        try:
+            recorder = self.video_recording_type()
+            if recorder in recorder_blacklist:
+                LOGGER.info(f"Recorder {recorder} is blacklisted", extra={"messageid": self.messageid})
+                return True
+            if self.tenant in tenant_blacklist:
+                LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
+                return True
+            return False
+        except:
+            return False
+
     @property
-    def streamname(self) -> str:
-        streamname = ""
-        if 'streamName' in self.message:
-            streamname = self.message.get("streamName")
-        else:
+    def streamname(self) -> Optional[str]:
+        streamname = self.message.get("streamName")
+        if streamname is None:
             LOGGER.error("Field 'streamName' not found in 'Message'", extra={"messageid": self.messageid})
         return streamname
 
     @property
-    def recording_type(self) -> str:
+    def recording_type(self) -> Optional[str]:
+        if not self.streamname:
+            return
         for video_recording_type in self._VIDEO_RECORDING_TYPES:
             if video_recording_type in self.streamname:
                 return video_recording_type
-        return ""
 
     @property
     def recordingid(self) -> str:
@@ -240,7 +272,8 @@ class VideoMessage(Message):
                 try:
                     recordingid = self.messageattributes["recordingId"]["Value"]
                 except:
-                    LOGGER.error("Field 'recordingId' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
+                    LOGGER.error("Field 'recordingId' not found in 'MessageAttributes'",
+                                 extra={"messageid": self.messageid})
         return recordingid
 
     @property
@@ -248,7 +281,7 @@ class VideoMessage(Message):
         footagefrom = 0
         if 'footageFrom' in self.message:
             footagefrom = self.message.get("footageFrom")
-            #footagefrom = datetime.fromtimestamp(footagefrom/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
+            # footagefrom = datetime.fromtimestamp(footagefrom/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
             LOGGER.error("Field 'footageFrom' not found in 'Message'", extra={"messageid": self.messageid})
         return footagefrom
@@ -258,7 +291,7 @@ class VideoMessage(Message):
         footageto = 0
         if 'footageTo' in self.message:
             footageto = self.message.get("footageTo")
-            #footageto = datetime.fromtimestamp(footageto/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
+            # footageto = datetime.fromtimestamp(footageto/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
             LOGGER.error("Field 'footageTo' not found in 'Message'", extra={"messageid": self.messageid})
         return footageto
@@ -303,11 +336,25 @@ class SnapshotMessage(Message):
         Returns:
             bool: True if valid, else False
         """
-        if self.tenant in TENANT_BLACKLIST:
-            LOGGER.info(f"Tenant {self.tenant} is blacklisted, message deemed invalid for ingestion", extra={"messageid": self.messageid})
+        if self.chunks == []:
+            LOGGER.warning("Field 'chunk_descriptions' is empty, nothing to ingest",
+                           extra={"messageid": self.messageid})
             return False
         return True
 
+    def is_irrelevant(self, tenant_blacklist: list[str] = []) -> bool:
+        """Runtime tests to determine if message contents are not meant to be ingested
+
+        Returns:
+            bool: True if the message is to be deleted without ingestion, otherwise False
+        """
+        try:
+            if self.tenant in tenant_blacklist:
+                LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
+                return True
+        except:
+            return False
+        return False
 
     @property
     def chunks(self) -> list[Chunk]:
@@ -315,8 +362,6 @@ class SnapshotMessage(Message):
         if 'chunk_descriptions' in self.properties:
             chunks = self.properties.get('chunk_descriptions')
             chunks = [Chunk(chunk_description) for chunk_description in chunks]
-            if chunks == []:
-                LOGGER.warning("Field 'chunk_descriptions' is empty", extra={"messageid": self.messageid})
         else:
             LOGGER.error("Field 'chunk_descriptions' not found in 'properties'", extra={"messageid": self.messageid})
         return chunks
@@ -384,6 +429,7 @@ class SnapshotMessage(Message):
         else:
             LOGGER.error("Field 'value' not found in 'Message' nor 'Body'", extra={"messageid": self.messageid})
         return value
+
 
 """Metadata is not received as message, so we don't have a class to represent it.
 Instead, we assume it exists on RCC at the moment we get a notification for its video."""

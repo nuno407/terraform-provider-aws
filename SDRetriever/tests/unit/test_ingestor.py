@@ -6,7 +6,7 @@ from sdretriever.ingestor import Ingestor
 @pytest.mark.usefixtures("container_services","s3_client","sqs_client","sts_helper")
 class TestIngestor:
 
-    @pytest.fixture(params=[{'KeyCount':0,'Contents':[]}, {'KeyCount':1,'Contents':["/This/is/a/path"]}])
+    @pytest.fixture(params=[{'KeyCount':0,'Contents':[]}, {'KeyCount':1,'Contents':[{'Key':'/This/is/a/path', 'Size':12345}]}])
     def response(self, request) -> dict:
         # uses two params, one for a case where it finds one matching item in the bucket, and another one for when it doesn't
         return request.param

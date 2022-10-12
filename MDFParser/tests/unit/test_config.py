@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 from mdfparser.config import MdfParserConfig
 
 __location__ = os.path.realpath(os.path.join(
@@ -10,7 +12,8 @@ __location__ = os.path.realpath(os.path.join(
 class TestMdfParserConfig:
     def test_current_config(self):
         # GIVEN
-        good_config = os.path.join(__location__, '../../config/config.yml')
+        good_config = os.path.join(
+            __location__, './test_assets/MdfParserConfigs/config.yml')
 
         # WHEN
         loaded_config = MdfParserConfig.load_config_from_yaml_file(good_config)
