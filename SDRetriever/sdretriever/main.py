@@ -177,7 +177,7 @@ def main(config: SDRetrieverConfig):
                                     "messageid": message.get('MessageId')})
                 else:
                     # non-parseable messages should go to DLQ
-                    LOGGER.error(f"Message deemed invalid for ingestion, ignoring", extra={
+                    LOGGER.debug(f"Message deemed invalid for ingestion, ignoring", extra={
                                  "messageid": message.get('MessageId')})
 
             elif identity in IMAGE:
@@ -205,7 +205,7 @@ def main(config: SDRetrieverConfig):
                                     "messageid": message.get('MessageId')})
                 else:
                     # non-parseable messages should go to DLQ
-                    LOGGER.error(f"Message deemed invalid for ingestion, ignoring", extra={
+                    LOGGER.debug(f"Message deemed invalid for ingestion, ignoring", extra={
                                  "messageid": message.get('MessageId')})
             else:
                 LOGGER.error(f"Could not identify message type as video nor snapshot related, ignoring", extra={

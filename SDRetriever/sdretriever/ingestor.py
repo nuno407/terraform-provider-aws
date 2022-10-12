@@ -467,8 +467,8 @@ class MetadataIngestor(Ingestor):
                     chunks_count += 1
 
         if not chunks:
-            LOGGER.error(f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}", extra={
-                         "messageid": video_msg.messageid})
+            LOGGER.warning(f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}", extra={
+                "messageid": video_msg.messageid})
         return chunks
 
     def _process_chunks_into_mdf(self, chunks, video_msg):
@@ -548,8 +548,8 @@ class MetadataIngestor(Ingestor):
                 f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
             if self.check_if_exists(s3_path, bucket, messageid=video_msg.messageid):
-                LOGGER.error(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={
-                             "messageid": video_msg.messageid})
+                LOGGER.info(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={
+                    "messageid": video_msg.messageid})
             else:
                 LOGGER.error(f"File {s3_path} could not be uploaded onto {bucket} -> {repr(exception)}", extra={
                              "messageid": video_msg.messageid})

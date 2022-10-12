@@ -63,7 +63,7 @@ class Message(object):
         if "MessageId" in self.raw_message:
             messageid = self.raw_message.get("MessageId")
         else:
-            LOGGER.error("Field 'MessageId' not found in 'InputMessage'", extra={"messageid": messageid})
+            LOGGER.warning("Field 'MessageId' not found in 'InputMessage'", extra={"messageid": messageid})
         return messageid
 
     @property
@@ -72,7 +72,7 @@ class Message(object):
         if "ReceiptHandle" in self.raw_message:
             receipthandle = self.raw_message.get("ReceiptHandle")
         else:
-            LOGGER.error("Field 'ReceiptHandle' not found in 'InputMessage'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'ReceiptHandle' not found in 'InputMessage'", extra={"messageid": self.messageid})
         return receipthandle
 
     @property
@@ -82,8 +82,8 @@ class Message(object):
             receive_count = self.attributes['ApproximateReceiveCount']
             receive_count = int(receive_count)
         else:
-            LOGGER.error("Field 'ApproximateReceiveCount' not found in 'Attributes'",
-                         extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'ApproximateReceiveCount' not found in 'Attributes'",
+                           extra={"messageid": self.messageid})
         return receive_count
 
     @property
@@ -92,7 +92,7 @@ class Message(object):
         if "Attributes" in self.raw_message:
             attributes = self.raw_message.get("Attributes")
         else:
-            LOGGER.error("Field 'Attributes' not found in 'InputMessage'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'Attributes' not found in 'InputMessage'", extra={"messageid": self.messageid})
         return attributes
 
     @property
@@ -103,7 +103,7 @@ class Message(object):
             if type(body) == str:
                 body = json.loads(body.replace("\'", "\""))
         else:
-            LOGGER.error("Field 'Body' not found in 'InputMessage'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'Body' not found in 'InputMessage'", extra={"messageid": self.messageid})
         return body
 
     @property
@@ -114,7 +114,7 @@ class Message(object):
             if type(message) == str:
                 message = json.loads(message.replace("\'", "\""))
         else:
-            LOGGER.error("Field 'Message' not found in 'Body'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'Message' not found in 'Body'", extra={"messageid": self.messageid})
         return message
 
     @property
@@ -129,8 +129,8 @@ class Message(object):
             if type(messageattributes) == str:
                 messageattributes = json.loads(messageattributes.replace("\'", "\""))
         else:
-            LOGGER.error("Field 'MessageAttributes' not found at root nor in 'Body'",
-                         extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'MessageAttributes' not found at root nor in 'Body'",
+                           extra={"messageid": self.messageid})
         return messageattributes
 
     @property
@@ -147,7 +147,7 @@ class Message(object):
             timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").timestamp()
             timestamp = datetime.fromtimestamp(timestamp/1000.0).strftime('%Y-%m-%d %H:%M:%S')
         else:
-            LOGGER.error("Field 'timestamp' not found in 'Body' nor 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'timestamp' not found in 'Body' nor 'Message'", extra={"messageid": self.messageid})
         return timestamp
 
     @property
@@ -162,7 +162,7 @@ class Message(object):
             elif "StringValue" in tenant:
                 tenant = tenant["StringValue"]
         else:
-            LOGGER.error("Field 'tenant' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'tenant' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
         return tenant
 
     @property
@@ -173,7 +173,7 @@ class Message(object):
             topicarn = self.body.get("TopicArn")
             topicarn = topicarn.split(":")[-1]
         else:
-            LOGGER.error("Field 'TopicArn' not found in 'Body'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'TopicArn' not found in 'Body'", extra={"messageid": self.messageid})
         return topicarn
 
     @abstractproperty
@@ -244,7 +244,7 @@ class VideoMessage(Message):
     def streamname(self) -> Optional[str]:
         streamname = self.message.get("streamName")
         if streamname is None:
-            LOGGER.error("Field 'streamName' not found in 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'streamName' not found in 'Message'", extra={"messageid": self.messageid})
         return streamname
 
     @property
@@ -265,15 +265,15 @@ class VideoMessage(Message):
             try:
                 recordingid = self.message["value"]["properties"]["recording_id"]
             except:
-                LOGGER.error("Field 'recording_id' not found in 'properties'", extra={"messageid": self.messageid})
+                LOGGER.warning("Field 'recording_id' not found in 'properties'", extra={"messageid": self.messageid})
 
         else:
             if 'recordingId' in self.messageattributes:
                 try:
                     recordingid = self.messageattributes["recordingId"]["Value"]
                 except:
-                    LOGGER.error("Field 'recordingId' not found in 'MessageAttributes'",
-                                 extra={"messageid": self.messageid})
+                    LOGGER.warning("Field 'recordingId' not found in 'MessageAttributes'",
+                                   extra={"messageid": self.messageid})
         return recordingid
 
     @property
@@ -283,7 +283,7 @@ class VideoMessage(Message):
             footagefrom = self.message.get("footageFrom")
             # footagefrom = datetime.fromtimestamp(footagefrom/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
-            LOGGER.error("Field 'footageFrom' not found in 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'footageFrom' not found in 'Message'", extra={"messageid": self.messageid})
         return footagefrom
 
     @property
@@ -293,7 +293,7 @@ class VideoMessage(Message):
             footageto = self.message.get("footageTo")
             # footageto = datetime.fromtimestamp(footageto/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
-            LOGGER.error("Field 'footageTo' not found in 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'footageTo' not found in 'Message'", extra={"messageid": self.messageid})
         return footageto
 
     @property
@@ -303,7 +303,7 @@ class VideoMessage(Message):
             uploadstarted = self.message["uploadStarted"]
             uploadstarted = datetime.fromtimestamp(uploadstarted/1000.0)
         else:
-            LOGGER.error("Field 'uploadStarted' not found in 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'uploadStarted' not found in 'Message'", extra={"messageid": self.messageid})
         return uploadstarted
 
     @property
@@ -313,7 +313,7 @@ class VideoMessage(Message):
             uploadfinished = self.message["uploadFinished"]
             uploadfinished = datetime.fromtimestamp(uploadfinished/1000.0)
         else:
-            LOGGER.error("Field 'uploadFinished' not found in 'Message'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'uploadFinished' not found in 'Message'", extra={"messageid": self.messageid})
         return uploadfinished
 
     @property
@@ -321,7 +321,7 @@ class VideoMessage(Message):
         if 'deviceId' in self.messageattributes:
             deviceid = self.messageattributes.get("deviceId")['Value']
         else:
-            LOGGER.error("Field 'deviceId' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'deviceId' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
             return ''
         return deviceid
 
@@ -363,7 +363,7 @@ class SnapshotMessage(Message):
             chunks = self.properties.get('chunk_descriptions')
             chunks = [Chunk(chunk_description) for chunk_description in chunks]
         else:
-            LOGGER.error("Field 'chunk_descriptions' not found in 'properties'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'chunk_descriptions' not found in 'properties'", extra={"messageid": self.messageid})
         return chunks
 
     @property
@@ -373,7 +373,7 @@ class SnapshotMessage(Message):
             senttimestamp = self.attributes['SentTimestamp']
             senttimestamp = datetime.fromtimestamp(int(senttimestamp)/1000.0)
         else:
-            LOGGER.error("Field 'SentTimestamp' not found in 'Attributes'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'SentTimestamp' not found in 'Attributes'", extra={"messageid": self.messageid})
         return senttimestamp
 
     @property
@@ -388,7 +388,7 @@ class SnapshotMessage(Message):
                 eventtype = eventtype["StringValue"]
             eventtype = eventtype.split('.')[-1]
         else:
-            LOGGER.error("Field 'eventtype' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'eventtype' not found in 'MessageAttributes'", extra={"messageid": self.messageid})
             return ''
         return eventtype
 
@@ -397,7 +397,7 @@ class SnapshotMessage(Message):
         if 'device_id' in self.header:
             device_id = self.header["device_id"].split(":")[-1]
         else:
-            LOGGER.error("Field 'device_id' not found in 'header'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'device_id' not found in 'header'", extra={"messageid": self.messageid})
             return ''
         return device_id
 
@@ -407,7 +407,7 @@ class SnapshotMessage(Message):
         if 'header' in self.properties:
             header = self.properties["header"]
         else:
-            LOGGER.error("Field 'header' not found in 'properties'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'header' not found in 'properties'", extra={"messageid": self.messageid})
         return header
 
     @property
@@ -416,7 +416,7 @@ class SnapshotMessage(Message):
         if 'properties' in self.value:
             properties = self.value["properties"]
         else:
-            LOGGER.error("Field 'properties' not found in 'value'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'properties' not found in 'value'", extra={"messageid": self.messageid})
         return properties
 
     @property
@@ -427,7 +427,7 @@ class SnapshotMessage(Message):
         elif 'value' in self.message:
             value = self.message["value"]
         else:
-            LOGGER.error("Field 'value' not found in 'Message' nor 'Body'", extra={"messageid": self.messageid})
+            LOGGER.warning("Field 'value' not found in 'Message' nor 'Body'", extra={"messageid": self.messageid})
         return value
 
 
