@@ -3,10 +3,10 @@ name: OCaaS Scan
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: Branch from where to scan the code
-        required: true
-        default: "master"
+      emails:
+        description: Email addresses to send the report to (separated by semicolon)
+        required: false
+        default: Brg_XC-CT_RideCare_DevCloud@bosch.com
 
 jobs:
   ocaas-scan-project:
@@ -18,31 +18,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: OCaaS Scan
+      - name: Get branch name
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: OCaaS Scan on ${{ env.branch }}
         id: ocaas
         uses: docker://osmipublic.azurecr.io/ocaas-ci:latest
-        continue-on-error: true # Built artifacts also should also be uploaded if the scan finds violations.
         with:
-          args: auth generate-token run start download
+          args: auth generate-token run start
         env:
           OCAAS_USERNAME: ${{ secrets.OCAAS_USERNAME }}
           OCAAS_PASSWORD: ${{ secrets.OCAAS_PASSWORD }}
           PROJECT_NAME: "ridecare_devcloud_source_code"
           PIPELINE_ID: 407 # Your pipeline ID. Provided by the OSMI team.
           VCS_URL: ${{ github.server_url }}/${{ github.repository }}.git
-          VCS_REVISION: ${{ inputs.branch }}
+          VCS_REVISION: ${{ env.branch }}
           APPLICATION_CATEGORY: "BT10"
-          BLOCKING: true
-          REPORT_FILES: DISCLOSURE_DOCUMENT_PDF,VULNERABILITY_REPORT_PDF,SCAN_REPORT_WEB_APP_HTML
-          OUTPUT_DIR: reports/
-
-      - name: Upload reports
-        id: upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: reports
-          path: reports/
-
-      - name: Check for violations
-        if: steps.ocaas.outcome != 'success' || steps.upload.outcome != 'success'
-        run: exit 1
+          BLOCKING: false
+          EMAIL_RECIPIENTS: ${{ inputs.emails }}
