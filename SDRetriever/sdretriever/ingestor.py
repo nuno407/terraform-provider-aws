@@ -328,8 +328,7 @@ class SnapshotIngestor(Ingestor):
                     if not found_on_rcc and not chunk.available:
                         LOGGER.info(f"File {chunk.uuid} is not yet available in RCC S3, with upload status {chunk.upload_status}", extra={
                                     "messageid": snap_msg.messageid})
-                        LOGGER.info(f"Message will be re-ingested later",
-                                    extra={"messageid": snap_msg.messageid})
+
                         flag_do_not_delete = True
                     elif not found_on_rcc and chunk.available:
                         LOGGER.info(f"Could not find {chunk.uuid} in RCC S3, with upload status {chunk.upload_status}", extra={

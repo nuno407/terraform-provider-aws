@@ -198,7 +198,9 @@ def main(config: SDRetrieverConfig):
 
                     # Process parsed message
                     reprocess = SNAPSHOT_ING.ingest(snap_msg_obj)
-                    if not reprocess:
+                    if reprocess:
+                        LOGGER.info(f"Message will be re-ingested later", extra={"messageid": snap_msg_obj.messageid})
+                    else:
                         CS.delete_message(
                             SQS_CLIENT, snap_msg_obj.receipthandle, source)
                         LOGGER.info(f"Message deleted from {source}", extra={
