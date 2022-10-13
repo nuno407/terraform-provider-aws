@@ -1,6 +1,7 @@
 import os
 import queue
 import threading
+from dataclasses import dataclass
 from typing import Protocol
 
 from flask import Blueprint
@@ -10,6 +11,7 @@ from base.aws.shared_functions import AWSServiceClients
 from basehandler.api_handler import APIHandler
 from basehandler.api_handler import OutputEndpointNotifier
 from basehandler.api_handler import OutputEndpointParameters
+from basehandler.message_handler import InternalMessage
 from basehandler.message_handler import MessageHandler
 from basehandler.message_handler import NOOPPostProcessor
 from basehandler.message_handler import PostProcessor
@@ -72,7 +74,8 @@ class BaseHandler():
         self.container_services.load_config_vars(aws_clients.s3_client)
         self.validate_container_services_config()
 
-        internal_queue = queue.Queue(maxsize=int(INTERNAL_QUEUE_MAX_SIZE))
+        internal_queue: queue.Queue[InternalMessage] = queue.Queue(
+            maxsize=int(INTERNAL_QUEUE_MAX_SIZE))
         self.endpoint_params = OutputEndpointParameters(
             self.container_services,
             mode,

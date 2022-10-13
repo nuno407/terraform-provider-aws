@@ -8,6 +8,8 @@ from flask import Flask
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
+from basehandler.message_handler import ErrorMessage
+from basehandler.message_handler import InternalMessage
 
 
 class OutputEndpointParameters():
@@ -16,7 +18,8 @@ class OutputEndpointParameters():
     def __init__(self, container_services: ContainerServices,
                  mode: str,
                  aws_clients: AWSServiceClients,
-                 internal_queue: queue.Queue = queue.Queue(maxsize=1),
+                 internal_queue: queue.Queue[InternalMessage] = queue.Queue(
+                     maxsize=1),
                  ) -> None:
         """
         This is a wrapper for APIHandler endpoint arguments
@@ -49,29 +52,23 @@ class OutputEndpointNotifier():
         """
         Notifies the message handler that an error as ocurred on processing of the current message
         """
-        msg_body = {
-            'chunk': None,
-            'path': None,
-            'msg_body': None,
-            'status': 'ERROR'}
+        self.internal_queue.put(ErrorMessage())
 
-        self.internal_queue.put(msg_body)
-
-    def upload_and_notify(self, chunk: list, path: str, msg_body: dict) -> None:
+    def upload_and_notify(self, chunk: list, path: str, internal_message: InternalMessage) -> None:
         """
         Uploads file to specified path, sends update message to respective handler
 
         Args:
             chunk (list): Binary data to be uploaded
             path (str): The S3 path to be uploaded to
-            msg_body (dict): The message to be passed to the MessageHandler
+            internal_message (InternalMessage): The message to be passed to the MessageHandler
 
         Raises:
-            TypeError: If msg_body is not parsed from JSON format
+            TypeError: If internal_message is not parsed from JSON format
         """
 
         # Make sure that the message is parsed
-        if not isinstance(msg_body, dict):
+        if not isinstance(internal_message, InternalMessage):
             raise TypeError("Message body needs to be parsed from JSON")
 
         # Upload file to S3 bucket
@@ -79,10 +76,10 @@ class OutputEndpointNotifier():
             self.aws_clients.s3_client, chunk, self.container_services.anonymized_s3, path)
 
         # Set status to OK
-        msg_body['status'] = 'OK'
+        internal_message.status = InternalMessage.Status.OK
 
         # Send message to input queue of metadata container
-        self.internal_queue.put(msg_body)
+        self.internal_queue.put(internal_message)
 
 
 class NoHealth(logging.Filter):

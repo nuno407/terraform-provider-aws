@@ -1,11 +1,14 @@
 import os
 import threading
+from sys import meta_path
 
 import flask
 from flask import Blueprint
 
 from basehandler.api_handler import OutputEndpointNotifier
 from basehandler.entrypoint import CallbackBlueprintCreator
+from basehandler.message_handler import InternalMessage
+from basehandler.message_handler import OperationalMessage
 
 
 class CHCCallbackEndpointCreator(CallbackBlueprintCreator):
@@ -36,18 +39,17 @@ class CHCCallbackEndpointCreator(CallbackBlueprintCreator):
             path, _ = os.path.splitext(s3_path)
             file_upload_path = path + "_chc.json"
 
-            msg_body = {}
-            msg_body['uid'] = uid
-            msg_body['status'] = "processing completed"
-            msg_body['bucket'] = notifier.container_services.anonymized_s3
-            msg_body['input_media'] = s3_path
-            msg_body['media_path'] = "-"
-            msg_body['meta_path'] = file_upload_path
+            internal_message = OperationalMessage(
+                uid=uid,
+                status=InternalMessage.Status.PROCESSING_COMPLETED,
+                bucket=notifier.container_services.anonymized_s3,
+                input_media=s3_path,
+                meta_path=file_upload_path)
 
             thread = threading.Thread(target=notifier.upload_and_notify, kwargs={
                 'chunk': file.read(),
                 'path': file_upload_path,
-                'msg_body': msg_body})
+                'internal_message': internal_message})
             thread.start()
 
             return flask.Response(status=202, response='upload video to storage')

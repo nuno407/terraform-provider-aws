@@ -4,7 +4,11 @@ import os
 import queue
 import uuid
 from abc import abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from enum import auto
 from time import perf_counter
+from typing import Optional
 from typing import Protocol
 
 import backoff
@@ -26,6 +30,33 @@ IVS_FC_STATUS_ENDPOINT = f'http://{IVS_FC_HOSTNAME}:{IVS_FC_PORT}/status'
 IVS_FC_MAX_WAIT = float(os.getenv('IVS_FC_MAX_WAIT', '120'))
 
 
+@dataclass
+class InternalMessage:
+    """Message baseclass for internal communication between the APIHandler and MessageHandler"""
+    class Status(Enum):
+        """InternalMessage status enum"""
+        PROCESSING_COMPLETED = auto()
+        OK = auto()
+        ERROR = auto()
+    status: Status
+
+
+@dataclass
+class OperationalMessage(InternalMessage):
+    """Specialisation of InternalMessage in case of no errors"""
+    uid: str
+    bucket: str
+    input_media: str
+    media_path: Optional[str] = None
+    meta_path: Optional[str] = None
+
+
+@dataclass
+class ErrorMessage(InternalMessage):
+    """Specialisation of InternalMessage that indicates errors"""
+    status: InternalMessage.Status = InternalMessage.Status.ERROR
+
+
 class PostProcessor(Protocol):
     """Interface to be implemented by any service that uses the MessageHandler.
 
@@ -33,13 +64,13 @@ class PostProcessor(Protocol):
     to do some postprocessing.
     """
     @abstractmethod
-    def run(self, message_body: dict) -> None:
+    def run(self, message_body: OperationalMessage) -> None:
         """Function the will be run after the output from the processing algorithm is done.
 
         It needs to be implemented by the derived class.
 
         Args:
-            message_body (dict): The message sent from processing algorithm that can be change.
+            message_body (OperationalMessage): The message sent from processing algorithm that can be changed.
         """
         raise NotImplementedError()  # protocol function defines the signature and has and empty body
 
@@ -51,13 +82,13 @@ class NOOPPostProcessor(PostProcessor):
 
     """
 
-    def run(self, message_dict: dict) -> None:
+    def run(self, message_body: OperationalMessage) -> None:
         """NOOP function that doesn't do any post processing.
 
         Args:
-            message_dict (dict): The message sent from processing algorithm that can be change.
+            message_body (OperationalMessage): The message sent from processing algorithm that can be changed.
         """
-        print(f'message {message_dict}')
+        print(f'message {message_body}')
         print('No post-processing required')
 
 
@@ -95,7 +126,7 @@ class RequestProcessingFailed(Exception):
 class MessageHandler():
     """ Message handler """
 
-    def __init__(self, container_services: ContainerServices,  aws_clients: AWSServiceClients, consumer_name: str, internal_queue: queue.Queue, post_processor: PostProcessor) -> None:
+    def __init__(self, container_services: ContainerServices,  aws_clients: AWSServiceClients, consumer_name: str, internal_queue: queue.Queue[InternalMessage], post_processor: PostProcessor) -> None:
         """
         Creates a MessageHandler service that will handle the messages between the algorithm processing service.
         The `consumer_name` will be the name used to grab messages from the queue.
@@ -224,7 +255,7 @@ class MessageHandler():
 
         return incoming_message_body
 
-    def handle_processing_output(self, incoming_message: dict, parsed_output_message_body: dict) -> None:
+    def handle_processing_output(self, incoming_message: dict, parsed_output_message_body: OperationalMessage) -> None:
         """
         Function responsible for handling the messages from the algorithm processing service.
 
@@ -234,7 +265,7 @@ class MessageHandler():
 
         Args:
             incoming_message (dict): JSON message grabbed from the SQS queue.
-            parsed_output_message_body (dict): Parsed JSON message grabbed from the internal queue.
+            parsed_output_message_body (OperationalMessage): Parsed JSON message grabbed from the internal queue.
         """
 
         post_processor = self.__post_processor
@@ -245,9 +276,9 @@ class MessageHandler():
             incoming_message["Body"])
 
         # Validate if the processed recording is the same as the one that was sent to the IVS feature chain
-        if parsed_incoming_message_body["s3_path"] != parsed_output_message_body["input_media"]:
+        if parsed_incoming_message_body["s3_path"] != parsed_output_message_body.input_media:
             raise ProcessingOutOfSyncException(
-                f"Processed recording {parsed_output_message_body['input_media']} is different than the one that was sent to the IVS feature chain {parsed_incoming_message_body['s3_path']}")
+                f"Processed recording {parsed_output_message_body.input_media} is different than the one that was sent to the IVS feature chain {parsed_incoming_message_body['s3_path']}")
 
         post_processor.run(parsed_output_message_body)
 
@@ -255,9 +286,11 @@ class MessageHandler():
 
         # Retrieve output info from received message
         out_s3 = {}
-        out_s3['bucket'] = parsed_output_message_body['bucket']
-        out_s3['media_path'] = parsed_output_message_body['media_path']
-        out_s3['meta_path'] = parsed_output_message_body['meta_path']
+        out_s3['bucket'] = parsed_output_message_body.bucket
+        # If no media_path is provided, use '-'
+        out_s3['media_path'] = parsed_output_message_body.media_path or '-'
+        # If no meta_path is provided, use '-'
+        out_s3['meta_path'] = parsed_output_message_body.meta_path or '-'
 
         # Send message to input queue of the next processing step
         # (if applicable)
@@ -346,12 +379,9 @@ class MessageHandler():
                     'Handler api output message is None')
 
             stop_ivs_fc_time = perf_counter()
-            if isinstance(api_output_message, str):
-                api_output_message = self.parse_incoming_message_body(
-                    api_output_message)
 
             # If the status message is not OK raises an exception
-            if api_output_message['status'] != 'OK':
+            if not (isinstance(api_output_message, OperationalMessage) and api_output_message.status == InternalMessage.Status.OK):
                 raise RequestProcessingFailed(
                     f"The IVS Chain as failed to process artifact: {artifact_key}")
 

@@ -4,7 +4,9 @@ from subprocess import CalledProcessError
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from base.constants import IMAGE_FORMATS
+from base.constants import VIDEO_FORMATS
+from basehandler.message_handler import OperationalMessage
 
 _logger = ContainerServices.configure_logging('AnonymizePostProcessor')
 
@@ -27,7 +29,7 @@ class AnonymizePostProcessor():
         self.container_services = container_services
         self.aws_clients = aws_clients
 
-    def run(self, message_body: dict) -> None:
+    def run(self, message_body: OperationalMessage) -> None:
         '''
         Execute post processing using ffmpeg to convert the video files from AVI to MP4
 
@@ -35,7 +37,7 @@ class AnonymizePostProcessor():
             message_body (dict): request body with the information
         '''
 
-        media_path = message_body['media_path']
+        media_path = message_body.media_path
         path, file_format = os.path.splitext(media_path)
         file_format = file_format.replace(".", "")
 
