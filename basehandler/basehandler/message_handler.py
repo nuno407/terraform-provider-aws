@@ -68,6 +68,13 @@ class FileIsEmptyException(Exception):
         super().__init__(message)
 
 
+class ProcessingOutOfSyncException(Exception):
+    """Processing out of sync should be raised when the processing is out of sync, i.e. the processed item is not the expected one."""
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class EmptyAPIOutputMessage(Exception):
     """Empty API output message should be raise when an internal queue message is None."""
 
@@ -234,9 +241,13 @@ class MessageHandler():
         container_services = self.__container_services
         aws_clients = self.__aws_clients
 
-        incoming_message_body = incoming_message['Body']
-        parsed_incoming_message_body = json.loads(
-            incoming_message_body.replace("\'", "\""))
+        parsed_incoming_message_body = self.parse_incoming_message_body(
+            incoming_message["Body"])
+
+        # Validate if the processed recording is the same as the one that was sent to the IVS feature chain
+        if parsed_incoming_message_body["s3_path"] != parsed_output_message_body["input_media"]:
+            raise ProcessingOutOfSyncException(
+                f"Processed recording {parsed_output_message_body['input_media']} is different than the one that was sent to the IVS feature chain {parsed_incoming_message_body['s3_path']}")
 
         post_processor.run(parsed_output_message_body)
 
@@ -359,19 +370,23 @@ class MessageHandler():
         except EmptyAPIOutputMessage:
             _logger.warning(
                 'Internal handler queue output is None, skipping it')
-        except RequestProcessingFailed as err:
+        except RequestProcessingFailed:
             _logger.error(
                 'Unable to request processing to ivs feature chain. \
                     Inference container might be in inconsistent state.')
-            raise err
+            raise
+        except ProcessingOutOfSyncException:
+            _logger.error(
+                'Processed recording is different than the one that was sent to the IVS feature chain.')
+            raise
         except queue.Empty:
             _logger.exception(
                 'The timeout of %s seconds while waiting for the IVS Chain has been reached. \
                     The message was not deleted from the SQS Queue', INTERNAL_QUEUE_TIMEOUT)
-        except Exception as err:
-            _logger.exception(
-                "Unexpected exception has happened: %s", err)
-            raise err
+            raise
+        except Exception:
+            _logger.exception("Unexpected exception has happened.")
+            raise
 
     def start(self, mode: str) -> None:
         """

@@ -7,6 +7,7 @@ from flask import Blueprint
 from basehandler.api_handler import OutputEndpointNotifier
 from basehandler.entrypoint import CallbackBlueprintCreator
 
+
 class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
     @staticmethod
     def create(route_endpoint: str, notifier: OutputEndpointNotifier) -> Blueprint:
@@ -39,6 +40,7 @@ class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
             msg_body['uid'] = uid
             msg_body['status'] = 'processing completed'
             msg_body['bucket'] = notifier.container_services.anonymized_s3
+            msg_body['input_media'] = s3_path
             msg_body['media_path'] = file_upload_path
             msg_body['meta_path'] = "-"
 
