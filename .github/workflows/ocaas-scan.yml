@@ -1,6 +1,9 @@
 name: OCaaS Scan
 
 on:
+  schedule:
+    # At 22:35 from Monday through Friday.
+    - cron: 35 22 * * 1-5
   workflow_dispatch:
     inputs:
       emails:
