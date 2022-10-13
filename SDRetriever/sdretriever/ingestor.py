@@ -62,8 +62,7 @@ class Ingestor(object):
                 Bucket=self.CS.raw_s3 if bucket is None else bucket,
                 Prefix=s3_path
             )
-
-            if int(response_list['Contents'][0]['Size']) == 0:
+            if response_list.get('KeyCount') and int(response_list['Contents'][0]['Size']) == 0:
                 return False, response_list
 
         except:
