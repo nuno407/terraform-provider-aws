@@ -1,13 +1,17 @@
 import os
 from asyncio import subprocess
 from unittest import mock
-from unittest.mock import Mock, mock_open
+from unittest.mock import Mock
+from unittest.mock import mock_open
+
 import pytest
 
 from anon_ivschain.post_processor import AnonymizePostProcessor
-
-from base.testing.mock_functions import get_container_services_mock
 from base.aws.shared_functions import AWSServiceClients
+from base.testing.mock_functions import get_container_services_mock
+from basehandler.message_handler import InternalMessage
+from basehandler.message_handler import OperationalMessage
+
 
 @pytest.mark.unit
 class TestAnonymizePostProcessor():
@@ -26,12 +30,11 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        message_body = {
-            'media_path': 'test_dir/test_file_anonymized.mp4'
-        }
+        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
+                                              'uid', 'bucket', 'test_dir/test_file.avi', 'test_dir/test_file_anonymized.avi')
 
         # WHEN
-        anonymize_post_processor.run(message_body)
+        anonymize_post_processor.run(internal_message)
 
         # THEN
 
@@ -55,13 +58,14 @@ class TestAnonymizePostProcessor():
 
         assert aws_clients.s3_client == _args[0]
         assert aws_service.anonymized_s3 == _args[2]
-        assert os.path.splitext(message_body['media_path'])[
+        assert os.path.splitext(internal_message.media_path)[
             0]+".mp4" == _args[3]
 
     @mock.patch("builtins.open")
     @mock.patch("anon_ivschain.post_processor.os.stat")
     @mock.patch("anon_ivschain.post_processor.subprocess.check_call")
     @mock.patch("anon_ivschain.post_processor.os.remove")
+
     def test_run_anonymize_post_processor_2(self, os_remove: Mock, subprocess_check_call: Mock, os_stat: Mock, open: Mock):
         # GIVEN
         aws_service = get_container_services_mock()
@@ -72,12 +76,11 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        message_body = {
-            'media_path': 'test_dir/test_file.anonymized.avi'
-        }
+        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
+                                              'uid', 'bucket', 'test_dir/test_file.avi', 'test_dir/test_file_anonymized.avi')
 
         # WHEN
-        anonymize_post_processor.run(message_body)
+        anonymize_post_processor.run(internal_message)
 
         # THEN
 
@@ -102,7 +105,7 @@ class TestAnonymizePostProcessor():
 
         assert aws_clients.s3_client == _args[0]
         assert aws_service.anonymized_s3 == _args[2]
-        assert os.path.splitext(message_body['media_path'])[
+        assert os.path.splitext(internal_message.media_path)[
             0]+".mp4" == _args[3]
 
     def test_run_anonymize_post_processor_wrong_format1(self):
@@ -115,12 +118,11 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        message_body = {
-            'media_path': 'test_dir/test_file_anonymiz.ed.none'
-        }
+        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
+                                    'uid', 'bucket', 'test_dir/test_file.none', 'test_dir/test_file_anonymized.none')
 
         # WHEN
-        anonymize_post_processor.run(message_body)
+        anonymize_post_processor.run(internal_message)
 
         # THEN
         aws_service.download_file.assert_not_called()
@@ -135,12 +137,11 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        message_body = {
-            'media_path': 'test_dir/test_file_anonymized'
-        }
+        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
+                                        'uid', 'bucket', 'test_dir/test_file', 'test_dir/test_file_anonymized')
 
         # WHEN
-        anonymize_post_processor.run(message_body)
+        anonymize_post_processor.run(internal_message)
 
         # THEN
         aws_service.download_file.assert_not_called()

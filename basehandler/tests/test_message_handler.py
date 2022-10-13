@@ -11,8 +11,11 @@ from pytest_mock import MockFixture
 from base.aws.shared_functions import AWSServiceClients
 from base.testing.mock_functions import QUEUE_MOCK_LIST
 from base.testing.mock_functions import get_container_services_mock
+from basehandler.message_handler import InternalMessage
 from basehandler.message_handler import MessageHandler
 from basehandler.message_handler import NOOPPostProcessor
+from basehandler.message_handler import OperationalMessage
+from basehandler.message_handler import ProcessingOutOfSyncException
 from basehandler.message_handler import RequestProcessingFailed
 
 
@@ -229,24 +232,25 @@ class TestMessageHandler():
         Args:
             message_handler_fix (MessageHandler): message handler fixture
         """
-        incomming_msg = {
+        incoming_msg = {
             "Body":    """{"processing_steps": ["new_algo","CHC","Anonymize"],
-                        "s3_path": "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4",
+                        "s3_path": "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.mp4",
                         "data_status": "received"}"""
         }
 
-        dict_ivs_msg = {
-            'uid': "uid",
-            'status': "processing completed",
-            'bucket': "container_services.anonymized_s3/chc_abc.a.b.e/d",
-            'media_path': "jasj.,-kdhkajshd",
-            'meta_path': "file_upload_path/path2/abc.opt"
-        }
+        internal_message = OperationalMessage(
+            uid="uid",
+            status=InternalMessage.Status.PROCESSING_COMPLETED,
+            input_media="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.mp4",
+            bucket="anonymized_s3",
+            media_path="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.mp4",
+        )
+
 
         container_services = message_handler_fix._MessageHandler__container_services
 
         message_handler_fix.handle_processing_output(
-            incomming_msg, dict_ivs_msg)
+            incoming_msg, internal_message)
 
         kwargs_metadata, _ = container_services.send_message.call_args_list[1]
         kwargs_next_queue, _ = container_services.send_message.call_args_list[0]
@@ -260,19 +264,45 @@ class TestMessageHandler():
         assert kwargs_next_queue[1] == QUEUE_MOCK_LIST['new_algo']
         assert message_next_queue['processing_steps'] == [
             "new_algo", "CHC", "Anonymize"]
-        assert message_next_queue['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"
+        assert message_next_queue['s3_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.mp4"
         assert message_next_queue['data_status'] == 'processing'
 
         # Metadata_queue
         assert kwargs_metadata[0] == 'mock_sqs'  # Assert queque client
         # Assert next algo
         assert kwargs_metadata[1] == QUEUE_MOCK_LIST['Metadata']
-        assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"
+        assert message_metadata['s3_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.mp4"
         assert message_metadata['data_status'] == 'processing'
 
-        assert message_metadata['output']['bucket'] == "container_services.anonymized_s3/chc_abc.a.b.e/d"
-        assert message_metadata['output']['media_path'] == "jasj.,-kdhkajshd"
-        assert message_metadata['output']['meta_path'] == "file_upload_path/path2/abc.opt"
+        assert message_metadata['output']['bucket'] == "anonymized_s3"
+        assert message_metadata['output']['media_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.mp4"
+        assert message_metadata['output']['meta_path'] == "-"
+
+    @pytest.mark.parametrize('message_handler_fix', [dict(consumer_name="Anonymize")], indirect=True)
+    def test_handle_processing_output_out_of_sync(self, message_handler_fix: Mock):
+        """Test update processing output.
+
+        Args:
+            message_handler_fix (MessageHandler): message handler fixture
+        """
+        incoming_msg = {
+            "Body":    """{"processing_steps": ["new_algo","CHC","Anonymize"],
+                        "s3_path": "Debug_Lync/other_tenant_TrainingRecorder_1659430874012_1659430990857.mp4",
+                        "data_status": "received"}"""
+        }
+
+        internal_message = OperationalMessage(
+            uid="uid",
+            status=InternalMessage.Status.PROCESSING_COMPLETED,
+            input_media="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.mp4",
+            bucket="anonymized_s3",
+            media_path="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.mp4",
+        )
+
+        with pytest.raises(ProcessingOutOfSyncException):
+            message_handler_fix.handle_processing_output(
+                incoming_msg, internal_message)
+
 
     @pytest.mark.parametrize('message_handler_fix', [dict(consumer_name="new_algo")], indirect=True)
     def test_handle_processing_output2(self, message_handler_fix: Mock):
@@ -281,24 +311,24 @@ class TestMessageHandler():
         Args:
             message_handler_fix (MessageHandler): message handler fixture
         """
-        incomming_msg = {
+        incoming_msg = {
             "Body":    """{"processing_steps": ["new_algo","CHC","Anonymize"],
-                        "s3_path": "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg",
-                        "data_status": "processing"}"""
+                        "s3_path": "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg",
+                        "data_status": "received"}"""
         }
 
-        dict_ivs_msg = {
-            'uid': "uid",
-            'status': "processing done completed",
-            'bucket': "container_services.anonymized_s3/chc_abc.a.b.e/d",
-            'media_path': "jasj.,-kdhkajshd",
-            'meta_path': "file_upload_path/path2/abc.opt"
-        }
+        internal_message = OperationalMessage(
+            uid="uid",
+            status=InternalMessage.Status.PROCESSING_COMPLETED,
+            input_media="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg",
+            bucket="anonymized_s3",
+            media_path="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.jpg",
+        )
 
         container_services = message_handler_fix._MessageHandler__container_services
 
         message_handler_fix.handle_processing_output(
-            incomming_msg, dict_ivs_msg)
+            incoming_msg, internal_message)
 
         kwargs_metadata, _ = container_services.send_message.call_args_list[1]
         kwargs_next_queue, _ = container_services.send_message.call_args_list[0]
@@ -310,19 +340,19 @@ class TestMessageHandler():
         assert kwargs_next_queue[0] == 'mock_sqs'  # Assert queue client
         # Assert next algo
         assert kwargs_next_queue[1] == QUEUE_MOCK_LIST['CHC']
-        assert message_next_queue['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
+        assert message_next_queue['s3_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_next_queue['data_status'] == 'processing'
 
         # Metadata_queue
         assert kwargs_metadata[0] == 'mock_sqs'  # Assert queue client
         # Assert next algo
         assert kwargs_metadata[1] == QUEUE_MOCK_LIST['Metadata']
-        assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
+        assert message_metadata['s3_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_metadata['data_status'] == 'processing'
 
-        assert message_metadata['output']['bucket'] == "container_services.anonymized_s3/chc_abc.a.b.e/d"
-        assert message_metadata['output']['media_path'] == "jasj.,-kdhkajshd"
-        assert message_metadata['output']['meta_path'] == "file_upload_path/path2/abc.opt"
+        assert message_metadata['output']['bucket'] == "anonymized_s3"
+        assert message_metadata['output']['media_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.jpg"
+        assert message_metadata['output']['meta_path'] == "-"
 
     @pytest.mark.parametrize('message_handler_fix', [dict(consumer_name="Anonymize")], indirect=True)
     def test_handle_processing_output3(self, message_handler_fix: Mock):
@@ -332,25 +362,25 @@ class TestMessageHandler():
             message_handler_fix (MessageHandler): message handler fixture
         """
         # GIVEN
-        incomming_msg = {
+        incoming_msg = {
             "Body":    """{"processing_steps": ["Anonymize"],
-                        "s3_path": "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg",
-                        "data_status": "processing"}"""
+                        "s3_path": "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg",
+                        "data_status": "received"}"""
         }
 
-        dict_ivs_msg = {
-            'uid': "uid",
-            'status': "processing completed",
-            'bucket': "container_services.anonymized_s3/chc_abc.a.b.e/d",
-            'media_path': "jasj.,-kdhkajshd",
-            'meta_path': "file_upload_path/path2/abc.opt"
-        }
+        internal_message = OperationalMessage(
+            uid="uid",
+            status=InternalMessage.Status.PROCESSING_COMPLETED,
+            input_media="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg",
+            bucket="anonymized_s3",
+            meta_path="Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_Metadata.json"
+        )
 
         container_services = message_handler_fix._MessageHandler__container_services
 
         # WHEN
         message_handler_fix.handle_processing_output(
-            incomming_msg, dict_ivs_msg)
+            incoming_msg, internal_message)
 
         # THEN
         kwargs_metadata, _args = container_services.send_message.call_args_list[0]
@@ -360,12 +390,12 @@ class TestMessageHandler():
         assert kwargs_metadata[0] == 'mock_sqs'  # Assert queque client
         # Assert next algo
         assert kwargs_metadata[1] == QUEUE_MOCK_LIST['Metadata']
-        assert message_metadata['s3_path'] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.jpg"
+        assert message_metadata['s3_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857.jpg"
         assert message_metadata['data_status'] == 'complete'
 
-        assert message_metadata['output']['bucket'] == "container_services.anonymized_s3/chc_abc.a.b.e/d"
-        assert message_metadata['output']['media_path'] == "jasj.,-kdhkajshd"
-        assert message_metadata['output']['meta_path'] == "file_upload_path/path2/abc.opt"
+        assert message_metadata['output']['bucket'] == "anonymized_s3"
+        assert message_metadata['output']['media_path'] == "-"
+        assert message_metadata['output']['meta_path'] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_Metadata.json"
 
     def test_handle_incoming_message1(self, message_handler_fix: Mock):
         """Test handle incoming message.
@@ -426,19 +456,13 @@ class TestMessageHandler():
                             }
                             """
         }
-        internal_queue_message = {
-            'chunk': [0, 1, 23, 4, 56],
-            'path': "container_services.anonymized_s3/chc_abc.a.b.e/d",
-
-            'msg_body': {
-                'uid': "uid",
-                'status': 'processing completed',
-                'bucket': "container_services.anonymized_s3/chc_abc.a.b.e/d",
-                'media_path': "jasj.,-kdhkajshd",
-                'meta_path': "file_upload_path/path2/abc.opt"
-            },
-            'status': 'OK'
-        }
+        internal_queue_message = OperationalMessage(
+            status=InternalMessage.Status.OK,
+            uid="uid",
+            input_media="Debug_Lync/TrainingMultiSnapshot_TrainingMultiSnapshot-15f62ba7-489f-49c2-b936-d387124dc3d1_249_1659823752.mp4",
+            bucket="anonymized_s3",
+            media_path="Debug_Lync/TrainingMultiSnapshot_TrainingMultiSnapshot-15f62ba7-489f-49c2-b936-d387124dc3d1_249_1659823752_anonymized.mp4"
+        )
 
         manager = Mock()
 

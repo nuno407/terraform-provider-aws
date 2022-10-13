@@ -1,15 +1,21 @@
 import queue
-from unittest.mock import MagicMock, Mock, PropertyMock
+from unittest.mock import MagicMock
+from unittest.mock import Mock
+from unittest.mock import PropertyMock
 
-import pytest
-
-from flask import Blueprint
 import flask
+import pytest
+from flask import Blueprint
+from pytest_mock import MockerFixture
 
 from base.aws.shared_functions import AWSServiceClients
-from basehandler.api_handler import APIHandler, OutputEndpointParameters, OutputEndpointNotifier
 from base.testing.mock_functions import get_container_services_mock
-from pytest_mock import MockerFixture
+from basehandler.api_handler import APIHandler
+from basehandler.api_handler import OutputEndpointNotifier
+from basehandler.api_handler import OutputEndpointParameters
+from basehandler.message_handler import ErrorMessage
+from basehandler.message_handler import InternalMessage
+
 
 def create_callback_blueprint(route_endpoint: str) -> Blueprint:
     anon_output_bp = Blueprint('anon_output_bp', __name__)
@@ -56,7 +62,7 @@ class TestApiHandler():
 
 
     @pytest.fixture
-    def client_output_notifier(request: MockerFixture) -> OutputEndpointNotifier:
+    def client_output_notifier(self, request: MockerFixture) -> OutputEndpointNotifier:
 
         # Create clients
         output_parameters = OutputEndpointParameters(get_container_services_mock(),"mock",
@@ -135,7 +141,7 @@ class TestApiHandler():
         args = {
             "chunk" : "aysdtauystduastd",
             "path" : "path/agcfhgcf/abc.txt",
-            "msg_body" : {"The message" :"abc", "status" : "error"},
+            "internal_message": InternalMessage(InternalMessage.Status.PROCESSING_COMPLETED)
         }
 
         # WHEN
@@ -144,9 +150,8 @@ class TestApiHandler():
         # THEN
         assert client_output_notifier.internal_queue.qsize() == 1
 
-        queue_msg = client_output_notifier.internal_queue.get(0)
-        assert queue_msg['status'] == "OK"
-        assert queue_msg['The message'] == "abc"
+        queue_msg = client_output_notifier.internal_queue.get()
+        assert queue_msg.status == InternalMessage.Status.OK
 
         upload_args, _ = client_output_notifier.container_services.upload_file.call_args
         assert args["chunk"] in upload_args
@@ -158,7 +163,7 @@ class TestApiHandler():
         args = {
             "chunk" : "aysdtauystduastd",
             "path" : "path/agcfhgcf/abc.txt",
-            "msg_body" : {"The message" : "abc"}
+            "internal_message": InternalMessage(InternalMessage.Status.PROCESSING_COMPLETED)
         }
 
         # WHEN
@@ -167,9 +172,8 @@ class TestApiHandler():
         # THEN
         assert client_output_notifier.internal_queue.qsize() == 1
 
-        queue_msg = client_output_notifier.internal_queue.get(0)
-        assert queue_msg['status'] == "OK"
-        assert queue_msg['The message'] == "abc"
+        queue_msg = client_output_notifier.internal_queue.get()
+        assert queue_msg.status == InternalMessage.Status.OK
 
         upload_args, _ = client_output_notifier.container_services.upload_file.call_args
         assert args["chunk"] in upload_args
@@ -181,7 +185,7 @@ class TestApiHandler():
         args = {
             "chunk" : "aysdtauystduastd",
             "path" : "path/agcfhgcf/abc.txt",
-            "msg_body" : "not_parsed"
+            "internal_message": "not_parsed"
         }
 
         # WHEN-THEN
@@ -199,5 +203,5 @@ class TestApiHandler():
         # THEN
         assert client_output_notifier.internal_queue.qsize() == 1
 
-        queue_msg = client_output_notifier.internal_queue.get(0)
-        assert queue_msg['status'] == "ERROR"
+        queue_msg = client_output_notifier.internal_queue.get()
+        assert queue_msg.status == InternalMessage.Status.ERROR
