@@ -209,10 +209,6 @@ class VideoMessage(Message):
         Returns:
             bool: True, False
         """
-
-        if not self.topicarn:
-            LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
-            return False
         if not self.streamname:
             LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
             return False
@@ -232,7 +228,11 @@ class VideoMessage(Message):
             if self.tenant in tenant_blacklist:
                 LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
                 return True
-            if self.topicarn and not self.topicarn.endswith("video-footage-events"):
+            # video messages must have a specific ARN topic
+            if not self.topicarn:
+                LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
+                return True
+            if not self.topicarn.endswith("video-footage-events"):
                 LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events",
                             extra={"messageid": self.messageid})
                 return True
