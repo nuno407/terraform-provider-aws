@@ -233,8 +233,8 @@ class VideoMessage(Message):
                 LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
                 return True
             if self.topicarn and not self.topicarn.endswith("video-footage-events"):
-                LOGGER.warning(f"Topic '{self.topicarn}' is not for video footage events",
-                               extra={"messageid": self.messageid})
+                LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events",
+                            extra={"messageid": self.messageid})
                 return True
             return False
         except:
