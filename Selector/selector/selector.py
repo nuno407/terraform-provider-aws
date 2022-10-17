@@ -86,7 +86,7 @@ class Selector():
             if(response.status >= 200 and response.status <300):
                 _logger.info(f'Successfully requested footage with response code {response.status}')
             else:
-                _logger.warning(f'Unexpected response when requesting footage: {response}')
+                _logger.warning(f'Unexpected response when requesting footage: {response.status}')
                 if response.content:
                     _logger.warning(f'Details: {response.content}')
         except Exception as error:
