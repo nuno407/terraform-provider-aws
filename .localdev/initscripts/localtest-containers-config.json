@@ -70,7 +70,7 @@
             "results.frame.objectlist.floatAttributes.name",
             "results.frame.objectlist.floatAttributes.value"
         ],
-        "dev-recording": [
+        "dev-recordings": [
             "_id",
             "recording_overview",
             "recording_overview.length",

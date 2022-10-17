@@ -9,7 +9,7 @@ from metadata.api.db import Persistence
 from pymongo.collection import Collection
 
 db_tables = {
-    'recording': 'recording',
+    'recordings': 'recordings',
     'pipeline_exec': 'pipeline_exec',
     'algo_output': 'algo_output',
     'signals': 'signals'
@@ -31,7 +31,7 @@ def persistence() -> Tuple[Persistence, mongomock.MongoClient]:
 def test_update_recording_description(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recording
+    recordings: Collection = client[DB_NAME].recordings
 
     recordings.insert_one(
         {'video_id': 'foo', 'recording_overview': {'description': 'bar'}})
@@ -95,7 +95,7 @@ def prepare_recordings_data(recordings, pipeline_execs, status='complete'):
 def test_get_single_recording(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recording
+    recordings: Collection = client[DB_NAME].recordings
     pipeline_execs: Collection = client[DB_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs)
 
@@ -125,7 +125,7 @@ def test_get_single_recording_fails_if_not_found(persistence):
 def test_get_recording_list(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recording
+    recordings: Collection = client[DB_NAME].recordings
     pipeline_execs: Collection = client[DB_NAME].pipeline_exec
 
     prepare_recordings_data(recordings, pipeline_execs)
@@ -144,7 +144,7 @@ def test_get_recording_list(persistence):
 def test_get_recording_list_paged(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recording
+    recordings: Collection = client[DB_NAME].recordings
     pipeline_execs: Collection = client[DB_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs)
 
@@ -164,7 +164,7 @@ def test_get_recording_list_paged(persistence):
 def test_get_empty_recording_list(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recording
+    recordings: Collection = client[DB_NAME].recordings
     pipeline_execs: Collection = client[DB_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs, 'failed')
 

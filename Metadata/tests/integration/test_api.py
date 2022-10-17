@@ -14,7 +14,7 @@ from metadata.api.service import ApiService
 
 sys.modules['api.config'] = MagicMock()
 
-db_tables = {'recording': 'recording',
+db_tables = {'recordings': 'recording',
              'signals': 'signals',
              'pipeline_exec': 'pipeline_exec',
              'algo_output': 'algo_output'}
