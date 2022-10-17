@@ -209,9 +209,7 @@ class VideoMessage(Message):
         Returns:
             bool: True, False
         """
-        if not self.streamname:
-            LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
-            return False
+        # nothing to validate at the moment (tests that we want to send do DLQ when they fail)
         return True
 
     def is_irrelevant(self, tenant_blacklist: list[str] = [], recorder_blacklist: list[str] = []) -> bool:
@@ -236,8 +234,13 @@ class VideoMessage(Message):
                 LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events",
                             extra={"messageid": self.messageid})
                 return True
+            if not self.streamname:
+                LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
+                return True
             return False
-        except:
+        except Exception as e:
+            LOGGER.warning(
+                f"Checks for irrelevancy on VideoMessage raised an exception - {e}", extra={"messageid": self.messageid})
             return False
 
     @property
