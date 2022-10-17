@@ -17,7 +17,8 @@ RELEVANT_DEVICE_SIGNALS = {
     "interior_camera_health_response_audio_blocked",
     "interior_camera_health_response_audio_distorted",
     "interior_camera_health_response_audio_signal",
-    "PersonCount_value"
+    "PersonCount_value",
+    "Snapshots"
 }
 
 

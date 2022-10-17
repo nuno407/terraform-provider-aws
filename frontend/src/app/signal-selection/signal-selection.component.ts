@@ -13,7 +13,8 @@ export class SignalSelectionComponent {
     'interior_camera_health_response_cvb',
     'interior_camera_health_response_cve',
     'CameraViewBlocked',
-    'CameraViewShifted'
+    'CameraViewShifted',
+    'Snapshots'
   ]
 
   @Input()
