@@ -13,7 +13,7 @@ class Persistence:
         if client == None:
             client = pymongo.MongoClient(connection_string)
         db_client = client[DB_NAME]
-        self.__recordings = db_client[db_tables['recording']]
+        self.__recordings = db_client[db_tables['recordings']]
         self.__signals = db_client[db_tables['signals']]
         self.__pipeline_executions = db_client[db_tables['pipeline_exec']]
         self.__algo_output = db_client[db_tables['algo_output']]

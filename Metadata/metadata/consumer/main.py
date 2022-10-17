@@ -160,6 +160,11 @@ def update_voxel_media(sample: dict):
         return bucket, key
 
     # Voxel51 code
+
+    if 'filepath' not in sample :
+        _logger.error(f"Filepath field not present in the sample.{sample}")
+        return None
+
     _, filepath = __get_s3_path(sample["filepath"])
     s3split = filepath.split("/")
     bucket_name = s3split[0]
