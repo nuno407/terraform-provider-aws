@@ -64,7 +64,7 @@ ARG FIFTYONE_DATABASE_URI
 #    fi
 
 RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
+    && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 
 #
 # Configure shared storage
