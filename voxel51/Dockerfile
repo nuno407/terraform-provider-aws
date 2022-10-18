@@ -68,8 +68,8 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
 #    fi
 
-RUN pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
-
+RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 #
 # Configure shared storage
