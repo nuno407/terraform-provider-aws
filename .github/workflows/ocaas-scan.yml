@@ -8,7 +8,7 @@ on:
     inputs:
       emails:
         description: Email addresses to send the report to (separated by semicolon)
-        required: false
+        required: true
         default: Brg_XC-CT_RideCare_DevCloud@bosch.com
 
 jobs:
