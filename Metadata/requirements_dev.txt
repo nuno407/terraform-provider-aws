@@ -1,7 +1,9 @@
-pytest
-pytest_cov
-mongomock
-pytest-mock
-
+wheel == 0.37.1
+pytest == 5.0
+pytest_cov == 4.0.0
+pytest-mock == 3.10.0
+mongomock == 4.1.2
+types-PyYAML == 6.0.12
+types-pytz == 2022.4.0.0
 # install the app itself
 -e .

@@ -228,8 +228,9 @@ jobs:
           tags: ${{ steps.prepare-tag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          secrets: |
+            voxel51token=${{ secrets.FIFTYONE_TOKEN }}
           build-args: |
-            TOKEN=${{ secrets.FIFTYONE_TOKEN }}
             NPM_AUTH=${{ secrets.NPM_AUTH }}
             NPM_EMAIL=${{ secrets.NPM_EMAIL}}
 

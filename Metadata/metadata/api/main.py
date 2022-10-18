@@ -4,9 +4,11 @@ Metadata API
 import os
 
 import boto3
+import flask
 from metadata.api.controller import init_controller
 from metadata.api.db import Persistence
 from metadata.api.service import ApiService
+from metadata.common.constants import AWS_REGION
 
 from base.aws.container_services import ContainerServices
 
@@ -14,10 +16,7 @@ from base.aws.container_services import ContainerServices
 CONTAINER_NAME = "Metadata"
 CONTAINER_VERSION = "v8.0"
 
-AWS_REGION = os.getenv('AWS_REGION', 'eu-central-1')
-
 if __name__ == '__main__':
-
     # Define configuration for logging messages
     ContainerServices.configure_logging('metadata_api')
     s3_client = boto3.client('s3', region_name=AWS_REGION)
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     persistence = Persistence(db_connstring, db_tables)
     service = ApiService(persistence, s3_client)
 
-    app = init_controller(service)
+    app: flask.Flask = init_controller(service)
 
     # Start API process
     if os.getenv('LOCAL_DEBUG'):

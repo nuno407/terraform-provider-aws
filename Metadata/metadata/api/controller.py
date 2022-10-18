@@ -43,6 +43,14 @@ class ReverseProxied(object):
         return self.wsgi_app(environ, start_response)
 
 
+def generate_exception_logs(err: Exception):
+    """
+    Generates exception logs to be displayed during container execution
+    """
+    _logger.exception(
+        "The following exception occured during execution: %s", err)
+
+
 def init_controller(service: ApiService) -> flask.Flask:
     """Initialize Flask application defined in the controller module.
 
@@ -65,30 +73,18 @@ def init_controller(service: ApiService) -> flask.Flask:
     # Create namespace for debug endpoints
     api.namespace('Debug endpoints', description="", path="/")
 
-    def generate_exception_logs():
-        """
-        Generates exception logs to be displayed during container execution
-        """
-        _logger.exception("The following exception occured during execution:")
-
     # Error 404 general handler
-
     @app.errorhandler(404)
     def not_found(_):
         return make_response(flask.jsonify(message=ERROR_404_MSG, statusCode="404"), 404)
 
-    # Common models used in most endpoints
+    # Common models used in most endpoints (Swagger documentation)
     error_400_model = api.model("Error_400", {
         'message': fields.String(example=ERROR_400_MSG),
         'statusCode': fields.String(example="400")
     })
 
-    # Common models used in most endpoints
-    error_404_model = api.model("Error_404", {
-        'message': fields.String(example=ERROR_404_MSG),
-        'statusCode': fields.String(example="404")
-    })
-
+    # Common models used in most endpoints (Swagger documentation)
     error_500_model = api.model("Error_500", {
         'message': fields.String(example=ERROR_500_MSG),
         'statusCode': fields.String(example="500")
@@ -152,11 +148,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 url = service.create_video_url(bucket, folder, file)
                 return flask.jsonify(message=url, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Parameters parser for getVideoSignals endpoint (Swagger documentation)
@@ -183,11 +179,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 video_signals = service.get_video_signals(video_id)
                 return flask.jsonify(message=video_signals, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Custom model for updateVideoUrl code 200 response
@@ -209,11 +205,11 @@ def init_controller(service: ApiService) -> flask.Flask:
                 description = request.json['description']
                 service.update_video_description(video_id, description)
                 return flask.jsonify(statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Custom model for getTableData code 200 response (Swagger documentation)
@@ -246,11 +242,11 @@ def init_controller(service: ApiService) -> flask.Flask:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, None, None, None, None)
                 return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
         def post(self):
@@ -311,7 +307,6 @@ def init_controller(service: ApiService) -> flask.Flask:
             page_size = request.args.get('size', 20, int)
             page = request.args.get('page', 1, int)
 
-            query = None
             query_list = []
             raw_query_list = []
             operator = None
@@ -342,22 +337,22 @@ def init_controller(service: ApiService) -> flask.Flask:
                     raw_direction = request.json.get('direction')
                     if (raw_direction):
                         direction = yaml.load(raw_direction, yaml.SafeLoader)
-            except:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
 
             try:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, query_list, operator, sorting, direction)
                 return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except AssertionError as error_log:
-                generate_exception_logs()
-                api.abort(400, message=str(error_log), statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except AssertionError as err:
+                generate_exception_logs(err)
+                api.abort(400, message=str(err), statusCode="400")
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     get_single_tabledata_200_model = api.model("Get_single_tabledata_200", {
@@ -383,11 +378,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 response_msg = service.get_single_recording(requested_id)
                 return flask.jsonify(message=response_msg, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Custom model for getAnonymizedVideoUrl code 200 response (Swagger documentation)
@@ -411,11 +406,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 video_url = service.create_anonymized_video_url(recording_id)
                 return flask.jsonify(message=video_url, statusCode="200")
-            except (NameError, LookupError, ValueError):
-                generate_exception_logs()
+            except (NameError, LookupError, ValueError) as err:
+                generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception:
-                generate_exception_logs()
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     return app

@@ -21,6 +21,7 @@ VIDEO_FORMATS = {'mp4', 'avi'}
 IMAGE_FORMATS = {'jpeg', 'jpg', 'png'}
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
+DATA_INGESTION_DATABASE_NAME = "DataIngestion"
 
 
 class ContainerServices():
@@ -423,12 +424,9 @@ class ContainerServices():
         connection_string = ContainerServices.get_db_connstring()
 
         # Create a MongoDB client and open the connection to MongoDB
-        client = MongoClient(connection_string)
+        client: MongoClient = MongoClient(connection_string)
 
-        # Specify the database to be used
-        db = client["DataIngestion"]
-
-        return db
+        return client[DATA_INGESTION_DATABASE_NAME]
 
     ##### S3 related functions ####################################################################
     @staticmethod

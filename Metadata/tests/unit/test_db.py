@@ -4,16 +4,11 @@ from typing import Tuple
 
 import mongomock
 import pytest
-from metadata.api.db import DB_NAME
 from metadata.api.db import Persistence
 from pymongo.collection import Collection
+from tests.common import db_tables
 
-db_tables = {
-    'recordings': 'recordings',
-    'pipeline_exec': 'pipeline_exec',
-    'algo_output': 'algo_output',
-    'signals': 'signals'
-}
+from base.aws.container_services import DATA_INGESTION_DATABASE_NAME
 
 OUR_RECORDING = 'our_recording'
 OTHER_RECORDING = 'other_recording'
@@ -31,7 +26,7 @@ def persistence() -> Tuple[Persistence, mongomock.MongoClient]:
 def test_update_recording_description(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
 
     recordings.insert_one(
         {'video_id': 'foo', 'recording_overview': {'description': 'bar'}})
@@ -46,7 +41,7 @@ def test_update_recording_description(persistence):
 def test_get_algo_output(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    algo_output: Collection = client[DB_NAME].algo_output
+    algo_output: Collection = client[DATA_INGESTION_DATABASE_NAME].algo_output
 
     algo_output.insert_one(
         {'algorithm_id': OTHER_ALGO, 'pipeline_id': OUR_RECORDING, 'content': 'def'})
@@ -95,8 +90,8 @@ def prepare_recordings_data(recordings, pipeline_execs, status='complete'):
 def test_get_single_recording(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
-    pipeline_execs: Collection = client[DB_NAME].pipeline_exec
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
+    pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs)
 
     recording = database.get_single_recording(OUR_RECORDING)
@@ -112,8 +107,8 @@ def test_get_single_recording(persistence):
 def test_get_single_recording_fails_if_not_found(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
-    pipeline_execs: Collection = client[DB_NAME].pipeline_execs
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordingss
+    pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_execs
 
     prepare_recordings_data(recordings, pipeline_execs, 'failed')
 
@@ -125,8 +120,8 @@ def test_get_single_recording_fails_if_not_found(persistence):
 def test_get_recording_list(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
-    pipeline_execs: Collection = client[DB_NAME].pipeline_exec
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
+    pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_exec
 
     prepare_recordings_data(recordings, pipeline_execs)
 
@@ -144,8 +139,8 @@ def test_get_recording_list(persistence):
 def test_get_recording_list_paged(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
-    pipeline_execs: Collection = client[DB_NAME].pipeline_exec
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
+    pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs)
 
     recording_list, total, pages = database.get_recording_list(
@@ -164,8 +159,8 @@ def test_get_recording_list_paged(persistence):
 def test_get_empty_recording_list(persistence):
     database: Persistence = persistence[0]
     client: mongomock.MongoClient = persistence[1]
-    recordings: Collection = client[DB_NAME].recordings
-    pipeline_execs: Collection = client[DB_NAME].pipeline_exec
+    recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
+    pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_exec
     prepare_recordings_data(recordings, pipeline_execs, 'failed')
 
     recording_list, total, pages = database.get_recording_list(

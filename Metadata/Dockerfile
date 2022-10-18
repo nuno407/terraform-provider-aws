@@ -60,13 +60,6 @@ RUN mkdir ${ROOT_DIR}/db
 
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
-ARG TOKEN
-ARG FIFTYONE_DATABASE_URI
-
-RUN echo ${TOKEN}
-RUN echo ' '
-RUN echo ${FIFTYONE_DATABASE_URI}
-
 # The Teams client version to install, or "latest"
 #ARG TEAMS_APP_VERSION==0.1.0
 #ARG TEAMS_VERSION==0.8.0
@@ -93,7 +86,6 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_TEAMS_CLIENT_ID=TJGoiAiTY3OX8qZKJsNzkVgdvxSGvGL0 \
     FIFTYONE_DATABASE_ADMIN=true \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
-    FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \
     FIFTYONE_DATABASE_VALIDATION=false
 
 
@@ -105,8 +97,10 @@ COPY --chown=1000:3000 ./base /app/base
 # Copy requirements.txt
 COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
 WORKDIR /app/Metadata
+
 # we should add fiftyone registry in order to install Voxel deps
-RUN pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
+RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+    && pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 # Copy application code
 COPY --chown=1000:3000 ./Metadata/metadata/ /app/Metadata/metadata

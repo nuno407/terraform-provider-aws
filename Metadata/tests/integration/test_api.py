@@ -11,13 +11,9 @@ from metadata.api import controller
 from metadata.api.controller import init_controller
 from metadata.api.db import Persistence
 from metadata.api.service import ApiService
+from tests.common import db_tables
 
 sys.modules['api.config'] = MagicMock()
-
-db_tables = {'recordings': 'recording',
-             'signals': 'signals',
-             'pipeline_exec': 'pipeline_exec',
-             'algo_output': 'algo_output'}
 
 mockdb_client = mongomock.MongoClient()
 recordings = mockdb_client.DataIngestion.recordings
