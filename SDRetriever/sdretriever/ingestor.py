@@ -369,7 +369,7 @@ class MetadataIngestor(Ingestor):
         # Find the time bounds for the metadata
         metadata_start_time = message.uploadstarted.replace(
             microsecond=0, second=0, minute=0)
-        metadata_end_time = datetime.now().replace(
+        metadata_end_time = message.uploadfinished.replace(
             microsecond=0, second=0, minute=0)
 
         # Calculate hours delta between start and end timestamps
@@ -390,6 +390,7 @@ class MetadataIngestor(Ingestor):
     def check_metadata_exists_and_is_complete(self, message: VideoMessage):
         """Check if metadata exists and is complete.
         """
+
         # Get all lookup paths
         lookup_paths = list(self._get_chunks_lookup_paths(message))
         bucket = self.CS.rcc_info["s3_bucket"]
