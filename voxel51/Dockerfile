@@ -54,11 +54,6 @@ RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 ARG TOKEN
 ARG FIFTYONE_DATABASE_URI
 
-RUN echo ${TOKEN}
-RUN echo ' '
-RUN echo ${FIFTYONE_DATABASE_URI}
-
-
 # The Teams client version to install, or "latest"
 #ARG TEAMS_APP_VERSION==0.1.0
 #ARG TEAMS_VERSION==0.8.0
@@ -68,7 +63,7 @@ RUN echo ${FIFTYONE_DATABASE_URI}
 #        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
 #    fi
 
-RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
     && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 #
