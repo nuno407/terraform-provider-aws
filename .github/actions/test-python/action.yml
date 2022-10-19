@@ -1,0 +1,65 @@
+name: Sonarqube Scan
+description: Perform Sonarqube Scan
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  python-version:
+    description: Python version
+    required: true
+  voxel-pip-registry-token:
+    description: Token to use in voxel pip registry
+    required: true
+outputs:
+  scan-success:
+    description: "Result of the scan"
+    value: ${{ steps.quality-gate-check.outputs.quality-gate-status }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: "pip"
+        cache-dependency-path: |
+          **/requirements*.txt
+
+    - name: Install pip dependencies ${{ inputs.baseDir }}
+      env:
+        TOKEN: ${{ inputs.voxel-pip-registry-token }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest pytest-cov
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
+
+    - name: Test ${{ inputs.baseDir }} with pytest
+      continue-on-error: true
+      id: pytest
+      shell: bash
+      run: |
+        pushd ${{ inputs.baseDir }}
+        trap popd EXIT
+        python -m pytest
+
+    - name: Fix code coverage paths
+      # Necessary step to correct source paths, since sonar scanner works from a Docker container and has a different path structure from github
+      shell: bash
+      run: |
+        sed -i 's/\/home\/runner\/work\/container_scripts\/container_scripts\//\/github\/workspace\//g' ${{ inputs.baseDir }}/coverage.xml
+
+    - name: Persist ${{ inputs.baseDir }} coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.baseDir }}-coverage-report
+        path: ${{ inputs.baseDir }}/coverage.xml
+
+    - name: Mark test status
+      shell: bash
+      if: steps.pytest.outcome != 'success'
+      run: exit 1

@@ -1,0 +1,37 @@
+name: List all Directories on the repo
+description: List all Directories that contain an service on the repo
+outputs:
+  javascript-directories:
+    description: All javascript projects in the repo
+    value: ${{ steps.list-step.outputs.javascript-directories }}
+  python-directories:
+    description: All python projects in the repo
+    value: ${{ steps.list-step.outputs.python-directories }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get all directories
+      id: list-step
+      shell: bash
+      run: |
+        get_directory_containing_file () {
+          DIRS="["
+          for i in $(ls -d */); do
+              if ls ${i%%/} | grep -q $1; then
+                  DIRS+="\"${i%%/}\","
+              fi
+          done
+          DIRS+="]"
+          echo "$DIRS"
+        }
+
+        # Javascript Dirs
+        JAVASCRIPT_DIRS=$(get_directory_containing_file "package.json")
+        echo "List of directories to test: $JAVASCRIPT_DIRS"
+        echo "javascript-directories=$(echo $JAVASCRIPT_DIRS)" >> $GITHUB_OUTPUT
+
+        # Python Dirs
+        PYTHON_DIRS=$(get_directory_containing_file "requirements*")
+        echo "List of directories to test: $PYTHON_DIRS"
+        echo "python-directories=$(echo $PYTHON_DIRS)" >> $GITHUB_OUTPUT

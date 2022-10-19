@@ -1,0 +1,51 @@
+name: Lint Javascript
+description: Performs linting in Javascript Project
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  node-version:
+    description: Node version
+    required: true
+  npm-registry:
+    description: NPM registry
+    required: true
+  npm-auth:
+    description: NPM auth
+    required: true
+  npm-email:
+    description: NPM email
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "npm"
+        cache-dependency-path: '**/package-lock.json'
+        always-auth: true
+    - name: Setup auth in npm
+      env:
+        NPM_REGISTRY: ${{ inputs.npm-registry }}
+        NPM_AUTH: ${{ inputs.npm-auth }}
+        NPM_EMAIL: ${{ inputs.npm-email }}
+      shell: bash
+      run: |
+        npm config set registry $NPM_REGISTRY
+        npm config set _auth $NPM_AUTH
+        npm config set email $NPM_EMAIL
+    - name: Install npm dependencies ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        npm ci
+    - name: Run lint ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        npm run lint

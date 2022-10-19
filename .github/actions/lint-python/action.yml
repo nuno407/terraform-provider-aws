@@ -1,0 +1,56 @@
+name: Lint Python
+description: Performs linting in Python Project
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  python-version:
+    description: Python version
+    required: true
+  voxel-pip-registry-token:
+    description: Token to use in voxel pip registry
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: "pip"
+        cache-dependency-path: |
+          **/requirements*.txt
+
+    - name: Install pip dependencies ${{ inputs.baseDir }}
+      env:
+        TOKEN: ${{ inputs.voxel-pip-registry-token }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install autopep8 pylint mypy
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
+
+    - name: Autopep8 ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        autopep8 .
+
+    - name: Pylint ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        pylint .
+
+    - name: Mypy ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        mypy .
