@@ -2,18 +2,22 @@ import json
 import logging
 import os
 import re
-from typing import Any, TypedDict, cast
+from typing import Any
+from typing import TypedDict
+from typing import cast
+
 import boto3
+from mdfparser.config import MdfParserConfig
+from mdfparser.downloader import Downloader
+from mdfparser.synchronizer import Synchronizer
+from mdfparser.uploader import Uploader
+from mergedeep import merge as recursive_merge
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
-from mdfparser.downloader import Downloader
-from mdfparser.uploader import Uploader
-from mdfparser.synchronizer import Synchronizer
-from mdfparser.config import MdfParserConfig
-from base.processor import Processor
 from base.chc_counter import ChcCounter
 from base.person_count import PersonCount
+from base.processor import Processor
 
 CONTAINER_NAME = "MDFParser"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
@@ -90,6 +94,7 @@ def process_request(mdf_s3_path: str, downloader: Downloader, uploader: Uploader
     for processor in processors:
         try:
             process_output = processor.process(synchronized)
+            recursive_merge(metadata, process_output)
             metadata.update(process_output)
             successful_processings += 1
         except Exception:
