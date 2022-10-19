@@ -45,7 +45,6 @@ import { MatSlideToggleModule, MatSlideToggleRequiredValidator } from '@angular/
 import { ActivitiesComponent } from './components/sidebar/activities/activities.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { LineChartComponent } from './line-chart/line-chart.component';
-import { NgChartsModule } from 'ng2-charts';
 import 'hammerjs';
 import 'chartjs-plugin-zoom';
 import { SignalSelectionComponent } from './signal-selection/signal-selection.component';
@@ -108,7 +107,6 @@ export function HttpLoaderFactory(handler: HttpBackend) {
     AmplifyUIAngularModule,
     QRCodeModule,
     MatSlideToggleModule,
-    NgChartsModule,
     MatExpansionModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

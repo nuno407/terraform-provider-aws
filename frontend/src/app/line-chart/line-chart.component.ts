@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Chart, ChartDataset } from 'chart.js';
+import { ChartDataset } from 'chart.js';
+import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { format } from 'date-fns';
