@@ -1,9 +1,16 @@
 wheel == 0.37.1
-pytest == 5.0
-pytest_cov == 4.0.0
-pytest-mock == 3.10.0
+pytest
+pytest_cov
+pytest-mock
 mongomock == 4.1.2
+
+autopep8
+pylint
+mypy
 types-PyYAML == 6.0.12
 types-pytz == 2022.4.0.0
+types-requests
+types-waitress
+
 # install the app itself
 -e .

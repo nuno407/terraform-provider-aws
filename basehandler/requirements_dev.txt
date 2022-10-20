@@ -1,6 +1,12 @@
 pytest
 pytest-cov
 pytest-mock
+
+autopep8
+pylint
+mypy
+types-requests
+
 -e ../base[testing]
 # install base module
 -e .

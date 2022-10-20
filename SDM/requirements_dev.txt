@@ -1,2 +1,7 @@
 pytest
 pytest-cov
+
+autopep8
+pylint
+mypy
+types-requests

@@ -2,6 +2,9 @@ pytest
 pytimeparse
 pytest-mock
 pytest-cov
+
+autopep8
+pylint
 mypy
 
 # install the app itself

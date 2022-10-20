@@ -1,5 +1,10 @@
 pytest
 pytest-cov
+
+autopep8
+pylint
+mypy
+
 -e ../base[testing]
 
 # install the app itself

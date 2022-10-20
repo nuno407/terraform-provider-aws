@@ -1,0 +1,36 @@
+[tool.coverage.run]
+omit = ["*/__init__.py"]
+timid = true
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+addopts = "-v --cov-config=.coveragerc --cov=base --cov-report=xml"
+
+[tool.autopep8]
+max_line_length = 120
+recursive = true
+aggressive = 3
+diff = true
+
+[tool.pylint]
+# Maximum number of characsters on a single line.
+recursive = true
+
+[tool.pylint.format]
+# Maximum number of characsters on a single line.
+max-line-length = 120
+
+[tool.pylint.string]
+# This flag controls whether inconsistent-quotes generates a warning when the
+# character used as a quote delimiter is used inconsistently within a module.
+check-quote-consistency = true
+
+[tool.mypy]
+files = [
+    "base/**/*.py",
+    "tests/**/*.py"
+]
+# mypy per-module options:
+[[tool.mypy.overrides]]
+module = "setuptools"
+ignore_missing_imports = true

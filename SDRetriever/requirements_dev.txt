@@ -1,5 +1,9 @@
 pytest
 pytest_cov
 
+autopep8
+pylint
+mypy
+
 # install the app itself
 -e .
