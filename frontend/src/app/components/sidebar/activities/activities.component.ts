@@ -9,6 +9,7 @@ import { LabelingService } from 'src/app/core/services/labeling.service';
   styleUrls: ['./activities.component.scss'],
 })
 export class ActivitiesComponent implements OnInit {
+
   /**Local variables */
   activities: Activity = new Activity();
   labels: Label[];

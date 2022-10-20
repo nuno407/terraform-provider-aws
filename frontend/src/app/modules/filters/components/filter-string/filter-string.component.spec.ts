@@ -10,12 +10,14 @@ describe('FilterStringComponent', () => {
   let component: FilterStringComponent;
   let fixture: ComponentFixture<FilterStringComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FilterStringComponent],
-      imports: [MatMenuModule, MatIconModule, MatRadioModule, TranslateModule.forRoot()],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FilterStringComponent],
+        imports: [MatMenuModule, MatIconModule, MatRadioModule, TranslateModule.forRoot()],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FilterStringComponent);

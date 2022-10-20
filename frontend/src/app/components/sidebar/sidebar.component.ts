@@ -8,6 +8,7 @@ import { LabelingService } from 'src/app/core/services/labeling.service';
   styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent implements OnInit {
+
   /**Local variables */
   currentFrame: number;
   selectedLabelIndex: number;

@@ -1,7 +1,7 @@
 <div class="video-player">
   <!-- Iframe with source video loaded from s3 bucket-->
   <video #video>
-    <source *ngIf="safeSrc !== null" [src]="safeSrc" type="video/mp4" />
+    <source *ngIf="safeSrc != null" [src]="safeSrc" type="video/mp4" />
   </video>
   <div class="controls">
     <div class="left">
@@ -64,9 +64,9 @@
           <div class="label" [style]="getLabelStyle(label)"></div>
         </div>
       </div>
-      <div *ngIf="selectedLabelIndex !== -1" (mousedown)="cursorMove($event, 0)"
+      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 0)"
         [style.left]="labels[selectedLabelIndex].start + '%'" class="cursor"></div>
-      <div *ngIf="selectedLabelIndex !== -1" (mousedown)="cursorMove($event, 1)"
+      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 1)"
         [style.left]="labels[selectedLabelIndex].end + '%'" class="cursor"></div>
     </mat-expansion-panel>
     <mat-expansion-panel class="expansion-panel">

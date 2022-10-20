@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["18.x"]
+        node-version: ["14.x"]
         service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
     steps:
       - name: Checkout code
@@ -94,11 +94,12 @@ jobs:
   run-javascript-tests:
     name: Run Javascript projects tests
     runs-on: ubuntu-latest
+    if: success() || failure() # making lint optional for now
     needs: [list-all-service-directories, lint-javascript-projects]
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["18.x"]
+        python-version: ["3.9.12"]
         service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
 
     steps:

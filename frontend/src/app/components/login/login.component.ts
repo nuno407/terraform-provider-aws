@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
   styleUrls: ['login.component.scss'],
 })
 export class LoginComponent implements OnInit {
+
   /**Local variables */
   title: 'RideCare Dashboard';
   formFields;

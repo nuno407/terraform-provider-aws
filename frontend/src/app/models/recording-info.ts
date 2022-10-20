@@ -48,7 +48,7 @@ export interface VideoInfo {
 
 /**Video*/
 export interface Message {
-  message: { [key: string]: string };
+  message: { [key: string] :  string };
 }
 
 export interface RecordingInfo {
