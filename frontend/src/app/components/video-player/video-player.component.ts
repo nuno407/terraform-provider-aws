@@ -32,7 +32,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   signalsToSelect: SignalGroup;
 
-  verticalBar: HTMLDivElement
+  verticalBar: HTMLDivElement;
   video: HTMLVideoElement;
 
   reverseSubscription: Subscription;
@@ -56,7 +56,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   playState: PlayState = PlayState.Pause;
   route: any;
 
-  saveDescriptionButtonHidden: boolean  = true;
+  saveDescriptionButtonHidden: boolean = true;
   saveDescriptionButtonDisabled: boolean = false;
 
   get playStates(): typeof PlayState {
@@ -74,14 +74,15 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   safeSrc: SafeResourceUrl;
 
-  constructor(private labelingService: LabelingService,
+  constructor(
+    private labelingService: LabelingService,
     private metaDataApiService: ApiVideoCallService,
     private sanitizer: DomSanitizer,
-    private signalRetriever: SignalsRetrieverService)
-    {
-      this.labelingService.getLabels().subscribe((labels) => this.drawLabels(labels));
-      this.labelingService.getSelectedLabelIndex().subscribe((index) => (this.selectedLabelIndex = index));
-    }
+    private signalRetriever: SignalsRetrieverService
+  ) {
+    this.labelingService.getLabels().subscribe((labels) => this.drawLabels(labels));
+    this.labelingService.getSelectedLabelIndex().subscribe((index) => (this.selectedLabelIndex = index));
+  }
 
   ngAfterViewInit() {
     this.video = this.videoElement.nativeElement;
@@ -91,8 +92,8 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     this.getvideo(); //antes passava o this.recording
 
     /** Get the signals for the diagram */
-    this.signalRetriever.getSignals(this.recording._id, this.recording.lq_video?.id).subscribe(signals => {
-      console.log("Got signals from backend and writing them to the signal selector.");
+    this.signalRetriever.getSignals(this.recording._id, this.recording.lq_video?.id).subscribe((signals) => {
+      console.log('Got signals from backend and writing them to the signal selector.');
       this.signalsToSelect = signals;
     });
 
@@ -103,17 +104,17 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       this.updateScalingVideoToDiagram();
     };
 
-    this.currentPercent.chartPercentageChange.subscribe(()=> {
-      const time = this.video.duration * this.currentPercent.videoPercentage / 100.0;
+    this.currentPercent.chartPercentageChange.subscribe(() => {
+      const time = (this.video.duration * this.currentPercent.videoPercentage) / 100.0;
       this.video.currentTime = time;
-    })
+    });
 
     /* istanbul ignore next */
 
     this.video.ontimeupdate = () => {
       this.currentTime = this.video.currentTime;
       this.currentFrame = this.video.currentTime * this.fps;
-      this.currentPercent.videoPercentage = 100.0 * this.video.currentTime / this.video.duration;
+      this.currentPercent.videoPercentage = (100.0 * this.video.currentTime) / this.video.duration;
       this.frame.emit(this.currentFrame);
       this.updatePlayheaderPosition();
     };
@@ -124,14 +125,14 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     };
 
     const mappedKeys = {
-      'Space': () => this.togglePlay(),
-      'ArrowLeft': () => this.seekFrames(-1),
-      'ArrowRight': () => this.seekFrames(1)
+      Space: () => this.togglePlay(),
+      ArrowLeft: () => this.seekFrames(-1),
+      ArrowRight: () => this.seekFrames(1),
     };
     // todo - disable subscription if text-field is selected
     this.keyboardSubscription = fromEvent(document, 'keydown')
       .pipe(
-        filter(e => document.activeElement.tagName.toLowerCase() != "textarea"),
+        filter((e) => document.activeElement.tagName.toLowerCase() != 'textarea'),
         filter((e: KeyboardEvent) => Object.keys(mappedKeys).includes(e.code)),
         map((e: KeyboardEvent) => {
           e.stopPropagation();
@@ -153,7 +154,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       var leftOffsetPercent = this.lineChart.labelSizePercentage * 100;
       var percentualPosition = (this.currentPercent.chartPercentage - this.currentZoomWindowStart) / (this.currentZoomWindowEnd - this.currentZoomWindowStart);
       var chartSizePercent = this.lineChart.chartSizePercentage;
-      var halfBarWidth = this.verticalBar.clientWidth / this.verticalBar.parentElement.clientWidth * 100;
+      var halfBarWidth = (this.verticalBar.clientWidth / this.verticalBar.parentElement.clientWidth) * 100;
 
       this.playheaderPercentage = leftOffsetPercent + percentualPosition * chartSizePercent * 100 - halfBarWidth;
     }
@@ -174,12 +175,15 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   /* subscribe service to get the video throught S3 bucket*/
   getvideo() {
-    return this.metaDataApiService.getVideo(this.recording._id).subscribe(data => {
-      this.url = data;
-      this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
-    },(error) => {
-      console.log('Error ocurred: ', error);
-    })
+    return this.metaDataApiService.getVideo(this.recording._id).subscribe(
+      (data) => {
+        this.url = data;
+        this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
+      },
+      (error) => {
+        console.log('Error ocurred: ', error);
+      }
+    );
   }
 
   /* istanbul ignore next */
@@ -197,15 +201,16 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   /* istanbul ignore next */
   playHeaderClick(event) {
     if (event.layerY > 30) {
-    // prevent selection of text, drag/drop, etc.
-    event.preventDefault();
-    const width = event.target.getBoundingClientRect().width;
-    const percentageAtStart = this.currentZoomWindowStart;
-    const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
-    this.currentPercent.chartPercentage = percentageAtStart + 100.0 / (width * ( 1 - this.lineChart.labelSizePercentage)) * (event.offsetX - (this.lineChart.labelSizePercentage * width)) * zoomFactor;
-
+      // prevent selection of text, drag/drop, etc.
+      event.preventDefault();
+      const width = event.target.getBoundingClientRect().width;
+      const percentageAtStart = this.currentZoomWindowStart;
+      const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
+      this.currentPercent.chartPercentage =
+        percentageAtStart +
+        (100.0 / (width * (1 - this.lineChart.labelSizePercentage))) * (event.offsetX - this.lineChart.labelSizePercentage * width) * zoomFactor;
+    }
   }
-}
 
   zoomChangedByChart(newZoomWindow: [number, number]) {
     this.currentZoomWindowStart = newZoomWindow[0];
@@ -220,7 +225,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     this.lineChart.zoomRange = newZoomRange;
 
     // sliding does not raise the zoom changed event
-    this.zoomChangedByChart(newZoomRange)
+    this.zoomChangedByChart(newZoomRange);
   }
 
   /* istanbul ignore next */
@@ -235,7 +240,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     const currentFrame = this.video.currentTime * this.fps;
     const newTime = (currentFrame + numberOfFrames) / this.fps;
     this.video.currentTime = newTime;
-
   }
 
   /* istanbul ignore next */
@@ -335,22 +339,21 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  public get Description() : string {
+  public get Description(): string {
     return this.recording.description ?? '';
   }
 
   //Change the value of Hidden from true to false so the button Save can be shown
-  public set Description(newDescription : string) {
+  public set Description(newDescription: string) {
     this.recording.description = newDescription;
-    this.saveDescriptionButtonHidden=false;
+    this.saveDescriptionButtonHidden = false;
   }
 
   saveDescription() {
     this.saveDescriptionButtonDisabled = true;
-    this.metaDataApiService.setDescription(this.recording._id, this.recording.description).subscribe(()=> {
-    this.saveDescriptionButtonHidden=true;
-    this.saveDescriptionButtonDisabled = false;
+    this.metaDataApiService.setDescription(this.recording._id, this.recording.description).subscribe(() => {
+      this.saveDescriptionButtonHidden = true;
+      this.saveDescriptionButtonDisabled = false;
     });
   }
-
 }

@@ -4,8 +4,8 @@
 import awsconfigdev from '../assets/aws/aws-exports-dev.js';
 
 export const environment = {
-  name: "qa",
-  api: "https://ai-test.bosch-ridecare.com/api/",
-  identityProvider: "Azure-RideCareProd",
-  amplifyConfig: awsconfigdev
+  name: 'qa',
+  api: 'https://ai-test.bosch-ridecare.com/api/',
+  identityProvider: 'Azure-RideCareProd',
+  amplifyConfig: awsconfigdev,
 };

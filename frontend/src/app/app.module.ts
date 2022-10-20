@@ -16,7 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
-import {MatPaginatorModule} from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { JwtInterceptor } from './auth/jwt.interceptor';
 import { HTTP_INTERCEPTORS, HttpBackend, HttpClient } from '@angular/common/http';
 import { FiltersModule } from './modules/filters/filters.module';
@@ -76,7 +76,7 @@ export function HttpLoaderFactory(handler: HttpBackend) {
     ReactiveFormsModule,
     AppRoutingModule,
     BciCoreModule.forRoot({
-      prod_environment: (environment.name == "docker"),
+      prod_environment: environment.name == 'docker',
     }),
     TranslateModule.forRoot({
       loader: {
@@ -107,7 +107,7 @@ export function HttpLoaderFactory(handler: HttpBackend) {
     AmplifyUIAngularModule,
     QRCodeModule,
     MatSlideToggleModule,
-    MatExpansionModule
+    MatExpansionModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

@@ -7,7 +7,6 @@ import { Label } from 'src/app/models/label';
   styleUrls: ['./label-entry.component.scss'],
 })
 export class LabelEntryComponent {
-
   /**Local variables */
   dateStartString: string;
   selectedFrame: string;

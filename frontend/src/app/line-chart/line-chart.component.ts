@@ -8,26 +8,23 @@ import { Message } from 'src/app/models/recording-info';
 import { SignalGroup } from '../models/parsedSignals';
 import { LineChartColorPicker } from '../shared/LineChartColorPicker';
 
-
-
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.scss']
+  styleUrls: ['./line-chart.component.scss'],
 })
 export class LineChartComponent {
   @Input() recording: Message;
   @Input() fps: number;
   @Input()
-  set signals(signals: SignalGroup)
-  {
-    if(signals) {
+  set signals(signals: SignalGroup) {
+    if (signals) {
       let chartDatasets = this.createChartDatasets(signals);
       this.chart.data.datasets = chartDatasets;
       this.chart.update();
 
       [this.minimumTimestamp, this.maximumTimestamp] = this.calcMinMaxTimestamp(signals);
-      this.chart.options.plugins.zoom.limits.x = {min:this.minimumTimestamp, max: this.maximumTimestamp};
+      this.chart.options.plugins.zoom.limits.x = { min: this.minimumTimestamp, max: this.maximumTimestamp };
       let totalDuration = (this.maximumTimestamp - this.minimumTimestamp) / 1000.0;
       this.totalDurationChange.emit(totalDuration);
     }
@@ -40,7 +37,7 @@ export class LineChartComponent {
     return [xMin, xMax];
   }
   set zoomRange(value: [number, number]) {
-    if(this.chart) {
+    if (this.chart) {
       this.chart.options.scales.x.min = this.scaleToTimestamp(value[0]);
       this.chart.options.scales.x.max = this.scaleToTimestamp(value[1]);
       this.chart.update();
@@ -66,35 +63,35 @@ export class LineChartComponent {
 
   scaleToTimestamp(percentage: number) {
     let timestampRange = this.maximumTimestamp - this.minimumTimestamp;
-    let boundedPercentage = Math.max(0.0, Math.min(100.0, percentage))
-    let relativeTimestamp = boundedPercentage * timestampRange / 100.0;
+    let boundedPercentage = Math.max(0.0, Math.min(100.0, percentage));
+    let relativeTimestamp = (boundedPercentage * timestampRange) / 100.0;
     return this.minimumTimestamp + relativeTimestamp;
   }
 
   scaleToPercentage(timestamp: number) {
     let relativeTimestamp = timestamp - this.minimumTimestamp;
     let timestampRange = this.maximumTimestamp - this.minimumTimestamp;
-    return 100.0 * relativeTimestamp / timestampRange;
+    return (100.0 * relativeTimestamp) / timestampRange;
   }
 
   createChartDatasets(signals: SignalGroup) {
-    let chartDatasets : ChartDataset<"line", {}[]>[] = [];
+    let chartDatasets: ChartDataset<'line', {}[]>[] = [];
     let colorPicker = new LineChartColorPicker();
     for (let group of signals.groups) {
       for (let signal of group.signals) {
         /**create label colors */
         let lineColor;
-        if(group.name == 'MDF') {
+        if (group.name == 'MDF') {
           lineColor = colorPicker.getNextMdfColor();
         } else {
           lineColor = colorPicker.getNextChcColor();
         }
-        if(!signal.enabled) continue; // reserve the colors for non-enabled signals anyway
+        if (!signal.enabled) continue; // reserve the colors for non-enabled signals anyway
 
         let plotName = group.name + ': ' + signal.name;
 
         /**dataset response */
-        let data_object : ChartDataset<"line", {}[]> = {data: signal.values}
+        let data_object: ChartDataset<'line', {}[]> = { data: signal.values };
         data_object.label = plotName;
         data_object.borderWidth = 3;
         data_object.pointBorderWidth = 0.5;
@@ -111,21 +108,22 @@ export class LineChartComponent {
   }
 
   calcMinMaxTimestamp(signalGroup: SignalGroup): [number, number] {
-    let min = Infinity, max = 0;
-    for(let group of signalGroup.groups) {
+    let min = Infinity,
+      max = 0;
+    for (let group of signalGroup.groups) {
       let grpMin, grpMax;
       [grpMin, grpMax] = this.calcMinMaxTimestamp(group);
-      if(min>grpMin) min = grpMin;
-      if(max<grpMax) max = grpMax;
+      if (min > grpMin) min = grpMin;
+      if (max < grpMax) max = grpMax;
     }
-    for(let signal of signalGroup.signals) {
-      for(let value of signal.values) {
+    for (let signal of signalGroup.signals) {
+      for (let value of signal.values) {
         let time = value.x.getTime();
-        if(min>time) min = time;
-        if(max<time) max = time;
+        if (min > time) min = time;
+        if (max < time) max = time;
       }
     }
-    return[min, max];
+    return [min, max];
   }
 
   enableAnimations() {
@@ -138,68 +136,68 @@ export class LineChartComponent {
 
   ngOnInit() {
     Chart.register(zoomPlugin);
-    this.chart = new Chart('canvas',
-      {
-        type: 'line',
-        data: {datasets: []},
-        options: {
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                displayFormats: {
-                  hour: "HH:mm:ss",
-                  minute: "mm:ss",
-                  second: "mm:ss"
-                },
-                minUnit: "second"
-              }
+    this.chart = new Chart('canvas', {
+      type: 'line',
+      data: { datasets: [] },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              displayFormats: {
+                hour: 'HH:mm:ss',
+                minute: 'mm:ss',
+                second: 'mm:ss',
+              },
+              minUnit: 'second',
             },
-            y: {
-              min: 0,
-              max: 1
-            }
           },
-          plugins: {
-            zoom: {
-              pan: {
-                enabled: true,
-                mode: 'x'
-              },
-              zoom: {
-                mode: 'x',
-                wheel: {
-                  enabled: true
-                },
-                pinch: {
-                  enabled: true
-                },
-                onZoomComplete: (c) => { this.zoomRangeChange.emit(this.zoomRange) }
-              },
-              limits: {
-                x: {
-                  min: this.minimumTimestamp,
-                  max: this.maximumTimestamp
-                }
-              }
+          y: {
+            min: 0,
+            max: 1,
+          },
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
             },
-            tooltip: {
-              callbacks: {
-                  title: function(context) {
-                    let date = new Date(context[0].parsed.x)
-                    if (date.getHours() > 0) {
-                      return format(date, "HH:mm:ss,SSS")
-                    } else {
-                      return format(date, "mm:ss,SSS")
-                    }
+            zoom: {
+              mode: 'x',
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true,
+              },
+              onZoomComplete: (c) => {
+                this.zoomRangeChange.emit(this.zoomRange);
+              },
+            },
+            limits: {
+              x: {
+                min: this.minimumTimestamp,
+                max: this.maximumTimestamp,
+              },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              title: function (context) {
+                let date = new Date(context[0].parsed.x);
+                if (date.getHours() > 0) {
+                  return format(date, 'HH:mm:ss,SSS');
+                } else {
+                  return format(date, 'mm:ss,SSS');
                 }
-              }
-            }
-          }
-        }
-      });
-      this.defaultAnimation = this.chart.options.animation;
+              },
+            },
+          },
+        },
+      },
+    });
+    this.defaultAnimation = this.chart.options.animation;
   }
-
 }

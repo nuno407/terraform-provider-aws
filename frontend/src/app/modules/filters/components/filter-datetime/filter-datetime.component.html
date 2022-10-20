@@ -9,10 +9,10 @@
 <mat-menu class="menu-panel" #menu="matMenu">
   <div class="menu-content">
     <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioAllId)" [disableRipple]="true" style="background-color: transparent">
-      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioAllId">{{ 'FILTER.all' | translate }}</mat-radio-button>
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId === radioAllId">{{ 'FILTER.all' | translate }}</mat-radio-button>
     </div>
     <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioContainsId)" [disableRipple]="true" style="background-color: transparent; display: flex; align-items: center">
-      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioContainsId">{{ 'FILTER.contains' | translate }}</mat-radio-button>
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId === radioContainsId">{{ 'FILTER.contains' | translate }}</mat-radio-button>
       <bci-datetime-picker
         style="width: 420px"
         (newDateSelected)="dateSelected($event)"

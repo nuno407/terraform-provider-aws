@@ -6,7 +6,7 @@
       <li>Download an authenticator app on your phone</li>
       <li>
         Link the authenticator app with RideCare <br />
-        <qrcode *ngIf="qrCodeString != ''" [qrdata]="qrCodeString" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+        <qrcode *ngIf="qrCodeString !== ''" [qrdata]="qrCodeString" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
         <br />
         If you cannot scan the QR code, you may also enter the following code to setup MFA manually: <span style="font-weight: bold">{{ code }}</span>
       </li>

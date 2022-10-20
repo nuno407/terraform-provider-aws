@@ -6,13 +6,13 @@
 <mat-menu class="menu-panel" #menu="matMenu">
   <div class="menu-content">
     <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioAllId)" [disableRipple]="true" style="background-color: transparent">
-      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioAllId">{{ 'FILTER.all' | translate }}</mat-radio-button>
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId === radioAllId">{{ 'FILTER.all' | translate }}</mat-radio-button>
     </div>
     <div mat-menu-item appFilterItem class="filter-item" (click)="radioClick(radioNotSelectedId)" [disableRipple]="true" style="background-color: transparent">
-      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioNotSelectedId">{{ 'APP.notSelected' | translate }}</mat-radio-button>
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId === radioNotSelectedId">{{ 'APP.notSelected' | translate }}</mat-radio-button>
     </div>
     <div
-      [style.minWidth]="configuration.columnName == 'messageId' ? '480px' : '320px'"
+      [style.minWidth]="configuration.columnName === 'messageId' ? '480px' : '320px'"
       mat-menu-item
       appFilterItem
       class="filter-item"
@@ -20,7 +20,7 @@
       [disableRipple]="true"
       style="background-color: transparent; display: flex; align-items: center; padding-right: 8px"
     >
-      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId == radioContainsId">{{ 'FILTER.contains' | translate }}</mat-radio-button>
+      <mat-radio-button name="{{ configuration.columnName + ' group' }}" [checked]="radioCheckedId === radioContainsId">{{ 'FILTER.contains' | translate }}</mat-radio-button>
       <div style="flex-grow: 1">
         <input matInput class="contains-input" (keyup)="onKey($event)" [placeholder]="placeholderText" style="width: 100%; padding-left: 8px" />
       </div>

@@ -11,11 +11,11 @@
     </div>
   </div>
   <div class="times">
-    <span (click)="_selectFrame('start')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame == 'start'"
+    <span (click)="_selectFrame('start')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame === 'start'"
       >{{ data?.start?.seconds * 1000 | date: 'mm:ss' }}:{{ data?.start?.frame % fps | number: '2.0-0' }}</span
     >
     -
-    <span (click)="_selectFrame('end')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame == 'end'"
+    <span (click)="_selectFrame('end')" [class.blue-link]="inEditMode" [class.selected]="selectedFrame === 'end'"
       >{{ data?.end?.seconds * 1000 | date: 'mm:ss' }}:{{ data?.end?.frame % fps | number: '2.0-0' }}</span
     >
   </div>
