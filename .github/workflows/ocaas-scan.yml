@@ -7,9 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       emails:
-        description: Email addresses to send the report to (separated by semicolon)
-        required: true
-        default: Brg_XC-CT_RideCare_DevCloud@bosch.com
+        description: Email addresses to send the report to (separated by semicolon); default is our distribution list
+        required: false
+
+env:
+  default-email: 'Brg_XC-CT_RideCare_DevCloud@bosch.com'
 
 jobs:
   ocaas-scan-project:
@@ -38,4 +40,4 @@ jobs:
           VCS_REVISION: ${{ env.branch }}
           APPLICATION_CATEGORY: "BT10"
           BLOCKING: false
-          EMAIL_RECIPIENTS: ${{ inputs.emails }}
+          EMAIL_RECIPIENTS: ${{ inputs.emails || env.default-email }}
