@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["14.x"]
+        node-version: ["18.x"]
         service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
     steps:
       - name: Checkout code
@@ -99,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9.12"]
+        node-version: ["18.x"]
         service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
 
     steps:
