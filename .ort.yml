@@ -9,6 +9,9 @@ excludes:
     - pattern: "**/tests/**"
       reason: "TEST_OF"
       comment: "Tests of the micro services"
+    - pattern: "**/requirements_dev.txt"
+      reason: "BUILD_TOOL_OF"
+      comment: "Packages for development only."
   scopes:
     - pattern: "devDependencies"
       reason: "DEV_DEPENDENCY_OF"
