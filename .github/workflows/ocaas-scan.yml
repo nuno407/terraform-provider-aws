@@ -41,3 +41,6 @@ jobs:
           APPLICATION_CATEGORY: "BT10"
           BLOCKING: false
           EMAIL_RECIPIENTS: ${{ inputs.emails || env.default-email }}
+          ## FOSSID CONFIGURATION
+          FOSSID_SERVER: CM
+          FOSSID_PROJECT_NAME: "XC-CT_Ridecare_DevCloud_Datanauts"
