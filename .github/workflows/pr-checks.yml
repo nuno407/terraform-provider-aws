@@ -50,7 +50,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           voxel-pip-registry-token: ${{ secrets.FIFTYONE_TOKEN }}
 
-
   lint-javascript-projects:
     name: Lint Javascript projects
     runs-on: ubuntu-latest
@@ -136,3 +135,7 @@ jobs:
 
       - name: Sonarqube quality gate status
         run: "echo quality gate result: ${{steps.sonarqube-scan.outputs.scan-success}}"
+
+      - name: Check python unit test matrix status
+        if: ${{ needs.run-python-tests.result != 'success' }}
+        run: exit 1
