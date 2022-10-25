@@ -44,10 +44,10 @@ import { DecimalPipe } from '@angular/common';
 import { MatSlideToggleModule, MatSlideToggleRequiredValidator } from '@angular/material/slide-toggle';
 import { ActivitiesComponent } from './components/sidebar/activities/activities.component';
 import { MatSliderModule } from '@angular/material/slider';
-import { LineChartComponent } from './line-chart/line-chart.component';
+import { LineChartComponent } from './components/line-chart/line-chart.component';
 import 'hammerjs';
 import 'chartjs-plugin-zoom';
-import { SignalSelectionComponent } from './signal-selection/signal-selection.component';
+import { SignalSelectionComponent } from './components/signal-selection/signal-selection.component';
 
 export function HttpLoaderFactory(handler: HttpBackend) {
   const http = new HttpClient(handler);

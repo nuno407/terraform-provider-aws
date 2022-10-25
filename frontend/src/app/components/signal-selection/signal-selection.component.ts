@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { SignalGroup } from '../models/parsedSignals';
+import { SignalGroup } from '../../models/parsedSignals';
 
 @Component({
   selector: 'app-signal-selection',

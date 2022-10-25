@@ -1,3 +1,5 @@
+import { Snapshot } from "./snapshots";
+
 export interface RootObject {
   message: Message[];
   statusCode: string;
@@ -24,6 +26,8 @@ export interface Message {
   lq_video: LqVideoInfo;
   data_status: string;
   description: string;
+  snapshots_paths: string[];
+  parsed_snapshots: Snapshot[];
   length: string;
   time: string;
   resolution: string;
@@ -31,6 +35,7 @@ export interface Message {
   last_updated: Date;
   tenant: string;
 }
+
 
 export interface LqVideoInfo {
   id: string;

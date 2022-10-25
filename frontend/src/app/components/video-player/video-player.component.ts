@@ -1,20 +1,22 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, SecurityContext, ViewChild } from '@angular/core';
+import { NotificationService } from '@bci-web-core/core';
+import { Clipboard } from '@angular/cdk/clipboard';
 import { MatRadioChange } from '@angular/material/radio';
+import { MatSliderChange } from '@angular/material/slider';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { fromEvent, interval, Subscription } from 'rxjs';
 import { filter, finalize, map, takeUntil, takeWhile, throttleTime } from 'rxjs/operators';
-import { Label } from 'src/app/models/label';
-import { LabelingService } from 'src/app/core/services/labeling.service';
-import { PlayState } from './play-state.enum';
+import { LineChartComponent } from 'src/app/components/line-chart/line-chart.component';
 import { ApiVideoCallService } from 'src/app/core/services/api-video-call.service';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Message } from 'src/app/models/recording-info';
-import { ChartVideoScaling } from 'src/app/models/chartVideoScaling';
-import { MatSliderChange } from '@angular/material/slider';
-import { LineChartComponent } from 'src/app/line-chart/line-chart.component';
-import { SignalGroup } from 'src/app/models/parsedSignals';
+import { LabelingService } from 'src/app/core/services/labeling.service';
 import { SignalsRetrieverService } from 'src/app/core/services/signals-retriever.service';
-import { Console } from 'console';
-
+import { ChartVideoScaling } from 'src/app/models/chartVideoScaling';
+import { Label } from 'src/app/models/label';
+import { SignalGroup } from 'src/app/models/parsedSignals';
+import { Message } from 'src/app/models/recording-info';
+import { Snapshot } from 'src/app/models/snapshots';
+import { PlayState } from './play-state.enum';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 @Component({
   selector: 'app-video-player',
   templateUrl: './video-player.component.html',
@@ -22,7 +24,24 @@ import { Console } from 'console';
 })
 export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @Input() fps: number;
-  @Input() recording: Message; /**verificar id */
+
+  _recording: Message;
+  @Input()
+  set recording(recording: Message) {
+    this._recording = recording;
+
+    // Get the signals and pass them to their selector
+    this.signalRetriever.getSignals(this._recording._id, this._recording.lq_video?.id).subscribe(signals => {
+      console.log("Got signals from backend and writing them to the signal selector.");
+      this.signalsToSelect = signals;
+    });
+
+    // Pass the snapshots to their selector
+    this.snapshots = this._recording.parsed_snapshots;
+  }
+  get recording(): Message {
+    return this._recording;
+  }
 
   @Output() frame = new EventEmitter<number>();
 
@@ -30,7 +49,9 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lineChart') lineChart: LineChartComponent;
   @ViewChild('verticalBar') verticalBarElem;
 
+
   signalsToSelect: SignalGroup;
+  snapshots: Snapshot[];
 
   verticalBar: HTMLDivElement
   video: HTMLVideoElement;
@@ -56,7 +77,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   playState: PlayState = PlayState.Pause;
   route: any;
 
-  saveDescriptionButtonHidden: boolean  = true;
+  saveDescriptionButtonHidden: boolean = true;
   saveDescriptionButtonDisabled: boolean = false;
 
   get playStates(): typeof PlayState {
@@ -77,11 +98,12 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   constructor(private labelingService: LabelingService,
     private metaDataApiService: ApiVideoCallService,
     private sanitizer: DomSanitizer,
-    private signalRetriever: SignalsRetrieverService)
-    {
-      this.labelingService.getLabels().subscribe((labels) => this.drawLabels(labels));
-      this.labelingService.getSelectedLabelIndex().subscribe((index) => (this.selectedLabelIndex = index));
-    }
+    private signalRetriever: SignalsRetrieverService,
+    private clipboard: Clipboard,
+    private notify: NotificationService) {
+    this.labelingService.getLabels().subscribe((labels) => this.drawLabels(labels));
+    this.labelingService.getSelectedLabelIndex().subscribe((index) => (this.selectedLabelIndex = index));
+  }
 
   ngAfterViewInit() {
     this.video = this.videoElement.nativeElement;
@@ -90,12 +112,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     /**Call api service method */
     this.getvideo(); //antes passava o this.recording
 
-    /** Get the signals for the diagram */
-    this.signalRetriever.getSignals(this.recording._id, this.recording.lq_video?.id).subscribe(signals => {
-      console.log("Got signals from backend and writing them to the signal selector.");
-      this.signalsToSelect = signals;
-    });
-
     /* istanbul ignore next */
     this.video.ondurationchange = () => {
       this.totalTime = this.video.duration;
@@ -103,7 +119,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       this.updateScalingVideoToDiagram();
     };
 
-    this.currentPercent.chartPercentageChange.subscribe(()=> {
+    this.currentPercent.chartPercentageChange.subscribe(() => {
       const time = this.video.duration * this.currentPercent.videoPercentage / 100.0;
       this.video.currentTime = time;
     })
@@ -172,17 +188,27 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  isSnapshotsOn(): boolean {
+    return this.snapshots.every((elm) => elm.enabled);
+  }
+
+  changeSnapshots(event: MatCheckboxChange): void {
+    for (let snap of this.snapshots) {
+      snap.enabled = event.checked;
+    }
+    this.lineChart.snapshots = this.snapshots;
+  }
+
   /* subscribe service to get the video throught S3 bucket*/
   getvideo() {
-    return this.metaDataApiService.getVideo(this.recording._id).subscribe(data => {
+    return this.metaDataApiService.getVideo(this._recording._id).subscribe(data => {
       this.url = data;
       this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
-    },(error) => {
+    }, (error) => {
       console.log('Error ocurred: ', error);
     })
   }
 
-  /* istanbul ignore next */
   togglePlay() {
     if (!this.video.paused || this.playState === PlayState.PlayReverse) {
       this.stopReverse();
@@ -194,18 +220,30 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /* istanbul ignore next */
   playHeaderClick(event) {
-    if (event.layerY > 30) {
-    // prevent selection of text, drag/drop, etc.
-    event.preventDefault();
-    const width = event.target.getBoundingClientRect().width;
-    const percentageAtStart = this.currentZoomWindowStart;
-    const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
-    this.currentPercent.chartPercentage = percentageAtStart + 100.0 / (width * ( 1 - this.lineChart.labelSizePercentage)) * (event.offsetX - (this.lineChart.labelSizePercentage * width)) * zoomFactor;
+    let clickedPointElements = this.lineChart.chart.getElementsAtEventForMode(event, 'nearest', { intersect: true, includeInvisible: false }, false);
+    if (clickedPointElements.length > 0) {
+      let snapshot: Snapshot = clickedPointElements.filter((elem)=>elem.element['$context'].raw.data ?? false)[0].element['$context'].raw.data;
+      if (snapshot) {
+        let snapshotNameWithoutExtension = snapshot.name.substring(0, snapshot.name.lastIndexOf('.'));
+        this.clipboard.copy(snapshotNameWithoutExtension);
+        let message = `Copied snapshot name to clipboard: ${snapshotNameWithoutExtension}`;
+        console.info(message);
+        this.notify.success(message);
+        return;
+      }
+    }
 
+    if (event.layerY > 30) {
+      // prevent selection of text, drag/drop, etc.
+      event.preventDefault();
+      const width = event.target.getBoundingClientRect().width;
+      const percentageAtStart = this.currentZoomWindowStart;
+      const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
+      this.currentPercent.chartPercentage = percentageAtStart + 100.0 / (width * (1 - this.lineChart.labelSizePercentage)) * (event.offsetX - (this.lineChart.labelSizePercentage * width)) * zoomFactor;
+
+    }
   }
-}
 
   zoomChangedByChart(newZoomWindow: [number, number]) {
     this.currentZoomWindowStart = newZoomWindow[0];
@@ -335,21 +373,21 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  public get Description() : string {
-    return this.recording.description ?? '';
+  public get Description(): string {
+    return this._recording.description ?? '';
   }
 
   //Change the value of Hidden from true to false so the button Save can be shown
-  public set Description(newDescription : string) {
-    this.recording.description = newDescription;
-    this.saveDescriptionButtonHidden=false;
+  public set Description(newDescription: string) {
+    this._recording.description = newDescription;
+    this.saveDescriptionButtonHidden = false;
   }
 
   saveDescription() {
     this.saveDescriptionButtonDisabled = true;
-    this.metaDataApiService.setDescription(this.recording._id, this.recording.description).subscribe(()=> {
-    this.saveDescriptionButtonHidden=true;
-    this.saveDescriptionButtonDisabled = false;
+    this.metaDataApiService.setDescription(this._recording._id, this._recording.description).subscribe(() => {
+      this.saveDescriptionButtonHidden = true;
+      this.saveDescriptionButtonDisabled = false;
     });
   }
 

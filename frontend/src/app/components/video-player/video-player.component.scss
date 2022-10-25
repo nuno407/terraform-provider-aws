@@ -143,3 +143,10 @@ mat-expansion-panel-header {
 .expansion-panel-icon {
   margin-right: 10px;
 }
+
+.no-body {
+  max-height: 48px;
+}
+.no-body.mat-expansion-panel-header > .mat-expansion-indicator {
+  display: none;
+}

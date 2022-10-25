@@ -3,6 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { fromEvent } from 'rxjs';
 import { map, takeUntil, throttleTime } from 'rxjs/operators';
+import { FPS } from 'src/app/constants';
 import { ApiVideoCallService } from 'src/app/core/services/api-video-call.service';
 import { Message, RecordingInfo, RootObject } from 'src/app/models/recording-info';
 import { FilterDataSource } from 'src/app/modules/filters/models/filter-data-source';
@@ -17,7 +18,7 @@ export class RecordingDetailComponent implements OnInit {
   /**Local variables */
   recording;
   currentFrame: number = 0;
-  fps = 15;
+  fps = FPS;
   videoPlayerWidthPercentage = 60;
 
   /**Event */
@@ -43,7 +44,6 @@ export class RecordingDetailComponent implements OnInit {
     this.metaDataApiService.getSingleData(this.recordingId).subscribe((details: Message) => {
       this.recording = details;
     });
-
   }
 
   /* istanbul ignore next */

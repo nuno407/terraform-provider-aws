@@ -42,53 +42,49 @@
 </div>
 <div class="timeline-area">
   <div class="timeline">
-    <div class="progress-bar" (mousedown)="playHeaderClick($event)">
-      <app-line-chart #lineChart class="line-chart" (zoomRangeChange)="zoomChangedByChart($event)" (totalDurationChange)="chartTotalTime = $event; updateScalingVideoToDiagram()"
-      [recording]="recording" >
+    <div class="progress-bar" >
+      <app-line-chart #lineChart class="line-chart" (zoomRangeChange)="zoomChangedByChart($event)"
+        (totalDurationChange)="chartTotalTime = $event; updateScalingVideoToDiagram()" [snapshots]="snapshots" (mousedown)="playHeaderClick($event)">
       </app-line-chart>
-      <div #verticalBar [style.marginLeft]="playheaderPercentage + '%'" [hidden]="playheaderHidden" class="vertical-bar"></div>
-      <mat-slider [hidden]="(currentZoomWindowEnd - currentZoomWindowStart) >= 95" min="0"
-        [max]="maxStartPercentage" [value]="currentZoomWindowStart" (input)="this.lineChart.disableAnimations(); slideScrollBar($event);" (change)="this.lineChart.enableAnimations()"></mat-slider>
+      <div #verticalBar [style.marginLeft]="playheaderPercentage + '%'" [hidden]="playheaderHidden"
+        class="vertical-bar"></div>
+      <mat-slider [hidden]="(currentZoomWindowEnd - currentZoomWindowStart) >= 95" min="0" [max]="maxStartPercentage"
+        [value]="currentZoomWindowStart" (input)="this.lineChart.disableAnimations(); slideScrollBar($event);"
+        (change)="this.lineChart.enableAnimations()"></mat-slider>
     </div>
   </div>
   <div class="signals-sidebar">
     <mat-expansion-panel class="expansion-panel">
       <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon fontIcon="bosch-ic-label" class="expansion-panel-icon"></mat-icon>
-              {{'RECORDING_DETAILS.labels' | translate}}
-          </mat-panel-title>
+        <mat-panel-title>
+          <mat-icon fontIcon="bosch-ic-chart-line-checkmark" class="expansion-panel-icon"></mat-icon>
+          {{'RECORDING_DETAILS.signals' | translate}}
+        </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="labels" >
-        <div *ngFor="let label of labels">
-          <div class="label" [style]="getLabelStyle(label)"></div>
-        </div>
+      <div class="signal-selection">
+        <app-signal-selection (selectedSignals)="lineChart.signals=$event" [signalsToSelect]="signalsToSelect">
+        </app-signal-selection>
       </div>
-      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 0)"
-        [style.left]="labels[selectedLabelIndex].start + '%'" class="cursor"></div>
-      <div *ngIf="selectedLabelIndex != -1" (mousedown)="cursorMove($event, 1)"
-        [style.left]="labels[selectedLabelIndex].end + '%'" class="cursor"></div>
     </mat-expansion-panel>
-    <mat-expansion-panel class="expansion-panel">
-      <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon fontIcon="bosch-ic-chart-line-checkmark" class="expansion-panel-icon"></mat-icon>
-              {{'RECORDING_DETAILS.signals' | translate}}
-          </mat-panel-title>
+    <mat-expansion-panel class="no-body" hideToggle>
+      <mat-expansion-panel-header class="no-body">
+        <mat-panel-title>
+          <mat-icon fontIcon="bosch-ic-camera" class="expansion-panel-icon"></mat-icon>
+          {{'RECORDING_DETAILS.snapshots' | translate}}
+        </mat-panel-title>
+        <mat-checkbox [checked]="isSnapshotsOn()" (change)="changeSnapshots($event)"></mat-checkbox>
       </mat-expansion-panel-header>
-    <div class="signal-selection">
-      <app-signal-selection (selectedSignals)="lineChart.signals=$event" [signalsToSelect]="signalsToSelect"></app-signal-selection>
-    </div>
     </mat-expansion-panel>
     <mat-expansion-panel class="expansion-panel" expanded="true">
       <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon fontIcon="bosch-ic-document-text" class="expansion-panel-icon"></mat-icon>
-              {{'RECORDING_DETAILS.description' | translate}}
-          </mat-panel-title>
+        <mat-panel-title>
+          <mat-icon fontIcon="bosch-ic-document-text" class="expansion-panel-icon"></mat-icon>
+          {{'RECORDING_DETAILS.description' | translate}}
+        </mat-panel-title>
       </mat-expansion-panel-header>
       <textarea [(ngModel)]="Description"></textarea>
-      <button type="button" mat-raised-button (click)="saveDescription()" [hidden]="saveDescriptionButtonHidden" [disabled]="saveDescriptionButtonDisabled">
+      <button type="button" mat-raised-button (click)="saveDescription()" [hidden]="saveDescriptionButtonHidden"
+        [disabled]="saveDescriptionButtonDisabled">
         <mat-icon fontIcon="bosch-ic-save" class="expansion-panel-icon"></mat-icon>
       </button>
     </mat-expansion-panel>
