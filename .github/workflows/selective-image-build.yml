@@ -214,7 +214,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1.5.1
+        uses: aws-actions/amazon-ecr-login@v1.5.2
 
       - name: Set up Docker Buildx
         id: buildx
