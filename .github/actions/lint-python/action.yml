@@ -27,30 +27,63 @@ runs:
         TOKEN: ${{ inputs.voxel-pip-registry-token }}
       shell: bash
       run: |
+        echo "::group::requirements-installation"
         python -m pip install --upgrade pip
         python -m pip install autopep8 pylint mypy
         trap popd EXIT
         pushd ${{ inputs.baseDir }}
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
+        echo "::endgroup::"
+
+        echo "::group::list-packages"
+        pip list
+        echo "::endgroup::"
+
+    - name: Configure problem matchers
+      shell: bash
+      run: |
+        echo "::add-matcher::${GITHUB_ACTION_PATH}/pylint-error.json"
+        echo "::add-matcher::${GITHUB_ACTION_PATH}/pylint-warning.json"
+        echo "::add-matcher::${GITHUB_ACTION_PATH}/mypy.json"
 
     - name: Autopep8 ${{ inputs.baseDir }}
       shell: bash
+      id: autopep-check
+      continue-on-error: true
       run: |
         trap popd EXIT
         pushd ${{ inputs.baseDir }}
-        autopep8 .
+
+        echo "::group::autopep8-results"
+        autopep8 --exit-code .
+        echo "::endgroup::"
 
     - name: Pylint ${{ inputs.baseDir }}
       shell: bash
+      id: pylint-check
+      continue-on-error: true
       run: |
         trap popd EXIT
         pushd ${{ inputs.baseDir }}
-        pylint .
+
+        echo "::group::pylint-results"
+        pylint --output-format="colorized" .
+        echo "::endgroup::"
 
     - name: Mypy ${{ inputs.baseDir }}
       shell: bash
+      id: mypy-check
+      continue-on-error: true
       run: |
         trap popd EXIT
         pushd ${{ inputs.baseDir }}
-        mypy .
+
+        echo "::group::mypy-results"
+        mypy --install-types --non-interactive --show-column-numbers --show-error-codes ./
+        echo "::endgroup::"
+
+    - name: Check for linter failures
+      shell: bash
+      if: ${{ steps.autopep-check.result != 'success' || steps.pylint-check.result != 'success' || steps.mypy-check.result != 'success' }}
+      run: exit 1
