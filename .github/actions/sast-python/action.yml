@@ -1,0 +1,37 @@
+name: SAST Scan
+description: Perform Bandit Security Scan
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  python-version:
+    description: Python version
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install pip dependencies ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        pushd ${{ inputs.baseDir }}
+        trap popd EXIT
+        python -m pip install bandit
+
+    - name: Run bandit scan
+      shell: bash
+      run: |
+        pushd ${{ inputs.baseDir }}
+        trap popd EXIT
+        bandit -r ${PWD} -c pyproject.toml -f json -o bandit-report.json
+
+    - name: Persist ${{ inputs.baseDir }} security report
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.baseDir }}-security-report
+        path: ${{ inputs.baseDir }}/bandit-report.json
