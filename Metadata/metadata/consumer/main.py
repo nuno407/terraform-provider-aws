@@ -10,14 +10,6 @@ from typing import Tuple
 import boto3
 import pytimeparse
 import pytz
-from metadata.common.constants import AWS_REGION
-from metadata.common.constants import TIME_FORMAT
-from metadata.common.constants import UNKNOWN_FILE_FORMAT_MESSAGE
-from metadata.common.errors import EmptyDocumentQueryResult
-from metadata.common.errors import MalformedRecordingEntry
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.db import Persistence
-from metadata.consumer.service import RelatedMediaService
 from pymongo.collection import Collection
 from pymongo.collection import ReturnDocument
 from pymongo.database import Database
@@ -30,6 +22,14 @@ from base.constants import IMAGE_FORMATS
 from base.constants import VIDEO_FORMATS
 from base.voxel.voxel_functions import create_dataset
 from base.voxel.voxel_functions import update_sample
+from metadata.common.constants import AWS_REGION
+from metadata.common.constants import TIME_FORMAT
+from metadata.common.constants import UNKNOWN_FILE_FORMAT_MESSAGE
+from metadata.common.errors import EmptyDocumentQueryResult
+from metadata.common.errors import MalformedRecordingEntry
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.db import Persistence
+from metadata.consumer.service import RelatedMediaService
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
@@ -111,7 +111,7 @@ def create_recording_item(message: dict,
             message['media_type'])
 
         footage_time = datetime.fromtimestamp(
-            message['footagefrom']/1000.0).strftime(TIME_FORMAT)
+            message['footagefrom'] / 1000.0).strftime(TIME_FORMAT)
         # Update video record
         recording_item = {
             'video_id': message['_id'],
@@ -132,11 +132,14 @@ def create_recording_item(message: dict,
         # Set reference to source video on snapshots
         for media_path in snapshot_paths:
             try:  # we have the key for snapshots named as 'video_id' due to legacy reasons...
-                recording = collection_rec.find_one_and_update(filter={'video_id': media_path},
-                                                               update={
-                                                                   '$push': {'recording_overview.source_videos': message['_id']}},
-                                                               upsert=False,
-                                                               return_document=ReturnDocument.AFTER)
+                recording = collection_rec.find_one_and_update(
+                    filter={
+                        'video_id': media_path},
+                    update={
+                        '$push': {
+                            'recording_overview.source_videos': message['_id']}},
+                    upsert=False,
+                    return_document=ReturnDocument.AFTER)
 
                 _logger.info("Associated snapshot to video - %s", media_path)
                 update_voxel_media(recording)
@@ -174,7 +177,7 @@ def update_voxel_media(sample: dict):
 
     # Voxel51 code
 
-    if 'filepath' not in sample :
+    if 'filepath' not in sample:
         _logger.error(f"Filepath field not present in the sample.{sample}")
         return None
 
@@ -185,13 +188,13 @@ def update_voxel_media(sample: dict):
     sample.pop("_id", None)
 
     if filetype in IMAGE_FORMATS:
-        bucket_name = bucket_name+"_snapshots"
+        bucket_name = bucket_name + "_snapshots"
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3']+"/"+filepath[:-5]+'_anonymized.'+filetype
+            os.environ['ANON_S3'] + "/" + filepath[:-5] + '_anonymized.' + filetype
 
     elif filetype in VIDEO_FORMATS:
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3']+"/"+filepath[:-4]+'_anonymized.'+filetype
+            os.environ['ANON_S3'] + "/" + filepath[:-4] + '_anonymized.' + filetype
     else:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     sample["s3_path"] = anonymized_path
@@ -236,7 +239,7 @@ def upsert_mdf_data(message: dict, collection_sig: Collection,
         aggregated_values = {}
         for key in message['recording_overview'].keys():
             aggregated_values.update(
-                {eval(f'recording_overview.{key}'): message['recording_overview'][key]})
+                {f'recording_overview.{key}': message['recording_overview'][key]})
 
         signals_data = {'source': "MDFParser", 'signals': signals}
 
@@ -286,7 +289,8 @@ def update_pipeline_db(video_id: str, message: dict,
     # check that data has at least the absolute minimum of required fields
     if not all(k in message for k in ('data_status', 's3_path')):
         _logger.error(
-            'Skipping pipeline collection update for %s as not all required fields are present in the message.', video_id)
+            'Skipping pipeline collection update for %s as not all required fields are present in the message.',
+            video_id)
         return None
 
     # Initialise pipeline item to upsert
@@ -322,14 +326,14 @@ def update_pipeline_db(video_id: str, message: dict,
     filetype = s3split[-1].split(".")[-1]
 
     if filetype in IMAGE_FORMATS:
-        bucket_name = bucket_name+"_snapshots"
+        bucket_name = bucket_name + "_snapshots"
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3']+"/" + \
-            message["s3_path"][:-5]+'_anonymized.'+filetype
+            os.environ['ANON_S3'] + "/" + \
+            message["s3_path"][:-5] + '_anonymized.' + filetype
     elif filetype in VIDEO_FORMATS:
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3']+"/" + \
-            message["s3_path"][:-4]+'_anonymized.'+filetype
+            os.environ['ANON_S3'] + "/" + \
+            message["s3_path"][:-4] + '_anonymized.' + filetype
     else:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     # with dicts either we make a copy or both variables will reference the same object
@@ -504,16 +508,16 @@ def process_outputs(video_id: str, message: dict,
 
     filetype = s3split[-1].split(".")[-1]
     anon_video_path = "s3://" + \
-        os.environ['ANON_S3']+"/" + \
-        message["s3_path"][:-4]+'_anonymized.'+filetype
+        os.environ['ANON_S3'] + "/" + \
+        message["s3_path"][:-4] + '_anonymized.' + filetype
 
     if filetype == "jpeg" or filetype == "png":
-        bucket_name = bucket_name+"_snapshots"
+        bucket_name = bucket_name + "_snapshots"
 
     if filetype == "jpeg":
         anon_video_path = "s3://" + \
-            os.environ['ANON_S3']+"/" + \
-            message["s3_path"][:-5]+'_anonymized.'+filetype
+            os.environ['ANON_S3'] + "/" + \
+            message["s3_path"][:-5] + '_anonymized.' + filetype
 
     sample = algo_item
 
@@ -564,7 +568,9 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
     if not ('SourceContainer' in message_attributes and
             'StringValue' in message_attributes['SourceContainer']):
         _logger.error(
-            'Skipping message due to neccessary content not being present. Message: %s  Atributes: %s', message, message_attributes)
+            'Skipping message due to neccessary content not being present. Message: %s  Atributes: %s',
+            message,
+            message_attributes)
         return
 
     # Specify the tables to be used

@@ -19,7 +19,7 @@ class Processor(ABC):
 
     @abstractmethod
     def _process(self, synchronized_signals: Dict[timedelta, Dict[str, Union[bool, int, float]]]) -> Dict[str, Any]:
-        pass
+        raise NotImplementedError()
 
     @abstractproperty
     def name(self):
