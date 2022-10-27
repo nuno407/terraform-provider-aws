@@ -38,17 +38,21 @@ class TestSnapshotIngestor:
 
     def test_snapshot_path_generator(self, msg_snapshot, container_services, s3_client, sqs_client, sts_helper, expected_rcc_folders):
 
-        obj = SnapshotIngestor(container_services, s3_client, sqs_client, sts_helper)
+        obj = SnapshotIngestor(
+            container_services, s3_client, sqs_client, sts_helper)
         start = datetime.utcfromtimestamp(1660922264165/1000.0)
         end = datetime.utcfromtimestamp(1660929464176/1000.0)
-        paths = obj._snapshot_path_generator(msg_snapshot.tenant, msg_snapshot.deviceid, start, end)
+        paths = obj._snapshot_path_generator(
+            msg_snapshot.tenant, msg_snapshot.deviceid, start, end)
         assert paths == expected_rcc_folders
 
     def test_ingest_exists_on_devcloud(self, msg_snapshot, container_services, s3_client, sqs_client, sts_helper):
         #
-        obj = SnapshotIngestor(container_services, s3_client, sqs_client, sts_helper)
-        obj.check_if_exists = Mock()
-        obj.check_if_exists.side_effect = [(False, ""), (True, ""), (False, ""), (True, "")]
+        obj = SnapshotIngestor(
+            container_services, s3_client, sqs_client, sts_helper)
+        obj.check_if_s3_path_exists = Mock()
+        obj.check_if_s3_path_exists.side_effect = [
+            (False, ""), (True, ""), (False, ""), (True, "")]
 
         snapshot1_timestamp = datetime.utcfromtimestamp(1657642653000/1000.0)
         snapshot2_timestamp = datetime.utcfromtimestamp(1657642655000/1000.0)
@@ -74,7 +78,9 @@ class TestSnapshotIngestor:
         obj.ingest(msg_snapshot)
 
         calls = [call(ANY, ANY, path) for path in expected_rcc_paths]
-        container_services.download_file.assert_has_calls(calls, any_order=True)
+        container_services.download_file.assert_has_calls(
+            calls, any_order=True)
 
-        calls = [call(ANY, b"snapshotbytes", container_services.raw_s3, path) for path in expected_devcloud_paths]
+        calls = [call(ANY, b"snapshotbytes", container_services.raw_s3, path)
+                 for path in expected_devcloud_paths]
         container_services.upload_file.assert_has_calls(calls, any_order=True)

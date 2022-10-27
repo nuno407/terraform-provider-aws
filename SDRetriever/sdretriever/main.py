@@ -81,7 +81,8 @@ def main(config: SDRetrieverConfig):
     STS_CLIENT = boto3.client('sts', region_name='eu-central-1')
     CS = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
     CS.load_config_vars(S3_CLIENT)
-    STS_HELPER = StsHelper(STS_CLIENT, role=CS.rcc_info.get("role"), role_session="DevCloud-SDRetriever")
+    STS_HELPER = StsHelper(STS_CLIENT, role=CS.rcc_info.get(
+        "role"), role_session="DevCloud-SDRetriever")
     GRACEFUL_EXIT = GracefulExit()
 
     # Create file ingestors
@@ -121,7 +122,8 @@ def main(config: SDRetrieverConfig):
                     LOGGER.info(f"Message deemed irrelevant to us", extra={
                         "messageid": message.get('MessageId')})
 
-                    CS.delete_message(SQS_CLIENT, video_msg_obj.receipthandle, source)
+                    CS.delete_message(
+                        SQS_CLIENT, video_msg_obj.receipthandle, source)
                     continue
 
                 # If ingestable
@@ -130,7 +132,9 @@ def main(config: SDRetrieverConfig):
 
                     if request_metadata:
                         # check if metadata is fully available before ingesting video
-                        if not METADATA_ING.check_metadata_exists_and_is_complete(video_msg_obj):
+                        metadata_is_complete, metadata_chunks = METADATA_ING.check_metadata_exists_and_is_complete(
+                            video_msg_obj)
+                        if not metadata_is_complete:
                             # in case it is not available yet, prolong the message visibility timeout and put it back in the queue
                             receive_count = video_msg_obj.receive_count
                             prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
@@ -146,7 +150,7 @@ def main(config: SDRetrieverConfig):
                     # If metadata is to be downloaded - it's an interior recorder video
                     if db_record_data and request_metadata:
                         source_data = METADATA_ING.ingest(
-                            video_msg_obj, db_record_data['_id'])
+                            video_msg_obj, db_record_data['_id'], metadata_chunks)
 
                         # If we successfully ingested metadata, update the record
                         if source_data:
@@ -190,7 +194,8 @@ def main(config: SDRetrieverConfig):
                     LOGGER.info(f"Message deemed irrelevant to us", extra={
                         "messageid": message.get('MessageId')})
 
-                    CS.delete_message(SQS_CLIENT, snap_msg_obj.receipthandle, source)
+                    CS.delete_message(
+                        SQS_CLIENT, snap_msg_obj.receipthandle, source)
                     continue
 
                 # If ingestable
@@ -199,7 +204,8 @@ def main(config: SDRetrieverConfig):
                     # Process parsed message
                     reprocess = SNAPSHOT_ING.ingest(snap_msg_obj)
                     if reprocess:
-                        LOGGER.info(f"Message will be re-ingested later", extra={"messageid": snap_msg_obj.messageid})
+                        LOGGER.info(f"Message will be re-ingested later",
+                                    extra={"messageid": snap_msg_obj.messageid})
                     else:
                         CS.delete_message(
                             SQS_CLIENT, snap_msg_obj.receipthandle, source)
@@ -220,7 +226,8 @@ def main(config: SDRetrieverConfig):
 
 
 if __name__ == "__main__":
-    _config = SDRetrieverConfig.load_config_from_yaml_file(os.environ.get('CONFIG_FILE', '/app/config/config.yml'))
+    _config = SDRetrieverConfig.load_config_from_yaml_file(
+        os.environ.get('CONFIG_FILE', '/app/config/config.yml'))
 
     # Instanciating main loop and injecting dependencies
     main(config=_config)

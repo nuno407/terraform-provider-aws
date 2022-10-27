@@ -6,19 +6,24 @@ import os
 import re
 import subprocess
 from abc import abstractmethod
+from copy import copy
 from datetime import datetime
 from datetime import timedelta
-from datetime import timedelta as td
+from datetime import timezone
 from operator import itemgetter
+from typing import Container
 from typing import Iterator
 from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import TypeVar
 
 import boto3
 from botocore.exceptions import ClientError
+from mypy_boto3_s3 import S3Client
 
 from base.aws.container_services import ContainerServices
+from base.aws.container_services import S3ObjectParams
 from base.aws.shared_functions import StsHelper
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sdretriever.message import VideoMessage
@@ -31,7 +36,7 @@ LOGGER = log.getLogger("SDRetriever." + __name__)
 
 class Ingestor(object):
 
-    def __init__(self, container_services: ContainerServices, s3_client, sqs_client, sts_helper: StsHelper) -> None:
+    def __init__(self, container_services: ContainerServices, s3_client: S3Client, sqs_client, sts_helper: StsHelper) -> None:
         self.CS = container_services
         self.S3_CLIENT = s3_client
         self.SQS_CLIENT = sqs_client
@@ -44,56 +49,44 @@ class Ingestor(object):
         """Ingests the artifacts described in a message into the DevCloud"""
         pass
 
-    def check_if_exists(self, s3_path: str, bucket=None, s3_client=None, messageid=None) -> tuple[bool, dict]:
-        """check_if_exists - Verify if path exists on target S3 bucket.
-        And that the size is bigger then 0.
+    def check_if_s3_path_exists(self, s3_path: str, bucket: str = None, s3_client: S3Client = None, messageid: str = None) -> Tuple[bool, dict]:
+        """Verify if path exists on target S3 bucket.
 
+        - Check if the file exists in a given path.
+        - Verifies if the object found size is bigger then 0.
+        - If the object is not found, continue to look for tenant and deviceid prefixes to provide logging information
 
         Args:
             s3_path (str): S3 path to look for.
-            response (dict) : Response of list_objects
+            bucket (str): S3 bucket name.
+            messageid (str): SQS message ID
+        Returns:
+            A tuple containing a boolean response if the path was found and a dictionary with the S3 objects information
         """
-        # Check if there is a file with the same name already
-        # stored on target S3 bucket
+        bucket = self.CS.raw_s3 if bucket is None else bucket
+
+        s3_object_params = S3ObjectParams(s3_path=s3_path, bucket=bucket)
+
+        # Check if there is a file with the same name already stored on target S3 bucket
         if s3_client is None:
             s3_client = self.RCC_S3_CLIENT
         try:
-            response_list = s3_client.list_objects_v2(
-                Bucket=self.CS.raw_s3 if bucket is None else bucket,
-                Prefix=s3_path
-            )
-            if response_list.get('KeyCount') and int(response_list['Contents'][0]['Size']) == 0:
-                return False, response_list
+            list_objects_response: dict = dict(ContainerServices.list_s3_objects(
+                s3_object_params.s3_path, bucket, s3_client))
 
-        except:
-            fields = s3_path.split("/")  # just for relative paths
-            tenant = fields[0]
-            deviceid = fields[1]
-            try:
-                # can we access the tenant? (not by default, accessible tenants must be whitelisted on RCC by RideCare Cloud Operations)
-                prefix = f"{tenant}/"
-                response_list = s3_client.list_objects_v2(
-                    Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
-            except:
-                LOGGER.error(
-                    f"Could not access {bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {tenant}", extra={"messageid": messageid})
-            else:
-                prefix = f"{tenant}/{deviceid}/"
-                try:
-                    # does the device exist?
-                    response_list = s3_client.list_objects_v2(
-                        Bucket=self.CS.raw_s3 if bucket is None else bucket, Prefix=prefix)
-                except:
-                    LOGGER.error(
-                        f"Could not access folder {bucket}/{prefix} - Tenant {tenant} is accessible, but could not access device {deviceid}", extra={"messageid": messageid})
-                else:
-                    LOGGER.error(f"Could not access folder {s3_path}, something went wrong", extra={
-                                 "messageid": messageid})
-            return False, dict()
+            if list_objects_response.get('KeyCount') and int(list_objects_response['Contents'][0]['Size']) == 0:
+                return False, list_objects_response
 
-        return False if response_list is None else response_list.get('KeyCount', 0) != 0, response_list
+        except Exception:  # pylint: disable=broad-except
+            return ContainerServices.check_if_tenant_and_deviceid_exists_and_log_on_error(
+                s3_client, s3_object_params, messageid), {}
 
-    @property
+        if list_objects_response is None or list_objects_response.get('KeyCount', 0) == 0:
+            return False, {}
+
+        return True, list_objects_response
+
+    @ property
     def RCC_S3_CLIENT(self):
         client = boto3.client('s3',
                               region_name='eu-central-1',
@@ -102,17 +95,17 @@ class Ingestor(object):
                               aws_session_token=self.sessiontoken)
         return client
 
-    @property
+    @ property
     def accesskeyid(self):
         self._rcc_credentials = self.STS_HELPER.get_credentials()
         return self._rcc_credentials['AccessKeyId']
 
-    @property
+    @ property
     def secretaccesskey(self):
         self._rcc_credentials = self.STS_HELPER.get_credentials()
         return self._rcc_credentials['SecretAccessKey']
 
-    @property
+    @ property
     def sessiontoken(self):
         self._rcc_credentials = self.STS_HELPER.get_credentials()
         return self._rcc_credentials['SessionToken']
@@ -125,7 +118,7 @@ class VideoIngestor(Ingestor):
         self.STREAM_TIMESTAMP_TYPE = 'PRODUCER_TIMESTAMP'
         self.frame_buffer = frame_buffer
 
-    @staticmethod
+    @ staticmethod
     def _ffmpeg_probe_video(video_bytes) -> dict:
         # Store bytes into current working directory as video
         temp_video_file = "input_video.mp4"
@@ -146,7 +139,7 @@ class VideoIngestor(Ingestor):
     def ingest(self, video_msg: VideoMessage) -> Optional[dict]:
         '''Obtain video from KinesisVideoStreams and upload it to our raw data S3'''
         # Define the target path where to place the video
-        if "srxdriverpr" in video_msg.streamname:
+        if video_msg.streamname and "srxdriverpr" in video_msg.streamname:
             s3_folder = self.CS.sdr_folder['driver_pr']
         else:
             s3_folder = self.CS.sdr_folder['debug']
@@ -199,7 +192,7 @@ class VideoIngestor(Ingestor):
             "footageto": video_end,
             "tenant": video_msg.tenant,
             "deviceid": video_msg.deviceid,
-            'length': str(td(seconds=video_seconds)),
+            'length': str(timedelta(seconds=video_seconds)),
             '#snapshots': str(0),
             'snapshots_paths': [],
             "sync_file_ext": "",
@@ -227,7 +220,7 @@ class SnapshotIngestor(Ingestor):
     def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
 
-    @staticmethod
+    @ staticmethod
     def _snapshot_path_generator(tenant: str, device: str, start: ST, end: ST):
         """Generate the list of possible folders between the range of two timestamps
 
@@ -243,8 +236,10 @@ class SnapshotIngestor(Ingestor):
         if not tenant or not device or not start or not end:
             return []
         # cast to datetime format
-        start_timestamp = datetime.fromtimestamp(start/1000.0) if type(start) != datetime else start
-        end_timestamp = datetime.fromtimestamp(end/1000.0) if type(end) != datetime else end
+        start_timestamp = datetime.fromtimestamp(
+            start/1000.0) if type(start) != datetime else start
+        end_timestamp = datetime.fromtimestamp(
+            end/1000.0) if type(end) != datetime else end
         if int(start.timestamp()) < 0 or int(end.timestamp()) < 0:
             return []
 
@@ -259,7 +254,7 @@ class SnapshotIngestor(Ingestor):
             hour = dt.strftime("%H")
             times.append(
                 f"{tenant}/{device}/year={year}/month={month}/day={day}/hour={hour}/")
-            dt = dt + td(hours=1)
+            dt = dt + timedelta(hours=1)
         # and return it
         return times
 
@@ -276,7 +271,7 @@ class SnapshotIngestor(Ingestor):
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
-                exists_on_devcloud, _ = self.check_if_exists(
+                exists_on_devcloud, _ = self.check_if_s3_path_exists(
                     'Debug_Lync/'+snap_name, self.CS.raw_s3, self.S3_CLIENT, snap_msg.messageid)
                 if not exists_on_devcloud:
 
@@ -287,7 +282,7 @@ class SnapshotIngestor(Ingestor):
                     # For all those locations
                     for folder in possible_locations:
                         # If the file exists in this RCC folder
-                        found_on_rcc, _ = self.check_if_exists(
+                        found_on_rcc, _ = self.check_if_s3_path_exists(
                             folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT, snap_msg.messageid)
 
                         if found_on_rcc:
@@ -348,7 +343,7 @@ class MetadataIngestor(Ingestor):
     def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
 
-    @staticmethod
+    @ staticmethod
     def _json_raise_on_duplicates(ordered_pairs):
         """Convert duplicate keys to JSON array or if JSON objects, merges them."""
         d = {}
@@ -365,64 +360,314 @@ class MetadataIngestor(Ingestor):
                 d[k] = v
         return d
 
-    def _get_chunks_lookup_paths(self, message: VideoMessage) -> Iterator[str]:
-        # Find the time bounds for the metadata
-        metadata_start_time = message.uploadstarted.replace(
-            microsecond=0, second=0, minute=0)
-        metadata_end_time = message.uploadfinished.replace(
-            microsecond=0, second=0, minute=0)
+    def _get_chunks_lookup_paths(self, message: VideoMessage, start_time: datetime = None, end_time: datetime = None) -> Iterator[str]:
+        """
+        Get all paths to search for chunks in RCC S3 bucket between two timestamps.
+        It includes the start and end hour folder.
 
-        # Calculate hours delta between start and end timestamps
-        delta = metadata_end_time - metadata_start_time
-        start_minutes = metadata_start_time.minute
-        total_hours = int(delta.total_seconds() / 3600 +
-                          start_minutes / 60) + delta.days * 24 + 1
+        Args:
+            message (VideoMessage): _description_
+            start_time (datetime, optional): The start date to search
+                if not specified, defaults to time the video finished uploading.
+            end_time (datetime, optional): The end date to stop search
+                if not specified, defaults to time the video finished uploading.
 
-        for hour in range(total_hours):
-            # Calculate the bounds for the hour
-            upload_ts = metadata_start_time + timedelta(hours=hour)
+        Yields:
+            Iterator[str]: An Iterator containing all possible paths
+        """
+        # If end time is not provided use the message upload timestamps
+        if end_time is None:
+            end_time = message.uploadfinished
 
-            # Create the lookup path
-            lookup_path = f"{message.tenant}/{message.deviceid}/year={upload_ts.year}/month={upload_ts.month:02}/day={upload_ts.day:02}/hour={upload_ts.hour:02}/{message.recording_type}_{message.recordingid}"
+        if start_time is None:
+            start_time = message.uploadstarted
 
-            yield lookup_path
+        start_time = start_time.replace(microsecond=0, second=0, minute=0)
 
-    def check_metadata_exists_and_is_complete(self, message: VideoMessage):
-        """Check if metadata exists and is complete.
+        path = f'{message.tenant}/{message.deviceid}/'
+
+        paths = self._discover_s3_subfolders(
+            path, self.CS.rcc_info["s3_bucket"], self.RCC_S3_CLIENT, start_time, end_time)
+
+        for s3_path in paths:
+            yield s3_path + f'{message.recording_type}_{message.recordingid}'
+
+    def _discover_s3_subfolders(self, parent_folder: str, bucket: str, s3_client: S3Client, start_time: datetime, end_time: datetime) -> Iterator[str]:
+        """
+        Recursive function that will discover all RCC S3 subfolder between start_time and end_time.
+        Return all the path available in S3 between start_time and end_time, including the start hour and end hour folder.
+
+        Args:
+            folder (str): Parent folder to search for. Needs to be inside a device folder.
+            bucket (str): Bucket name.
+            s3_client (S3Client): RCC S3 client.
+            start_time (datetime): Time to start the search
+            end_time (datetime): Time to end the search
+
+        Returns:
+            Iterator[str]: A list containing all paths from root to the last folder (hour folder).
         """
 
-        # Get all lookup paths
-        lookup_paths = list(self._get_chunks_lookup_paths(message))
+        list_objects_response = ContainerServices.list_s3_objects(
+            parent_folder, bucket, s3_client, "/")
+
+        sub_folders = []
+        for content in list_objects_response['CommonPrefixes']:
+            path = content['Prefix']
+            year_groups = re.search("year=([0-9]{4})", path)
+            month_groups = re.search("month=([0-9]{2})", path)
+            day_groups = re.search("day=([0-9]{2})", path)
+            hour_groups = re.search("hour=([0-9]{2})", path)
+
+            current_time_start = copy(start_time)
+            current_time_end = copy(end_time)
+
+            # Cast the dates of the paths fi they exist
+            year = int(year_groups.groups()[0])
+            month = int(month_groups.groups()[
+                        0]) if month_groups is not None else None
+
+            day = int(day_groups.groups()[0]
+                      ) if day_groups is not None else None
+
+            hour = int(hour_groups.groups()[
+                       0]) if hour_groups is not None else None
+
+            if hour:
+                current_time_end = current_time_end.replace(hour=hour)
+                current_time_start = current_time_start.replace(hour=hour)
+
+            if day:
+                current_time_end = current_time_end.replace(day=day)
+                current_time_start = current_time_start.replace(day=day)
+
+            if month:
+                current_time_end = current_time_end.replace(month=month)
+                current_time_start = current_time_start.replace(month=month)
+
+            if year:
+                current_time_end = current_time_end.replace(year=year)
+                current_time_start = current_time_start.replace(year=year)
+
+            # Make sure the paths are within boundaries
+            if current_time_start < start_time or current_time_end > end_time:
+                continue
+
+            # Additional check to avoid infinite loop
+            if not path.endswith('/'):
+                continue
+
+            sub_folders.append(path)
+
+        # Check if this is the latest stopping point
+        if 'day=' in parent_folder:
+            # Make sure all paths are completed and don't have missing folders
+            # return [result for result in sub_folders if 'hour=' in result]
+
+            for result in sub_folders:
+                if 'hour=' in result:
+                    yield result
+
+            return
+
+        # Call own function again for every result
+        for folder in sub_folders:
+
+            yield from self._discover_s3_subfolders(
+                folder, bucket, s3_client, start_time, end_time)
+
+    def _search_chunks_in_s3_path(self, s3_path: str, bucket: str, messageid: str, start_time: datetime = None, end_time: datetime = None) -> Tuple[set[str], set[str]]:
+        """
+        Lists all metadata and video chunks for a specific path.
+
+        If start_time and end_time fields are provided then v chunks will
+        only be fetch if they were modified between start_time and end_time.
+
+        Args:
+            s3_path (str): Path to list the chunks.
+            bucket (str): The S3 bucket name.
+            messageid (str): SQS message ID.
+            start_time (datetime): Lower bound to fetch videos chunks
+            end_time (datetime): Upper bound to fetch videos chunks
+
+        Returns:
+            Tuple[set[str], set[str]]: A tuple containing all metadata and video path chunks respectively.
+        """
+        has_files, resp = self.check_if_s3_path_exists(
+            s3_path, bucket, messageid=messageid)
+
+        metadata_chunks_set = set()
+        video_chunks_set = set()
+
+        if not has_files:
+            return metadata_chunks_set, video_chunks_set
+
+        for file_entry in resp['Contents']:
+            file_path: str = file_entry['Key']
+            modified_date: datetime = file_entry['LastModified'].replace(
+                tzinfo=None)
+            rexp = re.compile(r".+\.mp4.*(\.json|\.zip)$")
+
+            if file_path.endswith('.mp4'):
+
+                if start_time and modified_date < start_time:
+                    LOGGER.debug("Ignoring chunk (%s) modified at (%s), it's under the uploadstarted datetime (%s)", file_path, str(
+                        modified_date), str(end_time))
+                    continue
+
+                if end_time and modified_date > end_time:
+                    LOGGER.debug("Ignoring chunk (%s) modified at (%s), it's over the uploadfinished datetime (%s)", file_path, str(
+                        modified_date), str(end_time))
+                    continue
+
+                video_chunks_set.add(file_path)
+                continue
+
+            if rexp.match(file_path):
+                metadata_chunks_set.add(file_path)
+
+        return metadata_chunks_set, video_chunks_set
+
+    def _search_for_match_chunks(self, lookup_paths: Iterator[str], mp4_chunks_left: set[str], bucket: str, messageid: str) -> tuple[bool, set[str]]:
+        """
+        Search for metadata chunks on the provided paths and returns all metadata chunks found.
+        The function will return as soon as all the matched chunks (compared to the video chunks) are found.
+
+        Args:
+            lookup_paths (Iterator[str]): Paths to search for on s3 bucket.
+            mp4_chunks_left (set[str]): A set of the videos chunk ids (not the entire path) to be matched.
+            bucket (str): The S3 bucket to search on.
+            messageid (str): The message id.
+
+        Returns:
+            tuple[bool, set[str]]: A tuple with a boolean that is true if all metadata is found and a set containing the path for all metadata.
+        """
+
+        recording_regex = re.compile(r"/hour=[0-9]{2}/(.+\.mp4).*")
+        metadata_chunks: set[str] = set()
+
+        # Check metadata chunks
+        for i, path in enumerate(lookup_paths):
+            tmp_metadata_chunks, tmp_mp4_chunks = self._search_chunks_in_s3_path(
+                path, bucket, messageid=messageid)
+
+            tmp_metadata_chunks_filtered = set()
+            tmp_metadata_striped = set()
+
+            # Ensure that only metadata belonging to the video are checked and return
+            for chunk in tmp_metadata_chunks:
+                mp4_key = recording_regex.search(chunk).group(1)
+                if mp4_key in mp4_chunks_left:
+                    tmp_metadata_chunks_filtered.add(chunk)
+                    tmp_metadata_striped.add(mp4_key)
+
+            metadata_chunks = metadata_chunks.union(
+                tmp_metadata_chunks_filtered)
+
+            mp4_chunks_left = mp4_chunks_left - tmp_metadata_striped
+
+            # If all metadata chunks were found returns
+            if len(mp4_chunks_left) == 0:
+                LOGGER.info(
+                    "Metadata found outside of upload bounds, %d paths crawled", i)
+                return True, metadata_chunks
+
+        LOGGER.warning(
+            "Fail to validate metadata for the following video chunks: %s", str(mp4_chunks_left))
+        return False, metadata_chunks
+
+    def check_metadata_exists_and_is_complete(self, message: VideoMessage) -> tuple[bool, set[str]]:
+        """
+        Checks if all metadata exists and are complete in RCC S3.
+
+        Args:
+            message (VideoMessage): The video message coming from the queue.
+
+        Returns:
+            Tuple[
+                bool,       :True if metadata is complete, False otherwise
+                set[str]    :A set with all metadata chunks.
+            ]
+        """
+
         bucket = self.CS.rcc_info["s3_bucket"]
-        if len(lookup_paths) == 0:
-            LOGGER.info(f"No metadata chunk paths found for {message.recordingid}", extra={
-                        "messageid": message.messageid})
-            return False
 
-        for path in lookup_paths:
-            metadata_exists, response = self.check_if_exists(
-                path, bucket, messageid=message.messageid)
-            if not metadata_exists:
-                LOGGER.info(f"Metadata does not exist for {message.recordingid} at {path}", extra={
-                            "messageid": message.messageid})
-                return False
-            filenames = [file_entry['Key']
-                         for file_entry in response['Contents']]
-            for videofile in [filename for filename in filenames if filename.endswith('.mp4')]:
-                rexp = re.compile(videofile + r"\..+\.json(\.zip)?")
-                if len(list(filter(rexp.match, filenames))) == 0:
-                    LOGGER.debug(
-                        f"Metadata not completely available in filenames list: {filenames}")
-                    return False
-        return True
+        s3_object_params = S3ObjectParams(
+            s3_path=f'{message.tenant}/{message.deviceid}/', bucket=bucket)
 
-    def _get_metadata_chunks(self, video_msg: VideoMessage):
+        # Make sure it has access to tenant and device
+        if not ContainerServices.check_if_tenant_and_deviceid_exists_and_log_on_error(self.RCC_S3_CLIENT, s3_object_params, message.messageid):
+            return False, set()
+
+        # Get all mp4 lookup paths
+        mp4_lookup_paths = self._get_chunks_lookup_paths(message)
+
+        if not mp4_lookup_paths:
+            LOGGER.error(f"No video chunks paths found for {f'{message.tenant}/{message.deviceid}/'}", extra={
+                "messageid": message.messageid})
+            return False, set()
+
+        # Store all chunks in it's set
+        mp4_chunks_left: set[str] = set()
+        metadata_chunks: set[str] = set()
+
+        recording_regex = re.compile(r"/hour=[0-9]{2}/(.+\.mp4).*")
+
+        # Search for video and metadata chunks
+        for path in mp4_lookup_paths:
+            tmp_metadata_chunks, tmp_mp4_chunks = self._search_chunks_in_s3_path(
+                path, bucket, messageid=message.messageid, start_time=message.uploadstarted, end_time=message.uploadfinished)
+
+            # Store only the recording name to ignore the folders before
+            tmp_mp4_chunks = [recording_regex.search(
+                chunk).group(1) for chunk in tmp_mp4_chunks]
+
+            metadata_chunks = metadata_chunks.union(tmp_metadata_chunks)
+            mp4_chunks_left = mp4_chunks_left.union(tmp_mp4_chunks)
+
+        tmp_metadata_filtered: set[str] = set()
+        tmp_metadata_striped: set[str] = set()
+
+        # Ensure that only metadata belonging to the video are checked
+        for chunk in metadata_chunks:
+
+            # Strips the video from the metadata name
+            mp4_key = recording_regex.search(chunk).group(1)
+
+            if mp4_key in mp4_chunks_left:
+                tmp_metadata_filtered.add(chunk)
+                tmp_metadata_striped.add(mp4_key)
+
+        metadata_chunks = tmp_metadata_filtered
+
+        # Remove video chunks where a metadata chunk was found
+        mp4_chunks_left = mp4_chunks_left - tmp_metadata_striped
+
+        if not mp4_chunks_left:
+            LOGGER.info(
+                "all metadata chunks found within upload bounds")
+            return True, metadata_chunks
+
+        # Search for the metadata until the current day
+        metadata_paths = self._get_chunks_lookup_paths(message,
+                                                       start_time=message.uploadfinished +
+                                                       timedelta(hours=1),
+                                                       end_time=datetime.now()
+                                                       )
+
+        all_found, tmp_metadata_chunks = self._search_for_match_chunks(
+            metadata_paths, mp4_chunks_left, message.messageid, bucket)
+
+        metadata_chunks = metadata_chunks.union(tmp_metadata_chunks)
+
+        return all_found, metadata_chunks
+
+    def _get_metadata_chunks(self, video_msg: VideoMessage, metadata_chunk_paths: set[str]):
         """Download metadata chunks from RCC S3
 
         Args:
-            metadata_start_time (epoch): Timestamp for lower bound
-            metadata_end_time (epoch): Timestamp for upper bound
             video_msg (VideoMessage): Message object
+            metadata_chunk_paths (set[str]): A set containing all the chunks
 
         Returns:
             chunks (dict): Dictionary with all raw metadata chunks between the bounds defined, indexed by their relative order. Defaults to {}}.
@@ -431,42 +676,37 @@ class MetadataIngestor(Ingestor):
         chunks = {}
         chunks_count = 0
 
-        # Generate a timestamp path for each hour within the calculated delta and get all files that match the key prefix
-        for metadata_prefix in self._get_chunks_lookup_paths(video_msg):
+        '''Cycle through the received list of matching files, download them from S3 and store them on the files_dict dictionary'''
+        for file_name in metadata_chunk_paths:
+            if file_name.endswith('.json.zip') or file_name.endswith('.json'):
+                if file_name.endswith('.json.zip'):
+                    # Download metadata file from RCC S3 bucket
+                    compressed_metadata_file = self.CS.download_file(
+                        self.RCC_S3_CLIENT, self.CS.rcc_info["s3_bucket"], file_name)
+                    metadata_bytes = gzip.decompress(
+                        compressed_metadata_file)
 
-            '''Check if there are any files on S3 with the prefix i.e. if metadata chunks _may_ exist'''
-            bucket = self.CS.rcc_info["s3_bucket"]
-            metadata_exists, response = self.check_if_exists(
-                metadata_prefix, bucket, messageid=video_msg.messageid)
+                # Process only json files
+                elif file_name.endswith('.json'):
+                    # Download metadata file from RCC S3 bucket
+                    metadata_bytes = self.CS.download_file(
+                        self.RCC_S3_CLIENT, self.CS.rcc_info["s3_bucket"], file_name)
 
-            '''Cycle through the received list of matching files, download them from S3 and store them on the files_dict dictionary'''
-            for file_entry in response['Contents']:
-                file_name = file_entry['Key']
-                if file_name.endswith('.json.zip') or file_name.endswith('.json'):
-                    if file_name.endswith('.json.zip'):
-                        # Download metadata file from RCC S3 bucket
-                        compressed_metadata_file = self.CS.download_file(
-                            self.RCC_S3_CLIENT, self.CS.rcc_info["s3_bucket"], file_name)
-                        metadata_bytes = gzip.decompress(
-                            compressed_metadata_file)
+                else:
+                    raise RuntimeError(
+                        f"Metadata file {file_name} has an unknown file format")
 
-                    # Process only json files
-                    elif file_name.endswith('.json'):
-                        # Download metadata file from RCC S3 bucket
-                        metadata_bytes = self.CS.download_file(
-                            self.RCC_S3_CLIENT, self.CS.rcc_info["s3_bucket"], file_name)
-
-                    # Read all bytes from http response body
-                    # (botocore.response.StreamingBody) and convert them into json format
-                    json_temp = json.loads(metadata_bytes.decode(
-                        "utf-8"), object_pairs_hook=self._json_raise_on_duplicates)
-                    json_temp["filename"] = file_name
-                    chunks[chunks_count] = json_temp
-                    chunks_count += 1
+                # Read all bytes from http response body
+                # (botocore.response.StreamingBody) and convert them into json format
+                json_temp = json.loads(metadata_bytes.decode(
+                    "utf-8"), object_pairs_hook=self._json_raise_on_duplicates)
+                json_temp["filename"] = file_name
+                chunks[chunks_count] = json_temp
+                chunks_count += 1
 
         if not chunks:
-            LOGGER.warning(f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}", extra={
-                "messageid": video_msg.messageid})
+            LOGGER.error(f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}", extra={
+                         "messageid": video_msg.messageid})
         return chunks
 
     def _process_chunks_into_mdf(self, chunks, video_msg):
@@ -545,7 +785,7 @@ class MetadataIngestor(Ingestor):
             LOGGER.info(
                 f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
-            if self.check_if_exists(s3_path, bucket, messageid=video_msg.messageid):
+            if self.check_if_s3_path_exists(s3_path, bucket, messageid=video_msg.messageid):
                 LOGGER.info(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={
                     "messageid": video_msg.messageid})
             else:
@@ -555,9 +795,9 @@ class MetadataIngestor(Ingestor):
 
         return s3_path
 
-    def ingest(self, video_msg: VideoMessage, video_id: str):
+    def ingest(self, video_msg: VideoMessage, video_id: str, metadata_chunk_paths: set[str]):
         # Fetch metadata chunks from RCC S3
-        chunks = self._get_metadata_chunks(video_msg)
+        chunks = self._get_metadata_chunks(video_msg, metadata_chunk_paths)
         if not chunks:
             LOGGER.info("Cannot ingest metadata from empty set of chunks", extra={
                         "messageid": video_msg.messageid})

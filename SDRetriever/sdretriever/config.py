@@ -1,13 +1,14 @@
 from dataclasses import dataclass
 from dataclasses import fields
+from typing import List
 
 import yaml
 
 
 @dataclass
 class SDRetrieverConfig():
-    tenant_blacklist: list[str]
-    recorder_blacklist: list[str]
+    tenant_blacklist: List[str]
+    recorder_blacklist: List[str]
     frame_buffer: int
 
     @staticmethod

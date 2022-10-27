@@ -3,8 +3,11 @@ import json
 import logging
 import os
 import subprocess
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from datetime import timedelta
+from typing import Optional
 from typing import Tuple
 
 import boto3
@@ -13,6 +16,8 @@ from expiringdict import ExpiringDict
 from mypy_boto3_kinesis_video_archived_media import \
     KinesisVideoArchivedMediaClient
 from mypy_boto3_kinesisvideo import KinesisVideoClient
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -22,6 +27,20 @@ IMAGE_FORMATS = {'jpeg', 'jpg', 'png'}
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 DATA_INGESTION_DATABASE_NAME = "DataIngestion"
+
+
+@dataclass
+class S3ObjectParams:
+    s3_path: str = field()
+    bucket: str = field()
+
+    @property
+    def tenant(self) -> str:
+        return self.s3_path.split("/")[0]
+
+    @property
+    def deviceid(self) -> str:
+        return self.s3_path.split("/")[1]
 
 
 class ContainerServices():
@@ -455,7 +474,7 @@ class ContainerServices():
         # (botocore.response.StreamingBody)
         object_file = response['Body'].read()
 
-        _logger.info("Downloaded [%s]", full_path)
+        _logger.debug("Downloaded [%s]", full_path)
 
         return object_file
 
@@ -737,3 +756,72 @@ class ContainerServices():
         """
         _logger.info(
             "\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
+
+    @staticmethod
+    def list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client, delimiter: str = "") -> ListObjectsV2OutputTypeDef:
+        """List S3 objects.
+        Args:
+            s3_path (str): path to S3 that should return a list of objects
+            bucket (str): bucket name
+            s3_client (S3Client) s3 client
+            delimiter (str)
+        """
+
+        response_list: ListObjectsV2OutputTypeDef = s3_client.list_objects_v2(
+            Bucket=bucket,
+            Prefix=s3_path,
+            Delimiter=delimiter
+        )
+        return response_list
+
+    @staticmethod
+    def _check_if_deviceid_exists(s3_client: S3Client, s3_params: S3ObjectParams, messageid: Optional[str]) -> bool:
+        """
+        Checks if device exists in S3 bucket.
+
+        Args:
+            s3_client (S3Client): _description_
+            s3_params (S3ObjectParams): _description_
+            messageid (Optional[str]): _description_
+
+        Returns:
+            bool: True if has permissions, False otherwise
+        """
+        try:
+            prefix = f"{s3_params.tenant}/{s3_params.deviceid}/"
+            # does the device exist?
+            ContainerServices.list_s3_objects(
+                prefix, s3_params.bucket, s3_client)
+
+            return True
+        except Exception:  # pylint: disable=broad-except
+            deviceid_error_message = f"Could not access folder {s3_params.bucket}/{prefix} - Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"
+            _logger.error(deviceid_error_message, extra={
+                "messageid": messageid})
+
+            return False
+
+    @staticmethod
+    def check_if_tenant_and_deviceid_exists_and_log_on_error(s3_client: S3Client, s3_object_params: S3ObjectParams, messageid: Optional[str]) -> bool:
+        """Checks if tenant exists and also if deviceid exists to provide logging information if it doesn't.
+
+        Args:
+            s3_client (S3Client): boto3 S3 client
+            s3_object_params (S3ObjectParams): wrapper for S3 information
+            messageid: (Optional[str]): optional message id for logging purposes
+
+        Returns:
+            bool: True if exists, False otherwise
+        """
+        try:
+            # can we access the tenant? (not by default, accessible tenants must be whitelisted on RCC by RideCare Cloud Operations)
+            prefix = f"{s3_object_params.tenant}/"
+            ContainerServices.list_s3_objects(
+                prefix, s3_object_params.bucket, s3_client)
+
+            return ContainerServices._check_if_deviceid_exists(
+                s3_client, s3_object_params, messageid)
+        except Exception:  # pylint: disable=broad-except
+            tenant_error_message = f"Could not access {s3_object_params.bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"
+            _logger.error(tenant_error_message, extra={"messageid": messageid})
+            return False

@@ -2,9 +2,15 @@ import gzip
 import json
 import os
 from datetime import datetime
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 from unittest.mock import Mock
 
 import pytest
+from mypy_boto3_s3 import S3Client
 
 from sdretriever.ingestor import MetadataIngestor as MI
 from sdretriever.message import Chunk
@@ -17,7 +23,8 @@ def container_services() -> Mock:
     cs = Mock()
     cs.upload_file = Mock()
     cs.raw_s3 = "dev-rcd-raw-video-files"
-    cs.sdr_folder = {"debug": "Debug_Lync/", "fut2": "FUT2/", "driver_pr": "Driver-PR/"}
+    cs.sdr_folder = {"debug": "Debug_Lync/",
+                     "fut2": "FUT2/", "driver_pr": "Driver-PR/"}
     cs.get_kinesis_clip = Mock(return_value=(b"These are some video bytes", datetime.fromtimestamp(
         1657297040802/1000.0), datetime.fromtimestamp(1657297074110/1000.0)))
     cs.sqs_queues_list = {
@@ -76,8 +83,10 @@ def msg_interior(metadata_full) -> VideoMessage:
     msg.streamname = "datanauts_DATANAUTS_DEV_01_InteriorRecorder"
     msg.footagefrom = 1657297040802
     msg.footageto = 1657297074110
-    msg.uploadstarted = datetime.fromtimestamp(1657297078505/1000.0)  # 1657297078505
-    msg.uploadfinished = datetime.fromtimestamp(1657297083111/1000.0)  # 1657297083111
+    msg.uploadstarted = datetime.fromtimestamp(
+        1657297078505/1000.0)  # 1657297078505
+    msg.uploadfinished = datetime.fromtimestamp(
+        1657297083111/1000.0)  # 1657297083111
     msg.messageid = "6a079463-ef6a-4511-99a0-d35b64bc1e80"
     msg.tenant = "datanauts"
     msg.deviceid = "DATANAUTS_DEV_01"
@@ -90,7 +99,7 @@ def msg_interior(metadata_full) -> VideoMessage:
 
 
 @pytest.fixture
-def metadata_files() -> list[str]:
+def metadata_files() -> List[str]:
     return [
         "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_1.mp4._stream2_20220819181105_0_metadata.json.zip",
         "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_2.mp4._stream2_20220819181117_1_metadata.json.zip",
@@ -102,6 +111,32 @@ def metadata_files() -> list[str]:
 
 
 @pytest.fixture
+def list_s3_objects() -> Callable[[str, str, S3Client, Optional[str]], Any]:
+    paths_reference = []
+
+    def mock_list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client, delimiter: Optional[str] = None):
+        result_set = set()
+        for reference in paths_reference:
+            if reference.startswith(s3_path):
+                # Strip the path to contain until the next the delimiter
+                pos_delimiter = reference[len(s3_path):].find(delimiter)
+                if pos_delimiter != -1:
+                    final_pos = 1 + pos_delimiter + len(s3_path)
+                else:
+                    final_pos = len(reference)
+
+                result_set.add(reference[:final_pos])
+
+        result = {}
+        result['CommonPrefixes'] = []
+        for each in result_set:
+            result['CommonPrefixes'].append({'Prefix': each})
+        return result
+
+    return mock_list_s3_objects, paths_reference
+
+
+@pytest.fixture
 def metadata_full() -> dict:
     with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json", "r") as f:
         mdf = json.load(f)
@@ -109,21 +144,22 @@ def metadata_full() -> dict:
 
 
 @pytest.fixture
-def metadata_chunks(metadata_files) -> dict[int, dict]:
+def metadata_chunks(metadata_files) -> Dict[int, dict]:
     chunks = dict()
     i = 0
     for file in metadata_files:
         with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/metadata_raw_chunks/{file}", "rb") as f:
             compressed_metadata_file = f.read()
             metadata = gzip.decompress(compressed_metadata_file)
-            chunks[i] = json.loads(metadata.decode("utf-8"), object_pairs_hook=MI._json_raise_on_duplicates)
+            chunks[i] = json.loads(metadata.decode(
+                "utf-8"), object_pairs_hook=MI._json_raise_on_duplicates)
     return chunks
 
 # Snapshot fixtures
 
 
 @pytest.fixture
-def snapshot_rcc_folders() -> list[str]:
+def snapshot_rcc_folders() -> List[str]:
     # folders where to look for - possible snapshot locations
     return [
         'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/',
@@ -133,7 +169,7 @@ def snapshot_rcc_folders() -> list[str]:
 
 
 @pytest.fixture
-def snapshot_rcc_paths() -> list[str]:
+def snapshot_rcc_paths() -> List[str]:
     # paths where the snapshots are located
     return [
         'datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=16/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg',
@@ -166,5 +202,6 @@ def msg_snapshot() -> SnapshotMessage:
 @pytest.fixture
 def config_yml():
     from sdretriever.config import SDRetrieverConfig
-    _config = SDRetrieverConfig.load_config_from_yaml_file(os.environ.get('CONFIG_FILE', './config/config.yml'))
+    _config = SDRetrieverConfig.load_config_from_yaml_file(
+        os.environ.get('CONFIG_FILE', './config/config.yml'))
     return _config

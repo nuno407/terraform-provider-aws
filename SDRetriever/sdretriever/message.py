@@ -3,6 +3,7 @@ import logging as log
 from abc import abstractmethod
 from abc import abstractproperty
 from datetime import datetime
+from typing import List
 from typing import Optional
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
@@ -212,7 +213,7 @@ class VideoMessage(Message):
         # nothing to validate at the moment (tests that we want to send do DLQ when they fail)
         return True
 
-    def is_irrelevant(self, tenant_blacklist: list[str] = [], recorder_blacklist: list[str] = []) -> bool:
+    def is_irrelevant(self, tenant_blacklist: List[str] = [], recorder_blacklist: List[str] = []) -> bool:
         """Runtime tests to determine if message contents are not meant to be ingested. Signals only true positives for irrelevancy.
 
         Returns:
@@ -345,7 +346,7 @@ class SnapshotMessage(Message):
             return False
         return True
 
-    def is_irrelevant(self, tenant_blacklist: list[str] = []) -> bool:
+    def is_irrelevant(self, tenant_blacklist: List[str] = []) -> bool:
         """Runtime tests to determine if message contents are not meant to be ingested
 
         Returns:
@@ -360,7 +361,7 @@ class SnapshotMessage(Message):
         return False
 
     @property
-    def chunks(self) -> list[Chunk]:
+    def chunks(self) -> List[Chunk]:
         chunks = []
         if 'chunk_descriptions' in self.properties:
             chunks = self.properties.get('chunk_descriptions')
