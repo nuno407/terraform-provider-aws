@@ -21,17 +21,27 @@ runs:
       run: |
         pushd ${{ inputs.baseDir }}
         trap popd EXIT
-        python -m pip install bandit
+        python -m pip install bandit bandit[toml]
 
     - name: Run bandit scan
       shell: bash
       run: |
         pushd ${{ inputs.baseDir }}
         trap popd EXIT
-        bandit -r ${PWD} -c pyproject.toml -f json -o bandit-report.json
+        bandit -v --exit-zero -r ${PWD} -c pyproject.toml -f json -o bandit_report.json
+
+        echo "::group::troubleshoot-report"
+        cat bandit_report.json
+        echo "::endgroup::"
+
+    - name: Fix analysis paths
+      # Necessary step to correct source paths, since sonar scanner works from a Docker container and has a different path structure from github
+      shell: bash
+      run: |
+        sed -i 's/\/home\/runner\/work\/container_scripts\/container_scripts\//\/github\/workspace\//g' ${{ inputs.baseDir }}/bandit_report.json
 
     - name: Persist ${{ inputs.baseDir }} security report
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.baseDir }}-security-report
-        path: ${{ inputs.baseDir }}/bandit-report.json
+        path: ${{ inputs.baseDir }}/bandit_report.json

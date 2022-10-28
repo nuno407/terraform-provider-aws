@@ -136,8 +136,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get coverage reports
+      - name: Get static analysis and coverage reports
         uses: actions/download-artifact@v3
+
+      - name: Collect SAST reports
+        id: sast-reports
+        run: |
+          echo "::set-output name=report-paths::$(ls --format=commas *-security-report/*.json | tr -s '[:blank:]' ',' | tr -d '\n')"
 
       - name: Sonarqube scan
         id: sonarqube-scan
@@ -151,6 +156,7 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.number }}
             -Dsonar.pullrequest.branch=${{ github.head_ref }}
             -Dsonar.pullrequest.base=master
+            -Dsonar.python.bandit.reportPaths=${{ steps.sast-reports.outputs.report-paths }}
 
       - name: Sonarqube quality gate status
         run: "echo quality gate result: ${{steps.sonarqube-scan.outputs.scan-success}}"
