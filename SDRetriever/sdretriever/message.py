@@ -33,7 +33,7 @@ class Message(object):
         Args:
             sqs_message (dict, optional): Message as read from input queues, without any transformations. Defaults to None.
         """
-        if type(sqs_message) == dict:
+        if isinstance(sqs_message, dict):
             self.raw_message = sqs_message
 
     @abstractmethod
@@ -101,7 +101,7 @@ class Message(object):
         body = {}
         if "Body" in self.raw_message:
             body = self.raw_message.get("Body")
-            if type(body) == str:
+            if isinstance(body, str):
                 body = json.loads(body.replace("\'", "\""))
         else:
             LOGGER.warning("Field 'Body' not found in 'InputMessage'", extra={"messageid": self.messageid})
@@ -112,7 +112,7 @@ class Message(object):
         message = {}
         if "Message" in self.body:
             message = self.body.get("Message")
-            if type(message) == str:
+            if isinstance(message, str):
                 message = json.loads(message.replace("\'", "\""))
         else:
             LOGGER.warning("Field 'Message' not found in 'Body'", extra={"messageid": self.messageid})
@@ -123,11 +123,11 @@ class Message(object):
         messageattributes = {}
         if "MessageAttributes" in self.raw_message:
             messageattributes = self.raw_message.get("MessageAttributes")
-            if type(messageattributes) == str:
+            if isinstance(messageattributes, str):
                 messageattributes = json.loads(messageattributes.replace("\'", "\""))
         elif "MessageAttributes" in self.body:
             messageattributes = self.body.get("MessageAttributes")
-            if type(messageattributes) == str:
+            if isinstance(messageattributes, str):
                 messageattributes = json.loads(messageattributes.replace("\'", "\""))
         else:
             LOGGER.warning("Field 'MessageAttributes' not found at root nor in 'Body'",
@@ -141,12 +141,12 @@ class Message(object):
             timestamp = self.body.get("timestamp")
             timestamp = timestamp[:timestamp.find(".")]
             timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").timestamp()
-            timestamp = datetime.fromtimestamp(timestamp/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.fromtimestamp(timestamp / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
         elif "Timestamp" in self.body:  # is this the same as self.body["Timestamp"]?
             timestamp = self.body.get("Timestamp")
             timestamp = timestamp[:timestamp.find(".")]
             timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").timestamp()
-            timestamp = datetime.fromtimestamp(timestamp/1000.0).strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.fromtimestamp(timestamp / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
         else:
             LOGGER.warning("Field 'timestamp' not found in 'Body' nor 'Message'", extra={"messageid": self.messageid})
         return timestamp
@@ -220,6 +220,9 @@ class VideoMessage(Message):
             bool: True, False
         """
         try:
+            if not self.topicarn:
+                LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
+                return True
             recorder = self.video_recording_type()
             if recorder in recorder_blacklist:
                 LOGGER.info(f"Recorder {recorder} is blacklisted", extra={"messageid": self.messageid})
@@ -228,9 +231,6 @@ class VideoMessage(Message):
                 LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
                 return True
             # video messages must have a specific ARN topic
-            if not self.topicarn:
-                LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
-                return True
             if not self.topicarn.endswith("video-footage-events"):
                 LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events",
                             extra={"messageid": self.messageid})
@@ -241,7 +241,9 @@ class VideoMessage(Message):
             return False
         except Exception as e:
             LOGGER.warning(
-                f"Checks for irrelevancy on VideoMessage raised an exception - {e}", extra={"messageid": self.messageid})
+                f"Checks for irrelevancy on VideoMessage raised an exception - {e}",
+                extra={
+                    "messageid": self.messageid})
             return False
 
     @property
@@ -268,14 +270,14 @@ class VideoMessage(Message):
         if self.topicarn == 'prod-inputEventsTerraform':
             try:
                 recordingid = self.message["value"]["properties"]["recording_id"]
-            except:
+            except BaseException:
                 LOGGER.warning("Field 'recording_id' not found in 'properties'", extra={"messageid": self.messageid})
 
         else:
             if 'recordingId' in self.messageattributes:
                 try:
                     recordingid = self.messageattributes["recordingId"]["Value"]
-                except:
+                except BaseException:
                     LOGGER.warning("Field 'recordingId' not found in 'MessageAttributes'",
                                    extra={"messageid": self.messageid})
         return recordingid
@@ -285,7 +287,8 @@ class VideoMessage(Message):
         footagefrom = 0
         if 'footageFrom' in self.message:
             footagefrom = self.message.get("footageFrom")
-            # footagefrom = datetime.fromtimestamp(footagefrom/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
+            # footagefrom = datetime.fromtimestamp(footagefrom/1000.0)#,
+            # pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
             LOGGER.warning("Field 'footageFrom' not found in 'Message'", extra={"messageid": self.messageid})
         return footagefrom
@@ -295,7 +298,8 @@ class VideoMessage(Message):
         footageto = 0
         if 'footageTo' in self.message:
             footageto = self.message.get("footageTo")
-            # footageto = datetime.fromtimestamp(footageto/1000.0)#, pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
+            # footageto = datetime.fromtimestamp(footageto/1000.0)#,
+            # pytz.timezone('Europe/Berlin'))#.strftime('%Y-%m-%d %H:%M:%S')
         else:
             LOGGER.warning("Field 'footageTo' not found in 'Message'", extra={"messageid": self.messageid})
         return footageto
@@ -305,7 +309,7 @@ class VideoMessage(Message):
         uploadstarted = None
         if 'uploadStarted' in self.message:
             uploadstarted = self.message["uploadStarted"]
-            uploadstarted = datetime.fromtimestamp(uploadstarted/1000.0)
+            uploadstarted = datetime.fromtimestamp(uploadstarted / 1000.0)
         else:
             LOGGER.warning("Field 'uploadStarted' not found in 'Message'", extra={"messageid": self.messageid})
         return uploadstarted
@@ -315,7 +319,7 @@ class VideoMessage(Message):
         uploadfinished = None
         if 'uploadFinished' in self.message:
             uploadfinished = self.message["uploadFinished"]
-            uploadfinished = datetime.fromtimestamp(uploadfinished/1000.0)
+            uploadfinished = datetime.fromtimestamp(uploadfinished / 1000.0)
         else:
             LOGGER.warning("Field 'uploadFinished' not found in 'Message'", extra={"messageid": self.messageid})
         return uploadfinished
@@ -356,7 +360,7 @@ class SnapshotMessage(Message):
             if self.tenant in tenant_blacklist:
                 LOGGER.info(f"Tenant {self.tenant} is blacklisted", extra={"messageid": self.messageid})
                 return True
-        except:
+        except BaseException:
             return False
         return False
 
@@ -375,7 +379,7 @@ class SnapshotMessage(Message):
         senttimestamp = None
         if 'SentTimestamp' in self.attributes:
             senttimestamp = self.attributes['SentTimestamp']
-            senttimestamp = datetime.fromtimestamp(int(senttimestamp)/1000.0)
+            senttimestamp = datetime.fromtimestamp(int(senttimestamp) / 1000.0)
         else:
             LOGGER.warning("Field 'SentTimestamp' not found in 'Attributes'", extra={"messageid": self.messageid})
         return senttimestamp

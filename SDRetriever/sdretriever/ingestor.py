@@ -23,7 +23,7 @@ from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
 
 from base.aws.container_services import ContainerServices
-from base.aws.container_services import S3ObjectParams
+from base.aws.container_services import RCCS3ObjectParams
 from base.aws.shared_functions import StsHelper
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sdretriever.message import VideoMessage
@@ -36,7 +36,12 @@ LOGGER = log.getLogger("SDRetriever." + __name__)
 
 class Ingestor(object):
 
-    def __init__(self, container_services: ContainerServices, s3_client: S3Client, sqs_client, sts_helper: StsHelper) -> None:
+    def __init__(
+            self,
+            container_services: ContainerServices,
+            s3_client: S3Client,
+            sqs_client,
+            sts_helper: StsHelper) -> None:
         self.CS = container_services
         self.S3_CLIENT = s3_client
         self.SQS_CLIENT = sqs_client
@@ -49,7 +54,7 @@ class Ingestor(object):
         """Ingests the artifacts described in a message into the DevCloud"""
         pass
 
-    def check_if_s3_path_exists(self, s3_path: str, bucket: str = None, s3_client: S3Client = None, messageid: str = None) -> Tuple[bool, dict]:
+    def check_if_s3_rcc_path_exists(self, s3_path: str, bucket: str, messageid: str = None) -> Tuple[bool, dict]:
         """Verify if path exists on target S3 bucket.
 
         - Check if the file exists in a given path.
@@ -63,13 +68,10 @@ class Ingestor(object):
         Returns:
             A tuple containing a boolean response if the path was found and a dictionary with the S3 objects information
         """
-        bucket = self.CS.raw_s3 if bucket is None else bucket
-
-        s3_object_params = S3ObjectParams(s3_path=s3_path, bucket=bucket)
+        s3_object_params = RCCS3ObjectParams(s3_path=s3_path, bucket=bucket)
+        s3_client = self.RCC_S3_CLIENT
 
         # Check if there is a file with the same name already stored on target S3 bucket
-        if s3_client is None:
-            s3_client = self.RCC_S3_CLIENT
         try:
             list_objects_response: dict = dict(ContainerServices.list_s3_objects(
                 s3_object_params.s3_path, bucket, s3_client))
@@ -126,8 +128,16 @@ class VideoIngestor(Ingestor):
             f.write(video_bytes)
 
         # Execute ffprobe command to get video clip info
-        result = subprocess.run(["ffprobe", "-v", "error", "-show_format", "-show_streams",
-                                "-print_format", "json", temp_video_file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = subprocess.run(["/usr/bin/ffmpeg",  # nosec
+                                 "-v",
+                                 "error",
+                                 "-show_format",
+                                 "-show_streams",
+                                 "-print_format",
+                                 "json",
+                                 temp_video_file],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
         # Remove temporary file
         subprocess.run(["rm", temp_video_file])
 
@@ -156,8 +166,10 @@ class VideoIngestor(Ingestor):
             video_start = round(video_start_ts.timestamp() * 1000)
             video_end = round(video_end_ts.timestamp() * 1000)
         except Exception as exception:
-            LOGGER.error(f"Could not obtain Kinesis clip from stream {video_msg.streamname} between {repr(video_from)} and {repr(video_to)} -> {repr(exception)}", extra={
-                         "messageid": video_msg.messageid})
+            LOGGER.error(
+                f"Could not obtain Kinesis clip from stream {video_msg.streamname} between {repr(video_from)} and {repr(video_to)} -> {repr(exception)}",
+                extra={
+                    "messageid": video_msg.messageid})
             return None
 
         # Upload video clip into raw data S3 bucket
@@ -237,9 +249,9 @@ class SnapshotIngestor(Ingestor):
             return []
         # cast to datetime format
         start_timestamp = datetime.fromtimestamp(
-            start/1000.0) if type(start) != datetime else start
+            start / 1000.0) if not isinstance(start, datetime) else start
         end_timestamp = datetime.fromtimestamp(
-            end/1000.0) if type(end) != datetime else end
+            end / 1000.0) if not isinstance(end, datetime) else end
         if int(start.timestamp()) < 0 or int(end.timestamp()) < 0:
             return []
 
@@ -261,18 +273,21 @@ class SnapshotIngestor(Ingestor):
     def ingest(self, snap_msg):
         flag_do_not_delete = False
         uploads = 0
-        # For all snapshots mentioned within, identify its snapshot info and save it - (current file name, timestamp to append)
+        # For all snapshots mentioned within, identify its snapshot info and save
+        # it - (current file name, timestamp to append)
+
         for chunk in snap_msg.chunks:
 
             # Our SRX device is in Portugal, 1h diff to AWS
             timestamp_10 = datetime.utcfromtimestamp(
-                chunk.start_timestamp_ms/1000.0)  # + td(hours=-1.0)
+                chunk.start_timestamp_ms / 1000.0)  # + td(hours=-1.0)
             if chunk.uuid.endswith(".jpeg"):
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
-                exists_on_devcloud, _ = self.check_if_s3_path_exists(
-                    'Debug_Lync/'+snap_name, self.CS.raw_s3, self.S3_CLIENT, snap_msg.messageid)
+                exists_on_devcloud = ContainerServices.check_s3_file_exists(
+                    self.S3_CLIENT, 'Debug_Lync/' + snap_name, self.CS.raw_s3)
+
                 if not exists_on_devcloud:
 
                     # Determine where to search for the file on RCC S3
@@ -282,24 +297,26 @@ class SnapshotIngestor(Ingestor):
                     # For all those locations
                     for folder in possible_locations:
                         # If the file exists in this RCC folder
-                        found_on_rcc, _ = self.check_if_s3_path_exists(
-                            folder+chunk.uuid, RCC_S3_bucket, self.RCC_S3_CLIENT, snap_msg.messageid)
+                        found_on_rcc, _ = self.check_if_s3_rcc_path_exists(
+                            folder + chunk.uuid, RCC_S3_bucket, snap_msg.messageid)
 
                         if found_on_rcc:
                             # Download jpeg from RCC
                             try:
                                 snapshot_bytes = self.CS.download_file(
-                                    self.RCC_S3_CLIENT, RCC_S3_bucket, folder+chunk.uuid)
+                                    self.RCC_S3_CLIENT, RCC_S3_bucket, folder + chunk.uuid)
                             except ClientError as e:
                                 flag_do_not_delete = True
                                 if e.response['Error']['Code'] == 'NoSuchKey':
                                     LOGGER.exception(
-                                        f"Download failed because file was found but could not be downloaded on {RCC_S3_bucket}/{folder+chunk.uuid} - {e}. Will try again later.", extra={"messageid": snap_msg.messageid})
+                                        f"Download failed because file was found but could not be downloaded on {RCC_S3_bucket}/{folder+chunk.uuid} - {e}. Will try again later.",
+                                        extra={
+                                            "messageid": snap_msg.messageid})
                                 break
 
                             # Upload to DevCloud
                             self.CS.upload_file(
-                                self.S3_CLIENT, snapshot_bytes, self.CS.raw_s3, 'Debug_Lync/'+snap_name)
+                                self.S3_CLIENT, snapshot_bytes, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
                             LOGGER.info(f"Successfully uploaded to {self.CS.raw_s3}/{'Debug_Lync/'+snap_name}", extra={
                                         "messageid": snap_msg.messageid})
 
@@ -321,13 +338,15 @@ class SnapshotIngestor(Ingestor):
                             break
 
                     if not found_on_rcc and not chunk.available:
-                        LOGGER.info(f"File {chunk.uuid} is not yet available in RCC S3, with upload status {chunk.upload_status}", extra={
-                                    "messageid": snap_msg.messageid})
+                        LOGGER.info(
+                            f"File {chunk.uuid} is not yet available in RCC S3, with upload status {chunk.upload_status}", extra={
+                                "messageid": snap_msg.messageid})
 
                         flag_do_not_delete = True
                     elif not found_on_rcc and chunk.available:
-                        LOGGER.info(f"Could not find {chunk.uuid} in RCC S3, with upload status {chunk.upload_status}", extra={
-                                    "messageid": snap_msg.messageid})
+                        LOGGER.info(
+                            f"Could not find {chunk.uuid} in RCC S3, with upload status {chunk.upload_status}", extra={
+                                "messageid": snap_msg.messageid})
                 else:
                     LOGGER.info(f"File {'Debug_Lync/'+snap_name} already exists on {self.CS.raw_s3}", extra={
                                 "messageid": snap_msg.messageid})
@@ -349,10 +368,10 @@ class MetadataIngestor(Ingestor):
         d = {}
         for (k, v) in ordered_pairs:
             if k in d:
-                if type(d[k]) is dict and type(v) is dict:
+                if isinstance(d[k], dict) and isinstance(v, dict):
                     for (sub_k, sub_v) in v.items():
                         d[k][sub_k] = sub_v
-                elif type(d[k]) is list:
+                elif isinstance(d[k], list):
                     d[k].append(v)
                 else:
                     d[k] = [d[k], v]
@@ -360,7 +379,11 @@ class MetadataIngestor(Ingestor):
                 d[k] = v
         return d
 
-    def _get_chunks_lookup_paths(self, message: VideoMessage, start_time: datetime = None, end_time: datetime = None) -> Iterator[str]:
+    def _get_chunks_lookup_paths(
+            self,
+            message: VideoMessage,
+            start_time: datetime = None,
+            end_time: datetime = None) -> Iterator[str]:
         """
         Get all paths to search for chunks in RCC S3 bucket between two timestamps.
         It includes the start and end hour folder.
@@ -392,7 +415,13 @@ class MetadataIngestor(Ingestor):
         for s3_path in paths:
             yield s3_path + f'{message.recording_type}_{message.recordingid}'
 
-    def _discover_s3_subfolders(self, parent_folder: str, bucket: str, s3_client: S3Client, start_time: datetime, end_time: datetime) -> Iterator[str]:
+    def _discover_s3_subfolders(
+            self,
+            parent_folder: str,
+            bucket: str,
+            s3_client: S3Client,
+            start_time: datetime,
+            end_time: datetime) -> Iterator[str]:
         """
         Recursive function that will discover all RCC S3 subfolder between start_time and end_time.
         Return all the path available in S3 between start_time and end_time, including the start hour and end hour folder.
@@ -476,7 +505,8 @@ class MetadataIngestor(Ingestor):
             yield from self._discover_s3_subfolders(
                 folder, bucket, s3_client, start_time, end_time)
 
-    def _search_chunks_in_s3_path(self, s3_path: str, bucket: str, messageid: str, start_time: datetime = None, end_time: datetime = None) -> Tuple[set[str], set[str]]:
+    def _search_chunks_in_s3_path(self, s3_path: str, bucket: str, messageid: str,
+                                  start_time: datetime = None, end_time: datetime = None) -> Tuple[set[str], set[str]]:
         """
         Lists all metadata and video chunks for a specific path.
 
@@ -493,7 +523,7 @@ class MetadataIngestor(Ingestor):
         Returns:
             Tuple[set[str], set[str]]: A tuple containing all metadata and video path chunks respectively.
         """
-        has_files, resp = self.check_if_s3_path_exists(
+        has_files, resp = self.check_if_s3_rcc_path_exists(
             s3_path, bucket, messageid=messageid)
 
         metadata_chunks_set = set()
@@ -511,13 +541,19 @@ class MetadataIngestor(Ingestor):
             if file_path.endswith('.mp4'):
 
                 if start_time and modified_date < start_time:
-                    LOGGER.debug("Ignoring chunk (%s) modified at (%s), it's under the uploadstarted datetime (%s)", file_path, str(
-                        modified_date), str(end_time))
+                    LOGGER.debug(
+                        "Ignoring chunk (%s) modified at (%s), it's under the uploadstarted datetime (%s)",
+                        file_path,
+                        str(modified_date),
+                        str(end_time))
                     continue
 
                 if end_time and modified_date > end_time:
-                    LOGGER.debug("Ignoring chunk (%s) modified at (%s), it's over the uploadfinished datetime (%s)", file_path, str(
-                        modified_date), str(end_time))
+                    LOGGER.debug(
+                        "Ignoring chunk (%s) modified at (%s), it's over the uploadfinished datetime (%s)",
+                        file_path,
+                        str(modified_date),
+                        str(end_time))
                     continue
 
                 video_chunks_set.add(file_path)
@@ -528,7 +564,12 @@ class MetadataIngestor(Ingestor):
 
         return metadata_chunks_set, video_chunks_set
 
-    def _search_for_match_chunks(self, lookup_paths: Iterator[str], mp4_chunks_left: set[str], bucket: str, messageid: str) -> tuple[bool, set[str]]:
+    def _search_for_match_chunks(self,
+                                 lookup_paths: Iterator[str],
+                                 mp4_chunks_left: set[str],
+                                 bucket: str,
+                                 messageid: str) -> tuple[bool,
+                                                          set[str]]:
         """
         Search for metadata chunks on the provided paths and returns all metadata chunks found.
         The function will return as soon as all the matched chunks (compared to the video chunks) are found.
@@ -592,11 +633,12 @@ class MetadataIngestor(Ingestor):
 
         bucket = self.CS.rcc_info["s3_bucket"]
 
-        s3_object_params = S3ObjectParams(
+        s3_object_params = RCCS3ObjectParams(
             s3_path=f'{message.tenant}/{message.deviceid}/', bucket=bucket)
 
         # Make sure it has access to tenant and device
-        if not ContainerServices.check_if_tenant_and_deviceid_exists_and_log_on_error(self.RCC_S3_CLIENT, s3_object_params, message.messageid):
+        if not ContainerServices.check_if_tenant_and_deviceid_exists_and_log_on_error(
+                self.RCC_S3_CLIENT, s3_object_params, message.messageid):
             return False, set()
 
         # Get all mp4 lookup paths
@@ -705,8 +747,10 @@ class MetadataIngestor(Ingestor):
                 chunks_count += 1
 
         if not chunks:
-            LOGGER.error(f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}", extra={
-                         "messageid": video_msg.messageid})
+            LOGGER.error(
+                f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}",
+                extra={
+                    "messageid": video_msg.messageid})
         return chunks
 
     def _process_chunks_into_mdf(self, chunks, video_msg):
@@ -785,7 +829,7 @@ class MetadataIngestor(Ingestor):
             LOGGER.info(
                 f"Successfully uploaded to {bucket}/{s3_path}", extra={"messageid": video_msg.messageid})
         except Exception as exception:
-            if self.check_if_s3_path_exists(s3_path, bucket, messageid=video_msg.messageid):
+            if ContainerServices.check_s3_file_exists(self.S3_CLIENT, bucket, s3_path):
                 LOGGER.info(f"File {s3_path} already exists in {bucket} -> {repr(exception)}", extra={
                     "messageid": video_msg.messageid})
             else:
@@ -806,7 +850,8 @@ class MetadataIngestor(Ingestor):
         resolution, pts, frames = self._process_chunks_into_mdf(
             chunks, video_msg)
 
-        # Build source file to be stored - 'source_data' is the MDF, extended with the original queue message and its identifier
+        # Build source file to be stored - 'source_data' is the MDF, extended with
+        # the original queue message and its identifier
         source_data = {
             "messageid": video_msg.messageid,
             "message": video_msg.raw_message,

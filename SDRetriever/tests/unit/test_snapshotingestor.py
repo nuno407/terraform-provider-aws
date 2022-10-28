@@ -3,6 +3,7 @@ from datetime import timedelta
 from unittest.mock import ANY
 from unittest.mock import Mock
 from unittest.mock import call
+from unittest.mock import patch
 
 import pytest
 
@@ -10,12 +11,13 @@ from sdretriever.ingestor import SnapshotIngestor
 
 
 @pytest.mark.unit
-@pytest.mark.usefixtures("msg_snapshot", "container_services", "s3_client", "sqs_client", "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
+@pytest.mark.usefixtures("msg_snapshot", "container_services", "s3_client", "sqs_client",
+                         "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
 class TestSnapshotIngestor:
 
     @pytest.fixture
     def expected_rcc_folders(self):
-        path1 = datetime.utcfromtimestamp(1660922264165/1000.0)
+        path1 = datetime.utcfromtimestamp(1660922264165 / 1000.0)
         year1 = path1.strftime("%Y")
         month1 = path1.strftime("%m")
         day1 = path1.strftime("%d")
@@ -36,26 +38,42 @@ class TestSnapshotIngestor:
             f'datanauts/DATANAUTS_DEV_01/year={year3}/month={month3}/day={day3}/hour={hour3}/'
         ]
 
-    def test_snapshot_path_generator(self, msg_snapshot, container_services, s3_client, sqs_client, sts_helper, expected_rcc_folders):
+    def test_snapshot_path_generator(
+            self,
+            msg_snapshot,
+            container_services,
+            s3_client,
+            sqs_client,
+            sts_helper,
+            expected_rcc_folders):
 
         obj = SnapshotIngestor(
             container_services, s3_client, sqs_client, sts_helper)
-        start = datetime.utcfromtimestamp(1660922264165/1000.0)
-        end = datetime.utcfromtimestamp(1660929464176/1000.0)
+        start = datetime.utcfromtimestamp(1660922264165 / 1000.0)
+        end = datetime.utcfromtimestamp(1660929464176 / 1000.0)
         paths = obj._snapshot_path_generator(
             msg_snapshot.tenant, msg_snapshot.deviceid, start, end)
         assert paths == expected_rcc_folders
 
-    def test_ingest_exists_on_devcloud(self, msg_snapshot, container_services, s3_client, sqs_client, sts_helper):
-        #
+    @patch("sdretriever.ingestor.ContainerServices")
+    def test_ingest_exists_on_devcloud(
+            self,
+            ingestor_container_services,
+            msg_snapshot,
+            container_services,
+            s3_client,
+            sqs_client,
+            sts_helper):
+
         obj = SnapshotIngestor(
             container_services, s3_client, sqs_client, sts_helper)
-        obj.check_if_s3_path_exists = Mock()
-        obj.check_if_s3_path_exists.side_effect = [
-            (False, ""), (True, ""), (False, ""), (True, "")]
+        ingestor_container_services.check_s3_file_exists.side_effect = [False, False]
 
-        snapshot1_timestamp = datetime.utcfromtimestamp(1657642653000/1000.0)
-        snapshot2_timestamp = datetime.utcfromtimestamp(1657642655000/1000.0)
+        obj.check_if_s3_rcc_path_exists = Mock()
+        obj.check_if_s3_rcc_path_exists.side_effect = [(True, ""), (True, "")]
+
+        snapshot1_timestamp = datetime.utcfromtimestamp(1657642653000 / 1000.0)
+        snapshot2_timestamp = datetime.utcfromtimestamp(1657642655000 / 1000.0)
         year1 = snapshot1_timestamp.strftime("%Y")
         month1 = snapshot1_timestamp.strftime("%m")
         day1 = snapshot1_timestamp.strftime("%d")

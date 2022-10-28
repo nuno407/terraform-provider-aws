@@ -12,11 +12,13 @@ from typing import Tuple
 
 import boto3
 import pytz
+from botocore.errorfactory import ClientError
 from expiringdict import ExpiringDict
 from mypy_boto3_kinesis_video_archived_media import \
     KinesisVideoArchivedMediaClient
 from mypy_boto3_kinesisvideo import KinesisVideoClient
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from pymongo import MongoClient
 from pymongo.database import Database
@@ -30,7 +32,7 @@ DATA_INGESTION_DATABASE_NAME = "DataIngestion"
 
 
 @dataclass
-class S3ObjectParams:
+class RCCS3ObjectParams:
     s3_path: str = field()
     bucket: str = field()
 
@@ -165,7 +167,7 @@ class ContainerServices():
         Arguments:
             client {boto3.client} -- [client used to access the S3 service]
         """
-        full_path = self.__config['bucket']+'/'+self.__config['file']
+        full_path = self.__config['bucket'] + '/' + self.__config['file']
         _logger.info("Loading parameters from: %s ..", full_path)
 
         # Send request to access the config file (json)
@@ -462,7 +464,7 @@ class ContainerServices():
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        full_path = s3_bucket+'/'+file_path
+        full_path = s3_bucket + '/' + file_path
         _logger.debug("Downloading [%s]..", full_path)
 
         response = client.get_object(
@@ -490,7 +492,7 @@ class ContainerServices():
                                   used for the file in the destination s3
                                   bucket (e.g. 'uber/test_file_s3.txt')]
         """
-        full_path = s3_bucket+'/'+key_path
+        full_path = s3_bucket + '/' + key_path
         _logger.debug("Uploading [%s]..", full_path)
 
         # TODO: ADD THIS INFO TO CONFIG FILE
@@ -649,12 +651,13 @@ class ContainerServices():
 
         ### List fragments step ###
         # Create Kinesis archive media client for list_fragments()
-        list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
-                                                                              endpoint_url=list_fragments_url,
-                                                                              region_name='eu-central-1',
-                                                                              aws_access_key_id=creds['AccessKeyId'],
-                                                                              aws_secret_access_key=creds['SecretAccessKey'],
-                                                                              aws_session_token=creds['SessionToken'])
+        list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client(
+            'kinesis-video-archived-media',
+            endpoint_url=list_fragments_url,
+            region_name='eu-central-1',
+            aws_access_key_id=creds['AccessKeyId'],
+            aws_secret_access_key=creds['SecretAccessKey'],
+            aws_session_token=creds['SessionToken'])
 
         # Get all fragments within timestamp range (start_time, end_time)
         list_fragments_response = list_fragments_client.list_fragments(
@@ -758,7 +761,8 @@ class ContainerServices():
             "\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
 
     @staticmethod
-    def list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client, delimiter: str = "") -> ListObjectsV2OutputTypeDef:
+    def list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client,
+                        delimiter: str = "") -> ListObjectsV2OutputTypeDef:
         """List S3 objects.
         Args:
             s3_path (str): path to S3 that should return a list of objects
@@ -775,13 +779,13 @@ class ContainerServices():
         return response_list
 
     @staticmethod
-    def _check_if_deviceid_exists(s3_client: S3Client, s3_params: S3ObjectParams, messageid: Optional[str]) -> bool:
+    def _check_if_deviceid_exists(s3_client: S3Client, s3_params: RCCS3ObjectParams, messageid: Optional[str]) -> bool:
         """
         Checks if device exists in S3 bucket.
 
         Args:
             s3_client (S3Client): _description_
-            s3_params (S3ObjectParams): _description_
+            s3_params (RCCS3ObjectParams): _description_
             messageid (Optional[str]): _description_
 
         Returns:
@@ -794,7 +798,7 @@ class ContainerServices():
                 prefix, s3_params.bucket, s3_client)
 
             return True
-        except Exception:  # pylint: disable=broad-except
+        except ClientError:  # pylint: disable=broad-except
             deviceid_error_message = f"Could not access folder {s3_params.bucket}/{prefix} - Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"
             _logger.error(deviceid_error_message, extra={
                 "messageid": messageid})
@@ -802,26 +806,58 @@ class ContainerServices():
             return False
 
     @staticmethod
-    def check_if_tenant_and_deviceid_exists_and_log_on_error(s3_client: S3Client, s3_object_params: S3ObjectParams, messageid: Optional[str]) -> bool:
+    def check_if_tenant_and_deviceid_exists_and_log_on_error(
+            s3_client: S3Client,
+            s3_object_params: RCCS3ObjectParams,
+            messageid: Optional[str]) -> bool:
         """Checks if tenant exists and also if deviceid exists to provide logging information if it doesn't.
 
         Args:
             s3_client (S3Client): boto3 S3 client
-            s3_object_params (S3ObjectParams): wrapper for S3 information
+            s3_object_params (RCCS3ObjectParams): wrapper for S3 information
             messageid: (Optional[str]): optional message id for logging purposes
 
         Returns:
             bool: True if exists, False otherwise
         """
         try:
-            # can we access the tenant? (not by default, accessible tenants must be whitelisted on RCC by RideCare Cloud Operations)
+            # can we access the tenant? (not by default, accessible tenants must be
+            # whitelisted on RCC by RideCare Cloud Operations)
             prefix = f"{s3_object_params.tenant}/"
             ContainerServices.list_s3_objects(
                 prefix, s3_object_params.bucket, s3_client)
 
             return ContainerServices._check_if_deviceid_exists(
                 s3_client, s3_object_params, messageid)
-        except Exception:  # pylint: disable=broad-except
+        except ClientError:  # pylint: disable=broad-except
             tenant_error_message = f"Could not access {s3_object_params.bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"
             _logger.error(tenant_error_message, extra={"messageid": messageid})
+            return False
+
+    @staticmethod
+    def check_s3_file_exists(s3_client: S3Client, bucket: str, path: str) -> bool:
+        """
+        Get a file from an S3 bucket.
+        If there is no file in the specific path it returns None.
+
+        Args:
+            s3_client (S3Client): S3 client to get file
+            path (str): path to file
+            bucket (str): s3 bucket client
+
+        Returns:
+            bool: Response boto3.get_object or None if the file does not exist
+        """
+
+        try:
+
+            resp = s3_client.head_object(
+                Bucket=bucket,
+                Key=path
+            )
+            if resp['ResponseMetadata']['HTTPStatusCode'] == 404:
+                return False
+
+            return True
+        except ClientError:
             return False

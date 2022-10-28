@@ -52,7 +52,8 @@ def message_type_identifier(message: dict):
     result = None
 
     # Checks if the message contains *just* InteriorRecorder.
-    if _message.find("InteriorRecorder") != -1 and _message.find("TrainingRecorder") == -1 and _message.find("TrainingMultiSnapshot") == -1 and _message.find("FrontRecorder") == -1:
+    if _message.find("InteriorRecorder") != -1 and _message.find("TrainingRecorder") == - \
+            1 and _message.find("TrainingMultiSnapshot") == -1 and _message.find("FrontRecorder") == -1:
         result = "InteriorRecorder"
 
     # Checks if the message contains *just* TrainingRecorder.
@@ -135,14 +136,16 @@ def main(config: SDRetrieverConfig):
                         metadata_is_complete, metadata_chunks = METADATA_ING.check_metadata_exists_and_is_complete(
                             video_msg_obj)
                         if not metadata_is_complete:
-                            # in case it is not available yet, prolong the message visibility timeout and put it back in the queue
+                            # in case it is not available yet, prolong the message visibility timeout
+                            # and put it back in the queue
                             receive_count = video_msg_obj.receive_count
                             prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
-                                receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS)-1)] * 3600
-                            LOGGER.info(f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={
-                                        "messageid": message.get('MessageId')})
+                                receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)] * 3600
+                            LOGGER.info(
+                                f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={
+                                    "messageid": message.get('MessageId')})
                             CS.update_message_visibility(
-                                SQS_CLIENT, video_msg_obj.receipthandle, prolong_time)
+                                SQS_CLIENT, video_msg_obj.receipthandle, prolong_time, source)
                             continue
 
                     # Process parsed message

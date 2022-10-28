@@ -315,14 +315,14 @@ class TestMetadataIngestor:
         reference_path = 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/'
         bucket = "BUCKET"
         messageid = "msg"
-        obj.check_if_s3_path_exists = Mock(return_value=(True, resp_mock))
+        obj.check_if_s3_rcc_path_exists = Mock(return_value=(True, resp_mock))
 
         metadata_chunks_set, video_chunks_set = obj._search_chunks_in_s3_path(
             reference_path, bucket, messageid)
 
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
-        obj.check_if_s3_path_exists.assert_called_once_with(
+        obj.check_if_s3_rcc_path_exists.assert_called_once_with(
             reference_path, bucket, messageid=messageid)
 
     def test_search_chunks_in_s3_path_time_bound(self, obj):
@@ -365,7 +365,7 @@ class TestMetadataIngestor:
         reference_path = 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/'
         bucket = "BUCKET"
         messageid = "msg"
-        obj.check_if_s3_path_exists = Mock(return_value=(True, resp_mock))
+        obj.check_if_s3_rcc_path_exists = Mock(return_value=(True, resp_mock))
 
         start_time = datetime(year=2022, month=9, day=30, hour=20, minute=0)
         end_time = datetime(year=2022, month=9, day=30, hour=20, minute=30)
@@ -375,7 +375,7 @@ class TestMetadataIngestor:
 
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
-        obj.check_if_s3_path_exists.assert_called_once_with(
+        obj.check_if_s3_rcc_path_exists.assert_called_once_with(
             reference_path, bucket, messageid=messageid)
 
     def test_search_chunks_in_s3_path2(self, obj):
@@ -386,14 +386,14 @@ class TestMetadataIngestor:
         reference_path = 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/'
         bucket = "BUCKET"
         messageid = "msg"
-        obj.check_if_s3_path_exists = Mock(return_value=(False, resp_mock))
+        obj.check_if_s3_rcc_path_exists = Mock(return_value=(False, resp_mock))
 
         metadata_chunks_set, video_chunks_set = obj._search_chunks_in_s3_path(
             reference_path, bucket, messageid)
 
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
-        obj.check_if_s3_path_exists.assert_called_once_with(
+        obj.check_if_s3_rcc_path_exists.assert_called_once_with(
             reference_path, bucket, messageid=messageid)
 
     @patch("sdretriever.ingestor.ContainerServices")
