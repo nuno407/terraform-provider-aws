@@ -7,7 +7,7 @@ install_requires =[
         'requests',
         'flask',
         'elastic-apm',
-        "base[aws]==3.0.0",
+        "base[aws]",
     ]
 
 setup(
