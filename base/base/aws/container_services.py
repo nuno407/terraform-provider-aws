@@ -3,12 +3,10 @@ import json
 import logging
 import os
 import subprocess  # nosec
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import datetime
-from datetime import timedelta
-from typing import Optional
-from typing import Tuple
+import tempfile
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
 
 import boto3
 import pytz
@@ -18,7 +16,6 @@ from mypy_boto3_kinesis_video_archived_media import \
     KinesisVideoArchivedMediaClient
 from mypy_boto3_kinesisvideo import KinesisVideoClient
 from mypy_boto3_s3 import S3Client
-from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from pymongo import MongoClient
 from pymongo.database import Database
@@ -704,43 +701,44 @@ class ContainerServices():
 
         _logger.debug('Got video file for test clip on [%s]', stream_name)
 
-        ### Conversion step (webm -> mp4) ###
-        # Defining temporary files names
-        input_name = "received_file.webm"
-        output_name = "converted_file.mp4"
-        logs_name = "logs.txt"
+        # On completion of the context or destruction of the temporary directory object,
+        # the newly created temporary directory and all its contents are removed from the filesystem.
+        with tempfile.TemporaryDirectory() as auto_cleaned_up_dir:
 
-        # Read all bytes from http response body
-        # (botocore.response.StreamingBody)
-        video_chunk = get_media_response['Payload'].read()
+            ### Conversion step (webm -> mp4) ###
+            # Defining temporary files names
+            input_name = os.path.join(auto_cleaned_up_dir, 'received_file.webm')
+            output_name = os.path.join(auto_cleaned_up_dir, 'converted_file.mp4')
+            logs_name = os.path.join(auto_cleaned_up_dir, 'logs.txt')
 
-        # Save video chunks to file
-        with open(input_name, 'wb') as infile:
-            infile.write(video_chunk)
+            # Read all bytes from http response body
+            # (botocore.response.StreamingBody)
+            video_chunk = get_media_response['Payload'].read()
 
-        with open(logs_name, 'w') as logs_write:
-            # Convert .avi input file into .mp4 using ffmpeg
-            _logger.debug('Starting ffmpeg conversion')
-            conv_logs = subprocess.Popen(["/usr/bin/ffmpeg", "-i", input_name, "-qscale",  # nosec
-                                          "0", "-filter:v", "fps=15.72", output_name],
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT,
-                                         universal_newlines=True)
-            _logger.debug('Finished ffmpeg conversion')
+            # Save video chunks to file
+            with open(input_name, 'wb') as infile:
+                infile.write(video_chunk)
 
-            # Save conversion logs into txt file
-            for line in conv_logs.stdout:
-                logs_write.write(line)
+            with open(logs_name, 'w') as logs_write:  # pylint: disable=unspecified-encoding
+                # Convert .avi input file into .mp4 using ffmpeg
+                _logger.debug('Starting ffmpeg conversion')
+                conv_logs = subprocess.Popen(['/usr/bin/ffmpeg', '-i', input_name, '-qscale',  # nosec pylint: disable=consider-using-with
+                                              '0', '-filter:v', 'fps=15.72', output_name],
+                                             stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT,
+                                             universal_newlines=True)
+                _logger.debug('Finished ffmpeg conversion')
 
-        # Load bytes from converted output file
-        with open(output_name, "rb") as output_file:
-            output_video = output_file.read()
+                # Save conversion logs into txt file
+                for line in conv_logs.stdout:
+                    logs_write.write(line)
 
-        # Remove temporary files from storage
-        subprocess.run(["/usr/bin/rm", input_name, output_name, logs_name])  # nosec
+            # Load bytes from converted output file
+            with open(output_name, 'rb') as output_file:
+                output_video = output_file.read()
 
         # Generate processing end message
-        _logger.info("Test clip download completed!")
+        _logger.info('Test clip download completed!')
 
         return output_video, fragments_start_time, fragments_end_time
 

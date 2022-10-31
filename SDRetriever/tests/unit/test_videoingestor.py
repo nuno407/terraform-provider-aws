@@ -1,15 +1,17 @@
-import pytest
-from unittest import mock
-from unittest.mock import MagicMock, ANY
-from datetime import datetime
 import os
+from datetime import datetime
+from unittest import mock
+from unittest.mock import ANY
+from unittest.mock import MagicMock
+
+import pytest
+
 from sdretriever.ingestor import VideoIngestor
+
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("container_services", "s3_client", "sqs_client", "sts_helper", "msg_interior")
 class TestVideoIngestor():
-
-
 
     @mock.patch("sdretriever.ingestor.subprocess.run")
     def test_ffmpeg_probe_video(self, mock_run, video_bytes, container_services, s3_client, sqs_client, sts_helper):
@@ -21,7 +23,7 @@ class TestVideoIngestor():
 
         mock_run.return_value = mock_stdout
         result = obj._ffmpeg_probe_video(video_bytes)
-        assert result == {"something":"something else"}
+        assert result == {"something": "something else"}
 
     @mock.patch("sdretriever.ingestor.subprocess.run")
     def test_ingest(self, mock_run, container_services, s3_client, sqs_client, sts_helper, msg_interior):
@@ -34,7 +36,6 @@ class TestVideoIngestor():
         obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
 
         db_record_data = obj.ingest(msg_interior)
-        os.remove("input_video.mp4")
 
         expected_raw_path = "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110.mp4"
         expected_db_record_data = {
@@ -53,8 +54,9 @@ class TestVideoIngestor():
             "tenant": "datanauts"
         }
         print(msg_interior.footagefrom, msg_interior.footageto)
-        video_from = datetime.fromtimestamp(msg_interior.footagefrom/1000.0)
-        video_to = datetime.fromtimestamp(msg_interior.footageto/1000.0)
-        container_services.get_kinesis_clip.assert_called_once_with(ANY,"datanauts_DATANAUTS_DEV_01_InteriorRecorder",video_from,video_to,"PRODUCER_TIMESTAMP")
-        container_services.upload_file.assert_called_once_with(ANY,ANY,container_services.raw_s3,expected_raw_path)
+        video_from = datetime.fromtimestamp(msg_interior.footagefrom / 1000.0)
+        video_to = datetime.fromtimestamp(msg_interior.footageto / 1000.0)
+        container_services.get_kinesis_clip.assert_called_once_with(
+            ANY, "datanauts_DATANAUTS_DEV_01_InteriorRecorder", video_from, video_to, "PRODUCER_TIMESTAMP")
+        container_services.upload_file.assert_called_once_with(ANY, ANY, container_services.raw_s3, expected_raw_path)
         assert db_record_data == expected_db_record_data

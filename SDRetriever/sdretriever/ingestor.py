@@ -5,13 +5,12 @@ import logging as log
 import os
 import re
 import subprocess  # nosec
+import tempfile
 from abc import abstractmethod
 from copy import copy
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 from operator import itemgetter
-from typing import Container
 from typing import Iterator
 from typing import List
 from typing import Optional
@@ -122,29 +121,31 @@ class VideoIngestor(Ingestor):
 
     @ staticmethod
     def _ffmpeg_probe_video(video_bytes) -> dict:
-        # Store bytes into current working directory as video
-        temp_video_file = "input_video.mp4"
-        with open(temp_video_file, "wb") as f:
-            f.write(video_bytes)
+        # On completion of the context or destruction of the temporary directory object,
+        # the newly created temporary directory and all its contents are removed from the filesystem.
+        with tempfile.TemporaryDirectory() as auto_cleaned_up_dir:
 
-        # Execute ffprobe command to get video clip info
-        result = subprocess.run(["/usr/bin/ffmpeg",  # nosec
-                                 "-v",
-                                 "error",
-                                 "-show_format",
-                                 "-show_streams",
-                                 "-print_format",
-                                 "json",
-                                 temp_video_file],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        # Remove temporary file
-        subprocess.run(["/usr/bin/rm", temp_video_file])  # nosec
+            # Store bytes into current working directory as video
+            temp_video_file = os.path.join(auto_cleaned_up_dir, 'input_video.mp4')
+            with open(temp_video_file, "wb") as f:
+                f.write(video_bytes)
 
-        # Load ffprobe output (bytes) as JSON
-        decoded_info = (result.stdout).decode("utf-8")
-        video_info = json.loads(decoded_info)
-        return video_info
+            # Execute ffprobe command to get video clip info
+            result = subprocess.run(["/usr/bin/ffprobe",  # nosec
+                                    "-v",
+                                     "error",
+                                     "-show_format",
+                                     "-show_streams",
+                                     "-print_format",
+                                     "json",
+                                     temp_video_file],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+
+            # Load ffprobe output (bytes) as JSON
+            decoded_info = (result.stdout).decode("utf-8")
+            video_info = json.loads(decoded_info)
+            return video_info
 
     def ingest(self, video_msg: VideoMessage) -> Optional[dict]:
         '''Obtain video from KinesisVideoStreams and upload it to our raw data S3'''
