@@ -85,5 +85,5 @@ runs:
 
     - name: Check for linter failures
       shell: bash
-      if: ${{ steps.autopep-check.result != 'success' || steps.pylint-check.result != 'success' || steps.mypy-check.result != 'success' }}
+      if: ${{ steps.autopep-check.outcome != 'success' || steps.pylint-check.outcome != 'success' || steps.mypy-check.outcome != 'success' }}
       run: exit 1
