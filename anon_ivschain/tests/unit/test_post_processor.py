@@ -20,7 +20,12 @@ class TestAnonymizePostProcessor():
     @mock.patch("anon_ivschain.post_processor.os.stat")
     @mock.patch("anon_ivschain.post_processor.subprocess.check_call")
     @mock.patch("anon_ivschain.post_processor.os.remove")
-    def test_run_anonymize_post_processor_1(self, os_remove: Mock, subprocess_check_call: Mock, os_stat: Mock, open: Mock):
+    def test_run_anonymize_post_processor_1(
+            self,
+            os_remove: Mock,
+            subprocess_check_call: Mock,
+            os_stat: Mock,
+            open: Mock):
         # GIVEN
         aws_service = get_container_services_mock()
         aws_service.download_file = Mock(return_value=b'mocked_video_content')
@@ -30,8 +35,12 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
-                                              'uid', 'bucket', 'test_dir/test_file.avi', 'test_dir/test_file_anonymized.avi')
+        internal_message = OperationalMessage(
+            InternalMessage.Status.PROCESSING_COMPLETED,
+            'uid',
+            'bucket',
+            'test_dir/test_file.avi',
+            'test_dir/test_file_anonymized.avi')
 
         # WHEN
         anonymize_post_processor.run(internal_message)
@@ -46,7 +55,7 @@ class TestAnonymizePostProcessor():
         assert AnonymizePostProcessor.INPUT_NAME in command_str
         assert AnonymizePostProcessor.OUTPUT_NAME in command_str
         assert '-y' in command_str
-        assert 'ffmpeg' == command_str.split(' ')[0]
+        assert '/usr/bin/ffmpeg' == command_str.split(' ')[0]
 
         # Assert calls to temporary files
         open.assert_any_call(AnonymizePostProcessor.INPUT_NAME, 'wb')
@@ -59,14 +68,18 @@ class TestAnonymizePostProcessor():
         assert aws_clients.s3_client == _args[0]
         assert aws_service.anonymized_s3 == _args[2]
         assert os.path.splitext(internal_message.media_path)[
-            0]+".mp4" == _args[3]
+            0] + ".mp4" == _args[3]
 
     @mock.patch("builtins.open")
     @mock.patch("anon_ivschain.post_processor.os.stat")
     @mock.patch("anon_ivschain.post_processor.subprocess.check_call")
     @mock.patch("anon_ivschain.post_processor.os.remove")
-
-    def test_run_anonymize_post_processor_2(self, os_remove: Mock, subprocess_check_call: Mock, os_stat: Mock, open: Mock):
+    def test_run_anonymize_post_processor_2(
+            self,
+            os_remove: Mock,
+            subprocess_check_call: Mock,
+            os_stat: Mock,
+            open: Mock):
         # GIVEN
         aws_service = get_container_services_mock()
         aws_service.download_file = Mock(return_value=b'mocked_video_content')
@@ -76,8 +89,12 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
-                                              'uid', 'bucket', 'test_dir/test_file.avi', 'test_dir/test_file_anonymized.avi')
+        internal_message = OperationalMessage(
+            InternalMessage.Status.PROCESSING_COMPLETED,
+            'uid',
+            'bucket',
+            'test_dir/test_file.avi',
+            'test_dir/test_file_anonymized.avi')
 
         # WHEN
         anonymize_post_processor.run(internal_message)
@@ -92,7 +109,7 @@ class TestAnonymizePostProcessor():
         assert AnonymizePostProcessor.INPUT_NAME in command_str
         assert AnonymizePostProcessor.OUTPUT_NAME in command_str
         assert '-y' in command_str
-        assert 'ffmpeg' == command_str.split(' ')[0]
+        assert '/usr/bin/ffmpeg' == command_str.split(' ')[0]
 
         # Assert calls to temporary files
         open.assert_any_call(AnonymizePostProcessor.INPUT_NAME, 'wb')
@@ -106,7 +123,7 @@ class TestAnonymizePostProcessor():
         assert aws_clients.s3_client == _args[0]
         assert aws_service.anonymized_s3 == _args[2]
         assert os.path.splitext(internal_message.media_path)[
-            0]+".mp4" == _args[3]
+            0] + ".mp4" == _args[3]
 
     def test_run_anonymize_post_processor_wrong_format1(self):
         # GIVEN
@@ -118,8 +135,12 @@ class TestAnonymizePostProcessor():
         anonymize_post_processor = AnonymizePostProcessor(
             aws_service, aws_clients)
 
-        internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
-                                    'uid', 'bucket', 'test_dir/test_file.none', 'test_dir/test_file_anonymized.none')
+        internal_message = OperationalMessage(
+            InternalMessage.Status.PROCESSING_COMPLETED,
+            'uid',
+            'bucket',
+            'test_dir/test_file.none',
+            'test_dir/test_file_anonymized.none')
 
         # WHEN
         anonymize_post_processor.run(internal_message)
@@ -138,7 +159,7 @@ class TestAnonymizePostProcessor():
             aws_service, aws_clients)
 
         internal_message = OperationalMessage(InternalMessage.Status.PROCESSING_COMPLETED,
-                                        'uid', 'bucket', 'test_dir/test_file', 'test_dir/test_file_anonymized')
+                                              'uid', 'bucket', 'test_dir/test_file', 'test_dir/test_file_anonymized')
 
         # WHEN
         anonymize_post_processor.run(internal_message)

@@ -20,4 +20,5 @@ class MdfParserConfig():
         with open(path, 'r') as configfile:
             # We should ignore extra fields
             field_names = set([f.name for f in fields(MdfParserConfig)])
-            return MdfParserConfig(**{key: value for key, value in yaml.load(configfile, yaml.SafeLoader).items() if key in field_names})
+            return MdfParserConfig(**{key: value for key,
+                                      value in yaml.safe_load(configfile).items() if key in field_names})

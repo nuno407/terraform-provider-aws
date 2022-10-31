@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-import subprocess
+import subprocess  # nosec
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
@@ -721,7 +721,7 @@ class ContainerServices():
         with open(logs_name, 'w') as logs_write:
             # Convert .avi input file into .mp4 using ffmpeg
             _logger.debug('Starting ffmpeg conversion')
-            conv_logs = subprocess.Popen(["ffmpeg", "-i", input_name, "-qscale",
+            conv_logs = subprocess.Popen(["/usr/bin/ffmpeg", "-i", input_name, "-qscale",  # nosec
                                           "0", "-filter:v", "fps=15.72", output_name],
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
@@ -737,7 +737,7 @@ class ContainerServices():
             output_video = output_file.read()
 
         # Remove temporary files from storage
-        subprocess.run(["rm", input_name, output_name, logs_name])
+        subprocess.run(["/usr/bin/rm", input_name, output_name, logs_name])  # nosec
 
         # Generate processing end message
         _logger.info("Test clip download completed!")

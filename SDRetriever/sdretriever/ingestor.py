@@ -4,7 +4,7 @@ import json
 import logging as log
 import os
 import re
-import subprocess
+import subprocess  # nosec
 from abc import abstractmethod
 from copy import copy
 from datetime import datetime
@@ -139,7 +139,7 @@ class VideoIngestor(Ingestor):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         # Remove temporary file
-        subprocess.run(["rm", temp_video_file])
+        subprocess.run(["/usr/bin/rm", temp_video_file])  # nosec
 
         # Load ffprobe output (bytes) as JSON
         decoded_info = (result.stdout).decode("utf-8")

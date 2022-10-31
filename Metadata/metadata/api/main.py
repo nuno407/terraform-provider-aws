@@ -5,12 +5,12 @@ import os
 
 import boto3
 import flask
+
+from base.aws.container_services import ContainerServices
 from metadata.api.controller import init_controller
 from metadata.api.db import Persistence
 from metadata.api.service import ApiService
 from metadata.common.constants import AWS_REGION
-
-from base.aws.container_services import ContainerServices
 
 # Container info
 CONTAINER_NAME = "Metadata"
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # Start API process
     if os.getenv('LOCAL_DEBUG'):
         app.run(
-            "127.0.0.1", port=7777, use_reloader=True, debug=True)
+            "127.0.0.1", port=7777, use_reloader=True)
     else:
         from waitress import serve
         serve(app, listen="*:5000", url_scheme="https")

@@ -12,6 +12,7 @@ from flask_restx import Api
 from flask_restx import Resource
 from flask_restx import fields
 from flask_restx import reqparse
+
 from metadata.api.service import ApiService
 
 _logger = logging.getLogger('metadata_api.' + __name__)
@@ -213,10 +214,8 @@ def init_controller(service: ApiService) -> flask.Flask:
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Custom model for getTableData code 200 response (Swagger documentation)
-    tabledata_nest_model = api.model("tabledata_nest", {
-        'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"),
-        'item_2_id': fields.String(example="recording_overview: ['deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1637316243575_1637316303540', 'True', '5', '15' , '00:30:00', status, '00:09:00', 23-11-2021 14:32, 600x480, 'yuj2hi_01_InteriorRecorder']"),
-    })
+    tabledata_nest_model = api.model("tabledata_nest", {'item_1_id': fields.String(example="recording_overview: [recording_id, algo_processed, snapshots, CHC_events, lengthCHC, status, length, time,"), 'item_2_id': fields.String(
+        example="recording_overview: ['deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1637316243575_1637316303540', 'True', '5', '15' , '00:30:00', status, '00:09:00', 23-11-2021 14:32, 600x480, 'yuj2hi_01_InteriorRecorder']"), })
 
     get_tabledata_200_model = api.model("Get_tabledata_200", {
         'message': fields.Nested(tabledata_nest_model),
@@ -241,7 +240,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, None, None, None, None)
-                return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
+                return flask.jsonify(
+                    message=response_msg,
+                    pages=number_pages,
+                    total=number_recordings,
+                    statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
@@ -327,16 +330,16 @@ def init_controller(service: ApiService) -> flask.Flask:
                             if (not raw_subquery.startswith("{") or not raw_subquery.endswith("}")):
                                 raw_subquery = "{" + raw_subquery + "}"
                             query_list.append(
-                                yaml.load(raw_subquery, yaml.SafeLoader))
+                                yaml.safe_load(raw_subquery))
                     raw_operator = request.json.get('logic_operator')
                     if (raw_operator):
-                        operator = yaml.load(raw_operator, yaml.SafeLoader)
+                        operator = yaml.safe_load(raw_operator)
                     raw_sorting = request.json.get('sorting')
                     if (raw_sorting):
-                        sorting = yaml.load(raw_sorting, yaml.SafeLoader)
+                        sorting = yaml.safe_load(raw_sorting)
                     raw_direction = request.json.get('direction')
                     if (raw_direction):
-                        direction = yaml.load(raw_direction, yaml.SafeLoader)
+                        direction = yaml.safe_load(raw_direction)
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
@@ -344,7 +347,11 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, query_list, operator, sorting, direction)
-                return flask.jsonify(message=response_msg, pages=number_pages, total=number_recordings, statusCode="200")
+                return flask.jsonify(
+                    message=response_msg,
+                    pages=number_pages,
+                    total=number_recordings,
+                    statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
@@ -386,10 +393,13 @@ def init_controller(service: ApiService) -> flask.Flask:
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     # Custom model for getAnonymizedVideoUrl code 200 response (Swagger documentation)
-    get_anonymized_video_url_200_model = api.model("get_anonymized_video_url_200", {
-        'message': fields.String(example="https://qa-rcd-anonymized-video-files.s3.amazonaws.com/Debug_Lync/srxfut2internal23_rc_srx_qa_eur_fut2_009_InteriorRecorder_1644054706267_1644054801665_anonymized.mp4"),
-        'statusCode': fields.String(example="200")
-    })
+    get_anonymized_video_url_200_model = api.model(
+        "get_anonymized_video_url_200",
+        {
+            'message': fields.String(
+                example="https://qa-rcd-anonymized-video-files.s3.amazonaws.com/Debug_Lync/srxfut2internal23_rc_srx_qa_eur_fut2_009_InteriorRecorder_1644054706267_1644054801665_anonymized.mp4"),
+            'statusCode': fields.String(
+                example="200")})
 
     @api.route('/getAnonymizedVideoUrl/<recording_id>')
     class VideoUrl(Resource):

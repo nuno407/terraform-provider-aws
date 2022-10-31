@@ -136,4 +136,4 @@ class BaseHandler():
         message_handler_thread.start()
 
         output_api = api_handler.create_routes()
-        output_api.run(host="0.0.0.0", port=int(api_port))
+        output_api.run(host="0.0.0.0", port=int(api_port)) # nosec

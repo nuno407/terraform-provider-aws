@@ -1,6 +1,6 @@
 import os
-import subprocess
-from subprocess import CalledProcessError
+import subprocess  # nosec
+from subprocess import CalledProcessError  # nosec
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
@@ -9,6 +9,7 @@ from base.constants import VIDEO_FORMATS
 from basehandler.message_handler import OperationalMessage
 
 _logger = ContainerServices.configure_logging('AnonymizePostProcessor')
+
 
 class AnonymizePostProcessor():
     """ AnonymizePostProcessor """
@@ -59,10 +60,11 @@ class AnonymizePostProcessor():
                 _logger.debug(f'Anonymized artifact downloaded file size: {stat_result.st_size}')
 
                 # Convert .avi input file into .mp4 using ffmpeg
-                ffmpeg_command = ' '.join(["ffmpeg", "-y" ,"-i", self.INPUT_NAME, "-movflags", "faststart", "-c:v", "copy", self.OUTPUT_NAME])
+                ffmpeg_command = ' '.join(["/usr/bin/ffmpeg", "-y", "-i", self.INPUT_NAME, "-movflags",
+                                          "faststart", "-c:v", "copy", self.OUTPUT_NAME])
 
                 _logger.info('Starting ffmpeg process')
-                subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')
+                subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')  # nosec
 
                 _logger.info("Conversion complete!")
 
