@@ -4,6 +4,7 @@ pytest-mock
 
 autopep8
 pylint
+pylint-quotes
 mypy
 types-requests
 

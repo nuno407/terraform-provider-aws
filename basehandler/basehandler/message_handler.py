@@ -1,3 +1,4 @@
+""" Implementation of logic associated with ivs chain queue processing. """
 import json
 import logging
 import os
@@ -5,11 +6,9 @@ import queue
 import uuid
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
-from enum import auto
+from enum import Enum, auto
 from time import perf_counter
-from typing import Optional
-from typing import Protocol
+from typing import Optional, Protocol
 
 import backoff
 import requests
@@ -17,17 +16,16 @@ from requests.status_codes import codes as status_codes
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
-from base.constants import IMAGE_FORMATS
-from base.constants import VIDEO_FORMATS
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
 _logger = logging.getLogger(__name__)
 
 # defaults to 10h
-INTERNAL_QUEUE_TIMEOUT = float(os.getenv('INTERNAL_QUEUE_TIMEOUT', '36000'))
-IVS_FC_HOSTNAME = os.getenv('IVS_FC_HOSTNAME', 'localhost')
-IVS_FC_PORT = os.getenv('IVS_FC_PORT', '8081')
-IVS_FC_STATUS_ENDPOINT = f'http://{IVS_FC_HOSTNAME}:{IVS_FC_PORT}/status'
-IVS_FC_MAX_WAIT = float(os.getenv('IVS_FC_MAX_WAIT', '120'))
+INTERNAL_QUEUE_TIMEOUT = float(os.getenv("INTERNAL_QUEUE_TIMEOUT", "36000"))
+IVS_FC_HOSTNAME = os.getenv("IVS_FC_HOSTNAME", "localhost")
+IVS_FC_PORT = os.getenv("IVS_FC_PORT", "8081")
+IVS_FC_STATUS_ENDPOINT = f"http://{IVS_FC_HOSTNAME}:{IVS_FC_PORT}/status"
+IVS_FC_MAX_WAIT = float(os.getenv("IVS_FC_MAX_WAIT", "120"))
 
 
 @dataclass
@@ -57,7 +55,7 @@ class ErrorMessage(InternalMessage):
     status: InternalMessage.Status = InternalMessage.Status.ERROR
 
 
-class PostProcessor(Protocol):
+class PostProcessor(Protocol):  # pylint: disable=too-few-public-methods
     """Interface to be implemented by any service that uses the MessageHandler.
 
     The service shall pass an instance that implements this type to the MessageHandler in order to be able
@@ -75,7 +73,7 @@ class PostProcessor(Protocol):
         raise NotImplementedError()  # protocol function defines the signature and has and empty body
 
 
-class NOOPPostProcessor(PostProcessor):
+class NOOPPostProcessor(PostProcessor):  # pylint: disable=too-few-public-methods
     """Implementation of PostProcessing that does no pre-processing.
 
     An instance of this type shall be passed to the MessageHandler if post processing is not needed.
@@ -83,13 +81,13 @@ class NOOPPostProcessor(PostProcessor):
     """
 
     def run(self, message_body: OperationalMessage) -> None:
-        """NOOP function that doesn't do any post processing.
+        """NOOP function that doesn"t do any post processing.
 
         Args:
             message_body (OperationalMessage): The message sent from processing algorithm that can be changed.
         """
-        print(f'message {message_body}')
-        print('No post-processing required')
+        print(f"message {message_body}")
+        print("No post-processing required")
 
 
 class FileIsEmptyException(Exception):
@@ -100,7 +98,8 @@ class FileIsEmptyException(Exception):
 
 
 class ProcessingOutOfSyncException(Exception):
-    """Processing out of sync should be raised when the processing is out of sync, i.e. the processed item is not the expected one."""
+    """ Processing out of sync should be raised when the processing is out of sync, i.e.
+        the processed item is not the expected one. """
 
     def __init__(self, message):
         super().__init__(message)
@@ -126,33 +125,46 @@ class RequestProcessingFailed(Exception):
 class MessageHandler():
     """ Message handler """
 
-    def __init__(self, container_services: ContainerServices,  aws_clients: AWSServiceClients, consumer_name: str, internal_queue: queue.Queue[InternalMessage], post_processor: PostProcessor) -> None:
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            container_services: ContainerServices,
+            aws_clients: AWSServiceClients,
+            consumer_name: str,
+            internal_queue: queue.Queue[InternalMessage],
+            post_processor: PostProcessor) -> None:
         """
         Creates a MessageHandler service that will handle the messages between the algorithm processing service.
         The `consumer_name` will be the name used to grab messages from the queue.
 
-        The Handler keeps listening for a message from it's sqs queue, once a message is received is then sent to the algorithm processing service,
-        it will then wait for a message in the internal queue. Once the algorithm processing service has finished it will send a request to the APIHandler
-        which will put the message in the internal queue where the MessageHandler will grab it and run a post processing method. The next message on the SQS queue
-        is only ingested after an answer is received from the internal queue or the timeout is reached (INTERNAL_QUEUE_TIMEOUT).
+        The Handler keeps listening for a message from it"s sqs queue,
+        once a message is received is then sent to the algorithm processing service,
+        it will then wait for a message in the internal queue.
+        Once the algorithm processing service has finished it will send a request to the APIHandler which will put
+        the message in the internal queue where the MessageHandler will grab it and run a post processing method.
+        The next message on the SQS queue is only ingested after an answer is received from the internal
+        queue or the timeout is reached (INTERNAL_QUEUE_TIMEOUT).
 
         Remarks:
-        The internal queue is just used as synchronization mechanism to avoid race conditions, it's size can't grow bigger then 1.
+        The internal queue is just used as synchronization mechanism to avoid race conditions,
+        it"s size can"t grow bigger then 1.
 
         The message pass on the internal queue has to have the following format:
                 {
-                'chunk': None,
-                'path': None,
-                'msg_body': None,
-                'status' : 'ERROR'
+                "chunk": None,
+                "path": None,
+                "msg_body": None,
+                "status" : "ERROR"
                 }
 
         Args:
             container_services (ContainerServices): An instance of ContainerServices
             aws_clients (AWSServiceClients): An instance of AWSServicesClients containing the required clients
             consumer_name (str): The name of the consumer service
-            internal_queue (queue.Queue): A queue that used as a synchronization mechanism between the API and the handler
-            post_processor (PostProcessor): A class that implements PostProcessor that will be run after the return from the algorithm processing service.
+            internal_queue (queue.Queue): A queue that used as a synchronization mechanism between the API and
+                                          the handler
+            post_processor (PostProcessor): A class that implements PostProcessor that will be run after
+                                            the return from the algorithm processing service.
         """
         self.__container_services = container_services
         self.__aws_clients = aws_clients
@@ -161,22 +173,22 @@ class MessageHandler():
         self.__post_processor = post_processor
 
     def parse_incoming_message_body(self, body: str) -> dict:
-        '''
+        """
         transform incoming message body from dict __repr___ to valid JSON and parse it into a dict
 
         Args:
             body (str): body as dict in string __repr__
         Returns:
             dict: parsed body
-        '''
-        new_body = body.replace("\'", "\"")
+        """
+        new_body = body.replace("\"", "\"")
         return json.loads(new_body)
 
-    def request_processing(self, body: str, mode: str) -> bool:
+    def request_processing(self, body: str, mode: str) -> bool:  # pylint: disable=too-many-locals
         """
         Responsible for making the POST request to the algorithm processing service.
-        This return code of this function does not mean that the algorithm processing service completed it's processing with success,
-        it only gives the status whether it was successful or not.
+        This return code of this function does not mean that the algorithm processing
+        service completed it"s processing with success, it only gives the status whether it was successful or not.
 
         Args:
             body (str): The message body in JSON got from the SQS queue, before parsing.
@@ -201,18 +213,18 @@ class MessageHandler():
 
         uid = str(uuid.uuid4())
 
-        payload = {'uid': uid, 'path': dict_body["s3_path"], 'mode': mode}
-        file_ext = os.path.splitext(dict_body["s3_path"])[1].replace('.', '')
+        payload = {"uid": uid, "path": dict_body["s3_path"], "mode": mode}
+        file_ext = os.path.splitext(dict_body["s3_path"])[1].replace(".", "")
 
         # Check if the extension is a known image format or video format
         if file_ext in VIDEO_FORMATS:
-            file_format = 'video'
+            file_format = "video"
         elif file_ext in IMAGE_FORMATS:
-            file_format = 'image'
+            file_format = "image"
         else:
             # Throw an error if the extension is not known
             _logger.exception(
-                "The snapshot/video %s has an unknown format %s", dict_body['s3_path'], file_ext)
+                "The snapshot/video %s has an unknown format %s", dict_body["s3_path"], file_ext)
             return False
 
         files = [(file_format, raw_file)]
@@ -220,12 +232,12 @@ class MessageHandler():
         port_pod = container_services.ivs_api["port"]
         req_command = container_services.ivs_api["endpoint"]
 
-        address = f'http://{IVS_FC_HOSTNAME}:{port_pod}/{req_command}'
+        address = f"http://{IVS_FC_HOSTNAME}:{port_pod}/{req_command}"
         response = requests.post(address, files=files,
                                  data=payload, timeout=IVS_FC_MAX_WAIT)
-        _logger.info("API POST request sent! (uid: %s)", payload['uid'])
+        _logger.info("API POST request sent! (uid: %s)", payload["uid"])
         _logger.info("Response: %s", response.text)
-        return response.status_code == status_codes.ok
+        return response.status_code == status_codes.ok  # pylint: disable=no-member
 
     def update_processing(self, incoming_message_body: dict) -> dict:
         """
@@ -278,7 +290,8 @@ class MessageHandler():
         # Validate if the processed recording is the same as the one that was sent to the IVS feature chain
         if parsed_incoming_message_body["s3_path"] != parsed_output_message_body.input_media:
             raise ProcessingOutOfSyncException(
-                f"Processed recording {parsed_output_message_body.input_media} is different than the one that was sent to the IVS feature chain {parsed_incoming_message_body['s3_path']}")
+                f"""Processed recording {parsed_output_message_body.input_media} is different than the one that
+                    was sent to the IVS feature chain {parsed_incoming_message_body["s3_path"]}""")
 
         post_processor.run(parsed_output_message_body)
 
@@ -286,11 +299,11 @@ class MessageHandler():
 
         # Retrieve output info from received message
         out_s3 = {}
-        out_s3['bucket'] = parsed_output_message_body.bucket
-        # If no media_path is provided, use '-'
-        out_s3['media_path'] = parsed_output_message_body.media_path or '-'
-        # If no meta_path is provided, use '-'
-        out_s3['meta_path'] = parsed_output_message_body.meta_path or '-'
+        out_s3["bucket"] = parsed_output_message_body.bucket
+        # If no media_path is provided, use "-"
+        out_s3["media_path"] = parsed_output_message_body.media_path or "-"
+        # If no meta_path is provided, use "-"
+        out_s3["meta_path"] = parsed_output_message_body.meta_path or "-"
 
         # Send message to input queue of the next processing step
         # (if applicable)
@@ -298,20 +311,20 @@ class MessageHandler():
             next_step = relay_list["processing_steps"][0]
             next_queue = container_services.sqs_queues_list[next_step]
             relay_list_json = json.dumps(relay_list)
-            _logger.info('sending message body: %s', relay_list_json)
+            _logger.info("sending message body: %s", relay_list_json)
             container_services.send_message(
                 aws_clients.sqs_client, next_queue, relay_list_json)
 
         # Add the algorithm output flag/info to the relay_list sent
         # to the metadata container so that an item for this processing
         # run can be created on the Algo Output DB
-        relay_list['output'] = out_s3
-        del relay_list['processing_steps']
+        relay_list["output"] = out_s3
+        del relay_list["processing_steps"]
 
         # Send message to input queue of metadata container
         metadata_queue = container_services.sqs_queues_list["Metadata"]
         relay_list_json = json.dumps(relay_list)
-        _logger.info('sending message body: %s', relay_list_json)
+        _logger.info("sending message body: %s", relay_list_json)
         container_services.send_message(
             aws_clients.sqs_client, metadata_queue, relay_list_json)
 
@@ -324,13 +337,13 @@ class MessageHandler():
             mode (str): IVS feature chain procesing mode.
 
         Raises:
-            RuntimeError: If the request wasn't successful.
+            RuntimeError: If the request wasn"t successful.
         """
         request_result = self.request_processing(
-            incoming_message['Body'], mode)
+            incoming_message["Body"], mode)
         if not request_result:
             raise RuntimeError(
-                'Unable to request processing to ivs feature chain')
+                "Unable to request processing to ivs feature chain")
 
     def on_process(self, mode: str) -> None:
         """
@@ -355,18 +368,18 @@ class MessageHandler():
             aws_clients.sqs_client)
 
         if not incoming_message:
-            _logger.warning('Incoming SQS message is None')
+            _logger.warning("Incoming SQS message is None")
             return
 
-        if 'Body' not in incoming_message:
-            _logger.error('Incoming SQS message has no body')
+        if "Body" not in incoming_message:
+            _logger.error("Incoming SQS message has no body")
             return
 
-        sqs_message_body = incoming_message['Body']
+        sqs_message_body = incoming_message["Body"]
 
         start_ivs_fc_time = perf_counter()
         parsed_message = self.parse_incoming_message_body(sqs_message_body)
-        artifact_key = parsed_message['s3_path']
+        artifact_key = parsed_message["s3_path"]
         try:
             self.handle_incoming_message(incoming_message, mode)
 
@@ -376,12 +389,13 @@ class MessageHandler():
 
             if not api_output_message:
                 raise EmptyAPIOutputMessage(
-                    'Handler api output message is None')
+                    "Handler api output message is None")
 
             stop_ivs_fc_time = perf_counter()
 
             # If the status message is not OK raises an exception
-            if not (isinstance(api_output_message, OperationalMessage) and api_output_message.status == InternalMessage.Status.OK):
+            if not (isinstance(api_output_message, OperationalMessage)
+                    and api_output_message.status == InternalMessage.Status.OK):
                 raise RequestProcessingFailed(
                     f"The IVS Chain as failed to process artifact: {artifact_key}")
 
@@ -391,28 +405,28 @@ class MessageHandler():
             self.handle_processing_output(
                 incoming_message, api_output_message)
             container_services.delete_message(
-                aws_clients.sqs_client, incoming_message['ReceiptHandle'])
+                aws_clients.sqs_client, incoming_message["ReceiptHandle"])
         except FileIsEmptyException:
             _logger.warning(
                 "Downloaded file %s with zero bytes of length, skipping it", artifact_key)
             container_services.delete_message(
-                aws_clients.sqs_client, incoming_message['ReceiptHandle'])
+                aws_clients.sqs_client, incoming_message["ReceiptHandle"])
         except EmptyAPIOutputMessage:
             _logger.warning(
-                'Internal handler queue output is None, skipping it')
+                "Internal handler queue output is None, skipping it")
         except RequestProcessingFailed:
             _logger.error(
-                'Unable to request processing to ivs feature chain. \
-                    Inference container might be in inconsistent state.')
+                "Unable to request processing to ivs feature chain. \
+                    Inference container might be in inconsistent state.")
             raise
         except ProcessingOutOfSyncException:
             _logger.error(
-                'Processed recording is different than the one that was sent to the IVS feature chain.')
+                "Processed recording is different than the one that was sent to the IVS feature chain.")
             raise
         except queue.Empty:
             _logger.exception(
-                'The timeout of %s seconds while waiting for the IVS Chain has been reached. \
-                    The message was not deleted from the SQS Queue', INTERNAL_QUEUE_TIMEOUT)
+                "The timeout of %s seconds while waiting for the IVS Chain has been reached. \
+                    The message was not deleted from the SQS Queue", INTERNAL_QUEUE_TIMEOUT)
             raise
         except Exception:
             _logger.exception("Unexpected exception has happened.")
@@ -427,16 +441,17 @@ class MessageHandler():
         """
 
         _logger.info("Listening to SQS input queue(s)...")
-        while (True):
+        while True:
             self.on_process(mode)
 
 
 def on_backoff_handler(details):
-    _logger.info(
-        'Backing off {wait:0.1f} seconds after {tries} tries'.format(**details))
+    """ Handler for backoff on IVS. """
+    _logger.info("Backing off %.1f seconds after %s tries", details.get("wait"), details.get("tries"))
 
 
 def on_success_handler(details):
+    """ Handler for success of ivs API"""
     elapsed = f"{details['elapsed']:0.1f}"
     _logger.info("Got response from IVSFC API: %s after %s seconds",
                  IVS_FC_STATUS_ENDPOINT, elapsed)
@@ -451,5 +466,6 @@ def on_success_handler(details):
     on_success=on_success_handler
 )
 def wait_for_featurechain():
-    _logger.info('Waiting for IVSFC API on: %s', IVS_FC_STATUS_ENDPOINT)
-    requests.get(IVS_FC_STATUS_ENDPOINT)
+    """ Handler for exception on IVS API. """
+    _logger.info("Waiting for IVSFC API on: %s", IVS_FC_STATUS_ENDPOINT)
+    requests.get(IVS_FC_STATUS_ENDPOINT)  # pylint: disable=missing-timeout

@@ -13,17 +13,16 @@ aggressive = 3
 diff = true
 
 [tool.pylint]
-# Maximum number of characsters on a single line.
 recursive = true
 
 [tool.pylint.format]
-# Maximum number of characsters on a single line.
+# Maximum number of characters on a single line.
 max-line-length = 120
 
-[tool.pylint.string]
-# This flag controls whether inconsistent-quotes generates a warning when the
-# character used as a quote delimiter is used inconsistently within a module.
-check-quote-consistency = true
+[tool.pylint.pylint_quotes]
+string-quote = "double"
+triple-quote = "double"
+docstring-quote = "double"
 
 [tool.mypy]
 files = [

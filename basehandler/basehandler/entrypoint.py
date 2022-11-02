@@ -1,25 +1,22 @@
+""" Entrypoint. """
 import os
 import queue
 import threading
-from dataclasses import dataclass
 from typing import Protocol
 
 from flask import Blueprint
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
-from basehandler.api_handler import APIHandler
-from basehandler.api_handler import OutputEndpointNotifier
-from basehandler.api_handler import OutputEndpointParameters
-from basehandler.message_handler import InternalMessage
-from basehandler.message_handler import MessageHandler
-from basehandler.message_handler import NOOPPostProcessor
-from basehandler.message_handler import PostProcessor
+from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
+                                     OutputEndpointParameters)
+from basehandler.message_handler import (InternalMessage, MessageHandler,
+                                         NOOPPostProcessor, PostProcessor)
 
-INTERNAL_QUEUE_MAX_SIZE = int(os.getenv('INTERNAL_QUEUE_MAX_SIZE', '1'))
+INTERNAL_QUEUE_MAX_SIZE = int(os.getenv("INTERNAL_QUEUE_MAX_SIZE", "1"))
 
 
-class CallbackBlueprintCreator(Protocol):
+class CallbackBlueprintCreator(Protocol):  # pylint: disable=too-few-public-methods
     """
     Interface for importing services to provide their own bluprint creator functions
     """
@@ -30,10 +27,11 @@ class CallbackBlueprintCreator(Protocol):
 
         Args:
             route_endpoint (str): Route endpoint e.g : "/cameracheck"
-            notifier (OutputEndpointNotifier): And instance of OutputEndpointNotifier to upload and send data to the MessageHandler
+            notifier (OutputEndpointNotifier): And instance of OutputEndpointNotifier to
+                                               upload and send data to the MessageHandler
 
         Raises:
-            NotImplementedError: In case the didn't get implemented by the derived class
+            NotImplementedError: In case the didn"t get implemented by the derived class
 
         Returns:
             Blueprint: A blueprint of an endpoint to be added to the API
@@ -45,6 +43,7 @@ class CallbackBlueprintCreator(Protocol):
 class BaseHandler():
     """ BaseHandler """
 
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  container_name: str,
                  container_services: ContainerServices,
@@ -63,7 +62,8 @@ class BaseHandler():
             aws_client (AWSServiceClients): boto3 aws service clients wrapper object.
             mode (str): IVS feature chain processing mode.
             route_endpoint (str): endpoint which APIHandler will wait for IVS feature chain response.
-            blueprint_creator (CallbackBlueprintCreator): function reference that will provide a blueprint for the callback API endpoint
+            blueprint_creator (CallbackBlueprintCreator): function reference that will provide a
+                                                          blueprint for the callback API endpoint
         """
 
         self.container_name = container_name
@@ -97,7 +97,7 @@ class BaseHandler():
         if len(self.container_services.sqs_queues_list) == 0 \
                 or not self.container_services.raw_s3 \
                 or not self.container_services.anonymized_s3:
-            raise RuntimeError('invalid container services configuration')
+            raise RuntimeError("invalid container services configuration")
 
     def setup_and_run(self,
                       api_port: str,
@@ -107,7 +107,8 @@ class BaseHandler():
 
         Args:
             api_port (str): port that the flask API will bind to
-            post_processor (PostProcessor): object that implements PostProcessor interface to be executed after ivs feature chain
+            post_processor (PostProcessor): object that implements PostProcessor interface
+                                            to be executed after ivs feature chain
         """
 
         # MessageHandler will be executed in a new thread
@@ -119,11 +120,11 @@ class BaseHandler():
             post_processor
         )
 
-        import basehandler.message_handler as msg_handler
+        import basehandler.message_handler as msg_handler  # pylint: disable=import-outside-toplevel
         msg_handler.wait_for_featurechain()
 
         message_handler_thread = threading.Thread(
-            target=message_handler.start, kwargs={'mode': self.mode})
+            target=message_handler.start, kwargs={"mode": self.mode})
 
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
@@ -136,4 +137,4 @@ class BaseHandler():
         message_handler_thread.start()
 
         output_api = api_handler.create_routes()
-        output_api.run(host="0.0.0.0", port=int(api_port)) # nosec
+        output_api.run(host="0.0.0.0", port=int(api_port))  # nosec

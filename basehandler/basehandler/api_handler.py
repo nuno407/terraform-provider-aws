@@ -1,18 +1,17 @@
+""" Entry Module that wraps IVS Chain models. """
 import logging
 import queue
 from threading import Thread
 
 import flask
-from flask import Blueprint
-from flask import Flask
+from flask import Blueprint, Flask
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
-from basehandler.message_handler import ErrorMessage
-from basehandler.message_handler import InternalMessage
+from basehandler.message_handler import ErrorMessage, InternalMessage
 
 
-class OutputEndpointParameters():
+class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
     """ OutputEndpointParameters """
 
     def __init__(self, container_services: ContainerServices,
@@ -82,12 +81,14 @@ class OutputEndpointNotifier():
         self.internal_queue.put(internal_message)
 
 
-class NoHealth(logging.Filter):
+class NoHealth(logging.Filter):  # pylint: disable=too-few-public-methods
+    """ Creates a filter to prevent logging of GetAlive endpoint. """
+
     def filter(self, record):
-        return 'GET /alive' not in record.getMessage()
+        return "GET /alive" not in record.getMessage()
 
 
-class APIHandler():
+class APIHandler():  # pylint: disable=too-few-public-methods
     """ APIHandler """
 
     def __init__(self,
@@ -103,7 +104,8 @@ class APIHandler():
         Args:
             endpoint_params (OutputEndpointParameters):
             callback_blueprint (Blueprint): flask blueprint to be registered by the app when creating the routes.
-            message_handler_thread (Thread): reference to the message_handler_thread to be available in the alive healthcheck endpoint
+            message_handler_thread (Thread): reference to the message_handler_thread to be available in the
+                                             alive healthcheck endpoint
             endpoint_notifier (OutputEndpointNotifier): To notify in case of an error ocurred
         """
         self.container_services = endpoint_params.container_services
@@ -129,13 +131,12 @@ class APIHandler():
         @app.route("/alive", methods=["GET"])
         def handle_alive():
             if self.message_handler_thread and self.message_handler_thread.is_alive():
-                return flask.Response(status=200, response='Ok')
-            else:
-                return flask.Response(status=500, response='Message handler thread error')
+                return flask.Response(status=200, response="Ok")
+            return flask.Response(status=500, response="Message handler thread error")
 
         @app.route("/processingerror", methods=["POST"])
         def handle_processing_error():
             self.endpoint_notifier.notify_error()
-            return flask.Response(status=200, response='Ok')
+            return flask.Response(status=200, response="Ok")
 
         return app
