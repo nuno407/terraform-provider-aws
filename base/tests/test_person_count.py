@@ -3,18 +3,25 @@ from datetime import timedelta
 from pytest import fixture
 from base.person_count import PersonCount
 
+
 class TestPersonCounter:
     @fixture
     def person_count(self):
         return PersonCount()
 
     @fixture
+    def empty_signal(self) -> dict:
+        return {
+        }
+
+    @fixture
     def simple_signals(self) -> dict:
         return {
-        timedelta(seconds=5): {'PersonCount_value': 2},
-        timedelta(seconds=15): {'PersonCount_value': 2},
-        timedelta(seconds=16): {'PersonCount_value': 2},
-        timedelta(seconds=20): {'PersonCount_value': 2}
+            timedelta(seconds=5): {'PersonCount_value': 2},
+            timedelta(seconds=15): {'PersonCount_value': 2},
+            timedelta(seconds=16): {'PersonCount_value': 2},
+            timedelta(seconds=20): {'PersonCount_value': 2},
+            timedelta(seconds=20): {'something_else': 2}
         }
 
     @fixture
@@ -26,16 +33,23 @@ class TestPersonCounter:
             timedelta(seconds=20): {'PersonCount_value': 2}
         }
 
-    def test_simple_signal_max_person_count(self, person_count: PersonCount, simple_signals):
+    def test_empty_signal_max_person_count(self, person_count: PersonCount, empty_signal):
         # WHEN
-        average_person_count = person_count.calculate_person_count(simple_signals)
+        max_person_count = person_count.calculate_person_count(empty_signal)
 
         # THEN
-        assert(average_person_count == 2)
+        assert (max_person_count == 0)
+
+    def test_simple_signal_max_person_count(self, person_count: PersonCount, simple_signals):
+        # WHEN
+        max_person_count = person_count.calculate_person_count(simple_signals)
+
+        # THEN
+        assert (max_person_count == 2)
 
     def test_peak_simple_max_person_count(self, person_count: PersonCount, simple_signals_with_peak):
         # WHEN
-        average_person_count = person_count.calculate_person_count(simple_signals_with_peak)
+        max_person_count = person_count.calculate_person_count(simple_signals_with_peak)
 
         # THEN
-        assert(average_person_count == 3)
+        assert (max_person_count == 3)

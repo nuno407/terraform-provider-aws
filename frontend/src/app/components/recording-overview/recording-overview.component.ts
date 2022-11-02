@@ -42,6 +42,10 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - length,\n\
   - time,\n\
   - resolution,\n\
+  - number_chc_events,\n\
+  - lengthCHC,\n\
+  - max_person_count,\n\
+  - ride_detection_counter,\n\
   - deviceID\n\n\
   Available operands:\n\
   - ==\n\
@@ -60,8 +64,9 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - time,\n\
   - resolution,\n\
   - number_chc_events,\n\
-  - max_person_count,\n\
   - lengthCHC,\n\
+  - max_person_count,\n\
+  - ride_detection_counter,\n\
   - deviceID"
 
   constructor(private changeDetectorRef: ChangeDetectorRef,

@@ -208,8 +208,8 @@ export class LineChartComponent {
               }
             },
             y: {
-              min: 0,
-              max: 1
+              suggestedMin: 0,
+              suggestedMax: 1
             }
           },
           plugins: {

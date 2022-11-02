@@ -13,14 +13,15 @@ from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
 from base.person_count import PersonCount
+from base.ride_detection_counter import RideDetectionCounter
 from base.processor import Processor
 from mdfparser.config import MdfParserConfig
 from mdfparser.downloader import Downloader
 from mdfparser.synchronizer import Synchronizer
 from mdfparser.uploader import Uploader
 
-CONTAINER_NAME = "MDFParser"    # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+CONTAINER_NAME = "MDFParser"  # Name of the current container
+CONTAINER_VERSION = "v1.0"  # Version of the current container
 
 _logger: logging.Logger
 
@@ -41,7 +42,6 @@ class InputMessage(TypedDict):
 
 
 def main(config: MdfParserConfig):
-
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Logic classes
@@ -50,7 +50,8 @@ def main(config: MdfParserConfig):
     synchronizer = Synchronizer()
     chc_counter = ChcCounter()
     person_count = PersonCount()
-    processors: list[Processor] = [chc_counter, person_count]
+    ride_detection_counter = RideDetectionCounter()
+    processors: list[Processor] = [chc_counter, person_count, ride_detection_counter]
 
     # AWS clients for container_services
     sqs_client = boto3.client('sqs', region_name='eu-central-1')

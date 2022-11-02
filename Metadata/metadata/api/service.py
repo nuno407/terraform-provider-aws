@@ -18,6 +18,10 @@ RELEVANT_DEVICE_SIGNALS = {
     "interior_camera_health_response_audio_distorted",
     "interior_camera_health_response_audio_signal",
     "PersonCount_value",
+    "DrivingStatus",
+    "DoorClosedConfidence",
+    "RideInfo_people_count_before_value",
+    "RideInfo_people_count_after_value",
     "Snapshots"
 }
 
@@ -150,6 +154,7 @@ class ApiService:
         'number_chc_events': 'recording_overview.number_chc_events',
         'lengthCHC': 'recording_overview.chc_duration',
         'max_person_count': 'recording_overview.max_person_count',
+        'number_of_rides': 'recording_overview.ride_detection_counter',
         'deviceID': 'recording_overview.deviceID',
         'tenantID': 'recording_overview.tenantID'
     }
@@ -269,6 +274,8 @@ class ApiService:
             'chc_duration', '-')
         recording_object['max_person_count'] = recording_overview.get(
             'max_person_count', '-')
+        recording_object['ride_detection_counter'] = recording_overview.get(
+            'ride_detection_counter', '-')
         pipeline_execution = recording_item.get('pipeline_execution', {})
         recording_object['processing_list'] = pipeline_execution.get(
             'processing_list', '-')

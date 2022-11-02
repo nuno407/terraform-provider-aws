@@ -14,11 +14,12 @@
         "length": "0:02:08",
         "time": "2022-04-01 17:47:40",
         "resolution": "1280x720",
+        "ride_detection_counter": 1,
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
-        "max_person_count": "-"
+        "max_person_count": 1
     },
     {
         "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
@@ -35,11 +36,12 @@
         "length": "0:02:08",
         "time": "2022-04-01 17:47:40",
         "resolution": "640x360",
+        "ride_detection_counter": 1,
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
-        "max_person_count": "-"
+        "max_person_count": 1
     },
     {
         "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648821954670_1648822585972",
@@ -56,10 +58,11 @@
         "length": "0:10:31",
         "time": "2022-04-01 14:05:54",
         "resolution": "640x360",
+        "ride_detection_counter": 0,
         "description": null,
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 0.0,
         "number_chc_events": 0,
-        "max_person_count": "-"
+        "max_person_count": 0
     }
 ]

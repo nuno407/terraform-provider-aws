@@ -46,6 +46,19 @@
                             "value": "1"
                         }
                     ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "1"
+                        }
+                    ]
                 }
             ]
         },
@@ -85,6 +98,109 @@
                             "value": "1"
                         }
                     ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "12",
+                    "floatAttributes": [
+                        {
+                            "name": "RideInfo_confidence",
+                            "value": "0"
+                        },
+                        {
+                            "name": "RideInfo_people_count_after_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "RideInfo_people_count_during_confidence",
+                            "value": "0.975524"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "RideInfo_local_endtime_ms",
+                            "value": "17893463"
+                        },
+                        {
+                            "name": "RideInfo_local_startime_ms",
+                            "value": "16893463"
+                        },
+                        {
+                            "name": "RideInfo_people_count_after_value",
+                            "value": "0"
+                        },
+                        {
+                            "name": "RideInfo_people_count_during_value",
+                            "value": "1"
+                        }
+                    ],
+                    "stringAttributes": [
+                        {
+                            "name": "RideInfo_ride_id",
+                            "value": "ACS435SG78SR"
+                        },
+                        {
+                            "name": "RideInfo_status",
+                            "value": "stop"
+                        }
+                    ]
+                },
+                {
+                    "id": "12",
+                    "floatAttributes": [
+                        {
+                            "name": "RideInfo_confidence",
+                            "value": "0"
+                        },
+                        {
+                            "name": "RideInfo_people_count_before_confidence",
+                            "value": "0.975524"
+                        },
+                        {
+                            "name": "RideInfo_people_count_during_confidence",
+                            "value": "1"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "RideInfo_local_endtime_ms",
+                            "value": "0"
+                        },
+                        {
+                            "name": "RideInfo_local_startime_ms",
+                            "value": "17893463"
+                        },
+                        {
+                            "name": "RideInfo_people_count_before_value",
+                            "value": "1"
+                        },
+                        {
+                            "name": "RideInfo_people_count_during_value",
+                            "value": "0"
+                        }
+                    ],
+                    "stringAttributes": [
+                        {
+                            "name": "RideInfo_ride_id",
+                            "value": "02R446ZPY1"
+                        },
+                        {
+                            "name": "RideInfo_status",
+                            "value": "start"
+                        }
+                    ]
                 }
             ]
         },
@@ -121,6 +237,19 @@
                         },
                         {
                             "name": "interior_camera_health_response_cve",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        },
+                        {
+                            "name": "PersonCount_value",
                             "value": "0"
                         }
                     ]

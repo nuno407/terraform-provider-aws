@@ -14,7 +14,9 @@
             "#snapshots": 0,
             "number_chc_events": 1,
             "chc_duration": 15.859872611465,
-            "snapshots_paths": {}
+            "snapshots_paths": {},
+            "max_person_count": 1,
+            "ride_detection_counter": 1
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
@@ -44,7 +46,9 @@
             "#snapshots": 0,
             "number_chc_events": 1,
             "chc_duration": 15.859872611465,
-            "snapshots_paths": {}
+            "snapshots_paths": {},
+            "max_person_count": 1,
+            "ride_detection_counter": 1
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
@@ -74,7 +78,9 @@
             "#snapshots": 0,
             "number_chc_events": 0,
             "chc_duration": 0.0,
-            "snapshots_paths": {}
+            "snapshots_paths": {},
+            "max_person_count": 0,
+            "ride_detection_counter": 0
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648821954670_1648822585972",
