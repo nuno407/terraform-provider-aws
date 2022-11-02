@@ -274,6 +274,46 @@ class TestMetadataIngestor:
 
         assert paths == set(wanted_result)
 
+    @patch("sdretriever.ingestor.ContainerServices")
+    def test_discover_s3_subfolders3(self, mock_container_services, obj, s3_client, list_s3_objects):
+
+        list_s3_objects_func, path_list = list_s3_objects
+        paths_reference = [
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=05/day=25/hour=20/",
+            "TEST_TENANT/TEST_DEVICE_ID2/year=2022/month=10/day=30/hour=20/TEST_ID_TEST_TYPE1",
+            "TEST_TENANT2/TEST_DEVICE_ID/year=2022/month=10/day=30/hour=21/TEST_ID_TEST_TYPE2",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=10/day=30/hour=22/TEST_ID_TEST_TYPE3",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=10/day=30/hour=23/TEST_ID_TEST_TYPE4",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=11/day=01/hour=00/TEST_ID_TEST_TYPE5",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=11/day=01/hour=01/TEST_ID_TEST_TYPE6",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2023/month=02/day=28/hour=02/TEST_ID_TEST_TYPE7",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2023/month=02/day=28/hour=03/TEST_ID_TEST_TYPE8",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2023/month=03/day=01/hour=03/TEST_ID_TEST_TYPE8"
+        ]
+        path_list.extend(paths_reference)
+        mock_container_services.list_s3_objects.side_effect = list_s3_objects_func
+
+        wanted_result = [
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=10/day=30/hour=22/",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=10/day=30/hour=23/",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=11/day=01/hour=00/",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2022/month=11/day=01/hour=01/",
+            "TEST_TENANT/TEST_DEVICE_ID/year=2023/month=02/day=28/hour=02/",
+        ]
+
+        folder_reference = "TEST_TENANT/TEST_DEVICE_ID/"
+        bucket_reference = "UNUSED"
+        start_datetime_reference = datetime(
+            year=2022, month=10, day=30, hour=22, minute=10)
+        end_datetime_reference = datetime(year=2023, month=2, day=28, hour=2)
+
+        paths = obj._discover_s3_subfolders(folder_reference, bucket_reference, s3_client,
+                                            start_time=start_datetime_reference, end_time=end_datetime_reference)
+
+        paths = {path for path in paths}
+
+        assert paths == set(wanted_result)
+
     def test_search_chunks_in_s3_path(self, obj):
         resp_mock = {
             'Contents': [

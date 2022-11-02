@@ -4,9 +4,12 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from dataclasses import dataclass
+from dataclasses import field
+from datetime import datetime
+from datetime import timedelta
+from typing import Optional
+from typing import Tuple
 
 import boto3
 import pytz
@@ -774,6 +777,13 @@ class ContainerServices():
             Prefix=s3_path,
             Delimiter=delimiter
         )
+
+        if response_list['KeyCount'] >= 999:
+            _logger.warning(
+                "The listing of the bucket %s at %s returned more then 999 objects, some will not be visible",
+                bucket,
+                s3_path)
+
         return response_list
 
     @staticmethod

@@ -7,12 +7,12 @@ import re
 import subprocess  # nosec
 import tempfile
 from abc import abstractmethod
+from calendar import monthrange
 from copy import copy
 from datetime import datetime
 from datetime import timedelta
 from operator import itemgetter
 from typing import Iterator
-from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import TypeVar
@@ -167,8 +167,9 @@ class VideoIngestor(Ingestor):
             video_start = round(video_start_ts.timestamp() * 1000)
             video_end = round(video_end_ts.timestamp() * 1000)
         except Exception as exception:
-            LOGGER.error(
+            LOGGER.exception(
                 f"Could not obtain Kinesis clip from stream {video_msg.streamname} between {repr(video_from)} and {repr(video_to)} -> {repr(exception)}",
+                exception,
                 extra={
                     "messageid": video_msg.messageid})
             return None
@@ -287,7 +288,7 @@ class SnapshotIngestor(Ingestor):
                 # Define its new name by adding the timestamp as a suffix
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
                 exists_on_devcloud = ContainerServices.check_s3_file_exists(
-                    self.S3_CLIENT, 'Debug_Lync/' + snap_name, self.CS.raw_s3)
+                    self.S3_CLIENT, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
 
                 if not exists_on_devcloud:
 
@@ -438,6 +439,12 @@ class MetadataIngestor(Ingestor):
             Iterator[str]: A list containing all paths from root to the last folder (hour folder).
         """
 
+        LOGGER.debug(f'Discovering folders while searching on {start_time} - {end_time}')
+
+        # Reset minutes
+        start_time_zero = start_time.replace(minute=0)
+        end_time_zero = end_time.replace(minute=0)
+
         list_objects_response = ContainerServices.list_s3_objects(
             parent_folder, bucket, s3_client, "/")
 
@@ -449,10 +456,10 @@ class MetadataIngestor(Ingestor):
             day_groups = re.search("day=([0-9]{2})", path)
             hour_groups = re.search("hour=([0-9]{2})", path)
 
-            current_time_start = copy(start_time)
-            current_time_end = copy(end_time)
+            current_time_start = copy(start_time_zero)
+            current_time_end = copy(end_time_zero)
 
-            # Cast the dates of the paths fi they exist
+            # Cast the dates of the paths if they exist
             year = int(year_groups.groups()[0])
             month = int(month_groups.groups()[
                         0]) if month_groups is not None else None
@@ -463,24 +470,53 @@ class MetadataIngestor(Ingestor):
             hour = int(hour_groups.groups()[
                        0]) if hour_groups is not None else None
 
-            if hour:
-                current_time_end = current_time_end.replace(hour=hour)
-                current_time_start = current_time_start.replace(hour=hour)
-
-            if day:
-                current_time_end = current_time_end.replace(day=day)
-                current_time_start = current_time_start.replace(day=day)
-
-            if month:
-                current_time_end = current_time_end.replace(month=month)
-                current_time_start = current_time_start.replace(month=month)
+            # kwargs use to replace date
+            kwargs_replace = {}
 
             if year:
-                current_time_end = current_time_end.replace(year=year)
-                current_time_start = current_time_start.replace(year=year)
+                kwargs_replace['year'] = year
+
+            if month:
+                kwargs_replace['month'] = month
+
+            if day:
+                kwargs_replace['day'] = day
+
+            if hour:
+                kwargs_replace['hour'] = hour
+
+            if len(kwargs_replace) > 0:
+                kwargs_replace_start = {
+                    "year": start_time_zero.year,
+                    "month": start_time_zero.month,
+                    "day": start_time_zero.day,
+                    "hour": start_time_zero.hour
+                }
+                kwargs_replace_start.update(kwargs_replace)
+
+                # Make sure the month is valid
+                max_day = monthrange(kwargs_replace_start["year"], kwargs_replace_start["month"])[1]
+                if max_day < kwargs_replace_start["day"]:
+                    kwargs_replace_start['day'] = max_day
+
+                kwargs_replace_end = {
+                    "year": end_time_zero.year,
+                    "month": end_time_zero.month,
+                    "day": end_time_zero.day,
+                    "hour": end_time_zero.hour
+                }
+                kwargs_replace_end.update(kwargs_replace)
+
+                # Make sure the month is valid
+                max_day = monthrange(kwargs_replace_end["year"], kwargs_replace_end["month"])[1]
+                if max_day < kwargs_replace_end["day"]:
+                    kwargs_replace_end['day'] = max_day
+
+                current_time_end = current_time_end.replace(**kwargs_replace_end)
+                current_time_start = current_time_start.replace(**kwargs_replace_start)
 
             # Make sure the paths are within boundaries
-            if current_time_start < start_time or current_time_end > end_time:
+            if current_time_start < start_time_zero or current_time_end > end_time_zero:
                 continue
 
             # Additional check to avoid infinite loop
@@ -650,6 +686,8 @@ class MetadataIngestor(Ingestor):
                 "messageid": message.messageid})
             return False, set()
 
+        LOGGER.debug("Searching for chunks")
+
         # Store all chunks in it's set
         mp4_chunks_left: set[str] = set()
         metadata_chunks: set[str] = set()
@@ -691,15 +729,18 @@ class MetadataIngestor(Ingestor):
                 "all metadata chunks found within upload bounds")
             return True, metadata_chunks
 
-        # Search for the metadata until the current day
+        LOGGER.debug("Not all metadata found within upload bounds, searching until %s", str(datetime.now()))
+
+        # Search for the metadata paths until the current day
         metadata_paths = self._get_chunks_lookup_paths(message,
                                                        start_time=message.uploadfinished +
                                                        timedelta(hours=1),
                                                        end_time=datetime.now()
                                                        )
 
+        # Search for missing metadata chunks until the current day
         all_found, tmp_metadata_chunks = self._search_for_match_chunks(
-            metadata_paths, mp4_chunks_left, message.messageid, bucket)
+            metadata_paths, mp4_chunks_left, bucket, message.messageid)
 
         metadata_chunks = metadata_chunks.union(tmp_metadata_chunks)
 
