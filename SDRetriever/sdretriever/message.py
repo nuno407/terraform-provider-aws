@@ -223,6 +223,12 @@ class VideoMessage(Message):
             if not self.topicarn:
                 LOGGER.warning(f"Topic could not be identified", extra={"messageid": self.messageid})
                 return True
+            if not self.streamname:
+                LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
+                return True
+            if not self.recordingid:
+                LOGGER.warning("Could not find a recordingid", extra={"messageid": self.messageid})
+                return True
             recorder = self.video_recording_type()
             if recorder in recorder_blacklist:
                 LOGGER.info(f"Recorder {recorder} is blacklisted", extra={"messageid": self.messageid})
@@ -234,9 +240,6 @@ class VideoMessage(Message):
             if not self.topicarn.endswith("video-footage-events"):
                 LOGGER.info(f"Topic '{self.topicarn}' is not for video footage events",
                             extra={"messageid": self.messageid})
-                return True
-            if not self.streamname:
-                LOGGER.warning("Could not find a stream name", extra={"messageid": self.messageid})
                 return True
             return False
         except Exception as e:
