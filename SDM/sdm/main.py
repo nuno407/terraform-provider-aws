@@ -54,6 +54,11 @@ def processing_sdm(container_services, sqs_message):
     new_body = sqs_message['Body'].replace("\'", "\"")
     sqs_body = json.loads(new_body)
 
+    # Ignore s3:TestEvent
+    if sqs_body.get("Event") == "s3:TestEvent" :
+        _logger.info("SQS message is a s3:TestEvent")
+        return relay_data
+
     # Access key value from msg body
     s3_path = sqs_body["Records"][0]["s3"]["object"]["key"]
 
@@ -63,11 +68,11 @@ def processing_sdm(container_services, sqs_message):
     # if somehting went wrong with the file parsing
     if msp is None or file_name is None or file_format is None:
         if msp is None:
-            _logger.info("WARNING: File %s will not be processed - File is outside MSP folders.", file_name)
+            _logger.warning("File %s will not be processed - File is outside MSP folders.", file_name)
         if file_name is None:
-            _logger.info("WARNING: Could not parse file name.")
+            _logger.warning("Could not parse file name.")
         if file_format is None:
-            _logger.info("WARNING: Could not parse file format.")
+            _logger.warning("Could not parse file format.")
         _logger.info("Message dump:")
         _logger.info(sqs_message)
         return relay_data
@@ -100,10 +105,10 @@ def processing_sdm(container_services, sqs_message):
         container_services.display_processed_msg(relay_data["s3_path"])
 
     elif file_format in container_services.raw_s3_ignore:
-        _logger.info("WARNING: File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
+        _logger.warning("File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
 
     else:
-        _logger.info("WARNING: File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
+        _logger.warning("File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
 
     return relay_data
 
