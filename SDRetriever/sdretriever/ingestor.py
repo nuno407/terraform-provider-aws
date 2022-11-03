@@ -53,7 +53,8 @@ class Ingestor(object):
         """Ingests the artifacts described in a message into the DevCloud"""
         pass
 
-    def check_if_s3_rcc_path_exists(self, s3_path: str, bucket: str, messageid: str = None) -> Tuple[bool, dict]:
+    def check_if_s3_rcc_path_exists(self, s3_path: str, bucket: str, messageid: str = None,
+                                    max_s3_api_calls: int = 1) -> Tuple[bool, dict]:
         """Verify if path exists on target S3 bucket.
 
         - Check if the file exists in a given path.
@@ -73,7 +74,7 @@ class Ingestor(object):
         # Check if there is a file with the same name already stored on target S3 bucket
         try:
             list_objects_response: dict = dict(ContainerServices.list_s3_objects(
-                s3_object_params.s3_path, bucket, s3_client))
+                s3_object_params.s3_path, bucket, s3_client, max_iterations=max_s3_api_calls))
 
             if list_objects_response.get('KeyCount') and int(list_objects_response['Contents'][0]['Size']) == 0:
                 return False, list_objects_response
@@ -550,6 +551,7 @@ class MetadataIngestor(Ingestor):
         If start_time and end_time fields are provided then v chunks will
         only be fetch if they were modified between start_time and end_time.
 
+        It searches up to a maximum of 5000 objects
         Args:
             s3_path (str): Path to list the chunks.
             bucket (str): The S3 bucket name.
@@ -561,7 +563,7 @@ class MetadataIngestor(Ingestor):
             Tuple[set[str], set[str]]: A tuple containing all metadata and video path chunks respectively.
         """
         has_files, resp = self.check_if_s3_rcc_path_exists(
-            s3_path, bucket, messageid=messageid)
+            s3_path, bucket, messageid=messageid, max_s3_api_calls=5)
 
         metadata_chunks_set = set()
         video_chunks_set = set()

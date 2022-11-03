@@ -13,11 +13,9 @@ from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import StsHelper
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.ingestor import MetadataIngestor
-from sdretriever.ingestor import SnapshotIngestor
-from sdretriever.ingestor import VideoIngestor
-from sdretriever.message import SnapshotMessage
-from sdretriever.message import VideoMessage
+from sdretriever.ingestor import (MetadataIngestor, SnapshotIngestor,
+                                  VideoIngestor)
+from sdretriever.message import SnapshotMessage, VideoMessage
 from sdretriever.sourcecommuter import SourceCommuter
 
 CONTAINER_NAME = "SDRetriever"  # Name of the current container
@@ -141,7 +139,7 @@ def main(config: SDRetrieverConfig):
                             receive_count = video_msg_obj.receive_count
                             prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
                                 receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)] * 3600
-                            LOGGER.info(
+                            LOGGER.warning(
                                 f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={
                                     "messageid": message.get('MessageId')})
                             CS.update_message_visibility(

@@ -1,12 +1,8 @@
 import json
 import os
 import pickle
-from datetime import datetime
-from datetime import timedelta
-from unittest.mock import ANY
-from unittest.mock import Mock
-from unittest.mock import call
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 
@@ -363,7 +359,7 @@ class TestMetadataIngestor:
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
         obj.check_if_s3_rcc_path_exists.assert_called_once_with(
-            reference_path, bucket, messageid=messageid)
+            reference_path, bucket, messageid=messageid, max_s3_api_calls=5)
 
     def test_search_chunks_in_s3_path_time_bound(self, obj):
         resp_mock = {
@@ -416,7 +412,7 @@ class TestMetadataIngestor:
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
         obj.check_if_s3_rcc_path_exists.assert_called_once_with(
-            reference_path, bucket, messageid=messageid)
+            reference_path, bucket, messageid=messageid, max_s3_api_calls=5)
 
     def test_search_chunks_in_s3_path2(self, obj):
         resp_mock = set()
@@ -434,7 +430,7 @@ class TestMetadataIngestor:
         assert metadata_expected == metadata_chunks_set
         assert video_expected == video_chunks_set
         obj.check_if_s3_rcc_path_exists.assert_called_once_with(
-            reference_path, bucket, messageid=messageid)
+            reference_path, bucket, messageid=messageid, max_s3_api_calls=5)
 
     @patch("sdretriever.ingestor.ContainerServices")
     def test_check_metadata_exists_and_is_complete(self, mock_container_services, obj, msg_interior):

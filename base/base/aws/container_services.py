@@ -4,12 +4,10 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import datetime
-from datetime import timedelta
-from typing import Optional
-from typing import Tuple
+from argparse import ArgumentError
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
 
 import boto3
 import pytz
@@ -712,7 +710,6 @@ class ContainerServices():
             # Defining temporary files names
             input_name = os.path.join(auto_cleaned_up_dir, 'received_file.webm')
             output_name = os.path.join(auto_cleaned_up_dir, 'converted_file.mp4')
-            logs_name = os.path.join(auto_cleaned_up_dir, 'logs.txt')
 
             # Read all bytes from http response body
             # (botocore.response.StreamingBody)
@@ -722,19 +719,18 @@ class ContainerServices():
             with open(input_name, 'wb') as infile:
                 infile.write(video_chunk)
 
-            with open(logs_name, 'w') as logs_write:  # pylint: disable=unspecified-encoding
-                # Convert .avi input file into .mp4 using ffmpeg
-                _logger.debug('Starting ffmpeg conversion')
-                conv_logs = subprocess.Popen(['/usr/bin/ffmpeg', '-i', input_name, '-qscale',  # nosec pylint: disable=consider-using-with
-                                              '0', '-filter:v', 'fps=15.72', output_name],
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT,
-                                             universal_newlines=True)
-                _logger.debug('Finished ffmpeg conversion')
+            # Convert .avi input file into .mp4 using ffmpeg
+            _logger.debug('Starting ffmpeg conversion')
+            process = subprocess.Popen(['/usr/bin/ffmpeg', '-i', input_name, '-qscale',  # nosec pylint: disable=consider-using-with
+                                        '0', '-filter:v', 'fps=15.72', output_name],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
 
-                # Save conversion logs into txt file
-                for line in conv_logs.stdout:
-                    logs_write.write(line)
+            # Wait for completion
+            stdout, stderr = process.communicate()
+
+            _logger.debug('Finished ffmpeg conversion')
 
             # Load bytes from converted output file
             with open(output_name, 'rb') as output_file:
@@ -751,10 +747,10 @@ class ContainerServices():
         """Displays status message for processing completion
 
         Arguments:
-            key_path {string} -- [string containg the path + name of the file,
+            key_path {string} -- [string containing the path + name of the file,
                                   whose processing status is being updated to
                                   completed (e.g. 'uber/test_file_s3.txt')]
-            uid {string} -- [string containg an identifier used only in the
+            uid {string} -- [string containing an identifier used only in the
                              processing containers to keep track of the
                              process of a given file. Optional]
         """
@@ -763,28 +759,89 @@ class ContainerServices():
 
     @staticmethod
     def list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client,
-                        delimiter: str = "") -> ListObjectsV2OutputTypeDef:
-        """List S3 objects.
+                        delimiter: str = "", max_iterations: int = 1) -> ListObjectsV2OutputTypeDef:
+        """
+        List S3 objects and bypasses the 1000 object limitation by making multiple request.
+        The number of maximum objects returned is equal to max_iterations*1000.
+
         Args:
             s3_path (str): path to S3 that should return a list of objects
             bucket (str): bucket name
             s3_client (S3Client) s3 client
-            delimiter (str)
+            delimiter (str): delimiter to be applied
+            max_iterations: number of maximum requests to make to list_objects_v2
         """
+        if max_iterations < 1:
+            raise ValueError('List_s3_objects needs do at least one iteration')
 
-        response_list: ListObjectsV2OutputTypeDef = s3_client.list_objects_v2(
-            Bucket=bucket,
-            Prefix=s3_path,
-            Delimiter=delimiter
-        )
+        continuation_token = ""  # nosec
+        results: Optional[ListObjectsV2OutputTypeDef] = None
 
-        if response_list['KeyCount'] >= 999:
+        for i in range(0, max_iterations):
+
+            if i == 0:
+                # First API call
+                response_list = s3_client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=s3_path,
+                    Delimiter=delimiter
+                )
+                results = response_list
+
+                # Make sure that the dictionary has a list for  keys and paths
+                if 'CommonPrefixes' not in results:
+                    results['CommonPrefixes'] = []
+
+                if 'Contents' not in results:
+                    results['Contents'] = []
+
+            else:
+                response_list = s3_client.list_objects_v2(
+                    Bucket=bucket,
+                    ContinuationToken=continuation_token,
+                    Prefix=s3_path,
+                    Delimiter=delimiter
+                )
+
+                # Append new file contents and paths
+                if 'Contents' in response_list:
+                    results['Contents'].extend(response_list['Contents'])  # type: ignore # pylint: disable=E1136
+
+                # Append CommonPrefixes if they exist
+                if 'CommonPrefixes' in response_list:
+                    results['CommonPrefixes'].extend(  # type: ignore # pylint: disable=E1136
+                        response_list['CommonPrefixes'])
+
+                # Add key count
+                results['KeyCount'] += response_list['KeyCount']  # type: ignore # pylint: disable=E1137,E1136
+                results['MaxKeys'] += results['MaxKeys']  # type: ignore # pylint: disable=E1137,E1136
+
+            # If all objects have been returned for the specific key/path, break
+            if not response_list.get('IsTruncated', False):
+                results['IsTruncated'] = False  # type: ignore # pylint: disable=E1137
+                break
+
+            # Set continuation token for next loop
+            if 'NextContinuationToken' not in response_list:
+                results['IsTruncated'] = False  # type: ignore # pylint: disable=E1137
+                break
+
+            # Set continuation token and delete it from repsonse_list
+            continuation_token = response_list['NextContinuationToken']
+
+        _logger.debug("Returning a total of %d s3 keys for %s in %s",
+                      results['KeyCount'], bucket, s3_path)  # type: ignore
+
+        if results.get('IsTruncated', False):  # type: ignore
             _logger.warning(
-                "The listing of the bucket %s at %s returned more then 999 objects, some will not be visible",
+                "Not all objects were returned (Only %d) for %s in %s",
+                results['KeyCount'],  # type: ignore # pylint: disable=E1136
                 bucket,
                 s3_path)
 
-        return response_list
+        # Clean variable fields
+        results.pop('NextContinuationToken', None)  # type: ignore
+        return results  # type: ignore
 
     @staticmethod
     def _check_if_deviceid_exists(s3_client: S3Client, s3_params: RCCS3ObjectParams, messageid: Optional[str]) -> bool:
@@ -806,7 +863,7 @@ class ContainerServices():
                 prefix, s3_params.bucket, s3_client)
 
             return True
-        except ClientError:  # pylint: disable=broad-except
+        except ClientError:
             deviceid_error_message = f"Could not access folder {s3_params.bucket}/{prefix} - Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"
             _logger.error(deviceid_error_message, extra={
                 "messageid": messageid})
@@ -837,7 +894,7 @@ class ContainerServices():
 
             return ContainerServices._check_if_deviceid_exists(
                 s3_client, s3_object_params, messageid)
-        except ClientError:  # pylint: disable=broad-except
+        except ClientError:
             tenant_error_message = f"Could not access {s3_object_params.bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"
             _logger.error(tenant_error_message, extra={"messageid": messageid})
             return False

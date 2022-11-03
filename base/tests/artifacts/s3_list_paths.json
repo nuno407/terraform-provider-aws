@@ -1,0 +1,136 @@
+{
+    "ResponseMetadata": {
+        "RequestId": "4KMTBR4GZJFGE73K",
+        "HostId": "B0eVg0fie2YOYLw+/uzCbYE8lZ675a1v4M1UmpluutdTclpq8T3W9LwbU8fVmAklAu+N1kkDtMg=",
+        "HTTPStatusCode": 200,
+        "HTTPHeaders": {
+            "x-amz-id-2": "B0eVg0fie2YOYLw+/uzCbYE8lZ675a1v4M1UmpluutdTclpq8T3W9LwbU8fVmAklAu+N1kkDtMg=",
+            "x-amz-request-id": "4KMTBR4GZJFGE73K",
+            "date": "Wed, 02 Nov 2022 18:56:38 GMT",
+            "x-amz-bucket-region": "eu-central-1",
+            "content-type": "application/xml",
+            "transfer-encoding": "chunked",
+            "server": "AmazonS3",
+            "cache-control": "proxy-revalidate",
+            "connection": "Keep-Alive"
+        },
+        "RetryAttempts": 0
+    },
+    "IsTruncated": false,
+    "Name": "rcc-prod-device-data",
+    "Prefix": "ridecare_companion_trial/",
+    "Delimiter": "/",
+    "MaxKeys": 1000,
+    "CommonPrefixes": [
+        {
+            "Prefix": "ridecare_companion_trial/CHRISTINE_TEST_01/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_03a888ca2f3c668f98e01249e5d24df61290cde3/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_10b24c18761f0f483317e55c0212ed4829508f95/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_23c3e5167ad0672f4004d689d470c88dda5e80c9/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_249b924eab2e6cd60ea47535c90f73e67d301cd5/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_269d3a6ea1463b7bfc4f38bebf7d0bb4a3a09f36/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_26fed7729a060ee67def57f49414eec0989cd46d/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_47e4a9a11dfb2cdeed3da674d6322a5fb9fdf28d/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_50f56868eb07cfb561cc362153b1e245de92fa85/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_531a2554ace14a5f07bdb8ee86521613a293d633/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_58efed24bbfde8688204c6f6d38b704a9616394f/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5b8a6c4fff1a8b2d3e2b07b1c7348812ec974aa2/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5bfe33136f2a43afc3f534f535d402af175914e2/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5cd8076d1cbddd483603db282ff9cc00cb76909f/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5dc14283aa40f549d0f7d88386c276aa6efded55/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_5f1f83066a1a085fc42f9c40a30342c613350e79/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_6239b740ec11ec560deabaaea328d066e3272d12/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_62a2220f7569abfe5233cbb91259e538f43d2b8d/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_69350ca304158729c497a63846591c66aa7aedea/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_6c11ffc7865e882fc71b6983b4cdca0b8756aa5b/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_7b4f2813bbf3eba1d17febe0844b54a38cabd369/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_7e60d50f7959bbe50cf2296740b220040bf67605/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_7ee2f158087a747629e121165ec1b9bc18952967/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_7fbff4a9232df6183341da467b00702785a57523/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_81e0ee000d9c7df9285a5cea0ff86aec53e61cc3/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_8731e3a1116d41dbcbaf0cfa5161eaed9123b8cb/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_924d982ae531e1fd6d2dce36acb375bc9ddce3d8/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_9799473156b142fa48903f2af82b0eba16469f28/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_9c74c3a46cba9af856bb1d7b70fedfcd2e6bc08e/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_c9104d95820e7cc069370b6abe0e203d7a86fac0/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_cc2f88219cfca5d4aeba90d41b464fb9470cc97c/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_cd73472b0d57af9a3a1b29e2f9176dda758cc7b9/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_d03fe297abc641085ef059b92d7f2e039b61a5a9/"
+        },
+        {
+            "Prefix": "ridecare_companion_trial/rc_srx_prod_eeb605c86002cc269b537c36d84201ec1fdecd98/"
+        }
+    ],
+    "EncodingType": "url",
+    "KeyCount": 36
+}
