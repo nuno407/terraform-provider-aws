@@ -24,6 +24,7 @@ RUN npm run build
 # Use official unprivileged nginx image as the base image
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:nginx-unprivileged-1.23-alpine
 
+USER root
 # Install latest patches
 RUN apk update && apk upgrade
 
