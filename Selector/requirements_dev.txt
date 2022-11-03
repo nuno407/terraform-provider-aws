@@ -4,6 +4,7 @@ pytest-cov
 
 autopep8
 pylint
+pylint-quotes
 mypy
 
 # install the app itself

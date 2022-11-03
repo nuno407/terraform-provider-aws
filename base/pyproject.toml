@@ -14,6 +14,9 @@ diff = true
 
 [tool.pylint]
 recursive = true
+load-plugins = [
+    "pylint_quotes",
+]
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
@@ -32,6 +35,12 @@ files = [
 # mypy per-module options:
 [[tool.mypy.overrides]]
 module = "setuptools"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "fiftyone"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "expiringdict"
 ignore_missing_imports = true
 
 [tool.bandit]

@@ -4,6 +4,7 @@ pytest-cov == 4.0.0
 
 autopep8
 pylint
+pylint-quotes
 mypy
 pymongo-stubs
 types-pytz

@@ -4,7 +4,6 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
-from argparse import ArgumentError
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
@@ -22,8 +21,8 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 _logger = logging.getLogger(__name__)
-VIDEO_FORMATS = {'mp4', 'avi'}
-IMAGE_FORMATS = {'jpeg', 'jpg', 'png'}
+VIDEO_FORMATS = {"mp4", "avi"}
+IMAGE_FORMATS = {"jpeg", "jpg", "png"}
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 DATA_INGESTION_DATABASE_NAME = "DataIngestion"
@@ -31,19 +30,22 @@ DATA_INGESTION_DATABASE_NAME = "DataIngestion"
 
 @dataclass
 class RCCS3ObjectParams:
+    """ Class to wrap common "s3 path" operations on RCC s3 paths. """
     s3_path: str = field()
     bucket: str = field()
 
     @property
     def tenant(self) -> str:
+        """ Obtain tenant. """
         return self.s3_path.split("/")[0]
 
     @property
     def deviceid(self) -> str:
+        """ Obtain deviceid. """
         return self.s3_path.split("/")[1]
 
 
-class ContainerServices():
+class ContainerServices():  # pylint: disable=too-many-locals,missing-function-docstring,too-many-instance-attributes,too-many-public-methods
     """ContainerServices
 
     Class container comprised of all the necessary tools to establish
@@ -52,11 +54,11 @@ class ContainerServices():
 
     def __init__(self, container, version):
         # Config variables
-        self.__queues = {'list': {}, 'input': ""}
+        self.__queues = {"list": {}, "input": ""}
         self.__msp_steps = {}
         self.__db_tables = {}
-        self.__s3_buckets = {'raw': "", 'anonymized': ""}
-        self.__s3_ignore = {'raw': "", 'anonymized': ""}
+        self.__s3_buckets = {"raw": "", "anonymized": ""}
+        self.__s3_ignore = {"raw": "", "anonymized": ""}
         self.__sdr_folder = {}
         self.__sdr_blacklist = {}
         self.__rcc_info = {}
@@ -64,16 +66,16 @@ class ContainerServices():
         self.__docdb_config = {}
 
         # Container info
-        self.__container = {'name': container, 'version': version}
+        self.__container = {"name": container, "version": version}
 
-        # Bucket and path for the config file #'dev-rcd-config-files'
+        # Bucket and path for the config file #"dev-rcd-config-files"
         self.__config = {
-            'bucket': os.environ['CONFIG_S3'],
-            'file': 'containers/config_file_containers.json'
+            "bucket": os.environ["CONFIG_S3"],
+            "file": "containers/config_file_containers.json"
         }
-        self.__secretmanagers = {}  # To be modify on dated 16 Jan'2022
+        self.__secretmanagers = {}  # To be modify on dated 16 Jan"2022
 
-        self.__apiendpoints = {}  # To be modify on dated 16 Jan'2022
+        self.__apiendpoints = {}  # To be modify on dated 16 Jan"2022
 
         self.__message_receive_times: ExpiringDict[str, datetime] = ExpiringDict(
             max_len=1000, max_age_seconds=50400)
@@ -81,12 +83,12 @@ class ContainerServices():
     @property
     def sqs_queues_list(self):
         """sqs_queues_list variable"""
-        return self.__queues['list']
+        return self.__queues["list"]
 
     @property
     def input_queue(self):
         """input_queue variable"""
-        return self.__queues['input']
+        return self.__queues["input"]
 
     @property
     def msp_steps(self):
@@ -96,22 +98,22 @@ class ContainerServices():
     @property
     def raw_s3(self):
         """raw_s3 variable"""
-        return self.__s3_buckets['raw']
+        return self.__s3_buckets["raw"]
 
     @property
     def anonymized_s3(self):
         """anonymized_s3 variable"""
-        return self.__s3_buckets['anonymized']
+        return self.__s3_buckets["anonymized"]
 
     @property
     def raw_s3_ignore(self):
         """raw_s3_ignore variable"""
-        return self.__s3_ignore['raw']
+        return self.__s3_ignore["raw"]
 
     @property
     def anonymized_s3_ignore(self):
         """anonymized_s3_ignore variable"""
-        return self.__s3_ignore['anonymized']
+        return self.__s3_ignore["anonymized"]
 
     @property
     def sdr_folder(self):
@@ -146,12 +148,12 @@ class ContainerServices():
     @property
     def secret_managers(self):
         """ Secret Manager variable """
-        return self.__secretmanagers  # To be modify on dated 16 Jan'2022
+        return self.__secretmanagers  # To be modify on dated 16 Jan"2022
 
     @property
     def api_endpoints(self):
         """ API End Points variable """
-        return self.__apiendpoints  # To be modify on dated 16 Jan'2022
+        return self.__apiendpoints  # To be modify on dated 16 Jan"2022
 
     @property
     def time_format(self):
@@ -165,62 +167,62 @@ class ContainerServices():
         Arguments:
             client {boto3.client} -- [client used to access the S3 service]
         """
-        full_path = self.__config['bucket'] + '/' + self.__config['file']
+        full_path = self.__config["bucket"] + "/" + self.__config["file"]
         _logger.info("Loading parameters from: %s ..", full_path)
 
         # Send request to access the config file (json)
         response = client.get_object(
-            Bucket=self.__config['bucket'],
-            Key=self.__config['file']
+            Bucket=self.__config["bucket"],
+            Key=self.__config["file"]
         )
 
         # Load config file (botocore.response.StreamingBody)
         # content to dictionary
-        dict_body = json.loads(response['Body'].read().decode("utf-8"))
+        dict_body = json.loads(response["Body"].read().decode("utf-8"))
 
         # List of the queues attached to each container
-        self.__queues['list'] = dict_body['sqs_queues_list']
+        self.__queues["list"] = dict_body["sqs_queues_list"]
 
         # Name of the input queue attached to the current container
-        self.__queues['input'] = self.__queues['list'][self.__container['name']]
+        self.__queues["input"] = self.__queues["list"][self.__container["name"]]
 
         # List of processing steps required for each file based on the MSP
-        self.__msp_steps = dict_body['msp_processing_steps']
+        self.__msp_steps = dict_body["msp_processing_steps"]
 
         # Name of the dynamoDB table used to store metadata
-        self.__db_tables = dict_body['db_metadata_tables']
+        self.__db_tables = dict_body["db_metadata_tables"]
 
         # Name of the S3 bucket used to store raw video files
-        self.__s3_buckets['raw'] = dict_body['s3_buckets']['raw']
+        self.__s3_buckets["raw"] = dict_body["s3_buckets"]["raw"]
 
         # Name of the S3 bucket used to store anonymized video files
-        self.__s3_buckets['anonymized'] = dict_body['s3_buckets']['anonymized']
+        self.__s3_buckets["anonymized"] = dict_body["s3_buckets"]["anonymized"]
 
         # List of all file formats that should be ignored by
         # the processing container
-        self.__s3_ignore['raw'] = dict_body['s3_ignore_list']['raw']
-        self.__s3_ignore['anonymized'] = dict_body['s3_ignore_list']['anonymized']
+        self.__s3_ignore["raw"] = dict_body["s3_ignore_list"]["raw"]
+        self.__s3_ignore["anonymized"] = dict_body["s3_ignore_list"]["anonymized"]
 
         # Name of the Raw S3 bucket folders where to store RCC KVS clips
-        self.__sdr_folder = dict_body['sdr_dest_folder']
+        self.__sdr_folder = dict_body["sdr_dest_folder"]
 
         # Dictionary containing the tenant blacklists for processing and storage of RCC clips
-        self.__sdr_blacklist = dict_body['sdr_blacklist_tenants']
+        self.__sdr_blacklist = dict_body["sdr_blacklist_tenants"]
 
         # Information of the RCC account for cross-account access of services/resources
-        self.__rcc_info = dict_body['rcc_info']
+        self.__rcc_info = dict_body["rcc_info"]
 
         # Information of the ivs_chain endpoint (ip, port, endpoint name)
-        self.__ivs_api = dict_body['ivs_api']
+        self.__ivs_api = dict_body["ivs_api"]
 
-        # To be modify on dated 16 Jan'2022
-        self.__secretmanagers = dict_body['secret_manager']
+        # To be modify on dated 16 Jan"2022
+        self.__secretmanagers = dict_body["secret_manager"]
 
-        # To be modify on dated 16 Jan'2022
-        self.__apiendpoints = dict_body['api_endpoints']
+        # To be modify on dated 16 Jan"2022
+        self.__apiendpoints = dict_body["api_endpoints"]
 
         # Documentdb information for client login
-        self.__docdb_config = dict_body['docdb_config']
+        self.__docdb_config = dict_body["docdb_config"]
 
         _logger.info("Load complete!\n")
 
@@ -235,11 +237,11 @@ class ContainerServices():
         Returns:
             queue_url {string} -- [URL of the SQS queue]
         """
-        #_logger.debug('Getting queue URL for %s', queue_name)
+        #_logger.debug("Getting queue URL for %s", queue_name)
         # Request for queue url
         response = client.get_queue_url(QueueName=queue_name)
-        queue_url = response['QueueUrl']
-        #_logger.debug('Got queue URL for %s', queue_name)
+        queue_url = response["QueueUrl"]
+        #_logger.debug("Got queue URL for %s", queue_name)
 
         return queue_url
 
@@ -254,7 +256,7 @@ class ContainerServices():
             client {boto3.client} -- [client used to access the SQS service]
             input_queue {string} -- [Name of the input queue to listen to.
                                      If None, the default input queue
-                                     (defined in self.__queues['input']) is
+                                     (defined in self.__queues["input"]) is
                                      used instead]
         Returns:
             message {dict} -- [dict with the received message content
@@ -264,21 +266,21 @@ class ContainerServices():
         """
         if not input_queue:
             # Get URL for container default input SQS queue
-            input_queue = self.__queues['input']
+            input_queue = self.__queues["input"]
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Receive message(s)
-        #_logger.debug('Receiving input message...')
+        #_logger.debug("Receiving input message...")
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
-                'SentTimestamp',
-                'ApproximateReceiveCount'
+                "SentTimestamp",
+                "ApproximateReceiveCount"
             ],
             MaxNumberOfMessages=1,
             MessageAttributeNames=[
-                'All'
+                "All"
             ],
             WaitTimeSeconds=20
         )
@@ -287,28 +289,28 @@ class ContainerServices():
         message = None
 
         # If queue has new messages
-        if 'Messages' in response:
+        if "Messages" in response:
             # Select the first message received
             # (by default, it only receives 1 message
             # per enquiry - set above by MaxNumberOfMessages parameter)
-            message = response['Messages'][0]
-            _logger.info("Message [%s] received!", message['MessageId'])
+            message = response["Messages"][0]
+            _logger.info("Message [%s] received!", message["MessageId"])
             _logger.debug("-> queue:  %s", input_queue)
-            self.__message_receive_times[message['ReceiptHandle']] = datetime.now(
+            self.__message_receive_times[message["ReceiptHandle"]] = datetime.now(
             )
 
         return message
 
     @staticmethod
     def configure_logging(component_name: str) -> logging.Logger:
-        str_level = os.environ.get('LOGLEVEL', 'INFO')
+        str_level = os.environ.get("LOGLEVEL", "INFO")
         log_level = logging.getLevelName(str_level)
-        str_root_level = os.environ.get('ROOT_LOGLEVEL', 'INFO')
+        str_root_level = os.environ.get("ROOT_LOGLEVEL", "INFO")
         log_root_level = logging.getLevelName(str_root_level)
 
         logging.basicConfig(
-            format='%(asctime)s %(name)s\t%(levelname)s\t%(message)s', level=log_root_level)
-        logging.getLogger('base').setLevel(log_level)
+            format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=log_root_level)
+        logging.getLogger("base").setLevel(log_level)
         logger = logging.getLogger(component_name)
         logger.setLevel(log_level)
         return logger
@@ -322,23 +324,23 @@ class ContainerServices():
                                         message to be deleted]
             input_queue {string} -- [Name of the input queue to delete from.
                                      If None, the default input queue
-                                     (defined in self.__queues['input']) is
+                                     (defined in self.__queues["input"]) is
                                      used instead]
         """
         if not input_queue:
             # Get URL for container default input SQS queue
-            input_queue = self.__queues['input']
+            input_queue = self.__queues["input"]
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Delete received message
-        _logger.debug('Deleting message [%s]', receipt_handle)
+        _logger.debug("Deleting message [%s]", receipt_handle)
         client.delete_message(
             QueueUrl=input_queue_url,
             ReceiptHandle=receipt_handle
         )
         self.__message_receive_times.pop(receipt_handle, None)
-        _logger.info('Deleted message [%s]', receipt_handle)
+        _logger.info("Deleted message [%s]", receipt_handle)
 
     def update_message_visibility(self, client, receipt_handle: str, seconds: int, input_queue=None):
         """ Updates the visibility timeout of an SQS message to allow longer processing
@@ -349,12 +351,12 @@ class ContainerServices():
             seconds {int} -- [new visibility timeout starting from now on]
             input_queue {string} -- [Name of the input queue the message is on.
                                      If None, the default input queue
-                                     (defined in self.__queues['input']) is
+                                     (defined in self.__queues["input"]) is
                                      used instead]
         """
         if not input_queue:
             # Get URL for container default input SQS queue
-            input_queue = self.__queues['input']
+            input_queue = self.__queues["input"]
 
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
@@ -394,18 +396,18 @@ class ContainerServices():
 
         # Add attributes to message
         msg_attributes = {
-            'SourceContainer': {
-                'DataType': 'String',
-                'StringValue': self.__container['name']
+            "SourceContainer": {
+                "DataType": "String",
+                "StringValue": self.__container["name"]
             },
-            'ToQueue': {
-                'DataType': 'String',
-                'StringValue': dest_queue
+            "ToQueue": {
+                "DataType": "String",
+                "StringValue": dest_queue
             }
         }
 
         # Send message to SQS queue
-        _logger.debug('Sending message to [%s]', dest_queue)
+        _logger.debug("Sending message to [%s]", dest_queue)
         client.send_message(
             QueueUrl=destination_queue_url,
             DelaySeconds=1,
@@ -416,17 +418,16 @@ class ContainerServices():
 
     @staticmethod
     def get_message_body(message):
-        body_string = message.get('Body')
+        body_string = message.get("Body")
         if body_string:
-            body = json.loads(body_string.replace("\'", "\""))
+            body = json.loads(body_string.replace("\"", "\""))
             return body
-        else:
-            return None
+        return None
 
     ##### DB related functions #########################################################
     @staticmethod
     def get_db_connstring():
-        connstring = os.environ.get('FIFTYONE_DATABASE_URI')
+        connstring = os.environ.get("FIFTYONE_DATABASE_URI")
         return connstring
 
     @staticmethod
@@ -458,11 +459,11 @@ class ContainerServices():
             file_path {string} -- [string containg the path + file name of
                                    the target file to be downloaded
                                    from the source s3 bucket
-                                   (e.g. 'uber/test_file_s3.txt')]
+                                   (e.g. "uber/test_file_s3.txt")]
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        full_path = s3_bucket + '/' + file_path
+        full_path = s3_bucket + "/" + file_path
         _logger.debug("Downloading [%s]..", full_path)
 
         response = client.get_object(
@@ -472,7 +473,7 @@ class ContainerServices():
 
         # Read all bytes from http response body
         # (botocore.response.StreamingBody)
-        object_file = response['Body'].read()
+        object_file = response["Body"].read()
 
         _logger.debug("Downloaded [%s]", full_path)
 
@@ -488,27 +489,27 @@ class ContainerServices():
             s3_bucket {string} -- [name of the destination s3 bucket]
             key_path {string} -- [string containg the path + file name to be
                                   used for the file in the destination s3
-                                  bucket (e.g. 'uber/test_file_s3.txt')]
+                                  bucket (e.g. "uber/test_file_s3.txt")]
         """
-        full_path = s3_bucket + '/' + key_path
+        full_path = s3_bucket + "/" + key_path
         _logger.debug("Uploading [%s]..", full_path)
 
-        # TODO: ADD THIS INFO TO CONFIG FILE
+        # ADD THIS INFO TO CONFIG FILE
         type_dict = {
             "json": "application/json",
             "mp4": "video/mp4",
             "avi": "video/x-msvideo",
             "txt": "text/plain",
             "webm": "video/webm",
-            'jpeg': 'image/jpeg'
+            "jpeg": "image/jpeg"
         }
-        file_extension = key_path.split('.')[-1]
+        file_extension = key_path.split(".")[-1]
 
         client.put_object(
             Body=object_body,
             Bucket=s3_bucket,
             Key=key_path,
-            ServerSideEncryption='aws:kms',
+            ServerSideEncryption="aws:kms",
             ContentType=type_dict[file_extension]
         )
 
@@ -549,8 +550,8 @@ class ContainerServices():
                                   for the "insert" and "delete" modes, or a
                                   pending order for the "read" mode]
         """
-        # Define key s3 paths for each container's pending queue json file
-        # TODO: ADD THIS INFO TO CONFIG FILE
+        # Define key s3 paths for each container"s pending queue json file
+        # ADD THIS INFO TO CONFIG FILE
         key_paths = {
             "Anonymize": "containers/pending_queue_anonymize.json",
             "CHC": "containers/pending_queue_chc.json"
@@ -558,12 +559,12 @@ class ContainerServices():
 
         # Download pending queue json file
         response = client.get_object(
-            Bucket=self.__config['bucket'],
-            Key=key_paths[self.__container['name']]
+            Bucket=self.__config["bucket"],
+            Key=key_paths[self.__container["name"]]
         )
 
         # Decode and convert received bytes into json format
-        result_info = json.loads(response['Body'].read().decode("utf-8"))
+        result_info = json.loads(response["Body"].read().decode("utf-8"))
 
         # Initialise response as empty dictionary
         relay_data = {}
@@ -573,7 +574,7 @@ class ContainerServices():
         if mode == "insert":
             # Create current time timestamp to add to pending item info (for debug)
             curr_time = str(datetime.now(
-                tz=pytz.UTC).strftime('%Y-%m-%d %H:%M:%S'))
+                tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
             # Insert a new pending order on the downloaded file
             result_info[uid] = {
@@ -594,14 +595,14 @@ class ContainerServices():
 
         # Encode and convert updated json into bytes to be uploaded
         object_body = json.dumps(
-            result_info, indent=4, sort_keys=True).encode('utf-8')
+            result_info, indent=4, sort_keys=True).encode("utf-8")
 
         # Upload updated json file
         client.put_object(
             Body=object_body,
-            Bucket=self.__config['bucket'],
-            Key=key_paths[self.__container['name']],
-            ServerSideEncryption='aws:kms',
+            Bucket=self.__config["bucket"],
+            Key=key_paths[self.__container["name"]],
+            ServerSideEncryption="aws:kms",
             ContentType="application/json"
         )
 
@@ -611,7 +612,7 @@ class ContainerServices():
         return relay_data
 
     ##### Kinesis related functions ###############################################################
-    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:
+    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:  # pylint: disable=too-many-arguments
         """Retrieves a given chunk from the selected Kinesis video stream
 
         Arguments:
@@ -620,8 +621,8 @@ class ContainerServices():
             start_time {datetime} -- [starting timestamp of the desired clip]
             end_time {datetime} -- [ending timestamp of the desired clip]
             selector {string} -- [string containg the origin of the timestamps
-                                  (can only be either 'PRODUCER_TIMESTAMP' or
-                                  'SERVER_TIMESTAMP')]
+                                  (can only be either "PRODUCER_TIMESTAMP" or
+                                  "SERVER_TIMESTAMP")]
         Returns:
             output_video {bytes} -- [Received chunk in bytes format]
         """
@@ -629,70 +630,70 @@ class ContainerServices():
         _logger.info("Downloading test clip from stream [%s]..", stream_name)
 
         # Create Kinesis client
-        kinesis_client: KinesisVideoClient = boto3.client('kinesisvideo',
-                                                          region_name='eu-central-1',
-                                                          aws_access_key_id=creds['AccessKeyId'],
-                                                          aws_secret_access_key=creds['SecretAccessKey'],
-                                                          aws_session_token=creds['SessionToken'])
+        kinesis_client: KinesisVideoClient = boto3.client("kinesisvideo",
+                                                          region_name="eu-central-1",
+                                                          aws_access_key_id=creds["AccessKeyId"],
+                                                          aws_secret_access_key=creds["SecretAccessKey"],
+                                                          aws_session_token=creds["SessionToken"])
 
         # Getting endpoint URL for LIST_FRAGMENTS
         get_endpoint_list_fragments_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                                                APIName='LIST_FRAGMENTS')
+                                                                                APIName="LIST_FRAGMENTS")
 
         # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
         get_endpoint_get_media_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                                           APIName='GET_MEDIA_FOR_FRAGMENT_LIST')
+                                                                           APIName="GET_MEDIA_FOR_FRAGMENT_LIST")
 
         # Fetch DataEndpoint field
-        list_fragments_url = get_endpoint_list_fragments_response['DataEndpoint']
-        get_media_url = get_endpoint_get_media_response['DataEndpoint']
+        list_fragments_url = get_endpoint_list_fragments_response["DataEndpoint"]
+        get_media_url = get_endpoint_get_media_response["DataEndpoint"]
 
         ### List fragments step ###
         # Create Kinesis archive media client for list_fragments()
         list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client(
-            'kinesis-video-archived-media',
+            "kinesis-video-archived-media",
             endpoint_url=list_fragments_url,
-            region_name='eu-central-1',
-            aws_access_key_id=creds['AccessKeyId'],
-            aws_secret_access_key=creds['SecretAccessKey'],
-            aws_session_token=creds['SessionToken'])
+            region_name="eu-central-1",
+            aws_access_key_id=creds["AccessKeyId"],
+            aws_secret_access_key=creds["SecretAccessKey"],
+            aws_session_token=creds["SessionToken"])
 
         # Get all fragments within timestamp range (start_time, end_time)
         list_fragments_response = list_fragments_client.list_fragments(
             StreamName=stream_name,
             MaxResults=1000,
             FragmentSelector={
-                'FragmentSelectorType': selector,
-                'TimestampRange': {
-                    'StartTimestamp': start_time,
-                    'EndTimestamp': end_time
+                "FragmentSelectorType": selector,
+                "TimestampRange": {
+                    "StartTimestamp": start_time,
+                    "EndTimestamp": end_time
                 }
             }
         )
 
-        _logger.debug('Got fragments for test clip on [%s]', stream_name)
+        _logger.debug("Got fragments for test clip on [%s]", stream_name)
 
         # Sort fragments by their timestamp and store start and end timestamps
-        sorted_fragments = sorted(list_fragments_response['Fragments'], key=lambda d: datetime.timestamp(
-            (d['ProducerTimestamp'])))
-        fragments_start_time = sorted_fragments[0]['ProducerTimestamp']
+        sorted_fragments = sorted(list_fragments_response["Fragments"], key=lambda d: datetime.timestamp(
+            (d["ProducerTimestamp"])))
+        fragments_start_time = sorted_fragments[0]["ProducerTimestamp"]
         last_fragment_length = timedelta(
-            milliseconds=sorted_fragments[-1]['FragmentLengthInMilliseconds'])
-        fragments_end_time = sorted_fragments[-1]['ProducerTimestamp'] + \
+            milliseconds=sorted_fragments[-1]["FragmentLengthInMilliseconds"])
+        fragments_end_time = sorted_fragments[-1]["ProducerTimestamp"] + \
             last_fragment_length
 
         # Create comprehension list with sorted fragments
-        fragment_numbers = [frag['FragmentNumber']
+        fragment_numbers = [frag["FragmentNumber"]
                             for frag in sorted_fragments]
 
         ### Get media step ###
         # Create Kinesis archive media client for get_media_for_fragment_list()
-        get_media_client: KinesisVideoArchivedMediaClient = boto3.client('kinesis-video-archived-media',
+        get_media_client: KinesisVideoArchivedMediaClient = boto3.client("kinesis-video-archived-media",
                                                                          endpoint_url=get_media_url,
-                                                                         region_name='eu-central-1',
-                                                                         aws_access_key_id=creds['AccessKeyId'],
-                                                                         aws_secret_access_key=creds['SecretAccessKey'],
-                                                                         aws_session_token=creds['SessionToken'])
+                                                                         region_name="eu-central-1",
+                                                                         aws_access_key_id=creds["AccessKeyId"],
+                                                                         aws_secret_access_key=creds["SecretAccessKey"],
+                                                                         aws_session_token=creds["SessionToken"])
 
         # Fetch all 2sec fragments from previously sorted list
         get_media_response = get_media_client.get_media_for_fragment_list(
@@ -700,7 +701,7 @@ class ContainerServices():
             Fragments=fragment_numbers
         )
 
-        _logger.debug('Got video file for test clip on [%s]', stream_name)
+        _logger.debug("Got video file for test clip on [%s]", stream_name)
 
         # On completion of the context or destruction of the temporary directory object,
         # the newly created temporary directory and all its contents are removed from the filesystem.
@@ -708,36 +709,36 @@ class ContainerServices():
 
             ### Conversion step (webm -> mp4) ###
             # Defining temporary files names
-            input_name = os.path.join(auto_cleaned_up_dir, 'received_file.webm')
-            output_name = os.path.join(auto_cleaned_up_dir, 'converted_file.mp4')
+            input_name = os.path.join(auto_cleaned_up_dir, "received_file.webm")
+            output_name = os.path.join(auto_cleaned_up_dir, "converted_file.mp4")
 
             # Read all bytes from http response body
             # (botocore.response.StreamingBody)
-            video_chunk = get_media_response['Payload'].read()
+            video_chunk = get_media_response["Payload"].read()
 
             # Save video chunks to file
-            with open(input_name, 'wb') as infile:
+            with open(input_name, "wb") as infile:
                 infile.write(video_chunk)
 
             # Convert .avi input file into .mp4 using ffmpeg
-            _logger.debug('Starting ffmpeg conversion')
-            process = subprocess.Popen(['/usr/bin/ffmpeg', '-i', input_name, '-qscale',  # nosec pylint: disable=consider-using-with
-                                        '0', '-filter:v', 'fps=15.72', output_name],
+            _logger.debug("Starting ffmpeg conversion")
+            process = subprocess.Popen(["/usr/bin/ffmpeg", "-i", input_name, "-qscale",  # nosec pylint: disable=consider-using-with
+                                        "0", "-filter:v", "fps=15.72", output_name],
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        universal_newlines=True)
 
             # Wait for completion
-            stdout, stderr = process.communicate()
+            _, _ = process.communicate()
 
-            _logger.debug('Finished ffmpeg conversion')
+            _logger.debug("Finished ffmpeg conversion")
 
             # Load bytes from converted output file
-            with open(output_name, 'rb') as output_file:
+            with open(output_name, "rb") as output_file:
                 output_video = output_file.read()
 
         # Generate processing end message
-        _logger.info('Test clip download completed!')
+        _logger.info("Test clip download completed!")
 
         return output_video, fragments_start_time, fragments_end_time
 
@@ -749,7 +750,7 @@ class ContainerServices():
         Arguments:
             key_path {string} -- [string containing the path + name of the file,
                                   whose processing status is being updated to
-                                  completed (e.g. 'uber/test_file_s3.txt')]
+                                  completed (e.g. "uber/test_file_s3.txt")]
             uid {string} -- [string containing an identifier used only in the
                              processing containers to keep track of the
                              process of a given file. Optional]
@@ -772,7 +773,7 @@ class ContainerServices():
             max_iterations: number of maximum requests to make to list_objects_v2
         """
         if max_iterations < 1:
-            raise ValueError('List_s3_objects needs do at least one iteration')
+            raise ValueError("List_s3_objects needs do at least one iteration")
 
         continuation_token = ""  # nosec
         results: Optional[ListObjectsV2OutputTypeDef] = None
@@ -789,11 +790,11 @@ class ContainerServices():
                 results = response_list
 
                 # Make sure that the dictionary has a list for  keys and paths
-                if 'CommonPrefixes' not in results:
-                    results['CommonPrefixes'] = []
+                if "CommonPrefixes" not in results:
+                    results["CommonPrefixes"] = []
 
-                if 'Contents' not in results:
-                    results['Contents'] = []
+                if "Contents" not in results:
+                    results["Contents"] = []
 
             else:
                 response_list = s3_client.list_objects_v2(
@@ -804,43 +805,43 @@ class ContainerServices():
                 )
 
                 # Append new file contents and paths
-                if 'Contents' in response_list:
-                    results['Contents'].extend(response_list['Contents'])  # type: ignore # pylint: disable=E1136
+                if "Contents" in response_list:
+                    results["Contents"].extend(response_list["Contents"])  # type: ignore # pylint: disable=E1136
 
                 # Append CommonPrefixes if they exist
-                if 'CommonPrefixes' in response_list:
-                    results['CommonPrefixes'].extend(  # type: ignore # pylint: disable=E1136
-                        response_list['CommonPrefixes'])
+                if "CommonPrefixes" in response_list:
+                    results["CommonPrefixes"].extend(  # type: ignore # pylint: disable=E1136
+                        response_list["CommonPrefixes"])
 
                 # Add key count
-                results['KeyCount'] += response_list['KeyCount']  # type: ignore # pylint: disable=E1137,E1136
-                results['MaxKeys'] += results['MaxKeys']  # type: ignore # pylint: disable=E1137,E1136
+                results["KeyCount"] += response_list["KeyCount"]  # type: ignore # pylint: disable=E1137,E1136
+                results["MaxKeys"] += results["MaxKeys"]  # type: ignore # pylint: disable=E1137,E1136
 
             # If all objects have been returned for the specific key/path, break
-            if not response_list.get('IsTruncated', False):
-                results['IsTruncated'] = False  # type: ignore # pylint: disable=E1137
+            if not response_list.get("IsTruncated", False):
+                results["IsTruncated"] = False  # type: ignore # pylint: disable=E1137
                 break
 
             # Set continuation token for next loop
-            if 'NextContinuationToken' not in response_list:
-                results['IsTruncated'] = False  # type: ignore # pylint: disable=E1137
+            if "NextContinuationToken" not in response_list:
+                results["IsTruncated"] = False  # type: ignore # pylint: disable=E1137
                 break
 
             # Set continuation token and delete it from repsonse_list
-            continuation_token = response_list['NextContinuationToken']
+            continuation_token = response_list["NextContinuationToken"]
 
         _logger.debug("Returning a total of %d s3 keys for %s in %s",
-                      results['KeyCount'], bucket, s3_path)  # type: ignore
+                      results["KeyCount"], bucket, s3_path)  # type: ignore
 
-        if results.get('IsTruncated', False):  # type: ignore
+        if results.get("IsTruncated", False):  # type: ignore
             _logger.warning(
                 "Not all objects were returned (Only %d) for %s in %s",
-                results['KeyCount'],  # type: ignore # pylint: disable=E1136
+                results["KeyCount"],  # type: ignore # pylint: disable=E1136
                 bucket,
                 s3_path)
 
         # Clean variable fields
-        results.pop('NextContinuationToken', None)  # type: ignore
+        results.pop("NextContinuationToken", None)  # type: ignore
         return results  # type: ignore
 
     @staticmethod
@@ -863,8 +864,9 @@ class ContainerServices():
                 prefix, s3_params.bucket, s3_client)
 
             return True
-        except ClientError:
-            deviceid_error_message = f"Could not access folder {s3_params.bucket}/{prefix} - Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"
+        except ClientError:  # pylint: disable=broad-except
+            deviceid_error_message = f"""Could not access folder {s3_params.bucket}/{prefix} -
+                                         Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"""
             _logger.error(deviceid_error_message, extra={
                 "messageid": messageid})
 
@@ -875,7 +877,7 @@ class ContainerServices():
             s3_client: S3Client,
             s3_object_params: RCCS3ObjectParams,
             messageid: Optional[str]) -> bool:
-        """Checks if tenant exists and also if deviceid exists to provide logging information if it doesn't.
+        """Checks if tenant exists and also if deviceid exists to provide logging information if it doesn"t.
 
         Args:
             s3_client (S3Client): boto3 S3 client
@@ -894,8 +896,9 @@ class ContainerServices():
 
             return ContainerServices._check_if_deviceid_exists(
                 s3_client, s3_object_params, messageid)
-        except ClientError:
-            tenant_error_message = f"Could not access {s3_object_params.bucket}/{prefix} - our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"
+        except ClientError:  # pylint: disable=broad-except
+            tenant_error_message = f"""Could not access {s3_object_params.bucket}/{prefix} -
+                                     our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"""
             _logger.error(tenant_error_message, extra={"messageid": messageid})
             return False
 
@@ -920,7 +923,7 @@ class ContainerServices():
                 Bucket=bucket,
                 Key=path
             )
-            if resp['ResponseMetadata']['HTTPStatusCode'] == 404:
+            if resp["ResponseMetadata"]["HTTPStatusCode"] == 404:
                 return False
 
             return True

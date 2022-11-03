@@ -60,3 +60,4 @@ venv/
 **/tests
 **/test
 */postman*
+bandit_report.json

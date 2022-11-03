@@ -6,6 +6,7 @@ mongomock == 4.1.2
 
 autopep8
 pylint
+pylint-quotes
 mypy
 types-PyYAML == 6.0.12
 types-pytz == 2022.4.0.0

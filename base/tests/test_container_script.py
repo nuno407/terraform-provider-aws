@@ -1,7 +1,6 @@
+""" Test container script. """
 import json
-from copy import copy
-from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, call, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -9,12 +8,12 @@ from base.aws.container_services import ContainerServices
 
 
 @pytest.mark.usefixtures("s3_client", "rcc_bucket", "rcc_s3_list_prefix")
-class TestContainerScripts:
+class TestContainerScripts:  # pylint: disable=missing-function-docstring,missing-class-docstring
 
     @staticmethod
     def load_json_artifact(artifact_path: str) -> dict:
 
-        with open(f'tests/artifacts/{artifact_path}', "r", encoding='utf-8') as file:
+        with open(f"tests/artifacts/{artifact_path}", "r", encoding="utf-8") as file:
             return json.load(file)
 
     def test_list_s3_objects_more_1000(self, s3_client, rcc_bucket, rcc_s3_list_prefix):
@@ -22,7 +21,7 @@ class TestContainerScripts:
         second_chunk = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__2.json")
         final_data = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__concat.json")
 
-        continuation_token = first_chunk['NextContinuationToken']
+        continuation_token = first_chunk["NextContinuationToken"]
         s3_client.list_objects_v2 = Mock(side_effect=[first_chunk, second_chunk])
 
         response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=10)
@@ -60,8 +59,8 @@ class TestContainerScripts:
         second_chunk = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__2.json")
         final_data = first_chunk.copy()
 
-        final_data['CommonPrefixes'] = []
-        del final_data['NextContinuationToken']
+        final_data["CommonPrefixes"] = []
+        del final_data["NextContinuationToken"]
         s3_client.list_objects_v2 = Mock(side_effect=[first_chunk, second_chunk])
 
         response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client)
@@ -77,7 +76,7 @@ class TestContainerScripts:
         first_chunk = TestContainerScripts.load_json_artifact("s3_list_paths.json")
         final_data = first_chunk.copy()
 
-        final_data['Contents'] = []
+        final_data["Contents"] = []
         s3_client.list_objects_v2 = Mock(return_value=first_chunk)
 
         response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client)
