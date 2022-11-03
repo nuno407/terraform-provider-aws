@@ -13,9 +13,11 @@ from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import StsHelper
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.ingestor import (MetadataIngestor, SnapshotIngestor,
-                                  VideoIngestor)
-from sdretriever.message import SnapshotMessage, VideoMessage
+from sdretriever.ingestor import MetadataIngestor
+from sdretriever.ingestor import SnapshotIngestor
+from sdretriever.ingestor import VideoIngestor
+from sdretriever.message import SnapshotMessage
+from sdretriever.message import VideoMessage
 from sdretriever.sourcecommuter import SourceCommuter
 
 CONTAINER_NAME = "SDRetriever"  # Name of the current container
@@ -147,7 +149,7 @@ def main(config: SDRetrieverConfig):
                             continue
 
                     # Process parsed message
-                    db_record_data = VIDEO_ING.ingest(video_msg_obj)
+                    db_record_data = VIDEO_ING.ingest(video_msg_obj, config.request_training_upload)
                     # If metadata is to be downloaded - it's an interior recorder video
                     if db_record_data and request_metadata:
                         source_data = METADATA_ING.ingest(

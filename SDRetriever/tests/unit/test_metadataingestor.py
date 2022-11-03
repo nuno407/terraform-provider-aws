@@ -1,8 +1,12 @@
 import json
 import os
 import pickle
-from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, call, patch
+from datetime import datetime
+from datetime import timedelta
+from unittest.mock import ANY
+from unittest.mock import Mock
+from unittest.mock import call
+from unittest.mock import patch
 
 import pytest
 
@@ -68,8 +72,6 @@ class TestMetadataIngestor:
             metadata_chunks, msg_interior)
         with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json", "r") as f:
             expected_metadata = json.load(f)
-        with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/result.json", "w") as f:
-            json.dump(mdf_data, f)
         assert resolution == expected_metadata["resolution"]
         assert mdf_data == expected_metadata["frame"]
         assert pts == expected_metadata["chunk"]
