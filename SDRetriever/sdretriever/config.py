@@ -10,6 +10,7 @@ class SDRetrieverConfig():
     tenant_blacklist: List[str]
     recorder_blacklist: List[str]
     frame_buffer: int
+    request_training_upload: bool
 
     @staticmethod
     def load_config_from_yaml_file(path) -> 'SDRetrieverConfig':
