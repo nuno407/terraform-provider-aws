@@ -144,9 +144,10 @@ def create_recording_item(message: dict,
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
-            recorder = collection_rec.update_one(filter={'video_id': message["_id"]},
-                                                 update={'$set': recording_item},
-                                                 upsert=True, return_document=ReturnDocument.AFTER)
+            recorder = collection_rec.find_one_and_update(filter={'video_id': message["_id"]},
+                                                          update={'$set': recording_item},
+                                                          upsert=True, return_document=ReturnDocument.AFTER)
+
             _logger.info("Upserted recording DB item for item %s",
                          message["_id"])
             _logger.debug("Recording upsert in DB %s", str(recorder))
