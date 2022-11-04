@@ -2,31 +2,25 @@
 import json
 import os
 import re
-from datetime import datetime
-from datetime import timedelta
-from typing import Optional
-from typing import Tuple
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
 
 import boto3
 import pytimeparse
 import pytz
-from pymongo.collection import Collection
-from pymongo.collection import ReturnDocument
+from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
-from base.constants import IMAGE_FORMATS
-from base.constants import VIDEO_FORMATS
-from base.voxel.voxel_functions import create_dataset
-from base.voxel.voxel_functions import update_sample
-from metadata.common.constants import AWS_REGION
-from metadata.common.constants import TIME_FORMAT
-from metadata.common.constants import UNKNOWN_FILE_FORMAT_MESSAGE
-from metadata.common.errors import EmptyDocumentQueryResult
-from metadata.common.errors import MalformedRecordingEntry
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from base.voxel.voxel_functions import create_dataset, update_sample
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
+                                       UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult,
+                                    MalformedRecordingEntry)
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
@@ -150,11 +144,12 @@ def create_recording_item(message: dict,
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
-            collection_rec.update_one(filter={'video_id': message["_id"]},
-                                      update={'$set': recording_item},
-                                      upsert=True)
+            recorder = collection_rec.update_one(filter={'video_id': message["_id"]},
+                                                 update={'$set': recording_item},
+                                                 upsert=True, return_document=ReturnDocument.AFTER)
             _logger.info("Upserted recording DB item for item %s",
                          message["_id"])
+            _logger.debug("Recording upsert in DB %s", str(recorder))
         except PyMongoError as err:
             _logger.exception(
                 "Unable to create or replace recording item for item %s - %s", message["_id"], err)
@@ -601,6 +596,8 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
     elif source == "MDFParser":
         recording, signals = upsert_mdf_data(
             message, collection_signals, collection_recordings)
+
+        _logger.debug("Recording stored in DB: %s", str(recording))
         if not recording:
             # something went wrong when looking up the recording record
             _logger.warning("No recording item found on DB.")
