@@ -1,4 +1,5 @@
 """Metadata api database controller."""
+import copy
 from math import ceil
 from typing import Dict
 
@@ -59,10 +60,10 @@ class Persistence:
 
         return result[0]
 
-    def get_recording_list(self, page_size, page, additional_query, order):
+    def get_recording_list(self, page_size, page, additional_query, order, aggregation_pipeline_prefix=[]):
         """Get all videos that entered processing phase or the specific one video."""
         aggregation_pipeline = self.__generate_recording_list_query(
-            additional_query, order)
+            additional_query, order, aggregation_pipeline_prefix)
 
         skip_entries = (page - 1) * page_size
         count_facet = [{'$count': 'number_recordings'}]
@@ -83,8 +84,8 @@ class Persistence:
 
         return pipeline_result['result'], number_recordings, number_pages
 
-    def __generate_recording_list_query(self, additional_query=None, sorting=None):
-        aggregation = []
+    def __generate_recording_list_query(self, additional_query=None, sorting=None, aggregation_pipeline_prefix=[]):
+        aggregation = copy.deepcopy(aggregation_pipeline_prefix)
         aggregation.append({"$match": {'_media_type': "video"}})
         aggregation.append({'$lookup': {
             'from': self.__pipeline_executions.name,

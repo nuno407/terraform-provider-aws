@@ -20,6 +20,18 @@
             },
         },
         {
+            "name": "Run Metadata API",
+            "type": "python",
+            "request": "launch",
+            "module": "metadata.api.main",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "CONFIG_S3": "dev-rcd-config-files",
+                "LOCAL_DEBUG": "true"
+            },
+        },
+        {
             "type": "pwa-chrome",
             "request": "launch",
             "runtimeExecutable": "/Applications/Chromium.app/Contents/MacOS/Chromium",
