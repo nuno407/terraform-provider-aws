@@ -38,10 +38,10 @@ def update_sample(data_set, sample_info):
 
     for (i, j) in sample_info.items():
         #print (i)
-        if i.startswith("_"):
+        if i == "algorithms":
+            continue
+        if i.startswith("_") or i.startswith("filepath"):
             i = "ivs" + i
-        if i.startswith("filepath"):
-            i = "ivs_" + i
         sample[i] = j
 
     #  Full create FiftyOne Sample object
