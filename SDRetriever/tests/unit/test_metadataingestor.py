@@ -555,13 +555,10 @@ class TestMetadataIngestor:
             "rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=23/TEST_TYPE_TEST_ID"
         ]
 
-        metadata_expected = [
+        metadata_given = [
             'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID_498375935.mp4_stream.json',
             'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID_abc12325e.mp4.zip',
             'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=21/TEST_TYPE_TEST_ID_fgf12325e.mp4_stream.json.zip'
-        ]
-
-        video_expected = [
         ]
 
         msg_interior.tenant = "rc_srx"
@@ -580,8 +577,8 @@ class TestMetadataIngestor:
             return_value=lookup_paths_reference)
         obj._search_chunks_in_s3_path = Mock(
             side_effect=[
-                (set(metadata_expected[:2]), set()),
-                (set([metadata_expected[2]]), set()),
+                (set(metadata_given[:2]), set()),
+                (set([metadata_given[2]]), set()),
                 (set(), set())
             ]
         )

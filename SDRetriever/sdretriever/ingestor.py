@@ -86,12 +86,8 @@ class Ingestor(object):
             return False, {}
 
         if exact:
-            for object_dict in list_objects_response['Contents']:
-                key = object_dict['Key']
-                if key == s3_path:
-                    return True, list_objects_response
-
-            return False, list_objects_response
+            exact_match = s3_path in [object_dict['Key'] for object_dict in list_objects_response['Contents']]
+            return exact_match, list_objects_response
 
         return True, list_objects_response
 
