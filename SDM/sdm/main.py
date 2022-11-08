@@ -8,6 +8,8 @@ CONTAINER_VERSION = "v6.2"      # Version of the current container
 VIDEO_FORMATS = ['mp4','avi']
 IMAGE_FORMATS = ['jpeg','jpg','png']
 
+_logger = ContainerServices.configure_logging('sdm')
+
 def identify_file(s3_path: str) -> tuple:
     """Identifies properties for S3 paths.
 
@@ -164,5 +166,4 @@ def main():
 
 
 if __name__ == '__main__':
-    _logger = ContainerServices.configure_logging('sdm')
     main()
