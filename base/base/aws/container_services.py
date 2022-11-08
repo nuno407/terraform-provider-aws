@@ -465,7 +465,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         """
         full_path = s3_bucket + "/" + file_path
         _logger.debug("Downloading [%s]..", full_path)
-
         response = client.get_object(
             Bucket=s3_bucket,
             Key=file_path
@@ -832,13 +831,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         _logger.debug("Returning a total of %d s3 keys for %s in %s",
                       results["KeyCount"], bucket, s3_path)  # type: ignore
-
-        if results.get("IsTruncated", False):  # type: ignore
-            _logger.warning(
-                "Not all objects were returned (Only %d) for %s in %s",
-                results["KeyCount"],  # type: ignore # pylint: disable=E1136
-                bucket,
-                s3_path)
 
         # Clean variable fields
         results.pop("NextContinuationToken", None)  # type: ignore

@@ -1,12 +1,8 @@
 import json
 import os
 import pickle
-from datetime import datetime
-from datetime import timedelta
-from unittest.mock import ANY
-from unittest.mock import Mock
-from unittest.mock import call
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 
@@ -549,6 +545,53 @@ class TestMetadataIngestor:
         lookup_mock.assert_any_call(
             msg_interior, start_time=msg_interior.uploadfinished + timedelta(hours=1), end_time=ANY)
         match_chunks_mock.assert_called_with(current_date_path, ANY, ANY, ANY)
+
+    @patch("sdretriever.ingestor.ContainerServices")
+    def test_check_metadata_exists_and_is_complete3(self, mock_container_services, obj, msg_interior):
+
+        lookup_paths_reference = [
+            "rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID",
+            "rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=21/TEST_TYPE_TEST_ID",
+            "rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=23/TEST_TYPE_TEST_ID"
+        ]
+
+        metadata_expected = [
+            'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID_498375935.mp4_stream.json',
+            'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID_abc12325e.mp4.zip',
+            'rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=21/TEST_TYPE_TEST_ID_fgf12325e.mp4_stream.json.zip'
+        ]
+
+        video_expected = [
+        ]
+
+        msg_interior.tenant = "rc_srx"
+        msg_interior.deviceid = "TEST_DEVICE_ID"
+        msg_interior.recordingid = "TEST_ID"
+        msg_interior.recording_type = "TEST_TYPE"
+        msg_interior.uploadstarted = datetime(
+            year=2022, month=8, day=1, hour=10)
+        msg_interior.uploadfinished = datetime(
+            year=2022, month=12, day=1, hour=10)
+
+        mock_container_services.check_if_tenant_and_deviceid_exists_and_log_on_error = Mock(
+            return_value=True)
+
+        lookup_mock = obj._get_chunks_lookup_paths = Mock(
+            return_value=lookup_paths_reference)
+        obj._search_chunks_in_s3_path = Mock(
+            side_effect=[
+                (set(metadata_expected[:2]), set()),
+                (set([metadata_expected[2]]), set()),
+                (set(), set())
+            ]
+        )
+
+        has_metadata, metadata = obj.check_metadata_exists_and_is_complete(
+            msg_interior)
+
+        assert not has_metadata
+        assert metadata == set()
+        lookup_mock.assert_called_once_with(msg_interior)
 
     def test_search_for_match_chunks(self, obj):
 

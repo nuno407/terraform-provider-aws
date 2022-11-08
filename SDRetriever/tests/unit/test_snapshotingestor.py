@@ -1,9 +1,5 @@
-from datetime import datetime
-from datetime import timedelta
-from unittest.mock import ANY
-from unittest.mock import Mock
-from unittest.mock import call
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 

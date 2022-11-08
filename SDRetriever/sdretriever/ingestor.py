@@ -9,20 +9,15 @@ import tempfile
 from abc import abstractmethod
 from calendar import monthrange
 from copy import copy
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from operator import itemgetter
-from typing import Iterator
-from typing import Optional
-from typing import Tuple
-from typing import TypeVar
+from typing import Iterator, Optional, Tuple, TypeVar
 
 import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
 
-from base.aws.container_services import ContainerServices
-from base.aws.container_services import RCCS3ObjectParams
+from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 from base.aws.shared_functions import StsHelper
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sdretriever.message import VideoMessage
@@ -54,17 +49,21 @@ class Ingestor(object):
         pass
 
     def check_if_s3_rcc_path_exists(self, s3_path: str, bucket: str, messageid: str = None,
-                                    max_s3_api_calls: int = 1) -> Tuple[bool, dict]:
+                                    max_s3_api_calls: int = 1, exact=False) -> Tuple[bool, dict]:
         """Verify if path exists on target S3 bucket.
 
         - Check if the file exists in a given path.
         - Verifies if the object found size is bigger then 0.
         - If the object is not found, continue to look for tenant and deviceid prefixes to provide logging information
+        - If the exact argument is true, all objects will still be retrieved but the first return value will only be true if one of
+        the objects matches th path exactly.
 
         Args:
             s3_path (str): S3 path to look for.
             bucket (str): S3 bucket name.
             messageid (str): SQS message ID
+            max_s3_api_calls (str): Maximum s3 list api calls to be made
+            exact (bool): Only match files with exact name, if false it will only match the prefix
         Returns:
             A tuple containing a boolean response if the path was found and a dictionary with the S3 objects information
         """
@@ -85,6 +84,14 @@ class Ingestor(object):
 
         if list_objects_response is None or list_objects_response.get('KeyCount', 0) == 0:
             return False, {}
+
+        if exact:
+            for object_dict in list_objects_response['Contents']:
+                key = object_dict['Key']
+                if key == s3_path:
+                    return True, list_objects_response
+
+            return False, list_objects_response
 
         return True, list_objects_response
 
@@ -301,7 +308,7 @@ class SnapshotIngestor(Ingestor):
                     for folder in possible_locations:
                         # If the file exists in this RCC folder
                         found_on_rcc, _ = self.check_if_s3_rcc_path_exists(
-                            folder + chunk.uuid, RCC_S3_bucket, snap_msg.messageid)
+                            folder + chunk.uuid, RCC_S3_bucket, snap_msg.messageid, exact=True)
 
                         if found_on_rcc:
                             # Download jpeg from RCC
@@ -684,7 +691,7 @@ class MetadataIngestor(Ingestor):
         mp4_lookup_paths = self._get_chunks_lookup_paths(message)
 
         if not mp4_lookup_paths:
-            LOGGER.error(f"No video chunks paths found for {f'{message.tenant}/{message.deviceid}/'}", extra={
+            LOGGER.error("No video chunks paths found for %s", f'{message.tenant}/{message.deviceid}/', extra={
                 "messageid": message.messageid})
             return False, set()
 
@@ -710,6 +717,12 @@ class MetadataIngestor(Ingestor):
 
         tmp_metadata_filtered: set[str] = set()
         tmp_metadata_striped: set[str] = set()
+
+        if len(mp4_chunks_left) == 0:
+            LOGGER.error(
+                "Could not find any video chunks for %s. Probably the chunks are out of upload bounds",
+                f'{message.tenant}/{message.deviceid}/')
+            return False, set()
 
         # Ensure that only metadata belonging to the video are checked
         for chunk in metadata_chunks:
@@ -745,6 +758,8 @@ class MetadataIngestor(Ingestor):
             metadata_paths, mp4_chunks_left, bucket, message.messageid)
 
         metadata_chunks = metadata_chunks.union(tmp_metadata_chunks)
+
+        LOGGER.info("Found %d metadata chunks", len(metadata_chunks))
 
         return all_found, metadata_chunks
 
@@ -791,7 +806,7 @@ class MetadataIngestor(Ingestor):
                 chunks_count += 1
 
         if not chunks:
-            LOGGER.error(
+            LOGGER.warning(
                 f"Could not find any metadata files for {video_msg.recording_type} {video_msg.recordingid}",
                 extra={
                     "messageid": video_msg.messageid})
@@ -840,7 +855,7 @@ class MetadataIngestor(Ingestor):
                 for frame in chunks[chunk]["frame"]:
                     frames.append(frame)
             else:
-                LOGGER.error(
+                LOGGER.warning(
                     f"No frames in metadata chunk -> {chunks[chunk]}", extra={"messageid": video_msg.messageid})
 
         # Sort frames by number
@@ -887,8 +902,8 @@ class MetadataIngestor(Ingestor):
         # Fetch metadata chunks from RCC S3
         chunks = self._get_metadata_chunks(video_msg, metadata_chunk_paths)
         if not chunks:
-            LOGGER.info("Cannot ingest metadata from empty set of chunks", extra={
-                        "messageid": video_msg.messageid})
+            LOGGER.warning("Cannot ingest metadata from empty set of chunks", extra={
+                "messageid": video_msg.messageid})
             return False
         # Process the raw metadata into MDF (fields 'resolution', 'chunk', 'frame', 'chc_periods')
         resolution, pts, frames = self._process_chunks_into_mdf(
