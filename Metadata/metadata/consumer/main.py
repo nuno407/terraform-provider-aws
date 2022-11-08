@@ -2,25 +2,31 @@
 import json
 import os
 import re
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from datetime import datetime
+from datetime import timedelta
+from typing import Optional
+from typing import Tuple
 
 import boto3
 import pytimeparse
 import pytz
-from pymongo.collection import Collection, ReturnDocument
+from pymongo.collection import Collection
+from pymongo.collection import ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
-from base.voxel.voxel_functions import create_dataset, update_sample
-from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
-                                       UNKNOWN_FILE_FORMAT_MESSAGE)
-from metadata.common.errors import (EmptyDocumentQueryResult,
-                                    MalformedRecordingEntry)
+from base.constants import IMAGE_FORMATS
+from base.constants import VIDEO_FORMATS
+from base.voxel.voxel_functions import create_dataset
+from base.voxel.voxel_functions import update_sample
+from metadata.common.constants import AWS_REGION
+from metadata.common.constants import TIME_FORMAT
+from metadata.common.constants import UNKNOWN_FILE_FORMAT_MESSAGE
+from metadata.common.errors import EmptyDocumentQueryResult
+from metadata.common.errors import MalformedRecordingEntry
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
@@ -207,7 +213,7 @@ def update_voxel_media(sample: dict):
 
 
 def upsert_mdf_data(message: dict, collection_sig: Collection,
-                    collection_rec: Collection) -> Tuple[Optional[dict], Optional[dict]]:
+                    collection_rec: Collection) -> Optional[dict]:
     """Upserts recording data and signals to respective collections.
 
     Args:
@@ -223,7 +229,7 @@ def upsert_mdf_data(message: dict, collection_sig: Collection,
             'key' in message['signals_file']):
         _logger.warning(
             "Expected fields for upserting MDF data are not present in the message.")
-        return None, None
+        return None
 
     s3_client = boto3.client('s3', AWS_REGION)
     signals_file_raw = ContainerServices.download_file(
@@ -255,11 +261,11 @@ def upsert_mdf_data(message: dict, collection_sig: Collection,
 
         # Create logs message
         _logger.info("Signals DB item [%s] upserted!", message["_id"])
-        return recording, signals
+        return recording
     except PyMongoError as err:
         _logger.exception(
             "Unable to create or replace signals item for id: [%s] :: %s", message["_id"], err)
-        return None, None
+    return None
 
 
 def update_pipeline_db(video_id: str, message: dict,
@@ -595,7 +601,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
             _logger.warning(
                 "Unexpected file format %s from SDRetriever.", file_format)
     elif source == "MDFParser":
-        recording, signals = upsert_mdf_data(
+        recording = upsert_mdf_data(
             message, collection_signals, collection_recordings)
 
         _logger.debug("Recording stored in DB: %s", str(recording))
@@ -603,8 +609,6 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
             # something went wrong when looking up the recording record
             _logger.warning("No recording item found on DB.")
             return
-        # insert the signals to the voxel document
-        recording['signals'] = signals
         update_voxel_media(recording)
 
     # If the message is related to our data processing
