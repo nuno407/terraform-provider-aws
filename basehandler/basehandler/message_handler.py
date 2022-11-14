@@ -181,7 +181,7 @@ class MessageHandler():
         Returns:
             dict: parsed body
         """
-        new_body = body.replace("\"", "\"")
+        new_body = body.replace("'", "\"")
         return json.loads(new_body)
 
     def request_processing(self, body: str, mode: str) -> bool:  # pylint: disable=too-many-locals
