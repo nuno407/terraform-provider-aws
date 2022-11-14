@@ -7,7 +7,6 @@ import Auth from '@aws-amplify/auth';
   styleUrls: ['./mfa.component.scss'],
 })
 export class MfaComponent implements OnInit {
-
   /**Local variables */
   preferredSignInOption = 'NOMFA';
   qrCodeString = '';

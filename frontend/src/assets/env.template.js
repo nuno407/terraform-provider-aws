@@ -7,7 +7,7 @@
     window["env"]["identityProvider"] = "${IDENTITY_PROVIDER}";
 
     // AWS Amplify configuration
-    const amplifyConfig = {
+    let amplifyConfig = {
       aws_project_region: "${AWS_COGNITO_REGION}",
       aws_cognito_identity_pool_id: "${AWS_COGNITO_IDENTITY_POOL_ID}",
       aws_cognito_region: "${AWS_COGNITO_REGION}",

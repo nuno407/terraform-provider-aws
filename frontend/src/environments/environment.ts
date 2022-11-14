@@ -3,8 +3,8 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  name: window["env"]["environmentName"],
-  api: window["env"]["api"],
-  identityProvider: window["env"]["identityProvider"],
-  amplifyConfig: window["env"]["amplifyConfig"]
+  name: window['env']['environmentName'],
+  api: window['env']['api'],
+  identityProvider: window['env']['identityProvider'],
+  amplifyConfig: window['env']['amplifyConfig'],
 };

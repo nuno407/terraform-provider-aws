@@ -20,7 +20,7 @@ export class FilterDataSource<T> implements DataSource<T> {
       uploadId: '0bc58c42-040b-4181-bddf-fdada9672386',
       labeled: 'APP.yes',
       url: 'assets/demo2_video.m4a',
-    }
+    },
   ];
 
   connect(collectionViewer: CollectionViewer): Observable<T[] | readonly T[]> {

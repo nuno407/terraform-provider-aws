@@ -3,7 +3,7 @@
     <div>Non Physical Aggression</div>
     <mat-radio-group
       class="activities"
-      [disabled]="selectedLabelIndex == null"
+      [disabled]="selectedLabelIndex === null"
       [value]="activities.nonPhysicalAggression.values[activities.nonPhysicalAggression.selected]"
     >
       <mat-radio-button
@@ -19,7 +19,7 @@
     <div>Physical Aggression</div>
     <mat-radio-group
       class="activities"
-      [disabled]="selectedLabelIndex == null"
+      [disabled]="selectedLabelIndex === null"
       [value]="activities.physicalAggression.values[activities.physicalAggression.selected]"
     >
       <mat-radio-button
@@ -34,23 +34,23 @@
       class="radio-button"
       (change)="toggleChange('physicalAggression.weapon', $event)"
       [checked]="activities.physicalAggression.weapon.value"
-      [disabled]="selectedLabelIndex == null"
+      [disabled]="selectedLabelIndex === null"
       >Weapon <sup>{{ activities.physicalAggression.weapon.identifier }}</sup></mat-slide-toggle
     >
   </div>
   <div class="activity-container">
     <mat-form-field class="block">
-      <input matInput type="number" [disabled]="selectedLabelIndex == null" [value]="activities.occupants" placeholder="Occupants" aria-label="number input" />
+      <input matInput type="number" [disabled]="selectedLabelIndex === null" [value]="activities.occupants" placeholder="Occupants" aria-label="number input" />
       <span matSuffix>
-        <button mat-icon-button [disabled]="selectedLabelIndex == null">
+        <button mat-icon-button [disabled]="selectedLabelIndex === null">
           <mat-icon fontIcon="Bosch-Ic-less-minimize" aria-label="minus" (click)="changeOccupants(activities.occupants - 1)"></mat-icon>
         </button>
-        <button mat-icon-button [disabled]="selectedLabelIndex == null">
+        <button mat-icon-button [disabled]="selectedLabelIndex === null">
           <mat-icon fontIcon="Bosch-Ic-add" aria-label="add" (click)="changeOccupants(activities.occupants + 1)"></mat-icon>
         </button>
       </span>
     </mat-form-field>
-    <mat-slide-toggle class="block radio-button" (change)="toggleChange('night', $event)" [checked]="activities.night" [disabled]="selectedLabelIndex == null"
+    <mat-slide-toggle class="block radio-button" (change)="toggleChange('night', $event)" [checked]="activities.night" [disabled]="selectedLabelIndex === null"
       >Night</mat-slide-toggle
     >
     <mat-slide-toggle
@@ -58,7 +58,7 @@
       style="margin-top: 16px"
       (change)="toggleChange('driving', $event)"
       [checked]="activities.driving"
-      [disabled]="selectedLabelIndex == null"
+      [disabled]="selectedLabelIndex === null"
       >Driving</mat-slide-toggle
     >
   </div>

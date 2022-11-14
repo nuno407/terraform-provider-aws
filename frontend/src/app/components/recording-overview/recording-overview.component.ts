@@ -33,7 +33,8 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   isLoaded: bool = false;
   error: string;
 
-  filterHelpText: string = "Available fields:\n\
+  filterHelpText: string =
+    'Available fields:\n\
   - _id,\n\
   - processing_list,\n\
   - snapshots,\n\
@@ -52,9 +53,10 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - >\n\
   - <\n\
   - !=\n\
-  - has"
+  - has';
 
-  orderHelpText: string = "Available fields:\n\
+  orderHelpText: string =
+    'Available fields:\n\
   - _id,\n\
   - processing_list,\n\
   - snapshots,\n\
@@ -67,11 +69,9 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - lengthCHC,\n\
   - max_person_count,\n\
   - ride_detection_counter,\n\
-  - deviceID"
+  - deviceID';
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
-    private metadata: ApiVideoCallService,
-    private dialog: MatDialog) {}
+  constructor(private changeDetectorRef: ChangeDetectorRef, private metadata: ApiVideoCallService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.retrieveRecordingList();
@@ -89,24 +89,20 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   retrieveRecordingList() {
     this.isLoaded = false;
     this.error = undefined;
-    this.metadata.getData(
-      this.pageSize,
-      this.page,
-      this.queryParam.trim(),
-      this.queryLogicOperator,
-      this.sortingParam,
-      this.sortingOrder)
-      .subscribe(resp => {
+    this.metadata.getData(this.pageSize, this.page, this.queryParam.trim(), this.queryLogicOperator, this.sortingParam, this.sortingOrder).subscribe(
+      (resp) => {
         this.numberOfEntries = resp.total;
         this.videoList = resp.message;
         this.isLoaded = true;
-      }, err => {
-        if(err.body && err.body.message) {
+      },
+      (err) => {
+        if (err.body && err.body.message) {
           this.error = err.body.message;
         } else {
           this.error = err.errorMessage;
         }
-      });
+      }
+    );
   }
 
   upload(event: MouseEvent) {
@@ -114,24 +110,30 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   }
 
   showDetailDialog(recordingId: string) {
-    this.dialog.open(RecordingDetailComponent, {data: recordingId, height:"calc(100vh - 90px)", width:"calc(100vw - 90px)", maxWidth:"100%", maxHeight:"100%"})
+    this.dialog.open(RecordingDetailComponent, {
+      data: recordingId,
+      height: 'calc(100vh - 90px)',
+      width: 'calc(100vw - 90px)',
+      maxWidth: '100%',
+      maxHeight: '100%',
+    });
   }
 
-  filterLast(){
-    let yesterdayISO = format(subDays(new Date(), 1), "yyyy-MM-dd HH:mm:ss");
-    let filter = "'time': { '>': \"" + yesterdayISO + "\" }";
-    this.addQuery(filter)
+  filterLast() {
+    let yesterdayISO = format(subDays(new Date(), 1), 'yyyy-MM-dd HH:mm:ss');
+    let filter = "'time': { '>': \"" + yesterdayISO + '" }';
+    this.addQuery(filter);
     this.retrieveRecordingList();
   }
 
-  filterChcEvents(){
+  filterChcEvents() {
     let filter = "'number_chc_events': { '>': 0}";
     this.addQuery(filter);
     this.retrieveRecordingList();
- }
+  }
 
   /**method for clear input text */
-  deleteInputQueryText(){
+  deleteInputQueryText() {
     this.queryParam = '';
     this.sortingParam = '';
   }
@@ -139,27 +141,27 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   addQuery(queryToAdd: string) {
     let newQuery = this.queryParam.trim();
     // strip away closing bracket at the end, if filter is bracketed
-    if(newQuery.startsWith("{") && newQuery.endsWith("}")) {
+    if (newQuery.startsWith('{') && newQuery.endsWith('}')) {
       newQuery = newQuery.substring(1, newQuery.length - 2);
     }
 
-    if(newQuery) {
-      newQuery += "," + queryToAdd;
+    if (newQuery) {
+      newQuery += ',' + queryToAdd;
     } else {
       newQuery = queryToAdd;
     }
     this.queryParam = newQuery;
   }
 
-  sortBy(sortingParam){
-    if (this.sortingParam != sortingParam){
+  sortBy(sortingParam) {
+    if (this.sortingParam != sortingParam) {
       this.sortingParam = sortingParam;
-      this.sortingOrder = "asc";
-    } else{
-      if (this.sortingOrder == "asc") {
-        this.sortingOrder = "dsc";
-      } else{
-        this.sortingOrder = "asc";
+      this.sortingOrder = 'asc';
+    } else {
+      if (this.sortingOrder == 'asc') {
+        this.sortingOrder = 'dsc';
+      } else {
+        this.sortingOrder = 'asc';
         // do we want two or three stage clicking?
         //this.sortingParam = "";
       }

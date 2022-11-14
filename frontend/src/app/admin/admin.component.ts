@@ -14,9 +14,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin.component.scss'],
 })
 export class AdminComponent implements OnInit {
-
   /**Local variables */
-  email;
+  email: any;
   title = 'RideCare';
 
   /**Body NavItem */

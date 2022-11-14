@@ -8,9 +8,8 @@ describe('SignalSelectionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SignalSelectionComponent ]
-    })
-    .compileComponents();
+      declarations: [SignalSelectionComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

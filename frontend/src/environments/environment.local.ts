@@ -4,8 +4,8 @@
 import awsconfigdev from '../assets/aws/aws-exports-dev.js';
 
 export const environment = {
-  name: "local",
-  api: "http://localhost:7777/",
-  identityProvider: "Azure-RideCareStage",
-  amplifyConfig: awsconfigdev
+  name: 'local',
+  api: 'http://localhost:7777/',
+  identityProvider: 'Azure-RideCareStage',
+  amplifyConfig: awsconfigdev,
 };

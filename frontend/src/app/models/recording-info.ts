@@ -1,4 +1,4 @@
-import { Snapshot } from "./snapshots";
+import { Snapshot } from './snapshots';
 
 export interface RootObject {
   message: Message[];
@@ -36,7 +36,6 @@ export interface Message {
   tenant: string;
 }
 
-
 export interface LqVideoInfo {
   id: string;
   length: string;
@@ -53,7 +52,7 @@ export interface VideoInfo {
 
 /**Video*/
 export interface Message {
-  message: { [key: string] :  string };
+  message: { [key: string]: string };
 }
 
 export interface RecordingInfo {

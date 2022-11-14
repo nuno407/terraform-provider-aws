@@ -11,14 +11,12 @@ describe('FilterMultiComponent', () => {
   let component: FilterMultiComponent;
   let fixture: ComponentFixture<FilterMultiComponent>;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [FilterMultiComponent],
-        imports: [MatMenuModule, MatIconModule, MatCheckboxModule, TranslateModule.forRoot()],
-      }).compileComponents();
-    })
-  );
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [FilterMultiComponent],
+      imports: [MatMenuModule, MatIconModule, MatCheckboxModule, TranslateModule.forRoot()],
+    }).compileComponents();
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FilterMultiComponent);

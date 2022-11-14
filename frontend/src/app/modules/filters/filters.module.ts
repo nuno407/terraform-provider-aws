@@ -18,7 +18,7 @@ import { FilterMultiComponent } from './components/filter-multi/filter-multi.com
   exports: [FilterStringComponent, FilterDatetimeComponent, FilterMultiComponent, FilterItemDirective],
   imports: [
     BciCoreModule.forRoot({
-      prod_environment: (environment.name == "docker"),
+      prod_environment: environment.name == 'docker',
       core_config_url: '/assets/config/config.json',
     }),
     BciComponentModule,

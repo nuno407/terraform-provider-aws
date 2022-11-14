@@ -14,7 +14,6 @@ import { FilterDataSource } from 'src/app/modules/filters/models/filter-data-sou
   styleUrls: ['./recording-detail.component.scss'],
 })
 export class RecordingDetailComponent implements OnInit {
-
   /**Local variables */
   recording;
   currentFrame: number = 0;
@@ -37,7 +36,7 @@ export class RecordingDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private metaDataApiService: ApiVideoCallService,
     public dialogRef: MatDialogRef<RecordingDetailComponent>,
-    @Inject(MAT_DIALOG_DATA) public recordingId: string,
+    @Inject(MAT_DIALOG_DATA) public recordingId: string
   ) {}
 
   ngOnInit(): void {
@@ -59,7 +58,6 @@ export class RecordingDetailComponent implements OnInit {
         let widthPercentage = (100 / parentRect.width) * currentX;
         this.videoPlayerWidthPercentage = Math.min(Math.max(widthPercentage, 35), 65);
       });
-
   }
 
   getVideoPlayerWidth() {

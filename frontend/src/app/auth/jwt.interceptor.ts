@@ -20,7 +20,8 @@ export class JwtInterceptor implements HttpInterceptor {
         return next.handle(with_auth_request);
       }),
       catchError((err) => {
-        return throwError(err);
+        const errToCatch = new Error(err);
+        return throwError(() => errToCatch);
       })
     );
   }

@@ -31,8 +31,8 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     this._recording = recording;
 
     // Get the signals and pass them to their selector
-    this.signalRetriever.getSignals(this._recording._id, this._recording.lq_video?.id).subscribe(signals => {
-      console.log("Got signals from backend and writing them to the signal selector.");
+    this.signalRetriever.getSignals(this._recording._id, this._recording.lq_video?.id).subscribe((signals) => {
+      console.log('Got signals from backend and writing them to the signal selector.');
       this.signalsToSelect = signals;
     });
 
@@ -49,11 +49,10 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lineChart') lineChart: LineChartComponent;
   @ViewChild('verticalBar') verticalBarElem;
 
-
   signalsToSelect: SignalGroup;
   snapshots: Snapshot[];
 
-  verticalBar: HTMLDivElement
+  verticalBar: HTMLDivElement;
   video: HTMLVideoElement;
 
   reverseSubscription: Subscription;
@@ -95,12 +94,14 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   safeSrc: SafeResourceUrl;
 
-  constructor(private labelingService: LabelingService,
+  constructor(
+    private labelingService: LabelingService,
     private metaDataApiService: ApiVideoCallService,
     private sanitizer: DomSanitizer,
     private signalRetriever: SignalsRetrieverService,
     private clipboard: Clipboard,
-    private notify: NotificationService) {
+    private notify: NotificationService
+  ) {
     this.labelingService.getLabels().subscribe((labels) => this.drawLabels(labels));
     this.labelingService.getSelectedLabelIndex().subscribe((index) => (this.selectedLabelIndex = index));
   }
@@ -120,16 +121,16 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     };
 
     this.currentPercent.chartPercentageChange.subscribe(() => {
-      const time = this.video.duration * this.currentPercent.videoPercentage / 100.0;
+      const time = (this.video.duration * this.currentPercent.videoPercentage) / 100.0;
       this.video.currentTime = time;
-    })
+    });
 
     /* istanbul ignore next */
 
     this.video.ontimeupdate = () => {
       this.currentTime = this.video.currentTime;
       this.currentFrame = this.video.currentTime * this.fps;
-      this.currentPercent.videoPercentage = 100.0 * this.video.currentTime / this.video.duration;
+      this.currentPercent.videoPercentage = (100.0 * this.video.currentTime) / this.video.duration;
       this.frame.emit(this.currentFrame);
       this.updatePlayheaderPosition();
     };
@@ -140,14 +141,14 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     };
 
     const mappedKeys = {
-      'Space': () => this.togglePlay(),
-      'ArrowLeft': () => this.seekFrames(-1),
-      'ArrowRight': () => this.seekFrames(1)
+      Space: () => this.togglePlay(),
+      ArrowLeft: () => this.seekFrames(-1),
+      ArrowRight: () => this.seekFrames(1),
     };
     // todo - disable subscription if text-field is selected
     this.keyboardSubscription = fromEvent(document, 'keydown')
       .pipe(
-        filter(e => document.activeElement.tagName.toLowerCase() != "textarea"),
+        filter((e) => document.activeElement.tagName.toLowerCase() != 'textarea'),
         filter((e: KeyboardEvent) => Object.keys(mappedKeys).includes(e.code)),
         map((e: KeyboardEvent) => {
           e.stopPropagation();
@@ -169,7 +170,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       var leftOffsetPercent = this.lineChart.labelSizePercentage * 100;
       var percentualPosition = (this.currentPercent.chartPercentage - this.currentZoomWindowStart) / (this.currentZoomWindowEnd - this.currentZoomWindowStart);
       var chartSizePercent = this.lineChart.chartSizePercentage;
-      var halfBarWidth = this.verticalBar.clientWidth / this.verticalBar.parentElement.clientWidth * 100;
+      var halfBarWidth = (this.verticalBar.clientWidth / this.verticalBar.parentElement.clientWidth) * 100;
 
       this.playheaderPercentage = leftOffsetPercent + percentualPosition * chartSizePercent * 100 - halfBarWidth;
     }
@@ -201,12 +202,15 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   /* subscribe service to get the video throught S3 bucket*/
   getvideo() {
-    return this.metaDataApiService.getVideo(this._recording._id).subscribe(data => {
-      this.url = data;
-      this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
-    }, (error) => {
-      console.log('Error ocurred: ', error);
-    })
+    return this.metaDataApiService.getVideo(this._recording._id).subscribe(
+      (data) => {
+        this.url = data;
+        this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
+      },
+      (error) => {
+        console.log('Error ocurred: ', error);
+      }
+    );
   }
 
   togglePlay() {
@@ -223,7 +227,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   playHeaderClick(event) {
     let clickedPointElements = this.lineChart.chart.getElementsAtEventForMode(event, 'nearest', { intersect: true, includeInvisible: false }, false);
     if (clickedPointElements.length > 0) {
-      let snapshot: Snapshot = clickedPointElements.filter((elem)=>elem.element['$context'].raw.data ?? false)[0].element['$context'].raw.data;
+      let snapshot: Snapshot = clickedPointElements.filter((elem) => elem.element['$context'].raw.data ?? false)[0].element['$context'].raw.data;
       if (snapshot) {
         let snapshotNameWithoutExtension = snapshot.name.substring(0, snapshot.name.lastIndexOf('.'));
         this.clipboard.copy(snapshotNameWithoutExtension);
@@ -240,8 +244,9 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       const width = event.target.getBoundingClientRect().width;
       const percentageAtStart = this.currentZoomWindowStart;
       const zoomFactor = (this.currentZoomWindowEnd - this.currentZoomWindowStart) / 100.0;
-      this.currentPercent.chartPercentage = percentageAtStart + 100.0 / (width * (1 - this.lineChart.labelSizePercentage)) * (event.offsetX - (this.lineChart.labelSizePercentage * width)) * zoomFactor;
-
+      this.currentPercent.chartPercentage =
+        percentageAtStart +
+        (100.0 / (width * (1 - this.lineChart.labelSizePercentage))) * (event.offsetX - this.lineChart.labelSizePercentage * width) * zoomFactor;
     }
   }
 
@@ -258,7 +263,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     this.lineChart.zoomRange = newZoomRange;
 
     // sliding does not raise the zoom changed event
-    this.zoomChangedByChart(newZoomRange)
+    this.zoomChangedByChart(newZoomRange);
   }
 
   /* istanbul ignore next */
@@ -273,7 +278,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     const currentFrame = this.video.currentTime * this.fps;
     const newTime = (currentFrame + numberOfFrames) / this.fps;
     this.video.currentTime = newTime;
-
   }
 
   /* istanbul ignore next */
@@ -390,5 +394,4 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
       this.saveDescriptionButtonDisabled = false;
     });
   }
-
 }

@@ -11,11 +11,10 @@ import { LineChartColorPicker } from '../../shared/LineChartColorPicker';
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.scss']
+  styleUrls: ['./line-chart.component.scss'],
 })
 export class LineChartComponent {
   @Input() fps: number;
-
 
   _snapshots: Snapshot[];
 
@@ -29,7 +28,7 @@ export class LineChartComponent {
     }
   }
 
-  _signals: SignalGroup
+  _signals: SignalGroup;
   @Input()
   set signals(signals: SignalGroup) {
     this._signals = signals;
@@ -78,33 +77,35 @@ export class LineChartComponent {
 
   scaleToTimestamp(percentage: number) {
     let timestampRange = this.maximumTimestamp - this.minimumTimestamp;
-    let boundedPercentage = Math.max(0.0, Math.min(100.0, percentage))
-    let relativeTimestamp = boundedPercentage * timestampRange / 100.0;
+    let boundedPercentage = Math.max(0.0, Math.min(100.0, percentage));
+    let relativeTimestamp = (boundedPercentage * timestampRange) / 100.0;
     return this.minimumTimestamp + relativeTimestamp;
   }
 
   scaleToPercentage(timestamp: number) {
     let relativeTimestamp = timestamp - this.minimumTimestamp;
     let timestampRange = this.maximumTimestamp - this.minimumTimestamp;
-    return 100.0 * relativeTimestamp / timestampRange;
+    return (100.0 * relativeTimestamp) / timestampRange;
   }
 
-  createChartDatasets(signals: SignalGroup, snapshots: Snapshot[]): ChartDataset<"line", {}[]>[] {
+  createChartDatasets(signals: SignalGroup, snapshots: Snapshot[]): ChartDataset<'line', {}[]>[] {
     if (!signals) return [this.createSnapshotChartDataset(snapshots)];
-    if (!snapshots) return [...this.createSignalsChartDatasets(signals)]
+    if (!snapshots) return [...this.createSignalsChartDatasets(signals)];
     return [...this.createSignalsChartDatasets(signals), this.createSnapshotChartDataset(snapshots)];
   }
 
   createSnapshotChartDataset(snapshots: Snapshot[]): ChartDataset<'line', {}[]> {
-    let snapshotData = snapshots.filter((snap) => snap.enabled).map(snapshot => {
-      return {
-        x: snapshot.videoTime.getTime(),
-        y: 0,
-        data: snapshot
-      }
-    });
+    let snapshotData = snapshots
+      .filter((snap) => snap.enabled)
+      .map((snapshot) => {
+        return {
+          x: snapshot.videoTime.getTime(),
+          y: 0,
+          data: snapshot,
+        };
+      });
 
-    let data_object: ChartDataset<"line", {}[]> = { data: snapshotData };
+    let data_object: ChartDataset<'line', {}[]> = { data: snapshotData };
     data_object.label = 'Snapshots';
     data_object.borderWidth = 0;
     data_object.pointBorderWidth = 1;
@@ -120,8 +121,8 @@ export class LineChartComponent {
     return data_object;
   }
 
-  createSignalsChartDatasets(signals: SignalGroup): ChartDataset<"line", {}[]>[] {
-    let chartDatasets: ChartDataset<"line", {}[]>[] = [];
+  createSignalsChartDatasets(signals: SignalGroup): ChartDataset<'line', {}[]>[] {
+    let chartDatasets: ChartDataset<'line', {}[]>[] = [];
     let colorPicker = new LineChartColorPicker();
     for (let group of signals.groups) {
       for (let signal of group.signals) {
@@ -137,7 +138,11 @@ export class LineChartComponent {
         let plotName = group.name + ': ' + signal.name;
 
         /**dataset response */
-        let data_object: ChartDataset<"line", {}[]> = { data: signal.values.map((value) => { return { x: value.x.getTime(), y: value.y } }) }
+        let data_object: ChartDataset<'line', {}[]> = {
+          data: signal.values.map((value) => {
+            return { x: value.x.getTime(), y: value.y };
+          }),
+        };
         data_object.label = plotName;
         data_object.borderWidth = 3;
         data_object.pointRadius = 2;
@@ -157,7 +162,8 @@ export class LineChartComponent {
   }
 
   calcMinMaxTimestamp(signalGroup: SignalGroup): [number, number] {
-    let min = Infinity, max = 0;
+    let min = Infinity,
+      max = 0;
     for (let group of signalGroup.groups) {
       let grpMin, grpMax;
       [grpMin, grpMax] = this.calcMinMaxTimestamp(group);
@@ -185,107 +191,106 @@ export class LineChartComponent {
   ngOnInit() {
     Chart.register(zoomPlugin);
 
-    this.chart = new Chart('canvas',
-      {
-        type: 'line',
-        data: { datasets: [] },
-        options: {
-          parsing: false,
-          maintainAspectRatio: false,
-          interaction: {
-            mode: 'index'
-          },
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                displayFormats: {
-                  hour: "HH:mm:ss",
-                  minute: "mm:ss",
-                  second: "mm:ss"
-                },
-                minUnit: "second"
-              }
-            },
-            y: {
-              suggestedMin: 0,
-              suggestedMax: 1
-            }
-          },
-          plugins: {
-            zoom: {
-              pan: {
-                enabled: true,
-                mode: 'x'
+    this.chart = new Chart('canvas', {
+      type: 'line',
+      data: { datasets: [] },
+      options: {
+        parsing: false,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              displayFormats: {
+                hour: 'HH:mm:ss',
+                minute: 'mm:ss',
+                second: 'mm:ss',
               },
-              zoom: {
-                mode: 'x',
-                wheel: {
-                  enabled: true
-                },
-                pinch: {
-                  enabled: true
-                },
-                onZoomComplete: (c) => { this.zoomRangeChange.emit(this.zoomRange) }
-              },
-              limits: {
-                x: {
-                  min: this.minimumTimestamp,
-                  max: this.maximumTimestamp
-                }
-              }
+              minUnit: 'second',
             },
-            tooltip: {
-              callbacks: {
-                title: function (context) {
-                  let title = '';
-                  if (context[0].dataset.label === 'Snapshots') {
-                    title = 'Snapshot at ';
-                  }
-                  let date = new Date(context[0].parsed.x)
-                  if (date.getHours() > 0) {
-                    title += format(date, "HH:mm:ss,SSS")
-                  } else {
-                    title += format(date, "mm:ss,SSS")
-                  }
-                  return title;
-                },
-                label: function (context) {
-                  if (context.dataset.label === 'Snapshots') {
-                    return null;
-                  } else {
-                    return context.dataset.label + ': ' + context.formattedValue;
-                  }
-                },
-                afterBody: function (context) {
-                  if (context[0].dataset.label === 'Snapshots') {
-                    let snapshotObject = context[0].raw['data'];
-                    let snapshotDescription = 'Recorded:\t' + snapshotObject.recordTime.toISOString() + '\n';
-                    snapshotDescription += 'Name:\t' + snapshotObject.name + '\n';
-                    snapshotDescription += 'Frame:\t' + snapshotObject.frame + '\n';
-                    snapshotDescription += 'Click to copy ID to clipboard';
-                    return snapshotDescription;
-                  }
-                }
-              }
-            },
-            legend: {
-              labels: {
-                filter: function (item, chart) {
-                  // Logic to remove a particular legend item goes here
-                  return item.text !== 'Snapshots';
-                }
-              }
-            },
-            decimation: {
+          },
+          y: {
+            suggestedMin: 0,
+            suggestedMax: 1,
+          },
+        },
+        plugins: {
+          zoom: {
+            pan: {
               enabled: true,
-              algorithm: 'lttb'
-            }
-          }
-        }
-      }
-    );
+              mode: 'x',
+            },
+            zoom: {
+              mode: 'x',
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true,
+              },
+              onZoomComplete: (c) => {
+                this.zoomRangeChange.emit(this.zoomRange);
+              },
+            },
+            limits: {
+              x: {
+                min: this.minimumTimestamp,
+                max: this.maximumTimestamp,
+              },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              title: function (context) {
+                let title = '';
+                if (context[0].dataset.label === 'Snapshots') {
+                  title = 'Snapshot at ';
+                }
+                let date = new Date(context[0].parsed.x);
+                if (date.getHours() > 0) {
+                  title += format(date, 'HH:mm:ss,SSS');
+                } else {
+                  title += format(date, 'mm:ss,SSS');
+                }
+                return title;
+              },
+              label: function (context) {
+                if (context.dataset.label === 'Snapshots') {
+                  return null;
+                } else {
+                  return context.dataset.label + ': ' + context.formattedValue;
+                }
+              },
+              afterBody: function (context) {
+                if (context[0].dataset.label === 'Snapshots') {
+                  let snapshotObject = context[0].raw['data'];
+                  let snapshotDescription = 'Recorded:\t' + snapshotObject.recordTime.toISOString() + '\n';
+                  snapshotDescription += 'Name:\t' + snapshotObject.name + '\n';
+                  snapshotDescription += 'Frame:\t' + snapshotObject.frame + '\n';
+                  snapshotDescription += 'Click to copy ID to clipboard';
+                  return snapshotDescription;
+                }
+              },
+            },
+          },
+          legend: {
+            labels: {
+              filter: function (item, chart) {
+                // Logic to remove a particular legend item goes here
+                return item.text !== 'Snapshots';
+              },
+            },
+          },
+          decimation: {
+            enabled: true,
+            algorithm: 'lttb',
+          },
+        },
+      },
+    });
     this.defaultAnimation = this.chart.options.animation;
   }
-
 }

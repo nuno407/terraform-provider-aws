@@ -9,7 +9,6 @@ import { FilterBaseComponent } from '../filter-base/filter-base.component';
   styleUrls: ['./filter-string.component.scss'],
 })
 export class FilterStringComponent extends FilterBaseComponent implements OnInit {
-
   /**Local variables */
   placeholderText = '';
 

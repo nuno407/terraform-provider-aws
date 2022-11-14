@@ -7,12 +7,12 @@ import { environment } from './environments/environment';
 import { Amplify } from 'aws-amplify';
 
 if (environment.name == 'docker') {
-    enableProdMode();
+  enableProdMode();
 }
 
 Amplify.configure({
-      ...environment.amplifyConfig
-    })
+  ...environment.amplifyConfig,
+});
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)

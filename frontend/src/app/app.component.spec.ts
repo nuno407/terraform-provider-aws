@@ -8,15 +8,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { routes } from './app-routing.module';
 
 describe('AppComponent', () => {
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        imports: [RouterTestingModule.withRoutes(routes), NoopAnimationsModule, BciCoreModule.forRoot({ prod_environment: false }), BciLayoutModule],
-        declarations: [AppComponent],
-        providers: [{ provide: TranslateService, useValue: {} }],
-      }).compileComponents();
-    })
-  );
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule.withRoutes(routes), NoopAnimationsModule, BciCoreModule.forRoot({ prod_environment: false }), BciLayoutModule],
+      declarations: [AppComponent],
+      providers: [{ provide: TranslateService, useValue: {} }],
+    }).compileComponents();
+  }));
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);

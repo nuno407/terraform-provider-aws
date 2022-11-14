@@ -5,17 +5,16 @@ import { SignalGroup } from '../../models/parsedSignals';
 @Component({
   selector: 'app-signal-selection',
   templateUrl: './signal-selection.component.html',
-  styleUrls: ['./signal-selection.component.scss']
+  styleUrls: ['./signal-selection.component.scss'],
 })
 export class SignalSelectionComponent {
-
   defaultVisibleSignals = [
     'interior_camera_health_response_cvb',
     'interior_camera_health_response_cve',
     'CameraViewBlocked',
     'CameraVerticalShifted',
-    'Snapshots'
-  ]
+    'Snapshots',
+  ];
 
   @Input()
   signalsToSelect: SignalGroup;
@@ -24,26 +23,26 @@ export class SignalSelectionComponent {
   selectedSignals: EventEmitter<SignalGroup> = new EventEmitter<SignalGroup>();
 
   ngOnChanges(changes: SimpleChanges) {
-    if(changes.signalsToSelect?.currentValue){
+    if (changes.signalsToSelect?.currentValue) {
       this.selectDefault(this.signalsToSelect);
       this.updateSelectedSignals();
     }
   }
 
   selectDefault(group: SignalGroup) {
-    for(let grp of group.groups) {
+    for (let grp of group.groups) {
       this.selectDefault(grp);
     }
-    for(let sig of group.signals) {
+    for (let sig of group.signals) {
       sig.enabled = this.defaultVisibleSignals.includes(sig.name);
     }
   }
 
-  selectAll(group: SignalGroup, value: MatCheckboxChange){
-    for(let grp of group.groups) {
+  selectAll(group: SignalGroup, value: MatCheckboxChange) {
+    for (let grp of group.groups) {
       this.selectAll(grp, value);
     }
-    for(let sig of group.signals) {
+    for (let sig of group.signals) {
       sig.enabled = value.checked;
     }
   }
@@ -61,7 +60,7 @@ export class SignalSelectionComponent {
     let oneOrMoreUnselected = false;
 
     for (let grp of group.groups) {
-      switch(this.getSelected(grp)) {
+      switch (this.getSelected(grp)) {
         case Selection.Some:
           return Selection.Some;
         case Selection.None:
@@ -73,23 +72,26 @@ export class SignalSelectionComponent {
       }
     }
 
-    for(let sig of group.signals){
-      if(sig.enabled) oneOrMoreSelected = true;
+    for (let sig of group.signals) {
+      if (sig.enabled) oneOrMoreSelected = true;
       else oneOrMoreUnselected = true;
     }
 
-    if(oneOrMoreSelected) {
-      if(oneOrMoreUnselected) return Selection.Some;
+    if (oneOrMoreSelected) {
+      if (oneOrMoreUnselected) return Selection.Some;
       else return Selection.All;
     } else {
       return Selection.None;
     }
   }
 
-  updateSelectedSignals(){
+  updateSelectedSignals() {
     this.selectedSignals.emit(this.signalsToSelect);
   }
-
 }
 
-enum Selection {None, Some, All}
+enum Selection {
+  None,
+  Some,
+  All,
+}

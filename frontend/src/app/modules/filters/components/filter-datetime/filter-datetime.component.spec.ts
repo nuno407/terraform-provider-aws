@@ -11,15 +11,13 @@ describe('FilterDatetimeComponent', () => {
   let component: FilterDatetimeComponent;
   let fixture: ComponentFixture<FilterDatetimeComponent>;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [FilterDatetimeComponent],
-        imports: [MatMenuModule, MatIconModule, MatCheckboxModule, TranslateModule.forRoot()],
-        schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      }).compileComponents();
-    })
-  );
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [FilterDatetimeComponent],
+      imports: [MatMenuModule, MatIconModule, MatCheckboxModule, TranslateModule.forRoot()],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FilterDatetimeComponent);
