@@ -1,0 +1,46 @@
+{
+	"folders": [
+		{
+			"path": "./anon_ivschain"
+		},
+		{
+			"path": "./base"
+		},
+		{
+			"path": "./basehandler"
+		},
+		{
+			"path": "./chc_ivschain"
+		},
+		{
+			"path": "./frontend"
+		},
+		{
+			"path": "./MDFParser"
+		},
+		{
+			"path": "./Metadata"
+		},
+		{
+			"path": "./SDM"
+		},
+		{
+			"path": "./SDRetriever"
+		},
+		{
+			"path": "./Selector"
+		},
+		{
+			"path": "./voxel51"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {},
+	"extensions": {
+		"recommendations": [
+			"yzhang.markdown-all-in-one"
+		]
+	}
+}

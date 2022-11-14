@@ -8,6 +8,7 @@ pylint-quotes
 mypy
 pymongo-stubs
 types-pytz
+bandit
 
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai

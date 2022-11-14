@@ -7,6 +7,7 @@ autopep8
 pylint
 pylint-quotes
 mypy
+bandit
 
 # install the app itself
 -e .

@@ -5,6 +5,7 @@ autopep8
 pylint
 pylint-quotes
 mypy
+bandit
 
 -e ../base[testing]
 

@@ -7,7 +7,9 @@ pylint
 pylint-quotes
 mypy
 types-requests
+bandit
 
 -e ../base[testing]
-# install base module
+
+# install the module itself
 -e .

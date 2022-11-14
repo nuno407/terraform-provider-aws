@@ -12,6 +12,7 @@ types-PyYAML == 6.0.12
 types-pytz == 2022.4.0.0
 types-requests
 types-waitress
+bandit
 
 # install the app itself
 -e .

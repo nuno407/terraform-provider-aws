@@ -6,3 +6,7 @@ pylint
 pylint-quotes
 mypy
 types-requests
+bandit
+
+# install the app itself
+-e .
