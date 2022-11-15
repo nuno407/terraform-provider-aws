@@ -26,7 +26,7 @@ def container_services() -> Mock:
     cs.sdr_folder = {"debug": "Debug_Lync/",
                      "fut2": "FUT2/", "driver_pr": "Driver-PR/"}
     cs.get_kinesis_clip = Mock(return_value=(b"These are some video bytes", datetime.fromtimestamp(
-        1657297040802/1000.0), datetime.fromtimestamp(1657297074110/1000.0)))
+        1657297040802 / 1000.0), datetime.fromtimestamp(1657297074110 / 1000.0)))
     cs.sqs_queues_list = {
         "SDM": "dev-terraform-queue-s3-sdm",
         "Anonymize": "dev-terraform-queue-anonymize",
@@ -84,9 +84,9 @@ def msg_interior(metadata_full) -> VideoMessage:
     msg.footagefrom = 1657297040802
     msg.footageto = 1657297074110
     msg.uploadstarted = datetime.fromtimestamp(
-        1657297078505/1000.0)  # 1657297078505
+        1657297078505 / 1000.0)  # 1657297078505
     msg.uploadfinished = datetime.fromtimestamp(
-        1657297083111/1000.0)  # 1657297083111
+        1657297083111 / 1000.0)  # 1657297083111
     msg.messageid = "6a079463-ef6a-4511-99a0-d35b64bc1e80"
     msg.tenant = "datanauts"
     msg.deviceid = "DATANAUTS_DEV_01"
@@ -189,12 +189,16 @@ def msg_snapshot() -> SnapshotMessage:
         "role": "arn:aws:iam::736745337734:role/prod-DevCloud",
         "s3_bucket": "rcc-prod-device-data"
     }
-    chunks = [
-        {"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg",
-            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD", "start_timestamp_ms": 1657642653000, "end_timestamp_ms": 1657642654000, "payload_size": 422576},
-        {"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg",
-            "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD", "start_timestamp_ms": 1657642655000, "end_timestamp_ms": 1657642656000, "payload_size": 455856}
-    ]
+    chunks = [{"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg",
+               "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+               "start_timestamp_ms": 1657642653000,
+               "end_timestamp_ms": 1657642654000,
+               "payload_size": 422576},
+              {"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg",
+               "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+               "start_timestamp_ms": 1657642655000,
+               "end_timestamp_ms": 1657642656000,
+               "payload_size": 455856}]
     msg.chunks = [Chunk(a) for a in chunks]
     return msg
 
