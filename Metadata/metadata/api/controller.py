@@ -5,14 +5,10 @@ import logging
 
 import flask
 import yaml
-from flask import make_response
-from flask import request
+from flask import make_response, request
 from flask_cors import CORS
-from flask_restx import Api
-from flask_restx import Resource
-from flask_restx import fields
-from flask_restx import reqparse
-
+from flask_restx import Api, Resource, fields, reqparse
+from metadata.api.auth import require_auth
 from metadata.api.service import ApiService
 
 _logger = logging.getLogger('metadata_api.' + __name__)
@@ -56,7 +52,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     """Initialize Flask application defined in the controller module.
 
     Args:
-        service (ApiService): ApiService object
+        service (ApiService): ApiService object.
+        enable_authn (bool): enable `Authorization` header JWT verification.
     Returns:
         flask.Flask: initialized flask app with routes registered.
     """
@@ -142,6 +139,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
         @api.expect(video_parser, validate=True)
+        @require_auth
         def get(self, bucket, folder, file):
             """
             Gets the URL of a video file for direct access or embedding as a video stream
@@ -172,6 +170,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(200, 'Success', get_videosignals_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
+        @require_auth
         @api.expect(videosignals_parser, validate=True)
         def get(self, video_id):
             """
@@ -198,6 +197,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(200, 'Success', update_videodescription_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
+        @require_auth
         def put(self, video_id):
             """
             Update description field on Recording.
@@ -229,6 +229,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(200, 'Success', get_tabledata_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
+        @require_auth
         def get(self):
             """
             Gets the recording overview list so it can be viewed in Recording overview table in the Front End
@@ -252,6 +253,7 @@ def init_controller(service: ApiService) -> flask.Flask:
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
+        @require_auth
         def post(self):
             """
             Returns the table items filtered and sorted with custom queries
@@ -378,6 +380,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
         @api.expect(tabledata_parser, validate=True)
+        @require_auth
         def get(self, requested_id):
             """
             Gets the recording for the Recording detail page in the Front End
@@ -409,6 +412,7 @@ def init_controller(service: ApiService) -> flask.Flask:
         @api.response(200, 'Success', get_anonymized_video_url_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
+        @require_auth
         def get(self, recording_id):
             """
             Returns the video URL available for one DB item

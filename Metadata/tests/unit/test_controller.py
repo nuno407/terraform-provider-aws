@@ -1,15 +1,28 @@
 """Test API controller."""
 import json
 import sys
-from unittest.mock import MagicMock
-from unittest.mock import Mock
+from functools import wraps
+from typing import Callable
+from unittest.mock import MagicMock, Mock
 
 import pytest
-from metadata.api.controller import ERROR_400_MSG
-from metadata.api.controller import ERROR_500_MSG
-from metadata.api.controller import init_controller
+from metadata.api.controller import (ERROR_400_MSG, ERROR_500_MSG,
+                                     init_controller)
+from pytest_mock import MockerFixture
 
 sys.modules['api.config'] = MagicMock()
+
+
+def mock_auth(api_method: Callable):
+    @wraps(api_method)
+    def auth_true(*args, **kwargs):
+        return api_method(*args, **kwargs)
+    return auth_true
+
+
+@pytest.fixture(autouse=True)
+def no_auth(mocker: MockerFixture):
+    mocker.patch('metadata.api.controller.require_auth', mock_auth)
 
 
 @pytest.fixture(name='flask_client')

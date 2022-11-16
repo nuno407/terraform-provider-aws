@@ -2,15 +2,16 @@
 import json
 import os
 import sys
-from unittest.mock import MagicMock
-from unittest.mock import Mock
+from functools import wraps
+from typing import Callable
+from unittest.mock import MagicMock, Mock
 
 import mongomock
 import pytest
-from metadata.api import controller
 from metadata.api.controller import init_controller
 from metadata.api.db import Persistence
 from metadata.api.service import ApiService
+from pytest_mock import MockerFixture
 from tests.common import db_tables
 
 sys.modules['api.config'] = MagicMock()
@@ -22,8 +23,7 @@ pipeline_execs = mockdb_client.DataIngestion.pipeline_exec
 algo_outputs = mockdb_client.DataIngestion.algo_output
 persistence = Persistence(None, db_tables, mockdb_client)
 s3mock = MagicMock()
-
-controller.service = ApiService(persistence, s3mock)
+service = ApiService(persistence, s3mock)
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -38,10 +38,21 @@ pipeline_execs.insert_many(testexecs)
 algo_outputs.insert_one(testalgo)
 
 
+def mock_auth(api_method: Callable):
+    @wraps(api_method)
+    def auth_true(*args, **kwargs):
+        return api_method(*args, **kwargs)
+    return auth_true
+
+
+@pytest.fixture(autouse=True)
+def no_auth(mocker: MockerFixture):
+    mocker.patch('metadata.api.controller.require_auth', mock_auth)
+
+
 @pytest.fixture
 def client_mock():
     """Flask mocked client fixture."""
-    service = Mock()
     app = init_controller(service)
     app.testing = True
     with app.test_client() as flask_client:
