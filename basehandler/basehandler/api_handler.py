@@ -94,7 +94,6 @@ class APIHandler():  # pylint: disable=too-few-public-methods
     def __init__(self,
                  endpoint_params: OutputEndpointParameters,
                  callback_blueprint: Blueprint,
-                 message_handler_thread: Thread,
                  endpoint_notifier: OutputEndpointNotifier) -> None:
         """
         Creates an APIHandler that will receive the callback from a processing request to the IVS Feature chain.
@@ -111,7 +110,6 @@ class APIHandler():  # pylint: disable=too-few-public-methods
         self.container_services = endpoint_params.container_services
         self.callback_blueprint = callback_blueprint
         self.mode = endpoint_params.mode
-        self.message_handler_thread = message_handler_thread
         self.endpoint_notifier = endpoint_notifier
 
         app = Flask(__name__)
@@ -130,9 +128,7 @@ class APIHandler():  # pylint: disable=too-few-public-methods
 
         @app.route("/alive", methods=["GET"])
         def handle_alive():
-            if self.message_handler_thread and self.message_handler_thread.is_alive():
-                return flask.Response(status=200, response="Ok")
-            return flask.Response(status=500, response="Message handler thread error")
+            return flask.Response(status=200, response="Ok")
 
         @app.route("/processingerror", methods=["POST"])
         def handle_processing_error():

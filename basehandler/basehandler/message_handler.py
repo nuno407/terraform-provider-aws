@@ -14,6 +14,7 @@ import backoff
 import requests
 from requests.status_codes import codes as status_codes
 
+from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
@@ -440,9 +441,12 @@ class MessageHandler():
             mode (str): IVS feature chain procesing mode.
         """
 
+        graceful_exit = GracefulExit()
+
         _logger.info("Listening to SQS input queue(s)...")
-        while True:
+        while graceful_exit.continue_running:
             self.on_process(mode)
+        _logger.info("Exiting after completion of processing.")
 
 
 def on_backoff_handler(details):

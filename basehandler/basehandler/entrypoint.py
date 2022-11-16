@@ -1,7 +1,7 @@
 """ Entrypoint. """
 import os
 import queue
-import threading
+from multiprocessing import Process
 from typing import Protocol
 
 from flask import Blueprint
@@ -123,18 +123,15 @@ class BaseHandler():
         import basehandler.message_handler as msg_handler  # pylint: disable=import-outside-toplevel
         msg_handler.wait_for_featurechain()
 
-        message_handler_thread = threading.Thread(
-            target=message_handler.start, kwargs={"mode": self.mode})
-
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
-                                 message_handler_thread,
                                  self.endpoint_notifier)
-
-        # This thread will never end
-        # WARNING: possible race-condition if the processing is too fast
-        # and a new message arrive before the Flask app initializes
-        message_handler_thread.start()
-
         output_api = api_handler.create_routes()
-        output_api.run(host="0.0.0.0", port=int(api_port))  # nosec
+        api_thread = Process(target=output_api.run, kwargs={"host": "0.0.0.0", "port": int(api_port)})
+        api_thread.start()
+
+        # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
+        # WARNING: possible race-condition if the processing is too fast
+        # and a new message arrives before the Flask app initializes
+        message_handler.start(mode=self.mode)
+        api_thread.terminate()
