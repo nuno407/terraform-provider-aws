@@ -65,10 +65,8 @@ RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
     && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 
 #
-# Configure shared storage
 #
-# The name of the shared directory in the container that should be
-# volume-mounted by users to persist data loaded into FiftyOne
+# Configure Voxel parameters
 
 ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
