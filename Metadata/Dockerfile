@@ -60,15 +60,6 @@ RUN mkdir ${ROOT_DIR}/db
 
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
-# The Teams client version to install, or "latest"
-#ARG TEAMS_APP_VERSION==0.1.0
-#ARG TEAMS_VERSION==0.8.0
-#RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
-#        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
-#    else \
-#        pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
-#    fi
-
 #
 # Configure Voxel parameters
 
@@ -95,9 +86,20 @@ COPY --chown=1000:3000 ./base /app/base
 COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
 WORKDIR /app/Metadata
 
-# we should add fiftyone registry in order to install Voxel deps
-RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
+# The Teams client version to install, or "latest"
+ARG TEAMS_APP_VERSION==0.10.0
+ARG TEAMS_VERSION==0.18.0
+RUN if [ "${TEAMS_APP_VERSION}" = "latest" ]; then \
+        --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
+        && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app; \
+    else \
+        --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
+        && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}; \
+    fi
+
+#Previous code to install always the latest
+#RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+#&& pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 # Copy application code
 COPY --chown=1000:3000 ./Metadata/metadata/ /app/Metadata/metadata
