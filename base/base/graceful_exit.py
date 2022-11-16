@@ -19,7 +19,7 @@ class GracefulExit:
         self.__continue_running = True
         signal(SIGTERM, self.handle_sigterm)
 
-    def handle_sigterm(self, signum):
+    def handle_sigterm(self, signum, _frame):
         """ Function that handles SIGTERM signal. """
         _logger.critical(
             "Received termination request with signal %s. Trying to shutdown gracefully.",
