@@ -336,7 +336,7 @@ jobs:
           git config --local user.email ${GITHUB_ACTIONS_EMAIL}
           git config --local user.name ${GITHUB_ACTIONS_USER}
           SERVICES=${{ toJson(needs.determine-changed-services.outputs.services) }}
-          git commit \
+          git commit --no-verify \
             -m "[Image Update] Update images to ${NEW_TAG}" \
             -m "Updated services: '${SERVICES}'" \
             -m "Images are using code of Git tag https://github.com/bosch-rc-dev/container_scripts/tree/${NEW_TAG}"
