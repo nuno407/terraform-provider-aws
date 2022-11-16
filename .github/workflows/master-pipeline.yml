@@ -109,7 +109,7 @@ jobs:
     name: Run Python projects tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
-    needs: [list-all-service-directories, lint-python-projects]
+    needs: [list-all-service-directories]
     strategy:
       fail-fast: false
       matrix:
@@ -129,7 +129,7 @@ jobs:
     name: Run Javascript projects tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
-    needs: [list-all-service-directories, lint-javascript-projects]
+    needs: [list-all-service-directories]
     strategy:
       fail-fast: false
       matrix:
