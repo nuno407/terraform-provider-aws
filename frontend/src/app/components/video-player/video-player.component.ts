@@ -92,7 +92,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   url: string;
   public videoSrc: string;
 
-  safeSrc: SafeResourceUrl;
+  safeSrc: SafeResourceUrl = null;
 
   constructor(
     private labelingService: LabelingService,
@@ -205,7 +205,9 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     return this.metaDataApiService.getVideo(this._recording._id).subscribe(
       (data) => {
         this.url = data;
-        this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
+        if (this.url !== null) {
+          this.safeSrc = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(this.url));
+        }
       },
       (error) => {
         console.log('Error ocurred: ', error);
