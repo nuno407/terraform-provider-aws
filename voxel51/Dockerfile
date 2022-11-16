@@ -2,8 +2,6 @@
 
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:ubuntu-20.04
 
-# Your install token
-
 # The Python version to install
 ENV  PYTHON_VERSION=3.9
 
@@ -80,7 +78,7 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     TOKEN=${TOKEN} \
     FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
     FIFTYONE_TEAMS_CLIENT_ID=TJGoiAiTY3OX8qZKJsNzkVgdvxSGvGL0 \
-#    FIFTYONE_DATABASE_NAME=fiftyone-rc \
+#     FIFTYONE_DATABASE_NAME=fiftyone-rc \
     FIFTYONE_DATABASE_ADMIN=true \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
     FIFTYONE_DATABASE_URI=${FIFTYONE_DATABASE_URI} \

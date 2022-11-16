@@ -70,10 +70,7 @@ RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 #    fi
 
 #
-# Configure shared storage
-#
-# The name of the shared directory in the container that should be
-# volume-mounted by users to persist data loaded into FiftyOne
+# Configure Voxel parameters
 
 ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
