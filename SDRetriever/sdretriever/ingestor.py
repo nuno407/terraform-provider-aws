@@ -699,13 +699,10 @@ class MetadataIngestor(Ingestor):
 
         recording_regex = re.compile(r"/hour=[0-9]{2}/(.+\.mp4).*")
 
-        tmp_round_startime = message.uploadstarted - timedelta(seconds=1)
-        tmp_round_endtime = message.uploadfinished + timedelta(seconds=1)
-
         # Search for video and metadata chunks
         for path in mp4_lookup_paths:
             tmp_metadata_chunks, tmp_mp4_chunks = self._search_chunks_in_s3_path(
-                path, bucket, messageid=message.messageid, start_time=tmp_round_startime, end_time=tmp_round_endtime)
+                path, bucket, messageid=message.messageid, start_time=message.uploadstarted, end_time=message.uploadfinished)
 
             # Store only the recording name to ignore the folders before
             tmp_mp4_chunks = [recording_regex.search(
