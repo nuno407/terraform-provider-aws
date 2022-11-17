@@ -87,15 +87,15 @@ COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.tx
 WORKDIR /app/Metadata
 
 # The Teams client version to install, or "latest"
-ARG TEAMS_APP_VERSION=0.10.0
-ARG TEAMS_VERSION=0.18.0
-RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
+#ARG TEAMS_APP_VERSION=0.10.0
+#ARG TEAMS_VERSION=0.18.0
+#RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
+#    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
 
 
-#Previous code to install always the latest
-#RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
-#&& pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
+#Code to install always the latest
+RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+    && pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 # Copy application code
 COPY --chown=1000:3000 ./Metadata/metadata/ /app/Metadata/metadata

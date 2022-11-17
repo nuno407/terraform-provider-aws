@@ -53,14 +53,14 @@ ARG TOKEN
 ARG FIFTYONE_DATABASE_URI
 
 # The Teams client version to install, or "latest"
-ARG TEAMS_APP_VERSION=0.10.0
-ARG TEAMS_VERSION=0.18.0
-RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
-
-#Previous code to install always the latest
+#ARG TEAMS_APP_VERSION=0.10.0
+#ARG TEAMS_VERSION=0.18.0
 #RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-#&& pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app==${TEAMS_APP_VERSION};
+#    && pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
+
+#Code to install always the latest
+RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
+    && pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app==${TEAMS_APP_VERSION};
 
 #
 #
