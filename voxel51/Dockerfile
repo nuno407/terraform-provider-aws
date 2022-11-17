@@ -63,7 +63,7 @@ ARG CACHEBUST=1
 RUN echo "$CACHEBUST"
 
 #Code to install always the latest
-RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) --build-arg CACHEBUST=$(date +%s) \
+RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
     && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
 
 
