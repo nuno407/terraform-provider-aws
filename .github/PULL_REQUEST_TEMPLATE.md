@@ -12,6 +12,5 @@ PR title - <jira-issue>: <subject>
 
 ### Check list
 - [ ] The new code is documented
-<!-- When applicable -->
 - [ ] Tests for the changes have been added
-- [ ] The docupedia page documentation is updated
+- [ ] The docupedia page is updated
