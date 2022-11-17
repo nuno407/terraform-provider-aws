@@ -92,9 +92,12 @@ WORKDIR /app/Metadata
 #RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
 #    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
 
+#Cache correction
+ARG CACHEBUST=1
+RUN echo "$CACHEBUST"
 
 #Code to install always the latest
-RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \
+RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) --build-arg CACHEBUST=$(date +%s) \
     && pip install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 
 # Copy application code

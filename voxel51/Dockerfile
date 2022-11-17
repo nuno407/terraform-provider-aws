@@ -58,11 +58,15 @@ ARG FIFTYONE_DATABASE_URI
 #RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
 #    && pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
 
-#Code to install always the latest
-RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip --no-cache-dir install --index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app==${TEAMS_APP_VERSION};
+#Cache correction
+ARG CACHEBUST=1
+RUN echo "$CACHEBUST"
 
-#
+#Code to install always the latest
+RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) --build-arg CACHEBUST=$(date +%s) \
+    && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
+
+
 #
 # Configure Voxel parameters
 
