@@ -37,16 +37,16 @@ def test_basehandler_creation():
 
 
 @mock.patch("basehandler.entrypoint.APIHandler")
-@mock.patch("basehandler.entrypoint.threading.Thread")
+@mock.patch("basehandler.entrypoint.Process")
 @mock.patch("basehandler.entrypoint.MessageHandler")
 @mock.patch("basehandler.message_handler")
 def test_basehandler_setup_and_run(
         message_handler_module_mock: Mock,
         message_handler_mock: Mock,
-        thread_mock: Mock,
+        process_mock: Mock,
         api_handler_mock: Mock):
     mock_object_message = Mock()
-    mock_object_thread = Mock()
+    mock_object_process = Mock()
     mock_object_api_handler = Mock()
 
     mock_object_output_api_handler = Mock()
@@ -54,14 +54,12 @@ def test_basehandler_setup_and_run(
     message_handler_module_mock.wait_for_featurechain = Mock()
 
     mock_object_message.start = Mock(return_value=True)
-    mock_object_thread.start = Mock(return_value=True)
+    mock_object_process.start = Mock(return_value=True)
     mock_object_api_handler.create_routes = Mock(
         return_value=mock_object_output_api_handler)
 
-    mock_object_output_api_handler.run = Mock(return_value=True)
-
     api_handler_mock.return_value = mock_object_api_handler
-    thread_mock.return_value = mock_object_thread
+    process_mock.return_value = mock_object_process
     message_handler_mock.return_value = mock_object_message
     port = "2000"
 
@@ -73,6 +71,5 @@ def test_basehandler_setup_and_run(
                                MockCallbackEndpointCreator())
 
     base_handler.setup_and_run(port)
-    thread_mock.assert_called()
-    mock_object_thread.start.assert_called()
-    mock_object_output_api_handler.run.assert_called()
+    process_mock.assert_called()
+    mock_object_process.start.assert_called()

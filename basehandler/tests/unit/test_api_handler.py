@@ -45,10 +45,6 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
             if "route_endpoint" in request.param:  # type: ignore
                 args["route_endpoint"] = request.param["route_endpoint"]  # type: ignore
 
-        # Mock Thread
-        mock_object = MagicMock()
-        mock_object.is_alive = Mock(return_value=args["run_message_handler_thread"])
-
         mock_output_notifier = Mock()
         mock_output_notifier.notify_error = Mock(return_value=None)
 
@@ -57,7 +53,6 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
         api_handler = APIHandler(
             output_parameters,
             TestApiHandler._create_callback_blueprint(route_endpoint=args["route_endpoint"]),  # type: ignore
-            mock_object,
             mock_output_notifier)
 
         return api_handler
@@ -106,20 +101,6 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
             # THEN
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("client_api_handler", [dict(run_message_handler_thread=False)], indirect=True)
-    def test_dead_thread_endpoint(self, client_api_handler: APIHandler):
-
-        # GIVEN
-        output_api = client_api_handler.create_routes()
-
-        # WHEN
-        with output_api.test_client() as test_client:
-            response = test_client.get("/alive")
-
-            # THEN
-            print(response.data)
-            assert response.status_code == 500
-            assert response.data == b"Message handler thread error"
 
     @pytest.mark.parametrize("client_api_handler", [dict(route_endpoint="/mock_test")], indirect=True)
     def test_new_endpoint(self, client_api_handler: APIHandler):
