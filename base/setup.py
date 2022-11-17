@@ -19,8 +19,8 @@ extras_require: Dict[str, List[str]] = {
         "mypy_boto3_kinesisvideo"
     ],
     "voxel": [
-        "fiftyone==0.9.2",
-        "fiftyone-teams-app==0.2.2",
+        "fiftyone==0.10.0",
+        "fiftyone-teams-app==0.3.0"
     ],
     # we should use it in the future
     # "monitoring": [
