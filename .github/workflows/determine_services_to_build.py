@@ -43,9 +43,6 @@ def determine_changed_directories():
     if "basehandler" in changed_directories:
         summary("basehandler was changed, building ivschain services")
         changed_directories = add_all_dependant_directories(changed_directories, "basehandler")
-    if "MDFParser" in changed_directories:
-        summary("MDFParser was changed, building ivschain services")
-        changed_directories = add_all_dependant_directories(changed_directories, "MDFParser")
 
     changed_directories = set(changed_directories)
     # Remove directories which don't exist as git diff also lists deleted files
