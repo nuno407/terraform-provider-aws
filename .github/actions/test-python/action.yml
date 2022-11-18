@@ -10,6 +10,10 @@ inputs:
   voxel-pip-registry-token:
     description: Token to use in voxel pip registry
     required: true
+  extra-pytest-args:
+    description: Extra arguments to pass to pytest
+    default: ""
+    required: false
 outputs:
   scan-success:
     description: "Result of the scan"
@@ -45,7 +49,7 @@ runs:
       run: |
         pushd ${{ inputs.baseDir }}
         trap popd EXIT
-        python -m pytest
+        python -m pytest ${{ inputs.extra-pytest-args }}
 
     - name: Fix code coverage paths
       # Necessary step to correct source paths, since sonar scanner works from a Docker container and has a different path structure from github

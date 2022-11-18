@@ -16,7 +16,7 @@ extras_require: Dict[str, List[str]] = {
         "boto3-stubs[s3]",
         "boto3-stubs[sts]",
         "boto3-stubs[kinesisvideo]",
-        "mypy_boto3_kinesisvideo"
+        "boto3-stubs[kinesis-video-archived-media]"
     ],
     "voxel": [
         "fiftyone==0.10.0",

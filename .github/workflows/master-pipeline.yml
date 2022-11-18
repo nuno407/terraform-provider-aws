@@ -47,7 +47,7 @@ jobs:
         uses: ./.github/actions/list-all-service-directories
 
   lint-python-projects:
-    name: Lint Python projects
+    name: Lint Python
     runs-on: ubuntu-latest
     needs: [list-all-service-directories]
     strategy:
@@ -67,7 +67,7 @@ jobs:
 
 
   lint-javascript-projects:
-    name: Lint Javascript projects
+    name: Lint Javascript
     runs-on: ubuntu-latest
     needs: [list-all-service-directories]
     strategy:
@@ -87,7 +87,7 @@ jobs:
           npm-email: ${{ secrets.NPM_EMAIL }}
 
   run-python-sast:
-    name: Run SAST for Python projects
+    name: SAST Python
     runs-on: ubuntu-latest
     if: success() || failure() # making SAST optional for now
     needs: [list-all-service-directories]
@@ -106,7 +106,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
   run-python-tests:
-    name: Run Python projects tests
+    name: Unit tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
     needs: [list-all-service-directories]
@@ -125,8 +125,40 @@ jobs:
           python-version: ${{ matrix.python-version }}
           voxel-pip-registry-token: ${{ secrets.FIFTYONE_TOKEN }}
 
+  run-python-integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    if: success() || failure() # making lint optional for now
+    needs: [list-all-service-directories]
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: sqs,sns,s3
+          DEFAULT_REGION: eu-west-1
+          AWS_ACCESS_KEY_ID: localkey
+          AWS_SECRET_ACCESS_KEY: localsecret
+        ports:
+          - 4566:4566
+          - 4571:4571
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9.12"]
+        service: ${{ fromJSON(needs.list-all-service-directories.outputs.python-directories) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/test-python
+        with:
+          baseDir: ${{ matrix.service }}
+          python-version: ${{ matrix.python-version }}
+          voxel-pip-registry-token: ${{ secrets.FIFTYONE_TOKEN }}
+          extra-pytest-args: -m integration
+
   run-javascript-tests:
-    name: Run Javascript projects tests
+    name: Javascript tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
     needs: [list-all-service-directories]

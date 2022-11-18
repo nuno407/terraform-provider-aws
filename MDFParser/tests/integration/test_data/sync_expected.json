@@ -23,7 +23,7 @@
         "RideInfo_local_startime_ms": 17893463,
         "RideInfo_people_count_after_value": 0,
         "RideInfo_people_count_during_value": 0,
-        "RideInfo_people_count_before_confidence": 1.0,
+        "RideInfo_people_count_before_confidence": 0.975524,
         "RideInfo_people_count_before_value": 1
     },
     "0:00:03":{
