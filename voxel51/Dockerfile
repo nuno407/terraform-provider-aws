@@ -62,9 +62,12 @@ ARG FIFTYONE_DATABASE_URI
 ARG CACHEBUST=1
 RUN echo "$CACHEBUST"
 
+ARG TEAMS_VERSION=0.10.0
+ARG TEAMS_APP_VERSION=0.3.0
+
 #Code to install always the latest
 RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-    && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone fiftyone-teams-app
+    && pip --no-cache-dir install --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION}
 
 
 #
@@ -76,7 +79,6 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATASET_ZOO_DIR=${ROOT_DIR}/zoo/datasets \
     FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
     TOKEN=${TOKEN} \
-    FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
     FIFTYONE_TEAMS_CLIENT_ID=TJGoiAiTY3OX8qZKJsNzkVgdvxSGvGL0 \
 #     FIFTYONE_DATABASE_NAME=fiftyone-rc \
     FIFTYONE_DATABASE_ADMIN=true \
