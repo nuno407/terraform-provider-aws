@@ -4,23 +4,26 @@ import json
 from pathlib import Path
 from typing import Set
 
+
 def summary(text):
     print(text)
     os.environ['GITHUB_STEP_SUMMARY'] = os.environ.get('GITHUB_STEP_SUMMARY', '') + text
 
-def add_all_dependant_directories(changed_directories: Set[str], generic_dirname: str) -> Set[str]:
+
+def add_all_dependant_directories(changed_directories: Set[str], requirement: str) -> Set[str]:
     """
-    iterates over directories searching for Dockerfile's that contains a given generic_dirname string
+    iterates over directories searching for requirements files that contains a given requirement string
     """
     for file in os.scandir(os.getcwd()):
         if file.is_dir():
-            dockerfile = Path(os.path.join(file.path, "Dockerfile"))
-            if dockerfile.is_file():
-                with open(dockerfile) as dockerfile_content:
-                    # If `generic_dirname` is referenced in a service's Dockerfile it depends on it
-                    if generic_dirname in dockerfile_content.read():
+            requirements_file = Path(os.path.join(file.path, "requirements.txt"))
+            if requirements_file.is_file():
+                with open(requirements_file) as requirements_content:
+                    # If requirement is referenced in a service's requirements.txt it depends on it
+                    if f"-e ../{requirement}" in requirements_content.read():
                         changed_directories.add(file.name)
     return changed_directories
+
 
 def determine_changed_directories():
     # Get all changed directories
