@@ -60,7 +60,7 @@ runs:
     - name: Persist ${{ inputs.baseDir }} coverage report
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.baseDir }}-coverage-report
+        name: ${{ inputs.baseDir }}-coverage-report-${{ hashFiles(format('{0}/coverage.xml', inputs.baseDir)) }}
         path: ${{ inputs.baseDir }}/coverage.xml
 
     - name: Mark test status
