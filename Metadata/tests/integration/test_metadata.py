@@ -6,7 +6,7 @@ from unittest.mock import Mock
 from unittest.mock import PropertyMock
 from unittest.mock import call
 
-import metadata.consumer
+import metadata.consumer.main
 import mongomock
 import pytest
 from pytest import fixture
@@ -20,13 +20,13 @@ __location__ = os.path.realpath(
 class TestMain:
     @fixture
     def boto3_mock(self, mocker: MockerFixture):
-        mock = mocker.patch('consumer.main.boto3')
+        mock = mocker.patch('metadata.consumer.main.boto3')
         return mock
 
     @fixture
-    def container_services_mock(self, mocker: MockerFixture, _: Mock) -> Mock:
+    def container_services_mock(self, mocker: MockerFixture) -> Mock:
         container_services_mock = mocker.patch(
-            'main.ContainerServices', autospec=True)
+            'metadata.consumer.main.ContainerServices', autospec=True)
         db_tables_mock = PropertyMock(return_value={
             'recordings': 'recordings',
             'signals': 'signals',
@@ -36,9 +36,9 @@ class TestMain:
         type(container_services_mock.return_value).db_tables = db_tables_mock
         return container_services_mock
 
-    @fixture
+    @fixture(autouse=True)
     def graceful_exit_mock(self, mocker: MockerFixture) -> Mock:
-        graceful_exit_mock = mocker.patch('main.GracefulExit')
+        graceful_exit_mock = mocker.patch('metadata.consumer.main.GracefulExit')
         continue_running_mock = PropertyMock(
             side_effect=[True, True, True, False])
         type(graceful_exit_mock.return_value).continue_running = continue_running_mock
@@ -133,15 +133,13 @@ class TestMain:
 
     @fixture
     def voxel_mock(self, mocker: MockerFixture) -> Tuple[Mock, Mock]:
-        create_dataset_mock = mocker.patch('main.create_dataset')
-        update_sample_mock = mocker.patch('main.update_sample')
+        create_dataset_mock = mocker.patch('metadata.consumer.main.create_dataset')
+        update_sample_mock = mocker.patch('metadata.consumer.main.update_sample')
         return create_dataset_mock, update_sample_mock
 
-    # TODO please fix this test
-    @pytest.mark.skip
+    @pytest.mark.integration
     def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,
-                                        mongomock_fix: Mock, _: Mock,
-                                        input_message_recording, input_message_snapshot_included,
+                                        mongomock_fix: Mock, input_message_recording, input_message_snapshot_included,
                                         input_message_snapshot_excluded, voxel_mock: Tuple[Mock, Mock]):
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
@@ -152,10 +150,7 @@ class TestMain:
         ]
 
         # WHEN
-
-        # This was commented because it was throwing compatibility errors
-        # Need to be fixed later
-        # main.main()
+        metadata.consumer.main.main()
 
         # THEN
         snapshot_included_db_entry = mongomock_fix['recordings'].find_one(
