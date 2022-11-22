@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { UrlTree } from '@angular/router';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { MsalGuard } from '@azure/msal-angular';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -12,10 +14,9 @@ import { AuthService } from './auth.service';
  */
 @Injectable()
 export class AuthGuardService implements CanActivate {
-  constructor(private _router: Router, private _authService: AuthService) {}
+  constructor(private _router: Router, private authService: AuthService, private msalGuard: MsalGuard) {}
 
-  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    // return this._authService.isAuthenticated();
-    return true;
+  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> | boolean {
+    return this.authService.isAuthenticated() || this.msalGuard.canActivate(next, state);
   }
 }

@@ -28,6 +28,8 @@
   "dependencies": {
     "@angular/platform-browser-dynamic": "^14.2.6",
     "@aws-amplify/ui-angular": "^1.0.7",
+    "@azure/msal-angular": "^2.5.0",
+    "@azure/msal-browser": "^2.32.0",
     "@babel/core": "^7.13.0",
     "@bci-web-core/common-styles": "^4.3.0",
     "@bci-web-core/core": "^14.0.3",

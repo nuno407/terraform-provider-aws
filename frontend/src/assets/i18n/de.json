@@ -67,6 +67,8 @@
   },
   "HOME": {
     "languageSelect": "Sprache",
+    "login": "Anmelden",
+    "logout": "Abmelden",
     "imprint": "Impressum",
     "legal": "Lizenzen",
     "legalNotice": "Rechtliche Hinweise",

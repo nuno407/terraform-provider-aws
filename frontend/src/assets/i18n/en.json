@@ -69,6 +69,8 @@
     "languageSelect": "Language",
     "imprint": "Corporate Information",
     "legal": "Licenses",
+    "login": "Login",
+    "logout": "Logout",
     "legalNotice": "Legal Notice",
     "dataProtectionNotice": "Data Protection Notice"
   },

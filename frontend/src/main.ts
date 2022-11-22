@@ -4,15 +4,10 @@ import { applyPolyfills, defineCustomElements } from '@bci-web-core/web-componen
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
-import { Amplify } from 'aws-amplify';
 
 if (environment.name == 'docker') {
   enableProdMode();
 }
-
-Amplify.configure({
-  ...environment.amplifyConfig,
-});
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)

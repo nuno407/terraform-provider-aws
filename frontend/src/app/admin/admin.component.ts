@@ -15,7 +15,8 @@ import { Router } from '@angular/router';
 })
 export class AdminComponent implements OnInit {
   /**Local variables */
-  email: any;
+  username: string;
+  loginError: string;
   title = 'RideCare';
 
   /**Body NavItem */
@@ -49,7 +50,7 @@ export class AdminComponent implements OnInit {
     });
     this.sidebarService.setSidebarState(false);
     this.authService.user$.subscribe((user: User) => {
-      this.email = user?.email ?? '';
+      this.username = user?.name ?? '';
     });
   }
 
@@ -69,7 +70,7 @@ export class AdminComponent implements OnInit {
   }
 
   onLogoutClick() {
-    this.authService.logout().then(() => {
+    this.authService.logout().subscribe(() => {
       this.router.navigate(['/']);
     });
   }
