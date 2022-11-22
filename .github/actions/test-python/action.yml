@@ -1,5 +1,5 @@
-name: Sonarqube Scan
-description: Perform Sonarqube Scan
+name: Python test
+description: Run python tests with pytest
 inputs:
   baseDir:
     description: Path to base directory
@@ -14,10 +14,9 @@ inputs:
     description: Extra arguments to pass to pytest
     default: ""
     required: false
-outputs:
-  scan-success:
-    description: "Result of the scan"
-    value: ${{ steps.quality-gate-check.outputs.quality-gate-status }}
+  mode:
+    description: Mode to distinguish runs (either unit or integration)
+    default: unit
 
 runs:
   using: "composite"
@@ -42,7 +41,7 @@ runs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
 
-    - name: Test ${{ inputs.baseDir }} with pytest
+    - name: Test ${{ inputs.baseDir }} with pytest (${{ inputs.mode }})
       continue-on-error: true
       id: pytest
       shell: bash
@@ -60,7 +59,7 @@ runs:
     - name: Persist ${{ inputs.baseDir }} coverage report
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.baseDir }}-coverage-report-${{ hashFiles(format('{0}/coverage.xml', inputs.baseDir)) }}
+        name: ${{ inputs.baseDir }}-coverage-report-${{ inputs.mode }}
         path: ${{ inputs.baseDir }}/coverage.xml
 
     - name: Mark test status

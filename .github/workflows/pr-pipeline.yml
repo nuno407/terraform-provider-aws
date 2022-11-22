@@ -112,6 +112,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - uses: ./.github/actions/test-python
+        name: Run unit tests
         with:
           baseDir: ${{ matrix.service }}
           python-version: ${{ matrix.python-version }}
@@ -143,11 +144,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - uses: ./.github/actions/test-python
+        name: Run integration tests
         with:
           baseDir: ${{ matrix.service }}
           python-version: ${{ matrix.python-version }}
           voxel-pip-registry-token: ${{ secrets.FIFTYONE_TOKEN }}
           extra-pytest-args: -m integration
+          mode: integration
 
   run-javascript-tests:
     name: Javascript tests
