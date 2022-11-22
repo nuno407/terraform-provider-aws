@@ -1,8 +1,6 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { NONE_TYPE } from '@angular/compiler';
 import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { bool } from 'aws-sdk/clients/signer';
 import { format, subDays } from 'date-fns';
 import { ApiVideoCallService } from 'src/app/core/services/api-video-call.service';
 import { Message } from 'src/app/models/recording-info';
@@ -30,7 +28,7 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   pageSize: number = 20;
   page: number = 1;
   numberOfEntries: number = 1;
-  isLoaded: bool = false;
+  isLoaded: boolean = false;
   error: string;
 
   filterHelpText: string =

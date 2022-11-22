@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import Auth from '@aws-amplify/auth';
 import { Observable } from 'rxjs';
-import { User } from '../components/login/login.interfaces';
+import { AuthService } from './auth.service';
 
 /**
  * Prevent access to routes if access-token is not present.
@@ -13,16 +12,10 @@ import { User } from '../components/login/login.interfaces';
  */
 @Injectable()
 export class AuthGuardService implements CanActivate {
-  constructor(private _router: Router) {}
+  constructor(private _router: Router, private _authService: AuthService) {}
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    return Auth.currentAuthenticatedUser()
-      .then((user: User) => {
-        return true;
-      })
-      .catch(() => {
-        this._router.navigate(['login']);
-        return false;
-      });
+    // return this._authService.isAuthenticated();
+    return true;
   }
 }

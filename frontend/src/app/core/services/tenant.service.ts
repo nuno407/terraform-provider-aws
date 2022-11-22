@@ -1,14 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { User } from '../../components/login/login.interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TenantService {
-  private user = new Subject<User>();
-  user$ = this.user.asObservable();
-
   private activeTenant = new BehaviorSubject('');
   activeTenant$ = this.activeTenant.asObservable();
 
@@ -17,10 +13,6 @@ export class TenantService {
     if (localStorageTenant) {
       this.activeTenant.next(localStorageTenant);
     }
-  }
-
-  updateLoggedInUser(user: User) {
-    this.user.next(user);
   }
 
   updateActiveTenant(tenant: string) {

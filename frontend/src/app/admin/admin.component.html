@@ -15,12 +15,11 @@
       >
       <mat-menu #test="matMenu">
         <a mat-menu-item style="display: flex; align-items: center" (click)="onChangeTenant()">{{ 'TENANT_SELECTION.changeTenant' | translate }}</a>
-        <a mat-menu-item [routerLink]="['/mfa-settings']">MFA Settings</a>
         <a appFilterItem mat-menu-item style="pointer-events: none">{{ 'LANGUAGE.language' | translate }}</a>
         <div appFilterItem mat-menu-item style="background-color: transparent; margin-top: 0">
           <app-language-selector></app-language-selector>
         </div>
-        <button appFilterItem mat-raised-button class="custom-button" (click)="onLogoutClick()">Log Out</button>
+        <button appFilterItem mat-raised-button class="custom-button" (click)="onLogoutClick()" [hidden]="!this.email">Log Out</button>
       </mat-menu>
     </bci-header>
     <div class="content">

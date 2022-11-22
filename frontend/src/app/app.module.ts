@@ -17,7 +17,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { JwtInterceptor } from './auth/jwt.interceptor';
 import { HTTP_INTERCEPTORS, HttpBackend, HttpClient } from '@angular/common/http';
 import { FiltersModule } from './modules/filters/filters.module';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -25,7 +24,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 import { AuthGuardService } from './auth/authguard.service';
 import { TenantService } from './core/services/tenant.service';
-import { LoginComponent } from './components/login/login.component';
+import { AuthService } from './auth/auth.service';
 import { TenantSelectionComponent } from './components/tenant-selection/tenant-selection.component';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
@@ -33,9 +32,6 @@ import { AdminComponent } from './admin/admin.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RecordingOverviewComponent } from './components/recording-overview/recording-overview.component';
 import { RecordingDetailComponent } from './components/recording-detail/recording-detail.component';
-import { MfaComponent } from './components/mfa/mfa.component';
-import { AmplifyUIAngularModule } from '@aws-amplify/ui-angular';
-import { QRCodeModule } from 'angularx-qrcode';
 import { VideoPlayerComponent } from './components/video-player/video-player.component';
 import { NoCommaPipe } from './pipes/no-comma.pipe';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
@@ -56,13 +52,11 @@ export function HttpLoaderFactory(handler: HttpBackend) {
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
     LanguageSelectorComponent,
     TenantSelectionComponent,
     AdminComponent,
     RecordingOverviewComponent,
     RecordingDetailComponent,
-    MfaComponent,
     VideoPlayerComponent,
     NoCommaPipe,
     SidebarComponent,
@@ -104,16 +98,14 @@ export function HttpLoaderFactory(handler: HttpBackend) {
     FiltersModule,
     MatListModule,
     MatTabsModule,
-    AmplifyUIAngularModule,
-    QRCodeModule,
     MatSlideToggleModule,
     MatExpansionModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     AuthGuardService,
     TenantService,
+    AuthService,
     {
       provide: MatDialogRef,
       useValue: {},

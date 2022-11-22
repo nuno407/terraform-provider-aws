@@ -4,7 +4,7 @@ import { LanguageSelectorComponent } from '../components/language-selector/langu
 
 import { BciImprintComponent, ModalWindowService, BreadcrumbsService, SidebarNavItem, BciSidebarService } from '@bci-web-core/core';
 import { TenantSelectionComponent } from '../components/tenant-selection/tenant-selection.component';
-import { Auth } from 'aws-amplify';
+import { AuthService, User } from '../auth/auth.service';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 
@@ -33,7 +33,8 @@ export class AdminComponent implements OnInit {
     private sidebarService: BciSidebarService,
     private router: Router,
     public translateService: TranslateService,
-    public breadcrumbsService: BreadcrumbsService
+    public breadcrumbsService: BreadcrumbsService,
+    public authService: AuthService
   ) {}
 
   /**Aplication state */
@@ -47,8 +48,8 @@ export class AdminComponent implements OnInit {
       this.breadcrumbsService.setNavigationItems(this.sidebarLinks);
     });
     this.sidebarService.setSidebarState(false);
-    Auth.currentUserPoolUser().then((data) => {
-      this.email = data.attributes.email;
+    this.authService.user$.subscribe((user: User) => {
+      this.email = user?.email ?? '';
     });
   }
 
@@ -68,8 +69,8 @@ export class AdminComponent implements OnInit {
   }
 
   onLogoutClick() {
-    Auth.signOut({ global: true }).then(() => {
-      this.router.navigate(['login']);
+    this.authService.logout().then(() => {
+      this.router.navigate(['/']);
     });
   }
 
