@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 
 import pytest
-from metadata.api.db import Persistence
+
 from metadata.api.service import ApiService
 
 db = MagicMock()

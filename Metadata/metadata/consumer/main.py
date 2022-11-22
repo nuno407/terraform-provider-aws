@@ -2,34 +2,28 @@
 import json
 import os
 import re
-from datetime import datetime
-from datetime import timedelta
-from typing import Optional
-from typing import Tuple
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
 
 import boto3
 import pytimeparse
 import pytz
-from pymongo.collection import Collection
-from pymongo.collection import ReturnDocument
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
+                                       UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult,
+                                    MalformedRecordingEntry)
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.db import Persistence
+from metadata.consumer.service import RelatedMediaService
+from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
-from base.constants import IMAGE_FORMATS
-from base.constants import VIDEO_FORMATS
-from base.voxel.voxel_functions import create_dataset
-from base.voxel.voxel_functions import update_sample
-from metadata.common.constants import AWS_REGION
-from metadata.common.constants import TIME_FORMAT
-from metadata.common.constants import UNKNOWN_FILE_FORMAT_MESSAGE
-from metadata.common.errors import EmptyDocumentQueryResult
-from metadata.common.errors import MalformedRecordingEntry
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.db import Persistence
-from metadata.consumer.service import RelatedMediaService
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from base.voxel.voxel_functions import create_dataset, update_sample
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container

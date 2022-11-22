@@ -37,20 +37,13 @@ def update_sample(data_set, sample_info):
     _logger.info("sample_info: %s !", sample_info)
 
     for (i, j) in sample_info.items():
-        #print (i)
         if i == "algorithms":
             continue
         if i.startswith("_") or i.startswith("filepath"):
             i = "ivs" + i
         sample[i] = j
 
-    #  Full create FiftyOne Sample object
-    #
-    #     filepath = sample_info["s3_path"]
-    #     sample = fo.Sample(filepath=filepath)
-    #
-    #     # Parse and populate labels and metadata on sample
-
+    # Parse and populate labels and metadata on sample
     if "recording_overview" in sample_info:
         for (key, value) in sample_info.get("recording_overview").items():
             if key.startswith("_"):
@@ -64,7 +57,6 @@ def update_sample(data_set, sample_info):
 
         if "time" in sample["recording_overview"]:
             time = sample["recording_overview"]["time"]
-            #sample.update({"recording_time": datetime.strptime(time, "%Y-%m-%d %H:%M:%S")})
             sample["recording_time"] = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
             sample["Hour"] = sample["recording_time"].strftime("%H")
             sample["Day"] = sample["recording_time"].strftime("%d")
@@ -76,8 +68,6 @@ def update_sample(data_set, sample_info):
     else:
         _logger.info("No items in recording overview")
         _logger.info(sample_info.get("recording_overview"))
-
-    #_logger.info("sample: %s !", sample)
 
     # Add sample to dataset
     sample.save()
