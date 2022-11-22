@@ -8,7 +8,7 @@ PyYaml >= 5.3.1
 requests >= 2.28.0
 waitress >= 2.0.0
 werkzeug == 2.1.2
-cognitojwt[sync] >= 1.4.1
+jose == 1.0.0
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 -e ../base[aws,voxel]
