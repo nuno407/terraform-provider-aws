@@ -60,23 +60,28 @@ def mock_jwt_get_unverified_header(mocker: MockerFixture) -> Mock:
     return mocker.patch("metadata.api.auth.jwt.get_unverified_header")
 
 
+MOCK_REQUEST_GET_PATCH_PATH = "metadata.api.auth.requests.get"
+
+
 @pytest.fixture
 def mock_requests_get(mocker: MockerFixture) -> Mock:
     """mock requests.get"""
-    return mocker.patch("metadata.api.auth.requests.get")
+    return mocker.patch(MOCK_REQUEST_GET_PATCH_PATH)
 
 
 @pytest.fixture
-def mock_jwks_response_json_decode_error(mock_requests_get: Mock) -> Mock:
+def mock_jwks_response_json_decode_error(mocker: MockerFixture) -> Mock:
     """mock jwt.decode exception"""
-    mock_requests_get.json = Mock(side_effect=JSONDecodeError("Error parsing JWKS response", r"{}", 0))
-    return mock_requests_get
+    class MockedResponse():
+        def json(self):
+            raise JSONDecodeError("Error parsing JWKS response", r"{}", 0)
+    return mocker.patch(MOCK_REQUEST_GET_PATCH_PATH, return_value=MockedResponse())
 
 
 @pytest.fixture
 def mock_jwks_response_timeout_error(mocker: MockerFixture) -> Mock:
     """mock request.get timeout exception"""
-    return mocker.patch("metadata.api.auth.requests.get",
+    return mocker.patch(MOCK_REQUEST_GET_PATCH_PATH,
                         side_effect=requests.Timeout('HTTP GET Timeout'))
 
 
@@ -130,7 +135,7 @@ def test_auth_fail_no_header(
 @pytest.mark.unit
 def test_auth_fail_get_jwks_timeout(
         test_client: FlaskClient,
-        mock_jwks_response_timeout_error: Mock,
+        mock_jwks_response_timeout_error: Mock,  # pylint: disable=unused-argument
         mock_jwt_get_unverified_header: Mock):
     """Failed error timeout on HTTP GET jwks url test case."""
     mock_jwt_get_unverified_header.return_value = {"kid": TEST_KID}
@@ -142,8 +147,8 @@ def test_auth_fail_get_jwks_timeout(
 @pytest.mark.unit
 def test_auth_fail_decode_jwks_json_error(
         test_client: FlaskClient,
-        mock_jwks_response_json_decode_error: Mock,
-        mock_jwt_get_unverified_header: Mock):
+        mock_jwt_get_unverified_header: Mock,
+        mock_jwks_response_json_decode_error: Mock):  # pylint: disable=unused-argument
     """Failed error decoding jwks response JSON test case."""
     mock_jwt_get_unverified_header.return_value = {"kid": TEST_KID}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})

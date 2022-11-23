@@ -71,7 +71,7 @@ def _get_rsa_key(access_token: str) -> dict[str, Any]:
         dict[str, Any]: the JWKS pubkey for the kid in given token header
     """
     unverified_token_header = jwt.get_unverified_header(access_token)
-    jwks_response = requests.get(AZURE_ISS_JWKS_URL, timeout=int(JWKS_REQ_TIMEOUT))
+    jwks_response: requests.Response = requests.get(AZURE_ISS_JWKS_URL, timeout=int(JWKS_REQ_TIMEOUT))
     jwks = jwks_response.json()
     pub_keys = [key for key in jwks["keys"] if key["kid"] == unverified_token_header["kid"]]
     if len(pub_keys):
