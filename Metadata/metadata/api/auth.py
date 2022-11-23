@@ -46,9 +46,6 @@ def _get_token_from_header(header_value: str):
     Returns:
         str: raw JWT token
     """
-    if not header_value:
-        raise AuthenticationError("Authorization header not provided")
-
     parts = header_value.split("Bearer ")
     if len(parts) < 2 or parts[1] == "":
         raise AuthenticationError("Authorization header invalid format")
