@@ -6,6 +6,7 @@ autopep8
 pylint
 pylint-quotes
 mypy
+types-urllib3
 bandit
 
 # install the app itself

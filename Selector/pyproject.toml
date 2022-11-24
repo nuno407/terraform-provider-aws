@@ -21,6 +21,8 @@ recursive = true
 load-plugins = [
     "pylint_quotes",
 ]
+# We need to include base path in pylint config
+init-hook = "import sys; sys.path.append('../base');"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
@@ -30,6 +32,7 @@ max-line-length = 120
 string-quote = "double"
 triple-quote = "double"
 docstring-quote = "double"
+
 
 [tool.mypy]
 files = [
