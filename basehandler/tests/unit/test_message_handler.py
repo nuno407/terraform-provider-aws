@@ -2,7 +2,7 @@
 import json
 import queue
 import typing
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 import pytest
 import requests
@@ -14,8 +14,7 @@ from base.testing.mock_functions import (QUEUE_MOCK_LIST,
 from basehandler.message_handler import (InternalMessage, MessageHandler,
                                          NOOPPostProcessor, OperationalMessage,
                                          ProcessingOutOfSyncException,
-                                         RequestProcessingFailed)
-
+                                         RequestProcessingFailed, FileIsEmptyException, IVS_FC_HOSTNAME, IVS_FC_MAX_WAIT)
 
 class TestMessageHandler():
     """TestMessageHandler class.
@@ -608,3 +607,70 @@ class TestMessageHandler():
                 message_handler_fix.handle_incoming_message.assert_called_with(
                     sqs_queue_message, "chc")
                 message_handler_fix._MessageHandler__container_services.delete_message.assert_not_called()  # pylint: disable=protected-access
+
+    @pytest.fixture
+    def logger_fixture(self, mocker: MockFixture) -> Mock:
+        return mocker.patch("basehandler.message_handler._logger")
+
+    def test_request_processing_with_exception(self, message_handler_fix: Mock, logger_fixture: Mock):
+        """Test request processing with an exception.
+
+        Args:
+            message_handler_fix (MessageHandler): message handler fixture
+        """
+        requests.post = Mock(side_effect=Exception)
+
+        body_json = """
+        {
+            "s3_path" : "video_raw_test.mp4"
+        }
+        """
+        logger_fixture.exception = Mock()
+
+        with pytest.raises(Exception):
+            message_handler_fix.request_processing(body_json, "chc")
+            logger_fixture.exception.assert_called_once()
+
+    def test_request_processing_file_is_empty_error(self, message_handler_fix: Mock, logger_fixture: Mock):
+        """Tests requesting with empty raw_file.
+
+        Args:
+            message_handler_fix (MessageHandler): message handler fixture
+        """
+
+        body_json = """
+        {
+            "s3_path" : "video-raw-8956486794654.mp4"
+        }
+        """
+        logger_fixture.warning = Mock()
+        message_handler_fix._MessageHandler__container_services.download_file = Mock(return_value=None)
+        message_handler_fix._MessageHandler__container_services.delete_message = Mock()
+
+        with pytest.raises(FileIsEmptyException):
+            message_handler_fix.request_processing(body_json, "anon")
+            logger_fixture.warning.assert_called_once()
+            message_handler_fix._MessageHandler__container_services.delete_message.assert_called_once()
+
+        """Test start consumer method
+
+        Args:
+            message_handler_fix (Mock): message handler fixture
+        """
+    def test_start(self, message_handler_fix: Mock, logger_fixture: Mock, mocker: MockFixture):
+        """Test start consumer method
+
+        Args:
+            message_handler_fix (Mock): message handler fixture
+            logger_fixture (Mock): logger mock
+            mocker (MockFixture): mocker helper
+        """
+        request_post_mock = mocker.patch("basehandler.message_handler.requests.post")
+        message_handler_fix._MessageHandler__container_services.ivs_api["port"] = 2222
+
+        message_handler_fix.consumer_loop = Mock()
+        logger_fixture.info = Mock()
+
+        message_handler_fix.start('chc')
+        request_post_mock.assert_any_call(f"http://{IVS_FC_HOSTNAME}:{2222}/shutdown", timeout=IVS_FC_MAX_WAIT)
+        logger_fixture.info.assert_called()

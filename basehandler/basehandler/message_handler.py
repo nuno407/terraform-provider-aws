@@ -445,20 +445,29 @@ class MessageHandler():
 
     def start(self, mode: str) -> None:
         """
-        Main consumer loop function
+        Setup graceful exit, start main consumer loop function and request shutdown on exit
 
         Args:
             mode (str): IVS feature chain procesing mode.
         """
-
         graceful_exit = GracefulExit()
-
         _logger.info("Listening to SQS input queue(s)...")
-        while graceful_exit.continue_running:
-            self.on_process(mode)
+        self.consumer_loop(mode, graceful_exit)
         _logger.info("Requesting IVS feature chain shutdown...")
         self._request_shutdown()
         _logger.info("Exiting after completion of processing.")
+
+    def consumer_loop(self, mode: str, graceful_exit: GracefulExit):
+        """consumer_loop.
+
+        Main consumer loop function.
+
+        Args:
+            mode (str): _description_
+            graceful_exit (GracefulExit): _description_
+        """
+        while graceful_exit.continue_running:
+            self.on_process(mode)
 
 
 def on_backoff_handler(details):
