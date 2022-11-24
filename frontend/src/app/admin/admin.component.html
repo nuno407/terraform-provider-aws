@@ -11,20 +11,20 @@
       </mat-menu>
       <a class="header-link" appFilterItem style="padding-right: 2rem" [routerLink]> <mat-icon fontIcon="bosch-ic-keys-user-access"></mat-icon></a>
       <a class="header-link" appFilterItem style="padding-right: 2rem" [routerLink] [matMenuTriggerFor]="test">
-        <mat-icon style="padding-right: 8px" fontIcon="bosch-ic-user"></mat-icon> <span class="mobile">{{ username }}</span></a
-      >
+        <mat-icon style="padding-right: 8px" fontIcon="bosch-ic-user"></mat-icon> <span class="mobile">{{ username }}</span>
+      </a>
       <mat-menu #test="matMenu">
         <a mat-menu-item style="display: flex; align-items: center" (click)="onChangeTenant()">{{ 'TENANT_SELECTION.changeTenant' | translate }}</a>
         <a appFilterItem mat-menu-item style="pointer-events: none">{{ 'LANGUAGE.language' | translate }}</a>
         <div appFilterItem mat-menu-item style="background-color: transparent; margin-top: 0">
           <app-language-selector></app-language-selector>
         </div>
-        <button appFilterItem mat-raised-button class="custom-button" (click)="onLogoutClick()" [hidden]="!authService.isAuthenticated()">{{ 'HOME.logout' | translate }}</button>
+        <button appFilterItem mat-raised-button class="custom-button" (click)="onLogoutClick()" [hidden]="!isAuthenticated">{{ 'HOME.logout' | translate }}</button>
       </mat-menu>
     </bci-header>
     <div class="content">
-      <router-outlet [hidden]="!authService.isAuthenticated()"></router-outlet>
-      <div [hidden]="authService.isAuthenticated()">
+      <router-outlet [hidden]="!isAuthenticated"></router-outlet>
+      <div [hidden]="isAuthenticated">
         <div class="login-error" [hidden]="!loginError">Login error:<br>{{loginError}}</div>
         <button appFilterItem mat-raised-button class="custom-button" routerLink="recording-overview">{{ 'HOME.login' | translate }}</button>
       </div>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { LanguageSelectorComponent } from '../components/language-selector/language-selector.component';
-
+import { Subscription } from 'rxjs';
 import { BciImprintComponent, ModalWindowService, BreadcrumbsService, SidebarNavItem, BciSidebarService } from '@bci-web-core/core';
 import { TenantSelectionComponent } from '../components/tenant-selection/tenant-selection.component';
 import { AuthService, User } from '../auth/auth.service';
@@ -18,6 +18,10 @@ export class AdminComponent implements OnInit {
   username: string;
   loginError: string;
   title = 'RideCare';
+  isAuthenticated: boolean;
+
+  userSubscription: Subscription;
+  translateSubscription: Subscription;
 
   /**Body NavItem */
   recordingOverviewItem: SidebarNavItem = {
@@ -43,15 +47,23 @@ export class AdminComponent implements OnInit {
     this.titleService.setTitle(this.title);
     const language = localStorage.getItem('lang') ? localStorage.getItem('lang') : this.translateService.getBrowserLang().slice(0, 2);
     this.translateService.use(language.match(/en|de/) ? language : 'en');
-    this.translateService.onLangChange.subscribe((event: LangChangeEvent) => {
+
+    this.translateSubscription = this.translateService.onLangChange.subscribe((event: LangChangeEvent) => {
       localStorage.setItem('lang', event.lang);
       this.getTranslations();
       this.breadcrumbsService.setNavigationItems(this.sidebarLinks);
     });
     this.sidebarService.setSidebarState(false);
-    this.authService.user$.subscribe((user: User) => {
+
+    this.userSubscription = this.authService.onUserChanged().subscribe((user: User) => {
       this.username = user?.name ?? '';
+      this.isAuthenticated = user ? true : false;
     });
+  }
+
+  ngOnDestroy() {
+    this.userSubscription.unsubscribe();
+    this.translateSubscription.unsubscribe();
   }
 
   private getTranslations() {

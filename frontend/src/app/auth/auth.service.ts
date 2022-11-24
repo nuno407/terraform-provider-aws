@@ -6,34 +6,38 @@ import { AccountInfo, EventMessage, EventType, AuthenticationResult } from '@azu
 @Injectable()
 export class AuthService {
   private user = new BehaviorSubject<User>(undefined);
-  user$ = this.user.asObservable();
 
   constructor(private msalBroadcastService: MsalBroadcastService, private msalService: MsalService) {
     this.user.next(this.toUser(this.msalService.instance.getAllAccounts()[0]));
 
     msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) =>
-          [EventType.LOGIN_SUCCESS, EventType.ACQUIRE_TOKEN_SUCCESS, EventType.SSO_SILENT_SUCCESS, EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS].includes(
-            msg.eventType
-          )
-        ),
-        map((msg: EventMessage) => (<AuthenticationResult>msg.payload).account), //NOSONAR
+        filter((msg: EventMessage) => [EventType.LOGIN_SUCCESS].includes(msg.eventType)),
+        map((result: EventMessage) => {
+          const payload = result.payload as AuthenticationResult;
+          this.msalService.instance.setActiveAccount(payload.account);
+          return payload.account;
+        }),
         map(this.toUser)
       )
-      .subscribe(this.user.next);
+      .subscribe((user: User) => {
+        this.user.next(user);
+      });
   }
 
   private toUser(user: AccountInfo): User {
-    if (!user) return undefined;
+    if (!user) {
+      return undefined;
+    }
+
     return {
       name: user.name,
       email: user.username,
     };
   }
 
-  isAuthenticated(): boolean {
-    return !!this.user.value;
+  onUserChanged(): Observable<User> {
+    return this.user.asObservable();
   }
 
   logout(): Observable<void> {

@@ -4,9 +4,9 @@ import { environment } from '../../environments/environment';
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
-  environment.protectedRoutes.forEach((route) =>{
+  environment.protectedRoutes.forEach((route) => {
     protectedResourceMap.set(route, [`api://${environment.msalConfig.auth.clientId}/access`]);
-  })
+  });
   return {
     interactionType: InteractionType.Redirect,
     protectedResourceMap,

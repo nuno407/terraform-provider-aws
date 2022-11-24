@@ -4,20 +4,21 @@
     // Environment variables
     window["env"]["environmentName"] = "docker";
     window["env"]["api"] = "${API_URL}";
-
     // Azure OAuth configuration
     let msalConfig = {
       auth: {
-          clientId: "${AZURE_CLIENT_ID}",
-          authority: "${AZURE_AUTHORITY}",
-          redirectUri: '/',
+        clientId: "${AZURE_CLIENT_ID}",
+        authority: "${AZURE_AUTHORITY}",
+        redirectUri: '/',
       },
       cache: {
-          cacheLocation: "localStorage",
-          storeAuthStateInCookie: false,
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: false,
       },
-  };
+    };
 
+    let protectedRoutes = ['/api/*']
+    window["env"]["protectedRoutes"] = protectedRoutes
     window["env"]["msalConfig"] = msalConfig;
 
   })(this);

@@ -17,7 +17,9 @@ export class TenantSelectionComponent implements OnInit {
   constructor(private _matDialogRef: MatDialogRef<TenantSelectionComponent>, public tenantService: TenantService, public router: Router) {}
 
   /**Aplication state */
-  ngOnInit(): void {} // eslint-disable-line no-empty-lifecycle-method
+  ngOnInit(): void {
+    console.log('selected tenant:', this.selectedTenant);
+  }
 
   selectTenant() {
     this.tenantService.updateActiveTenant(this.selectedTenant);

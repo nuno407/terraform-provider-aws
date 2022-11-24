@@ -5,7 +5,7 @@ import { msalConfig } from '../assets/azure/oauth-config-dev';
 
 export const environment = {
   name: 'dev',
-  api: 'http://localhost:5000/',
+  api: 'http://localhost:7777/',
   protectedRoutes: ['/*'],
   msalConfig: msalConfig,
 };
