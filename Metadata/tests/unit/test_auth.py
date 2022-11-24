@@ -108,7 +108,7 @@ def test_auth_successful(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scope": "access"}
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scp": "access"}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 200
@@ -125,7 +125,7 @@ def test_auth_successful_multiscope(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scope": "access foobar"}
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scp": "access foobar"}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 200
@@ -215,7 +215,7 @@ def test_auth_fail_missing_scope(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": "foobar", "scope": ""}
+    mock_jwtdecode.return_value = {"iss": "foobar", "scp": ""}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 401
@@ -232,7 +232,7 @@ def test_auth_fail_unknown_scope(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": "foobar", "scope": "foo"}
+    mock_jwtdecode.return_value = {"iss": "foobar", "scp": "foo"}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 401
