@@ -14,13 +14,14 @@ from requests import JSONDecodeError
 
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
-AZURE_ISS_BASE = "https://login.microsoftonline.com"
-AZURE_ISS_URL = f"{AZURE_ISS_BASE}/{AZURE_TENANT_ID}"
-AZURE_ISS_JWKS_URL = f"{AZURE_ISS_URL}/discovery/v2.0/keys"
 JWKS_REQ_TIMEOUT = os.environ.get("REQUEST_TIMEOUT", 1000)
+REQUIRED_SCOPES = os.environ.get("REQUIRED_SCOPES", "access")
+AZURE_OIDC_BASE_URL = os.environ.get("AZURE_OIDC_BASE_URL", "https://login.microsoftonline.com")
+AZURE_OIDC_URL = f"{AZURE_OIDC_BASE_URL}/{AZURE_TENANT_ID}"
+AZURE_OIDC_JWKS_URL = f"{AZURE_OIDC_URL}/discovery/v2.0/keys"
+AZURE_ISS_URL = f"{AZURE_OIDC_BASE_URL}/{AZURE_TENANT_ID}/v2.0"
 
 _logger: logging.Logger = logging.getLogger(__name__)
-
 
 class AuthenticationError(Exception):
     """AuthenticationError.
@@ -68,7 +69,7 @@ def _get_rsa_key(access_token: str) -> dict[str, Any]:
         dict[str, Any]: the JWKS pubkey for the kid in given token header
     """
     unverified_token_header = jwt.get_unverified_header(access_token)
-    jwks_response: requests.Response = requests.get(AZURE_ISS_JWKS_URL, timeout=int(JWKS_REQ_TIMEOUT))
+    jwks_response: requests.Response = requests.get(AZURE_OIDC_JWKS_URL, timeout=int(JWKS_REQ_TIMEOUT))
     jwks = jwks_response.json()
     pub_keys = [key for key in jwks["keys"] if key["kid"] == unverified_token_header["kid"]]
     if len(pub_keys):
@@ -110,7 +111,7 @@ def require_auth(api_method: Callable):
                 audience=AZURE_CLIENT_ID,
                 issuer=AZURE_ISS_URL
             )
-            if AZURE_ISS_URL not in token_claims["iss"]:
+            if any([scp not in token_claims["scope"] for scp in REQUIRED_SCOPES.split(' ')]):
                 abort(401)
 
             return api_method(*args, **kwargs)

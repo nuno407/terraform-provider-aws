@@ -9,7 +9,7 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from jose.exceptions import JWTError
-from metadata.api.auth import AZURE_ISS_BASE
+from metadata.api.auth import AZURE_OIDC_BASE_URL
 from pytest_mock import MockerFixture
 from requests import JSONDecodeError
 
@@ -24,7 +24,7 @@ TEST_JWKS = {"keys": [{"kty": "RSA",
                        "n": "oaLLT9hkcSj",
                        "e": "AQAB",
                        "x5c": ["MIIDBTCCAe2gAwIBAgIQN33ROaIJ6b"],
-                       "issuer":f"{AZURE_ISS_BASE}/{TEST_TENANT_ID}/v2.0"},
+                       "issuer":f"{AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"},
                       {"kty": "RSA",
                        "use": "sig",
                        "kid": "l3sQ-50cCH4xBVZLHYXZ",
@@ -32,7 +32,7 @@ TEST_JWKS = {"keys": [{"kty": "RSA",
                        "n": "sfsXMXWuO-d",
                        "e": "AQAB",
                        "x5c": ["MIIDBTCCAe2gAwIBAgIQWPB1ofOpA7"],
-                       "issuer":f"{AZURE_ISS_BASE}/{TEST_TENANT_ID}/v2.0"}]}
+                       "issuer":f"{AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"}]}
 
 
 @pytest.fixture
@@ -108,12 +108,28 @@ def test_auth_successful(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_ISS_URL}
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scope": "access"}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 200
     assert response.data == b"test"
 
+@pytest.mark.unit
+def test_auth_successful_multiscope(
+        test_client: FlaskClient,
+        mock_requests_get: Mock,
+        mock_jwt_get_unverified_header: Mock,
+        mock_jwtdecode: Mock):
+    """Successful test case."""
+    mock_jwt_get_unverified_header.return_value = {"kid": TEST_KID}
+    jwks_response = Mock()
+    mock_requests_get.return_value = jwks_response
+    jwks_response.json = Mock(return_value=TEST_JWKS)
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL, "scope": "access foobar"}
+    response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
+
+    assert response.status_code == 200
+    assert response.data == b"test"
 
 @pytest.mark.unit
 def test_auth_fail_no_header(
@@ -126,7 +142,7 @@ def test_auth_fail_no_header(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_ISS_URL}
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL}
     response = test_client.get(TEST_ENDPOINT, headers={})
 
     assert response.status_code == 401
@@ -167,7 +183,7 @@ def test_auth_fail_basic_auth(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_ISS_URL}
+    mock_jwtdecode.return_value = {"iss": metadata.api.auth.AZURE_OIDC_URL}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": "Basic dXNlcjpwYXNz"})
 
     assert response.status_code == 401
@@ -189,7 +205,7 @@ def test_auth_fail_kid_not_found(
 
 
 @pytest.mark.unit
-def test_auth_fail_wrong_issuer(
+def test_auth_fail_missing_scope(
         test_client: FlaskClient,
         mock_requests_get: Mock,
         mock_jwt_get_unverified_header: Mock,
@@ -199,11 +215,27 @@ def test_auth_fail_wrong_issuer(
     jwks_response = Mock()
     mock_requests_get.return_value = jwks_response
     jwks_response.json = Mock(return_value=TEST_JWKS)
-    mock_jwtdecode.return_value = {"iss": "foobar"}
+    mock_jwtdecode.return_value = {"iss": "foobar", "scope": ""}
     response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
 
     assert response.status_code == 401
 
+
+@pytest.mark.unit
+def test_auth_fail_unknown_scope(
+        test_client: FlaskClient,
+        mock_requests_get: Mock,
+        mock_jwt_get_unverified_header: Mock,
+        mock_jwtdecode: Mock):
+    """Failed wrong iss claim test case."""
+    mock_jwt_get_unverified_header.return_value = {"kid": TEST_KID}
+    jwks_response = Mock()
+    mock_requests_get.return_value = jwks_response
+    jwks_response.json = Mock(return_value=TEST_JWKS)
+    mock_jwtdecode.return_value = {"iss": "foobar", "scope": "foo"}
+    response = test_client.get(TEST_ENDPOINT, headers={"Authorization": TEST_AUTHORIZATION_HEADER})
+
+    assert response.status_code == 401
 
 @pytest.mark.unit
 def test_auth_fail_invalid_jwt_signature(
