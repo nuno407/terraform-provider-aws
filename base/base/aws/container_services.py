@@ -420,7 +420,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
     def get_message_body(message):
         body_string = message.get("Body")
         if body_string:
-            body = json.loads(body_string.replace("\"", "\""))
+            body = json.loads(body_string.replace("'", "\""))
             return body
         return None
 
