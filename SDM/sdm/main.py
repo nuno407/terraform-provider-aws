@@ -78,7 +78,7 @@ def processing_sdm(container_services, sqs_message):
 
     # Identify the file in the message
     file_metadata = identify_file(s3_path)
-    msp, file_name, file_format = file_metadata.msp, file_metadata.filename, file_format
+    msp, file_name, file_format = file_metadata.msp, file_metadata.filename, file_metadata.file_format
 
     # if somehting went wrong with the file parsing
     if msp is None or file_name is None or file_format is None:
