@@ -1,39 +1,51 @@
 """SDM container script"""
 import json
 import boto3
+from typing import Optional
+from dataclasses import dataclass
 from base.aws.container_services import ContainerServices
+from pathlib import Path
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
 VIDEO_FORMATS = ['mp4','avi']
 IMAGE_FORMATS = ['jpeg','jpg','png']
+MINIMUM_LENGTH = 4              # Minimum length allowed a/b.c
 
 _logger = ContainerServices.configure_logging('sdm')
 
-def identify_file(s3_path: str) -> tuple:
+
+
+@dataclass
+class FileMetadata():
+    msp: Optional[str]
+    filename: Optional[str]
+    file_format: Optional[str]
+
+def identify_file(s3_path: str) -> FileMetadata:
+
     """Identifies properties for S3 paths.
 
     Args:
         s3_path (str): S3 full path to be parsed
 
     Returns:
-        tuple: (msp, file_name, file_format)
-
+        FileMetadata: object containing file metadata
     """
-    if len(s3_path)<4:
-        return None, None, None
-    try:
-        msp, file_name = s3_path.split('/')
-        # If key_value split fails, the file is stored outside the providers folders
-        # so we must skip it
-    except:
-        msp = None
+    if len(s3_path)<MINIMUM_LENGTH:
+        return FileMetadata(None, None, None)
+
+    pathlib_s3 = Path(s3_path)
+    file_format = pathlib_s3.suffix if pathlib_s3.suffix != '' else None
+    msp = None
+    if s3_path.find('/') > 0:
+        msp = str(pathlib_s3.parent)
+
+        file_name = pathlib_s3.name
+    else:
         file_name = s3_path
-    try:
-        file_format = file_name.split('.')[-1]
-    except:
-        file_format = None
-    return msp, file_name, file_format
+
+    return FileMetadata(msp, file_name, file_format)
 
 
 def processing_sdm(container_services, sqs_message):
@@ -65,7 +77,8 @@ def processing_sdm(container_services, sqs_message):
     s3_path = sqs_body["Records"][0]["s3"]["object"]["key"]
 
     # Identify the file in the message
-    msp, file_name, file_format = identify_file(s3_path)
+    file_metadata = identify_file(s3_path)
+    msp, file_name, file_format = file_metadata.msp, file_metadata.filename, file_format
 
     # if somehting went wrong with the file parsing
     if msp is None or file_name is None or file_format is None:
