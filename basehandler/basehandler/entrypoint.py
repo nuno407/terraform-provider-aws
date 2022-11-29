@@ -127,7 +127,7 @@ class BaseHandler():
                                  self.callback_blueprint,
                                  self.endpoint_notifier)
         output_api = api_handler.create_routes()
-        api_thread = Process(target=output_api.run, kwargs={"host": "0.0.0.0", "port": int(api_port)})
+        api_thread = Process(target=output_api.run, kwargs={"host": "0.0.0.0", "port": int(api_port)}) # nosec this is as intended
         api_thread.start()
 
         # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
