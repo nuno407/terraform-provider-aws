@@ -56,7 +56,6 @@ ENV ROOT_DIR=/fiftyone
 
 # Correction, so that Voxel doesn't break if the DB is already populated
 RUN mkdir ${ROOT_DIR}/db
-#RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
 RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 
@@ -67,17 +66,10 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DATABASE_DIR=${ROOT_DIR}/db \
     FIFTYONE_DEFAULT_DATASET_DIR=${ROOT_DIR}/default \
     FIFTYONE_DATASET_ZOO_DIR=${ROOT_DIR}/zoo/datasets \
-    FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
-#    FIFTYONE_DATABASE_NAME=fiftyone-rc \
     TOKEN=${TOKEN} \
-    FIFTYONE_TEAMS_ORGANIZATION=org_rir9rpZD8xHZSqet \
-    FIFTYONE_TEAMS_CLIENT_ID=TJGoiAiTY3OX8qZKJsNzkVgdvxSGvGL0 \
     FIFTYONE_DATABASE_ADMIN=true \
     FIFTYONE_MODEL_ZOO_DIR=${ROOT_DIR}/zoo/models \
     FIFTYONE_DATABASE_VALIDATION=false
-
-
-##### END Voxel51 code
 
 # Add base library
 COPY --chown=1000:3000 ./base /app/base
@@ -85,16 +77,6 @@ COPY --chown=1000:3000 ./base /app/base
 # Copy requirements.txt
 COPY --chown=1000:3000 ./Metadata/requirements.txt /app/Metadata/requirements.txt
 WORKDIR /app/Metadata
-
-# The Teams client version to install, or "latest"
-#ARG TEAMS_APP_VERSION=0.10.0
-#ARG TEAMS_VERSION=0.18.0
-#RUN --mount=type=secret,id=voxel51token TOKEN=$(cat /run/secrets/voxel51token) \
-#    && pip --no-cache-dir install -r requirements.txt --extra-index-url https://${TOKEN}@pypi.fiftyone.ai fiftyone==${TEAMS_VERSION} fiftyone-teams-app==${TEAMS_APP_VERSION};
-
-#Cache correction
-ARG CACHEBUST=1
-RUN echo "$CACHEBUST"
 
 #Code to install always the latest
 RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) \

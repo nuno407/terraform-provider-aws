@@ -52,11 +52,6 @@ RUN pip --no-cache-dir install --upgrade pip setuptools wheel ipython
 ARG TOKEN
 ARG FIFTYONE_DATABASE_URI
 
-
-#Cache correction
-ARG CACHEBUST=1
-RUN echo "$CACHEBUST"
-
 ARG TEAMS_VERSION=0.10.0
 ARG TEAMS_APP_VERSION=0.3.0
 
@@ -75,15 +70,10 @@ ENV FIFTYONE_MEDIA_CACHE_DIR=${ROOT_DIR}/cache \
     FIFTYONE_DEFAULT_APP_ADDRESS="0.0.0.0" \
     FIFTYONE_DATABASE_VALIDATION=false
 
-RUN echo $FIFTYONE_DATABASE_URI
-
-#Copy startup file
+# Copy startup file
 COPY voxel51/config/src/ /fiftyone/
 
 # Correction, so that Voxel doesn't break if the DB is already populated
 RUN mkdir ${ROOT_DIR}/db
-#RUN echo '{"version": "0.14.3"}' > ${ROOT_DIR}/db/config.json
 
-##### END Voxel51 code
-CMD python /fiftyone/FiftyOne-EKS-datasetLync.py
-#CMD python /usr/local/lib/python/dist-packages/fiftyone/server/main.py --port 5151
+CMD hypercorn fiftyone.teams.app:app --bind 0.0.0.0:5151
