@@ -37,10 +37,17 @@
 			"path": "."
 		}
 	],
-	"settings": {},
+	"settings": {
+        "python.languageServer": "Pylance",
+        "python.analysis.extraPaths": [
+            "../base",
+            "../basehandler"
+        ],
+	},
 	"extensions": {
 		"recommendations": [
-			"yzhang.markdown-all-in-one"
+			"yzhang.markdown-all-in-one",
+            "ms-python.vscode-pylance"
 		]
 	}
 }
