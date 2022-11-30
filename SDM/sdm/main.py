@@ -8,12 +8,11 @@ from pathlib import Path
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
-VIDEO_FORMATS = ['mp4','avi']
-IMAGE_FORMATS = ['jpeg','jpg','png']
+VIDEO_FORMATS = ['mp4', 'avi']
+IMAGE_FORMATS = ['jpeg', 'jpg', 'png']
 MINIMUM_LENGTH = 4              # Minimum length allowed a/b.c
 
 _logger = ContainerServices.configure_logging('sdm')
-
 
 
 @dataclass
@@ -22,8 +21,8 @@ class FileMetadata():
     filename: Optional[str]
     file_format: Optional[str]
 
-def identify_file(s3_path: str) -> FileMetadata:
 
+def identify_file(s3_path: str) -> FileMetadata:
     """Identifies properties for S3 paths.
 
     Args:
@@ -32,11 +31,11 @@ def identify_file(s3_path: str) -> FileMetadata:
     Returns:
         FileMetadata: object containing file metadata
     """
-    if len(s3_path)<MINIMUM_LENGTH:
+    if len(s3_path) < MINIMUM_LENGTH:
         return FileMetadata(None, None, None)
 
     pathlib_s3 = Path(s3_path)
-    file_format = pathlib_s3.suffix if pathlib_s3.suffix != '' else None
+    file_format = pathlib_s3.suffix.strip(".") if pathlib_s3.suffix != '' else None
     msp = None
     if s3_path.find('/') > 0:
         msp = str(pathlib_s3.parent)
@@ -48,15 +47,15 @@ def identify_file(s3_path: str) -> FileMetadata:
     return FileMetadata(msp, file_name, file_format)
 
 
-def processing_sdm(container_services, sqs_message):
+def processing_sdm(container_services, sqs_client, sqs_message):
     """Retrieves the MSP name from the message received and creates
     a relay list for the current file
 
     Arguments:
         container_services {base.aws.container_services.ContainerServices}
                             -- [class containing the shared aws functions]
-        body {string} -- [string containing the body info from
-                          the received message]
+        body {dict} -- [dict with the sqs message triggered by the s3 event
+                            in the anon bucket]
     Returns:
         relay_data {dict} -- [dict with the relevant info for the file received
                             and to be sent via message to the input queues
@@ -69,7 +68,7 @@ def processing_sdm(container_services, sqs_message):
     sqs_body = json.loads(new_body)
 
     # Ignore s3:TestEvent
-    if sqs_body.get("Event") == "s3:TestEvent" :
+    if sqs_body.get("Event") == "s3:TestEvent":
         _logger.info("SQS message is a s3:TestEvent")
         return relay_data
 
@@ -103,12 +102,10 @@ def processing_sdm(container_services, sqs_message):
         container_services.display_processed_msg(relay_data["s3_path"])
 
     elif file_format in IMAGE_FORMATS:
-        """ Snapshot processing will only need to go through one stage - anonymization
-        because both anony & CHC call upon the same transforming algorithms.
-        CHC just generates the json?
-
-        The processing is the same right now, but it might make sense to make it just anonymization for speedup
-        """
+        # Snapshot processing will only need to go through one stage - anonymization
+        # because both anony & CHC call upon the same transforming algorithms.
+        # CHC just generates the json?
+        # The processing is the same right now, but it might make sense to make it just anonymization for speedup
 
         _logger.info("Processing snapshot message..")
         # Creates relay list to be used by other containers
@@ -120,18 +117,32 @@ def processing_sdm(container_services, sqs_message):
         container_services.display_processed_msg(relay_data["s3_path"])
 
     elif file_format in container_services.raw_s3_ignore:
-        _logger.warning("File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.", file_name, file_format)
+        _logger.warning(
+            "File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.",
+            file_name,
+            file_format)
 
     else:
         _logger.warning("File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
 
+    # If file received is valid
+    if relay_data:
+
+        # Send message to input queue of the next processing step
+        # (if applicable)
+        if relay_data["processing_steps"]:
+            next_step = relay_data["processing_steps"][0]
+            next_queue = container_services.sqs_queues_list[next_step]
+            container_services.send_message(sqs_client, next_queue, relay_data)
+
+        # Send message to input queue of metadata container
+        metadata_queue = container_services.sqs_queues_list["Metadata"]
+        container_services.send_message(sqs_client, metadata_queue, relay_data)
+
     return relay_data
 
 
-def log_message(message, queue=CONTAINER_NAME):
-    _logger.info("Message contents from %s: [%s]", queue, message)
-
-def main():
+def main(stop_condition=lambda: True):
     """Main function"""
 
     # Define configuration for logging messages
@@ -149,30 +160,16 @@ def main():
 
     _logger.info("\nListening to input queue(s)..\n\n")
 
-    while(True):
+    while stop_condition():
         # Check input SQS queue for new messages
         sqs_message = container_services.listen_to_input_queue(sqs_client)
 
         if sqs_message:
             # save some messages as examples for development
-            log_message(sqs_message)
+            _logger.info("Message contents from %s: [%s]", CONTAINER_NAME, sqs_message)
 
             # Processing step
-            relay_list = processing_sdm(container_services, sqs_message)
-
-            # If file received is valid
-            if relay_list:
-
-                # Send message to input queue of the next processing step
-                # (if applicable)
-                if relay_list["processing_steps"]:
-                    next_step = relay_list["processing_steps"][0]
-                    next_queue = container_services.sqs_queues_list[next_step]
-                    container_services.send_message(sqs_client, next_queue, relay_list)
-
-                # Send message to input queue of metadata container
-                metadata_queue = container_services.sqs_queues_list["Metadata"]
-                container_services.send_message(sqs_client, metadata_queue, relay_list)
+            processing_sdm(container_services, sqs_client, sqs_message)
 
             # Delete message after processing
             container_services.delete_message(sqs_client, sqs_message['ReceiptHandle'])
