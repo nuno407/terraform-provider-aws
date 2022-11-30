@@ -39,7 +39,8 @@ class ChcSynchronizer:
             'Finished downloading CHC results from %s/%s', bucket, key)
         return data
 
-    def synchronize(self, chc_output: dict, video_length: timedelta) -> Dict[timedelta, Dict[str, Union[bool, float, int]]]:
+    def synchronize(self, chc_output: dict,
+                    video_length: timedelta) -> Dict[timedelta, Dict[str, Union[bool, float, int]]]:
         """Synchronize CHC metadata with video timestamps.
 
         Args:
@@ -55,10 +56,12 @@ class ChcSynchronizer:
         _logger.debug('Calculated a framerate of %f FPS', actual_fps)
         if not isclose(actual_fps, EXPECTED_FPS, abs_tol=0.1):
             _logger.warning(
-                'FPS mismatch when synchronizing CHC data: Actual FPS is %f instead of the expected %f', actual_fps, EXPECTED_FPS)
+                'FPS mismatch when synchronizing CHC data: Actual FPS is %f instead of the expected %f',
+                actual_fps,
+                EXPECTED_FPS)
 
         sync_frames = {}
-        frame_offset = video_length/len(frames)
+        frame_offset = video_length / len(frames)
         for frame_number, frame in enumerate(frames):
             sync_frames[frame_number *
                         frame_offset] = self.__get_frame_signals(frame)

@@ -8,7 +8,6 @@ import pytest
 
 from metadata.api.service import ApiService
 
-db = MagicMock()
 s3 = MagicMock()
 db = MagicMock()
 service = ApiService(db, s3)
@@ -116,7 +115,8 @@ def read_and_parse_test_data(filepath: str) -> dict:
         },
      'test_data/table_data_expected_filtered_sorted.json'),
 ])
-def test_get_table_data(aggregation_result_path: str, get_table_kwargs: Tuple[str, dict, str], expected_result_path: str):
+def test_get_table_data(aggregation_result_path: str,
+                        get_table_kwargs: Tuple[str, dict, str], expected_result_path: str):
     aggregation_result = read_and_parse_test_data(aggregation_result_path)
     db.get_recording_list = Mock(return_value=(aggregation_result, 1, 1))
 

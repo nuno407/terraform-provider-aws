@@ -1,3 +1,5 @@
+import json
+
 """A place for common fixture parameters."""
 
 db_tables = {'recordings': 'recordings',
