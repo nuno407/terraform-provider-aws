@@ -1,8 +1,8 @@
 """ Entrypoint. """
 import os
-import queue
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from typing import Protocol
+import logging
 
 from flask import Blueprint
 
@@ -14,6 +14,8 @@ from basehandler.message_handler import (InternalMessage, MessageHandler,
                                          NOOPPostProcessor, PostProcessor)
 
 INTERNAL_QUEUE_MAX_SIZE = int(os.getenv("INTERNAL_QUEUE_MAX_SIZE", "1"))
+
+_logger = logging.getLogger(__name__)
 
 
 class CallbackBlueprintCreator(Protocol):  # pylint: disable=too-few-public-methods
@@ -74,7 +76,7 @@ class BaseHandler():
         self.container_services.load_config_vars(aws_clients.s3_client)
         self.validate_container_services_config()
 
-        internal_queue: queue.Queue[InternalMessage] = queue.Queue(
+        internal_queue: Queue[InternalMessage] = Queue(
             maxsize=int(INTERNAL_QUEUE_MAX_SIZE))
         self.endpoint_params = OutputEndpointParameters(
             self.container_services,
@@ -127,11 +129,17 @@ class BaseHandler():
                                  self.callback_blueprint,
                                  self.endpoint_notifier)
         output_api = api_handler.create_routes()
-        api_thread = Process(target=output_api.run, kwargs={"host": "0.0.0.0", "port": int(api_port)}) # nosec this is as intended
-        api_thread.start()
+
+        current_pid = os.getpid()
+        parent_pid = os.getppid()
+        _logger.debug("Current PID [%s] Parent PID [%s]", current_pid, parent_pid)
+        api_process = Process(target=output_api.run,
+                              kwargs={"host": "0.0.0.0", "port": int(api_port)})  # nosec this is as intended
+        _logger.info("Starting api child process")
+        api_process.start()
 
         # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
         # WARNING: possible race-condition if the processing is too fast
         # and a new message arrives before the Flask app initializes
         message_handler.start(mode=self.mode)
-        api_thread.terminate()
+        api_process.terminate()

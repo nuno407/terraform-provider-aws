@@ -1,7 +1,8 @@
 """ Entry Module that wraps IVS Chain models. """
+from __future__ import annotations
+import os
 import logging
-import queue
-from threading import Thread
+from multiprocessing import Queue
 
 import flask
 from flask import Blueprint, Flask
@@ -10,6 +11,8 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.message_handler import ErrorMessage, InternalMessage
 
+_logger = logging.getLogger(__name__)
+
 
 class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
     """ OutputEndpointParameters """
@@ -17,7 +20,7 @@ class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
     def __init__(self, container_services: ContainerServices,
                  mode: str,
                  aws_clients: AWSServiceClients,
-                 internal_queue: queue.Queue[InternalMessage] = queue.Queue(
+                 internal_queue: Queue = Queue(
                      maxsize=1),
                  ) -> None:
         """
@@ -77,7 +80,12 @@ class OutputEndpointNotifier():
         # Set status to OK
         internal_message.status = InternalMessage.Status.OK
 
-        # Send message to input queue of metadata container
+        # Notify message_handler that a response was received from ivsfc
+        # and output upload to S3 is done
+        current_pid = os.getpid()
+        parent_pid = os.getppid()
+        _logger.debug("PID [%s] PARENT PID [%s] notify message_handler from child process: %s",
+                      current_pid, parent_pid, internal_message.status.name)
         self.internal_queue.put(internal_message)
 
 

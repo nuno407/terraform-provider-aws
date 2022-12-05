@@ -1,8 +1,8 @@
 """Test message handler."""
 import json
-import queue
+from multiprocessing import Queue
 import typing
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 import pytest
 import requests
@@ -11,10 +11,17 @@ from pytest_mock import MockFixture
 from base.aws.shared_functions import AWSServiceClients
 from base.testing.mock_functions import (QUEUE_MOCK_LIST,
                                          get_container_services_mock)
-from basehandler.message_handler import (InternalMessage, MessageHandler,
-                                         NOOPPostProcessor, OperationalMessage,
-                                         ProcessingOutOfSyncException,
-                                         RequestProcessingFailed, FileIsEmptyException, IVS_FC_HOSTNAME, IVS_FC_MAX_WAIT)
+from basehandler.message_handler import (
+    InternalMessage,
+    MessageHandler,
+    NOOPPostProcessor,
+    OperationalMessage,
+    ProcessingOutOfSyncException,
+    RequestProcessingFailed,
+    FileIsEmptyException,
+    IVS_FC_HOSTNAME,
+    IVS_FC_MAX_WAIT)
+
 
 class TestMessageHandler():
     """TestMessageHandler class.
@@ -29,7 +36,7 @@ class TestMessageHandler():
             "container_services": get_container_services_mock(),
             "consumer_name": "mock",
             "aws_clients": AWSServiceClients("mock_sqs", "mock_s3"),
-            "internal_queue": queue.Queue(),
+            "internal_queue": Queue(),
             "post_processor": NOOPPostProcessor()
         }
 
@@ -657,6 +664,7 @@ class TestMessageHandler():
         Args:
             message_handler_fix (Mock): message handler fixture
         """
+
     def test_start(self, message_handler_fix: Mock, logger_fixture: Mock, mocker: MockFixture):
         """Test start consumer method
 

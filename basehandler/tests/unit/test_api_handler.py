@@ -1,7 +1,7 @@
 """ Test API Handler. """
-import queue
+from multiprocessing import Queue
 from typing import Dict
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import flask
 import pytest
@@ -61,8 +61,9 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
     def client_output_notifier(self) -> OutputEndpointNotifier:
 
         # Create clients
-        output_parameters = OutputEndpointParameters(get_container_services_mock(), "mock",
-                                                     AWSServiceClients("mock_sqs", "mock_s3"), queue.Queue())
+        output_parameters = OutputEndpointParameters(
+            get_container_services_mock(), "mock", AWSServiceClients(
+                "mock_sqs", "mock_s3"), Queue())
         output_notifier = OutputEndpointNotifier(output_parameters)
 
         return output_notifier
@@ -100,7 +101,6 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
 
             # THEN
             assert response.status_code == 200
-
 
     @pytest.mark.parametrize("client_api_handler", [dict(route_endpoint="/mock_test")], indirect=True)
     def test_new_endpoint(self, client_api_handler: APIHandler):
