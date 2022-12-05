@@ -14,6 +14,7 @@ services:
       CONFIG_S3: ${CONFIG_S3:-local-rcd-config-files}
       LOGLEVEL: DEBUG
       AWS_ENDPOINT: http://mockaws:4566
+      MOCKED_FC_RESPONSE: "True"
       # localstack doesn't care
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
@@ -55,14 +56,13 @@ services:
       - http://chc-handler:5000/
       - -o
       - /tmp/video_storage
+      # mocked mode
+      - -m
+      - "True"
       # old images do not support -q argument
       - -q
       - "1"
-    # this image needs GPU and CUDA
-    # image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:22.07.experimental
-    # this old image below should work without GPU and CUDA, ivs fc should fallback to CPU
-    # image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:26467184d3e6c45c229895b30c898cdbd253b901
-    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:onnx.cpu.fallback
+    image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/ivs-feature-chain:23.11.22.dev.cpu
     environment:
       QUEUE_LENGTH: "1"
       RESPONSE_ENDPOINT: http://chc-handler:5000/

@@ -1,14 +1,16 @@
+import logging
 import os
 import subprocess  # nosec
 from subprocess import CalledProcessError  # nosec
 
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
-from base.constants import IMAGE_FORMATS
-from base.constants import VIDEO_FORMATS
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from basehandler.message_handler import OperationalMessage
 
-_logger = ContainerServices.configure_logging('AnonymizePostProcessor')
+_logger: logging.Logger = ContainerServices.configure_logging("AnonymizePostProcessor")
+
+MOCKED_FC_RESPONSE = bool(os.environ.get("MOCKED_FC_RESPONSE", False))
 
 
 class AnonymizePostProcessor():
@@ -64,7 +66,14 @@ class AnonymizePostProcessor():
                                           "faststart", "-c:v", "copy", self.OUTPUT_NAME])
 
                 _logger.info('Starting ffmpeg process')
-                subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')  # nosec
+                if MOCKED_FC_RESPONSE:
+                    _logger.info(ffmpeg_command)
+                    with open(self.INPUT_NAME, "rb") as input_file:
+                        input_file_content = input_file.read()
+                    with open(self.OUTPUT_NAME, "wb") as output_file:
+                        output_file.write(input_file_content)
+                else:
+                    subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')  # nosec
 
                 _logger.info("Conversion complete!")
 

@@ -11,7 +11,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.message_handler import ErrorMessage, InternalMessage
 
-_logger = logging.getLogger(__name__)
+_logger: logging.Logger = ContainerServices.configure_logging('basehandler')
 
 
 class OutputEndpointParameters():  # pylint: disable=too-few-public-methods

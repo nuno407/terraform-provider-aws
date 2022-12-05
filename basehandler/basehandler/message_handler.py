@@ -19,7 +19,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
-_logger = logging.getLogger(__name__)
+_logger: logging.Logger = ContainerServices.configure_logging('basehandler')
 
 # defaults to 10h
 INTERNAL_QUEUE_TIMEOUT = float(os.getenv("INTERNAL_QUEUE_TIMEOUT", "36000"))
@@ -240,7 +240,7 @@ class MessageHandler():
         _logger.info("Response: %s", response.text)
         return response.status_code == status_codes.ok  # pylint: disable=no-member
 
-    def _request_shutdown(self)-> None:
+    def _request_shutdown(self) -> None:
         """
         Request shutdown of the IVS feature chain
         """
