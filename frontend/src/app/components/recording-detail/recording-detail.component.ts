@@ -2,11 +2,10 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { fromEvent } from 'rxjs';
-import { map, takeUntil, throttleTime } from 'rxjs/operators';
+import { takeUntil, throttleTime } from 'rxjs/operators';
 import { FPS } from 'src/app/constants';
 import { ApiVideoCallService } from 'src/app/core/services/api-video-call.service';
-import { Message, RecordingInfo, RootObject } from 'src/app/models/recording-info';
-import { FilterDataSource } from 'src/app/modules/filters/models/filter-data-source';
+import { Message, RootObject } from 'src/app/models/recording-info';
 
 @Component({
   selector: 'app-recording-detail',

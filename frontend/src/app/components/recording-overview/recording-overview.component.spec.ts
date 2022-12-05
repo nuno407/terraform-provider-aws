@@ -4,6 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { RecordingOverviewComponent } from './recording-overview.component';
+import { HttpClientModule } from '@angular/common/http';
+import { MatDialogModule } from '@angular/material/dialog';
 
 describe('RecordingOverviewComponent', () => {
   let component: RecordingOverviewComponent;
@@ -12,7 +14,7 @@ describe('RecordingOverviewComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RecordingOverviewComponent],
-      imports: [RouterTestingModule, TranslateModule.forRoot(), ScrollingModule],
+      imports: [RouterTestingModule, TranslateModule.forRoot(), ScrollingModule, HttpClientModule, MatDialogModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });

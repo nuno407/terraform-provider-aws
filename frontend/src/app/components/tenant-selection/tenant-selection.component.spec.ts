@@ -4,7 +4,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import Auth from '@aws-amplify/auth';
 import { TenantService } from 'src/app/core/services/tenant.service';
 
 class TenantServiceStub {
@@ -18,19 +17,6 @@ describe('TenantSelectionComponent', () => {
   const dialogMock = {
     close: () => {},
   };
-
-  beforeEach(() => {
-    let user = {
-      username: 'bosch',
-      signInUserSession: {
-        accessToken: {
-          payload: {},
-        },
-      },
-    };
-    user.signInUserSession.accessToken.payload['cognito:groups'] = ['TEST_TENANT'];
-    Auth.currentAuthenticatedUser = jasmine.createSpy().and.returnValue(Promise.resolve(user));
-  });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -54,10 +40,10 @@ describe('TenantSelectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize the tenants', async () => {
+  it('should initialize the tenants with undefined content', async () => {
     await fixture.whenStable();
-    expect(component.tenants).toEqual(['TEST_TENANT']);
-    expect(component.selectedTenant).toEqual('TEST_TENANT');
+    expect(component.tenants).toEqual([]);
+    expect(component.selectedTenant).toBeUndefined();
   });
 
   it('should select a tenant', () => {

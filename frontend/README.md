@@ -14,6 +14,16 @@ To start a dev server run `npm run start`. It will automatically detect changes 
 
 Those script / command definitions can be found in the `package.json`.
 
+## How to run the tests locally
+
+To run the tests please do:
+
+`npm run test-headless`
+
+Please note that if you are under `WSL` you should have chrome (installation steps [here](https://scottspence.com/posts/use-chrome-in-ubuntu-wsl)) installed. and then set the `CHROME_BIN` variable.
+
+`CHROME_BIN=/usr/bin/google-chrome npm run test-headless`
+
 # Deployment
 
 For a deployment in a docker environment, e.g. Kubernetes or docker compose, the Dockerfile build needs to be executed first.

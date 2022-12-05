@@ -1,0 +1,65 @@
+name: Test Javascript
+description: Performs testing in a Javascript Project
+inputs:
+  baseDir:
+    description: Path to base directory
+    required: true
+  node-version:
+    description: Node version
+    required: true
+  npm-registry:
+    description: NPM registry
+    required: true
+  npm-auth:
+    description: NPM auth
+    required: true
+  npm-email:
+    description: NPM email
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "npm"
+        cache-dependency-path: '**/package-lock.json'
+        always-auth: true
+    - name: Setup auth in npm
+      env:
+        NPM_REGISTRY: ${{ inputs.npm-registry }}
+        NPM_AUTH: ${{ inputs.npm-auth }}
+        NPM_EMAIL: ${{ inputs.npm-email }}
+      shell: bash
+      run: |
+        npm config set registry $NPM_REGISTRY
+        npm config set _auth $NPM_AUTH
+        npm config set email $NPM_EMAIL
+    - name: Install npm dependencies ${{ inputs.baseDir }}
+      shell: bash
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        npm ci
+    - name: Run tests for ${{ inputs.baseDir }}
+      shell: bash
+      continue-on-error: true
+      run: |
+        trap popd EXIT
+        pushd ${{ inputs.baseDir }}
+        npm run test-headless
+
+    - name: Fix code coverage paths
+      # Necessary step to correct source paths, since sonar scanner works from a Docker container and has a different path structure from github
+      shell: bash
+      run: |
+        mv ${{ inputs.baseDir }}/coverage/ridecare-operator-webportal/cobertura-coverage.xml ${{ inputs.BaseDir }}/coverage.xml
+        sed -i 's/\/home\/runner\/work\/container_scripts\/container_scripts\//\/github\/workspace\//g' ${{ inputs.baseDir }}/coverage.xml
+
+    - name: Persist ${{ inputs.baseDir }} coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.baseDir }}-coverage-report-unit
+        path: ${{ inputs.baseDir }}/coverage.xml

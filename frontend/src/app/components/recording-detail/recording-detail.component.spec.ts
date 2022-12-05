@@ -4,6 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { RecordingDetailComponent } from './recording-detail.component';
+import { HttpClientModule } from '@angular/common/http';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 describe('RecordingDetailComponent', () => {
   let component: RecordingDetailComponent;
@@ -12,7 +14,7 @@ describe('RecordingDetailComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RecordingDetailComponent],
-      imports: [RouterTestingModule, TranslateModule.forRoot()],
+      imports: [RouterTestingModule, TranslateModule.forRoot(), HttpClientModule, MatDialogModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -24,6 +26,11 @@ describe('RecordingDetailComponent', () => {
             },
           },
         },
+        {
+          provide: MatDialogRef,
+          useValue: {},
+        },
+        { provide: MAT_DIALOG_DATA, useValue: {} },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();

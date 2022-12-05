@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ChartDataset } from 'chart.js';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
@@ -13,7 +13,7 @@ import { LineChartColorPicker } from '../../shared/LineChartColorPicker';
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.scss'],
 })
-export class LineChartComponent {
+export class LineChartComponent implements OnInit {
   @Input() fps: number;
 
   _snapshots: Snapshot[];

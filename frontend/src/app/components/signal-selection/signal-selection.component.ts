@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { SignalGroup } from '../../models/parsedSignals';
 
@@ -7,7 +7,7 @@ import { SignalGroup } from '../../models/parsedSignals';
   templateUrl: './signal-selection.component.html',
   styleUrls: ['./signal-selection.component.scss'],
 })
-export class SignalSelectionComponent {
+export class SignalSelectionComponent implements OnChanges {
   defaultVisibleSignals = [
     'interior_camera_health_response_cvb',
     'interior_camera_health_response_cve',

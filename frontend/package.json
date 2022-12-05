@@ -27,7 +27,6 @@
   "private": true,
   "dependencies": {
     "@angular/platform-browser-dynamic": "^14.2.6",
-    "@aws-amplify/ui-angular": "^1.0.7",
     "@azure/msal-angular": "^2.5.0",
     "@azure/msal-browser": "^2.32.0",
     "@babel/core": "^7.13.0",
@@ -69,8 +68,8 @@
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "jasmine-core": "^4.0.0",
-    "jasmine-reporters": "^2.5.0",
+    "jasmine-core": "^4.5.0",
+    "jasmine-reporters": "^2.5.2",
     "jasmine-spec-reporter": "^7.0.0",
     "json-server": "^0.17.0",
     "karma": "^6.3.11",

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { LanguageSelectorComponent } from '../components/language-selector/language-selector.component';
 import { Subscription } from 'rxjs';
@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   /**Local variables */
   username: string;
   loginError: string;
@@ -62,8 +62,8 @@ export class AdminComponent implements OnInit {
   }
 
   ngOnDestroy() {
-    this.userSubscription.unsubscribe();
-    this.translateSubscription.unsubscribe();
+    this.userSubscription?.unsubscribe();
+    this.translateSubscription?.unsubscribe();
   }
 
   private getTranslations() {
@@ -83,6 +83,8 @@ export class AdminComponent implements OnInit {
 
   onLogoutClick() {
     this.authService.logout().subscribe(() => {
+      this.username = '';
+      this.isAuthenticated = false;
       this.router.navigate(['/']);
     });
   }

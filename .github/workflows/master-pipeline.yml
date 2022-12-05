@@ -172,9 +172,15 @@ jobs:
         service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
 
     steps:
-      - shell: bash
-        run: |
-          echo "No Tests for now :)"
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/test-javascript
+        with:
+          baseDir: ${{ matrix.service }}
+          node-version: ${{ matrix.node-version }}
+          npm-registry: https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/
+          npm-auth: ${{ secrets.NPM_AUTH }}
+          npm-email: ${{ secrets.NPM_EMAIL }}
 
   sonarqube-scan:
     name: Sonarqube scan on code

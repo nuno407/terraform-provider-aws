@@ -5,7 +5,7 @@ import { MatRadioChange } from '@angular/material/radio';
 import { MatSliderChange } from '@angular/material/slider';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { fromEvent, interval, Subscription } from 'rxjs';
-import { filter, finalize, map, takeUntil, takeWhile, throttleTime } from 'rxjs/operators';
+import { filter, finalize, map, takeWhile } from 'rxjs/operators';
 import { LineChartComponent } from 'src/app/components/line-chart/line-chart.component';
 import { ApiVideoCallService } from 'src/app/core/services/api-video-call.service';
 import { LabelingService } from 'src/app/core/services/labeling.service';
@@ -17,6 +17,7 @@ import { Message } from 'src/app/models/recording-info';
 import { Snapshot } from 'src/app/models/snapshots';
 import { PlayState } from './play-state.enum';
 import { MatCheckboxChange } from '@angular/material/checkbox';
+
 @Component({
   selector: 'app-video-player',
   templateUrl: './video-player.component.html',
@@ -25,7 +26,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @Input() fps: number;
 
-  _recording: Message;
+  _recording: Message = null;
   @Input()
   set recording(recording: Message) {
     this._recording = recording;
@@ -50,7 +51,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('verticalBar') verticalBarElem;
 
   signalsToSelect: SignalGroup;
-  snapshots: Snapshot[];
+  snapshots: Snapshot[] = [];
 
   verticalBar: HTMLDivElement;
   video: HTMLVideoElement;
@@ -62,7 +63,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   totalTime: number = 0;
   chartTotalTime: number = 0;
-  chartToVideoFactor: number = 1;
   totalFrames: number = 0;
   currentTime: number = 0;
   currentFrame: number = 0;
@@ -90,7 +90,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   /**variables to load on UI */
   url: string;
-  public videoSrc: string;
 
   safeSrc: SafeResourceUrl = null;
 
@@ -121,8 +120,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     };
 
     this.currentPercent.chartPercentageChange.subscribe(() => {
-      const time = (this.video.duration * this.currentPercent.videoPercentage) / 100.0;
-      this.video.currentTime = time;
+      this.video.currentTime = (this.video.duration * this.currentPercent.videoPercentage) / 100.0;
     });
 
     /* istanbul ignore next */
@@ -148,7 +146,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     // todo - disable subscription if text-field is selected
     this.keyboardSubscription = fromEvent(document, 'keydown')
       .pipe(
-        filter((e) => document.activeElement.tagName.toLowerCase() != 'textarea'),
+        filter((_e) => document.activeElement.tagName.toLowerCase() != 'textarea'),
         filter((e: KeyboardEvent) => Object.keys(mappedKeys).includes(e.code)),
         map((e: KeyboardEvent) => {
           e.stopPropagation();
@@ -202,7 +200,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
 
   /* subscribe service to get the video throught S3 bucket*/
   getvideo() {
-    return this.metaDataApiService.getVideo(this._recording._id).subscribe(
+    return this.metaDataApiService.getVideo(this._recording?._id).subscribe(
       (data) => {
         this.url = data;
         if (this.url !== null) {
@@ -278,8 +276,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
     }
 
     const currentFrame = this.video.currentTime * this.fps;
-    const newTime = (currentFrame + numberOfFrames) / this.fps;
-    this.video.currentTime = newTime;
+    this.video.currentTime = (currentFrame + numberOfFrames) / this.fps;
   }
 
   /* istanbul ignore next */
@@ -311,13 +308,12 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
           this.playState = PlayState.Pause;
         })
       )
-      .subscribe((value) => {
+      .subscribe((_value) => {
         if (this.playState !== PlayState.PlayReverse) {
           this.playState = PlayState.PlayReverse;
         }
         const currentFrame = this.video.currentTime * this.fps;
-        const newTime = (currentFrame - 1) / this.fps;
-        this.video.currentTime = newTime;
+        this.video.currentTime = (currentFrame - 1) / this.fps;
       });
 
     this.playState = PlayState.PlayReverse;
@@ -326,36 +322,6 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   forward() {
     this.stopReverse();
     this.togglePlay();
-  }
-
-  /* istanbul ignore next */
-  cursorMove(event, cursor) {
-    event.preventDefault();
-
-    const width = event.target.parentElement.getBoundingClientRect().width;
-    const barLeft = event.target.parentElement.getBoundingClientRect().left;
-    const barRight = event.target.parentElement.getBoundingClientRect().right;
-    let pageX = event.pageX;
-
-    fromEvent(document, 'mousemove')
-      .pipe(throttleTime(25), takeUntil(this.mouseUp$))
-      .subscribe((moveEvent: MouseEvent) => {
-        const newPageX = Math.min(Math.max(barLeft, moveEvent.pageX), barRight);
-        const movementX = newPageX - pageX;
-        const shift = (this.video.duration / width) * movementX;
-
-        let label = this.labelingService.getLabel(this.selectedLabelIndex);
-        if (cursor == 0) {
-          label.start.seconds = Math.min(Math.max(0, label.start.seconds + shift), this.video.duration);
-          label.start.frame = label.start.seconds * this.fps;
-        } else if (cursor == 1) {
-          label.end.seconds = Math.max(Math.min(this.video.duration, label.end.seconds + shift), 0);
-          label.end.frame = label.end.seconds * this.fps;
-        }
-        this.labelingService.updateLabel(this.selectedLabelIndex, label);
-
-        pageX = newPageX;
-      });
   }
 
   getLabelStyle(label) {
@@ -380,7 +346,7 @@ export class VideoPlayerComponent implements AfterViewInit, OnDestroy {
   }
 
   public get Description(): string {
-    return this._recording.description ?? '';
+    return this._recording?.description ?? '';
   }
 
   //Change the value of Hidden from true to false so the button Save can be shown

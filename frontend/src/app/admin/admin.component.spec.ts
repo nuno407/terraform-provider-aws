@@ -1,29 +1,35 @@
 import { HttpBackend, HttpClientModule } from '@angular/common/http';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, EventEmitter } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BciCoreModule, BciLayoutModule } from '@bci-web-core/core';
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpLoaderFactory } from '../app.module';
 import { AdminComponent } from './admin.component';
 import { of } from 'rxjs';
-import Auth from '@aws-amplify/auth';
 import { routes } from '../app-routing.module';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { AuthService } from '../auth/auth.service';
 
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
+  let mockedAuthService;
 
   beforeEach(() => {
-    const user = { attributes: { email: 'user@de.bosch.com' } };
-    Auth.currentUserPoolUser = jasmine.createSpy().and.returnValue(Promise.resolve(user));
-    Auth.signOut = jasmine.createSpy().and.callFake(() => Promise.resolve());
+    const user = {
+      name: 'Bumlux',
+      email: 'bumlux@bosch.com',
+    };
+    mockedAuthService = jasmine.createSpyObj(AdminComponent, ['onUserChanged', 'login', 'logout']);
+    mockedAuthService.onUserChanged.and.returnValue(of(user));
+    mockedAuthService.logout.and.returnValue(of(null));
   });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      providers: [{ provide: AuthService, useValue: mockedAuthService }],
       imports: [
         NoopAnimationsModule,
         HttpClientModule,
@@ -58,20 +64,24 @@ describe('AdminComponent', () => {
 
   it('should update the language', () => {
     const translateService = fixture.debugElement.injector.get(TranslateService);
-    spyOnProperty(translateService, 'onLangChange', 'get').and.returnValue(of({ lang: 'en' }));
+    let eventEmitter = new EventEmitter<LangChangeEvent>();
+    spyOnProperty(translateService, 'onLangChange', 'get').and.returnValue(eventEmitter);
     spyOn(localStorage, 'setItem');
     component.ngOnInit();
+
+    eventEmitter.emit({ lang: 'en', translations: [] });
+
     expect(localStorage.setItem).toHaveBeenCalledWith('lang', 'en');
   });
 
   it('should set the users email', async () => {
-    const user = { attributes: { email: 'user@de.bosch.com' } };
     await fixture.whenStable();
-    expect(component.email).toEqual(user.attributes.email);
+    expect(component.username).toEqual('Bumlux');
   });
 
   it('should logout the user', async () => {
-    await component.onLogoutClick();
-    expect(Auth.signOut).toHaveBeenCalledTimes(1);
+    await fixture.whenStable();
+    component.onLogoutClick();
+    expect(component.username).toBeFalsy();
   });
 });

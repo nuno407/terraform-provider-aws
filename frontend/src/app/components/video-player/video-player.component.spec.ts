@@ -7,6 +7,11 @@ import { Label } from 'src/app/models/label';
 import { NoCommaPipe } from 'src/app/pipes/no-comma.pipe';
 
 import { VideoPlayerComponent } from './video-player.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { routes } from '../../app-routing.module';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Overlay } from '@angular/cdk/overlay';
 
 describe('VideoPlayerComponent', () => {
   let component: VideoPlayerComponent;
@@ -28,7 +33,8 @@ describe('VideoPlayerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslateModule.forRoot(), RouterTestingModule.withRoutes(routes), HttpClientModule],
+      providers: [MatSnackBar, Overlay],
       declarations: [VideoPlayerComponent, NoCommaPipe],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
@@ -48,7 +54,7 @@ describe('VideoPlayerComponent', () => {
     expect(component.getLabelStyle(drawLabel)).toEqual({ width: drawLabel.width + '%', left: drawLabel.start + '%' });
   });
 
-  it('should draw lables', () => {
+  it('should draw labels', () => {
     spyOnProperty(component.video, 'duration', 'get').and.returnValue(100);
     // @ts-ignore
     component.drawLabels([label]);
@@ -87,5 +93,10 @@ describe('VideoPlayerComponent', () => {
     spyOn(component.keyboardSubscription, 'unsubscribe').and.callThrough();
     component.ngOnDestroy();
     expect(component.keyboardSubscription.unsubscribe).toHaveBeenCalled();
+  });
+
+  it('should update play header position', () => {
+    component.updatePlayheaderPosition();
+    expect(component.playheaderHidden).toBeFalsy();
   });
 });

@@ -1,29 +1,34 @@
-import Auth from '@aws-amplify/auth';
 import { AuthGuardService } from './authguard.service';
+import { AuthService } from './auth.service';
+import { MsalGuard } from '@azure/msal-angular';
 
 class MockRouter {
   navigate(path) {}
 }
 
 describe('AuthGuardService', () => {
-  let authGuard: AuthGuardService;
   let router;
+  let service;
+  let msal;
 
   it('should return true for a logged in user', async () => {
-    Auth.currentAuthenticatedUser = jasmine.createSpy().and.returnValue(Promise.resolve());
     router = new MockRouter();
-    authGuard = new AuthGuardService(router);
+    service = jasmine.createSpyObj(AuthService, ['login']);
+    msal = jasmine.createSpyObj(MsalGuard, ['canActivate']);
+    msal.canActivate.and.returnValue(true);
+    let authGuard = new AuthGuardService(router, service, msal);
 
-    await expectAsync(authGuard.canActivate(null, null)).toBeResolved(true);
+    expect(authGuard.canActivate(null, null)).toBeTruthy();
   });
 
   it('should navigate to login for a logged out user', async () => {
-    Auth.currentAuthenticatedUser = jasmine.createSpy().and.returnValue(Promise.reject(''));
     router = new MockRouter();
-    authGuard = new AuthGuardService(router);
+    service = jasmine.createSpyObj(AuthService, ['login']);
+    msal = jasmine.createSpyObj(MsalGuard, ['canActivate']);
+    msal.canActivate.and.returnValue(false);
+    let authGuard = new AuthGuardService(router, service, msal);
     spyOn(router, 'navigate');
 
-    await expectAsync(authGuard.canActivate(null, null)).toBeResolved(false);
-    expect(router.navigate).toHaveBeenCalledWith(['login']);
+    expect(authGuard.canActivate(null, null)).toBeFalsy();
   });
 });
