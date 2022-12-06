@@ -1,0 +1,49 @@
+[tool.coverage.run]
+omit = ["*/__init__.py"]
+timid = true
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+addopts = "-m unit -v --cov-config=.coveragerc --cov=health_check --cov-report=xml"
+markers = [
+    "unit",
+    "integration"
+]
+
+[tool.autopep8]
+max_line_length = 120
+recursive = true
+aggressive = 3
+diff = true
+
+[tool.pylint]
+recursive = true
+load-plugins = [
+    "pylint_quotes",
+]
+
+[tool.pylint.format]
+# Maximum number of characters on a single line.
+max-line-length = 120
+
+[tool.pylint.pylint_quotes]
+string-quote = "double"
+triple-quote = "double"
+docstring-quote = "double"
+
+[tool.mypy]
+files = [
+    "healthcheck/**/*.py",
+    "tests/**/*.py"
+]
+# mypy per-module options:
+[[tool.mypy.overrides]]
+module = "base.*"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "setuptools"
+ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]

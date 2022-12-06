@@ -1,4 +1,4 @@
-PYTHON_SERVICES_DIRS = anon_ivschain base basehandler chc_ivschain MDFParser Metadata SDM SDRetriever Selector
+PYTHON_SERVICES_DIRS = anon_ivschain base basehandler chc_ivschain MDFParser Metadata SDM SDRetriever Selector healthcheck
 PYENV_ROOT=${HOME}/.pyenv
 TOKEN=${VOXEL_REGISTRY_TOKEN}
 PYTHON_VERSION=3.9.12
