@@ -14,7 +14,6 @@ services:
       CONFIG_S3: ${CONFIG_S3:-local-rcd-config-files}
       LOGLEVEL: DEBUG
       AWS_ENDPOINT: http://mockaws:4566
-      MOCKED_FC_RESPONSE: "True"
       # localstack doesn't care
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test

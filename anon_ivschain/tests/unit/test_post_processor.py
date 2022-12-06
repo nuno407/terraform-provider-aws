@@ -1,16 +1,14 @@
 import os
 from asyncio import subprocess
 from unittest import mock
-from unittest.mock import Mock
-from unittest.mock import mock_open
+from unittest.mock import Mock, call, mock_open
 
 import pytest
 
 from anon_ivschain.post_processor import AnonymizePostProcessor
 from base.aws.shared_functions import AWSServiceClients
 from base.testing.mock_functions import get_container_services_mock
-from basehandler.message_handler import InternalMessage
-from basehandler.message_handler import OperationalMessage
+from basehandler.message_handler import InternalMessage, OperationalMessage
 
 
 @pytest.mark.unit
@@ -69,6 +67,46 @@ class TestAnonymizePostProcessor():
         assert aws_service.anonymized_s3 == _args[2]
         assert os.path.splitext(internal_message.media_path)[
             0] + ".mp4" == _args[3]
+
+    @mock.patch("builtins.open")
+    @mock.patch("anon_ivschain.post_processor.os.stat")
+    @mock.patch("anon_ivschain.post_processor.os.remove")
+    def test_mocked_anonymize_post_processor(
+            self,
+            os_remove: Mock,
+            os_stat: Mock,
+            open: Mock):
+        # GIVEN
+        aws_service = get_container_services_mock()
+        aws_service.download_file = Mock(return_value=b'mocked_video_content')
+
+        aws_clients = AWSServiceClients("mock_sqs", "mock_s3")
+
+        anonymize_post_processor = AnonymizePostProcessor(
+            aws_service, aws_clients, mocked=True)
+
+        internal_message = OperationalMessage(
+            InternalMessage.Status.PROCESSING_COMPLETED,
+            'uid',
+            'bucket',
+            'test_dir/test_file.avi',
+            'test_dir/test_file_anonymized.avi')
+
+        # WHEN
+        anonymize_post_processor.run(internal_message)
+
+        # THEN
+
+        # Assert call to subprocess
+        os_stat.assert_called_once_with(AnonymizePostProcessor.INPUT_NAME)
+
+        # Assert calls to temporary files
+        open.assert_any_call(AnonymizePostProcessor.INPUT_NAME, 'rb')
+        open.assert_any_call(AnonymizePostProcessor.OUTPUT_NAME, 'wb')
+        os_remove.assert_has_calls([
+            call(AnonymizePostProcessor.INPUT_NAME),
+            call(AnonymizePostProcessor.OUTPUT_NAME)
+        ])
 
     @mock.patch("builtins.open")
     @mock.patch("anon_ivschain.post_processor.os.stat")

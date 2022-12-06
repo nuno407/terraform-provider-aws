@@ -10,9 +10,6 @@ from basehandler.message_handler import OperationalMessage
 
 _logger: logging.Logger = ContainerServices.configure_logging("AnonymizePostProcessor")
 
-MOCKED_FC_RESPONSE = bool(os.environ.get("MOCKED_FC_RESPONSE", False))
-
-
 class AnonymizePostProcessor():
     """ AnonymizePostProcessor """
 
@@ -21,16 +18,38 @@ class AnonymizePostProcessor():
     OUTPUT_NAME = "output_video.mp4"
     LOGS_NAME = "logs.txt"
 
-    def __init__(self, container_services: ContainerServices, aws_clients: AWSServiceClients) -> None:
+    def __init__(self, container_services: ContainerServices, aws_clients: AWSServiceClients, mocked: bool = False) -> None:
         '''
         Creates a post processor to convert the videos with ffmpeg when calling the run() method
 
         Args:
             container_services (ContainerServices): container services instance
             aws_clients (AWSServiceClients): aws boto3 clients wrapper
+            mocked (bool): mocked
         '''
         self.container_services = container_services
         self.aws_clients = aws_clients
+        self.mocked = mocked
+
+    def _mocked_execution(self, ffmpeg_command: str) -> None:
+        """mocked_execution.
+
+        Mocks ffmpeg command execution for when receiving a mocked response from ivsfc.
+
+        Args:
+            ffmpeg_command (str): ffmpeg command line with arguments for logging
+        """
+        try:
+            _logger.info("Mocking: %s", ffmpeg_command)
+            with open(self.INPUT_NAME, "rb") as input_file:
+                input_file_content = input_file.read()
+            _logger.info("Writting mocked: %s", self.OUTPUT_NAME)
+            with open(self.OUTPUT_NAME, "wb") as output_file:
+                output_file.write(input_file_content)
+        except OSError as err:
+            _logger.error("Error mocking ffmpeg %s", err)
+        finally:
+            os.remove(self.INPUT_NAME)
 
     def run(self, message_body: OperationalMessage) -> None:
         '''
@@ -59,21 +78,17 @@ class AnonymizePostProcessor():
 
                 stat_result = os.stat(self.INPUT_NAME)
 
-                _logger.debug(f'Anonymized artifact downloaded file size: {stat_result.st_size}')
+                _logger.debug(f"Anonymized artifact downloaded file size: {stat_result.st_size}")
 
                 # Convert .avi input file into .mp4 using ffmpeg
-                ffmpeg_command = ' '.join(["/usr/bin/ffmpeg", "-y", "-i", self.INPUT_NAME, "-movflags",
+                ffmpeg_command = " ".join(["/usr/bin/ffmpeg", "-y", "-i", self.INPUT_NAME, "-movflags",
                                           "faststart", "-c:v", "copy", self.OUTPUT_NAME])
 
-                _logger.info('Starting ffmpeg process')
-                if MOCKED_FC_RESPONSE:
-                    _logger.info(ffmpeg_command)
-                    with open(self.INPUT_NAME, "rb") as input_file:
-                        input_file_content = input_file.read()
-                    with open(self.OUTPUT_NAME, "wb") as output_file:
-                        output_file.write(input_file_content)
+                _logger.info("Starting ffmpeg process")
+                if self.mocked:
+                    self._mocked_execution(ffmpeg_command)
                 else:
-                    subprocess.check_call(ffmpeg_command, shell=True, executable='/bin/sh')  # nosec
+                    subprocess.check_call(ffmpeg_command, shell=True, executable="/bin/sh")  # nosec
 
                 _logger.info("Conversion complete!")
 

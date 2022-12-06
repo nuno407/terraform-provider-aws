@@ -1,6 +1,6 @@
 """ Entry Module that wraps IVS Chain models. """
 from __future__ import annotations
-import os
+
 import logging
 from multiprocessing import Queue
 
@@ -20,7 +20,7 @@ class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
     def __init__(self, container_services: ContainerServices,
                  mode: str,
                  aws_clients: AWSServiceClients,
-                 internal_queue: Queue = Queue(
+                 internal_queue: Queue[InternalMessage] = Queue(
                      maxsize=1),
                  ) -> None:
         """
@@ -80,12 +80,7 @@ class OutputEndpointNotifier():
         # Set status to OK
         internal_message.status = InternalMessage.Status.OK
 
-        # Notify message_handler that a response was received from ivsfc
-        # and output upload to S3 is done
-        current_pid = os.getpid()
-        parent_pid = os.getppid()
-        _logger.debug("PID [%s] PARENT PID [%s] notify message_handler from child process: %s",
-                      current_pid, parent_pid, internal_message.status.name)
+        _logger.info("Sending notification to message_handler from child process")
         self.internal_queue.put(internal_message)
 
 

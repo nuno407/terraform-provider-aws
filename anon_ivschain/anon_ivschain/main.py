@@ -17,6 +17,8 @@ AWS_REGION = os.getenv('AWS_REGION', 'eu-central-1')
 API_PORT = os.getenv('API_PORT', '5000')
 AWS_ENDPOINT = os.getenv('AWS_ENDPOINT', None)
 START_DELAY_SECONDS = os.getenv('START_DELAY_SECONDS', "0")
+MOCK_POST_PROCESSOR = bool(os.environ.get("MOCK_POST_PROCESSOR", False))
+
 CALLBACK_ENDPOINT = '/anonymized'
 
 MODE = "anonymize"
@@ -38,7 +40,7 @@ def main():
             'sqs', region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
     )
 
-    post_processor = AnonymizePostProcessor(container_services, aws_clients)
+    post_processor = AnonymizePostProcessor(container_services, aws_clients, MOCK_POST_PROCESSOR)
     base_handler = BaseHandler(CONTAINER_NAME,
                                container_services,
                                aws_clients,

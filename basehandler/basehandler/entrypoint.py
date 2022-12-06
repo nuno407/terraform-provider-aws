@@ -130,9 +130,6 @@ class BaseHandler():
                                  self.endpoint_notifier)
         output_api = api_handler.create_routes()
 
-        current_pid = os.getpid()
-        parent_pid = os.getppid()
-        _logger.debug("Current PID [%s] Parent PID [%s]", current_pid, parent_pid)
         api_process = Process(target=output_api.run,
                               kwargs={"host": "0.0.0.0", "port": int(api_port)})  # nosec this is as intended
         _logger.info("Starting api child process")
