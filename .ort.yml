@@ -16,3 +16,18 @@ excludes:
     - pattern: "devDependencies"
       reason: "DEV_DEPENDENCY_OF"
       comment: "Packages for development only."
+curations:
+  packages:
+  - id: "PyPI::pyasn1"
+    curations:
+      comment: "pyasn1 is licensed under the BSD-2-Clause license, thus this curations sets a mapping to the SPDX identifier for that license."
+      declared_license_mapping:
+        BSD License: "BSD-2-Clause"
+  - id: "PyPI::botocore"
+    curations:
+      concluded_license: "Apache-2.0"
+      comment: "Scanner was incorrectly detecting additional licenses, but package is under Apache 2.0"
+  - id: "PyPI::boto3"
+    curations:
+      concluded_license: "Apache-2.0"
+      comment: "Scanner was incorrectly detecting additional licenses, but package is under Apache 2.0"
