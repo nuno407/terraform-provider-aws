@@ -31,3 +31,26 @@ curations:
     curations:
       concluded_license: "Apache-2.0"
       comment: "Scanner was incorrectly detecting additional licenses, but package is under Apache 2.0"
+  - id: "NPM:@bci-web-core:core"
+    curations:
+      comment: |
+        This is a bosch package and released under BIOS license.
+      concluded_license: "LicenseRef-BIOSL5-EDF"
+  - id: "NPM:@bci-web-core:web-components"
+    curations:
+      comment: |
+        This is a bosch package and released under BIOS license.
+      concluded_license: "LicenseRef-BIOSL5-EDF"
+  - id: "NPM:@bci-web-core:material-theme"
+    curations:
+      comment: |
+        This is a bosch package and released under BIOS license as stated in the license file.
+      concluded_license: "LicenseRef-BIOSL5-EDF"
+resolutions:
+  vulnerabilities:
+    - id: "CVE-2021-23337"
+      reason: "INEFFECTIVE_VULNERABILITY"
+      comment: "Vulnerability exists in dev dependency of Hammer.js which are not used for production"
+    - id: "sonatype-2019-0500"
+      reason: "INEFFECTIVE_VULNERABILITY"
+      comment: "Vulnerability exists in dev dependency of Hammer.js which are not used for production"
