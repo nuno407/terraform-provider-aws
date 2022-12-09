@@ -4,12 +4,11 @@ import boto3
 from typing import Optional
 from dataclasses import dataclass
 from base.aws.container_services import ContainerServices
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from pathlib import Path
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
-VIDEO_FORMATS = ['mp4', 'avi']
-IMAGE_FORMATS = ['jpeg', 'jpg', 'png']
 MINIMUM_LENGTH = 4              # Minimum length allowed a/b.c
 
 _logger = ContainerServices.configure_logging('sdm')
@@ -123,7 +122,7 @@ def processing_sdm(container_services, sqs_client, sqs_message):
             file_format)
 
     else:
-        _logger.warning("File %s will not be processed - File format '%s' is unexpected.", file_name, file_format)
+        raise ValueError(f"File '{file_name}' will not be processed - File format '{file_format}' is unexpected.")
 
     # If file received is valid
     if relay_data:

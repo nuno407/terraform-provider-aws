@@ -49,16 +49,6 @@ class TestMain():
 
     @pytest.mark.unit
     @pytest.mark.parametrize("sqs_message, expected_relay_data", [
-        # Test TestEvent processing
-        (
-            _sqs_message_helper({"Service": "Amazon S3",
-                                "Event": "s3:TestEvent",
-                                 "Time": "2022-10-25T07:12:24.590Z",
-                                 "Bucket": "qa-rcd-raw-video-files",
-                                 "RequestId": "44NC5PD94PYDDAV4",
-                                 "HostId": "super_host"}),
-            {}
-        ),
         # Test video processing
         (
             _sqs_message_helper({"Service": "Amazon S3",
@@ -105,6 +95,35 @@ class TestMain():
                 "data_status": "received"
             }
         ),
+        # Test no client in S3 path (ignore)
+        (
+            _sqs_message_helper({"Service": "Amazon S3",
+                                "Event": "s3:ObjectCreated:*",  # This is not checked in code
+                                 "Time": "2022-10-25T07:12:24.590Z",
+                                 "Bucket": "qa-rcd-raw-video-files",
+                                 "RequestId": "44NC5PD94PYDDAV4",
+                                 "Records": [
+                                         {
+                                             "s3": {
+                                                 "object": {
+                                                     "key": f"{TEST_VIDEO_ID_FIXTURE}.test"
+                                                 }
+                                             }
+                                         }
+                                 ],
+                                 "HostId": "super_host"}),
+            {}
+        )
+    ])
+    def test_processing_sdm(self, mock_container_services: Mock, sqs_message: str, expected_relay_data: dict):
+        """ Test SDM. """
+        # WHEN
+        relay_list = processing_sdm(mock_container_services, Mock(), sqs_message)
+        # THEN
+        assert relay_list == expected_relay_data
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("sqs_message, expected_relay_data", [
         # Test raw file format processing (ignore)
         (
             _sqs_message_helper({"Service": "Amazon S3",
@@ -142,33 +161,13 @@ class TestMain():
                                  ],
                                  "HostId": "super_host"}),
             {}
-        ),
-        # Test no client in S3 path (ignore)
-        (
-            _sqs_message_helper({"Service": "Amazon S3",
-                                "Event": "s3:ObjectCreated:*",  # This is not checked in code
-                                 "Time": "2022-10-25T07:12:24.590Z",
-                                 "Bucket": "qa-rcd-raw-video-files",
-                                 "RequestId": "44NC5PD94PYDDAV4",
-                                 "Records": [
-                                         {
-                                             "s3": {
-                                                 "object": {
-                                                     "key": f"{TEST_VIDEO_ID_FIXTURE}.test"
-                                                 }
-                                             }
-                                         }
-                                 ],
-                                 "HostId": "super_host"}),
-            {}
-        ),
+        )
     ])
-    def test_processing_sdm(self, mock_container_services: Mock, sqs_message: str, expected_relay_data: dict):
+    def test_processing_sdm_exception(self, mock_container_services: Mock, sqs_message: str, expected_relay_data: dict):
         """ Test SDM. """
         # WHEN
-        relay_list = processing_sdm(mock_container_services, Mock(), sqs_message)
-        # THEN
-        assert relay_list == expected_relay_data
+        with pytest.raises(ValueError):
+            processing_sdm(mock_container_services, Mock(), sqs_message)
 
     @pytest.mark.unit
     @mock.patch("boto3.client")

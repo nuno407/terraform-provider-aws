@@ -755,7 +755,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                              process of a given file. Optional]
         """
         _logger.info(
-            "\nProcessing of key [%s] complete! (uid: [%s])", key_path, uid)
+            "Processing of key [%s] complete! (uid: [%s])", key_path, uid)
 
     @staticmethod
     def list_s3_objects(s3_path: str, bucket: str, s3_client: S3Client,
