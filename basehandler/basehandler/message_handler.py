@@ -467,7 +467,11 @@ class MessageHandler():
             graceful_exit (GracefulExit): _description_
         """
         while graceful_exit.continue_running:
-            self.on_process(mode)
+            try:
+                self.on_process(mode)
+            except Exception:
+                _logger.info("Exiting consumer loop due to exception.")
+                break
 
 
 def on_backoff_handler(details):
