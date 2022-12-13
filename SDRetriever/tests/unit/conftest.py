@@ -25,6 +25,7 @@ def container_services() -> Mock:
     cs.raw_s3 = "dev-rcd-raw-video-files"
     cs.sdr_folder = {"debug": "Debug_Lync/",
                      "fut2": "FUT2/", "driver_pr": "Driver-PR/"}
+    cs.send_message = Mock()
     cs.get_kinesis_clip = Mock(return_value=(b"These are some video bytes", datetime.fromtimestamp(
         1657297040802 / 1000.0), datetime.fromtimestamp(1657297074110 / 1000.0)))
     cs.sqs_queues_list = {

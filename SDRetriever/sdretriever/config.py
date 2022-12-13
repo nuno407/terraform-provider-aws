@@ -10,6 +10,7 @@ class SDRetrieverConfig():
     tenant_blacklist: List[str]
     recorder_blacklist: List[str]
     frame_buffer: int
+    training_whitelist: List[str]
     request_training_upload: bool
 
     @staticmethod

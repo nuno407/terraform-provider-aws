@@ -5,6 +5,9 @@ tenant_blacklist:
  - deviceprep
  - hacknorris
  - jackalope
+training_whitelist:
+ - deepsensation
+ - ridecare_companion_trial
 recorder_blacklist:
  - FrontRecorder
 frame_buffer: 120000 # number of extra frames to request at the limits of a training recorder

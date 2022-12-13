@@ -149,7 +149,8 @@ def main(config: SDRetrieverConfig):
                             continue
 
                     # Process parsed message
-                    db_record_data = VIDEO_ING.ingest(video_msg_obj, config.request_training_upload)
+                    db_record_data = VIDEO_ING.ingest(
+                        video_msg_obj, config.training_whitelist, config.request_training_upload)
                     # If metadata is to be downloaded - it's an interior recorder video
                     if db_record_data and request_metadata:
                         source_data = METADATA_ING.ingest(

@@ -151,7 +151,11 @@ class VideoIngestor(Ingestor):
             video_info = json.loads(decoded_info)
             return video_info
 
-    def ingest(self, video_msg: VideoMessage, request_training_upload=True) -> Optional[dict]:
+    def ingest(
+            self,
+            video_msg: VideoMessage,
+            training_whitelist: list[str] = [],
+            request_training_upload=True) -> Optional[dict]:
         '''Obtain video from KinesisVideoStreams and upload it to our raw data S3'''
         # Define the target path where to place the video
         if video_msg.streamname and "srxdriverpr" in video_msg.streamname:
@@ -219,7 +223,7 @@ class VideoIngestor(Ingestor):
 
         # Generate dictionary with info to send to Selector container for training data request (high quality )
         is_interior_recording = video_msg.video_recording_type() == 'InteriorRecorder'
-        if is_interior_recording and request_training_upload:
+        if is_interior_recording and request_training_upload and video_msg.tenant in training_whitelist:
             hq_request = {
                 "streamName": f"{video_msg.tenant}_{video_msg.deviceid}_InteriorRecorder",
                 "deviceId": video_msg.deviceid,

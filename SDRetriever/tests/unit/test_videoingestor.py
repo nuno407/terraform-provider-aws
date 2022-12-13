@@ -60,3 +60,30 @@ class TestVideoIngestor():
             ANY, "datanauts_DATANAUTS_DEV_01_InteriorRecorder", video_from, video_to, "PRODUCER_TIMESTAMP")
         container_services.upload_file.assert_called_once_with(ANY, ANY, container_services.raw_s3, expected_raw_path)
         assert db_record_data == expected_db_record_data
+
+    @mock.patch("sdretriever.ingestor.subprocess.run")
+    def test_ingest_request_training_recorder(
+            self,
+            mock_run,
+            container_services,
+            s3_client,
+            sqs_client,
+            sts_helper,
+            msg_interior):
+        mock_stdout = MagicMock()
+        mock_stdout.configure_mock(
+            **{"stdout.decode.return_value": '{"streams":[{"width":1920,"height":1080}],"format":{"duration":1000}}'.encode("utf-8")}
+        )
+
+        mock_run.return_value = mock_stdout
+        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
+
+        obj.ingest(msg_interior, training_whitelist=['datanauts'], request_training_upload=True)
+        expect_hq_request = {
+            "streamName": f"{msg_interior.tenant}_{msg_interior.deviceid}_InteriorRecorder",
+            "deviceId": msg_interior.deviceid,
+            "footageFrom": msg_interior.footagefrom,
+            "footageTo": msg_interior.footageto
+        }
+        expect_selector_input_queue = container_services.sqs_queues_list["HQ_Selector"]
+        container_services.send_message.assert_called_once_with(ANY, expect_selector_input_queue, expect_hq_request)
