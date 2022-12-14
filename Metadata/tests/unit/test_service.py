@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from metadata.api.service import ApiService
+from metadata.api.service import ApiService, MONGODB_PIPELINE_PREFIX_ADD_START_AT_END_AT
 
 s3 = MagicMock()
 db = MagicMock()
@@ -157,3 +157,61 @@ def test_update_video_description():
     # THEN
 
     db.update_recording_description.assert_called_once_with(id, description)
+
+
+@pytest.mark.unit
+def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder():
+    # GIVEN
+    db.get_single_recording = Mock(
+        return_value={
+            "recording_overview": {
+                "deviceID": "TestDevice",
+                "tenantID": "TestTenant"}})
+    db.get_recording_list = MagicMock(return_value=([MagicMock()], 1, None))
+    db.get_signals = MagicMock()
+    additional_query = {"$and": [
+        {"recording_overview.deviceID": "TestDevice"},
+        {"recording_overview.tenantID": "TestTenant"},
+        {"video_id": {"$regex": "^((?!TrainingRecorder).)*$"}},
+        {"$and": [{"start_at": {"$gte": 1648835260452}}, {
+            "start_at": {"$lte": 1648835260452 + 130_000}}]},
+        {"$and": [{"end_at": {"$lte": 1648835260452}}, {
+            "end_at": {"$gte": 1648835260452 - 130_000}}]},
+    ]
+    }
+    # WHEN
+    service.get_video_signals("srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835260452")
+
+    # THEN
+    db.get_recording_list.assert_called_once_with(
+        page_size=10,
+        page=1,
+        additional_query=additional_query,
+        order=None,
+        aggregation_pipeline_prefix=MONGODB_PIPELINE_PREFIX_ADD_START_AT_END_AT)
+
+
+@pytest.mark.unit
+def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder_no_video_exception():
+    # GIVEN
+    db.get_single_recording = Mock(
+        return_value={
+            "recording_overview": {
+                "deviceID": "TestDevice",
+                "tenantID": "TestTenant"}})
+    db.get_recording_list = MagicMock(return_value=([], 0, None))
+    db.get_signals = MagicMock()
+    additional_query = {"$and": [
+        {"recording_overview.deviceID": "TestDevice"},
+        {"recording_overview.tenantID": "TestTenant"},
+        {"video_id": {"$regex": "^((?!TrainingRecorder).)*$"}},
+        {"$and": [{"start_at": {"$gte": 1648835260452}}, {
+            "start_at": {"$lte": 1648835260452 + 130_000}}]},
+        {"$and": [{"end_at": {"$lte": 1648835260452}}, {
+            "end_at": {"$gte": 1648835260452 - 130_000}}]},
+    ]
+    }
+    # WHEN/THEN
+    with pytest.raises(LookupError):
+        service.get_video_signals(
+            "srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835260452")

@@ -58,47 +58,6 @@ def test_ready(flask_client):
     assert data['statusCode'] == '200'
 
 
-VIDEO_URL = '/getVideoUrl/foo/bar/baz'
-
-
-@pytest.mark.unit
-def test_get_video_url_200(flask_client):
-    test_client = flask_client[0]
-    service = flask_client[1]
-
-    service.create_video_url = Mock(return_value='demoUrl')
-
-    resp = test_client.get(VIDEO_URL)
-
-    assert resp.status_code == 200
-    data = json.loads(resp.data)
-    assert data['message'] == 'demoUrl'
-    assert data['statusCode'] == '200'
-    service.create_video_url.assert_called_once_with('foo', 'bar', 'baz')
-
-
-@pytest.mark.unit
-def test_get_video_url_400(flask_client):
-    test_client = flask_client[0]
-    service = flask_client[1]
-
-    service.create_video_url = Mock(
-        side_effect=LookupError('injected'))
-
-    assert_returns_400(test_client, VIDEO_URL)
-
-
-@pytest.mark.unit
-def test_get_video_url_500(flask_client):
-    test_client = flask_client[0]
-    service = flask_client[1]
-
-    service.create_video_url = Mock(
-        side_effect=Exception('generic exception'))
-
-    assert_returns_500(test_client, VIDEO_URL)
-
-
 def assert_returns_400(test_client, url):
     resp = test_client.get(url)
 

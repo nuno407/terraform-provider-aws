@@ -118,42 +118,6 @@ def init_controller(service: ApiService) -> flask.Flask:
             """
             return flask.jsonify(message='Ready', statusCode="200")
 
-    # Parameters parser for getVideoUrl endpoint (Swagger documentation)
-    video_parser = reqparse.RequestParser()
-    video_parser.add_argument('bucket', type=str, required=True,
-                              help='S3 bucket where the video file is located', location='args')
-    video_parser.add_argument('folder', type=str, required=True,
-                              help='S3 folder where the video file is located', location='args')
-    video_parser.add_argument('file', type=str, required=True,
-                              help='Name of the video file', location='args')
-
-    # Custom model for getVideoUrl code 200 response (Swagger documentation)
-    get_video_200_model = api.model("Video_Url_200", {
-        'message': fields.String(example="<video_url>"),
-        'statusCode': fields.String(example="200")
-    })
-
-    @api.route('/getVideoUrl/<string:bucket>/<string:folder>/<string:file>')
-    class VideoFeed(Resource):
-        @api.response(200, 'Success', get_video_200_model)
-        @api.response(400, ERROR_400_MSG, error_400_model)
-        @api.response(500, ERROR_500_MSG, error_500_model)
-        @api.expect(video_parser, validate=True)
-        @require_auth
-        def get(self, bucket, folder, file):
-            """
-            Gets the URL of a video file for direct access or embedding as a video stream
-            """
-            try:
-                url = service.create_video_url(bucket, folder, file)
-                return flask.jsonify(message=url, statusCode="200")
-            except (NameError, LookupError, ValueError) as err:
-                generate_exception_logs(err)
-                api.abort(400, message=ERROR_400_MSG, statusCode="400")
-            except Exception as err:  # pylint: disable=broad-except
-                generate_exception_logs(err)
-                api.abort(500, message=ERROR_500_MSG, statusCode="500")
-
     # Parameters parser for getVideoSignals endpoint (Swagger documentation)
     videosignals_parser = reqparse.RequestParser()
     videosignals_parser.add_argument(

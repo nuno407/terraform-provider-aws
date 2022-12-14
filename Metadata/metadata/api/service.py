@@ -2,9 +2,8 @@
 import logging
 import re
 from datetime import timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
-from pytimeparse import parse
 
 from metadata.api.db import Persistence
 
@@ -181,8 +180,8 @@ class ApiService:
         return url
 
     def create_video_url(self, bucket, folder, file):
-        path = folder + file
-        return self.__create_video_url(bucket, path)
+        path = Path(folder) / Path(file)
+        return self.__create_video_url(bucket, str(path))
 
     def __create_video_url(self, bucket, path):
         params_s3 = {'Bucket': bucket, 'Key': path}

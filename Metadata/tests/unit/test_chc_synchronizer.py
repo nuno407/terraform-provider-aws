@@ -1,11 +1,11 @@
-from unittest.mock import patch
-import pytest
 import json
 import os
-import pytimeparse
-from datetime import timedelta
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
 import pickle
+from datetime import timedelta
+
+import pytest
+import pytimeparse
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from moto import mock_s3
 
 __location__ = os.path.realpath(

@@ -3,11 +3,6 @@ import json
 import os
 from unittest.mock import MagicMock
 from unittest.mock import Mock, PropertyMock, call
-
-import sys
-# Voxel51 is initializing db connecting during the import phase of the module, we need to mock it to prevent connection error
-sys.modules['fiftyone'] = MagicMock()
-
 import metadata.consumer.main
 import mongomock
 import pytest
@@ -132,13 +127,11 @@ class TestMain:
             'metadata.consumer.main.os.environ', {'ANON_S3': 'anon_bucket'})
         return environ_mock
 
-
     @pytest.fixture(autouse=True)
     def voxel_mock(self, mocker: MockerFixture) -> tuple[Mock, Mock]:
         create_dataset_mock = mocker.patch('metadata.consumer.main.create_dataset')
         update_sample_mock = mocker.patch('metadata.consumer.main.update_sample')
         return create_dataset_mock, update_sample_mock
-
 
     @pytest.mark.integration
     def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,

@@ -1,0 +1,13 @@
+{
+    "_id": "honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438",
+    "recording_overview": {
+        "number_chc_events": 1,
+        "chc_duration": 18.956827,
+        "max_person_count": 1.0,
+        "ride_detection_counter": 0
+    },
+    "signals_file": {
+        "bucket": "dev-rcd-raw-video-files",
+        "key": "Debug_Lync/honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438_signals.json"
+    }
+}

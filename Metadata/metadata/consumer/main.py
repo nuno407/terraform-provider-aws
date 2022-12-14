@@ -4,6 +4,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
+from pathlib import Path
 
 import boto3
 import pytimeparse
@@ -29,7 +30,175 @@ CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
 
 
-_logger = ContainerServices.configure_logging('metadata')
+_logger = ContainerServices.configure_logging("metadata")
+
+
+def update_voxel_media(sample: dict):
+    def __get_s3_path(raw_path) -> Tuple[str, str]:
+        match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
+
+        if (match is None or len(match.groups()) != 2):
+            raise ValueError("Invalid path: " + raw_path)
+
+        bucket = match.group(1)
+        key = match.group(2)
+        return bucket, key
+
+    # Voxel51 code
+
+    if "filepath" not in sample:
+        _logger.error(f"Filepath field not present in the sample.{sample}")
+        return None
+
+    _, filepath = __get_s3_path(sample["filepath"])
+    s3split = filepath.split("/")
+    bucket_name = s3split[0]
+    filetype = s3split[-1].split(".")[-1]
+    sample.pop("_id", None)
+
+    if filetype in IMAGE_FORMATS:
+        bucket_name = bucket_name + "_snapshots"
+        anonymized_path = "s3://" + \
+            os.environ["ANON_S3"] + "/" + filepath.rstrip(Path(filepath).suffix) + "_anonymized." + filetype
+
+    elif filetype in VIDEO_FORMATS:
+        anonymized_path = "s3://" + \
+            os.environ["ANON_S3"] + "/" + filepath.rstrip(Path(filepath).suffix) + "_anonymized." + filetype
+    else:
+        raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
+    sample["s3_path"] = anonymized_path
+    try:
+        # Create dataset with the bucket_name if it doesn't exist
+        create_dataset(bucket_name)
+        # Add  the video to the dataset
+        update_sample(bucket_name, sample)
+        # Create logs message
+        _logger.info("Voxel sample [%s] created!", bucket_name)
+    except Exception as err:  # pylint: disable=broad-except
+        _logger.exception(
+            "Unable to create dataset [%s] on update_pipeline_db %s", bucket_name, err)
+
+
+def find_and_update_media_references(
+        related_media_paths: list[str],
+        update_query: dict,
+        recordings_collection: Collection) -> None:
+    """find_and_update_media_references.
+
+    Find and update reference in documents between video and snaphots
+
+    Args:
+        related_media_paths (list[str]): collection of media that is associated
+        update_query (dict): update query
+        recordings_collection (Collection): recordings mongodb collection
+    """
+
+    for media_path in related_media_paths:
+        try:
+            # we have the key for snapshots named as 'video_id' due to legacy reasons...
+            recording = recordings_collection.find_one_and_update(
+                filter={"video_id": media_path},
+                update=update_query,
+                upsert=False,
+                return_document=ReturnDocument.AFTER)
+
+            _logger.info("Associated snapshot to video - %s", media_path)
+            update_voxel_media(recording)
+        except PyMongoError as err:
+            _logger.exception(
+                "Unable to upsert snapshot [%s] :: %s", media_path, err)
+
+
+def create_snapshot_recording_item(message: dict, collection_rec: Collection,
+                                   service: RelatedMediaService) -> dict:
+    """create_snapshot_recording_item.
+
+    Args:
+        message (dict): info set from the sqs message received that will be used to populate the newly
+                        created DB item
+        collection_rec (MongoDB collection object): Object used to access/update the recordings collection
+                                                    information
+        service (RelatedMediaService): reponsible for finding related video for a given snapshot
+    Returns:
+        recording_item (dict): snapshot recording item document
+    """
+    related_media_paths: list = service.get_related(
+        tenant=message["tenant"],
+        deviceid=message["deviceid"],
+        start=message["timestamp"],
+        end=0,
+        media_type=message["media_type"])
+
+    # Update snapshot record
+    recording_item = {
+        # we have the key for snapshots named as "video_id" due to legacy reasons...
+        "video_id": message["_id"],
+        "_media_type": message["media_type"],
+        "filepath": "s3://" + message["s3_path"],
+        "recording_overview": {
+            "tenantID": message["tenant"],
+            "deviceID": message["deviceid"],
+            "source_videos": list(related_media_paths)
+        }
+    }
+
+    find_and_update_media_references(related_media_paths, update_query={
+        "$inc": {"recording_overview.#snapshots": 1},
+        "$push": {
+            "recording_overview.snapshots_paths": message["_id"]
+        }
+    }, recordings_collection=collection_rec)
+
+    return recording_item
+
+
+def create_video_recording_item(message: dict, collection_rec: Collection,
+                                service: RelatedMediaService) -> dict:
+    """create_video_recording_item.
+
+    Args:
+        message (dict): info set from the sqs message received that will be used to populate the newly
+                        created DB item
+        collection_rec (MongoDB collection object): Object used to access/update the recordings collection
+                                                    information
+        service (RelatedMediaService): reponsible for finding related video for a given snapshot
+    Returns:
+        recording_item (dict): snapshot recording item document
+    """
+    related_media_paths: list = service.get_related(
+        tenant=message["tenant"],
+        deviceid=message["deviceid"],
+        start=message["footagefrom"],
+        end=message["footageto"],
+        media_type=message["media_type"])
+
+    footage_time = datetime.fromtimestamp(
+        message["footagefrom"] / 1000.0).strftime(TIME_FORMAT)
+
+    # Update video record
+    recording_item = {
+        "video_id": message["_id"],
+        "MDF_available": message["MDF_available"],
+        "_media_type": message["media_type"],
+        "filepath": "s3://" + message["s3_path"],
+        "recording_overview": {
+            "tenantID": message["tenant"],
+            "deviceID": message["deviceid"],
+            "length": message["length"],
+            "snapshots_paths": related_media_paths,
+            "#snapshots": len(related_media_paths),
+            "time": footage_time
+        },
+        "resolution": message["resolution"]
+    }
+
+    find_and_update_media_references(related_media_paths, update_query={
+        "$push": {
+            "recording_overview.source_videos": message["_id"]
+        }
+    }, recordings_collection=collection_rec)
+
+    return recording_item
 
 
 def create_recording_item(message: dict,
@@ -45,107 +214,22 @@ def create_recording_item(message: dict,
     """
 
     # check that data has at least the absolute minimum of required fields
-    assert '_id' in message and 's3_path' in message
+    if not all([key in message for key in ["_id", "s3_path"]]):
+        raise ValueError("Invalid Message")
 
     # Build item structure and add info from msg received
     file_format = message["s3_path"].split(".")[-1]
     recording_item = {}
 
     if file_format in IMAGE_FORMATS:
-
-        # Identify the video belonging to this snapshot
-        source_videos: list = service.get_related(
-            message['tenant'], message['deviceid'], message['timestamp'], 0, message['media_type'])
-
-        # A snapshot should only ever have 2 max source recordings - interior and training, front is disabled
-        if len(source_videos) <= 2:
-            debug_message = f"Image {message['_id']} has {len(source_videos)} source videos: {source_videos}"
-            _logger.debug(debug_message)
-
-        # Update snapshot record
-        recording_item = {
-            # we have the key for snapshots named as 'video_id' due to legacy reasons...
-            'video_id': message['_id'],
-            '_media_type': message['media_type'],
-            'filepath': 's3://' + message['s3_path'],
-            'recording_overview': {
-                'tenantID': message['tenant'],
-                'deviceID': message['deviceid'],
-                'source_videos': list(source_videos)
-            }
-        }
-
-        # Set reference to snapshots on source video
-        for media_path in source_videos:
-            try:
-                recording = collection_rec.find_one_and_update(
-                    filter={'video_id': media_path},
-                    update={
-                        '$inc': {'recording_overview.#snapshots': 1},
-                        '$push': {
-                            'recording_overview.snapshots_paths': message['_id']
-                        }
-                    },
-                    upsert=False,
-                    return_document=ReturnDocument.AFTER)
-                _logger.info("Associated video to snapshot - %s", media_path)
-                update_voxel_media(recording)
-            except PyMongoError as err:
-                _logger.exception(
-                    "Unable to update snapshot information for id [%s] - %s", media_path, err)
-
+        recording_item = create_snapshot_recording_item(message, collection_rec, service)
     elif file_format in VIDEO_FORMATS:
-
-        # Identify stored snapshots that belong to this recording
-        snapshot_paths: list = service.get_related(
-            message['tenant'],
-            message['deviceid'],
-            message['footagefrom'],
-            message['footageto'],
-            message['media_type'])
-
-        footage_time = datetime.fromtimestamp(
-            message['footagefrom'] / 1000.0).strftime(TIME_FORMAT)
-        # Update video record
-        recording_item = {
-            'video_id': message['_id'],
-            'MDF_available': message['MDF_available'],
-            '_media_type': message['media_type'],
-            'filepath': 's3://' + message['s3_path'],
-            'recording_overview': {
-                'tenantID': message['tenant'],
-                'deviceID': message['deviceid'],
-                'length': message['length'],
-                'snapshots_paths': snapshot_paths,
-                '#snapshots': len(snapshot_paths),
-                'time': footage_time
-            },
-            'resolution': message['resolution']
-        }
-
-        # Set reference to source video on snapshots
-        for media_path in snapshot_paths:
-            try:  # we have the key for snapshots named as 'video_id' due to legacy reasons...
-                recording = collection_rec.find_one_and_update(
-                    filter={
-                        'video_id': media_path},
-                    update={
-                        '$push': {
-                            'recording_overview.source_videos': message['_id']}},
-                    upsert=False,
-                    return_document=ReturnDocument.AFTER)
-
-                _logger.info("Associated snapshot to video - %s", media_path)
-                update_voxel_media(recording)
-            except PyMongoError as err:
-                _logger.exception(
-                    "Unable to upsert snapshot [%s] :: %s", media_path, err)
-
+        recording_item = create_video_recording_item(message, collection_rec, service)
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
-            recorder = collection_rec.find_one_and_update(filter={'video_id': message["_id"]},
-                                                          update={'$set': recording_item},
+            recorder = collection_rec.find_one_and_update(filter={"video_id": message["_id"]},
+                                                          update={"$set": recording_item},
                                                           upsert=True, return_document=ReturnDocument.AFTER)
 
             _logger.info("Upserted recording DB item for item %s",
@@ -158,52 +242,6 @@ def create_recording_item(message: dict,
 
     _logger.error(UNKNOWN_FILE_FORMAT_MESSAGE, file_format)
     return None
-
-
-def update_voxel_media(sample: dict):
-    def __get_s3_path(raw_path) -> Tuple[str, str]:
-        match = re.match(r'^s3://([^/]+)/(.*)$', raw_path)
-
-        if (match is None or len(match.groups()) != 2):
-            raise ValueError('Invalid path: ' + raw_path)
-
-        bucket = match.group(1)
-        key = match.group(2)
-        return bucket, key
-
-    # Voxel51 code
-
-    if 'filepath' not in sample:
-        _logger.error(f"Filepath field not present in the sample.{sample}")
-        return None
-
-    _, filepath = __get_s3_path(sample["filepath"])
-    s3split = filepath.split("/")
-    bucket_name = s3split[0]
-    filetype = s3split[-1].split(".")[-1]
-    sample.pop("_id", None)
-
-    if filetype in IMAGE_FORMATS:
-        bucket_name = bucket_name + "_snapshots"
-        anonymized_path = "s3://" + \
-            os.environ['ANON_S3'] + "/" + filepath[:-5] + '_anonymized.' + filetype
-
-    elif filetype in VIDEO_FORMATS:
-        anonymized_path = "s3://" + \
-            os.environ['ANON_S3'] + "/" + filepath[:-4] + '_anonymized.' + filetype
-    else:
-        raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
-    sample["s3_path"] = anonymized_path
-    try:
-        # Create dataset with the bucket_name if it doesn't exist
-        create_dataset(bucket_name)
-        # Add  the video to the dataset
-        update_sample(bucket_name, sample)
-        # Create logs message
-        _logger.info("Voxel sample [%s] created!", bucket_name)
-    except Exception as err:  # pylint: disable=broad-except
-        _logger.exception(
-            "Unable to create dataset [%s] on update_pipeline_db %s", bucket_name, err)
 
 
 def upsert_mdf_data(message: dict, collection_sig: Collection,
@@ -325,11 +363,11 @@ def update_pipeline_db(video_id: str, message: dict,
         bucket_name = bucket_name + "_snapshots"
         anonymized_path = "s3://" + \
             os.environ['ANON_S3'] + "/" + \
-            message["s3_path"][:-5] + '_anonymized.' + filetype
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
     elif filetype in VIDEO_FORMATS:
         anonymized_path = "s3://" + \
             os.environ['ANON_S3'] + "/" + \
-            message["s3_path"][:-4] + '_anonymized.' + filetype
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
     else:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     # with dicts either we make a copy or both variables will reference the same object
@@ -505,7 +543,7 @@ def process_outputs(video_id: str, message: dict,
     filetype = s3split[-1].split(".")[-1]
     anon_video_path = "s3://" + \
         os.environ['ANON_S3'] + "/" + \
-        message["s3_path"][:-4] + '_anonymized.' + filetype
+        message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
 
     if filetype == "jpeg" or filetype == "png":
         bucket_name = bucket_name + "_snapshots"
@@ -513,7 +551,7 @@ def process_outputs(video_id: str, message: dict,
     if filetype == "jpeg":
         anon_video_path = "s3://" + \
             os.environ['ANON_S3'] + "/" + \
-            message["s3_path"][:-5] + '_anonymized.' + filetype
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
 
     sample = algo_item
 
