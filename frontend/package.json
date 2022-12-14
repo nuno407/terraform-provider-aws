@@ -1,5 +1,5 @@
 {
-  "name": "ridecare-operator-webportal",
+  "name": "ridecare-devcloud",
   "version": "0.14.0",
   "scripts": {
     "build:dev": "ng build --configuration=dev && ng analytics off",
@@ -8,7 +8,7 @@
     "build": "ng build && ng analytics off",
     "doc:app": "compodoc -p tsconfig.app.json -t --hideGenerator -d \"dist/docs/app\"",
     "lint": "ng lint",
-    "lint:app": "ng lint ridecare-operator-webportal",
+    "lint:app": "ng lint ridecare-devcloud",
     "ng": "ng",
     "postbuild:app": "npm run doc:app",
     "postinstall": "ngcc --properties es2015 browser module main --first-only --create-ivy-entry-points",
@@ -19,7 +19,7 @@
     "start:local": "ng serve --host=127.0.0.1 --configuration=local && ng analytics off",
     "start:subpath": "ng serve --host=127.0.0.1 --port 4202 --serve-path=/test/ --base-href=/test/",
     "test": "ng test",
-    "test:app": "ng test ridecare-operator-webportal --browsers=Chrome",
+    "test:app": "ng test ridecare-devcloud --browsers=Chrome",
     "test-headless": "npm run test:headless:app",
     "test:headless:app": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox",
     "server": "ts-node ./server/server.ts"

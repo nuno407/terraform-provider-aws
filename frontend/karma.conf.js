@@ -33,13 +33,13 @@ module.exports = function (config) {
       clearContext: false, // leave Jasmine Spec Runner output visible in browser
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/ridecare-operator-webportal'),
+      dir: require('path').join(__dirname, './coverage/ridecare-devcloud'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'lcovonly' }, { type: 'text-summary' }, {type: 'cobertura'}],
     },
     reporters: ['progress', 'coverage', 'kjhtml', 'junit'],
     junitReporter: {
-      outputDir: require('path').join(__dirname, './test-results/ridecare-operator-webportal'),
+      outputDir: require('path').join(__dirname, './test-results/ridecare-devcloud'),
     },
     port: 9876,
     colors: true,

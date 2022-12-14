@@ -9,7 +9,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ridecare-operator-webportal": {
+    "ridecare-devcloud": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -135,24 +135,24 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ridecare-operator-webportal:build"
+            "browserTarget": "ridecare-devcloud:build"
           },
           "configurations": {
             "dev": {
-              "browserTarget": "ridecare-operator-webportal:build:dev"
+              "browserTarget": "ridecare-devcloud:build:dev"
             },
             "qa": {
-              "browserTarget": "ridecare-operator-webportal:build:qa"
+              "browserTarget": "ridecare-devcloud:build:qa"
             },
             "local": {
-              "browserTarget": "ridecare-operator-webportal:build:local"
+              "browserTarget": "ridecare-devcloud:build:local"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ridecare-operator-webportal:build"
+            "browserTarget": "ridecare-devcloud:build"
           }
         },
         "test": {
@@ -195,5 +195,5 @@
       }
     }
   },
-  "defaultProject": "ridecare-operator-webportal"
+  "defaultProject": "ridecare-devcloud"
 }
