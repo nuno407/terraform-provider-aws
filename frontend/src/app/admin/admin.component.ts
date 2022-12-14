@@ -17,7 +17,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   /**Local variables */
   username: string;
   loginError: string;
-  title = 'RideCare';
+  title = 'RideCare Dev Cloud';
   isAuthenticated: boolean;
 
   userSubscription: Subscription;
