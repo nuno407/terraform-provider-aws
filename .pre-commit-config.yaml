@@ -14,7 +14,7 @@ repos:
           - "--branch"
           - "master"
           - "--pattern"
-          - "^(?!((feature\/|fix\/)?(MC-\\d{4,}|NO-TICKET|no-ticket).*)).+"
+          - "^(?!((feature\/|fix\/)?(MC-\\d{4,}|NO-TICKET|no-ticket|dependabot\/).*)).+"
         stages:
           - "push"
 # -   repo: local
