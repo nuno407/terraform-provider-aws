@@ -1,5 +1,6 @@
 
 import gzip
+import hashlib
 import json
 import logging as log
 import os
@@ -11,16 +12,17 @@ from calendar import monthrange
 from copy import copy
 from datetime import datetime, timedelta
 from operator import itemgetter
+from pathlib import Path
 from typing import Iterator, Optional, Tuple, TypeVar
 
 import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
+from sdretriever.message import VideoMessage
 
 from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 from base.aws.shared_functions import StsHelper
 from base.timestamps import from_epoch_seconds_or_milliseconds
-from sdretriever.message import VideoMessage
 
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
@@ -163,6 +165,10 @@ class VideoIngestor(Ingestor):
         else:
             s3_folder = self.CS.sdr_folder['debug']
 
+
+        seed = f"{video_msg.streamname}{int(video_msg.footagefrom)}{int(video_msg.footageto)}"
+        internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+
         # Get clip from KinesisVideoStream
         try:
             # Requests credentials to assume specific cross-account role on Kinesis
@@ -219,6 +225,7 @@ class VideoIngestor(Ingestor):
             'snapshots_paths': [],
             "sync_file_ext": "",
             'resolution': width + "x" + height,
+            "internal_message_reference_id": internal_message_reference_id,
         }
 
         # Generate dictionary with info to send to Selector container for training data request (high quality )
@@ -294,9 +301,13 @@ class SnapshotIngestor(Ingestor):
             if chunk.uuid.endswith(".jpeg"):
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
-                snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{chunk.uuid[:-5]}_{chunk.start_timestamp_ms}.jpeg"
+                uuid_no_format = self.uuid.rstrip(Path(self.uuid).suffix)
+                snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{uuid_no_format}_{int(chunk.start_timestamp_ms)}.jpeg"
                 exists_on_devcloud = ContainerServices.check_s3_file_exists(
                     self.S3_CLIENT, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
+
+                seed = snap_name.rstrip(Path(snap_name).suffix)
+                internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
                 if not exists_on_devcloud:
 
@@ -336,7 +347,8 @@ class SnapshotIngestor(Ingestor):
                                 "deviceid": snap_msg.deviceid,
                                 "timestamp": chunk.start_timestamp_ms,
                                 "tenant": snap_msg.tenant,
-                                "media_type": "image"
+                                "media_type": "image",
+                                "internal_message_reference_id": internal_message_reference_id,
                             }
                             self.CS.send_message(
                                 self.SQS_CLIENT, self.metadata_queue, db_record_data)
