@@ -46,6 +46,7 @@ class TestVideoIngestor():
             "deviceid": "DATANAUTS_DEV_01",
             "footagefrom": 1657297040802,
             "footageto": 1657297074110,
+            'internal_message_reference_id': 'abbbf8a73e87dbaa9ebbf0cfecea94260df12569e5866b3b6b21864687adbe28',
             "length": "0:16:40",
             "media_type": "video",
             "resolution": "1920x1080",

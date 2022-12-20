@@ -299,7 +299,7 @@ class SnapshotIngestor(Ingestor):
             if chunk.uuid.endswith(".jpeg"):
                 RCC_S3_bucket = self.CS.rcc_info.get('s3_bucket')
                 # Define its new name by adding the timestamp as a suffix
-                uuid_no_format = self.uuid.rstrip(Path(self.uuid).suffix)
+                uuid_no_format = chunk.uuid.rstrip(Path(chunk.uuid).suffix)
                 snap_name = f"{snap_msg.tenant}_{snap_msg.deviceid}_{uuid_no_format}_{int(chunk.start_timestamp_ms)}.jpeg"
                 exists_on_devcloud = ContainerServices.check_s3_file_exists(
                     self.S3_CLIENT, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
