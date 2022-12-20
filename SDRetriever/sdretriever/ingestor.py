@@ -165,10 +165,6 @@ class VideoIngestor(Ingestor):
         else:
             s3_folder = self.CS.sdr_folder['debug']
 
-
-        seed = f"{video_msg.streamname}{int(video_msg.footagefrom)}{int(video_msg.footageto)}"
-        internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-
         # Get clip from KinesisVideoStream
         try:
             # Requests credentials to assume specific cross-account role on Kinesis
@@ -176,6 +172,8 @@ class VideoIngestor(Ingestor):
             video_from = from_epoch_seconds_or_milliseconds(
                 video_msg.footagefrom)
             video_to = from_epoch_seconds_or_milliseconds(video_msg.footageto)
+            seed = f"{video_msg.streamname}_{int(video_from.timestamp() * 1000)}_{int(video_to.timestamp() * 1000)}"
+            internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
             video_bytes, video_start_ts, video_end_ts = self.CS.get_kinesis_clip(
                 role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
             video_start = round(video_start_ts.timestamp() * 1000)
