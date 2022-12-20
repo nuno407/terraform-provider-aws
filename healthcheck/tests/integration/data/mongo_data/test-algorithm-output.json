@@ -1,0 +1,132 @@
+[
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000_CHC",
+        "algorithm_id": "CHC",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000",
+        "output_paths": {
+            "metadata": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000_chc.json",
+            "video": "-"
+        },
+        "results": {
+            "CHBs": [
+                "0.0520942",
+                "0.0515571"
+            ],
+            "number_CHC_events": "",
+            "lengthCHC": ""
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000_Anonymize",
+        "algorithm_id": "Anonymize",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000",
+        "output_paths": {
+            "metadata": "-",
+            "video": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000_anonymized.mp4"
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000_CHC",
+        "algorithm_id": "CHC",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000",
+        "output_paths": {
+            "metadata": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000_chc.json",
+            "video": "-"
+        },
+        "results": {
+            "CHBs": [
+                "0",
+                "0.770226"
+            ],
+            "number_CHC_events": "",
+            "lengthCHC": ""
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000_Anonymize",
+        "algorithm_id": "Anonymize",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000",
+        "output_paths": {
+            "metadata": "-",
+            "video": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000_anonymized.mp4"
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000_Anonymize",
+        "algorithm_id": "Anonymize",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
+        "output_paths": {
+            "metadata": "-",
+            "video": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000_anonymized.mp4"
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000_CHC",
+        "algorithm_id": "CHC",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000",
+        "output_paths": {
+            "metadata": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000_chc.json",
+            "video": "-"
+        },
+        "results": {
+            "CHBs": [
+                "0",
+                "0.997222"
+            ],
+            "number_CHC_events": "",
+            "lengthCHC": ""
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000_CHC",
+        "algorithm_id": "CHC",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
+        "output_paths": {
+            "metadata": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000_chc.json",
+            "video": "-"
+        },
+        "results": {
+            "CHBs": [
+                "0",
+                "0.992502"
+            ],
+            "number_CHC_events": "",
+            "lengthCHC": ""
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000_Anonymize",
+        "algorithm_id": "Anonymize",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000",
+        "output_paths": {
+            "metadata": "-",
+            "video": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000_anonymized.mp4"
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000_Anonymize",
+        "algorithm_id": "Anonymize",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000",
+        "output_paths": {
+            "metadata": "-",
+            "video": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000_anonymized.mp4"
+        }
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000_CHC",
+        "algorithm_id": "CHC",
+        "pipeline_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000",
+        "output_paths": {
+            "metadata": "dev-rcd-anonymized-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000_chc.json",
+            "video": "-"
+        },
+        "results": {
+            "CHBs": [
+                "0",
+                "0.842817"
+            ],
+            "number_CHC_events": "",
+            "lengthCHC": ""
+        }
+    }
+]

@@ -1,0 +1,186 @@
+[
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c1"
+        },
+        "recording": "srxfut2internal06_rc_srx_qa_eur_fut2_011_InteriorRecorder_1647012698858_1647012789117",
+        "algo_out_id": "srxfut2internal06_rc_srx_qa_eur_fut2_011_InteriorRecorder_1647012698858_1647012789117_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 1.0
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    1173,
+                    1174,
+                    1422
+                ],
+                "duration": 15.85987261146498
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c2"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647358527533_1647358582428",
+        "algo_out_id": "-",
+        "source": "MDF",
+        "signals": {
+            "0:00:41:924000": 0.967291,
+            "0:00:39:397000": 0.978559
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    183,
+                    234
+                ],
+                "duration": 45.90995
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c3"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bichi_01_InteriorRecorder_AGO30_1639751600156_1639751610351",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bichi_01_InteriorRecorder_AGO30_1639751600156_1639751610351_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.961
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    3,
+                    149
+                ],
+                "duration": 9.299363057324841
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c4"
+        },
+        "recording": "srxfut2internal15_rc_srx_qa_eur_fut2_AGO3_TrainingRecorder_1647017064817_1647017741533",
+        "algo_out_id": "srxfut2internal15_rc_srx_qa_eur_fut2_AGO3_TrainingRecorder_1647017064817_1647017741533_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.246
+        },
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c5"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.979
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    290,
+                    539
+                ],
+                "duration": 15.859872611464969
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c6"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO21_1639751600156_1639751610351",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO21_1639751600156_1639751610351_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.961
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    3,
+                    149
+                ],
+                "duration": 9.299363057324841
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c7"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO11_1639751600156_1639751610351",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO11_1639751600156_1639751610351_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.961
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    3,
+                    149
+                ],
+                "duration": 9.299363057324841
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551d6"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO19_1639751600156_1639751610351",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO19_1639751600156_1639751610351_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.961
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    3,
+                    149
+                ],
+                "duration": 9.299363057324841
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c8"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_TrainingRecorder_1646987944081_1646987993758",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_TrainingRecorder_1646987944081_1646987993758_CHC",
+        "source": "CHC",
+        "signals": {
+            "0:00:00": 0.675
+        },
+        "CHC_periods": [
+            {
+                "frames": [
+                    530,
+                    779
+                ],
+                "duration": 15.859872611464972
+            }
+        ]
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b1551c9"
+        },
+        "recording": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO10_1639751600156_1639751610351",
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_AGO10_1639751600156_1639751610351_CHC",
+        "source": "CHC",
+        "signals": null,
+        "CHC_periods": null
+    }
+]

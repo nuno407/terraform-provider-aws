@@ -1,0 +1,222 @@
+[
+    {
+        "_id": {
+            "$oid": "63938322c1a569d4c4a2277d"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "638a08ccc1a569d4c4cdbc25"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6373c62fde83e10b9db1e2c3"
+        },
+        "algo_out_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524_CHC",
+        "recording": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6373c431de83e10b9db1b636"
+        },
+        "algo_out_id": "-",
+        "recording": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63918663c1a569d4c474c022"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63893ddbc1a569d4c4bc2c6e"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6391655bc1a569d4c471d114"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440",
+        "signals": {},
+        "source": "CHC",
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63892c4ac1a569d4c4baa1f0"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "637457cede83e10b9dbe581a"
+        },
+        "algo_out_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435_CHC",
+        "recording": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6373d92bde83e10b9db38445"
+        },
+        "algo_out_id": "-",
+        "recording": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63900fc1c1a569d4c4536eca"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6388fa1ac1a569d4c4b63da8"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "639442c8c1a569d4c4b15ebf"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "638a113fc1a569d4c4ce79ca"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6391674ac1a569d4c471fd50"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63893367c1a569d4c4bb41cb"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "639475ddc1a569d4c4b569be"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "638a135ec1a569d4c4ceaad4"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "63900746c1a569d4c452abd9"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6389067dc1a569d4c4b7542d"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6391d8c9c1a569d4c47c1668"
+        },
+        "algo_out_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428_CHC",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428",
+        "source": "CHC",
+        "signals": {},
+        "CHC_periods": []
+    },
+    {
+        "_id": {
+            "$oid": "6389487fc1a569d4c4bd1d06"
+        },
+        "algo_out_id": "-",
+        "recording": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428",
+        "source": "MDFParser",
+        "signals": {},
+        "CHC_periods": []
+    }
+]

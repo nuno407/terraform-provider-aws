@@ -1,0 +1,84 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/bosch-rc-dev/container_scripts/healthcheck/schema/jsonschema/recordings.json",
+    "title": "Recording",
+    "description": "A media recording",
+    "type": "object",
+    "properties": {
+        "_id": {
+            "$oid": {
+                "type": "string",
+                "description": "Internal mongoDB document ID"
+            }
+        },
+        "video_id": {
+            "type": "string",
+            "description": "DataIngestion recording ID"
+        },
+        "filepath": {
+            "type": "string",
+            "description": "Path to recording media file"
+        },
+        "MDF_available": {
+            "type": "string",
+            "description": "Contains 'Yes' if Metadata full file is available"
+        },
+        "chunk": {
+            "type": "string",
+            "description": "Recording chunk"
+        },
+        "resolution": {
+            "type": "string",
+            "description": "Recording media resolution"
+        },
+        "_media_type": {
+            "type": "string",
+            "description": "Recording media type"
+        },
+        "recording_overview": {
+            "type": "object",
+            "properties": {
+                "length": {
+                    "type": "string",
+                    "description": "Media file length"
+                },
+                "tenantID": {
+                    "type": "string",
+                    "description": "Current tenant ID"
+                },
+                "deviceID": {
+                    "type": "string",
+                    "description": "Current device ID"
+                },
+                "snapshots_paths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "#snapshots": {
+                    "type": "number",
+                    "description": "Number of snapshots"
+                },
+                "time": {
+                    "type": "string",
+                    "description": "Timestamp in string format"
+                }
+            },
+            "required": [
+                "tenantID",
+                "deviceID",
+                "length",
+                "#snapshots",
+                "time"
+            ]
+        }
+    },
+    "required": [
+        "_id",
+        "video_id",
+        "filepath",
+        "recording_overview",
+        "_media_type"
+    ]
+}

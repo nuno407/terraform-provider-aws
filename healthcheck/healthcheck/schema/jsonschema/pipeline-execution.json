@@ -1,0 +1,49 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/bosch-rc-dev/container_scripts/healthcheck/schema/jsonschema/pipeline-execution.json",
+    "title": "Pipeline Execution",
+    "description": "Pipeline execution status of a recording",
+
+    "type": "object",
+    "properties": {
+        "_id": {
+            "type": "string",
+            "description": "Identifier for pipeline execution"
+        },
+        "data_status": {
+            "type": "string",
+            "description": "Execution status of the pipeline"
+        },
+        "from_container": {
+            "description": "Microservice that persisted this status document",
+            "type": "string"
+        },
+        "info_source": {
+            "description": "Microservice that sent this status information",
+            "type": "string"
+        },
+        "last_updated": {
+            "type": "string",
+            "description": "last time this status was updated"
+        },
+        "processing_list": {
+            "type": "array",
+            "description": "List of algorithms to be processed in this pipeline",
+            "items": {
+                "type": "string"
+            }
+        },
+        "s3_path": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "_id",
+        "data_status",
+        "from_container",
+        "info_source",
+        "last_updated",
+        "processing_list",
+        "s3_path"
+    ]
+}

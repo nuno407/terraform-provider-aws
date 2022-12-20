@@ -2,12 +2,15 @@ pytest
 pytimeparse
 pytest-mock
 pytest-cov
+mongomock == 4.1.2
+moto[s3,sqs] == 4.0.11
 
 autopep8
 pylint
 pylint-quotes
 mypy
 bandit
+python-dotenv
 
 # install the app itself
 -e .

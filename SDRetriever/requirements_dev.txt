@@ -6,6 +6,7 @@ pylint
 pylint-quotes
 mypy
 bandit
+moto
 
 # install the app itself
 -e .

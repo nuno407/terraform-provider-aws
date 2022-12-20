@@ -1,0 +1,24 @@
+anonymized_s3_bucket: dev-rcd-anonymized-video-files
+raw_s3_bucket: dev-rcd-raw-video-files
+s3_dir: Debug_Lync
+input_queue: dev-terraform-queue-healthcheck
+db_name: DataIngestion
+environment_prefix: dev
+tenant_blacklist:
+- TEST_TENANT
+- systestsrx
+- herbie
+- deviceprep
+- hacknorris
+- jackalope
+- rubber_duck
+- honeybadger
+- ridecare_companion_ces_stresstest
+- ridecare_companion_ces
+training_whitelist:
+- datanauts
+- deepsensation
+- ridecare_companion_trial
+- srxfut3
+recorder_blacklist:
+- FrontRecorder

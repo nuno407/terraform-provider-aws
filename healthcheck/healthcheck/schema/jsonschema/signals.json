@@ -1,0 +1,40 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/bosch-rc-dev/container_scripts/healthcheck/schema/jsonschema/signals.json",
+    "title": "Signals",
+    "description": "Signals from a recording",
+    "type": "object",
+    "properties": {
+        "_id": {
+            "$oid": {
+                "type": "string",
+                "description": "Internal mongoDB document ID"
+            }
+        },
+        "recording": {
+            "type": "string",
+            "description": "Media recording id"
+        },
+        "algo_out_id": {
+            "type": "string",
+            "description": "Algorithm output id"
+        },
+        "source": {
+            "type": "string",
+            "description": "Signals source"
+        },
+        "signals": {
+            "type": "object",
+            "description": "Signals grouped by following property pattern HH:mm:ss:fractions_of_secs"
+        },
+        "CHC_periods": {
+            "type": "array"
+        }
+    },
+    "required": [
+        "_id",
+        "recording",
+        "source",
+        "signals"
+    ]
+}

@@ -1,39 +1,29 @@
+# type: ignore
+"""healthcheck main module."""
 import logging
-import os
-from dataclasses import dataclass
-from datetime import datetime
-from healthcheck.healthcheck.rcc_artifact_checker import RCCArtifact
-from base.aws.shared_functions import AWSServiceClients
-from base.aws.container_services import ContainerServices
 
-CONTAINER_NAME = os.getenv("CONTAINER_NAME", "CHC")
-AWS_REGION = os.getenv('AWS_REGION', 'eu-central-1')
+from kink import inject
 
-LOGGER: logging.Logger = None
+from healthcheck.bootstrap import bootstrap_di
+from healthcheck.constants import CONTAINER_NAME
+from healthcheck.worker import HealthCheckWorker
 
-VIDEO_TYPE = 1
-IMAGE_TYPE = 2
+_logger: logging.Logger
+
+
+@inject
+def start(worker: HealthCheckWorker, container_version: str):
+    """Start."""
+    _logger.info("Starting Container %s:%s...", CONTAINER_NAME, container_version)
+    worker.run()
 
 
 def main() -> None:
-    LOGGER.info("Starting Container %s...\n", CONTAINER_NAME)
-
-    #container_services = ContainerServices(CONTAINER_NAME, CONTAINER_VERSION)
-    #aws_clients = AWSServiceClients(
-    #    s3_client=boto3.client(
-    #        's3', region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT),
-    #    sqs_client=boto3.client(
-    #        'sqs', region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
-    #)
-    #base_handler = BaseHandler(CONTAINER_NAME,
-    #                           container_services,
-    #                           aws_clients,
-    #                           MODE,
-    #                           CALLBACK_ENDPOINT,
-    #                           CHCCallbackEndpointCreator())
-    #base_handler.setup_and_run(API_PORT)
+    """Main method."""
+    start()  # pylint: disable=no-value-for-parameter
 
 
-if __name__ == '__main__':
-    _logger = ContainerServices.configure_logging('chc_ivschain')
+if __name__ == "__main__":
+    _logger = logging.getLogger("healthcheck")
+    bootstrap_di()
     main()

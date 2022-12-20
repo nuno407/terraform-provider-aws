@@ -1,0 +1,58 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/bosch-rc-dev/container_scripts/healthcheck/schema/jsonschema/recordings-snapshot.json",
+    "title": "Recording Snapshot",
+    "description": "A media recording snapshot",
+    "type": "object",
+    "properties": {
+        "_id": {
+            "$oid": {
+                "type": "string",
+                "description": "Internal mongoDB document ID"
+            }
+        },
+        "video_id": {
+            "type": "string",
+            "description": "DataIngestion recording ID"
+        },
+        "filepath": {
+            "type": "string",
+            "description": "Path to recording media file"
+        },
+        "_media_type": {
+            "type": "string",
+            "description": "Recording media type"
+        },
+        "recording_overview": {
+            "type": "object",
+            "properties": {
+                "tenantID": {
+                    "type": "string",
+                    "description": "Current tenant ID"
+                },
+                "deviceID": {
+                    "type": "string",
+                    "description": "Current device ID"
+                },
+                "source_videos": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "tenantID",
+                "deviceID",
+                "source_videos"
+            ]
+        },
+        "required": [
+            "_id",
+            "video_id",
+            "filepath",
+            "_media_type",
+            "recording_overview"
+        ]
+    }
+}

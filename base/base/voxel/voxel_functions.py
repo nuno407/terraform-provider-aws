@@ -17,7 +17,6 @@ def create_dataset(bucket_name):
         dataset = fo.Dataset(bucket_name, True)
         dataset.persistent = True
 
-
 def update_sample(data_set, sample_info):
     """ Creates a voxel sample (entry inside the provided dataset). """
 

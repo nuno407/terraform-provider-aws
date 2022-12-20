@@ -35,7 +35,7 @@ docstring-quote = "double"
 
 [tool.mypy]
 files = [
-    "sdretreiver/**/*.py",
+    "sdretriever/**/*.py",
     "tests/**/*.py"
 ]
 # mypy per-module options:

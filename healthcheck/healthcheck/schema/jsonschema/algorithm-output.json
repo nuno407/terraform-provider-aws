@@ -1,0 +1,78 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/bosch-rc-dev/container_scripts/healthcheck/schema/jsonschema/algorithm-output.json",
+    "title": "Algorithm Output",
+    "description": "Inference processing output metadata",
+    "type": "object",
+    "properties": {
+        "_id": {
+            "type": "string",
+            "description": "Media recording ID"
+        },
+        "algorithm_id": {
+            "type": "string",
+            "description": "Processing algorithm ID"
+        },
+        "pipeline_id": {
+            "type": "string",
+            "description": "Pipeline execution ID"
+        },
+        "output_paths": {
+            "type": "object",
+            "description": "Algorithm output"
+        },
+        "if": {
+            "properties": {
+                "algorithm_id": {
+                    "const": "CHC"
+                }
+            }
+        },
+        "then": {
+            "properties": {
+                "results": {
+                    "type": "object",
+                    "properties": {
+                        "CHBs": {
+                            "type": "array"
+                        },
+                        "CHBs_sync": {
+                            "type": "object"
+                        },
+                        "CHC_periods": {
+                            "type": "array"
+                        }
+                    }
+                }
+            }
+        },
+        "else": {
+            "if": {
+                "algorithm_id": {
+                    "const": "Anonymize"
+                }
+            },
+            "then": {
+                "properties": {
+                    "output_paths": {
+                        "type": "object",
+                        "properties": {
+                            "metadata": {
+                                "type": "string"
+                            },
+                            "video": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "_id",
+        "algorithm_id",
+        "pipeline_id",
+        "output_paths"
+    ]
+}

@@ -1,0 +1,122 @@
+[
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-09T16:48:42.818394Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-09T16:53:51.186880Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-10T09:11:49.514927Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-10T10:39:12.161934Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639315740000_1639315800000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-12T13:44:55.363826Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639315740000_1639315800000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-12T15:01:13.097266Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320960000_1639321140000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-12T16:09:12.346358Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320960000_1639321140000.mp4"
+    },
+    {
+        "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000",
+        "data_status": "complete",
+        "from_container": "Metadata",
+        "info_source": "CHC",
+        "last_updated": "2021-12-12T16:27:43.106418Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000.mp4"
+    },
+    {
+        "_id": "srxfut2internal01_rc_tst_qa_eur_fut2_001_InteriorRecorder_1643971450000_1643971472700+",
+        "data_status": "received",
+        "from_container": "Metadata",
+        "info_source": "SDM",
+        "last_updated": "2022-02-07T13:20:57.347832Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/srxfut2internal01_rc_tst_qa_eur_fut2_001_InteriorRecorder_1643971450000_1643971472700+.mp4"
+    },
+    {
+        "_id": "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1639750504360_1639750523828",
+        "data_status": "received",
+        "from_container": "Metadata",
+        "info_source": "SDM",
+        "last_updated": "2022-02-07T13:36:57.142624Z",
+        "processing_list": [
+            "Anonymize",
+            "CHC"
+        ],
+        "s3_path": "Debug_Lync/deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1639750504360_1639750523828.mp4"
+    }
+]

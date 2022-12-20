@@ -1,0 +1,102 @@
+{
+    "Type": "Notification",
+    "MessageId": "779a6762-99ad-57c5-a99f-3b7a5cce656f",
+    "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
+    "Message": {
+        "topic": "com.bosch.rcc/rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b/things/twin/events/modified",
+        "headers": {
+            "device_id": "com.bosch.rcc:rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b",
+            "creation-time": "1671349025768",
+            "kafka.timestamp": "1671349025768",
+            "qos": "1",
+            "traceparent": "00-16e76665c98f7feccb4b38acb912b89b-f9465ec84d60029e-01",
+            "orig_address": "telemetry",
+            "kafka.topic": "hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub",
+            "orig_adapter": "hono-mqtt",
+            "kafka.key": "com.bosch.rcc:rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b",
+            "ditto-originator": "integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub",
+            "response-required": false,
+            "version": 2,
+            "requested-acks": [],
+            "content-type": "application/json",
+            "correlation-id": "ef8be460-93bb-4236-8819-fbeaef8d48bf"
+        },
+        "path": "/features/com.bosch.ivs.videorecorder.UploadRecordingEvent",
+        "value": {
+            "properties": {
+                "header": {
+                    "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent",
+                    "timestamp_ms": 1671349024711,
+                    "message_id": "f8f47fe7-b3f0-449b-9e6f-5ac8fb5c1396",
+                    "device_id": "my_test_device",
+                    "boot_id": "08a5defd-a2e1-4b2d-96ff-de0e4465bb3e"
+                },
+                "correlation_id": "4f35c864-77f7-40c4-8cf5-dd2a890bb42f",
+                "recording_id": "TrainingMultiSnapshot-a574c99e-9841-40a9-ab8b-ebbe789ae631",
+                "recorder_name": "TrainingMultiSnapshot",
+                "chunk_descriptions": [
+                    {
+                        "uuid": "TrainingMultiSnapshot_foo.jpeg",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1671346291000,
+                        "end_timestamp_ms": 1671346292000,
+                        "payload_size": 443427
+                    },
+                    {
+                        "uuid": "TrainingMultiSnapshot_bar.jpeg",
+                        "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+                        "start_timestamp_ms": 1671347823000,
+                        "end_timestamp_ms": 1671347824000,
+                        "payload_size": 440561
+                    }
+                ],
+                "command_status": {
+                    "status_code": "COMMAND_STATUS_CODE__OK"
+                }
+            }
+        },
+        "extra": {
+            "attributes": {
+                "vin": "unknown",
+                "tenant": "ridecare_companion_trial",
+                "vehicleType": "CARMODEL__FIAT_500_312",
+                "subjectId": "feddbfc1-c608-440c-ba51-1d9eea00a2c8",
+                "operationMode": "SRX",
+                "deviceType": "hailysharey"
+            }
+        },
+        "revision": 68183,
+        "timestamp": "2022-12-18T07:37:07.842030994Z"
+    },
+    "Timestamp": "2022-12-18T07:37:07.917Z",
+    "SignatureVersion": "1",
+    "Signature": "hrvNPs3r47QaT/x7ZRO6UVm4X2xntg8ORlfufWwMEZsze3AHuKqh8qQ++/NDYFARgT5GczuNgEOBC7NUJuSQ2fcdhjnyg761kNVdwyErS9WVjYy46jIadnaa55CJqahy57wlzXppbfwFzgqAl+rURuvWHsIbUGPZ0d/QaZ9k9J1CF04VLHnCT2NXbnetDJKDJYVcH6SZ9mzjXay1wXFpNhPMT6Q/ogKHm47j8sGIi6zhebsRvc1+WMCHqsaoGbWj0s8z/HI+4EvTisW92C1pcixrGSbjI9YDu9k2h1QCIjV3T3ZjHPCCLRUVDcU42qwAQjMP0oSOHAjFvxc7xgakkA==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:23a2a7a5-1fd3-4bbe-b766-1da13b0577d9",
+    "MessageAttributes": {
+        "deviceType": {
+            "Type": "String",
+            "Value": "hailysharey"
+        },
+        "modifiedThingCategory": {
+            "Type": "String",
+            "Value": "features"
+        },
+        "operationMode": {
+            "Type": "String",
+            "Value": "SRX"
+        },
+        "eventType": {
+            "Type": "String",
+            "Value": "com.bosch.ivs.videorecorder.UploadRecordingEvent"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "ridecare_companion_trial"
+        },
+        "subjectId": {
+            "Type": "String",
+            "Value": "feddbfc1-c608-440c-ba51-1d9eea00a2c8"
+        }
+    }
+}

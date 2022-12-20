@@ -1,3 +1,10 @@
+PyYAML
+jsonschema
+pymongo
+kink
 boto3
-boto3-stubs[s3]
--e ../base[aws]
+boto3-stubs[s3,sqs]
+botocore
+aws_error_utils
+--extra-index-url https://${TOKEN}@pypi.fiftyone.ai
+-e ../base[aws,voxel]

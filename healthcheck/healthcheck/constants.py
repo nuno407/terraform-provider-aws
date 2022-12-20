@@ -1,0 +1,4 @@
+"""Contants module."""
+CONTAINER_NAME = "Healthcheck"
+ELASTIC_ALERT_MATCHER = "<<HEALTHCHECK_ALERT>>"
+TWELVE_HOURS_IN_SECONDS = 60 * 60 * 12

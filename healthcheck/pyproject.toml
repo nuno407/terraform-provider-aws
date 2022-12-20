@@ -4,7 +4,7 @@ timid = true
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
-addopts = "-m unit -v --cov-config=.coveragerc --cov=health_check --cov-report=xml"
+addopts = "-m unit -v --cov-config=.coveragerc --cov=healthcheck --cov-report=xml"
 markers = [
     "unit",
     "integration"
@@ -21,6 +21,8 @@ recursive = true
 load-plugins = [
     "pylint_quotes",
 ]
+# We need to include base path in pylint config
+init-hook = "import sys; sys.path.append('../base');"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.

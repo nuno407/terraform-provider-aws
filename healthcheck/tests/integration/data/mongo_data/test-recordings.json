@@ -1,0 +1,264 @@
+[
+    {
+        "_id": {
+            "$oid": "6305fba5685dfa83933f8d7b"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1661336073962_1661336119253",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1661336073962_1661336119253.mp4",
+        "MDF_available": "Yes",
+        "chunk": "Chunk0",
+        "_media_type": "video",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:03:57",
+            "snapshots_paths": [
+                "datanauts_DATANAUT_SDEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-03af8c56-0aba-4c1a-b3cc-9c6230fd1dd0_143_1661336079000"
+            ],
+            "#snapshots": 1,
+            "time": "2022-08-24 10:14:33"
+        },
+        "resolution": "640x480"
+    },
+    {
+        "_id": {
+            "$oid": "6307a36aa5ef8720d356f41a"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661443391045_1661443926072",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661443391045_1661443926072.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:08:57",
+            "#snapshots": 6,
+            "snapshots_paths": [
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_262_1661443592000.jpeg",
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_263_1661443636000.jpeg",
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_264_1661443641000.jpeg",
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_266_1661443661000.jpeg",
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_265_1661443660000.jpeg",
+                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_267_1661443793000.jpeg"
+            ]
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "63089623eab281fb767a3e27"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661504362898_1661505548503",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661504362898_1661505548503.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:19:42",
+            "#snapshots": 24,
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_56_1661504507000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_57_1661504593000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_58_1661504595000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_59_1661504609000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_61_1661504708000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_62_1661504794000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_60_1661504611000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_63_1661504795000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_64_1661504811000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_65_1661504812000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_66_1661504909000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_67_1661504995000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_68_1661504996000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_69_1661505012000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_70_1661505014000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_71_1661505110000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_72_1661505215000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_73_1661505216000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_74_1661505221000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_75_1661505222000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_76_1661505311000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_77_1661505462000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_78_1661505463000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-22bbb089-c041-4dd7-a200-59d9310becb1_79_1661505512000"
+            ]
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630dd4c5eab281fb76e822f6"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661850209768_1661850415686",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661850209768_1661850415686.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:03:24",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfab655-1d67-453f-9824-c3d99e601a7e_1_1661850350000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfab655-1d67-453f-9824-c3d99e601a7e_2_1661850364000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfab655-1d67-453f-9824-c3d99e601a7e_5_1661850395000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfab655-1d67-453f-9824-c3d99e601a7e_4_1661850394000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfab655-1d67-453f-9824-c3d99e601a7e_3_1661850365000"
+            ],
+            "#snapshots": 5,
+            "time": "2022-08-30 09:03:29"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630ddeffeab281fb76e90595"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661792765352_1661793136608",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661792765352_1661793136608.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:06:08",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-236481a6-1c70-411c-86a2-0e4c7923c8f5_6_1661792956000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-236481a6-1c70-411c-86a2-0e4c7923c8f5_7_1661792997000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-236481a6-1c70-411c-86a2-0e4c7923c8f5_8_1661793030000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-236481a6-1c70-411c-86a2-0e4c7923c8f5_9_1661793031000"
+            ],
+            "#snapshots": 4,
+            "time": "2022-08-29 17:06:05"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630e119aeab281fb76ee0ef6"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661865806178_1661866052318",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661865806178_1661866052318.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:04:02",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-cd9bfb89-b75e-4c09-af22-ec3537e1f3e2_11_1661865977000"
+            ],
+            "#snapshots": 1,
+            "time": "2022-08-30 13:23:26"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630f1d95eab281fb76067beb"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661934307728_1661934526034",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661934307728_1661934526034.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:03:35",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-e31b21f0-020e-42aa-b78a-d4f229805798_1_1661934308000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-e31b21f0-020e-42aa-b78a-d4f229805798_2_1661934310000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-e31b21f0-020e-42aa-b78a-d4f229805798_3_1661934313000"
+            ],
+            "#snapshots": 3,
+            "time": "2022-08-31 08:25:07"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630f26e8eab281fb76078c17"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661936700769_1661936837740",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661936700769_1661936837740.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:02:15",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-45289ec9-31a5-4a33-97c3-a3e6d2d8930f_1_1661936711000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-45289ec9-31a5-4a33-97c3-a3e6d2d8930f_2_1661936719000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-45289ec9-31a5-4a33-97c3-a3e6d2d8930f_3_1661936729000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-45289ec9-31a5-4a33-97c3-a3e6d2d8930f_4_1661936730000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-45289ec9-31a5-4a33-97c3-a3e6d2d8930f_5_1661936731000"
+            ],
+            "#snapshots": 5,
+            "time": "2022-08-31 09:05:00"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630f3c35eab281fb7609be0d"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661942168292_1661942356929",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661942168292_1661942356929.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:03:09",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1c8adbf1-88cc-4614-b756-8aa0e63a66f4_1_1661942176000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1c8adbf1-88cc-4614-b756-8aa0e63a66f4_2_1661942177000",
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1c8adbf1-88cc-4614-b756-8aa0e63a66f4_3_1661942179000"
+            ],
+            "#snapshots": 3,
+            "time": "2022-08-31 10:36:08"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "630f73c1eab281fb760f3ab8"
+        },
+        "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661956255822_1661956544732",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661956255822_1661956544732.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:04:50",
+            "snapshots_paths": [
+                "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1c8adbf1-88cc-4614-b756-8aa0e63a66f4_354_1661956392000"
+            ],
+            "#snapshots": 1,
+            "time": "2022-08-31 14:30:55"
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "6273c292a99231467b15523b"
+        },
+        "video_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:06:50",
+            "snapshots_paths": [
+                "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000-1c8adbf1-88cc-4614-b756-8aa0e63a66f4_354_1661956392000"
+            ],
+            "#snapshots": 1,
+            "time": "2022-08-31 14:30:55"
+        },
+        "resolution": "1280x720"
+    }
+]

@@ -1,0 +1,28 @@
+{
+    "Type": "Notification",
+    "MessageId": "f79cfd25-8a88-5c1c-ad5e-a130c028ccc9",
+    "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",
+    "Message": "{\"streamName\":\"DATANAUTS_DEV_01_InteriorRecorder\",\"footageFrom\":1671118349783,\"footageTo\":1671120149783,\"uploadStarted\":1671118695636,\"uploadFinished\":1671120664474}",
+    "SignatureVersion": "1",
+    "Signature": "daZDYNH4P5P0cGu5FXZsbdH/DXDPDjVa6W4Wvq03hXEVhMpcvM55sVtw7rWpEFSt90/oYk2Hgqpcmbx9MX+W+MTQGdnia21SSzqCfB6uRQ2U5AIViGnDrkztQ/uXxYKjnSMgt8B0Rvnf6a+ZtLrfJ6U47iRIqjctAOKeT1JTECmCRg3gHy6DIAv7CV55laCBVmAKfKbR0mbMok4/X3za5nqdxizX46yDXmwPwYARbHK7Z9kY9v94JFkjhtAc5O6QPC9mbveL53yt3ikhgmx5bVzxX83CRJ4xoG4YGANx7belGtjmerqqELbKM0QEWTch2+rX/DPcLsZLNGnJJy19AA==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events:bb4a6af2-9d75-4272-8d47-17459f92d05d",
+    "MessageAttributes": {
+        "recorder": {
+            "Type": "String",
+            "Value": "INTERIOR"
+        },
+        "recordingId": {
+            "Type": "String",
+            "Value": "InteriorRecorder-3fa2fe06-c52c-4d01-9d5a-6c2154d01f5e"
+        },
+        "deviceId": {
+            "Type": "String",
+            "Value": "DATANAUTS_DEV_01"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "datanauts"
+        }
+    }
+}
