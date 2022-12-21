@@ -50,7 +50,7 @@ class S3Controller():
                 Bucket=bucket,
                 Key=path
             )
-            if response["ResponseMetadata"]["HTTPStatusCode"] == 404:
+            if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
                 return False
 
             return True

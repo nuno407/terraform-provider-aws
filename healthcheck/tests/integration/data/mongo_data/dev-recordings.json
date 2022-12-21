@@ -17,7 +17,8 @@
             "chc_duration": 35.046765,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 1
+            "ride_detection_counter": 1,
+            "internal_message_reference_id": "00e8941219d054c6211927b66eacfddfefba2ac43572159edcb4a540c8243f0e"
         },
         "resolution": "640x360"
     },
@@ -41,7 +42,8 @@
             "chc_duration": 52.028,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "55d8434a31eb084664739c7bc0458b0aee699c9ce5a7152ef9d0c1a6dfed2a01"
         },
         "resolution": "640x360"
     },
@@ -63,7 +65,8 @@
             "chc_duration": 19.746,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "f0b3c07a7bd7e80b7aefc7198300f8ad8fba67480bf1077f64d018fcf3d38142"
         },
         "resolution": "640x360"
     },
@@ -85,7 +88,8 @@
             "chc_duration": 34.028995,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "d15f5c94354e3ffddb55b411a76079bcea4ade0c0995d7ebbd6429c000ab6c68"
         },
         "resolution": "640x360"
     },
@@ -111,7 +115,8 @@
             "chc_duration": 118.940055,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "6e39c538501e2dd380d76a68e2deb9c8bae2b27f35d73fa8a20e749ed821fcff"
         },
         "resolution": "640x360"
     },
@@ -133,7 +138,8 @@
             "chc_duration": 34.918989,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "fcb53dcb6838ac3088282cd6ae0d3660d9820329098b37553b0a15cc3d733dd7"
         },
         "resolution": "640x360"
     },
@@ -155,7 +161,8 @@
             "chc_duration": 34.029991,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "30f71df7359d6f17fcb417ad9f93d1e931e5f0ca28ba41e87753c0999b40b44b"
         },
         "resolution": "640x360"
     },
@@ -177,7 +184,8 @@
             "chc_duration": 29.918997,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "2ed2eeb4c5a89b8b8684a8270d1a1cad3caa0f4d3db1b25517ceeee59166d71a"
         },
         "resolution": "640x360"
     },
@@ -201,7 +209,28 @@
             "chc_duration": 78.998,
             "max_person_count": 1.0,
             "number_chc_events": 1,
-            "internal_message_reference_id": "6bbd7141c4dbaad89b8cbdc74ca60038ba78781f0d2839e1f827c295a5d2a774",
+            "internal_message_reference_id": "2d52deac2b35c8afdec8db71f0fd6608de6e1d240374cd91d868300f036a2f82",
+            "ride_detection_counter": 1
+        },
+        "resolution": "640x360"
+    },
+    {
+        "_id": {
+            "$oid": "638a135dc1a569d4c4ceabbb"
+        },
+        "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825530",
+        "MDF_available": "Yes",
+        "_media_type": "video",
+        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825530.mp4",
+        "recording_overview": {
+            "tenantID": "deepsensation",
+            "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
+            "length": "0:01:19",
+            "#snapshots": 1,
+            "time": "2022-12-02 14:52:26",
+            "chc_duration": 78.998,
+            "max_person_count": 1.0,
+            "number_chc_events": 1,
             "ride_detection_counter": 1
         },
         "resolution": "640x360"
@@ -224,7 +253,8 @@
             "chc_duration": 17.047,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "b8fe9c9b691663c7284a84ed5cfb305a5c1555915b5b9697d95e5a9933cbe3a3"
         },
         "resolution": "640x360"
     },
@@ -246,7 +276,8 @@
             "chc_duration": 27.032996,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "b1c7adf5d9b35c58191346de95984f62129de1c0642858fcd5e92e559ab9d468"
         },
         "resolution": "640x360"
     },
@@ -271,7 +302,8 @@
             "chc_duration": 25.866,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0
+            "ride_detection_counter": 0,
+            "internal_message_reference_id": "d2ad90b98487113d236c43c5b4c42c2625871648fd7d1e82b7afcd3ecac11e45"
         },
         "resolution": "640x360"
     }

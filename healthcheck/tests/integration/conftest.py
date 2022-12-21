@@ -3,7 +3,6 @@ import codecs
 import functools
 import json
 import os
-from unittest.mock import Mock
 
 import boto3
 import mongomock
@@ -13,8 +12,6 @@ from moto import mock_s3
 from mypy_boto3_s3 import S3Client
 
 from base.aws.container_services import ContainerServices
-from healthcheck.checker.interior_recorder import \
-    InteriorRecorderArtifactChecker
 from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
@@ -270,17 +267,4 @@ def voxel_fiftyone_controller(
     return VoxelFiftyOneController(
         s3_params,
         voxel_client
-    )
-
-
-@pytest.fixture
-def interior_recorder_artifact_checker(
-    blob_storage_controller: S3Controller,
-    database_controller: DatabaseController,
-    voxel_fiftyone_controller: VoxelFiftyOneController
-) -> InteriorRecorderArtifactChecker:
-    return InteriorRecorderArtifactChecker(
-        blob_storage_controller,
-        database_controller,
-        voxel_fiftyone_controller
     )

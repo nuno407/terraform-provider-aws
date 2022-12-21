@@ -32,8 +32,7 @@
             "description": "Recording media resolution"
         },
         "_media_type": {
-            "type": "string",
-            "description": "Recording media type"
+            "const": "video"
         },
         "recording_overview": {
             "type": "object",

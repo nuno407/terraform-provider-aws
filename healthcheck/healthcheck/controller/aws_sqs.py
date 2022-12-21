@@ -10,6 +10,7 @@ from mypy_boto3_sqs import SQSClient
 from healthcheck.constants import TWELVE_HOURS_IN_SECONDS
 from healthcheck.exceptions import InitializationError
 from healthcheck.model import SQSMessage
+from healthcheck.config import HealthcheckConfig
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -18,7 +19,9 @@ _logger: logging.Logger = logging.getLogger(__name__)
 class SQSMessageController():
     """SQS message controller."""
     def __init__(self,
+                 config: HealthcheckConfig,
                  sqs_client: SQSClient):
+        self.__config = config
         self.__sqs_client = sqs_client
 
     def get_queue_url(self) -> str:
@@ -57,7 +60,7 @@ class SQSMessageController():
             WaitTimeSeconds=20
         )
 
-        if "Messages" in response:
+        if "Messages" in response and len(response["Messages"]) > 0:
             message = str(response["Messages"][0])
         return message
 

@@ -26,6 +26,7 @@ def _read_and_parse_msg_body_from_fixture(fixture_file_id: str) -> dict:
         raw_body = raw_body.replace(args[0], args[1])
     return json.loads(raw_body)
 
+TEST_TIMESTAMP = "2022-12-18T07:37:07.917Z"
 
 def _valid_input_sqs_message_footage() -> SQSMessage:
     return SQSMessage(
@@ -39,17 +40,26 @@ def _valid_input_sqs_message_snapshot() -> SQSMessage:
     return SQSMessage(
         "bar-snapshot-msg",
         "bar-receipt",
-        "2022-12-18T07:37:07.917Z",
+        TEST_TIMESTAMP,
         _read_and_parse_msg_body_from_fixture("valid_snapshot_event.json"),
         MessageAttributes("ridecare_companion_trial", None)
     )
 
-def _invalid_sqs_message_message() -> SQSMessage:
+def _invalid_sqs_message_missing_chunks() -> SQSMessage:
     return SQSMessage(
         "bar-snapshot-msg",
         "bar-receipt",
-        "2022-12-18T07:37:07.917Z",
+        TEST_TIMESTAMP,
         _read_and_parse_msg_body_from_fixture("invalid_snapshot_event_missing_chunks.json"),
+        MessageAttributes("ridecare_companion_trial", None)
+    )
+
+def _invalid_sqs_message_missing_topic() -> SQSMessage:
+    return SQSMessage(
+        "bar-snapshot-msg",
+        "bar-receipt",
+        TEST_TIMESTAMP,
+        _read_and_parse_msg_body_from_fixture("invalid_snapshot_event_missing_topic.json"),
         MessageAttributes("ridecare_companion_trial", None)
     )
 
@@ -58,28 +68,45 @@ def _invalid_sqs_message_message() -> SQSMessage:
 class TestArtifactParser():
     @pytest.mark.parametrize("test_case,input_message,expected,is_error",
                              [
-                               ("valid_video_footage_msg",
-                               _valid_input_sqs_message_footage(),
-                               [VideoArtifact("datanauts",
+                               (
+                                    "valid_video_footage_msg",
+                                    _valid_input_sqs_message_footage(),
+                                    [
+                                        VideoArtifact("datanauts",
                                               "DATANAUTS_DEV_01",
                                               "DATANAUTS_DEV_01_InteriorRecorder",
                                               datetime.fromtimestamp(1671118349783 / 1000.0),
-                                              datetime.fromtimestamp(1671120149783 / 1000.0))], False),
-                                ("valid_snapshot_msg",
-                               _valid_input_sqs_message_snapshot(),
-                               [
-                                SnapshotArtifact("ridecare_companion_trial",
-                                              "my_test_device",
-                                              "TrainingMultiSnapshot_foo.jpeg",
-                                              timestamp=datetime.fromtimestamp(1671346291000 / 1000.0)),
-                                SnapshotArtifact("ridecare_companion_trial",
-                                              "my_test_device",
-                                              "TrainingMultiSnapshot_bar.jpeg",
-                                              timestamp=datetime.fromtimestamp(1671347823000 / 1000.0))
-                                ], False),
-                                ("invalid_snapshot_msg_missing_chunks",
-                               _invalid_sqs_message_message(),
-                               [], True)
+                                              datetime.fromtimestamp(1671120149783 / 1000.0))
+                                    ],
+                                    False
+                                ),
+                                (
+                                    "valid_snapshot_msg",
+                                    _valid_input_sqs_message_snapshot(),
+                                    [
+                                        SnapshotArtifact("ridecare_companion_trial",
+                                                    "my_test_device",
+                                                    "TrainingMultiSnapshot_foo.jpeg",
+                                                    timestamp=datetime.fromtimestamp(1671346291000 / 1000.0)),
+                                        SnapshotArtifact("ridecare_companion_trial",
+                                                    "my_test_device",
+                                                    "TrainingMultiSnapshot_bar.jpeg",
+                                                    timestamp=datetime.fromtimestamp(1671347823000 / 1000.0))
+                                    ],
+                                    False
+                                ),
+                                (
+                                    "invalid_snapshot_msg_missing_chunks",
+                                    _invalid_sqs_message_missing_chunks(),
+                                    [],
+                                    True
+                                ),
+                                (
+                                    "invalid_snapshot_msg_missing_topic",
+                                    _invalid_sqs_message_missing_topic(),
+                                    [],
+                                    True
+                                )
                              ])
     def test_artifact_parser(self, test_case: str, input_message: SQSMessage, expected: list[Artifact], is_error: bool):
         print("running test case", test_case)

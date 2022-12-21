@@ -8,13 +8,11 @@ from healthcheck.bootstrap import bootstrap_di
 from healthcheck.constants import CONTAINER_NAME
 from healthcheck.worker import HealthCheckWorker
 
-_logger: logging.Logger
-
 
 @inject
-def start(worker: HealthCheckWorker, container_version: str):
+def start(worker: HealthCheckWorker, container_version: str, logger: logging.Logger):
     """Start."""
-    _logger.info("Starting Container %s:%s...", CONTAINER_NAME, container_version)
+    logger.info("Starting Container %s:%s...", CONTAINER_NAME, container_version)
     worker.run()
 
 
@@ -24,6 +22,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    _logger = logging.getLogger("healthcheck")
     bootstrap_di()
     main()

@@ -1,6 +1,6 @@
 """Ridecare healthcheck module."""
 import logging
-from typing import Dict
+from typing import Dict, Callable
 
 import botocore.exceptions
 from kink import inject
@@ -11,16 +11,13 @@ from healthcheck.checker.artifact import BaseArtifactChecker
 from healthcheck.config import HealthcheckConfig
 from healthcheck.constants import ELASTIC_ALERT_MATCHER
 from healthcheck.controller.aws_sqs import SQSMessageController
-from healthcheck.exceptions import (AnonymizedFileNotPresent,
-                                    FailDocumentValidation,
+from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageError, NotPresentError,
-                                    NotYetIngestedError, RawFileNotPresent,
-                                    VoxelEntryNotPresent, VoxelEntryNotUnique)
+                                    NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
 from healthcheck.model import Artifact, ArtifactType, SQSMessage
 
-_logger: logging.Logger = logging.getLogger(__name__)
-
+logger: logging.Logger = logging.getLogger(__name__)
 
 @inject
 class HealthCheckWorker:
@@ -72,7 +69,7 @@ class HealthCheckWorker:
         Args:
             message (str): message to be displayed
         """
-        _logger.info("%s : %s", ELASTIC_ALERT_MATCHER, message)
+        logger.info("%s : %s", ELASTIC_ALERT_MATCHER, message)
 
     def __check_artifact(self, artifact: Artifact, queue_url: str, sqs_message: SQSMessage):
         """Run healthcheck for given artifact and treats errors
@@ -82,27 +79,24 @@ class HealthCheckWorker:
             queue_url (str): input queue url
             sqs_message (SQSMessage): SQS message
         """
-        _logger.info("artifact -> %s", artifact)
+        logger.info("artifact -> %s", artifact)
         try:
             self.__checkers[artifact.artifact_type].run_healthcheck(artifact)
-            _logger.info("healthcheck success -> %s", artifact.artifact_id)
+            logger.info("healthcheck success -> %s", artifact.artifact_id)
             self.__sqs_controller.delete_message(queue_url, sqs_message)
         except InvalidMessageError as err:
-            _logger.error("invalid message -> %s", err)
+            logger.error("invalid message -> %s", err)
         except NotYetIngestedError as err:
-            _logger.warning("not ingested yet, increase visibility timeout %s", err)
+            logger.warning("not ingested yet, increase visibility timeout %s", err)
             self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(queue_url, sqs_message)
-        except (NotPresentError,
-                FailDocumentValidation,
-                RawFileNotPresent,
-                VoxelEntryNotPresent,
-                VoxelEntryNotUnique,
-                AnonymizedFileNotPresent) as err:
+        except NotPresentError as err:
+            self.alert(err.message)
+        except FailedHealthCheckError as err:
             self.alert(err.message)
         except botocore.exceptions.ClientError as error:
-            _logger.error("unexpected AWS SDK error %s", error)
+            logger.error("unexpected AWS SDK error %s", error)
 
-    def run(self) -> None:
+    def run(self, helper_continue_running: Callable[[], bool] = lambda: True) -> None:
         """
         Main loop
 
@@ -110,20 +104,20 @@ class HealthCheckWorker:
         runs healthchecks
         """
         queue_url = self.__sqs_controller.get_queue_url()
-        while self.__graceful_exit.continue_running:
+        while self.__graceful_exit.continue_running and helper_continue_running():
             raw_message = self.__sqs_controller.get_message(queue_url)
             if not raw_message:
                 continue
 
             sqs_message = self.__sqs_msg_parser.parse_message(raw_message)
             if self.is_blacklisted_tenant(sqs_message):
-                _logger.info("ignoring blacklisted tenant message")
+                logger.info("ignoring blacklisted tenant message")
                 continue
 
             artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
             for artifact in artifacts:
                 if self.is_blacklisted_recorder(artifact):
-                    _logger.info("ignoring blacklisted recorder")
+                    logger.info("ignoring blacklisted recorder")
                     continue
 
                 self.__check_artifact(artifact, queue_url, sqs_message)

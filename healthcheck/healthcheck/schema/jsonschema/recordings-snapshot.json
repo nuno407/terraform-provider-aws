@@ -20,8 +20,7 @@
             "description": "Path to recording media file"
         },
         "_media_type": {
-            "type": "string",
-            "description": "Recording media type"
+            "const": "image"
         },
         "recording_overview": {
             "type": "object",

@@ -1,6 +1,0 @@
-{
-    "sonarlint.connectedMode.project": {
-        "connectionId": "https-sonarqube-ai-dev-bosch-ridecare-com",
-        "projectKey": "bosch-rc-dev_container_scripts"
-    }
-}

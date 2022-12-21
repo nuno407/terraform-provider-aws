@@ -8,7 +8,7 @@ from healthcheck.voxel_client import VoxelDataset, VoxelEntriesGetter
 
 @inject
 class VoxelFiftyOneController():
-    """Voxel fifty one controller class."""
+    """Voxel fiftyone controller class."""
 
     def __init__(self,
                  s3_params: S3Params,

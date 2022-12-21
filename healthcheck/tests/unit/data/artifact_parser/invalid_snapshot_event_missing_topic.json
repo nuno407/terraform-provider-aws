@@ -1,0 +1,11 @@
+{
+    "Type": "Notification",
+    "MessageId": "779a6762-99ad-57c5-a99f-3b7a5cce656f",
+    "Message": {},
+    "Timestamp": "2022-12-18T07:37:07.917Z",
+    "SignatureVersion": "1",
+    "Signature": "hrvNPs3r47QaT/x7ZRO6UVm4X2xntg8ORlfufWwMEZsze3AHuKqh8qQ++/NDYFARgT5GczuNgEOBC7NUJuSQ2fcdhjnyg761kNVdwyErS9WVjYy46jIadnaa55CJqahy57wlzXppbfwFzgqAl+rURuvWHsIbUGPZ0d/QaZ9k9J1CF04VLHnCT2NXbnetDJKDJYVcH6SZ9mzjXay1wXFpNhPMT6Q/ogKHm47j8sGIi6zhebsRvc1+WMCHqsaoGbWj0s8z/HI+4EvTisW92C1pcixrGSbjI9YDu9k2h1QCIjV3T3ZjHPCCLRUVDcU42qwAQjMP0oSOHAjFvxc7xgakkA==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:23a2a7a5-1fd3-4bbe-b766-1da13b0577d9",
+    "MessageAttributes": {}
+}

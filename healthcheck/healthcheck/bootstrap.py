@@ -1,5 +1,7 @@
 """bootstrap dependency injection autowiring."""
+import logging
 import os
+from logging import Logger
 
 import boto3
 from kink import di
@@ -8,36 +10,59 @@ from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
 from base.graceful_exit import GracefulExit
-from healthcheck.config import HealthcheckConfig
-from healthcheck.database import DBConfiguration
-from healthcheck.message_parser import SQSMessageParser
-from healthcheck.model import S3Params
-from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
-from healthcheck.voxel_client import VoxelEntriesGetter, VoxelClient
-from healthcheck.checker.training_recorder import TrainingRecorderArtifactChecker
-from healthcheck.checker.interior_recorder import InteriorRecorderArtifactChecker
-from healthcheck.checker.snapshot import SnapshotArtifactChecker
-from healthcheck.database import DBClient
-from healthcheck.mongo import MongoDBClient
-from healthcheck.model import ArtifactType
 from healthcheck.artifact_parser import ArtifactParser
+from healthcheck.checker.interior_recorder import \
+    InteriorRecorderArtifactChecker
+from healthcheck.checker.snapshot import SnapshotArtifactChecker
+from healthcheck.checker.training_recorder import \
+    TrainingRecorderArtifactChecker
+from healthcheck.config import HealthcheckConfig
 from healthcheck.controller.aws_s3 import S3Controller
+from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
-from healthcheck.controller.aws_sqs import SQSMessageController
+from healthcheck.database import DBClient, DBConfiguration
+from healthcheck.message_parser import SQSMessageParser
+from healthcheck.model import ArtifactType, S3Params
+from healthcheck.mongo import MongoDBClient
+from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
+from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
+from dataclasses import dataclass
+
+@dataclass
+class EnvironmentParams:
+    aws_endpoint: str
+    aws_region: str
+    container_version: str
+    config_path: str
+    db_uri: str
+
+def get_environment() -> EnvironmentParams:
+    aws_endpoint = os.getenv("AWS_ENDPOINT", None)
+    aws_region = os.getenv("AWS_REGION", "eu-central-1")
+    container_version = os.getenv("CONTAINER_VERSION", "development")
+    config_path = os.getenv("CONFIG_PATH", "/app/config/config.yaml")
+    db_uri = os.getenv("DB_URI")
+    return EnvironmentParams(
+        aws_endpoint=aws_endpoint,
+        aws_region=aws_region,
+        container_version=container_version,
+        config_path=config_path,
+        db_uri=db_uri
+    )
 
 
 def bootstrap_di() -> None:
     """Initializes dependency injection autowiring container."""
-    aws_endpoint = os.getenv("AWS_ENDPOINT", None)
-    di["container_version"] = os.getenv("CONTAINER_VERSION", "development")
+    env_params = get_environment()
+    di[Logger] = logging.getLogger("healthcheck")
 
-    aws_region = os.getenv("AWS_REGION", "eu-central-1")
-    di["config_path"] = os.getenv("CONFIG_PATH", "/app/config/config.yaml")
-    di["db_uri"] = os.getenv("DB_URI")
+    di["container_version"] = env_params.container_version
+    di["config_path"] = env_params.config_path
+    di["db_uri"] = env_params.db_uri
 
-    di[SQSClient] = lambda _di: boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
-    di[S3Client] = lambda _di: boto3.client("s3", region_name=aws_region, endpoint_url=aws_endpoint)
+    di[SQSClient] = boto3.client("sqs", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)
+    di[S3Client] = boto3.client("s3", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)
     di[GracefulExit] = GracefulExit()
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
