@@ -15,7 +15,7 @@ from mypy_boto3_s3 import S3Client
 from base.aws.container_services import ContainerServices
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
-from healthcheck.controller.blob_storage import BlobStorageController
+from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.database import DBConfiguration
@@ -244,8 +244,8 @@ def document_validator() -> JSONSchemaValidator:
 def blob_storage_controller(
     s3_params: S3Params,
     moto_s3_client: S3Client
-) -> BlobStorageController:
-    return BlobStorageController(
+) -> S3Controller:
+    return S3Controller(
         s3_params,
         moto_s3_client
     )
@@ -275,7 +275,7 @@ def voxel_fiftyone_controller(
 
 @pytest.fixture
 def interior_recorder_artifact_checker(
-    blob_storage_controller: BlobStorageController,
+    blob_storage_controller: S3Controller,
     database_controller: DatabaseController,
     voxel_fiftyone_controller: VoxelFiftyOneController
 ) -> InteriorRecorderArtifactChecker:

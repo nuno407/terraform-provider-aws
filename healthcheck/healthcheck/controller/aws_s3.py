@@ -10,7 +10,7 @@ from botocore.errorfactory import ClientError
 _logger: logging.Logger = logging.getLogger(__name__)
 
 @inject
-class BlobStorageController():
+class S3Controller():
     """Blob storage healthcheck controller."""
 
 

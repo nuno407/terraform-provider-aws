@@ -21,9 +21,10 @@ from healthcheck.database import DBClient
 from healthcheck.mongo import MongoDBClient
 from healthcheck.model import ArtifactType
 from healthcheck.artifact_parser import ArtifactParser
-from healthcheck.controller.blob_storage import BlobStorageController
+from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
+from healthcheck.controller.aws_sqs import SQSMessageController
 
 
 def bootstrap_di() -> None:
@@ -58,7 +59,8 @@ def bootstrap_di() -> None:
     di[VoxelEntriesGetter] = VoxelClient()
     di[DBClient] = MongoDBClient()
     di[ArtifactParser] = ArtifactParser()
-    di[BlobStorageController] = BlobStorageController()
+    di[S3Controller] = S3Controller()
+    di[SQSMessageController] = SQSMessageController()
     di[DatabaseController] = DatabaseController()
     di[VoxelFiftyOneController] = VoxelFiftyOneController()
     di["checkers"] = {
