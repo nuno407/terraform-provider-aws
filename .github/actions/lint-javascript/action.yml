@@ -34,8 +34,12 @@ runs:
         NPM_EMAIL: ${{ inputs.npm-email }}
       shell: bash
       run: |
-        npm config set registry $NPM_REGISTRY
-        npm config set _auth $NPM_AUTH
+        PREFIX="https:"
+        # Scope fragment needs to be without http(s) prefix
+        REPO_FRAGMENT=${NPM_REGISTRY#"$PREFIX"}
+        npm config set registry
+        # Scope auth to given registry
+        npm config set $REPO_FRAGMENT:_auth $NPM_AUTH
         npm config set email $NPM_EMAIL
     - name: Install npm dependencies ${{ inputs.baseDir }}
       shell: bash
