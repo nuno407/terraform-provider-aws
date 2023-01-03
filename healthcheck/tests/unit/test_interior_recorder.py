@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, call
 from healthcheck.checker.interior_recorder import InteriorRecorderArtifactChecker
-from healthcheck.model import VideoArtifact, SnapshotArtifact, Artifact
+from healthcheck.model import VideoArtifact, Artifact
 from healthcheck.voxel_client import VoxelDataset
 
 from datetime import datetime
@@ -12,14 +12,14 @@ class TestInteriorRecorderArtifactChecker:
         (VideoArtifact(
             tenant_id="my_tenant1",
             device_id="my_device1",
-            stream_name="my_stream1",
+            stream_name="my_stream1_InteriorRecorder",
             footage_from=datetime.now(),
             footage_to=datetime.now()
         )),
         (VideoArtifact(
             tenant_id="my_tenant2",
             device_id="my_device2",
-            stream_name="my_stream2",
+            stream_name="my_stream2_InteriorRecorder",
             footage_from=datetime.now(),
             footage_to=datetime.now()
         ))
@@ -66,8 +66,4 @@ class TestInteriorRecorderArtifactChecker:
         db_controller.is_signals_doc_valid_or_raise.assert_called_once_with(input_artifact)
         db_controller.is_pipeline_execution_and_algorithm_output_doc_valid_or_raise.assert_called_once_with(input_artifact)
 
-        if isinstance(input_artifact, VideoArtifact):
-            dataset = VoxelDataset.VIDEOS
-        else:
-            dataset = VoxelDataset.SNAPSHOTS
-        voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(input_artifact, dataset)
+        voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(input_artifact, VoxelDataset.VIDEOS)
