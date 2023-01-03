@@ -80,7 +80,7 @@ class SnapshotArtifact(Artifact):
     @property
     def artifact_id(self) -> str:
         uuid_no_format = self.uuid.rstrip(Path(self.uuid).suffix)
-        return f"{self.tenant_id}_{self.tenant_id}_{self.device_id}_{uuid_no_format}_{int(self.timestamp.timestamp()*1000)}"
+        return f"{self.tenant_id}_{self.device_id}_{uuid_no_format}_{int(self.timestamp.timestamp()*1000)}"
 
     @property
     def artifact_type(self) -> ArtifactType:

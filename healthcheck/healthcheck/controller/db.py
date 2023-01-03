@@ -68,7 +68,7 @@ class DatabaseController():
             try:
                 self.__schema_validator.validate_document(doc, Schema.SIGNALS)
             except ValidationError as err:
-                raise FailDocumentValidation(artifact, message=err.message) from err
+                raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
 
         return docs
 
@@ -93,7 +93,7 @@ class DatabaseController():
         try:
             self.__schema_validator.validate_document(doc, schema)
         except ValidationError as err:
-            raise FailDocumentValidation(artifact, message=err.message) from err
+            raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
 
         return doc
 
@@ -121,7 +121,7 @@ class DatabaseController():
         try:
             self.__schema_validator.validate_document(doc_execution, Schema.PIPELINE_EXECUTION)
         except ValidationError as err:
-            raise FailDocumentValidation(artifact, message=err.message) from err
+            raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
 
         # Validate algorithm output for all pipeline execution
         for process in doc_execution["processing_list"]:
@@ -130,7 +130,7 @@ class DatabaseController():
             try:
                 self.__schema_validator.validate_document(doc_output, Schema.ALGORITHM_OUTPUT)
             except ValidationError as err:
-                raise FailDocumentValidation(artifact, message=err.message) from err
+                raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
 
         # Make sure it doesn't have different number of documents associated with the same ID
         docs_output = self.__db_client.find_many(DBCollection.ALGORITHM_OUTPUT, {"pipeline_id": video_id})

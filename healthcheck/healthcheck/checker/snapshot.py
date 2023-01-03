@@ -6,6 +6,7 @@ from kink import inject
 from healthcheck.checker.artifact import BaseArtifactChecker
 from healthcheck.model import Artifact
 from healthcheck.voxel_client import VoxelDataset
+from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -31,7 +32,12 @@ class SnapshotArtifactChecker(BaseArtifactChecker):
         self._is_s3_anonymized_file_present_or_raise(f"{snapshot_id}_anonymized.jpeg", artifact)
 
         # Check database if recording metadata is present and according to jsonschema
-        self._is_recordings_doc_valid_or_raise(artifact)
+        try:
+            self._is_recordings_doc_valid_or_raise(artifact)
+        except FailDocumentValidation as e:
+            if e.json_path == "$.recording_overview.source_videos":
+                raise NotYetIngestedError(e.artifact, "No recording matching the snapshot has been ingested yet.")
+            raise e
 
         # Check if voxel 51 entry is present
         self._is_fiftyone_entry_present_or_raise(artifact, VoxelDataset.SNAPSHOTS)
