@@ -18,9 +18,10 @@ jobs:
       uses: pre-commit/action@v3.0.0
 
     - name: Check pull request title
+      env:
+        PR_TITLE: ${{ github.event.pull_request.title }}
       run: |
         REGEX_PR_TITLE='MC-[0-9]{4,}|NO-TICKET|Bump'
-        PR_TITLE="${{ github.event.pull_request.title }}"
         [[ $PR_TITLE =~ $REGEX_PR_TITLE ]] && exit 0
         echo "The pull request title does not contain a ticket name." 1>&2
         exit 1
