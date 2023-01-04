@@ -240,16 +240,6 @@ class MessageHandler():
         _logger.info("Response: %s", response.text)
         return response.status_code == status_codes.ok  # pylint: disable=no-member
 
-    def _request_shutdown(self) -> None:
-        """
-        Request shutdown of the IVS feature chain
-        """
-        port_pod = self.__container_services.ivs_api["port"]
-
-        address = f"http://{IVS_FC_HOSTNAME}:{port_pod}/shutdown"
-        requests.post(address, timeout=IVS_FC_MAX_WAIT)
-        _logger.info("IVS FC shutdown request sent.")
-
     def update_processing(self, incoming_message_body: dict) -> dict:
         """
         Updates the processing steps by removing the current service from it (if needed) and updating the data_status.
@@ -445,7 +435,7 @@ class MessageHandler():
 
     def start(self, mode: str) -> None:
         """
-        Setup graceful exit, start main consumer loop function and request shutdown on exit
+        Setup graceful exit, start main consumer loop function and exit afterwards
 
         Args:
             mode (str): IVS feature chain procesing mode.
@@ -453,8 +443,6 @@ class MessageHandler():
         graceful_exit = GracefulExit()
         _logger.info("Listening to SQS input queue(s)...")
         self.consumer_loop(mode, graceful_exit)
-        _logger.info("Requesting IVS feature chain shutdown...")
-        self._request_shutdown()
         _logger.info("Exiting after completion of processing.")
 
     def consumer_loop(self, mode: str, graceful_exit: GracefulExit):
