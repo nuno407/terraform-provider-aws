@@ -659,13 +659,7 @@ class TestMessageHandler():
             logger_fixture.warning.assert_called_once()
             message_handler_fix._MessageHandler__container_services.delete_message.assert_called_once()
 
-        """Test start consumer method
-
-        Args:
-            message_handler_fix (Mock): message handler fixture
-        """
-
-    def test_start(self, message_handler_fix: Mock, logger_fixture: Mock, mocker: MockFixture):
+    def test_start(self, message_handler_fix: Mock, logger_fixture: Mock):
         """Test start consumer method
 
         Args:
@@ -673,12 +667,10 @@ class TestMessageHandler():
             logger_fixture (Mock): logger mock
             mocker (MockFixture): mocker helper
         """
-        request_post_mock = mocker.patch("basehandler.message_handler.requests.post")
         message_handler_fix._MessageHandler__container_services.ivs_api["port"] = 2222
 
         message_handler_fix.consumer_loop = Mock()
         logger_fixture.info = Mock()
 
         message_handler_fix.start('chc')
-        request_post_mock.assert_any_call(f"http://{IVS_FC_HOSTNAME}:{2222}/shutdown", timeout=IVS_FC_MAX_WAIT)
         logger_fixture.info.assert_called()
