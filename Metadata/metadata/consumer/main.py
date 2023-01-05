@@ -139,7 +139,8 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
-            "source_videos": list(related_media_paths)
+            "source_videos": list(related_media_paths),
+            "internal_message_reference_id": message["internal_message_reference_id"]
         }
     }
 
@@ -188,7 +189,8 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "length": message["length"],
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
-            "time": footage_time
+            "time": footage_time,
+            "internal_message_reference_id": message["internal_message_reference_id"]
         },
         "resolution": message["resolution"]
     }
