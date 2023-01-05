@@ -3,6 +3,7 @@
 import logging
 
 from kink import inject
+from base.aws.container_services import ContainerServices
 
 from healthcheck.bootstrap import bootstrap_di
 from healthcheck.constants import CONTAINER_NAME
@@ -22,5 +23,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    ContainerServices.configure_logging("healthcheck")
     bootstrap_di()
     main()

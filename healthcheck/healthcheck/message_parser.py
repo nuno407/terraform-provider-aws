@@ -3,6 +3,7 @@ import json
 import logging
 from enum import Enum
 from typing import Optional, Union
+from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from healthcheck.exceptions import InvalidMessageError
 from healthcheck.model import MessageAttributes, SQSMessage
@@ -65,17 +66,17 @@ class SQSMessageParser():
         Returns:
             MessageAttributes: data object for message attributes
         """
-        message_attrs: dict = body.get(MessageFields.BODY_ATTRIBUTES.value)
-        if not message_attrs:
+        if not MessageFields.BODY_ATTRIBUTES.value in body:
             raise InvalidMessageError("Missing message attributes")
+        message_attrs: dict = body[MessageFields.BODY_ATTRIBUTES.value]
 
         tenant = None
         if MessageFields.TENANT.value in message_attrs:
-            tenant = self.__flatten_string_value(message_attrs.get(MessageFields.TENANT.value))
+            tenant = self.__flatten_string_value(message_attrs[MessageFields.TENANT.value])
 
         device_id = None
         if MessageFields.DEVICE_ID.value in message_attrs:
-            device_id = self.__flatten_string_value(message_attrs.get(MessageFields.DEVICE_ID.value))
+            device_id = self.__flatten_string_value(message_attrs[MessageFields.DEVICE_ID.value])
 
         return MessageAttributes(tenant, device_id)
 
@@ -85,7 +86,7 @@ class SQSMessageParser():
             raw_message = raw_message.replace(args[0], args[1])
         return raw_message
 
-    def parse_message(self, raw_message: str) -> SQSMessage:
+    def parse_message(self, raw_message: MessageTypeDef) -> SQSMessage:
         """Parses SQS messages into data object.
 
         Args:
@@ -94,16 +95,14 @@ class SQSMessageParser():
         Returns:
             SQSMessage: data object for SQS message
         """
-        deserialized_message = self.__deserialize(raw_message)
-        parsed_message: dict = json.loads(deserialized_message)
-
-        _logger.info("Parsing message %s", parsed_message)
+        _logger.info("Parsing message %s", raw_message)
 
         for field_enum in MANDATORY_FIELDS:
-            if not parsed_message.get(field_enum.value):
+            if field_enum.value not in raw_message:
                 raise InvalidMessageError(f"Missing Field {field_enum.value}")
 
-        body: dict = parsed_message.get(MessageFields.BODY.value)
+        raw_body: str = raw_message[MessageFields.BODY.value]
+        body = json.loads(self.__deserialize(raw_body))
         if not body:
             raise InvalidMessageError("Empty message body.")
 
@@ -113,11 +112,11 @@ class SQSMessageParser():
         if not timestamp:
             raise InvalidMessageError("Missing or empty message timestamp.")
 
-        message_id = parsed_message.get(MessageFields.MESSAGE_ID.value)
+        message_id = raw_message[MessageFields.MESSAGE_ID.value]
         if not message_id:
             raise InvalidMessageError("Miessaing message id.")
 
-        receipt_handle = parsed_message.get(MessageFields.RECEIPT_HANDLE.value)
+        receipt_handle = raw_message[MessageFields.RECEIPT_HANDLE.value]
         if not receipt_handle:
             raise InvalidMessageError("Receipt Handle missing.")
 

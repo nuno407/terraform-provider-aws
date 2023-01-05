@@ -41,7 +41,7 @@ def get_environment() -> EnvironmentParams:
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
     container_version = os.getenv("CONTAINER_VERSION", "development")
-    config_path = os.getenv("CONFIG_PATH", "/app/config/config.yaml")
+    config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
     db_uri = os.getenv("DB_URI")
     return EnvironmentParams(
         aws_endpoint=aws_endpoint,

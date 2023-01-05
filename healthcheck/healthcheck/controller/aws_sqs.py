@@ -6,14 +6,19 @@ import botocore.exceptions
 from aws_error_utils import errors as aws_errors
 from kink import inject
 from mypy_boto3_sqs import SQSClient
+from datetime import datetime
+from expiringdict import ExpiringDict
+from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from healthcheck.constants import TWELVE_HOURS_IN_SECONDS
 from healthcheck.exceptions import InitializationError
 from healthcheck.model import SQSMessage
 from healthcheck.config import HealthcheckConfig
 
-_logger: logging.Logger = logging.getLogger(__name__)
+MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
+MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 
+_logger: logging.Logger = logging.getLogger(__name__)
 
 @inject
 class SQSMessageController():
@@ -23,6 +28,8 @@ class SQSMessageController():
                  sqs_client: SQSClient):
         self.__config = config
         self.__sqs_client = sqs_client
+        self.__message_receive_times: ExpiringDict[str, datetime] = ExpiringDict(
+            max_len=1000, max_age_seconds=50400)
 
     def get_queue_url(self) -> str:
         """Get queue url.
@@ -37,7 +44,7 @@ class SQSMessageController():
             raise InitializationError("Invalid get queue url reponse")
         return response["QueueUrl"]
 
-    def get_message(self, queue_url: str) -> Optional[str]:
+    def get_message(self, queue_url: str) -> Optional[MessageTypeDef]:
         """Get SQS queue message
 
         Args:
@@ -61,7 +68,8 @@ class SQSMessageController():
         )
 
         if "Messages" in response and len(response["Messages"]) > 0:
-            message = str(response["Messages"][0])
+            message = response["Messages"][0]
+            self.__message_receive_times[message["ReceiptHandle"]] = datetime.now()
         return message
 
     def delete_message(self, input_queue_url: str, sqs_message: SQSMessage) -> None:
@@ -71,6 +79,8 @@ class SQSMessageController():
             input_queue_url (str): the SQS queue url
             sqs_message (SQSMessage): the SQS queue to be deleted
         """
+        self.__message_receive_times.pop(sqs_message.receipt_handle, None)
+
         _logger.info("deleting message -> %s", sqs_message)
 
         self.__sqs_client.delete_message(
@@ -90,6 +100,15 @@ class SQSMessageController():
             sqs_message (SQSMessage): sqs_message
             visibility_timeout_seconds (int): new visibility timeout to be added in seconds
         """
+
+        # Limit message visibility timeout to 12h
+        processing_time = int((datetime.now() - self.__message_receive_times.get(sqs_message.receipt_handle, datetime.now(
+        ))).total_seconds() + 1.0 + MESSAGE_VISIBILITY_TIMEOUT_BUFFER)
+        if visibility_timeout_seconds > MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time:
+            visibility_timeout_seconds = MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time
+            _logger.debug(
+                "Limiting message visibility extension to %d seconds", visibility_timeout_seconds)
+
         self.__sqs_client.change_message_visibility(
             QueueUrl=input_queue_url,
             ReceiptHandle=sqs_message.receipt_handle,

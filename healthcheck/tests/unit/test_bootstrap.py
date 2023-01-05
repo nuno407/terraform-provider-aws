@@ -24,7 +24,7 @@ class TestBootstrap:
                 call("AWS_ENDPOINT", None),
                 call("AWS_REGION", "eu-central-1"),
                 call("CONTAINER_VERSION", "development"),
-                call("CONFIG_PATH", "/app/config/config.yaml"),
+                call("CONFIG_PATH", "/app/config/config.yml"),
                 call("DB_URI")
             ]
         )

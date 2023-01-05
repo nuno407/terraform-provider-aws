@@ -6,5 +6,6 @@ boto3
 boto3-stubs[s3,sqs]
 botocore
 aws_error_utils
+expiringdict
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 -e ../base[aws,voxel]

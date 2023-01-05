@@ -66,7 +66,7 @@ class TestSQSMessageController():
 
     def test_get_message_success(self, healthcheck_config: HealthcheckConfig):
         sqs_client_mock = Mock()
-        given_message = {"title": "my-message"}
+        given_message = {"title": "my-message", "ReceiptHandle": "foobar-receipt"}
         sqs_client_mock.receive_message = Mock(return_value={"Messages": [given_message]})
         message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
         got_message = message_controller.get_message("foobar-url")
@@ -82,7 +82,7 @@ class TestSQSMessageController():
             ],
             WaitTimeSeconds=20
         )
-        assert got_message == str(given_message)
+        assert got_message == given_message
 
     def test_get_message_empty(self, healthcheck_config: HealthcheckConfig):
         sqs_client_mock = Mock()

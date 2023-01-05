@@ -116,10 +116,9 @@ class TestMessageParser():
         ])
     def test_parse_message(self, test_case: str, input_message: dict, expected: SQSMessage, is_error: bool):
         print("running test", test_case)
-        raw_input_message = json.dumps(input_message)
         if is_error:
             with pytest.raises(InvalidMessageError):
-                SQSMessageParser().parse_message(raw_input_message)
+                SQSMessageParser().parse_message(input_message)
         else:
-            got_sqs_message = SQSMessageParser().parse_message(raw_input_message)
+            got_sqs_message = SQSMessageParser().parse_message(input_message)
             assert got_sqs_message == expected
