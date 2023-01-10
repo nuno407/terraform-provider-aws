@@ -211,6 +211,7 @@ jobs:
           token: ${{ secrets.SONAR_TOKEN }}
           args:  >
             -Dsonar.python.bandit.reportPaths=${{ steps.sast-reports.outputs.report-paths }}
+            -Dsonar.branch.name=${{ github.ref_name }}
 
       - name: Sonarqube quality gate status
         run: "echo quality gate result: ${{steps.sonarqube-scan.outputs.scan-success}}"
