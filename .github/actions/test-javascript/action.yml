@@ -55,15 +55,8 @@ runs:
         pushd ${{ inputs.baseDir }}
         npm run test-headless
 
-    - name: Fix code coverage paths
-      # Necessary step to correct source paths, since sonar scanner works from a Docker container and has a different path structure from github
-      shell: bash
-      run: |
-        mv ${{ inputs.baseDir }}/coverage/ridecare-devcloud/cobertura-coverage.xml ${{ inputs.BaseDir }}/coverage.xml
-        sed -i 's/\/home\/runner\/work\/container_scripts\/container_scripts\//\/github\/workspace\//g' ${{ inputs.baseDir }}/coverage.xml
-
     - name: Persist ${{ inputs.baseDir }} coverage report
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.baseDir }}-coverage-report-unit
-        path: ${{ inputs.baseDir }}/coverage.xml
+        path: ${{ inputs.baseDir }}/coverage/ridecare-devcloud/lcov.info
