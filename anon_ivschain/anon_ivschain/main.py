@@ -6,6 +6,7 @@ import boto3
 from anon_ivschain.callback_endpoint import AnonymizeCallbackEndpointCreator
 from anon_ivschain.post_processor import AnonymizePostProcessor
 
+from base import ImmediateExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.entrypoint import BaseHandler
@@ -28,6 +29,8 @@ _logger: logging.Logger = None
 
 def main():
     _logger.info("Starting Container %s...\n", CONTAINER_NAME)
+    ImmediateExit()
+
     _logger.info(f"Start delay {START_DELAY_SECONDS} seconds")
     start_delay = int(START_DELAY_SECONDS)
     time.sleep(start_delay)

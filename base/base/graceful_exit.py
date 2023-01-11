@@ -17,6 +17,7 @@ class GracefulExit:
 
     def __init__(self):
         self.__continue_running = True
+        _logger.info("Setting up graceful shutdown handler")
         signal(SIGTERM, self.handle_sigterm)
 
     def handle_sigterm(self, signum, _frame):
