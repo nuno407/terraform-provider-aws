@@ -123,7 +123,6 @@ class BaseHandler():
         )
 
         import basehandler.message_handler as msg_handler  # pylint: disable=import-outside-toplevel
-        msg_handler.wait_for_featurechain()
 
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
@@ -134,6 +133,8 @@ class BaseHandler():
                               kwargs={"host": "0.0.0.0", "port": int(api_port)})  # nosec this is as intended
         _logger.info("Starting api child process")
         api_process.start()
+
+        msg_handler.wait_for_featurechain()
 
         # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
         # WARNING: possible race-condition if the processing is too fast
