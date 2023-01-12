@@ -15,7 +15,7 @@ from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageError, NotPresentError,
                                     NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
-from healthcheck.model import Artifact, ArtifactType, SQSMessage
+from healthcheck.model import Artifact, ArtifactType, SQSMessage, VideoArtifact
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -62,6 +62,25 @@ class HealthCheckWorker:
             bool: verification result
         """
         return any([recorder in message.artifact_id for recorder in self.__config.recorder_blacklist])
+
+    def is_blacklist_training(self, message: Artifact) -> bool:
+        """Check if message is a black listed training
+
+        Args:
+            message (Artifact): artifact message with type inside id
+
+        Returns:
+            bool: verification result
+        """
+
+        if isinstance(message,VideoArtifact):
+            if message.artifact_type != ArtifactType.TRAINING_RECORDER:
+                return False
+
+            if all([recorder not in message.artifact_id for recorder in self.__config.training_whitelist]):
+                return True
+
+        return False
 
     def alert(self, message: str) -> None:
         """Emit log entry to trigger Kibana alert
@@ -111,13 +130,17 @@ class HealthCheckWorker:
 
             sqs_message = self.__sqs_msg_parser.parse_message(raw_message)
             if self.is_blacklisted_tenant(sqs_message):
-                logger.info("ignoring blacklisted tenant message")
+                logger.debug("Ignoring blacklisted tenant message")
+                continue
+
+            if self.is_blacklist_training(sqs_message):
+                logger.debug("Ignoring, Message is a training recorder blacklisted")
                 continue
 
             artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
             for artifact in artifacts:
                 if self.is_blacklisted_recorder(artifact):
-                    logger.info("ignoring blacklisted recorder")
+                    logger.debug("Ignoring blacklisted recorder")
                     continue
 
                 self.__check_artifact(artifact, queue_url, sqs_message)

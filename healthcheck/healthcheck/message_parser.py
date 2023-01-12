@@ -114,7 +114,7 @@ class SQSMessageParser():
 
         message_id = raw_message[MessageFields.MESSAGE_ID.value]
         if not message_id:
-            raise InvalidMessageError("Miessaing message id.")
+            raise InvalidMessageError("Missing message id.")
 
         receipt_handle = raw_message[MessageFields.RECEIPT_HANDLE.value]
         if not receipt_handle:

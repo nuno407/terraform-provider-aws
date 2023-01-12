@@ -10,7 +10,7 @@ class ArtifactParser():
     """Artifact Message Parser"""
 
     @staticmethod
-    def get_recursive_from_dict(data_dict: dict, *keys: str, default=None):
+    def get_recursive_from_dict(data_dict: dict, *keys: str, default=[]):
         """Get value from dict recursively."""
         for key in keys:
             if not isinstance(data_dict, Dict) or key not in data_dict:

@@ -72,7 +72,8 @@ class TestMain:
             "deviceid": "device",
             "length": "0:06:31",
             "sync_file_ext": "_metadata_full.json",
-            "resolution": "640x360"
+            "resolution": "640x360",
+            "internal_message_reference_id":"Hash_dummy"
         }
 
         message = {
@@ -90,7 +91,8 @@ class TestMain:
             "media_type": "image",
             "tenant": "ridecare",
             "deviceid": "device",
-            "resolution": "640x360"
+            "resolution": "640x360",
+            "internal_message_reference_id" : "dummy_hash"
         }
 
     @pytest.fixture
@@ -112,6 +114,7 @@ class TestMain:
         input_message_snapshot_body_template["_id"] = "ridecare_device_snapshot_1692080178308"
         input_message_snapshot_body_template["s3_path"] = "bucket/folder/ridecare_snapshot_1692080178308.jpeg"
         input_message_snapshot_body_template["timestamp"] = 1692080178308
+        input_message_snapshot_body_template["internal_message_reference_id"] = "dummy_hash"
 
         message = {
             'Body': json.dumps(input_message_snapshot_body_template).replace('\"', '\''),
@@ -159,6 +162,11 @@ class TestMain:
         # print(snapshot_included_db_entry)
         assert (snapshot_included_db_entry['recording_overview']
                 ['source_videos'][0] == recording_db_entry['video_id'])
+
+        # assert reference id is present
+        assert snapshot_included_db_entry['recording_overview']["internal_message_reference_id"]
+        assert snapshot_excluded_db_entry['recording_overview']["internal_message_reference_id"]
+        assert recording_db_entry['recording_overview']["internal_message_reference_id"]
 
         # assertions on excluded snapshot
         assert (

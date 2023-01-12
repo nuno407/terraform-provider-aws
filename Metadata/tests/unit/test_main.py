@@ -1,6 +1,7 @@
 """Tests for metadata.consumer.main module."""
 import json
 import os
+import hashlib
 from pathlib import Path
 from pymongo.collection import ReturnDocument
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
@@ -96,6 +97,7 @@ def _video_message_body(recording_id: str) -> dict:
         "#snapshots": "0",
         "snapshots_paths": [],
         "sync_file_ext": "",
+        "internal_message_reference_id": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
         "resolution": "1280x720"}
 
 
@@ -120,7 +122,9 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
             "length": "0:01:41",
             "snapshots_paths": [],
             "tenantID": "datanauts",
-            "time": "2022-11-25 11:43:15"},
+            "time": "2022-11-25 11:43:15",
+            "internal_message_reference_id":hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
+            },
         "resolution": "1280x720",
         "video_id": f"{recording_id}"}
 
@@ -132,7 +136,9 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
         "deviceid": "rc_srx_develop_cst2hi_01",
         "timestamp": 1669638188317,
         "tenant": "honeybadger",
-        "media_type": "image"}
+        "media_type": "image",
+        "internal_message_reference_id": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
+        }
 
 
 def _expected_image_recording_item(snapshot_id: str, source_videos: list) -> dict:
@@ -142,7 +148,8 @@ def _expected_image_recording_item(snapshot_id: str, source_videos: list) -> dic
         "recording_overview": {
             "deviceID": "rc_srx_develop_cst2hi_01",
             "source_videos": source_videos,
-            "tenantID": "honeybadger"
+            "tenantID": "honeybadger",
+            "internal_message_reference_id": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
         },
         "video_id": f"{snapshot_id}",
     }
@@ -245,7 +252,8 @@ class TestMetadataMain():
             "recording_overview": {
                 "tenantID": input_message["tenant"],
                 "deviceID": input_message["deviceid"],
-                "source_videos": list(given_related_videos)
+                "source_videos": list(given_related_videos),
+                "internal_message_reference_id": input_message["internal_message_reference_id"]
             }
         }
         assert snapshot_recording == expected_recording_item
@@ -277,7 +285,8 @@ class TestMetadataMain():
                 "length": input_message["length"],
                 "snapshots_paths": given_related_snapshots,
                 "#snapshots": len(given_related_snapshots),
-                "time": "2022-11-25 11:43:15"
+                "time": "2022-11-25 11:43:15",
+                "internal_message_reference_id": input_message["internal_message_reference_id"]
             },
             "resolution": input_message["resolution"]
         }

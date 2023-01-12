@@ -14,6 +14,7 @@ class HealthcheckConfig():
     db_name: str
     environment_prefix: str
     tenant_blacklist: list[str]
+    training_whitelist : list[str]
     recorder_blacklist: list[str]
 
     @staticmethod

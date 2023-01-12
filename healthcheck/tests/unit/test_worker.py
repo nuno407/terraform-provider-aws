@@ -25,6 +25,7 @@ class TestWorker:
                 "FrontRecorder"
             ],
             s3_dir="test_dir",
+            training_whitelist=["test-whitelist-tenant"],
             tenant_blacklist=[
                 "test-blacklisted-tenant1",
                 "test-blacklisted-tenant2"
@@ -69,6 +70,64 @@ class TestWorker:
             input_artifact: Artifact,
             expected: bool):
         assert fix_healthcheck_worker.is_blacklisted_recorder(input_artifact) == expected
+
+    @pytest.mark.parametrize("input_artifact,expected", [
+        (
+            VideoArtifact(
+                stream_name="stream2_TrainingRecorder",
+                device_id="device2",
+                tenant_id="test-whitelist-tenant",
+                footage_from=datetime.now(),
+                footage_to=datetime.now()
+            ),
+            False
+        ),
+        (
+            VideoArtifact(
+                stream_name="stream2_InteriorRecorder",
+                device_id="device2",
+                tenant_id="test-whitelist-tenant",
+                footage_from=datetime.now(),
+                footage_to=datetime.now()
+            ),
+            False
+        ),
+        (
+            VideoArtifact(
+                stream_name="stream2_TrainingRecorder",
+                device_id="device2",
+                tenant_id="tenant2",
+                footage_from=datetime.now(),
+                footage_to=datetime.now()
+            ),
+            True
+        ),
+        (
+            SnapshotArtifact(
+                    uuid="uuid1",
+                    device_id="device1",
+                    tenant_id="tenant1",
+                    timestamp=datetime.now()
+                ),
+            False
+        ),
+        (
+            SnapshotArtifact(
+                    uuid="uuid1",
+                    device_id="device1",
+                    tenant_id="test-whitelist-tenant",
+                    timestamp=datetime.now()
+                ),
+            False
+        )
+    ])
+    def test_is_blacklist_training(
+            self,
+            fix_healthcheck_worker: HealthCheckWorker,
+            input_artifact: Artifact,
+            expected: bool):
+        assert fix_healthcheck_worker.is_blacklist_training(input_artifact) == expected
+
 
     @pytest.fixture
     def fix_healthcheck_worker(self,

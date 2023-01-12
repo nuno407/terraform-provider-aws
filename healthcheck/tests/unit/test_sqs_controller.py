@@ -27,6 +27,7 @@ class TestSQSMessageController():
             s3_dir="",
             raw_s3_bucket="",
             recorder_blacklist=[],
+            training_whitelist=[],
             tenant_blacklist=[])
 
     @pytest.fixture
