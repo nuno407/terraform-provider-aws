@@ -29,6 +29,7 @@
     "0:00:03":{
         "IAmTrue": true,
         "NearlyOne": 0.999,
+        "DoorClosedConfidence": 0.325,
         "MinusOne": -1,
         "interior_camera_health_response_cvb": 0,
         "interior_camera_health_response_cve": 0,

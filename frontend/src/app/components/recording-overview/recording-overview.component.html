@@ -142,12 +142,28 @@
           <span class="column-header">Max person count</span>
        </span>
       </th>
+      <th (click)="sortBy('variance_person_count')" class="column" >
+        <span class="filter-item">
+          <mat-icon *ngIf="sortingParam === 'variance_person_count' && sortingOrder==='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam === 'variance_person_count' && sortingOrder==='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam !== 'variance_person_count'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <span class="column-header">variance person count</span>
+       </span>
+      </th>
       <th (click)="sortBy('ride_detection_counter')" class="column" >
         <span class="filter-item">
           <mat-icon *ngIf="sortingParam === 'ride_detection_counter' && sortingOrder==='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
           <mat-icon *ngIf="sortingParam === 'ride_detection_counter' && sortingOrder==='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
           <mat-icon *ngIf="sortingParam !== 'ride_detection_counter'" fontIcon="bosch-ic-up-down"></mat-icon>
           <span class="column-header">Number of rides</span>
+       </span>
+      </th>
+      <th (click)="sortBy('sum_door_closed')" class="column" >
+        <span class="filter-item">
+          <mat-icon *ngIf="sortingParam === 'sum_door_closed' && sortingOrder==='asc'" fontIcon="bosch-ic-arrow-up"></mat-icon>
+          <mat-icon *ngIf="sortingParam === 'sum_door_closed' && sortingOrder==='dsc'" fontIcon="bosch-ic-arrow-down"></mat-icon>
+          <mat-icon *ngIf="sortingParam !== 'sum_door_closed'" fontIcon="bosch-ic-up-down"></mat-icon>
+          <span class="column-header">Sum Door close</span>
        </span>
       </th>
     </tr>

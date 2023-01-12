@@ -19,7 +19,9 @@
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
-        "max_person_count": 1
+        "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1
     },
     {
         "tenant": "srxfut2internal20",
@@ -41,7 +43,9 @@
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
-        "max_person_count": 1
+        "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1
     },
     {
         "tenant": "datanauts",
@@ -63,7 +67,9 @@
         "deviceID": "DATANAUTS_TEST_01",
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
-        "max_person_count": 1
+        "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1
     },
     {
         "tenant": "srxfut2internal20",
@@ -85,6 +91,8 @@
         "deviceID": "rc_srx_qa_na_fut2_003",
         "lengthCHC": 0.0,
         "number_chc_events": 0,
-        "max_person_count": 0
+        "max_person_count": 0,
+        "variance_person_count": 0,
+        "sum_door_closed": 0
     }
 ]

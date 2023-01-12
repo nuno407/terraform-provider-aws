@@ -237,7 +237,9 @@ class ApiService:
         'number_chc_events': 'recording_overview.number_chc_events',
         'lengthCHC': 'recording_overview.chc_duration',
         'max_person_count': 'recording_overview.max_person_count',
+        'variance_person_count': 'recording_overview.variance_person_count',
         'number_of_rides': 'recording_overview.ride_detection_counter',
+        'sum_door_closed': 'recording_overview.sum_door_closed',
         'deviceID': 'recording_overview.deviceID',
         'tenantID': 'recording_overview.tenantID'
     }
@@ -357,8 +359,12 @@ class ApiService:
             'chc_duration', '-')
         recording_object['max_person_count'] = recording_overview.get(
             'max_person_count', '-')
+        recording_object['variance_person_count'] = recording_overview.get(
+            'variance_person_count', '-')
         recording_object['ride_detection_counter'] = recording_overview.get(
             'ride_detection_counter', '-')
+        recording_object['sum_door_closed'] = recording_overview.get(
+            'sum_door_closed', '-')
         pipeline_execution = recording_item.get('pipeline_execution', {})
         recording_object['processing_list'] = pipeline_execution.get(
             'processing_list', '-')

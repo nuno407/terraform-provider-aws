@@ -221,6 +221,10 @@
                         {
                             "name": "NearlyOne",
                             "value": "0.999"
+                        },
+                        {
+                            "name": "DoorClosedConfidence",
+                            "value": "0.325"
                         }
                     ]
                 },

@@ -12,7 +12,9 @@ from mergedeep import merge as recursive_merge
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
-from base.person_count import PersonCount
+from base.max_person_count import MaxPersonCount
+from base.sum_door_closed import SumDoorClosed
+from base.variance_person_count import VariancePersonCount
 from base.ride_detection_counter import RideDetectionCounter
 from base.processor import Processor
 from mdfparser.config import MdfParserConfig
@@ -49,9 +51,11 @@ def main(config: MdfParserConfig):
     uploader = Uploader()
     synchronizer = Synchronizer()
     chc_counter = ChcCounter()
-    person_count = PersonCount()
+    max_person_count = MaxPersonCount()
+    sum_door_closed = SumDoorClosed()
+    variance_person_count = VariancePersonCount()
     ride_detection_counter = RideDetectionCounter()
-    processors: list[Processor] = [chc_counter, person_count, ride_detection_counter]
+    processors: list[Processor] = [chc_counter, max_person_count, variance_person_count, ride_detection_counter, sum_door_closed]
 
     # AWS clients for container_services
     sqs_client = boto3.client('sqs', region_name='eu-central-1')

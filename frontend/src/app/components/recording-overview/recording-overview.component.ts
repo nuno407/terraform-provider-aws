@@ -44,7 +44,9 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - number_chc_events,\n\
   - lengthCHC,\n\
   - max_person_count,\n\
+  - variance_person_count,\n\
   - ride_detection_counter,\n\
+  - sum_door_closed,\n\
   - deviceID\n\n\
   Available operands:\n\
   - ==\n\
@@ -66,7 +68,9 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - number_chc_events,\n\
   - lengthCHC,\n\
   - max_person_count,\n\
+  - variance_person_count,\n\
   - ride_detection_counter,\n\
+  - sum_door_closed,\n\
   - deviceID';
 
   constructor(private changeDetectorRef: ChangeDetectorRef, private metadata: ApiVideoCallService, private dialog: MatDialog) {}

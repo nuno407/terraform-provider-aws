@@ -16,7 +16,9 @@
             "chc_duration": 15.859872611465,
             "snapshots_paths": {},
             "max_person_count": 1,
-            "ride_detection_counter": 1
+            "variance_person_count": 0,
+            "ride_detection_counter": 1,
+            "sum_door_closed": 1
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
@@ -48,7 +50,9 @@
             "chc_duration": 15.859872611465,
             "snapshots_paths": {},
             "max_person_count": 1,
-            "ride_detection_counter": 1
+            "variance_person_count": 0,
+            "ride_detection_counter": 1,
+            "sum_door_closed": 1
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648835260452_1648835387254",
@@ -80,7 +84,9 @@
             "chc_duration": 15.859872611465,
             "snapshots_paths": {},
             "max_person_count": 1,
-            "ride_detection_counter": 1
+            "variance_person_count": 0,
+            "ride_detection_counter": 1,
+            "sum_door_closed": 1
         },
         "pipeline_execution": {
             "_id": "datanauts_DATANAUTS_TEST_01_InteriorRecorder_1648816099208_1648816231480",
@@ -112,7 +118,9 @@
             "chc_duration": 0.0,
             "snapshots_paths": {},
             "max_person_count": 0,
-            "ride_detection_counter": 0
+            "variance_person_count": 0,
+            "ride_detection_counter": 0,
+            "sum_door_closed": 0
         },
         "pipeline_execution": {
             "_id": "srxfut2internal20_rc_srx_qa_na_fut2_003_InteriorRecorder_1648821954670_1648822585972",

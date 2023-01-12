@@ -19,6 +19,8 @@
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
         "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1,
         "snapshots_paths": {}
     },
     {
@@ -41,6 +43,8 @@
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
         "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1,
         "snapshots_paths": {}
     },
     {
@@ -63,6 +67,8 @@
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
         "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1,
         "snapshots_paths": {}
     },
     {
@@ -85,6 +91,8 @@
         "lengthCHC": 15.859872611465,
         "number_chc_events": 1,
         "max_person_count": 1,
+        "variance_person_count": 0,
+        "sum_door_closed": 1,
         "snapshots_paths": {}
     }
 ]
