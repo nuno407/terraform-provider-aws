@@ -4,6 +4,7 @@ from typing import Dict, Callable
 
 import botocore.exceptions
 from kink import inject
+import time
 
 from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
@@ -114,6 +115,8 @@ class HealthCheckWorker:
             self.alert(err.message)
         except botocore.exceptions.ClientError as error:
             logger.error("unexpected AWS SDK error %s", error)
+        except Exception as err:
+            logger.exception("unexpected error %s", error)
 
     def run(self, helper_continue_running: Callable[[], bool] = lambda: True) -> None:
         """
@@ -131,11 +134,11 @@ class HealthCheckWorker:
             sqs_message = self.__sqs_msg_parser.parse_message(raw_message)
 
             if self.is_blacklisted_tenant(sqs_message):
-                logger.debug("Ignoring blacklisted tenant message")
+                logger.info("Ignoring blacklisted tenant message")
                 continue
 
             if self.is_blacklist_training(sqs_message):
-                logger.debug("Ignoring, Message is a training recorder blacklisted")
+                logger.info("Ignoring, Message is a training recorder blacklisted")
                 continue
             
             try:
@@ -145,7 +148,7 @@ class HealthCheckWorker:
                 continue
             for artifact in artifacts:
                 if self.is_blacklisted_recorder(artifact):
-                    logger.debug("Ignoring blacklisted recorder")
+                    logger.info("Ignoring blacklisted recorder")
                     continue
 
                 self.__check_artifact(artifact, queue_url, sqs_message)
