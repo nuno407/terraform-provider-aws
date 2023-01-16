@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Iterator
 
 from healthcheck.exceptions import InvalidMessageError
-from healthcheck.model import Artifact, SQSMessage, SnapshotArtifact, VideoArtifact
+from healthcheck.model import Artifact, SQSMessage, SnapshotArtifact, VideoArtifact, InvalidMessageCanSkip
 
 
 class ArtifactParser():
@@ -68,7 +68,7 @@ class ArtifactParser():
         chunks = ArtifactParser.get_recursive_from_dict(
             message.body, "Message", "value", "properties", "chunk_descriptions")
         if len(chunks) == 0 != str:
-            raise InvalidMessageError("Invalid message body. Cannot extract snapshots.")
+            raise InvalidMessageCanSkip("Invalid message body. Cannot extract snapshots.")
 
         # extract snapshots from chunks
         for chunk in chunks:

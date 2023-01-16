@@ -12,7 +12,7 @@ from healthcheck.config import HealthcheckConfig
 from healthcheck.constants import ELASTIC_ALERT_MATCHER
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
-                                    InvalidMessageError, NotPresentError,
+                                    InvalidMessageError, NotPresentError,InvalidMessageCanSkip,
                                     NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
 from healthcheck.model import Artifact, ArtifactType, SQSMessage, VideoArtifact
@@ -127,8 +127,9 @@ class HealthCheckWorker:
             raw_message = self.__sqs_controller.get_message(queue_url)
             if not raw_message:
                 continue
-
+            
             sqs_message = self.__sqs_msg_parser.parse_message(raw_message)
+
             if self.is_blacklisted_tenant(sqs_message):
                 logger.debug("Ignoring blacklisted tenant message")
                 continue
@@ -136,8 +137,12 @@ class HealthCheckWorker:
             if self.is_blacklist_training(sqs_message):
                 logger.debug("Ignoring, Message is a training recorder blacklisted")
                 continue
-
-            artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
+            
+            try:
+                artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
+            except InvalidMessageCanSkip as e:
+                logger.debug(f"Exception ocurred while parsing the message. Exception:{e}")
+                continue
             for artifact in artifacts:
                 if self.is_blacklisted_recorder(artifact):
                     logger.debug("Ignoring blacklisted recorder")

@@ -51,5 +51,8 @@ class InvalidMessageError(Exception):
     """Error raised when an invalid message is received."""
 
 
+class InvalidMessageCanSkip(Exception):
+    """Error raised when an invalid message is received."""
+
 class InitializationError(Exception):
     """Error raised during healthcheck initialization."""
