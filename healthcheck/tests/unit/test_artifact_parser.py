@@ -5,7 +5,7 @@ import pytest
 from datetime import datetime
 from healthcheck.model import SQSMessage, MessageAttributes, Artifact, VideoArtifact, SnapshotArtifact
 from healthcheck.artifact_parser import ArtifactParser
-from healthcheck.exceptions import InvalidMessageError
+from healthcheck.exceptions import InvalidMessageError, InvalidMessageCanSkip
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -66,7 +66,7 @@ def _invalid_sqs_message_missing_topic() -> SQSMessage:
 
 @pytest.mark.unit
 class TestArtifactParser():
-    @pytest.mark.parametrize("test_case,input_message,expected,is_error",
+    @pytest.mark.parametrize("test_case,input_message,expected,expected_exception",
                              [
                                (
                                     "valid_video_footage_msg",
@@ -78,7 +78,7 @@ class TestArtifactParser():
                                               datetime.fromtimestamp(1671118349783 / 1000.0),
                                               datetime.fromtimestamp(1671120149783 / 1000.0))
                                     ],
-                                    False
+                                    None
                                 ),
                                 (
                                     "valid_snapshot_msg",
@@ -93,26 +93,26 @@ class TestArtifactParser():
                                                     "TrainingMultiSnapshot_bar.jpeg",
                                                     timestamp=datetime.fromtimestamp(1671347823000 / 1000.0))
                                     ],
-                                    False
+                                    None
                                 ),
                                 (
                                     "invalid_snapshot_msg_missing_chunks",
                                     _invalid_sqs_message_missing_chunks(),
                                     [],
-                                    True
+                                    InvalidMessageCanSkip
                                 ),
                                 (
                                     "invalid_snapshot_msg_missing_topic",
                                     _invalid_sqs_message_missing_topic(),
                                     [],
-                                    True
+                                    InvalidMessageError
                                 )
                              ])
-    def test_artifact_parser(self, test_case: str, input_message: SQSMessage, expected: list[Artifact], is_error: bool):
+    def test_artifact_parser(self, test_case: str, input_message: SQSMessage, expected: list[Artifact], expected_exception: Exception):
         print("running test case", test_case)
 
-        if is_error:
-            with pytest.raises(InvalidMessageError):
+        if expected_exception:
+            with pytest.raises(expected_exception):
                 ArtifactParser().parse_message(input_message)
         else:
             got_artifacts = ArtifactParser().parse_message(input_message)

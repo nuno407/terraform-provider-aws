@@ -130,7 +130,7 @@ class HealthCheckWorker:
             raw_message = self.__sqs_controller.get_message(queue_url)
             if not raw_message:
                 continue
-            
+
             sqs_message = self.__sqs_msg_parser.parse_message(raw_message)
 
             if self.is_blacklisted_tenant(sqs_message):
@@ -140,7 +140,7 @@ class HealthCheckWorker:
             if self.is_blacklist_training(sqs_message):
                 logger.info("Ignoring, Message is a training recorder blacklisted")
                 continue
-            
+
             try:
                 artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
             except InvalidMessageCanSkip as e:
