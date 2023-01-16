@@ -198,3 +198,23 @@ class TestMain:
             # this verification will currently fail until the source_video field is correctly updated in voxel
             call('folder_snapshots', snapshot_included_db_entry)
         ], any_order=True)
+
+    @pytest.mark.unit
+    def test_transform_data_to_update_query(self):
+        # GIVEN
+        input_data = {
+            'a': 1,
+            'b': {'c': True},
+            'd': {'e':{'f':[1, 2, 3]}},
+            'g': {'h': None}
+        }
+
+        # WHEN
+        result = metadata.consumer.main.transform_data_to_update_query(input_data)
+
+        # THEN
+        assert result == {
+            'a': 1,
+            'b.c': True,
+            'd.e.f': [1, 2, 3]
+        }

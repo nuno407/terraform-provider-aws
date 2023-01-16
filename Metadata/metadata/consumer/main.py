@@ -140,7 +140,7 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
             "source_videos": list(related_media_paths),
-            "internal_message_reference_id": message["internal_message_reference_id"]
+            "internal_message_reference_id": message.get("internal_message_reference_id", None)
         }
     }
 
@@ -190,7 +190,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
             "time": footage_time,
-            "internal_message_reference_id": message["internal_message_reference_id"]
+            "internal_message_reference_id": message.get("internal_message_reference_id", None)
         },
         "resolution": message["resolution"]
     }
@@ -231,8 +231,9 @@ def create_recording_item(message: dict,
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
+            update_query = transform_data_to_update_query(recording_item)
             recorder = collection_rec.find_one_and_update(filter={"video_id": message["_id"]},
-                                                          update={"$set": recording_item},
+                                                          update={"$set": update_query},
                                                           upsert=True, return_document=ReturnDocument.AFTER)
 
             _logger.info("Upserted recording DB item for item %s",
@@ -246,6 +247,17 @@ def create_recording_item(message: dict,
     _logger.error(UNKNOWN_FILE_FORMAT_MESSAGE, file_format)
     return None
 
+def transform_data_to_update_query(data: dict) -> dict:
+    """Transforms nested dict data to mongodb update statement."""
+    update_query = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            nested_data = transform_data_to_update_query(value)
+            for nested_key, nested_value in nested_data.items():
+                update_query[f"{key}.{nested_key}"] = nested_value
+        elif value is not None:
+            update_query[key] = value
+    return update_query
 
 def upsert_mdf_data(message: dict, collection_sig: Collection,
                     collection_rec: Collection) -> Optional[dict]:
