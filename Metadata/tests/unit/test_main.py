@@ -18,6 +18,7 @@ from metadata.consumer.main import (
     create_recording_item,
     update_voxel_media,
     upsert_mdf_data,
+    transform_data_to_update_query,
     process_outputs)
 from pytest_mock import MockerFixture  # pylint ignore=wrong-import-order
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
@@ -318,7 +319,7 @@ class TestMetadataMain():
         fixture_find_and_update_media_references.assert_called()
         mock_collection.find_one_and_update.assert_called_once_with(
             filter={"video_id": message_body["_id"]},
-            update={"$set": obtained_outcome},
+            update={"$set": transform_data_to_update_query(obtained_outcome)},
             upsert=True, return_document=ReturnDocument.AFTER
         )
 
