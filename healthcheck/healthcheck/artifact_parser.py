@@ -70,6 +70,9 @@ class ArtifactParser:
             list[Artifact]: list of artifacts
         """
         self.__logger.debug("parsing sqs message into artifact")
+        if "TopicArn" not in message.body:
+            self.__logger.debug("incoming message from topic %s", message.body["TopicArn"])
+
         if self.message_type_identifier(message) in IMAGE:
             return list(self.__extract_snapshots(message))
         elif self.message_type_identifier(message) in VIDEO:
