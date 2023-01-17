@@ -170,8 +170,8 @@ class HealthCheckWorker:
                 artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
                 self.__check_artifacts(artifacts, queue_url, sqs_message)
             except InvalidMessageError as err:
-                logger.error("invalid message -> %s", err)
+                logger.error("Error parsing artifact from message -> %s", err)
                 continue
             except InvalidMessageCanSkip as e:
-                logger.info(f"Exception ocurred while parsing the message. Exception:{e}")
+                logger.info(f"Exception ocurred while parsing artifact from the message deleting message. Exception:{e}")
                 self.__sqs_controller.delete_message(queue_url, sqs_message)

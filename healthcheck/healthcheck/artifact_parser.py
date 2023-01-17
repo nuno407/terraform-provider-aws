@@ -1,13 +1,24 @@
 """Artifact parser module."""
 from datetime import datetime
-from typing import Dict, Iterator
+from logging import Logger
+from typing import Dict, Iterator, Optional
 
-from healthcheck.exceptions import InvalidMessageError, InvalidMessageCanSkip
-from healthcheck.model import Artifact, SQSMessage, SnapshotArtifact, VideoArtifact
+from kink import inject
 
+from healthcheck.exceptions import InvalidMessageCanSkip, InvalidMessageError
+from healthcheck.model import (Artifact, SnapshotArtifact, SQSMessage,
+                               VideoArtifact)
 
-class ArtifactParser():
+SNAPSHOT_TOPIC_SUFFIX = "inputEventsTerraform"
+VIDEO_FOOTAGE_TOPIC_SUFFIX = "video-footage-events"
+VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
+IMAGE = ["TrainingMultiSnapshot"]
+
+@inject
+class ArtifactParser:
     """Artifact Message Parser"""
+    def __init__(self, logger: Logger) -> None:
+        self.__logger = logger
 
     @staticmethod
     def get_recursive_from_dict(data_dict: dict, *keys: str, default=[]):
@@ -18,6 +29,37 @@ class ArtifactParser():
             data_dict = data_dict[key]
         return data_dict
 
+    def __is_identifier_found(self, raw_body: str, identifier: str) -> bool:
+        return raw_body.find(identifier) != -1
+
+    def __is_multiple_identifiers_found(self, raw_body: str, identifiers: list[str]) -> bool:
+        return all([self.__is_identifier_found(raw_body, identifier) for identifier in identifiers])
+
+    def message_type_identifier(self, message: SQSMessage) -> Optional[str]:
+        """ Identify if the type of the media described in the message.
+            Only returns a type when its sure its from that type otherwise returns None.
+
+        Args:
+            message (SQSMessage): message to identify
+
+        Returns:
+            result (Optional[str]): type identified, defaults to None.
+        """
+        result = None
+        raw_body = str(message.body)
+
+        if self.__is_identifier_found(raw_body, "InteriorRecorder") and not self.__is_multiple_identifiers_found(raw_body, ["TrainingRecorder", "TrainingMultiSnapshot", "FrontRecorder"]):
+            result = "InteriorRecorder"
+        elif self.__is_identifier_found(raw_body, "TrainingRecorder") and not self.__is_multiple_identifiers_found(raw_body, ["InteriorRecorder", "TrainingMultiSnapshot", "FrontRecorder"]):
+            result = "TrainingRecorder"
+        elif self.__is_identifier_found(raw_body, "TrainingMultiSnapshot") and not self.__is_multiple_identifiers_found(raw_body, ["TrainingRecorder", "InteriorRecorder", "FrontRecorder"]):
+            result = "TrainingMultiSnapshot"
+        elif self.__is_identifier_found(raw_body, "FrontRecorder") and not self.__is_multiple_identifiers_found(raw_body, ["TrainingRecorder", "TrainingMultiSnapshot", "InteriorRecorder"]):
+            result = "FrontRecorder"
+
+        return result
+
+
     def parse_message(self, message: SQSMessage) -> list[Artifact]:
         """Extracts artifacts from the message
 
@@ -27,16 +69,13 @@ class ArtifactParser():
         Returns:
             list[Artifact]: list of artifacts
         """
-        if "TopicArn" not in message.body:
-            raise InvalidMessageError("TopicArn missing in message body. Cannot determine message type.")
-        if message.body["TopicArn"].endswith("inputEventsTerraform"):
-            # snapshot message
+        self.__logger.debug("parsing sqs message into artifact")
+        if self.message_type_identifier(message) in IMAGE:
             return list(self.__extract_snapshots(message))
-        if message.body["TopicArn"].endswith("video-footage-events"):
-            # footage message
+        elif self.message_type_identifier(message) in VIDEO:
             return [self.__extract_recording(message)]
-
-        raise InvalidMessageError("Unknown message type")
+        else:
+            raise InvalidMessageError("Unknown message type")
 
     def __extract_snapshots(self, message: SQSMessage) -> Iterator[Artifact]:
         """Generator method for extracting a list of snapshot artifacts
@@ -51,6 +90,9 @@ class ArtifactParser():
             Iterator[Artifact]: iterator of snapshot artifacts
         """
         # get tenant information
+        self.__logger.debug("starting extracting snapshot artifact from sqs message...")
+
+        self.__logger.debug("getting snapshot tenant...")
         tenant_property = ArtifactParser.get_recursive_from_dict(message.body, "MessageAttributes", "tenant")
         if "Value" in tenant_property:
             tenant = tenant_property["Value"]
@@ -60,17 +102,20 @@ class ArtifactParser():
             raise InvalidMessageError("Invalid message body. Cannot extract tenant.")
 
         # get device id
+        self.__logger.debug("getting snapshot device_id...")
         device_id = ArtifactParser.get_recursive_from_dict(message.body, "Message", "value", "properties", "header", "device_id")
         if not isinstance(device_id, str):
             raise InvalidMessageError("Invalid message body. Cannot extract device_id.")
 
         # get chunks
+        self.__logger.debug("getting snapshot chunk_descriptions...")
         chunks = ArtifactParser.get_recursive_from_dict(
             message.body, "Message", "value", "properties", "chunk_descriptions")
         if len(chunks) == 0:
             raise InvalidMessageCanSkip("Invalid message body. Cannot extract snapshots.")
 
         # extract snapshots from chunks
+        self.__logger.debug("extracting snapshots from all chunks...")
         for chunk in chunks:
             if not ("uuid" in chunk and "start_timestamp_ms" in chunk):
                 raise InvalidMessageError("Invalid snapshot chunk. Missing uuid or start_timestamp_ms.")
@@ -91,28 +136,35 @@ class ArtifactParser():
         Returns:
             Artifact: Recording artifact
         """
+        self.__logger.debug("starting extracting video artifact from sqs message...")
         if not message.body:
             raise InvalidMessageError("Invalid message, empty body.")
 
+        self.__logger.debug("extracting video inner message body...")
         inner_message = message.body.get("Message")
         if not inner_message:
             raise InvalidMessageError("Invalid message body. Cannot extract inner message contents.")
 
+        self.__logger.debug("extracting video stream name...")
         stream_name = inner_message.get("streamName")
         if not stream_name:
             raise InvalidMessageError("Invalid message body. Cannot extract stream name.")
 
+        self.__logger.debug("extracting video footageFrom...")
         footage_from = inner_message.get("footageFrom")
         if not footage_from:
             raise InvalidMessageError("Invalid message body. Cannot extract footageFrom.")
 
+        self.__logger.debug("extracting video footageTo...")
         footage_to = inner_message.get("footageTo")
         if not footage_to:
             raise InvalidMessageError("Invalid message body. Cannot extract footageTo.")
 
+        self.__logger.debug("checking if video message attribute tenant is present...")
         if not message.attributes.tenant:
             raise InvalidMessageError("Invalid message attribute. Cannot extract tenant.")
 
+        self.__logger.debug("checking if video attribute device_id is present...")
         if not message.attributes.device_id:
             raise InvalidMessageError("Invalid message attribute. Cannot extract deviceId.")
 
