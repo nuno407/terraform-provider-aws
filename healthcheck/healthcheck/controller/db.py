@@ -3,7 +3,7 @@ from kink import inject
 from jsonschema import ValidationError
 
 from healthcheck.model import Artifact, ArtifactType
-from healthcheck.database import DBClient, DBCollection
+from healthcheck.database import INoSQLDBClient, DBCollection
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
 from healthcheck.schema.validator import DocumentValidator, Schema
@@ -15,7 +15,7 @@ class DatabaseController():
 
     def __init__(
         self,
-        db_client: DBClient,
+        db_client: INoSQLDBClient,
         schema_validator: DocumentValidator
     ) -> None:
         self.__db_client = db_client

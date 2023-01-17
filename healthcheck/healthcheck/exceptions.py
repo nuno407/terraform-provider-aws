@@ -50,6 +50,8 @@ class AnonymizedFileNotPresent(NotPresentError):
 class InvalidMessageError(Exception):
     """Error raised when an invalid message is received."""
 
+class InvalidMessagePanic(Exception):
+    """Error raised when an invalid message is received and no receipt handle is available."""
 
 class InvalidMessageCanSkip(Exception):
     """Error raised when an invalid message is received."""

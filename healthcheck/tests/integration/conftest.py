@@ -15,7 +15,7 @@ from base.aws.container_services import ContainerServices
 from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
-from healthcheck.database import DBConfiguration
+from healthcheck.database import NoSQLDBConfiguration
 from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
@@ -144,7 +144,7 @@ class VoxelClientMock():
 
 @pytest.fixture
 def db_configuration():
-    return DBConfiguration("DataIngestion", "dev", None)
+    return NoSQLDBConfiguration("DataIngestion", "dev", None)
 
 
 @pytest.fixture

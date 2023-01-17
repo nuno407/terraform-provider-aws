@@ -2,9 +2,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol
-
 from healthcheck.model import DBDocument
-
 
 class DBCollection(Enum):
     """DB collections available."""
@@ -14,7 +12,7 @@ class DBCollection(Enum):
     ALGORITHM_OUTPUT = "algorithm-output"
 
 
-class DBClient(Protocol):
+class INoSQLDBClient(Protocol):
     """NoSQL DB client abstraction interface."""
 
     def find_many(self, collection: DBCollection, query: dict) -> list[DBDocument]:
@@ -49,9 +47,8 @@ class DBClient(Protocol):
             str: DB collection name
         """
 
-
 @dataclass
-class DBConfiguration():
+class NoSQLDBConfiguration():
     """DB configuration."""
     db_name: str
     environment_prefix: str

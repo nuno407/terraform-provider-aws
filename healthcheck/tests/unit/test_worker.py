@@ -126,7 +126,7 @@ class TestWorker:
             fix_healthcheck_worker: HealthCheckWorker,
             input_artifact: Artifact,
             expected: bool):
-        assert fix_healthcheck_worker.is_blacklist_training(input_artifact) == expected
+        assert fix_healthcheck_worker.is_blacklisted_training(input_artifact) == expected
 
 
     @pytest.fixture

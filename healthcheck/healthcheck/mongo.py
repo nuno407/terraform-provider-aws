@@ -7,16 +7,16 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 
 from healthcheck.model import DBDocument
-from healthcheck.database import DBClient, DBCollection, DBConfiguration
+from healthcheck.database import INoSQLDBClient, DBCollection, NoSQLDBConfiguration
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
 
-@inject(alias=DBClient)
+@inject(alias=INoSQLDBClient)
 class MongoDBClient():
     """MongoDB Metadata Data Access."""
 
-    def __init__(self, db_config: DBConfiguration, client: MongoClient) -> None:
+    def __init__(self, db_config: NoSQLDBConfiguration, client: MongoClient) -> None:
         """initalizes mongodb data access object
 
         Args:

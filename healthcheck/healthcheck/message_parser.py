@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Optional, Union
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from healthcheck.exceptions import InvalidMessageError
+from healthcheck.exceptions import InvalidMessagePanic
 from healthcheck.model import MessageAttributes, SQSMessage
 
 _logger: logging.Logger = logging.getLogger(__name__)
@@ -28,7 +28,8 @@ MANDATORY_FIELDS = [
     MessageFields.MESSAGE_ID,
     MessageFields.BODY,
     MessageFields.RECEIPT_HANDLE,
-    MessageFields.ATTRIBUTES]
+    MessageFields.ATTRIBUTES
+]
 
 
 class SQSMessageParser():
@@ -67,7 +68,7 @@ class SQSMessageParser():
             MessageAttributes: data object for message attributes
         """
         if not MessageFields.BODY_ATTRIBUTES.value in body:
-            raise InvalidMessageError("Missing message attributes")
+            raise InvalidMessagePanic("Missing message attributes")
         message_attrs: dict = body[MessageFields.BODY_ATTRIBUTES.value]
 
         tenant = None
@@ -99,26 +100,28 @@ class SQSMessageParser():
 
         for field_enum in MANDATORY_FIELDS:
             if field_enum.value not in raw_message:
-                raise InvalidMessageError(f"Missing Field {field_enum.value}")
+                raise InvalidMessagePanic(f"Missing Field {field_enum.value}")
 
         raw_body: str = raw_message[MessageFields.BODY.value]
         body = json.loads(self.__deserialize(raw_body))
         if not body:
-            raise InvalidMessageError("Empty message body.")
+            raise InvalidMessagePanic("Empty message body.")
 
         message_attrs = self.parse_message_attrs(body)
 
+        receipt_handle = raw_message[MessageFields.RECEIPT_HANDLE.value]
+        if not receipt_handle:
+            raise InvalidMessagePanic("Receipt Handle missing.")
+
         timestamp = body.get(MessageFields.TIMESTAMP.value)
         if not timestamp:
-            raise InvalidMessageError("Missing or empty message timestamp.")
+            raise InvalidMessagePanic("Missing or empty message timestamp.")
 
         message_id = raw_message[MessageFields.MESSAGE_ID.value]
         if not message_id:
-            raise InvalidMessageError("Missing message id.")
+            raise InvalidMessagePanic("Missing message id.")
 
-        receipt_handle = raw_message[MessageFields.RECEIPT_HANDLE.value]
-        if not receipt_handle:
-            raise InvalidMessageError("Receipt Handle missing.")
+
 
         return SQSMessage(
             message_id=message_id,

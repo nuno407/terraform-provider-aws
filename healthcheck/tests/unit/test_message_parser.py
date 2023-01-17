@@ -4,7 +4,7 @@ import os
 import pytest
 from healthcheck.model import SQSMessage, MessageAttributes
 from healthcheck.message_parser import SQSMessageParser
-from healthcheck.exceptions import InvalidMessageError
+from healthcheck.exceptions import InvalidMessagePanic
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -117,7 +117,7 @@ class TestMessageParser():
     def test_parse_message(self, test_case: str, input_message: dict, expected: SQSMessage, is_error: bool):
         print("running test", test_case)
         if is_error:
-            with pytest.raises(InvalidMessageError):
+            with pytest.raises(InvalidMessagePanic):
                 SQSMessageParser().parse_message(input_message)
         else:
             got_sqs_message = SQSMessageParser().parse_message(input_message)

@@ -1,6 +1,7 @@
 """bootstrap dependency injection autowiring."""
 import logging
 import os
+from dataclasses import dataclass
 from logging import Logger
 
 import boto3
@@ -21,13 +22,12 @@ from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
-from healthcheck.database import DBClient, DBConfiguration
+from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
 from healthcheck.message_parser import SQSMessageParser
 from healthcheck.model import ArtifactType, S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
 from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
-from dataclasses import dataclass
 
 @dataclass
 class EnvironmentParams:
@@ -73,7 +73,7 @@ def bootstrap_di() -> None:
         config.raw_s3_bucket,
         config.s3_dir)
 
-    di[DBConfiguration] = lambda _di: DBConfiguration(
+    di[NoSQLDBConfiguration] = lambda _di: NoSQLDBConfiguration(
         _di[HealthcheckConfig].db_name,
         _di[HealthcheckConfig].environment_prefix,
         _di[HealthcheckConfig])
@@ -82,7 +82,7 @@ def bootstrap_di() -> None:
     di[SQSMessageParser] = SQSMessageParser()
     di[DocumentValidator] = JSONSchemaValidator()
     di[VoxelEntriesGetter] = VoxelClient()
-    di[DBClient] = MongoDBClient()
+    di[INoSQLDBClient] = MongoDBClient()
     di[ArtifactParser] = ArtifactParser()
     di[S3Controller] = S3Controller()
     di[SQSMessageController] = SQSMessageController()
