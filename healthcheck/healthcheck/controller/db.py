@@ -7,7 +7,7 @@ from healthcheck.database import INoSQLDBClient, DBCollection
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
 from healthcheck.schema.validator import DocumentValidator, Schema
-
+from logging import Logger
 
 @inject
 class DatabaseController():
@@ -16,10 +16,12 @@ class DatabaseController():
     def __init__(
         self,
         db_client: INoSQLDBClient,
-        schema_validator: DocumentValidator
+        schema_validator: DocumentValidator,
+        logger: Logger
     ) -> None:
         self.__db_client = db_client
         self.__schema_validator = schema_validator
+        self.__logger = logger
 
     def __db_find_one_or_raise(self, artifact: Artifact, collection: DBCollection, query: dict) -> dict:
         """
@@ -159,6 +161,7 @@ class DatabaseController():
                 pipeline-execution was not found
         """
         internal_hash = artifact.internal_message_reference_id
+        self.__logger.debug("Searching for 'internal_message_reference_id' HASH >>> %s", internal_hash)
 
         docs = self.__db_client.find_many(DBCollection.RECORDINGS, {
             "recording_overview.internal_message_reference_id": internal_hash

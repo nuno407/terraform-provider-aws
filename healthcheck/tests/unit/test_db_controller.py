@@ -22,7 +22,8 @@ class TestDatabaseController():
         db_client = Mock()
         db_client.find_many = Mock(return_value=[])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator)
+        mock_logger = MagicMock()
+        database_controller = DatabaseController(db_client, schema_validator, mock_logger)
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 
@@ -42,7 +43,7 @@ class TestDatabaseController():
         }
         db_client.find_many = Mock(side_effect=[[mocked_recording_doc], []])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator)
+        database_controller = DatabaseController(db_client, schema_validator, MagicMock())
         with pytest.raises(NotPresentError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 
@@ -70,7 +71,7 @@ class TestDatabaseController():
         }
         db_client.find_many = Mock(side_effect=[[mocked_recording_doc], [mocked_pipeline_exec_doc]])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator)
+        database_controller = DatabaseController(db_client, schema_validator, MagicMock())
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 

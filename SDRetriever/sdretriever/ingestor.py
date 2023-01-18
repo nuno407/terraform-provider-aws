@@ -176,6 +176,7 @@ class VideoIngestor(Ingestor):
             seed = f"{video_msg.streamname}_{int(video_from.timestamp() * 1000)}_{int(video_to.timestamp() * 1000)}"
             LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
             internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+            LOGGER.info("internal_message_reference_id HASH >>> %s", internal_message_reference_id)
             video_bytes, video_start_ts, video_end_ts = self.CS.get_kinesis_clip(
                 role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
             video_start = round(video_start_ts.timestamp() * 1000)
@@ -309,6 +310,7 @@ class SnapshotIngestor(Ingestor):
                 seed = Path(snap_name).stem
                 LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
                 internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+                LOGGER.info("internal_message_reference_id HASH >>> %s", internal_message_reference_id)
 
                 if not exists_on_devcloud:
 
