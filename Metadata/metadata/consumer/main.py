@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from pathlib import Path
+from pymongo.errors import DocumentTooLarge
 
 import boto3
 import pytimeparse
@@ -733,13 +734,19 @@ def main():
             # Processing step
             relay_list = read_message(container_services, message['Body'])
 
-            # Insert/update data in db
-            upsert_data_to_db(db_client, container_services,
-                              api_service, relay_list, message['MessageAttributes'])
+            try:
+                # Insert/update data in db
+                upsert_data_to_db(db_client, container_services,
+                                api_service, relay_list, message['MessageAttributes'])
 
-            # Delete message after processing
-            container_services.delete_message(
-                sqs_client, message['ReceiptHandle'])
+                # Delete message after processing
+                container_services.delete_message(
+                    sqs_client, message['ReceiptHandle'])
+            # catch all exceptions which are currently known to crash the container
+            # in this case, the message should go to the dead letter queue
+            except DocumentTooLarge:
+                _logger.warning(
+                    "Document too large to be inserted in MongoDB. Skipping message for now.")
 
 
 if __name__ == '__main__':
