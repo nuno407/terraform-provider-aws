@@ -70,7 +70,7 @@ class ArtifactParser:
             list[Artifact]: list of artifacts
         """
         self.__logger.debug("parsing sqs message into artifact")
-        if "TopicArn" not in message.body:
+        if "TopicArn" in message.body:
             self.__logger.debug("incoming message from topic %s", message.body["TopicArn"])
 
         if self.message_type_identifier(message) in IMAGE:
@@ -144,7 +144,7 @@ class ArtifactParser:
             raise InvalidMessageError("Invalid message, empty body.")
 
         self.__logger.debug("extracting video inner message body...")
-        inner_message = message.body.get("Message")
+        inner_message: dict = message.body.get("Message")
         if not inner_message:
             raise InvalidMessageError("Invalid message body. Cannot extract inner message contents.")
 
