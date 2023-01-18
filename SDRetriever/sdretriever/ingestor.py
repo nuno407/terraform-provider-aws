@@ -174,6 +174,7 @@ class VideoIngestor(Ingestor):
                 video_msg.footagefrom)
             video_to = from_epoch_seconds_or_milliseconds(video_msg.footageto)
             seed = f"{video_msg.streamname}_{int(video_from.timestamp() * 1000)}_{int(video_to.timestamp() * 1000)}"
+            LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
             internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
             video_bytes, video_start_ts, video_end_ts = self.CS.get_kinesis_clip(
                 role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
@@ -306,6 +307,7 @@ class SnapshotIngestor(Ingestor):
                     self.S3_CLIENT, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
 
                 seed = Path(snap_name).stem
+                LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
                 internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
                 if not exists_on_devcloud:
