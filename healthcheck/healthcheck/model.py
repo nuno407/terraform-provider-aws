@@ -57,7 +57,7 @@ class VideoArtifact(Artifact):
 
     @property
     def artifact_id(self) -> str:
-        return f"{self.tenant_id}_{self.stream_name}_{int(self.footage_from.timestamp()*1000)}_{int(self.footage_to.timestamp()*1000)}"
+        return f"{self.stream_name}_{int(self.footage_from.timestamp()*1000)}_{int(self.footage_to.timestamp()*1000)}"
 
     @property
     def artifact_type(self) -> ArtifactType:
