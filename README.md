@@ -7,6 +7,7 @@ This repository contains all Datanauts owned applications.
   - [Contribute for this repo](#contribute-for-this-repo)
     - [Bash-ish machine Setup](#bash-ish-machine-setup)
       - [Pre-Commit](#pre-commit)
+      - [Parsing SQS messages from logs using VSCode macros](#parsing-sqs-messages-from-logs-using-vscode-macros)
 
 ## Github Workflows
 * Every push to `master` will trigger an image build of all **changed** applications. When `base` is changed all dependent services will be built (determined by checking for a reference to `base` in Dockerfile).
@@ -52,3 +53,8 @@ Ad-hoc run:
 ```bash
 pre-commit run --all-files
 ```
+
+#### Parsing SQS messages from logs using VSCode macros
+- Open command pallet (Ctrl+shift+p)
+- Search and select "Replace Rules: Run Ruleset"
+- Search and select "Parse SQS Message"

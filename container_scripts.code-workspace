@@ -43,11 +43,45 @@
             "../base",
             "../basehandler"
         ],
+		"replacerules.rules": {
+			"Remove new line": {
+				"find": "\\\\n",
+				"replace": ""
+			},
+			"Replace quotes": {
+				"find": "'",
+				"replace": "\""
+			},
+			"Replace quotes before curly open": {
+				"find": "\"\\{",
+				"replace": "{"
+			},
+			"Replace quotes before curly close": {
+				"find": "\\}\"",
+				"replace": "}"
+			},
+			"Remove double slash": {
+				"find": "\\\\",
+				"replace": ""
+			}
+		},
+		"replacerules.rulesets": {
+			"Parse SQS Message": {
+				"rules": [
+					"Remove new line",
+					"Replace quotes",
+					"Replace quotes before curly open",
+					"Replace quotes before curly close",
+					"Remove double slash"
+				]
+			}
+		}
 	},
 	"extensions": {
 		"recommendations": [
 			"yzhang.markdown-all-in-one",
-            "ms-python.vscode-pylance"
+            "ms-python.vscode-pylance",
+			"bhughes339.replacerules"
 		]
 	}
 }
