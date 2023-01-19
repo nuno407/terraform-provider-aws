@@ -3,7 +3,7 @@ import logging
 import os
 from dataclasses import dataclass
 from logging import Logger
-
+from typing import Optional
 import boto3
 from kink import di
 from mypy_boto3_s3 import S3Client
@@ -36,6 +36,7 @@ class EnvironmentParams:
     container_version: str
     config_path: str
     db_uri: str
+    webhook_url: Optional[str]
 
 def get_environment() -> EnvironmentParams:
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
@@ -43,12 +44,14 @@ def get_environment() -> EnvironmentParams:
     container_version = os.getenv("CONTAINER_VERSION", "development")
     config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
     db_uri = os.getenv("DB_URI")
+    webhook_url = os.getenv("MSTEAMS_WEBHOOK", None)
     return EnvironmentParams(
         aws_endpoint=aws_endpoint,
         aws_region=aws_region,
         container_version=container_version,
         config_path=config_path,
-        db_uri=db_uri
+        db_uri=db_uri,
+        webhook_url=webhook_url
     )
 
 
@@ -60,6 +63,7 @@ def bootstrap_di() -> None:
     di["container_version"] = env_params.container_version
     di["config_path"] = env_params.config_path
     di["db_uri"] = env_params.db_uri
+    di["webhook_url"] = env_params.webhook_url
 
     di[SQSClient] = boto3.client("sqs", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)
     di[S3Client] = boto3.client("s3", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)

@@ -9,7 +9,14 @@ from healthcheck.bootstrap import EnvironmentParams, bootstrap_di, get_environme
 class TestBootstrap:
     @patch("healthcheck.bootstrap.os")
     def test_get_environment(self, os_mock: Mock):
-        os_mock.getenv = Mock(side_effect=["test1", "us-east-1", "development", "config.yaml", "databaseurimock"])
+        os_mock.getenv = Mock(side_effect=[
+            "test1",
+            "us-east-1",
+            "development",
+            "config.yaml",
+            "databaseurimock",
+            "webhookmock"
+        ])
         params = get_environment()
         assert isinstance(params, EnvironmentParams)
 
@@ -18,6 +25,7 @@ class TestBootstrap:
         assert params.container_version == "development"
         assert params.config_path == "config.yaml"
         assert params.db_uri == "databaseurimock"
+        assert params.webhook_url == "webhookmock"
 
         os_mock.getenv.assert_has_calls(
             calls=[
@@ -25,6 +33,7 @@ class TestBootstrap:
                 call("AWS_REGION", "eu-central-1"),
                 call("CONTAINER_VERSION", "development"),
                 call("CONFIG_PATH", "/app/config/config.yml"),
-                call("DB_URI")
+                call("DB_URI"),
+                call("MSTEAMS_WEBHOOK", None)
             ]
         )

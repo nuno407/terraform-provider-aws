@@ -17,6 +17,7 @@ from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessagePanic, NotPresentError,
                                     NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
+from healthcheck.notification import Notifier
 from healthcheck.model import Artifact, ArtifactType, SQSMessage, VideoArtifact
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -35,12 +36,14 @@ class HealthCheckWorker:
             sqs_msg_parser: SQSMessageParser,
             artifact_msg_parser: ArtifactParser,
             sqs_controller: SQSMessageController,
+            notifier: Notifier,
             checkers: Dict[ArtifactType, BaseArtifactChecker]):
         self.__config = config
         self.__graceful_exit = graceful_exit
         self.__sqs_msg_parser = sqs_msg_parser
         self.__artifact_msg_parser = artifact_msg_parser
         self.__sqs_controller = sqs_controller
+        self.__notifier = notifier
         self.__checkers = checkers
 
     def is_blacklisted_tenant(self, message: SQSMessage) -> bool:
@@ -91,6 +94,7 @@ class HealthCheckWorker:
             message (str): message to be displayed
         """
         logger.info("%s : %s", ELASTIC_ALERT_MATCHER, message)
+        self.__notifier.send_notification(message)
 
     def __check_artifacts(self, artifacts: list[Artifact], queue_url: str, sqs_message: SQSMessage):
         """Run healthcheck for given artifact and treats errors
@@ -123,9 +127,7 @@ class HealthCheckWorker:
         except NotYetIngestedError as err:
             logger.warning("not ingested yet, increase visibility timeout %s", err)
             self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(queue_url, sqs_message)
-        except NotPresentError as err:
-            self.alert(err.message)
-        except FailedHealthCheckError as err:
+        except (NotPresentError, FailedHealthCheckError) as err:
             self.alert(err.message)
         except botocore.exceptions.ClientError as error:
             logger.error("unexpected AWS SDK error %s", error)

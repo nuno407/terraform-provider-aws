@@ -8,7 +8,7 @@ from healthcheck.config import HealthcheckConfig
 from healthcheck.model import (Artifact, ArtifactType, MessageAttributes,
                                SnapshotArtifact, SQSMessage, VideoArtifact)
 from healthcheck.worker import HealthCheckWorker
-from healthcheck.exceptions import NotYetIngestedError
+from healthcheck.exceptions import NotYetIngestedError, NotPresentError
 
 @pytest.mark.unit
 class TestWorker:
@@ -140,6 +140,7 @@ class TestWorker:
             sqs_msg_parser=MagicMock(),
             artifact_msg_parser=MagicMock(),
             sqs_controller=MagicMock(),
+            notifier=MagicMock(),
             checkers={
                 ArtifactType.INTERIOR_RECORDER: MagicMock(),
                 ArtifactType.SNAPSHOT: MagicMock(),
@@ -317,6 +318,29 @@ class TestWorker:
                 )
             ],
             NotYetIngestedError
+        ),
+        # Not present error
+        (
+            SQSMessage(
+                message_id="mocked_message",
+                receipt_handle="mocked_receipt",
+                body={},
+                timestamp=datetime.now(),
+                attributes=MessageAttributes(
+                    tenant="tenant2",
+                    device_id="device1"
+                )
+            ),
+            [
+                VideoArtifact(
+                    stream_name="stream2_InteriorRecorder",
+                    device_id="device2",
+                    tenant_id="tenant2",
+                    footage_from=datetime.now(),
+                    footage_to=datetime.now()
+                )
+            ],
+            NotPresentError
         )
     ])
     @patch("healthcheck.worker.time.sleep")
@@ -342,6 +366,7 @@ class TestWorker:
         artifact_parser_mock.parse_message = Mock(return_value=input_artifacts)
 
         checkers = self.get_checkers(input_artifacts, exception_raised)
+        notifier_mock = Mock()
 
         healthcheck_worker = HealthCheckWorker(
             config=fix_config,
@@ -349,6 +374,7 @@ class TestWorker:
             artifact_msg_parser=artifact_parser_mock,
             sqs_msg_parser=sqs_msg_parser,
             sqs_controller=sqs_controller,
+            notifier=notifier_mock,
             checkers=checkers
         )
         healthcheck_worker.run(Mock(side_effect=[True, False]))
@@ -371,7 +397,9 @@ class TestWorker:
             sqs_controller.delete_message.assert_called_with(queue_url, input_sqs_message)
         else:
             self.healthcheck_assertions(input_artifacts, checkers)
-            if isinstance(exception_raised, NotYetIngestedError):
+            if isinstance(exception_raised, NotPresentError):
+                notifier_mock.assert_called_once()
+            elif isinstance(exception_raised, NotYetIngestedError):
                 sqs_controller.increase_visibility_timeout_and_handle_exceptions.assert_called_once_with(
                     queue_url,
                     input_sqs_message
