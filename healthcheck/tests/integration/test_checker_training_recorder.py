@@ -27,7 +27,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "datanauts",
             "DATANAUTS_DEV_01",
-            "DATANAUTS_DEV_01_TrainingRecorder",
+            "datanauts_DATANAUTS_DEV_01_TrainingRecorder",
             1671454631000,
             1671455208714,
             None
@@ -37,7 +37,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "rc_srx_develop_stv4sf_01",
-            "rc_srx_develop_stv4sf_01_TrainingRecorder",
+            "deepsensation_rc_srx_develop_stv4sf_01_TrainingRecorder",
             1670846956000,
             1670847650634,
             NotYetIngestedError
@@ -47,7 +47,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670831590000,
             1670831868817,
             AnonymizedFileNotPresent
@@ -57,7 +57,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670829790543,
             1670831591892,
             AnonymizedFileNotPresent
@@ -67,7 +67,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670507347819,
             1670507467529,
             RawFileNotPresent
@@ -77,7 +77,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670499585635,
             1670499861537,
             VoxelEntryNotPresent
@@ -87,7 +87,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670497785727,
             1670499585630,
             FailDocumentValidation
@@ -97,7 +97,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670494337819,
             1670494456614,
             NotPresentError
@@ -107,7 +107,7 @@ class TestTrainingRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder",
             1670492537000,
             1670494337793,
             FailDocumentValidation

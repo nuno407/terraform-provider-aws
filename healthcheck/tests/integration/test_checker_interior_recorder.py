@@ -26,7 +26,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669992746911,
             1669992825429,
             None
@@ -36,7 +36,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669992746911,
             1669992825530,
             NotYetIngestedError
@@ -46,7 +46,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669992688000,
             1669992725794,
             AnonymizedFileNotPresent
@@ -56,7 +56,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669989865000,
             1669989911443,
             AnonymizedFileNotPresent
@@ -66,7 +66,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669941151635,
             1669941177428,
             RawFileNotPresent
@@ -76,7 +76,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669937546543,
             1669937582448,
             RawFileNotPresent
@@ -86,7 +86,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669935745727,
             1669935774441,
             RawFileNotPresent
@@ -96,7 +96,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669933942000,
             1669933976440,
             VoxelEntryNotPresent
@@ -106,7 +106,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "datanauts",
             "DATANAUTS_DEV_01",
-            "DATANAUTS_DEV_01_InteriorRecorder",
+            "datanauts_DATANAUTS_DEV_01_InteriorRecorder",
             1668525233635,
             1668525352435,
             None
@@ -116,7 +116,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "datanauts",
             "DATANAUTS_DEV_01",
-            "DATANAUTS_DEV_01_InteriorRecorder",
+            "datanauts_DATANAUTS_DEV_01_InteriorRecorder",
             1668520287819,
             1668520339524,
             FailDocumentValidation
@@ -126,7 +126,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669920646000,
             1669920680442,
             FailDocumentValidation
@@ -136,7 +136,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1669924248635,
             1669924275444,
             FailDocumentValidation
@@ -146,7 +146,7 @@ class TestInteriorRecorderArtifactChecker:
         (
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
-            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
+            "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder",
             1670008538727,
             1670008567439,
             FailDocumentValidation

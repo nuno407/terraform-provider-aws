@@ -10,6 +10,7 @@ import pytest
 from bson import json_util
 from moto import mock_s3
 from mypy_boto3_s3 import S3Client
+from unittest.mock import MagicMock
 
 from base.aws.container_services import ContainerServices
 from healthcheck.controller.aws_s3 import S3Controller
@@ -255,7 +256,8 @@ def database_controller(
 ) -> DatabaseController:
     return DatabaseController(
         db_client,
-        document_validator
+        document_validator,
+        MagicMock()
     )
 
 
