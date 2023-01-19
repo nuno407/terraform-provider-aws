@@ -143,7 +143,7 @@ class HealthCheckWorker:
         queue_url = self.__sqs_controller.get_queue_url()
 
         while self.__graceful_exit.continue_running and helper_continue_running():
-            logger.info("waiting %s seconds to pull next message", LOOP_DELAY_SECONDS)
+            logger.debug("waiting %s seconds to pull next message", LOOP_DELAY_SECONDS)
             time.sleep(LOOP_DELAY_SECONDS)
 
             raw_message = self.__sqs_controller.get_message(queue_url)
