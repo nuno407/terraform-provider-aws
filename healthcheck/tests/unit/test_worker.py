@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from unittest.mock import MagicMock, Mock, call
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
@@ -25,7 +25,9 @@ class TestWorker:
                 "FrontRecorder"
             ],
             s3_dir="test_dir",
-            training_whitelist=["test-whitelist-tenant"],
+            training_whitelist=[
+                "test-whitelist-tenant"
+            ],
             tenant_blacklist=[
                 "test-blacklisted-tenant1",
                 "test-blacklisted-tenant2"
@@ -71,7 +73,7 @@ class TestWorker:
             expected: bool):
         assert fix_healthcheck_worker.is_blacklisted_recorder(input_artifact) == expected
 
-    @pytest.mark.parametrize("input_artifact,expected", [
+    @pytest.mark.parametrize("input_artifact,expected_result", [
         (
             VideoArtifact(
                 stream_name="stream2_TrainingRecorder",
@@ -125,8 +127,8 @@ class TestWorker:
             self,
             fix_healthcheck_worker: HealthCheckWorker,
             input_artifact: Artifact,
-            expected: bool):
-        assert fix_healthcheck_worker.is_blacklisted_training(input_artifact) == expected
+            expected_result: bool):
+        assert fix_healthcheck_worker.is_blacklisted_training(input_artifact) == expected_result
 
 
     @pytest.fixture
@@ -317,7 +319,9 @@ class TestWorker:
             NotYetIngestedError
         )
     ])
+    @patch("healthcheck.worker.time.sleep")
     def test_run(self,
+                 sleep_mock: Mock,
                  input_sqs_message: SQSMessage,
                  input_artifacts: list[Artifact],
                  fix_config: HealthcheckConfig,

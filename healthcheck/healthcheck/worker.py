@@ -10,7 +10,7 @@ from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.artifact import BaseArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.constants import ELASTIC_ALERT_MATCHER, LOOP_DELAY_SECONDS
+from healthcheck.constants import ELASTIC_ALERT_MATCHER, ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageCanSkip, InvalidMessageError,
@@ -79,7 +79,7 @@ class HealthCheckWorker:
             if message.artifact_type != ArtifactType.TRAINING_RECORDER:
                 return False
 
-            if all([recorder not in message.artifact_id for recorder in self.__config.training_whitelist]):
+            if all([recorder_tenant not in message.tenant_id for recorder_tenant in self.__config.training_whitelist]):
                 return True
 
         return False
@@ -115,10 +115,10 @@ class HealthCheckWorker:
             queue_url (str): input queue url
             sqs_message (SQSMessage): SQS message
         """
-        logger.info("artifact -> %s", artifact)
+        logger.info("artifact : %s", artifact)
         try:
             self.__checkers[artifact.artifact_type].run_healthcheck(artifact)
-            logger.info("healthcheck success -> %s", artifact.artifact_id)
+            logger.info("%s : %s", ELASTIC_SUCCESS_MATCHER, artifact.artifact_id)
             self.__sqs_controller.delete_message(queue_url, sqs_message)
         except NotYetIngestedError as err:
             logger.warning("not ingested yet, increase visibility timeout %s", err)
