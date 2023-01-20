@@ -53,7 +53,7 @@ class JSONSchemaValidator():
         try:
             validator = Draft202012Validator(jsonschema)
             validator.validate(instance=document)
-            _logger.info("valid document")
+            _logger.info("valid document for schema %s", schema.name)
         except ValidationError as err:
             _logger.error("error validating document %s", err)
             raise err

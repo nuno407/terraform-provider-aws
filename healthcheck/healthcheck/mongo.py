@@ -42,7 +42,7 @@ class MongoDBClient():
         """Initialize collections"""
         for collection in DBCollection:
             env_collection_name = f"{self.db_config.environment_prefix}-{collection.value}"
-            _logger.info("setting up collection %s", env_collection_name)
+            _logger.debug("setting up collection %s", env_collection_name)
             self.__collections[collection] = self.database[env_collection_name]
 
     def find_one(self, collection: DBCollection, id_field: str, id_value: str) -> DBDocument:

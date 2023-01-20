@@ -43,8 +43,8 @@ def get_environment() -> EnvironmentParams:
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
     container_version = os.getenv("CONTAINER_VERSION", "development")
     config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
-    db_uri = os.getenv("DB_URI")
-    webhook_url = os.getenv("MSTEAMS_WEBHOOK", None)
+    db_uri = os.getenv("FIFTYONE_DATABASE_URI")
+    webhook_url = os.getenv("MSTEAMS_WEBHOOK", "")
     return EnvironmentParams(
         aws_endpoint=aws_endpoint,
         aws_region=aws_region,

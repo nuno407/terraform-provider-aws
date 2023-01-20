@@ -1,12 +1,27 @@
 """Healthcheck models module."""
-from abc import ABC, abstractmethod
 import hashlib
 import json
+import logging
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from enum import Enum
+from functools import wraps
+from pathlib import Path
 from typing import NewType, Optional
+
+
+_logger: logging.Logger = logging.getLogger(__name__)
+
+
+def debug_kinesis_sync(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        _logger.debug("kinesis sync - current artifact_id %s", args[0].artifact_id)
+        rtn = f(*args, **kwds)
+        _logger.debug("kinesis sync - new artifact_id %s", args[0].artifact_id)
+        return rtn
+    return wrapper
 
 
 class ArtifactType(Enum):
@@ -74,11 +89,16 @@ class VideoArtifact(Artifact):
         else:
             return ArtifactType.UNKNOWN
 
+    @debug_kinesis_sync
     def update_timestamps(self, database_video_id: str) -> None:
         raw_footage_to = database_video_id.split("_")[-1]
         raw_footage_from = database_video_id.split("_")[-2]
+        _logger.debug("kinesis sync - raw_footage_from: %s raw_footage_to %s", raw_footage_from, raw_footage_to)
         self.footage_from = datetime.fromtimestamp(int(raw_footage_from) / 1000)
         self.footage_to = datetime.fromtimestamp(int(raw_footage_to) / 1000)
+        _logger.debug("kinesis sync - new_footage_from %s new_footage_to %s",
+                      self.footage_from.timestamp(), self.footage_to.timestamp())
+
 
 @dataclass
 class SnapshotArtifact(Artifact):
@@ -95,9 +115,12 @@ class SnapshotArtifact(Artifact):
     def artifact_type(self) -> ArtifactType:
         return ArtifactType.SNAPSHOT
 
+    @debug_kinesis_sync
     def update_timestamps(self, database_video_id: str) -> None:
         raw_timestamp = database_video_id.split("_")[-1]
         self.timestamp = datetime.fromtimestamp(int(raw_timestamp) / 1000)
+        _logger.debug("kinesis sync - new timestamp %s", self.timestamp.timestamp())
+
 
 @dataclass
 class MessageAttributes:

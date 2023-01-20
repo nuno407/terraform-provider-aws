@@ -33,7 +33,7 @@ class TestBootstrap:
                 call("AWS_REGION", "eu-central-1"),
                 call("CONTAINER_VERSION", "development"),
                 call("CONFIG_PATH", "/app/config/config.yml"),
-                call("DB_URI"),
-                call("MSTEAMS_WEBHOOK", None)
+                call("FIFTYONE_DATABASE_URI"),
+                call("MSTEAMS_WEBHOOK", "")
             ]
         )

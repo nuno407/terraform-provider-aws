@@ -1,7 +1,7 @@
 import json
 import urllib.request
 from logging import Logger
-from typing import Protocol, Optional
+from typing import Protocol
 
 from kink import inject
 
@@ -12,7 +12,7 @@ class Notifier(Protocol):
 
 @inject(alias=Notifier)
 class MSTeamsWebhookNotifier:
-    def __init__(self, webhook_url: Optional[str], logger: Logger):
+    def __init__(self, webhook_url: str, logger: Logger):
         self.__webhook_url = webhook_url
         self.__logger = logger
 
@@ -27,6 +27,7 @@ class MSTeamsWebhookNotifier:
         """
         if not self.__webhook_url:
             self.__logger.info("MSTEAMS_WEBHOOK not set, unable to notify")
+            return
 
         if not self.__webhook_url.lower().startswith('http'):
             raise ValueError("Invalid URL")

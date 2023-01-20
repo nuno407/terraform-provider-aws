@@ -127,12 +127,12 @@ class HealthCheckWorker:
         except NotYetIngestedError as err:
             logger.warning("not ingested yet, increase visibility timeout %s", err)
             self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(queue_url, sqs_message)
-        except (NotPresentError, FailedHealthCheckError) as err:
+        except FailedHealthCheckError as err:
             self.alert(err.message)
         except botocore.exceptions.ClientError as error:
             logger.error("unexpected AWS SDK error %s", error)
         except Exception as err:
-            logger.exception("unexpected error %s", error)
+            logger.error("unexpected error %s", err)
             raise err
 
     def run(self, helper_continue_running: Callable[[], bool] = lambda: True) -> None:

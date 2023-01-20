@@ -156,9 +156,9 @@ class DatabaseController():
             document (DBDocument): db document retrieved with internal_message_reference_id
         """
         video_id = document["video_id"]
-        self.__logger.debug("kinesis sync - updating timestamps for artifact %s with video_id:", artifact, video_id)
+        self.__logger.debug("kinesis sync - updating timestamps for artifact")
         artifact.update_timestamps(video_id)
-        self.__logger.debug("kinesis sync - updated artifact: %s", artifact)
+        self.__logger.debug("kinesis sync - done")
 
     def is_data_status_complete_or_raise(self, artifact: Artifact) -> None:
         """checks if db entry exists in recordings collection for computed hash 'internal_message_reference_id'
