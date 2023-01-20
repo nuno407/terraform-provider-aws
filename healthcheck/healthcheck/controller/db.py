@@ -2,7 +2,7 @@
 from kink import inject
 from jsonschema import ValidationError
 
-from healthcheck.model import Artifact, ArtifactType
+from healthcheck.model import Artifact, ArtifactType, DBDocument
 from healthcheck.database import INoSQLDBClient, DBCollection
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
@@ -148,6 +148,18 @@ class DatabaseController():
 
         return docs_output
 
+    def update_artifact_timestamps(self, artifact: Artifact, document: DBDocument) -> None:
+        """Synchronize artifact timestamps with the Kinesis values extracting the new values from the document ID
+
+        Args:
+            artifact (Artifact): the current artifact being verified
+            document (DBDocument): db document retrieved with internal_message_reference_id
+        """
+        video_id = document["video_id"]
+        self.__logger.debug("kinesis sync - updating timestamps for artifact %s with video_id:", artifact, video_id)
+        artifact.update_timestamps(video_id)
+        self.__logger.debug("kinesis sync - updated artifact: %s", artifact)
+
     def is_data_status_complete_or_raise(self, artifact: Artifact) -> None:
         """checks if db entry exists in recordings collection for computed hash 'internal_message_reference_id'
         and if associated 'data_status' in the pipeline-execution is set to complete
@@ -170,6 +182,11 @@ class DatabaseController():
             raise NotYetIngestedError(artifact, "Unable to find 'internal_message_reference_id'")
 
         recording_doc = docs[0]
+
+        # we must update the timestamps coming from SQS
+        # because they're changed by SDR to synchronize with Kinesis
+        self.update_artifact_timestamps(artifact, recording_doc)
+
         video_id = recording_doc["video_id"]
 
         docs = self.__db_client.find_many(DBCollection.PIPELINE_EXECUTION, {"_id": video_id})

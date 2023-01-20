@@ -47,6 +47,10 @@ class Artifact(ABC):
     def artifact_id(self) -> str:
         """Artifact ID."""
 
+    @abstractmethod
+    def update_timestamps(self, database_video_id: str) -> None:
+        ...
+
 
 @dataclass
 class VideoArtifact(Artifact):
@@ -70,6 +74,11 @@ class VideoArtifact(Artifact):
         else:
             return ArtifactType.UNKNOWN
 
+    def update_timestamps(self, database_video_id: str) -> None:
+        raw_footage_to = database_video_id.split("_")[-1]
+        raw_footage_from = database_video_id.split("_")[-2]
+        self.footage_from = datetime.fromtimestamp(int(raw_footage_from) / 1000)
+        self.footage_to = datetime.fromtimestamp(int(raw_footage_to) / 1000)
 
 @dataclass
 class SnapshotArtifact(Artifact):
@@ -86,6 +95,9 @@ class SnapshotArtifact(Artifact):
     def artifact_type(self) -> ArtifactType:
         return ArtifactType.SNAPSHOT
 
+    def update_timestamps(self, database_video_id: str) -> None:
+        raw_timestamp = database_video_id.split("_")[-1]
+        self.timestamp = datetime.fromtimestamp(int(raw_timestamp) / 1000)
 
 @dataclass
 class MessageAttributes:
