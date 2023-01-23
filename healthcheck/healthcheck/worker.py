@@ -10,17 +10,18 @@ from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.artifact import BaseArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.constants import ELASTIC_ALERT_MATCHER, ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS
+from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
+                                   ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS)
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageCanSkip, InvalidMessageError,
-                                    InvalidMessagePanic, NotPresentError,
-                                    NotYetIngestedError)
+                                    InvalidMessagePanic, NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
-from healthcheck.notification import Notifier
 from healthcheck.model import Artifact, ArtifactType, SQSMessage, VideoArtifact
+from healthcheck.notification import Notifier
 
 logger: logging.Logger = logging.getLogger(__name__)
+
 
 @inject
 class HealthCheckWorker:
@@ -55,7 +56,7 @@ class HealthCheckWorker:
         Returns:
             bool: verification result
         """
-        return any([message.attributes.tenant == tenant for tenant in self.__config.tenant_blacklist])
+        return any(message.attributes.tenant == tenant for tenant in self.__config.tenant_blacklist)
 
     def is_blacklisted_recorder(self, message: Artifact) -> bool:
         """Check if message is from blacklisted recorder type
@@ -66,7 +67,7 @@ class HealthCheckWorker:
         Returns:
             bool: verification result
         """
-        return any([recorder in message.artifact_id for recorder in self.__config.recorder_blacklist])
+        return any(recorder in message.artifact_id for recorder in self.__config.recorder_blacklist)
 
     def is_blacklisted_training(self, message: Artifact) -> bool:
         """Check if message is a black listed training
@@ -78,11 +79,12 @@ class HealthCheckWorker:
             bool: verification result
         """
 
-        if isinstance(message,VideoArtifact):
+        if isinstance(message, VideoArtifact):
             if message.artifact_type != ArtifactType.TRAINING_RECORDER:
                 return False
 
-            if all([recorder_tenant not in message.tenant_id for recorder_tenant in self.__config.training_whitelist]):
+            if all(recorder_tenant not in message.tenant_id
+                    for recorder_tenant in self.__config.training_whitelist):
                 return True
 
         return False
@@ -93,8 +95,10 @@ class HealthCheckWorker:
         Args:
             message (str): message to be displayed
         """
-        logger.info("%s : %s : [%s]", ELASTIC_ALERT_MATCHER, message, artifact.artifact_id)
-        self.__notifier.send_notification(f"{message} : [{artifact.artifact_id}]")
+        logger.info("%s : %s : [%s]", ELASTIC_ALERT_MATCHER,
+                    message, artifact.artifact_id)
+        self.__notifier.send_notification(
+            f"{message} : [{artifact.artifact_id}]")
 
     def __check_artifacts(self, artifacts: list[Artifact], queue_url: str, sqs_message: SQSMessage):
         """Run healthcheck for given artifact and treats errors
@@ -106,7 +110,8 @@ class HealthCheckWorker:
         """
         for artifact in artifacts:
             if self.is_blacklisted_recorder(artifact):
-                logger.info("Ignoring blacklisted recorder: %s", artifact.artifact_id)
+                logger.info("Ignoring blacklisted recorder: %s",
+                            artifact.artifact_id)
                 self.__sqs_controller.delete_message(queue_url, sqs_message)
                 return
             self.__check_artifact(artifact, queue_url, sqs_message)
@@ -122,11 +127,14 @@ class HealthCheckWorker:
         logger.info("artifact : %s", artifact)
         try:
             self.__checkers[artifact.artifact_type].run_healthcheck(artifact)
-            logger.info("%s : %s", ELASTIC_SUCCESS_MATCHER, artifact.artifact_id)
+            logger.info("%s : %s", ELASTIC_SUCCESS_MATCHER,
+                        artifact.artifact_id)
             self.__sqs_controller.delete_message(queue_url, sqs_message)
         except NotYetIngestedError as err:
-            logger.warning("not ingested yet, increase visibility timeout %s", err)
-            self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(queue_url, sqs_message)
+            logger.warning(
+                "not ingested yet, increase visibility timeout %s", err)
+            self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(
+                queue_url, sqs_message)
         except FailedHealthCheckError as err:
             self.alert(err.artifact, err.message)
         except botocore.exceptions.ClientError as error:
@@ -145,7 +153,8 @@ class HealthCheckWorker:
         queue_url = self.__sqs_controller.get_queue_url()
 
         while self.__graceful_exit.continue_running and helper_continue_running():
-            logger.debug("waiting %s seconds to pull next message", LOOP_DELAY_SECONDS)
+            logger.debug("waiting %s seconds to pull next message",
+                         LOOP_DELAY_SECONDS)
             time.sleep(LOOP_DELAY_SECONDS)
 
             raw_message = self.__sqs_controller.get_message(queue_url)
@@ -159,21 +168,25 @@ class HealthCheckWorker:
                 raise
 
             if self.is_blacklisted_tenant(sqs_message):
-                logger.info("Ignoring blacklisted tenant message: %s", sqs_message.attributes.tenant)
+                logger.info("Ignoring blacklisted tenant message: %s",
+                            sqs_message.attributes.tenant)
                 self.__sqs_controller.delete_message(queue_url, sqs_message)
                 continue
 
             if self.is_blacklisted_training(sqs_message):
-                logger.info("Ignoring, Message is a training recorder blacklisted")
+                logger.info(
+                    "Ignoring, Message is a training recorder blacklisted")
                 self.__sqs_controller.delete_message(queue_url, sqs_message)
                 continue
 
             try:
-                artifacts = self.__artifact_msg_parser.parse_message(sqs_message)
+                artifacts = self.__artifact_msg_parser.parse_message(
+                    sqs_message)
                 self.__check_artifacts(artifacts, queue_url, sqs_message)
             except InvalidMessageError as err:
                 logger.error("Error parsing artifact from message -> %s", err)
                 continue
-            except InvalidMessageCanSkip as e:
-                logger.info(f"Exception ocurred while parsing artifact from the message deleting message. Exception:{e}")
+            except InvalidMessageCanSkip as err:
+                logger.info(
+                    "Exception parsing artifact from the message. Exception: %s", {err})
                 self.__sqs_controller.delete_message(queue_url, sqs_message)

@@ -1,8 +1,10 @@
+# pylint: disable=invalid-string-quote
 """SQS Message Parser module."""
 import json
 import logging
 from enum import Enum
 from typing import Optional, Union
+
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from healthcheck.exceptions import InvalidMessagePanic
@@ -67,22 +69,25 @@ class SQSMessageParser():
         Returns:
             MessageAttributes: data object for message attributes
         """
-        if not MessageFields.BODY_ATTRIBUTES.value in body:
+        if MessageFields.BODY_ATTRIBUTES.value not in body:
             raise InvalidMessagePanic("Missing message attributes")
         message_attrs: dict = body[MessageFields.BODY_ATTRIBUTES.value]
 
         tenant = None
         if MessageFields.TENANT.value in message_attrs:
-            tenant = self.__flatten_string_value(message_attrs[MessageFields.TENANT.value])
+            tenant = self.__flatten_string_value(
+                message_attrs[MessageFields.TENANT.value])
 
         device_id = None
         if MessageFields.DEVICE_ID.value in message_attrs:
-            device_id = self.__flatten_string_value(message_attrs[MessageFields.DEVICE_ID.value])
+            device_id = self.__flatten_string_value(
+                message_attrs[MessageFields.DEVICE_ID.value])
 
         return MessageAttributes(tenant, device_id)
 
     def __deserialize(self, raw_message: str) -> str:
-        call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""), ("\\", ""), ('"{', "{"), ('}"', "}")]
+        call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""),
+                     ("\\", ""), ('"{', "{"), ('}"', "}")]
         for args in call_args:
             raw_message = raw_message.replace(args[0], args[1])
         return raw_message
@@ -120,8 +125,6 @@ class SQSMessageParser():
         message_id = raw_message[MessageFields.MESSAGE_ID.value]
         if not message_id:
             raise InvalidMessagePanic("Missing message id.")
-
-
 
         return SQSMessage(
             message_id=message_id,

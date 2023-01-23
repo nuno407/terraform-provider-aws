@@ -2,7 +2,9 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol
+
 from healthcheck.model import DBDocument
+
 
 class DBCollection(Enum):
     """DB collections available."""
@@ -46,6 +48,7 @@ class INoSQLDBClient(Protocol):
         Returns:
             str: DB collection name
         """
+
 
 @dataclass
 class NoSQLDBConfiguration():

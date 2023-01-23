@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 """voxel 51 healthcheck controller module."""
 from kink import inject
 
@@ -41,14 +42,19 @@ class VoxelFiftyOneController():
             VoxelEntryNotPresent: If no record was found.
             VoxelEntryNotUnique: If exists more then 1 records.
         """
-        artifact_id = artifact.artifact_id
+        art_id = artifact.artifact_id
         extension = "jpeg" if artifact.artifact_type == ArtifactType.SNAPSHOT else "mp4"
-        s3_path = f"s3://{self.__s3_params.s3_bucket_anon}/{self._full_s3_path(artifact_id)}_anonymized.{extension}"
 
-        entries = self.__voxel_client.get_num_entries(s3_path, dataset)
+        def get_key():
+            return f"{self._full_s3_path(art_id)}_anonymized.{extension}"
+
+        path = f"s3://{self.__s3_params.s3_bucket_anon}/{get_key()}"
+
+        entries = self.__voxel_client.get_num_entries(path, dataset)
         if entries == 0:
             raise VoxelEntryNotPresent(
-                artifact, f"Voxel entry for file path {s3_path} does not exist in {dataset.value}")
+                artifact, f"Voxel entry for file path {path} does not exist in {dataset.value}")
         if entries > 1:
+            msg = f"Multiple voxel entries ({entries}) found for file path {path}"
             raise VoxelEntryNotUnique(
-                artifact, f"Multiple voxel entries ({entries}) exists for file path {s3_path} does not exist")
+                artifact, msg)

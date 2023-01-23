@@ -18,7 +18,8 @@ class FailedHealthCheckError(Exception):
 
 class FailDocumentValidation(FailedHealthCheckError):
     """Error raised when the documentin MongoDB fails to be validated."""
-    def __init__(self, artifact: Artifact, message: str, json_path: str=None) -> None:
+
+    def __init__(self, artifact: Artifact, message: str, json_path: str = None) -> None:
         super().__init__(artifact, message)
         self.json_path = json_path
 
@@ -50,11 +51,14 @@ class AnonymizedFileNotPresent(NotPresentError):
 class InvalidMessageError(Exception):
     """Error raised when an invalid message is received."""
 
+
 class InvalidMessagePanic(Exception):
     """Error raised when an invalid message is received and no receipt handle is available."""
 
+
 class InvalidMessageCanSkip(Exception):
     """Error raised when an invalid message is received."""
+
 
 class InitializationError(Exception):
     """Error raised during healthcheck initialization."""

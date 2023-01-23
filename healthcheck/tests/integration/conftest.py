@@ -51,11 +51,13 @@ def get_document_from_fixture_by_id(collection_file: str, id_field: str, id_valu
     """
     full_fixture_path = get_collection_full_fixture_path(collection_file)
     collection_documents = load_collection_fixture(full_fixture_path)
-    filtered_documents = list(filter(lambda doc: doc[id_field] == id_value, collection_documents))
+    filtered_documents = list(
+        filter(lambda doc: doc[id_field] == id_value, collection_documents))
     if len(filtered_documents):
         return filtered_documents[0]
     else:
-        raise ValueError("id_value %s not found for given id_field %s", id_value, id_field)
+        raise ValueError(
+            "id_value %s not found for given id_field %s", id_value, id_field)
 
 
 def get_collection_full_fixture_path(collection_file: str) -> str:
@@ -82,7 +84,8 @@ def load_collection_fixture(full_file_path: str) -> dict:
         dict: all documents loaded
     """
     global _memoized_cache
-    bson_loader = functools.partial(json.load, object_hook=json_util.object_hook)
+    bson_loader = functools.partial(
+        json.load, object_hook=json_util.object_hook)
     if full_file_path in _memoized_cache:
         docs = _memoized_cache[full_file_path]
     else:
@@ -208,6 +211,7 @@ def moto_s3_client() -> S3Client:
                         file_name))
 
         yield moto_s3_client
+
 
 @pytest.fixture
 def voxel_client(scope="session") -> VoxelEntriesGetter:

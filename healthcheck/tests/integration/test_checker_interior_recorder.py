@@ -1,7 +1,7 @@
 """Integration test module for interior recorder."""
+import os
 from datetime import datetime
 
-import os
 import pytest
 
 from healthcheck.checker.interior_recorder import \
@@ -10,13 +10,15 @@ from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,
-                                    FailDocumentValidation, RawFileNotPresent, NotYetIngestedError,
+                                    FailDocumentValidation,
+                                    NotYetIngestedError, RawFileNotPresent,
                                     VoxelEntryNotPresent)
 from healthcheck.model import VideoArtifact
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 S3_DATA = os.path.join(CURRENT_LOCATION, "data", "s3_data")
+
 
 class TestInteriorRecorderArtifactChecker:
     @pytest.mark.integration
@@ -164,18 +166,18 @@ class TestInteriorRecorderArtifactChecker:
             blob_storage_controller: S3Controller,
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
+        """Test interior recorder healthcheck."""
         interior_recorder_artifact_checker = InteriorRecorderArtifactChecker(
             blob_controller=blob_storage_controller,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
-        """Test interior recorder healthcheck."""
         artifact = VideoArtifact(
             tenant_id=tenant_id,
             device_id=device_id,
             stream_name=stream_name,
-            footage_from=datetime.fromtimestamp(footage_from/ 1000.0),
-            footage_to=datetime.fromtimestamp(footage_to/ 1000.0))
+            footage_from=datetime.fromtimestamp(footage_from / 1000.0),
+            footage_to=datetime.fromtimestamp(footage_to / 1000.0))
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:

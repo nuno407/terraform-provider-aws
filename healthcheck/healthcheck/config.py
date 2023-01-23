@@ -1,3 +1,4 @@
+# pylint: disable=too-many-instance-attributes
 """Healthcheck configuration module."""
 from dataclasses import dataclass, fields
 
@@ -14,7 +15,7 @@ class HealthcheckConfig():
     db_name: str
     environment_prefix: str
     tenant_blacklist: list[str]
-    training_whitelist : list[str]
+    training_whitelist: list[str]
     recorder_blacklist: list[str]
 
     @staticmethod
@@ -32,4 +33,6 @@ class HealthcheckConfig():
         with open(config_path, "r", encoding="utf-8") as file_handler:
             field_names = {f.name for f in fields(HealthcheckConfig)}
             return HealthcheckConfig(**{key: value for key,
-                                        value in yaml.safe_load(file_handler).items() if key in field_names})
+                                        value in yaml.safe_load(
+                                            file_handler).items()
+                                        if key in field_names})

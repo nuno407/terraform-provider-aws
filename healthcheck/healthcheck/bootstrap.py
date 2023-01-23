@@ -1,3 +1,4 @@
+# pylint: disable=E1120
 """bootstrap dependency injection autowiring."""
 import logging
 import os
@@ -29,8 +30,10 @@ from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
 from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
 
+
 @dataclass
 class EnvironmentParams:
+    """Environment parameters."""
     aws_endpoint: str
     aws_region: str
     container_version: str
@@ -38,13 +41,16 @@ class EnvironmentParams:
     db_uri: str
     webhook_url: Optional[str]
 
+
 def get_environment() -> EnvironmentParams:
+    """Returns environment parameters."""
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
     container_version = os.getenv("CONTAINER_VERSION", "development")
     config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
     db_uri = os.getenv("FIFTYONE_DATABASE_URI")
     webhook_url = os.getenv("MSTEAMS_WEBHOOK", "")
+
     return EnvironmentParams(
         aws_endpoint=aws_endpoint,
         aws_region=aws_region,
@@ -65,8 +71,14 @@ def bootstrap_di() -> None:
     di["db_uri"] = env_params.db_uri
     di["webhook_url"] = env_params.webhook_url
 
-    di[SQSClient] = boto3.client("sqs", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)
-    di[S3Client] = boto3.client("s3", region_name=env_params.aws_region, endpoint_url=env_params.aws_endpoint)
+    di[SQSClient] = boto3.client(
+        service_name="sqs",
+        region_name=env_params.aws_region,
+        endpoint_url=env_params.aws_endpoint)
+    di[S3Client] = boto3.client(
+        service_name="s3",
+        region_name=env_params.aws_region,
+        endpoint_url=env_params.aws_endpoint)
     di[GracefulExit] = GracefulExit()
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])

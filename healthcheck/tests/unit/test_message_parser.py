@@ -1,10 +1,12 @@
 """test module for parsing SQS messages."""
 import json
 import os
+
 import pytest
-from healthcheck.model import SQSMessage, MessageAttributes
-from healthcheck.message_parser import SQSMessageParser
+
 from healthcheck.exceptions import InvalidMessagePanic
+from healthcheck.message_parser import SQSMessageParser
+from healthcheck.model import MessageAttributes, SQSMessage
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -20,7 +22,8 @@ def _events_message_body(fixture_file_id: str) -> str:
 
 def _read_and_parse_msg_body_from_fixture(fixture_file_id: str) -> dict:
     raw_body = _events_message_body(fixture_file_id)
-    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""), ("\\", ""), ('"{', "{"), ('}"', "}")]
+    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""),
+                 ("\\", ""), ('"{', "{"), ('}"', "}")]
     for args in call_args:
         raw_body = raw_body.replace(args[0], args[1])
     return json.loads(raw_body)
@@ -50,6 +53,7 @@ def _missing_receipt_handle_events_input_message(message_id: str, fixture_file_i
         }
     }
 
+
 def _missing_body_events_input_message(message_id: str, recept_handle: str) -> dict:
     return {
         "MessageId": message_id,
@@ -60,6 +64,7 @@ def _missing_body_events_input_message(message_id: str, recept_handle: str) -> d
             "ApproximateReceiveCount": "1"
         }
     }
+
 
 @pytest.mark.unit
 class TestMessageParser():
@@ -75,7 +80,8 @@ class TestMessageParser():
                  "barfoo",
                  "foobar",
                  "2022-12-15T16:16:32.723Z",
-                 _read_and_parse_msg_body_from_fixture("valid_footage_event.json"),
+                 _read_and_parse_msg_body_from_fixture(
+                     "valid_footage_event.json"),
                  MessageAttributes(
                      "datanauts",
                      "DATANAUTS_DEV_01")),
@@ -96,7 +102,8 @@ class TestMessageParser():
                  message_id='barfoo',
                  receipt_handle='foobar',
                  timestamp='2022-12-18T07:37:07.917Z',
-                 body=_read_and_parse_msg_body_from_fixture("valid_snapshot_event.json"),
+                 body=_read_and_parse_msg_body_from_fixture(
+                     "valid_snapshot_event.json"),
                  attributes=MessageAttributes(
                      tenant='ridecare_companion_trial',
                      device_id=None)),

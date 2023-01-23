@@ -1,13 +1,15 @@
 """database controller module."""
-from kink import inject
-from jsonschema import ValidationError
+from logging import Logger
 
-from healthcheck.model import Artifact, ArtifactType, DBDocument
-from healthcheck.database import INoSQLDBClient, DBCollection
+from jsonschema import ValidationError
+from kink import inject
+
+from healthcheck.database import DBCollection, INoSQLDBClient
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
+from healthcheck.model import Artifact, ArtifactType, DBDocument
 from healthcheck.schema.validator import DocumentValidator, Schema
-from logging import Logger
+
 
 @inject
 class DatabaseController():

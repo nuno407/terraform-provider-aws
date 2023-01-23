@@ -79,6 +79,9 @@ runs:
         trap popd EXIT
         pushd ${{ inputs.baseDir }}
 
+        mkdir .mypy_cache
+        ls -la
+
         echo "::group::mypy-results"
         mypy --install-types --non-interactive --show-column-numbers --show-error-codes ./
         echo "::endgroup::"

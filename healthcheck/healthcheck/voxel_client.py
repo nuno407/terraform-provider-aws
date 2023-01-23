@@ -1,9 +1,10 @@
+# pylint: disable=R0903:too-few-public-methods
 """Database interface module."""
-
-from kink import inject
 
 from enum import Enum
 from typing import Protocol
+
+from kink import inject
 
 
 class VoxelDataset(Enum):
@@ -45,7 +46,7 @@ class VoxelClient():
         Returns:
             int: Number of entries found
         """
-        import fiftyone as fo
+        import fiftyone as fo  # pylint: disable=C0415
 
         if not fo.dataset_exists(dataset.value):
             raise ValueError(f"Voxel dataset {dataset.value} does not exist")

@@ -21,12 +21,21 @@ recursive = true
 load-plugins = [
     "pylint_quotes",
 ]
+
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
+ignore-patterns="(.)*_test\\.py,test_(.)*\\.py,conftest.py"
+
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
 max-line-length = 120
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = """
+    too-many-arguments,
+    no-value-for-parameter
+"""
 
 [tool.pylint.pylint_quotes]
 string-quote = "double"
@@ -35,8 +44,10 @@ docstring-quote = "double"
 
 [tool.mypy]
 files = [
-    "healthcheck/**/*.py",
-    "tests/**/*.py"
+    "healthcheck/**/*.py"
+]
+exclude = [
+    "conftest.py"
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]

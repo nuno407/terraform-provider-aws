@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 """JSONSchema validation module."""
 import json
 import logging
@@ -47,8 +48,8 @@ class JSONSchemaValidator():
         """
 
         schema_path = os.path.join(JSONSCHEMAS_DIR, f"{schema.value}.json")
-        with open(schema_path, "r", encoding="utf-8") as fp:
-            jsonschema = json.load(fp)
+        with open(schema_path, "r", encoding="utf-8") as file_handler:
+            jsonschema = json.load(file_handler)
 
         try:
             validator = Draft202012Validator(jsonschema)

@@ -1,8 +1,11 @@
 """test mongo module"""
-import pytest
-from healthcheck.mongo import MongoDBClient
-from healthcheck.database import NoSQLDBConfiguration, DBCollection
 from unittest.mock import MagicMock
+
+import pytest
+
+from healthcheck.database import DBCollection, NoSQLDBConfiguration
+from healthcheck.mongo import MongoDBClient
+
 
 @pytest.mark.unit
 class TestMongoDBClient():

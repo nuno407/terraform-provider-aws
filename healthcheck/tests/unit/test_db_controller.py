@@ -1,9 +1,12 @@
-import pytest
-from unittest.mock import Mock, MagicMock, call
-from healthcheck.controller.db import DatabaseController, DBCollection
-from healthcheck.model import SnapshotArtifact, VideoArtifact
-from healthcheck.exceptions import NotYetIngestedError, NotPresentError
 from datetime import datetime
+from unittest.mock import MagicMock, Mock, call
+
+import pytest
+
+from healthcheck.controller.db import DatabaseController, DBCollection
+from healthcheck.exceptions import NotPresentError, NotYetIngestedError
+from healthcheck.model import SnapshotArtifact, VideoArtifact
+
 
 @pytest.mark.unit
 class TestDatabaseController():
@@ -28,12 +31,14 @@ class TestDatabaseController():
             timestamp=datetime.fromisoformat("2022-12-21T14:21:44.806250")
         )
 
-    def test_is_data_status_complete_or_raise_not_ingested(self, snap_artifact: SnapshotArtifact):
+    def test_is_data_status_complete_or_raise_not_ingested(
+            self, snap_artifact: SnapshotArtifact):
         db_client = Mock()
         db_client.find_many = Mock(return_value=[])
         schema_validator = MagicMock()
         mock_logger = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator, mock_logger)
+        database_controller = DatabaseController(
+            db_client, schema_validator, mock_logger)
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 
@@ -43,7 +48,8 @@ class TestDatabaseController():
             }
         )
 
-    def test_is_data_status_complete_or_raise_not_present(self, snap_artifact: SnapshotArtifact):
+    def test_is_data_status_complete_or_raise_not_present(
+            self, snap_artifact: SnapshotArtifact):
         db_client = Mock()
         mocked_recording_doc = {
             # this epoch timestamp at the end is important for parsing and updating it
@@ -54,7 +60,8 @@ class TestDatabaseController():
         }
         db_client.find_many = Mock(side_effect=[[mocked_recording_doc], []])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator, MagicMock())
+        database_controller = DatabaseController(
+            db_client, schema_validator, MagicMock())
         original_internal_reference_id = snap_artifact.internal_message_reference_id
         with pytest.raises(NotPresentError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
@@ -70,7 +77,8 @@ class TestDatabaseController():
             ]
         )
 
-    def test_is_data_status_complete_or_raise_not_ingested_not_complete(self, snap_artifact: SnapshotArtifact):
+    def test_is_data_status_complete_or_raise_not_ingested_not_complete(
+            self, snap_artifact: SnapshotArtifact):
         db_client = Mock()
         mocked_recording_doc = {
             "video_id": "mocked_video_id_1654075244",
@@ -81,9 +89,11 @@ class TestDatabaseController():
         mocked_pipeline_exec_doc = {
             "data_status": "pending"
         }
-        db_client.find_many = Mock(side_effect=[[mocked_recording_doc], [mocked_pipeline_exec_doc]])
+        db_client.find_many = Mock(
+            side_effect=[[mocked_recording_doc], [mocked_pipeline_exec_doc]])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator, MagicMock())
+        database_controller = DatabaseController(
+            db_client, schema_validator, MagicMock())
         original_internal_reference_id = snap_artifact.internal_message_reference_id
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
@@ -99,7 +109,8 @@ class TestDatabaseController():
             ]
         )
 
-    def test_is_data_status_complete_or_raise_not_ingested_not_complete_video_artifact(self, video_artifact: VideoArtifact):
+    def test_is_data_status_complete_or_raise_not_ingested_not_complete_video_artifact(
+            self, video_artifact: VideoArtifact):
         db_client = Mock()
         mocked_recording_doc = {
             "video_id": "mocked_video_id_1639321140000_1639321380000",
@@ -110,12 +121,15 @@ class TestDatabaseController():
         mocked_pipeline_exec_doc = {
             "data_status": "pending"
         }
-        db_client.find_many = Mock(side_effect=[[mocked_recording_doc], [mocked_pipeline_exec_doc]])
+        db_client.find_many = Mock(
+            side_effect=[[mocked_recording_doc], [mocked_pipeline_exec_doc]])
         schema_validator = MagicMock()
-        database_controller = DatabaseController(db_client, schema_validator, MagicMock())
+        database_controller = DatabaseController(
+            db_client, schema_validator, MagicMock())
         original_internal_reference_id = video_artifact.internal_message_reference_id
         with pytest.raises(NotYetIngestedError):
-            database_controller.is_data_status_complete_or_raise(video_artifact)
+            database_controller.is_data_status_complete_or_raise(
+                video_artifact)
 
         db_client.find_many.assert_has_calls(
             calls=[

@@ -1,28 +1,30 @@
 """AWS SQS controller."""
 import logging
+from datetime import datetime
 from typing import Optional
 
 import botocore.exceptions
 from aws_error_utils import errors as aws_errors
+from expiringdict import ExpiringDict
 from kink import inject
 from mypy_boto3_sqs import SQSClient
-from datetime import datetime
-from expiringdict import ExpiringDict
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
+from healthcheck.config import HealthcheckConfig
 from healthcheck.constants import TWELVE_HOURS_IN_SECONDS
 from healthcheck.exceptions import InitializationError
 from healthcheck.model import SQSMessage
-from healthcheck.config import HealthcheckConfig
 
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
+
 @inject
 class SQSMessageController():
     """SQS message controller."""
+
     def __init__(self,
                  config: HealthcheckConfig,
                  sqs_client: SQSClient):
@@ -39,7 +41,8 @@ class SQSMessageController():
         Return:
             str: queue url
         """
-        response = self.__sqs_client.get_queue_url(QueueName=self.__config.input_queue)
+        response = self.__sqs_client.get_queue_url(
+            QueueName=self.__config.input_queue)
         if not response or ("QueueUrl" not in response):
             raise InitializationError("Invalid get queue url reponse")
         return response["QueueUrl"]
@@ -69,7 +72,8 @@ class SQSMessageController():
 
         if "Messages" in response and len(response["Messages"]) > 0:
             message = response["Messages"][0]
-            self.__message_receive_times[message["ReceiptHandle"]] = datetime.now()
+            self.__message_receive_times[message["ReceiptHandle"]] = datetime.now(
+            )
         return message
 
     def delete_message(self, input_queue_url: str, sqs_message: SQSMessage) -> None:
@@ -102,8 +106,10 @@ class SQSMessageController():
         """
 
         # Limit message visibility timeout to 12h
-        processing_time = int((datetime.now() - self.__message_receive_times.get(sqs_message.receipt_handle, datetime.now(
-        ))).total_seconds() + 1.0 + MESSAGE_VISIBILITY_TIMEOUT_BUFFER)
+        get_received_timestamp: datetime = self.__message_receive_times.\
+            get(sqs_message.receipt_handle, datetime.now())
+        processing_time = int((datetime.now() - get_received_timestamp).total_seconds()
+                              + 1.0 + MESSAGE_VISIBILITY_TIMEOUT_BUFFER)
         if visibility_timeout_seconds > MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time:
             visibility_timeout_seconds = MAX_MESSAGE_VISIBILITY_TIMEOUT - processing_time
             _logger.debug(
@@ -115,7 +121,7 @@ class SQSMessageController():
             VisibilityTimeout=visibility_timeout_seconds
         )
 
-    def increase_visibility_timeout_and_handle_exceptions(self, queue_url: str, sqs_message: SQSMessage) -> None:
+    def increase_visibility_timeout_and_handle_exceptions(self, queue_url: str, sqs_message: SQSMessage) -> None:  # pylint: disable=line-too-long
         """Increase the visibility timeout to the maximum of 12 hours and handles AWS SDK exceptions
 
         Args:
@@ -123,7 +129,8 @@ class SQSMessageController():
             sqs_message (SQSMessage): the SQS message
         """
         try:
-            self.__update_visibility_timeout(queue_url, sqs_message, TWELVE_HOURS_IN_SECONDS)
+            self.__update_visibility_timeout(
+                queue_url, sqs_message, TWELVE_HOURS_IN_SECONDS)
         except (aws_errors.MessageNotInflight, aws_errors.ReceiptHandleIsInvalid) as error:
             _logger.error("error updating visbility timeout %s", error)
         except botocore.exceptions.ClientError as error:

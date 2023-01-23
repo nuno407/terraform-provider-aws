@@ -5,10 +5,11 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 
 from healthcheck.config import HealthcheckConfig
+from healthcheck.exceptions import NotPresentError, NotYetIngestedError
 from healthcheck.model import (Artifact, ArtifactType, MessageAttributes,
                                SnapshotArtifact, SQSMessage, VideoArtifact)
 from healthcheck.worker import HealthCheckWorker
-from healthcheck.exceptions import NotYetIngestedError, NotPresentError
+
 
 @pytest.mark.unit
 class TestWorker:
@@ -71,7 +72,8 @@ class TestWorker:
             fix_healthcheck_worker: HealthCheckWorker,
             input_artifact: Artifact,
             expected: bool):
-        assert fix_healthcheck_worker.is_blacklisted_recorder(input_artifact) == expected
+        assert fix_healthcheck_worker.is_blacklisted_recorder(
+            input_artifact) == expected
 
     @pytest.mark.parametrize("input_artifact,expected_result", [
         (
@@ -106,20 +108,20 @@ class TestWorker:
         ),
         (
             SnapshotArtifact(
-                    uuid="uuid1",
-                    device_id="device1",
-                    tenant_id="tenant1",
-                    timestamp=datetime.now()
-                ),
+                uuid="uuid1",
+                device_id="device1",
+                tenant_id="tenant1",
+                timestamp=datetime.now()
+            ),
             False
         ),
         (
             SnapshotArtifact(
-                    uuid="uuid1",
-                    device_id="device1",
-                    tenant_id="test-whitelist-tenant",
-                    timestamp=datetime.now()
-                ),
+                uuid="uuid1",
+                device_id="device1",
+                tenant_id="test-whitelist-tenant",
+                timestamp=datetime.now()
+            ),
             False
         )
     ])
@@ -128,8 +130,8 @@ class TestWorker:
             fix_healthcheck_worker: HealthCheckWorker,
             input_artifact: Artifact,
             expected_result: bool):
-        assert fix_healthcheck_worker.is_blacklisted_training(input_artifact) == expected_result
-
+        assert fix_healthcheck_worker.is_blacklisted_training(
+            input_artifact) == expected_result
 
     @pytest.fixture
     def fix_healthcheck_worker(self,
@@ -182,7 +184,8 @@ class TestWorker:
                                    input_message: SQSMessage,
                                    should_blacklist: bool,
                                    fix_healthcheck_worker: HealthCheckWorker):
-        assert fix_healthcheck_worker.is_blacklisted_tenant(input_message) == should_blacklist
+        assert fix_healthcheck_worker.is_blacklisted_tenant(
+            input_message) == should_blacklist
 
     @pytest.mark.parametrize("input_sqs_message,input_artifacts,exception_raised", [
         # empty artifacts
@@ -394,7 +397,8 @@ class TestWorker:
 
         if not exception_raised:
             self.healthcheck_assertions(input_artifacts, checkers)
-            sqs_controller.delete_message.assert_called_with(queue_url, input_sqs_message)
+            sqs_controller.delete_message.assert_called_with(
+                queue_url, input_sqs_message)
         else:
             self.healthcheck_assertions(input_artifacts, checkers)
             if isinstance(exception_raised, NotPresentError):
@@ -405,19 +409,20 @@ class TestWorker:
                     input_sqs_message
                 )
 
-
     def get_checkers(self, input_artifacts: list[Artifact], exception_raised) -> dict:
         checkers = {
             ArtifactType.INTERIOR_RECORDER: self.get_mocked_checker(input_artifacts, exception_raised),
             ArtifactType.SNAPSHOT: self.get_mocked_checker(input_artifacts, exception_raised),
-            ArtifactType.TRAINING_RECORDER: self.get_mocked_checker(input_artifacts, exception_raised)
+            ArtifactType.TRAINING_RECORDER: self.get_mocked_checker(
+                input_artifacts, exception_raised)
         }
         return checkers
 
     def get_mocked_checker(self, input_artifacts: list[Artifact], exception_raised):
         checker = Mock()
         if exception_raised:
-            run_healcheck_mock = Mock(side_effect=exception_raised(input_artifacts[0], "mocked-message"))
+            run_healcheck_mock = Mock(side_effect=exception_raised(
+                input_artifacts[0], "mocked-message"))
         else:
             run_healcheck_mock = Mock()
         checker.run_healthcheck = run_healcheck_mock
@@ -429,7 +434,8 @@ class TestWorker:
 
         artifact = input_artifacts[0]
         if isinstance(artifact, VideoArtifact):
-            checkers[artifact.artifact_type].run_healthcheck.assert_called_once_with(artifact)
+            checkers[artifact.artifact_type].run_healthcheck.assert_called_once_with(
+                artifact)
         elif isinstance(artifact, SnapshotArtifact):
             checkers[artifact.artifact_type].run_healthcheck.assert_has_calls(
                 calls=[call(artifact) for artifact in input_artifacts]

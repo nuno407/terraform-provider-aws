@@ -1,6 +1,9 @@
-import pytest
-from healthcheck.model import VideoArtifact, ArtifactType
 from datetime import datetime
+
+import pytest
+
+from healthcheck.model import ArtifactType, VideoArtifact
+
 
 @pytest.mark.unit
 class TestVideoArtifactModelType:

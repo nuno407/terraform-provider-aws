@@ -1,8 +1,11 @@
-import pytest
-from unittest.mock import MagicMock, Mock, patch, ANY
-from healthcheck.notification import MSTeamsWebhookNotifier
-import urllib.request
 import json
+import urllib.request
+from unittest.mock import ANY, MagicMock, Mock, patch
+
+import pytest
+
+from healthcheck.notification import MSTeamsWebhookNotifier
+
 
 @pytest.mark.unit
 class TestNotifier:

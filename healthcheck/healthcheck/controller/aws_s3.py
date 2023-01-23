@@ -1,18 +1,19 @@
 """Blob storage controller."""
 import logging
-from kink import inject
 
-from mypy_boto3_s3 import S3Client
-from healthcheck.exceptions import RawFileNotPresent, AnonymizedFileNotPresent
-from healthcheck.model import Artifact, S3Params
 from botocore.errorfactory import ClientError
+from kink import inject
+from mypy_boto3_s3 import S3Client
+
+from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
+from healthcheck.model import Artifact, S3Params
 
 _logger: logging.Logger = logging.getLogger(__name__)
+
 
 @inject
 class S3Controller():
     """Blob storage healthcheck controller."""
-
 
     def __init__(
             self,
@@ -43,7 +44,8 @@ class S3Controller():
         Returns:
             bool: True if exists
         """
-        _logger.info("Checking if object exists in bucket: %s path: %s", bucket, path)
+        _logger.info(
+            "Checking if object exists in bucket: %s path: %s", bucket, path)
 
         try:
             response = self.__s3_client.head_object(
@@ -70,7 +72,8 @@ class S3Controller():
             AnonymizedFileNotPresent: If file is not present in the anonymize bucket.
         """
         if not self._is_s3_anonymized_file_present(file_name):
-            raise AnonymizedFileNotPresent(artifact, f"Anonymized file {file_name} not found")
+            raise AnonymizedFileNotPresent(
+                artifact, f"Anonymized file {file_name} not found")
 
     def _is_s3_anonymized_file_present(self, file_name: str) -> bool:
         """
@@ -96,7 +99,8 @@ class S3Controller():
             RawFileNotPresent: If file is not present in the anonymize bucket.
         """
         if not self._is_s3_raw_file_presence(file_name):
-            raise RawFileNotPresent(artifact, f"Raw file {file_name} not found")
+            raise RawFileNotPresent(
+                artifact, f"Raw file {file_name} not found")
 
     def _is_s3_raw_file_presence(self, file_name: str) -> bool:
         """

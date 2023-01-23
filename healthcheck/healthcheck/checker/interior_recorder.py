@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 """Interior recorder checker module."""
 import logging
 

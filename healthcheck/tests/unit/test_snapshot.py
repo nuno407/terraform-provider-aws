@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import Mock, call
-from healthcheck.checker.snapshot import SnapshotArtifactChecker
-from healthcheck.model import Artifact, SnapshotArtifact
-from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
 from datetime import datetime
+from unittest.mock import Mock, call
+
+import pytest
+
+from healthcheck.checker.snapshot import SnapshotArtifactChecker
+from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
+from healthcheck.model import Artifact, SnapshotArtifact
 from healthcheck.voxel_client import VoxelDataset
 
 
@@ -33,7 +35,8 @@ class TestSnapshotArtifactChecker:
         if is_matching_recording_ingested:
             db_controller.is_recordings_doc_valid_or_raise = Mock()
         else:
-            db_controller.is_recordings_doc_valid_or_raise = Mock(side_effect=FailDocumentValidation(input_artifact, message="error validating doc", json_path="$.recording_overview.source_videos"))
+            db_controller.is_recordings_doc_valid_or_raise = Mock(side_effect=FailDocumentValidation(
+                input_artifact, message="error validating doc", json_path="$.recording_overview.source_videos"))
         db_controller.is_pipeline_execution_and_algorithm_output_doc_valid_or_raise = Mock()
         db_controller.is_data_status_complete_or_raise = Mock()
 
@@ -51,14 +54,18 @@ class TestSnapshotArtifactChecker:
         else:
             with pytest.raises(NotYetIngestedError):
                 snapshot_artifact_checker.run_healthcheck(input_artifact)
-        db_controller.is_data_status_complete_or_raise.assert_called_once_with(input_artifact)
+        db_controller.is_data_status_complete_or_raise.assert_called_once_with(
+            input_artifact)
         snapshot_id = input_artifact.artifact_id
 
         blob_storage_controller.is_s3_raw_file_presence_or_raise.assert_called_once_with(
             f"{snapshot_id}.jpeg", input_artifact)
-        blob_storage_controller.is_s3_anonymized_file_present_or_raise(f"{snapshot_id}_anonymized.jpeg", input_artifact)
+        blob_storage_controller.is_s3_anonymized_file_present_or_raise(
+            f"{snapshot_id}_anonymized.jpeg", input_artifact)
 
-        db_controller.is_recordings_doc_valid_or_raise.assert_called_once_with(input_artifact)
+        db_controller.is_recordings_doc_valid_or_raise.assert_called_once_with(
+            input_artifact)
 
         if is_matching_recording_ingested:
-            voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(input_artifact, VoxelDataset.SNAPSHOTS)
+            voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(
+                input_artifact, VoxelDataset.SNAPSHOTS)

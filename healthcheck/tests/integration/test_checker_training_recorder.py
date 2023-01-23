@@ -125,12 +125,13 @@ class TestTrainingRecorderArtifactChecker:
             blob_storage_controller: S3Controller,
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
+        """Test interior recorder healthcheck."""
+
         interior_recorder_artifact_checker = TrainingRecorderArtifactChecker(
             blob_controller=blob_storage_controller,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
-        """Test interior recorder healthcheck."""
         artifact = VideoArtifact(
             tenant_id=tenant_id,
             device_id=device_id,
