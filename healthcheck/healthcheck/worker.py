@@ -87,14 +87,14 @@ class HealthCheckWorker:
 
         return False
 
-    def alert(self, message: str) -> None:
+    def alert(self, artifact: Artifact, message: str) -> None:
         """Emit log entry to trigger Kibana alert
 
         Args:
             message (str): message to be displayed
         """
-        logger.info("%s : %s", ELASTIC_ALERT_MATCHER, message)
-        self.__notifier.send_notification(message)
+        logger.info("%s : %s : [%s]", ELASTIC_ALERT_MATCHER, message, artifact.artifact_id)
+        self.__notifier.send_notification(f"{message} : [{artifact.artifact_id}]")
 
     def __check_artifacts(self, artifacts: list[Artifact], queue_url: str, sqs_message: SQSMessage):
         """Run healthcheck for given artifact and treats errors
@@ -128,7 +128,7 @@ class HealthCheckWorker:
             logger.warning("not ingested yet, increase visibility timeout %s", err)
             self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(queue_url, sqs_message)
         except FailedHealthCheckError as err:
-            self.alert(err.message)
+            self.alert(err.artifact, err.message)
         except botocore.exceptions.ClientError as error:
             logger.error("unexpected AWS SDK error %s", error)
         except Exception as err:
