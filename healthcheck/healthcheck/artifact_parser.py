@@ -9,8 +9,6 @@ from healthcheck.exceptions import InvalidMessageCanSkip, InvalidMessageError
 from healthcheck.model import (Artifact, SnapshotArtifact, SQSMessage,
                                VideoArtifact)
 
-SNAPSHOT_TOPIC_SUFFIX = "inputEventsTerraform"
-VIDEO_FOOTAGE_TOPIC_SUFFIX = "video-footage-events"
 VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
 IMAGE = ["TrainingMultiSnapshot"]
 
@@ -26,21 +24,26 @@ class ArtifactParser:
     def get_recursive_from_dict(  # pylint: disable=dangerous-default-value
             data_dict: dict,
             *keys: str,
-            default=[]):
+            default=None):
         """Get value from dict recursively."""
+        if default is None:
+            default = []
         for key in keys:
             if not isinstance(data_dict, Dict) or key not in data_dict:
                 return default
             data_dict = data_dict[key]
         return data_dict
 
-    def __is_identifier_found(self, raw_body: str, identifier: str) -> bool:
+    @staticmethod
+    def __contains_identifier(raw_body: str, identifier: str) -> bool:
         return raw_body.find(identifier) != -1
 
-    def __is_multiple_identifiers_found(self, raw_body: str, identifiers: list[str]) -> bool:
-        return all(self.__is_identifier_found(raw_body, identifier) for identifier in identifiers)
+    @staticmethod
+    def __contains_any_identifier(raw_body: str, identifiers: list[str]) -> bool:
+        return any(ArtifactParser.__contains_identifier(raw_body, identifier) for identifier in identifiers)
 
-    def message_type_identifier(self, message: SQSMessage) -> Optional[str]:
+    @staticmethod
+    def message_type_identifier(message: SQSMessage) -> Optional[str]:
         """ Identify if the type of the media described in the message.
             Only returns a type when its sure its from that type otherwise returns None.
 
@@ -53,38 +56,13 @@ class ArtifactParser:
         result = None
         raw_body = str(message.body)
 
-        if (self.__is_identifier_found(raw_body, "InteriorRecorder") and
-                not self.__is_multiple_identifiers_found(raw_body,
-                                                         [
-                                                             "TrainingRecorder",
-                                                             "TrainingMultiSnapshot",
-                                                             "FrontRecorder"
-                                                         ])):
-            result = "InteriorRecorder"
-        elif (self.__is_identifier_found(raw_body, "TrainingRecorder") and
-              not self.__is_multiple_identifiers_found(raw_body,
-                                                       [
-                                                           "InteriorRecorder",
-                                                           "TrainingMultiSnapshot",
-                                                           "FrontRecorder"
-                                                       ])):
-            result = "TrainingRecorder"
-        elif (self.__is_identifier_found(raw_body, "TrainingMultiSnapshot") and
-              not self.__is_multiple_identifiers_found(raw_body,
-                                                       [
-                                                           "TrainingRecorder",
-                                                           "InteriorRecorder",
-                                                           "FrontRecorder"
-                                                       ])):
-            result = "TrainingMultiSnapshot"
-        elif (self.__is_identifier_found(raw_body, "FrontRecorder") and
-              not self.__is_multiple_identifiers_found(raw_body,
-                                                       [
-                                                           "TrainingRecorder",
-                                                           "TrainingMultiSnapshot",
-                                                           "InteriorRecorder"
-                                                       ])):
-            result = "FrontRecorder"
+        recorders = ["InteriorRecorder", "TrainingRecorder", "TrainingMultiSnapshot", "FrontRecorder"]
+        for recorder in recorders:
+            other_recorders = [r for r in recorders if r != recorder]
+            if (ArtifactParser.__contains_identifier(raw_body, recorder) and not
+                    ArtifactParser.__contains_any_identifier(raw_body, other_recorders)):
+                result = recorder
+                break
 
         return result
 

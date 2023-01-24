@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 from pathlib import Path
 from typing import Iterator, Optional, Tuple, TypeVar
-from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
@@ -89,7 +88,8 @@ class Ingestor(object):
             return False, {}
 
         if exact:
-            exact_match = s3_path in [object_dict['Key'] for object_dict in list_objects_response['Contents']]
+            exact_match = s3_path in [object_dict['Key']
+                                      for object_dict in list_objects_response['Contents']]
             return exact_match, list_objects_response
 
         return True, list_objects_response
@@ -133,7 +133,8 @@ class VideoIngestor(Ingestor):
         with tempfile.TemporaryDirectory() as auto_cleaned_up_dir:
 
             # Store bytes into current working directory as video
-            temp_video_file = os.path.join(auto_cleaned_up_dir, 'input_video.mp4')
+            temp_video_file = os.path.join(
+                auto_cleaned_up_dir, 'input_video.mp4')
             with open(temp_video_file, "wb") as f:
                 f.write(video_bytes)
 
@@ -174,9 +175,12 @@ class VideoIngestor(Ingestor):
                 video_msg.footagefrom)
             video_to = from_epoch_seconds_or_milliseconds(video_msg.footageto)
             seed = f"{video_msg.streamname}_{int(video_from.timestamp() * 1000)}_{int(video_to.timestamp() * 1000)}"
-            LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
-            internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-            LOGGER.info("internal_message_reference_id HASH >>> %s", internal_message_reference_id)
+
+            internal_message_reference_id = hashlib.sha256(
+                seed.encode("utf-8")).hexdigest()
+            LOGGER.info("internal_message_reference_id generated hash=%s seed=%s",
+                        internal_message_reference_id, seed)
+
             video_bytes, video_start_ts, video_end_ts = self.CS.get_kinesis_clip(
                 role_credentials, video_msg.streamname, video_from, video_to, self.STREAM_TIMESTAMP_TYPE)
             video_start = round(video_start_ts.timestamp() * 1000)
@@ -308,9 +312,10 @@ class SnapshotIngestor(Ingestor):
                     self.S3_CLIENT, self.CS.raw_s3, 'Debug_Lync/' + snap_name)
 
                 seed = Path(snap_name).stem
-                LOGGER.info("computing internal_message_reference_id with seed: %s", seed)
-                internal_message_reference_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-                LOGGER.info("internal_message_reference_id HASH >>> %s", internal_message_reference_id)
+                internal_message_reference_id = hashlib.sha256(
+                    seed.encode("utf-8")).hexdigest()
+                LOGGER.info("internal_message_reference_id generated hash=%s seed=%s",
+                            internal_message_reference_id, seed)
 
                 if not exists_on_devcloud:
 
@@ -462,7 +467,8 @@ class MetadataIngestor(Ingestor):
             Iterator[str]: A list containing all paths from root to the last folder (hour folder).
         """
 
-        LOGGER.debug(f'Discovering folders while searching on {start_time} - {end_time}')
+        LOGGER.debug(
+            f'Discovering folders while searching on {start_time} - {end_time}')
 
         # Reset minutes
         start_time_zero = start_time.replace(minute=0)
@@ -518,7 +524,8 @@ class MetadataIngestor(Ingestor):
                 kwargs_replace_start.update(kwargs_replace)
 
                 # Make sure the month is valid
-                max_day = monthrange(kwargs_replace_start["year"], kwargs_replace_start["month"])[1]
+                max_day = monthrange(
+                    kwargs_replace_start["year"], kwargs_replace_start["month"])[1]
                 if max_day < kwargs_replace_start["day"]:
                     kwargs_replace_start['day'] = max_day
 
@@ -531,12 +538,15 @@ class MetadataIngestor(Ingestor):
                 kwargs_replace_end.update(kwargs_replace)
 
                 # Make sure the month is valid
-                max_day = monthrange(kwargs_replace_end["year"], kwargs_replace_end["month"])[1]
+                max_day = monthrange(
+                    kwargs_replace_end["year"], kwargs_replace_end["month"])[1]
                 if max_day < kwargs_replace_end["day"]:
                     kwargs_replace_end['day'] = max_day
 
-                current_time_end = current_time_end.replace(**kwargs_replace_end)
-                current_time_start = current_time_start.replace(**kwargs_replace_start)
+                current_time_end = current_time_end.replace(
+                    **kwargs_replace_end)
+                current_time_start = current_time_start.replace(
+                    **kwargs_replace_start)
 
             # Make sure the paths are within boundaries
             if current_time_start < start_time_zero or current_time_end > end_time_zero:
@@ -759,7 +769,8 @@ class MetadataIngestor(Ingestor):
                 "all metadata chunks found within upload bounds")
             return True, metadata_chunks
 
-        LOGGER.debug("Not all metadata found within upload bounds, searching until %s", str(datetime.now()))
+        LOGGER.debug("Not all metadata found within upload bounds, searching until %s", str(
+            datetime.now()))
 
         # Search for the metadata paths until the current day
         metadata_paths = self._get_chunks_lookup_paths(message,
