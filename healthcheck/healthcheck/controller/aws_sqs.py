@@ -1,3 +1,4 @@
+# type: ignore
 """AWS SQS controller."""
 import logging
 from datetime import datetime

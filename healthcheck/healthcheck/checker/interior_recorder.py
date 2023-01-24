@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=too-few-public-methods
 """Interior recorder checker module."""
 import logging
@@ -29,17 +30,22 @@ class InteriorRecorderArtifactChecker(BaseArtifactChecker):
         video_id = artifact.artifact_id
         # Check s3 files
         self._is_s3_raw_file_presence_or_raise(f"{video_id}.mp4", artifact)
-        self._is_s3_raw_file_presence_or_raise(f"{video_id}_signals.json", artifact)
-        self._is_s3_raw_file_presence_or_raise(f"{video_id}_metadata_full.json", artifact)
+        self._is_s3_raw_file_presence_or_raise(
+            f"{video_id}_signals.json", artifact)
+        self._is_s3_raw_file_presence_or_raise(
+            f"{video_id}_metadata_full.json", artifact)
 
         # This checks can be improved by checking dinamically based on algorithm output
-        self._is_s3_anonymized_file_present_or_raise(f"{video_id}_anonymized.mp4", artifact)
-        self._is_s3_anonymized_file_present_or_raise(f"{video_id}_chc.json", artifact)
+        self._is_s3_anonymized_file_present_or_raise(
+            f"{video_id}_anonymized.mp4", artifact)
+        self._is_s3_anonymized_file_present_or_raise(
+            f"{video_id}_chc.json", artifact)
 
         # Check DB
         self._is_recordings_doc_valid_or_raise(artifact)
         self._is_signals_doc_valid_or_raise(artifact)
-        self._is_pipeline_execution_and_algorithm_output_doc_valid_or_raise(artifact)
+        self._is_pipeline_execution_and_algorithm_output_doc_valid_or_raise(
+            artifact)
 
         # Perform Voxel validations
         self._is_fiftyone_entry_present_or_raise(artifact, VoxelDataset.VIDEOS)

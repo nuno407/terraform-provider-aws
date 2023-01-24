@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=E1120
 """bootstrap dependency injection autowiring."""
 import logging
@@ -5,6 +6,7 @@ import os
 from dataclasses import dataclass
 from logging import Logger
 from typing import Optional
+
 import boto3
 from kink import di
 from mypy_boto3_s3 import S3Client

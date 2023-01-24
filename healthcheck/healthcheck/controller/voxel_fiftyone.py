@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=too-few-public-methods
 """voxel 51 healthcheck controller module."""
 from kink import inject

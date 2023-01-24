@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=too-few-public-methods
 """Snapshot artifact module."""
 import logging

@@ -84,7 +84,7 @@ class TestWorker:
                 footage_from=datetime.now(),
                 footage_to=datetime.now()
             ),
-            False
+            True
         ),
         (
             VideoArtifact(
@@ -94,7 +94,7 @@ class TestWorker:
                 footage_from=datetime.now(),
                 footage_to=datetime.now()
             ),
-            False
+            True
         ),
         (
             VideoArtifact(
@@ -104,7 +104,7 @@ class TestWorker:
                 footage_from=datetime.now(),
                 footage_to=datetime.now()
             ),
-            True
+            False
         ),
         (
             SnapshotArtifact(
@@ -125,12 +125,12 @@ class TestWorker:
             False
         )
     ])
-    def test_is_blacklist_training(
+    def test_is_whitelisted_training(
             self,
             fix_healthcheck_worker: HealthCheckWorker,
             input_artifact: Artifact,
             expected_result: bool):
-        assert fix_healthcheck_worker.is_blacklisted_training(
+        assert fix_healthcheck_worker.is_whitelisted_training(
             input_artifact) == expected_result
 
     @pytest.fixture

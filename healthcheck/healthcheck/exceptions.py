@@ -19,7 +19,7 @@ class FailedHealthCheckError(Exception):
 class FailDocumentValidation(FailedHealthCheckError):
     """Error raised when the documentin MongoDB fails to be validated."""
 
-    def __init__(self, artifact: Artifact, message: str, json_path: str = None) -> None:
+    def __init__(self, artifact: Artifact, message: str, json_path: str = "") -> None:
         super().__init__(artifact, message)
         self.json_path = json_path
 

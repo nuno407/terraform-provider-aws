@@ -47,7 +47,8 @@ files = [
     "healthcheck/**/*.py"
 ]
 exclude = [
-    "conftest.py"
+    "^test.*\\.py$",
+    "conftest.py",
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]

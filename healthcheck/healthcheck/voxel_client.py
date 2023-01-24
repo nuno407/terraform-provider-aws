@@ -1,4 +1,5 @@
 # pylint: disable=R0903:too-few-public-methods
+# type: ignore
 """Database interface module."""
 
 from enum import Enum

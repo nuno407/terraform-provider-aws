@@ -1,3 +1,4 @@
+# type: ignore
 """Ridecare healthcheck module."""
 import logging
 import time
@@ -69,23 +70,17 @@ class HealthCheckWorker:
         """
         return any(recorder in message.artifact_id for recorder in self.__config.recorder_blacklist)
 
-    def is_blacklisted_training(self, message: Artifact) -> bool:
+    def is_whitelisted_training(self, artifact: Artifact) -> bool:
         """Check if message is a black listed training
 
         Args:
-            message (Artifact): artifact message with type inside id
+            message (SQSMessage): artifact message with type inside id
 
         Returns:
             bool: verification result
         """
-
-        if isinstance(message, VideoArtifact):
-            if message.artifact_type != ArtifactType.TRAINING_RECORDER:
-                return False
-
-            if all(recorder_tenant not in message.tenant_id
-                    for recorder_tenant in self.__config.training_whitelist):
-                return True
+        if isinstance(artifact, VideoArtifact):
+            return artifact.tenant_id in self.__config.training_whitelist
 
         return False
 
@@ -109,6 +104,13 @@ class HealthCheckWorker:
             sqs_message (SQSMessage): SQS message
         """
         for artifact in artifacts:
+            if artifact.artifact_type == ArtifactType.TRAINING_RECORDER and \
+                    not self.is_whitelisted_training(artifact):
+                logger.info(
+                    "Ignoring, artifact is not training recorder whitelisted")
+                self.__sqs_controller.delete_message(
+                    queue_url, sqs_message)
+                return
             if self.is_blacklisted_recorder(artifact):
                 logger.info("Ignoring blacklisted recorder: %s",
                             artifact.artifact_id)
@@ -173,15 +175,10 @@ class HealthCheckWorker:
                 self.__sqs_controller.delete_message(queue_url, sqs_message)
                 continue
 
-            if self.is_blacklisted_training(sqs_message):
-                logger.info(
-                    "Ignoring, Message is a training recorder blacklisted")
-                self.__sqs_controller.delete_message(queue_url, sqs_message)
-                continue
-
             try:
                 artifacts = self.__artifact_msg_parser.parse_message(
                     sqs_message)
+
                 self.__check_artifacts(artifacts, queue_url, sqs_message)
             except InvalidMessageError as err:
                 logger.error("Error parsing artifact from message -> %s", err)

@@ -187,7 +187,7 @@ class ArtifactParser:
             raise InvalidMessageError("Invalid message, empty body.")
 
         self.__logger.debug("extracting video inner message body...")
-        inner_message: dict = message.body.get("Message")
+        inner_message: Optional[dict] = message.body.get("Message")
         if not inner_message:
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract message contents.")

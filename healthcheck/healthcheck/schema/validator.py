@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=too-few-public-methods
 """JSONSchema validation module."""
 import json

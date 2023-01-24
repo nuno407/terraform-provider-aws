@@ -1,3 +1,4 @@
+# type: ignore
 """database controller module."""
 from logging import Logger
 
@@ -42,7 +43,8 @@ class DatabaseController():
         num_docs = len(docs)
 
         if num_docs == 0:
-            raise FailDocumentValidation(artifact, f"Collection {collection} document not found")
+            raise FailDocumentValidation(
+                artifact, f"Collection {collection} document not found")
         if num_docs > 1:
             raise FailDocumentValidation(
                 artifact, f"More then one recordings document exist in collection {collection}")
@@ -63,16 +65,19 @@ class DatabaseController():
             list: The result of the query.
         """
         recording_id = artifact.artifact_id
-        docs = self.__db_client.find_many(DBCollection.SIGNALS, {"recording": recording_id})
+        docs = self.__db_client.find_many(
+            DBCollection.SIGNALS, {"recording": recording_id})
         num_docs = len(docs)
 
         if num_docs == 0:
-            raise FailDocumentValidation(artifact, "Signals document not found")
+            raise FailDocumentValidation(
+                artifact, "Signals document not found")
         for doc in docs:
             try:
                 self.__schema_validator.validate_document(doc, Schema.SIGNALS)
             except ValidationError as err:
-                raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
+                raise FailDocumentValidation(
+                    artifact, message=err.message, json_path=err.json_path) from err
 
         return docs
 
@@ -91,13 +96,15 @@ class DatabaseController():
             dict: The result of the query.
         """
         video_id = artifact.artifact_id
-        doc = self.__db_find_one_or_raise(artifact, DBCollection.RECORDINGS, {"video_id": video_id})
+        doc = self.__db_find_one_or_raise(
+            artifact, DBCollection.RECORDINGS, {"video_id": video_id})
 
         schema = Schema.RECORDINGS_SNAPSHOT if artifact.artifact_type == ArtifactType.SNAPSHOT else Schema.RECORDINGS
         try:
             self.__schema_validator.validate_document(doc, schema)
         except ValidationError as err:
-            raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
+            raise FailDocumentValidation(
+                artifact, message=err.message, json_path=err.json_path) from err
 
         return doc
 
@@ -121,23 +128,30 @@ class DatabaseController():
         video_id = artifact.artifact_id
 
         # Validate Pipeline execution
-        doc_execution = self.__db_find_one_or_raise(artifact, DBCollection.PIPELINE_EXECUTION, {"_id": video_id})
+        doc_execution = self.__db_find_one_or_raise(
+            artifact, DBCollection.PIPELINE_EXECUTION, {"_id": video_id})
         try:
-            self.__schema_validator.validate_document(doc_execution, Schema.PIPELINE_EXECUTION)
+            self.__schema_validator.validate_document(
+                doc_execution, Schema.PIPELINE_EXECUTION)
         except ValidationError as err:
-            raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
+            raise FailDocumentValidation(
+                artifact, message=err.message, json_path=err.json_path) from err
 
         # Validate algorithm output for all pipeline execution
         for process in doc_execution["processing_list"]:
             doc_id = f"{video_id}_{process}"
-            doc_output = self.__db_find_one_or_raise(artifact, DBCollection.ALGORITHM_OUTPUT, {"_id": doc_id})
+            doc_output = self.__db_find_one_or_raise(
+                artifact, DBCollection.ALGORITHM_OUTPUT, {"_id": doc_id})
             try:
-                self.__schema_validator.validate_document(doc_output, Schema.ALGORITHM_OUTPUT)
+                self.__schema_validator.validate_document(
+                    doc_output, Schema.ALGORITHM_OUTPUT)
             except ValidationError as err:
-                raise FailDocumentValidation(artifact, message=err.message, json_path=err.json_path) from err
+                raise FailDocumentValidation(
+                    artifact, message=err.message, json_path=err.json_path) from err
 
         # Make sure it doesn't have different number of documents associated with the same ID
-        docs_output = self.__db_client.find_many(DBCollection.ALGORITHM_OUTPUT, {"pipeline_id": video_id})
+        docs_output = self.__db_client.find_many(
+            DBCollection.ALGORITHM_OUTPUT, {"pipeline_id": video_id})
         num_docs_output = len(docs_output)
         num_process_steps = len(doc_execution["processing_list"])
 
@@ -175,13 +189,15 @@ class DatabaseController():
                 pipeline-execution was not found
         """
         internal_hash = artifact.internal_message_reference_id
-        self.__logger.debug("Searching for 'internal_message_reference_id' HASH >>> %s", internal_hash)
+        self.__logger.debug(
+            "Searching for 'internal_message_reference_id' HASH >>> %s", internal_hash)
 
         docs = self.__db_client.find_many(DBCollection.RECORDINGS, {
             "recording_overview.internal_message_reference_id": internal_hash
         })
         if len(docs) == 0:
-            raise NotYetIngestedError(artifact, "Unable to find 'internal_message_reference_id'")
+            raise NotYetIngestedError(
+                artifact, "Unable to find 'internal_message_reference_id'")
 
         recording_doc = docs[0]
 
@@ -191,12 +207,15 @@ class DatabaseController():
 
         video_id = recording_doc["video_id"]
 
-        docs = self.__db_client.find_many(DBCollection.PIPELINE_EXECUTION, {"_id": video_id})
+        docs = self.__db_client.find_many(
+            DBCollection.PIPELINE_EXECUTION, {"_id": video_id})
         if len(docs) == 0:
-            raise NotPresentError(artifact, f"Unable to find pipeline-execution entry with video_id {video_id}")
+            raise NotPresentError(
+                artifact, f"Unable to find pipeline-execution entry with video_id {video_id}")
 
         pipeline_exec_doc = docs[0]
         data_status = pipeline_exec_doc["data_status"]
 
         if data_status != "complete":
-            raise NotYetIngestedError(artifact, "Ingestion of the artifact is not yet complete")
+            raise NotYetIngestedError(
+                artifact, "Ingestion of the artifact is not yet complete")

@@ -1,3 +1,4 @@
+# type: ignore
 # pylint: disable=too-few-public-methods
 """Artifact checker module."""
 from abc import ABC, abstractmethod

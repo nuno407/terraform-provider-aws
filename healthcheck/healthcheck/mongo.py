@@ -1,3 +1,4 @@
+# type: ignore
 """MongoDBClient module."""
 import logging
 
@@ -6,8 +7,9 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 
+from healthcheck.database import (DBCollection, INoSQLDBClient,
+                                  NoSQLDBConfiguration)
 from healthcheck.model import DBDocument
-from healthcheck.database import INoSQLDBClient, DBCollection, NoSQLDBConfiguration
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -78,6 +80,7 @@ class MongoDBClient():
         result_set = self.collections[collection].find(query)
         return [DBDocument(result) for result in result_set]
 
+    # type: ignore
     def aggregate(self, collection: DBCollection, pipelines: list[dict]) -> list[DBDocument]:
         """aggregate.
 

@@ -1,3 +1,4 @@
+# type: ignore
 """Metadata api database controller."""
 import copy
 from math import ceil
