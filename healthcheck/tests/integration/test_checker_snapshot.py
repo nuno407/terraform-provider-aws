@@ -89,7 +89,7 @@ class TestSnapshotArtifactChecker:
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
         snapshot_artifact_checker = SnapshotArtifactChecker(
-            blob_controller=blob_storage_controller,
+            s3_controller=blob_storage_controller,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

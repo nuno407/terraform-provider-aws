@@ -67,7 +67,7 @@ class TestS3Controller():
         s3_controller = S3Controller(s3_params, fix_test_client)
         fix_test_client.head_object = Mock(
             return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
-        s3_controller.is_s3_raw_file_presence_or_raise(
+        s3_controller.is_s3_raw_file_present_or_raise(
             "mock-raw.jpeg", fix_snap)
         fix_test_client.head_object.assert_called_once_with(
             Bucket=S3_RAW_BUCKET, Key=f"{S3_DIR}/mock-raw.jpeg")
@@ -78,5 +78,5 @@ class TestS3Controller():
             side_effect=RawFileNotPresent(fix_snap, "test"))
         s3_controller = S3Controller(s3_params, fix_test_client)
         with pytest.raises(RawFileNotPresent):
-            s3_controller.is_s3_raw_file_presence_or_raise(
+            s3_controller.is_s3_raw_file_present_or_raise(
                 "foobar.jpeg", fix_snap)

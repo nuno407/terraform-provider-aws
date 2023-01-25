@@ -87,7 +87,7 @@ class S3Controller():
         """
         return self._check_s3_file_exists(self.__s3_params.s3_bucket_anon, self._full_s3_path(file_name))
 
-    def is_s3_raw_file_presence_or_raise(self, file_name: str, artifact: Artifact) -> None:
+    def is_s3_raw_file_present_or_raise(self, file_name: str, artifact: Artifact) -> None:
         """
         Check for the presence of file in raw S3.
         If it doesn't exist, raises an exception.
@@ -98,11 +98,11 @@ class S3Controller():
         Raises:
             RawFileNotPresent: If file is not present in the anonymize bucket.
         """
-        if not self._is_s3_raw_file_presence(file_name):
+        if not self._is_s3_raw_file_present(file_name):
             raise RawFileNotPresent(
                 artifact, f"Raw file {file_name} not found")
 
-    def _is_s3_raw_file_presence(self, file_name: str) -> bool:
+    def _is_s3_raw_file_present(self, file_name: str) -> bool:
         """
         Check for the presence of file in raw S3.
 

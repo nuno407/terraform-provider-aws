@@ -26,9 +26,9 @@ class TestSnapshotArtifactChecker:
         ), False)
     ])
     def test_run_healthcheck(self, input_artifact: Artifact, is_matching_recording_ingested: bool):
-        blob_storage_controller = Mock()
-        blob_storage_controller.is_s3_raw_file_presence_or_raise = Mock()
-        blob_storage_controller.is_s3_anonymized_file_present_or_raise = Mock()
+        s3_controller = Mock()
+        s3_controller.is_s3_raw_file_present_or_raise = Mock()
+        s3_controller.is_s3_anonymized_file_present_or_raise = Mock()
 
         db_controller = Mock()
         db_controller.is_signals_doc_valid_or_raise = Mock()
@@ -44,7 +44,7 @@ class TestSnapshotArtifactChecker:
         voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise = Mock()
 
         snapshot_artifact_checker = SnapshotArtifactChecker(
-            blob_controller=blob_storage_controller,
+            s3_controller=s3_controller,
             db_controller=db_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
@@ -58,9 +58,9 @@ class TestSnapshotArtifactChecker:
             input_artifact)
         snapshot_id = input_artifact.artifact_id
 
-        blob_storage_controller.is_s3_raw_file_presence_or_raise.assert_called_once_with(
+        s3_controller.is_s3_raw_file_present_or_raise.assert_called_once_with(
             f"{snapshot_id}.jpeg", input_artifact)
-        blob_storage_controller.is_s3_anonymized_file_present_or_raise(
+        s3_controller.is_s3_anonymized_file_present_or_raise(
             f"{snapshot_id}_anonymized.jpeg", input_artifact)
 
         db_controller.is_recordings_doc_valid_or_raise.assert_called_once_with(

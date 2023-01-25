@@ -29,7 +29,7 @@ class TestInteriorRecorderArtifactChecker:
     ])
     def test_run_healthcheck(self, input_artifact: Artifact):
         blob_storage_controller = Mock()
-        blob_storage_controller.is_s3_raw_file_presence_or_raise = Mock()
+        blob_storage_controller.is_s3_raw_file_present_or_raise = Mock()
         blob_storage_controller.is_s3_anonymized_file_present_or_raise = Mock()
 
         db_controller = Mock()
@@ -42,7 +42,7 @@ class TestInteriorRecorderArtifactChecker:
         voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise = Mock()
 
         interior_recorder_artifact_checker = InteriorRecorderArtifactChecker(
-            blob_controller=blob_storage_controller,
+            s3_controller=blob_storage_controller,
             db_controller=db_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller)
 
@@ -51,7 +51,7 @@ class TestInteriorRecorderArtifactChecker:
             input_artifact)
         artifact_id = input_artifact.artifact_id
 
-        blob_storage_controller.is_s3_raw_file_presence_or_raise.assert_has_calls(
+        blob_storage_controller.is_s3_raw_file_present_or_raise.assert_has_calls(
             calls=[
                 call(f"{artifact_id}.mp4", input_artifact),
                 call(f"{artifact_id}_signals.json", input_artifact),

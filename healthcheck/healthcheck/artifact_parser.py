@@ -26,8 +26,6 @@ class ArtifactParser:
             *keys: str,
             default=None):
         """Get value from dict recursively."""
-        if default is None:
-            default = []
         for key in keys:
             if not isinstance(data_dict, Dict) or key not in data_dict:
                 return default
@@ -40,7 +38,9 @@ class ArtifactParser:
 
     @staticmethod
     def __contains_any_identifier(raw_body: str, identifiers: list[str]) -> bool:
-        return any(ArtifactParser.__contains_identifier(raw_body, identifier) for identifier in identifiers)
+        return any(
+            ArtifactParser.__contains_identifier(raw_body, identifier)
+            for identifier in identifiers)
 
     @staticmethod
     def message_type_identifier(message: SQSMessage) -> Optional[str]:
@@ -56,7 +56,12 @@ class ArtifactParser:
         result = None
         raw_body = str(message.body)
 
-        recorders = ["InteriorRecorder", "TrainingRecorder", "TrainingMultiSnapshot", "FrontRecorder"]
+        recorders = [
+            "InteriorRecorder",
+            "TrainingRecorder",
+            "TrainingMultiSnapshot",
+            "FrontRecorder"
+        ]
         for recorder in recorders:
             other_recorders = [r for r in recorders if r != recorder]
             if (ArtifactParser.__contains_identifier(raw_body, recorder) and not
@@ -107,7 +112,8 @@ class ArtifactParser:
         tenant_property = ArtifactParser.get_recursive_from_dict(
             message.body,
             "MessageAttributes",
-            "tenant")
+            "tenant",
+            default={})
         if "Value" in tenant_property:
             tenant = tenant_property["Value"]
         elif "StringValue" in tenant_property:
@@ -119,7 +125,13 @@ class ArtifactParser:
         # get device id
         self.__logger.debug("getting snapshot device_id...")
         device_id = ArtifactParser.get_recursive_from_dict(
-            message.body, "Message", "value", "properties", "header", "device_id")
+            message.body,
+            "Message",
+            "value",
+            "properties",
+            "header",
+            "device_id",
+            default={})
         if not isinstance(device_id, str):
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract device_id.")
@@ -131,7 +143,8 @@ class ArtifactParser:
             "Message",
             "value",
             "properties",
-            "chunk_descriptions")
+            "chunk_descriptions",
+            default=[])
         if len(chunks) == 0:
             raise InvalidMessageCanSkip(
                 "Invalid message body. Cannot extract snapshots.")

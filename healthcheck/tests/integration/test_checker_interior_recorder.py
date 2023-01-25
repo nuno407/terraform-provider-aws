@@ -168,7 +168,7 @@ class TestInteriorRecorderArtifactChecker:
     ):
         """Test interior recorder healthcheck."""
         interior_recorder_artifact_checker = InteriorRecorderArtifactChecker(
-            blob_controller=blob_storage_controller,
+            s3_controller=blob_storage_controller,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

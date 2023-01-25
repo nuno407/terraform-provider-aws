@@ -9,7 +9,7 @@ from kink import inject
 
 from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
-from healthcheck.checker.artifact import BaseArtifactChecker
+from healthcheck.checker.common import ArtifactChecker
 from healthcheck.config import HealthcheckConfig
 from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
                                    ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS)
@@ -39,7 +39,7 @@ class HealthCheckWorker:
             artifact_msg_parser: ArtifactParser,
             sqs_controller: SQSMessageController,
             notifier: Notifier,
-            checkers: Dict[ArtifactType, BaseArtifactChecker]):
+            checkers: Dict[ArtifactType, ArtifactChecker]):
         self.__config = config
         self.__graceful_exit = graceful_exit
         self.__sqs_msg_parser = sqs_msg_parser

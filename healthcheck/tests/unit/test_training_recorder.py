@@ -32,9 +32,9 @@ class TestTrainingrecorderArtifactChecker:
         )
     ])
     def test_run_healthcheck(self, input_artifact: VideoArtifact):
-        blob_storage_controller = Mock()
-        blob_storage_controller.is_s3_raw_file_presence_or_raise = Mock()
-        blob_storage_controller.is_s3_anonymized_file_present_or_raise = Mock()
+        s3_controller = Mock()
+        s3_controller.is_s3_raw_file_present_or_raise = Mock()
+        s3_controller.is_s3_anonymized_file_present_or_raise = Mock()
 
         db_controller = Mock()
         db_controller.is_signals_doc_valid_or_raise = Mock()
@@ -45,7 +45,7 @@ class TestTrainingrecorderArtifactChecker:
         voxel_fiftyone_controller = Mock()
         voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise = Mock()
         training_recorder_artifact_checker = TrainingRecorderArtifactChecker(
-            blob_controller=blob_storage_controller,
+            s3_controller=s3_controller,
             db_controller=db_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
@@ -55,10 +55,10 @@ class TestTrainingrecorderArtifactChecker:
             input_artifact)
         video_id = input_artifact.artifact_id
 
-        blob_storage_controller.is_s3_raw_file_presence_or_raise.assert_called_once_with(
+        s3_controller.is_s3_raw_file_present_or_raise.assert_called_once_with(
             f"{video_id}.mp4", input_artifact)
 
-        blob_storage_controller.is_s3_anonymized_file_present_or_raise.assert_has_calls(
+        s3_controller.is_s3_anonymized_file_present_or_raise.assert_has_calls(
             calls=[
                 call(f"{video_id}_anonymized.mp4", input_artifact),
                 call(f"{video_id}_chc.json", input_artifact)
