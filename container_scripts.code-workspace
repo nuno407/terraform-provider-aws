@@ -31,9 +31,6 @@
 			"path": "./Selector"
 		},
 		{
-			"path": "./voxel51"
-		},
-		{
 			"path": "."
 		}
 	],
