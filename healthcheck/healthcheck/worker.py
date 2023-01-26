@@ -181,7 +181,7 @@ class HealthCheckWorker:
 
                 self.__check_artifacts(artifacts, queue_url, sqs_message)
             except InvalidMessageError as err:
-                logger.error("Error parsing artifact from message -> %s", err)
+                logger.warning("SKIP: Unable to parse artifact from message -> %s", err)
                 continue
             except InvalidMessageCanSkip as err:
                 logger.info(
