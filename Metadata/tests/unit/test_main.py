@@ -1,26 +1,23 @@
 """Tests for metadata.consumer.main module."""
+import hashlib
 import json
 import os
-import hashlib
 from pathlib import Path
-from pymongo.collection import ReturnDocument
-from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, call, patch, ANY
 
 import pytest
-from metadata.consumer.main import (
-    AWS_REGION,
-    create_snapshot_recording_item,
-    create_video_recording_item,
-    find_and_update_media_references,
-    main,
-    read_message,
-    upsert_data_to_db,
-    create_recording_item,
-    update_voxel_media,
-    upsert_mdf_data,
-    transform_data_to_update_query,
-    process_outputs)
-from pytest_mock import MockerFixture  # pylint ignore=wrong-import-order
+from metadata.consumer.main import (AWS_REGION, create_recording_item,
+                                    create_snapshot_recording_item,
+                                    create_video_recording_item,
+                                    find_and_update_media_references, main,
+                                    process_outputs, read_message,
+                                    transform_data_to_update_query,
+                                    update_voxel_media, upsert_data_to_db,
+                                    upsert_mdf_data, MetadataCollections)
+from pymongo.collection import ReturnDocument
+from pymongo.errors import DocumentTooLarge
+from pytest_mock import MockerFixture
+
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
 FIX_RECORDING = {
@@ -369,8 +366,15 @@ class TestMetadataMain():
         mock_collection_sig.update_one = Mock()
         message = json.loads(_read_test_fixture("input_raw_message_body_metadata_mdfparser"))
 
+        metadata_collections = MetadataCollections(
+            signals=mock_collection_sig,
+            recordings=mock_collection_rec,
+            pipeline_exec=MagicMock(),
+            algo_output=MagicMock()
+        )
+
         # When
-        recording = upsert_mdf_data(message, mock_collection_sig, mock_collection_rec)
+        recording = upsert_mdf_data(message, metadata_collections)
 
         # Then
         assert recording is not None
@@ -448,8 +452,15 @@ class TestMetadataMain():
             "video_id": "id"
         }
 
+        metadata_collections = MetadataCollections(
+            recordings=collection_recordings,
+            signals=collection_signals,
+            algo_output=collection_algo_out,
+            pipeline_exec=MagicMock()
+        )
+
         # When
-        process_outputs(video_id, message, collection_algo_out, collection_recordings, collection_signals, source)
+        process_outputs(video_id, message, metadata_collections, source)
 
         # Then
         collection_signals.update_one.assert_called_once_with(
@@ -544,9 +555,7 @@ class TestMetadataMain():
                 collection_recordings_mock,
                 related_metadata_service_mock)
         else:
-            upsert_mdf_data.assert_called_once_with(input_message_body,
-                                                    collection_signals_mock,
-                                                    collection_recordings_mock)
+            upsert_mdf_data.assert_called_once_with(input_message_body, ANY)
 
         if return_upserts:
             update_voxel_media.assert_called_once_with(return_upserts)
@@ -569,7 +578,6 @@ class TestMetadataMain():
         # GIVEN
         db_mock = Mock()
         collection_recordings_mock = Mock()
-        collection_signals_mock = Mock()
         collection_algo_output_mock = Mock()
         collection_pipeline_exec_mock = Mock()
         collection_signals_mock = Mock()
@@ -585,9 +593,7 @@ class TestMetadataMain():
         related_metadata_service_mock = Mock()
 
         # THEN
-        upsert_data_to_db(
-            db_mock,
-            container_services_mock,
+        upsert_data_to_db(db_mock, container_services_mock,
             related_metadata_service_mock,
             input_message_body,
             input_message_atributes)
@@ -745,3 +751,42 @@ class TestMetadataMain():
             input_message["MessageAttributes"])
         mock_container_services_object.delete_message.assert_called_once_with(
             sqs_client_mock, input_message["ReceiptHandle"])
+
+@pytest.mark.unit
+@patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
+@patch("metadata.consumer.main.update_sample")
+@patch("metadata.consumer.main.create_dataset")
+@patch("metadata.consumer.main.download_and_synchronize_chc")
+def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
+                                                create_dataset_mock: Mock,
+                                                update_sample_mock: Mock):
+    video_id = "video_id"
+    algo_out_collection = MagicMock()
+    pipeline_exec_collection = MagicMock()
+    signals_collection = MagicMock()
+    metadata_collections = MetadataCollections(
+        recordings=MagicMock(),
+        pipeline_exec=pipeline_exec_collection,
+        signals=signals_collection,
+        algo_output=algo_out_collection
+    )
+    mock_message = {
+        "output": {
+            "bucket": "wow",
+            "meta_path": "wow/yeah"
+        },
+        "s3_path": "wow/yeah"
+    }
+    download_and_sync.return_value = ({}, {})
+
+    signals_collection.update_one = Mock(side_effect=DocumentTooLarge)
+    pipeline_exec_collection.find_one_and_update = Mock()
+
+    process_outputs(video_id, mock_message, metadata_collections, "CHC")
+
+    pipeline_exec_collection.find_one_and_update.assert_called_once_with(
+        filter={"video_id": video_id},
+        update={"$set": {"data_status": "error"}}
+    )
+    create_dataset_mock.assert_called_once()
+    update_sample_mock.assert_called_once()

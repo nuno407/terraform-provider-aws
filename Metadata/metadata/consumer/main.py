@@ -2,10 +2,11 @@
 import json
 import os
 import re
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from logging import Logger
 from pathlib import Path
-from pymongo.errors import DocumentTooLarge
+from typing import Optional, Tuple
 
 import boto3
 import pytimeparse
@@ -19,7 +20,7 @@ from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
-from pymongo.errors import PyMongoError
+from pymongo.errors import DocumentTooLarge, PyMongoError
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
@@ -31,8 +32,15 @@ CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
 
 
-_logger = ContainerServices.configure_logging("metadata")
+_logger: Logger = ContainerServices.configure_logging("metadata")
 
+@dataclass
+class MetadataCollections:
+    """"A wrapper for all metadata collections"""
+    signals: Collection
+    recordings: Collection
+    pipeline_exec: Collection
+    algo_output: Collection
 
 def update_voxel_media(sample: dict):
     def __get_s3_path(raw_path) -> Tuple[str, str]:
@@ -259,8 +267,7 @@ def transform_data_to_update_query(data: dict) -> dict:
             update_query[key] = value
     return update_query
 
-def upsert_mdf_data(message: dict, collection_sig: Collection,
-                    collection_rec: Collection) -> Optional[dict]:
+def upsert_mdf_data(message: dict, metadata_collections: MetadataCollections) -> Optional[dict]:
     """Upserts recording data and signals to respective collections.
 
     Args:
@@ -292,13 +299,13 @@ def upsert_mdf_data(message: dict, collection_sig: Collection,
 
         signals_data = {'source': "MDFParser", 'signals': signals}
 
-        recording = collection_rec.find_one_and_update(
+        recording = metadata_collections.recordings.find_one_and_update(
             filter={'video_id': message["_id"]},
             update={'$set': aggregated_values},
             upsert=True,
             return_document=ReturnDocument.AFTER)
 
-        collection_sig.update_one(
+        metadata_collections.signals.update_one(
             filter={
                 'recording': message["_id"],
                 'source': {'$regex': 'MDF.*'}
@@ -309,6 +316,9 @@ def upsert_mdf_data(message: dict, collection_sig: Collection,
         # Create logs message
         _logger.info("Signals DB item [%s] upserted!", message["_id"])
         return recording
+    except DocumentTooLarge as err:
+        _logger.warning("Document too large %s", err)
+        set_error_status(metadata_collections, video_id=message["_id"])
     except PyMongoError as err:
         _logger.exception(
             "Unable to create or replace signals item for id: [%s] :: %s", message["_id"], err)
@@ -445,10 +455,7 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     return chc_sync_parsed, chc_metrics['recording_overview']
 
 
-def process_outputs(video_id: str, message: dict,
-                    collection_algo_out: Collection,
-                    collection_recordings: Collection,
-                    collection_signals: Collection, source: str):
+def process_outputs(video_id: str, message: dict, metadata_collections: MetadataCollections, source: str):
     """Inserts a new item on the algorithm output collection and, if
     there is a CHC file available for that item, processes
     that info and adds it to the item (plus updates the respective
@@ -508,7 +515,10 @@ def process_outputs(video_id: str, message: dict,
     if source == "CHC" and 'meta_path' in outputs and 'bucket' in outputs:
         try:
             synchronized, chc_metrics = download_and_synchronize_chc(
-                video_id, collection_recordings, outputs['bucket'], outputs['meta_path'])
+                video_id,
+                metadata_collections.recordings,
+                outputs['bucket'],
+                outputs['meta_path'])
 
             # Add video sync data processed from ivs_chain metadata file to created item
             algo_item.update({
@@ -525,12 +535,14 @@ def process_outputs(video_id: str, message: dict,
             }
             # upsert signals DB item
             sig_query = {'recording': video_id, 'algo_out_id': run_id}
-            collection_signals.update_one(
-                sig_query, {'$set': signals_item}, upsert=True)
+            metadata_collections.signals.update_one(sig_query,{'$set': signals_item}, upsert=True)
 
             # Create logs message
             _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
 
+        except DocumentTooLarge as err:
+            _logger.warning("Document too large %s", err)
+            set_error_status(metadata_collections, video_id=video_id)
         except PyMongoError:
             _logger.exception(
                 "Error updating the signals collection with CHC output [%s]", signals_item)
@@ -545,7 +557,7 @@ def process_outputs(video_id: str, message: dict,
         # Insert previously built item
         # collection_algo_out.insert_one(algo_item,)
         query = {'_id': run_id}
-        collection_algo_out.update_one(query, {'$set': algo_item}, upsert=True)
+        metadata_collections.algo_output.update_one(query, {'$set': algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
     except PyMongoError as err:
         _logger.exception(
@@ -599,6 +611,15 @@ def process_outputs(video_id: str, message: dict,
         _logger.exception(
             "Unable to process Voxel entry [%s] on process_outputs %s", bucket_name, err)
 
+def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
+    """Set recording data_status as error
+    Args:
+        video_id (str): recording id to modify the status
+    """
+    metadata_collections.pipeline_exec.find_one_and_update(
+        filter={"video_id": video_id},
+        update={"$set": {"data_status": "error"}}
+    )
 
 def upsert_data_to_db(db: Database, container_services: ContainerServices,
                       service: RelatedMediaService, message: dict, message_attributes: dict):
@@ -622,11 +643,12 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
             message_attributes)
         return
 
-    # Specify the tables to be used
-    collection_signals = db[container_services.db_tables['signals']]
-    collection_recordings = db[container_services.db_tables['recordings']]
-    collection_pipeline_exec = db[container_services.db_tables['pipeline_exec']]
-    collection_algo_output = db[container_services.db_tables['algo_output']]
+    metadata_collections = MetadataCollections(
+        signals=db[container_services.db_tables['signals']],
+        recordings=db[container_services.db_tables['recordings']],
+        pipeline_exec=db[container_services.db_tables['pipeline_exec']],
+        algo_output=db[container_services.db_tables['algo_output']]
+    )
 
     # Get source container name
     source = message_attributes['SourceContainer']['StringValue']
@@ -638,7 +660,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
         if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
             # Call respective processing function
             recording = create_recording_item(
-                message, collection_recordings, service)
+                message, metadata_collections.recordings, service)
             if not recording:
                 # something went wrong when creating the new db record
                 _logger.warning("No recording item created on DB.")
@@ -649,7 +671,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
                 "Unexpected file format %s from SDRetriever.", file_format)
     elif source == "MDFParser":
         recording = upsert_mdf_data(
-            message, collection_signals, collection_recordings)
+            message, metadata_collections)
 
         _logger.debug("Recording stored in DB: %s", str(recording))
         if not recording:
@@ -664,13 +686,11 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
         recording_id = os.path.basename(message["s3_path"]).split(".")[0]
 
         # Call respective processing function
-        update_pipeline_db(recording_id, message,
-                           collection_pipeline_exec, source)
+        update_pipeline_db(recording_id, message, metadata_collections.pipeline_exec, source)
 
         # Create/Update item on Algorithm Output DB if message is about algo output
         if 'output' in message:
-            process_outputs(recording_id, message, collection_algo_output,
-                            collection_recordings, collection_signals, source)
+            process_outputs(recording_id, message, meatadata_collections, source)
     else:
         _logger.info("Unexpected message source %s - %s, %s",
                      source, message, message_attributes)
@@ -747,20 +767,14 @@ def main():
             _logger.info(message)
             # Processing step
             relay_list = read_message(container_services, message['Body'])
+            # Insert/update data in db
+            upsert_data_to_db(db_client, container_services,
+                            api_service, relay_list, message['MessageAttributes'])
 
-            try:
-                # Insert/update data in db
-                upsert_data_to_db(db_client, container_services,
-                                api_service, relay_list, message['MessageAttributes'])
+            # Delete message after processing
+            container_services.delete_message(
+                sqs_client, message['ReceiptHandle'])
 
-                # Delete message after processing
-                container_services.delete_message(
-                    sqs_client, message['ReceiptHandle'])
-            # catch all exceptions which are currently known to crash the container
-            # in this case, the message should go to the dead letter queue
-            except DocumentTooLarge:
-                _logger.warning(
-                    "Document too large to be inserted in MongoDB. Skipping message for now.")
 
 
 if __name__ == '__main__':
