@@ -46,30 +46,38 @@ class TestSQSMessageController():
         sqs_client_mock.get_queue_url = Mock(return_value={
             "QueueUrl": "foobar"
         })
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
         queue_url = message_controller.get_queue_url()
         assert queue_url == "foobar"
         sqs_client_mock.get_queue_url.assert_called_once()
 
     def test_get_queue_url_fail(self, healthcheck_config: HealthcheckConfig):
         sqs_client_mock = Mock()
-        sqs_client_mock.get_queue_url = Mock(side_effect=InitializationError("error"))
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
+        sqs_client_mock.get_queue_url = Mock(
+            side_effect=InitializationError("error"))
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
         with pytest.raises(InitializationError):
             message_controller.get_queue_url()
 
     def test_delete_message_success(self, healthcheck_config: HealthcheckConfig, sqs_message: SQSMessage):
         sqs_client_mock = Mock()
         sqs_client_mock.delete_message = Mock()
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
         message_controller.delete_message("foobar-url", sqs_message)
-        sqs_client_mock.delete_message.assert_called_once_with(QueueUrl="foobar-url", ReceiptHandle="foobar-receipt")
+        sqs_client_mock.delete_message.assert_called_once_with(
+            QueueUrl="foobar-url", ReceiptHandle="foobar-receipt")
 
     def test_get_message_success(self, healthcheck_config: HealthcheckConfig):
         sqs_client_mock = Mock()
-        given_message = {"title": "my-message", "ReceiptHandle": "foobar-receipt"}
-        sqs_client_mock.receive_message = Mock(return_value={"Messages": [given_message]})
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
+        given_message = {"title": "my-message",
+                         "ReceiptHandle": "foobar-receipt"}
+        sqs_client_mock.receive_message = Mock(
+            return_value={"Messages": [given_message]})
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
         got_message = message_controller.get_message("foobar-url")
         sqs_client_mock.receive_message.assert_called_once_with(
             QueueUrl="foobar-url",
@@ -88,7 +96,8 @@ class TestSQSMessageController():
     def test_get_message_empty(self, healthcheck_config: HealthcheckConfig):
         sqs_client_mock = Mock()
         sqs_client_mock.receive_message = Mock(return_value={"Messages": []})
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
         got_message = message_controller.get_message("foobar-url")
         sqs_client_mock.receive_message.assert_called_once_with(
             QueueUrl="foobar-url",
@@ -108,8 +117,10 @@ class TestSQSMessageController():
             self, healthcheck_config: HealthcheckConfig, sqs_message: SQSMessage):
         sqs_client_mock = Mock()
         sqs_client_mock.change_message_visibility = Mock()
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
-        message_controller.increase_visibility_timeout_and_handle_exceptions("foobar-url", sqs_message)
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
+        message_controller.try_update_message_visibility_timeout(
+            "foobar-url", sqs_message, TWELVE_HOURS_IN_SECONDS)
         sqs_client_mock.change_message_visibility.assert_called_once_with(
             QueueUrl="foobar-url",
             ReceiptHandle=sqs_message.receipt_handle,
@@ -122,5 +133,7 @@ class TestSQSMessageController():
         sqs_client_mock.change_message_visibility = Mock(
             side_effect=botocore.exceptions.ClientError(
                 error_response=MagicMock(), operation_name=MagicMock()))
-        message_controller = SQSMessageController(config=healthcheck_config, sqs_client=sqs_client_mock)
-        message_controller.increase_visibility_timeout_and_handle_exceptions("foobar-url", sqs_message)
+        message_controller = SQSMessageController(
+            config=healthcheck_config, sqs_client=sqs_client_mock)
+        message_controller.try_update_message_visibility_timeout(
+            "foobar-url", sqs_message, TWELVE_HOURS_IN_SECONDS)

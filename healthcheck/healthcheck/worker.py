@@ -11,7 +11,7 @@ from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.common import ArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
+from healthcheck.constants import (ELASTIC_ALERT_MATCHER, TWELVE_HOURS_IN_SECONDS,
                                    ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS)
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
@@ -135,8 +135,8 @@ class HealthCheckWorker:
         except NotYetIngestedError as err:
             logger.warning(
                 "not ingested yet, increase visibility timeout %s", err)
-            self.__sqs_controller.increase_visibility_timeout_and_handle_exceptions(
-                queue_url, sqs_message)
+            self.__sqs_controller.try_update_message_visibility_timeout(
+                queue_url, sqs_message, TWELVE_HOURS_IN_SECONDS)
         except FailedHealthCheckError as err:
             self.alert(err.artifact, err.message)
         except botocore.exceptions.ClientError as error:

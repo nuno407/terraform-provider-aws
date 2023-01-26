@@ -12,7 +12,6 @@ from mypy_boto3_sqs import SQSClient
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from healthcheck.config import HealthcheckConfig
-from healthcheck.constants import TWELVE_HOURS_IN_SECONDS
 from healthcheck.exceptions import InitializationError
 from healthcheck.model import SQSMessage
 
@@ -93,7 +92,7 @@ class SQSMessageController():
             ReceiptHandle=sqs_message.receipt_handle
         )
 
-    def __update_visibility_timeout(
+    def update_visibility_timeout(
             self,
             input_queue_url: str,
             sqs_message: SQSMessage,
@@ -122,7 +121,7 @@ class SQSMessageController():
             VisibilityTimeout=visibility_timeout_seconds
         )
 
-    def increase_visibility_timeout_and_handle_exceptions(self, queue_url: str, sqs_message: SQSMessage) -> None:  # pylint: disable=line-too-long
+    def try_update_message_visibility_timeout(self, queue_url: str, sqs_message: SQSMessage, visibility_timeout_seconds: int) -> None:  # pylint: disable=line-too-long
         """Increase the visibility timeout to the maximum of 12 hours and handles AWS SDK exceptions
 
         Args:
@@ -130,8 +129,8 @@ class SQSMessageController():
             sqs_message (SQSMessage): the SQS message
         """
         try:
-            self.__update_visibility_timeout(
-                queue_url, sqs_message, TWELVE_HOURS_IN_SECONDS)
+            self.update_visibility_timeout(
+                queue_url, sqs_message, visibility_timeout_seconds)
         except (aws_errors.MessageNotInflight, aws_errors.ReceiptHandleIsInvalid) as error:
             _logger.error("error updating visbility timeout %s", error)
         except botocore.exceptions.ClientError as error:
