@@ -1,6 +1,7 @@
 """ RCC Footage API Wrapper. """
 import json
 import logging
+
 import urllib3
 from urllib3 import Retry
 from selector.footage_api_token_manager import FootageApiTokenManager
@@ -25,7 +26,6 @@ class FootageApiWrapper():  # pylint: disable=too-few-public-methods
         auth_token = self.__footage_api_token_manager.get_token()
         if not auth_token:
             _logger.error("Could not get auth token for Footage API. Skipping request.")
-            return
 
         payload = {"from": str(from_timestamp), "to": str(to_timestamp), "recorder": "TRAINING"}
         url = self.__footage_api_url.format(device_id)
@@ -35,19 +35,17 @@ class FootageApiWrapper():  # pylint: disable=too-few-public-methods
         headers["Authorization"] = "Bearer " + auth_token
         body = json.dumps(payload)
 
-        try:
-            _logger.info(
-                "Requesting footage upload from url '%s' with timestamp from %i to %i",
-                url,
-                from_timestamp,
-                to_timestamp)
-            response = self.__http_client.request("POST", url, headers=headers, body=body)
+        _logger.info(
+            "Requesting footage upload from url '%s' with timestamp from %i to %i",
+            url,
+            from_timestamp,
+            to_timestamp)
+        response = self.__http_client.request("POST", url, headers=headers, body=body)
 
-            if (response.status >= 200 and response.status < 300):
-                _logger.info("Successfully requested footage with response code %i", response.status)
-            else:
-                _logger.warning("Unexpected response when requesting footage: %i*", response.status)
-                if response.content:
-                    _logger.warning("Details: %s", response.content)
-        except Exception as error:  # pylint: disable=broad-except
-            _logger.error("Unexpected error occured when requesting footage: %s", error)
+        if (response.status >= 200 and response.status < 300):
+            _logger.info("Successfully requested footage with response code %i", response.status)
+        else:
+            _logger.warning("Unexpected response when requesting footage: %i*", response.status)
+            if response.content:
+                _logger.warning("Details: %s", response.content)
+            raise RuntimeError  # SonarQube doesn't accept "Exception", says it needs a more specific one

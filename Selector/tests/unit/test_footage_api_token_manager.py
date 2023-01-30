@@ -1,10 +1,14 @@
 """ API Token Manager Tests. """
 import base64
-from datetime import datetime
 import json
+from datetime import datetime
 from unittest import mock
+
 import pytest
-from selector.footage_api_token_manager import FootageApiTokenManager, InvalidConfiguration
+from selector.footage_api_token_manager import FootageApiTokenManager
+from selector.footage_api_token_manager import InvalidConfiguration
+
+MOCK_ADDRESS = "http://example.local"
 
 
 @pytest.mark.unit
@@ -43,7 +47,7 @@ class TestFootageApiTokenManager():
         """ Test correct response from footage api auth. """
         # GIVEN
         footage_api_token_manager = FootageApiTokenManager(
-            token_endpoint="http://example.local", client_id="test_client_id", client_secret="test_client_secret")
+            token_endpoint=MOCK_ADDRESS, client_id="test_client_id", client_secret="test_client_secret")
 
         response_body = json.dumps({
             "access_token": "bla",
@@ -66,14 +70,14 @@ class TestFootageApiTokenManager():
         }
 
         mock_http_client.return_value.request.assert_called_once_with(
-            "POST", "http://example.local", headers=request_headers, body=request_encoded_body)
+            "POST", MOCK_ADDRESS, headers=request_headers, body=request_encoded_body)
 
     @mock.patch("urllib3.PoolManager")
     def test_incorrect_request_body_on_footage_api_call_auth(self, mock_http_client):
         """ Test incorrect response from footage api auth. """
         # GIVEN
         footage_api_token_manager = FootageApiTokenManager(
-            token_endpoint="http://example.local", client_id="test_client_id", client_secret="test_client_secret")
+            token_endpoint=MOCK_ADDRESS, client_id="test_client_id", client_secret="test_client_secret")
 
         mock_http_client.return_value.request.return_value.status = 400
 
@@ -90,7 +94,7 @@ class TestFootageApiTokenManager():
         """ Test incorrect response from footage api auth. """
         # GIVEN
         footage_api_token_manager = FootageApiTokenManager(
-            token_endpoint="http://example.local", client_id="test_client_id", client_secret="test_client_secret")
+            token_endpoint=MOCK_ADDRESS, client_id="test_client_id", client_secret="test_client_secret")
 
         mock_http_client.return_value.request.return_value.status = 200
         mock_http_client.return_value.request.return_value.data = b"invalid json"

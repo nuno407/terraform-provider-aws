@@ -1,7 +1,8 @@
 """ Selector component bussiness logic. """
-from datetime import datetime, timedelta
 import logging
+
 from selector.footage_api_wrapper import FootageApiWrapper
+
 _logger = logging.getLogger(__name__)
 
 
@@ -19,45 +20,6 @@ class Selector():
 
         self.footage_api_wrapper = footage_api_wrapper
 
-    def handle_selector_queue(self):
-        """ Function responsible for processing messages from SQS (component entrypoint). """
-        # Check input SQS queue for new messages
-        message = self.__container_services.listen_to_input_queue(self.__sqs_client)
-
-        if message:
-            self.__log_message(message)
-            # Processing request
-            self.__process_selector_message(message)
-
-            # Delete message after processing
-            self.__container_services.delete_message(self.__sqs_client, message["ReceiptHandle"])
-
-    def __process_selector_message(self, message: str):
-        message_body = self.__container_services.get_message_body(message)
-        _logger.info("Processing selector pipeline message..\n%s", message_body)
-
-        # Picking Device Id from header
-        if "value" in message_body and \
-            "properties" in message_body["value"] and \
-            "recording_info" in message_body["value"]["properties"] and \
-                "header" in message_body["value"]["properties"]:
-            msg_header = message_body["value"]["properties"]["header"]
-            device_id = msg_header.get("device_id")
-
-            recording_info = message_body["value"]["properties"].get("recording_info")
-
-            for event in [event for info in recording_info for event in info.get("events", [])]:
-                if event.get("value", "") != "0":
-                    timestamps = str(event.get("timestamp_ms"))
-                    cal_date = datetime.fromtimestamp(int(timestamps[:10]))
-
-                    prev_timestamp = int(datetime.timestamp(cal_date - timedelta(seconds=5)))
-                    post_timestamp = int(datetime.timestamp(cal_date + timedelta(seconds=5)))
-
-                    self.footage_api_wrapper.request_footage(device_id, prev_timestamp, post_timestamp)
-        else:
-            _logger.info("Not a valid Message")
-
     def handle_hq_queue(self):
         """ Function responsible for processing messages from SQS (component entrypoint). """
         # Check input SQS queue for new messages
@@ -65,14 +27,22 @@ class Selector():
 
         if message:
             # save some messages as examples for development
-            self.__log_message(message, "selector HQ")
+            self.log_message(message, "selector HQ")
             # Processing request
-            self.__process_hq_message(message)
+            success = self.__process_hq_message(message)
+            if success:
+                # Delete message after processing
+                self.__container_services.delete_message(self.__sqs_client, message["ReceiptHandle"], self.__hq_queue)
 
-            # Delete message after processing
-            self.__container_services.delete_message(self.__sqs_client, message["ReceiptHandle"], self.__hq_queue)
+    def __process_hq_message(self, message: str) -> bool:
+        """Logic to call the footage upload request
 
-    def __process_hq_message(self, message: str):
+        Args:
+            message (str): message read from the queue
+
+        Returns:
+            bool: Boolean indicating if the request succeeded.
+        """
         message_body = self.__container_services.get_message_body(message)
         _logger.info("Processing HQ pipeline message..\n%s", message_body)
 
@@ -82,11 +52,22 @@ class Selector():
             from_timestamp = message_body["footageFrom"]
             to_timestamp = message_body["footageTo"]
 
-            self.footage_api_wrapper.request_footage(device_id, from_timestamp, to_timestamp)
-
+            try:
+                self.footage_api_wrapper.request_footage(device_id, from_timestamp, to_timestamp)
+                return True
+            except Exception as error:  # pylint: disable=broad-except
+                _logger.error("Unexpected error occured when requesting footage: %s", error)
+                return False
         else:
             _logger.info("Not a valid Message")
+            return False
 
-    def __log_message(self, message, queue="selector"):
+    def log_message(self, message, queue="selector"):
+        """Logs messages
+
+        Args:
+            message (str): Message to be logged
+            queue (str, optional): Queue where the message came from. Defaults to "selector".
+        """
         _logger.info("Message contents from %s:\n", queue)
         _logger.info(message)

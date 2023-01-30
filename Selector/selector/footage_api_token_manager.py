@@ -1,10 +1,11 @@
 """ Token Management for RCC Footage API. """
 import base64
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Optional
 from urllib.parse import urlencode
+
 import urllib3
 
 _logger = logging.getLogger(__name__)
