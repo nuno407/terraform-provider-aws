@@ -19,7 +19,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
-_logger: logging.Logger = ContainerServices.configure_logging('basehandler')
+_logger: logging.Logger = ContainerServices.configure_logging("basehandler")
 
 # defaults to 10h
 INTERNAL_QUEUE_TIMEOUT = float(os.getenv("INTERNAL_QUEUE_TIMEOUT", "36000"))
@@ -457,8 +457,8 @@ class MessageHandler():
         while graceful_exit.continue_running:
             try:
                 self.on_process(mode)
-            except Exception:
-                _logger.info("Exiting consumer loop due to exception.")
+            except Exception:  # pylint: disable=broad-except
+                _logger.exception("Exiting consumer loop due to exception.")
                 break
 
 

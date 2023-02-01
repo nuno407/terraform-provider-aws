@@ -18,12 +18,10 @@ from basehandler.message_handler import (
     OperationalMessage,
     ProcessingOutOfSyncException,
     RequestProcessingFailed,
-    FileIsEmptyException,
-    IVS_FC_HOSTNAME,
-    IVS_FC_MAX_WAIT)
+    FileIsEmptyException)
 
 
-class TestMessageHandler():
+class TestMessageHandler():  # pylint: disable=too-many-public-methods
     """TestMessageHandler class.
 
     Provide test methods and fixture for the message_handler
@@ -617,6 +615,7 @@ class TestMessageHandler():
 
     @pytest.fixture
     def logger_fixture(self, mocker: MockFixture) -> Mock:
+        """ Logger Fixture. """
         return mocker.patch("basehandler.message_handler._logger")
 
     def test_request_processing_with_exception(self, message_handler_fix: Mock, logger_fixture: Mock):
@@ -651,12 +650,15 @@ class TestMessageHandler():
         }
         """
         logger_fixture.warning = Mock()
+        # Need to access protected member for testing. # pylint: disable=protected-access
         message_handler_fix._MessageHandler__container_services.download_file = Mock(return_value=None)
+        # Need to access protected member for testing. # pylint: disable=protected-access
         message_handler_fix._MessageHandler__container_services.delete_message = Mock()
 
         with pytest.raises(FileIsEmptyException):
             message_handler_fix.request_processing(body_json, "anon")
             logger_fixture.warning.assert_called_once()
+            # Need to access protected member for testing. # pylint: disable=protected-access
             message_handler_fix._MessageHandler__container_services.delete_message.assert_called_once()
 
     def test_start(self, message_handler_fix: Mock, logger_fixture: Mock):
@@ -667,10 +669,12 @@ class TestMessageHandler():
             logger_fixture (Mock): logger mock
             mocker (MockFixture): mocker helper
         """
+
+        # Need to access protected member for testing. # pylint: disable=protected-access
         message_handler_fix._MessageHandler__container_services.ivs_api["port"] = 2222
 
         message_handler_fix.consumer_loop = Mock()
         logger_fixture.info = Mock()
 
-        message_handler_fix.start('chc')
+        message_handler_fix.start("chc")
         logger_fixture.info.assert_called()

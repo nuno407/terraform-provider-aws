@@ -11,7 +11,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.message_handler import ErrorMessage, InternalMessage
 
-_logger: logging.Logger = ContainerServices.configure_logging('basehandler')
+_logger: logging.Logger = ContainerServices.configure_logging("basehandler")
 
 
 class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
@@ -20,7 +20,7 @@ class OutputEndpointParameters():  # pylint: disable=too-few-public-methods
     def __init__(self, container_services: ContainerServices,
                  mode: str,
                  aws_clients: AWSServiceClients,
-                 internal_queue: Queue[InternalMessage] = Queue(
+                 internal_queue: "Queue[InternalMessage]" = Queue(
                      maxsize=1),
                  ) -> None:
         """

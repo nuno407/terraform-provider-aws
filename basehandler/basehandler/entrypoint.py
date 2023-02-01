@@ -15,7 +15,7 @@ from basehandler.message_handler import (InternalMessage, MessageHandler,
 
 INTERNAL_QUEUE_MAX_SIZE = int(os.getenv("INTERNAL_QUEUE_MAX_SIZE", "1"))
 
-_logger: logging.Logger = ContainerServices.configure_logging('basehandler')
+_logger: logging.Logger = ContainerServices.configure_logging("basehandler")
 
 
 class CallbackBlueprintCreator(Protocol):  # pylint: disable=too-few-public-methods
