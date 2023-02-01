@@ -1,3 +1,4 @@
+""" Module that implements a blueprint endpoint creator """
 import os
 import threading
 
@@ -10,10 +11,13 @@ from basehandler.message_handler import InternalMessage
 from basehandler.message_handler import OperationalMessage
 
 
-class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
+class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):  # pylint: disable=too-few-public-methods
+    """
+    Anonymize blueprint endpoint factory
+    """
     @staticmethod
     def create(route_endpoint: str, notifier: OutputEndpointNotifier) -> Blueprint:
-        '''
+        """
         Args:
             route_endpoint (str): endpoint route to create the blueprint e.g: /anonymize
             notifier (OutputEndpointNotifier): notifier to start the upload video thread
@@ -21,8 +25,8 @@ class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
         Returns:
             blueprint (Blueprint): endpoint blueprint
 
-        '''
-        anon_output_bp = Blueprint('anon_output_bp', __name__)
+        """
+        anon_output_bp = Blueprint("anon_output_bp", __name__)
 
         @anon_output_bp.route(route_endpoint, methods=["POST"])
         def anonymize_output_handler() -> flask.Response:
@@ -31,10 +35,13 @@ class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
                 flask.request.form.get("path"),
                 flask.request.form.get("uid")
             ]
-            if any([param is None for param in mandatory_parameters]):
-                return flask.Response(status=400, response='bad request')
+            if any(param is None for param in mandatory_parameters):
+                return flask.Response(status=400, response="bad request")
 
-            file, uid, s3_path = flask.request.files["file"], flask.request.form["uid"], flask.request.form["path"]
+            requested_file = flask.request.files["file"]
+            uid = flask.request.form["uid"]
+            s3_path = flask.request.form["path"]
+
             path, file_format = os.path.splitext(s3_path)
             file_upload_path = path + "_anonymized" + file_format
 
@@ -46,11 +53,11 @@ class AnonymizeCallbackEndpointCreator(CallbackBlueprintCreator):
                 media_path=file_upload_path)
 
             thread = threading.Thread(target=notifier.upload_and_notify, kwargs={
-                'chunk': file.read(),
-                'path': file_upload_path,
-                'internal_message': internal_message})
+                "chunk": requested_file.read(),
+                "path": file_upload_path,
+                "internal_message": internal_message})
             thread.start()
 
-            return flask.Response(status=202, response='upload video to storage')
+            return flask.Response(status=202, response="upload video to storage")
 
         return anon_output_bp

@@ -1,6 +1,8 @@
+""" Module that implements a AnonymizePostProcessor"""
 import logging
 import os
 import subprocess  # nosec
+import sys
 from subprocess import CalledProcessError  # nosec
 
 from base.aws.container_services import ContainerServices
@@ -10,7 +12,8 @@ from basehandler.message_handler import OperationalMessage
 
 _logger: logging.Logger = ContainerServices.configure_logging("AnonymizePostProcessor")
 
-class AnonymizePostProcessor():
+
+class AnonymizePostProcessor():  # pylint: disable=too-few-public-methods
     """ AnonymizePostProcessor """
 
     # Defining temporary files names constants
@@ -18,15 +21,16 @@ class AnonymizePostProcessor():
     OUTPUT_NAME = "output_video.mp4"
     LOGS_NAME = "logs.txt"
 
-    def __init__(self, container_services: ContainerServices, aws_clients: AWSServiceClients, mocked: bool = False) -> None:
-        '''
+    def __init__(self, container_services: ContainerServices,
+                 aws_clients: AWSServiceClients, mocked: bool = False) -> None:
+        """
         Creates a post processor to convert the videos with ffmpeg when calling the run() method
 
         Args:
             container_services (ContainerServices): container services instance
             aws_clients (AWSServiceClients): aws boto3 clients wrapper
             mocked (bool): mocked
-        '''
+        """
         self.container_services = container_services
         self.aws_clients = aws_clients
         self.mocked = mocked
@@ -52,12 +56,12 @@ class AnonymizePostProcessor():
             os.remove(self.INPUT_NAME)
 
     def run(self, message_body: OperationalMessage) -> None:
-        '''
+        """
         Execute post processing using ffmpeg to convert the video files from AVI to MP4
 
         Args:
             message_body (dict): request body with the information
-        '''
+        """
 
         media_path = message_body.media_path
         path, file_format = os.path.splitext(media_path)
@@ -78,7 +82,7 @@ class AnonymizePostProcessor():
 
                 stat_result = os.stat(self.INPUT_NAME)
 
-                _logger.debug(f"Anonymized artifact downloaded file size: {stat_result.st_size}")
+                _logger.debug("Anonymized artifact downloaded file size: %d", stat_result.st_size)
 
                 # Convert .avi input file into .mp4 using ffmpeg
                 ffmpeg_command = " ".join(["/usr/bin/ffmpeg", "-y", "-i", self.INPUT_NAME, "-movflags",
@@ -100,15 +104,15 @@ class AnonymizePostProcessor():
                 self.container_services.upload_file(
                     self.aws_clients.s3_client, output_video, self.container_services.anonymized_s3, mp4_path)
             except CalledProcessError as err:
-                print(f'Error converting file with ffmpeg: {err.returncode}')
-                exit(1)
-            except Exception as err:
-                _logger.exception(f"Error during post-processing: {err}")
-                exit(1)
+                print("Error converting file with ffmpeg: %d", err.returncode)
+                sys.exit(1)
+            except Exception as err:  # pylint: disable=broad-except
+                _logger.exception("Error during post-processing: %s", str(err))
+                sys.exit(1)
             finally:
                 # Remove conversion video file
                 os.remove(self.OUTPUT_NAME)
         elif file_format in IMAGE_FORMATS:
             _logger.info("No conversion needed, artifact is an image")
         else:
-            _logger.error(f"File format {file_format} is unknown")
+            _logger.error("File format %s is unknown", file_format)
