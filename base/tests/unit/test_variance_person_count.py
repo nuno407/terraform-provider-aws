@@ -6,7 +6,7 @@ from pytest import fixture
 from base.variance_person_count import VariancePersonCount
 
 
-# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code
 class TestVariancePersonCounter:
     @fixture
     def variance_person_count(self):
@@ -53,7 +53,9 @@ class TestVariancePersonCounter:
         # THEN
         assert variance_person_count_value == 0
 
-    def test_pc_high_variance_max_person_count(self, variance_person_count: VariancePersonCount, pc_high_variance: dict):
+    def test_pc_high_variance_max_person_count(self,
+                                               variance_person_count: VariancePersonCount,
+                                               pc_high_variance: dict):
         # WHEN
         variance_person_count_value = variance_person_count._calculate_variance_person_count(  # type: ignore # pylint: disable=protected-access
             pc_high_variance)

@@ -20,7 +20,8 @@ class MaxPersonCount(Processor):
             "max_person_count": max_person_count
         }}
 
-    def _calculate_max_person_count(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> int:
+    def _calculate_max_person_count(self,
+                                    synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> int:
         # create list with pc frames
         max_person_count = max((cast(int, signals.get("PersonCount_value", 0))
                                 for signals in synchronized_signals.values()), default=0)

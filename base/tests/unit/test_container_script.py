@@ -2,9 +2,8 @@
 import json
 from unittest.mock import Mock
 
-import pytest
-from pathlib import Path
 import os
+import pytest
 from base.aws.container_services import ContainerServices
 
 
@@ -13,7 +12,9 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
 
     @staticmethod
     def load_json_artifact(artifact_path: str) -> dict:
-        with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/{artifact_path}", "r", encoding="utf-8") as file:
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/{artifact_path}",
+                  "r",
+                  encoding="utf-8") as file:
             return json.load(file)
 
     def test_list_s3_objects_more_1000(self, s3_client, rcc_bucket, rcc_s3_list_prefix):

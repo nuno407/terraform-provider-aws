@@ -37,7 +37,9 @@ class TestSumDoorClosed:
             timedelta(seconds=21): {"DoorClosedConfidence": 0.5}
         }
 
-    def test_sum_of_empty_signal_close_door_events(self, sum_door_closed: SumDoorClosed, empty_signal_sum_door_close: dict):
+    def test_sum_of_empty_signal_close_door_events(self,
+                                                   sum_door_closed: SumDoorClosed,
+                                                   empty_signal_sum_door_close: dict):
         # WHEN
         sum_door_closed_value = sum_door_closed._calculate_sum_door_closed(  # type: ignore # pylint: disable=protected-access
             empty_signal_sum_door_close)

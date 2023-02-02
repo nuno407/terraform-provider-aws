@@ -20,14 +20,16 @@ class VariancePersonCount(Processor):
             "variance_person_count": variance_person_count
         }}
 
-    def _calculate_variance_person_count(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> int:
+    def _calculate_variance_person_count(
+            self,
+            synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> float:
         # create list with pc frames
         person_count = list(cast(int, signals.get("PersonCount_value", None))
                             for signals in synchronized_signals.values())
         person_count = [i for i in person_count if i is not None]
 
         if len(person_count) == 0:
-            variance = 0
+            variance = float(0)
         else:
             mean = sum(person_count) / len(person_count)
             variance = sum((xi - mean) ** 2 for xi in person_count) / len(person_count)

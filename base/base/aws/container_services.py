@@ -237,11 +237,11 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         Returns:
             queue_url {string} -- [URL of the SQS queue]
         """
-        #_logger.debug("Getting queue URL for %s", queue_name)
+        # _logger.debug("Getting queue URL for %s", queue_name)
         # Request for queue url
         response = client.get_queue_url(QueueName=queue_name)
         queue_url = response["QueueUrl"]
-        #_logger.debug("Got queue URL for %s", queue_name)
+        # _logger.debug("Got queue URL for %s", queue_name)
 
         return queue_url
 
@@ -271,7 +271,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Receive message(s)
-        #_logger.debug("Receiving input message...")
+        # _logger.debug("Receiving input message...")
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
@@ -858,7 +858,8 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             return True
         except ClientError:  # pylint: disable=broad-except
             deviceid_error_message = f"""Could not access folder {s3_params.bucket}/{prefix} -
-                                         Tenant {s3_params.tenant} is accessible, but could not access device {s3_params.deviceid}"""
+                                         Tenant {s3_params.tenant} is accessible,
+                                         but could not access device {s3_params.deviceid}"""
             _logger.error(deviceid_error_message, extra={
                 "messageid": messageid})
 
@@ -890,7 +891,8 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                 s3_client, s3_object_params, messageid)
         except ClientError:  # pylint: disable=broad-except
             tenant_error_message = f"""Could not access {s3_object_params.bucket}/{prefix} -
-                                     our AWS IAM role is likely forbidden from accessing tenant {s3_object_params.tenant}"""
+                                     our AWS IAM role is likely forbidden
+                                     from accessing tenant {s3_object_params.tenant}"""
             _logger.error(tenant_error_message, extra={"messageid": messageid})
             return False
 

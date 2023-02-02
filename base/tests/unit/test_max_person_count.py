@@ -6,7 +6,7 @@ from pytest import fixture
 from base.max_person_count import MaxPersonCount
 
 
-# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code
 class TestMaxPersonCounter:
     @fixture
     def max_person_count(self):

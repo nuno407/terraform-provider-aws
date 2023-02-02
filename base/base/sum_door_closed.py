@@ -20,10 +20,11 @@ class SumDoorClosed(Processor):
             "sum_door_closed": sum_door_closed
         }}
 
-    def _calculate_sum_door_closed(self, synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> int:
+    def _calculate_sum_door_closed(self,
+                                   synchronized_signals: dict[timedelta, dict[str, Union[bool, int, float]]]) -> int:
         # create list with pc frames
         door_closed = list(cast(int, signals.get("DoorClosedConfidence", None))
-                            for signals in synchronized_signals.values())
+                           for signals in synchronized_signals.values())
         door_closed = [1 for i in door_closed if i is not None]
         sum_door_closed = sum(door_closed)
         _logger.info("Identified %s sum door closed", door_closed)
