@@ -149,7 +149,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
 
         assert not message_handler_fix.request_processing(body_json, "anon")
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="Anonymize")],
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "Anonymize"}],
                              indirect=True)
     def test_update_processing1(self, message_handler_fix: Mock):
         """Test update processing steps.
@@ -170,7 +170,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert relay_list["data_status"] == "processing"
         assert relay_list["s3_path"] == "Debug_Lync/deepsensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"  # pylint: disable=line-too-long
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="Anonymize")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "Anonymize"}], indirect=True)
     def test_update_processing2(self, message_handler_fix: Mock):
         """Test update processing steps.
 
@@ -188,7 +188,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert relay_list["data_status"] == "complete"
         assert relay_list["s3_path"] == "Debug_Lync/deepsensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"  # pylint: disable=line-too-long
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="CHC")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "CHC"}], indirect=True)
     def test_update_processing3(self, message_handler_fix: Mock):
         """Test update processing steps.
 
@@ -208,7 +208,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert relay_list["data_status"] == "processing"
         assert relay_list["s3_path"] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"  # pylint: disable=line-too-long
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="new_algo")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "new_algo"}], indirect=True)
     def test_update_processing4(self, message_handler_fix: Mock):
         """Test update processing steps.
 
@@ -230,7 +230,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert relay_list["data_status"] == "processing"
         assert relay_list["s3_path"] == "Debug_Lync/de.e,psensation_rc_srx_prod_e798ed3795b6a072330b19468203529be4bdd821_TrainingRecorder_1659430874012_1659430990857.mp4"  # pylint: disable=line-too-long
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="Anonymize")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "Anonymize"}], indirect=True)
     def test_handle_processing_output1(self, message_handler_fix: Mock):
         """Test update processing output.
 
@@ -282,7 +282,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert message_metadata["output"]["media_path"] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.mp4"  # pylint: disable=line-too-long
         assert message_metadata["output"]["meta_path"] == "-"
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="Anonymize")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "Anonymize"}], indirect=True)
     def test_handle_processing_output_out_of_sync(self, message_handler_fix: Mock):
         """Test update processing output.
 
@@ -307,7 +307,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
             message_handler_fix.handle_processing_output(
                 incoming_msg, internal_message)
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="new_algo")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "new_algo"}], indirect=True)
     def test_handle_processing_output2(self, message_handler_fix: Mock):
         """Test update processing output.
 
@@ -357,7 +357,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
         assert message_metadata["output"]["media_path"] == "Debug_Lync/tenant_TrainingRecorder_1659430874012_1659430990857_anonymized.jpg"  # pylint: disable=line-too-long
         assert message_metadata["output"]["meta_path"] == "-"
 
-    @pytest.mark.parametrize("message_handler_fix", [dict(consumer_name="Anonymize")], indirect=True)
+    @pytest.mark.parametrize("message_handler_fix", [{"consumer_name": "Anonymize"}], indirect=True)
     def test_handle_processing_output3(self, message_handler_fix: Mock):
         """Test update processing output.
 

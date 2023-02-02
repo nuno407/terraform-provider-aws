@@ -102,7 +102,7 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
             # THEN
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("client_api_handler", [dict(route_endpoint="/mock_test")], indirect=True)
+    @pytest.mark.parametrize("client_api_handler", [{"route_endpoint": "/mock_test"}], indirect=True)
     def test_new_endpoint(self, client_api_handler: APIHandler):
 
         # GIVEN
