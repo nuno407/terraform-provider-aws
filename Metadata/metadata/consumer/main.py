@@ -690,7 +690,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
 
         # Create/Update item on Algorithm Output DB if message is about algo output
         if 'output' in message:
-            process_outputs(recording_id, message, meatadata_collections, source)
+            process_outputs(recording_id, message, metadata_collections, source)
     else:
         _logger.info("Unexpected message source %s - %s, %s",
                      source, message, message_attributes)
