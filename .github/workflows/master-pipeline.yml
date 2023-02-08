@@ -311,7 +311,7 @@ jobs:
 
       - name: Build and push image to Amazon ECR
         id: build-image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
