@@ -1,0 +1,91 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../kubernetes_config/apps/dev/selector
+  - ../../kubernetes_config/apps/dev/mdfparser
+  - ../../kubernetes_config/apps/dev/sdm
+
+patches:
+  - target:
+      kind: Deployment
+      name: selector-deploy
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/affinity
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: FOOTAGE_API_PRE_SHARED_SECRET
+            value: supersecret
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: FOOTAGE_API_PRE_SHARED_CLIENT_ID
+            value: superclient
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ENDPOINT
+            value: "http://localstack:4566"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ACCESS_KEY_ID
+            value: "test"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_SECRET_ACCESS_KEY
+          value: "test"
+  - target:
+      kind: Deployment
+      name: mdfparser-deploy
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/affinity
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ENDPOINT
+            value: "http://localstack:4566"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ACCESS_KEY_ID
+            value: "test"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_SECRET_ACCESS_KEY
+          value: "test"
+  - target:
+      kind: Deployment
+      name: sdm-deploy
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/affinity
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ENDPOINT
+            value: "http://localstack:4566"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+            name: AWS_ACCESS_KEY_ID
+            value: "test"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AWS_SECRET_ACCESS_KEY
+          value: "test"

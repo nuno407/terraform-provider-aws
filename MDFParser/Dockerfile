@@ -22,5 +22,5 @@ COPY --chown=1000:3000 ./MDFParser/mdfparser/ /app/mdfparser/mdfparser
 WORKDIR /app/mdfparser
 RUN pip install -e .
 
-# Run MDFParser main by its package name
+# Run mdfparser main by its package name
 ENTRYPOINT [ "python", "-m", "mdfparser.main" ]

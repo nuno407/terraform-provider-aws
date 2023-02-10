@@ -1,0 +1,38 @@
+{
+    "Records": [
+        {
+            "eventVersion": "2.1",
+            "eventSource": "aws:s3",
+            "awsRegion": "eu-central-1",
+            "eventTime": "2023-02-15T14: 52: 43.393Z",
+            "eventName": "ObjectCreated:Put",
+            "userIdentity": {
+                "principalId": "AWS:AROARGFK2MFHDWSGBOBJK:soa9brg@bosch.com"
+            },
+            "requestParameters": {
+                "sourceIPAddress": "194.39.218.13"
+            },
+            "responseElements": {
+                "x-amz-request-id": "J7T2S1VN03CQ05YB",
+                "x-amz-id-2": "CLunZ3LRP4MP0ZGZljJP1M4wcXQiIhOO4Ojhe2YLZapea0aOmxYGgzNkDt1hothcejHkGKgJ6/b0DLLZ6mpWTq3hmuh6wEas"
+            },
+            "s3": {
+                "s3SchemaVersion": "1.0",
+                "configurationId": "tf-s3-queue-20230213164902048500000003",
+                "bucket": {
+                    "name": "dev-ims-anonymized",
+                    "ownerIdentity": {
+                        "principalId": "A3E9KWDMMU5QMC"
+                    },
+                    "arn": "arn:aws:s3: : :dev-ims-anonymized"
+                },
+                "object": {
+                    "key": "20221021_RC_TestDataset/20220817T110834/meta.json",
+                    "size": 12139,
+                    "eTag": "a6a38e73950652060d99888b8b87bd62",
+                    "sequencer": "0063ECF1BB556CE649"
+                }
+            }
+        }
+    ]
+}

@@ -23,5 +23,5 @@ COPY --chown=1000:3000 ./SDM/setup.py /app/sdm/setup.py
 WORKDIR /app/sdm
 RUN pip install -e .
 
-# Run SDM python script
+# Run sdm python script
 ENTRYPOINT [ "python", "-m", "sdm.main"]

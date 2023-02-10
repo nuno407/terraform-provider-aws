@@ -13,15 +13,15 @@ USER 1000
 COPY --chown=1000:3000 ./base /app/base
 
 # Copy requirements.txt
-COPY --chown=1000:3000 ./Selector/requirements.txt /app/Selector/requirements.txt
-WORKDIR /app/Selector
+COPY --chown=1000:3000 ./Selector/requirements.txt /app/selector/requirements.txt
+WORKDIR /app/selector
 RUN pip install -r requirements.txt
 
 # Copy application code
-COPY --chown=1000:3000 ./Selector/selector/ /app/Selector/selector
-COPY --chown=1000:3000 ./Selector/setup.py /app/Selector/setup.py
+COPY --chown=1000:3000 ./Selector/selector/ /app/selector/selector
+COPY --chown=1000:3000 ./Selector/setup.py /app/selector/setup.py
 
-WORKDIR /app/Selector
+WORKDIR /app/selector
 RUN pip install -e .
 
 # Run anon_ivschain main by its package name

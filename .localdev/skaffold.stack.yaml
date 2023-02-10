@@ -1,0 +1,48 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: infrastructure-deploy
+manifests:
+  kustomize:
+    paths:
+      # creates base infrastructure stuff. Namespace, ingress, etc
+      - ../../kubernetes_config/apps/dev/data-ingestion
+  rawYaml:
+    # Job used to apply infrastruture to localstack
+    - ../../tf_infrastructure/job.yml
+
+build:
+    local:
+      push: false
+    artifacts:
+      - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/localstack-apply
+        context: ../../tf_infrastructure
+        docker:
+          dockerfile: Dockerfile
+
+deploy:
+  # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+  kubeContext: kind-kind
+
+  helm:
+    releases:
+      - name: localstack
+        repo: https://localstack.github.io/helm-charts
+        remoteChart: localstack
+        version: 0.5.5
+        namespace: data-ingestion
+        createNamespace: true
+        setValues:
+          service:
+            type: ClusterIP
+          # We want to have persistance on the stack
+          persistence:
+            enabled: true
+
+portForward:
+# we forward the localstack port in order to apply changes
+  - resourceType: Service
+    resourceName: localstack
+    namespace: data-ingestion
+    port: 4566
+    localPort: 4566

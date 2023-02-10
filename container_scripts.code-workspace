@@ -16,19 +16,19 @@
 			"path": "./frontend"
 		},
 		{
-			"path": "./MDFParser"
+			"path": "./mdfparser"
 		},
 		{
-			"path": "./Metadata"
+			"path": "./metadata"
 		},
 		{
-			"path": "./SDM"
+			"path": "./sdm"
 		},
 		{
-			"path": "./SDRetriever"
+			"path": "./sdretriever"
 		},
 		{
-			"path": "./Selector"
+			"path": "./selector"
 		},
 		{
 			"path": "./sanitizer"

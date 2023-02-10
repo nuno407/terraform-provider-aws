@@ -1,0 +1,41 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: container-scripts
+manifests:
+  kustomize:
+    paths:
+      # this should include all our services (only selector for now)
+      - kustomization.yml
+    buildArgs:
+      - "--load_restrictor=LoadRestrictionsNone"
+build:
+    local:
+      push: false
+      concurrency: 3
+    artifacts:
+      #SDM
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdm
+      context: ..
+      docker:
+        dockerfile: sdm/Dockerfile
+      runtimeType: python
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/selector
+      context: ..
+      docker:
+        dockerfile: selector/Dockerfile
+      runtimeType: python
+      #MDFParser
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/mdfparser
+      context: ..
+      docker:
+        dockerfile: mdfparser/Dockerfile
+      runtimeType: python
+deploy:
+  # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+  kubeContext: kind-kind
+
+profiles:
+- name: local
+  activation:
+    - kubeContext: kind-kind

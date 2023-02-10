@@ -1,4 +1,5 @@
 """SDM container script"""
+import os
 from pathlib import Path
 
 from typing import Optional
@@ -181,7 +182,7 @@ def main(stop_condition=lambda: True):
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    sqs_client = boto3.client("sqs", region_name="eu-central-1")
+    sqs_client = boto3.client("sqs", region_name="eu-central-1", endpoint_url=os.getenv("AWS_ENDPOINT", None))
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
