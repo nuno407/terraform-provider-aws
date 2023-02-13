@@ -152,6 +152,13 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
         }
     }
 
+    recording_entry_result = collection_rec.find_one(
+        {'video_id': message["_id"]})
+
+    if recording_entry_result:
+        _logger.warning("The snapshot already exists in the database, will not be appended to the correlated references")
+        return recording_item
+
     find_and_update_media_references(related_media_paths, update_query={
         "$inc": {"recording_overview.#snapshots": 1},
         "$push": {

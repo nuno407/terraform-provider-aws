@@ -238,6 +238,7 @@ class TestMetadataMain():
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=given_related_videos)
         mock_collection = Mock()
+        mock_collection.find_one = Mock(return_value=None)
         mock_collection.find_one_and_update = Mock()
         input_message = _snapshot_message_body(given_snapshot_id)
         snapshot_recording = create_snapshot_recording_item(
@@ -260,6 +261,34 @@ class TestMetadataMain():
                 "$inc": {
                     "recording_overview.#snapshots": 1}, "$push": {
                     "recording_overview.snapshots_paths": given_snapshot_id}}, recordings_collection=mock_collection)
+
+    @pytest.mark.unit
+    def test_create_snapshot_recording_item_duplicated(self, fixture_find_and_update_media_references: Mock):
+        """test_create_snapshot_recording_item."""
+        given_related_videos = ["test_videoid1", "test_videoid2"]
+        given_snapshot_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"
+        mock_media_svc = Mock()
+        mock_media_svc.get_related = Mock(return_value=given_related_videos)
+        mock_collection = Mock()
+        mock_collection.find_one = Mock(return_value="mocked_value")
+        mock_collection.find_one_and_update = Mock()
+        input_message = _snapshot_message_body(given_snapshot_id)
+        snapshot_recording = create_snapshot_recording_item(
+            input_message, mock_collection, mock_media_svc)
+        expected_recording_item = {
+            # we have the key for snapshots named as "video_id" due to legacy reasons...
+            "video_id": input_message["_id"],
+            "_media_type": input_message["media_type"],
+            "filepath": "s3://" + input_message["s3_path"],
+            "recording_overview": {
+                "tenantID": input_message["tenant"],
+                "deviceID": input_message["deviceid"],
+                "source_videos": list(given_related_videos),
+                "internal_message_reference_id": input_message["internal_message_reference_id"]
+            }
+        }
+        assert snapshot_recording == expected_recording_item
+        fixture_find_and_update_media_references.assert_not_called()
 
     @pytest.mark.unit
     def test_create_video_recording_item(self, fixture_find_and_update_media_references: Mock):
@@ -306,6 +335,7 @@ class TestMetadataMain():
     def test_create_recording_item(self, message_body, source_videos, expected_outcome,
                                    fixture_find_and_update_media_references: Mock):
         mock_collection = Mock()
+        mock_collection.find_one = Mock(return_value=None)
         mock_collection.find_one_and_update = Mock()
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=source_videos)
