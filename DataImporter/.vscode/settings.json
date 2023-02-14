@@ -1,0 +1,19 @@
+{
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "autopep8",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.banditEnabled": true,
+    "sonarlint.connectedMode.project": {
+        "connectionId": "https-sonarqube-ai-dev-bosch-ridecare-com",
+        "projectKey": "bosch-rc-dev_container_scripts"
+    },
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "-o",
+        "addopts=''",
+    ],
+}
