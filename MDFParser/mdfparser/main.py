@@ -66,7 +66,7 @@ def main(config: MdfParserConfig):
 
     while (graceful_exit.continue_running):
         _logger.debug('Listening to input queue.')
-        message = container_services.listen_to_input_queue(sqs_client, config.input_queue)
+        message = container_services.get_single_message_from_input_queue(sqs_client, config.input_queue)
         if message:
             # check message has the required fields
             if not ('Body' in message and '_id' in message['Body'] and 's3_path' in message['Body']):

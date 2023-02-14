@@ -245,7 +245,35 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         return queue_url
 
-    def listen_to_input_queue(self, client, input_queue=None):
+    def get_single_message_from_input_queue(self, client, input_queue=None):
+        # listen to 1 message
+        """Logs into the input SQS queue of a given container
+        and checks for new messages.
+
+        - If the queue is empty, it waits up until 20s for
+        new messages before continuing
+
+        Arguments:
+            client {boto3.client} -- [client used to access the SQS service]
+            input_queue {string} -- [Name of the input queue to listen to.
+                                     If None, the default input queue
+                                     (defined in self.__queues["input"]) is
+                                     used instead]
+        Returns:
+            message {dict} -- [dict with the received message content
+                               (for more info please check the response syntax
+                               of the Boto3 SQS.client.receive_message method).
+                               If no message is received, returns None]
+        """
+
+        result = self.get_multiple_messages_from_input_queue(client, input_queue, max_number_of_messages=1)
+        if len(result) == 1:
+            return result[0]
+
+        return None
+
+
+    def get_multiple_messages_from_input_queue(self, client, input_queue=None, max_number_of_messages=1):
         """Logs into the input SQS queue of a given container
         and checks for new messages.
 
@@ -271,35 +299,29 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         input_queue_url = self.get_sqs_queue_url(client, input_queue)
 
         # Receive message(s)
-        # _logger.debug("Receiving input message...")
         response = client.receive_message(
             QueueUrl=input_queue_url,
             AttributeNames=[
                 "SentTimestamp",
                 "ApproximateReceiveCount"
             ],
-            MaxNumberOfMessages=1,
+            MaxNumberOfMessages=max_number_of_messages,
             MessageAttributeNames=[
                 "All"
             ],
             WaitTimeSeconds=20
         )
 
-        # Initialise message variable with default value
-        message = None
-
         # If queue has new messages
         if "Messages" in response:
-            # Select the first message received
-            # (by default, it only receives 1 message
-            # per enquiry - set above by MaxNumberOfMessages parameter)
-            message = response["Messages"][0]
-            _logger.info("Message [%s] received!", message["MessageId"])
-            _logger.debug("-> queue:  %s", input_queue)
-            self.__message_receive_times[message["ReceiptHandle"]] = datetime.now(
-            )
+            for message in response["Messages"]:
+                _logger.info("Message [%s] received!", message["MessageId"])
+                _logger.debug("-> queue:  %s", input_queue)
+                self.__message_receive_times[message["ReceiptHandle"]] = datetime.now()
+            return response["Messages"]
 
-        return message
+        return []
+
 
     @staticmethod
     def configure_logging(component_name: str) -> logging.Logger:

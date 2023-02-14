@@ -168,7 +168,7 @@ def main(stop_condition=lambda: True):
 
     while stop_condition():
         # Check input SQS queue for new messages
-        sqs_message = container_services.listen_to_input_queue(sqs_client)
+        sqs_message = container_services.get_single_message_from_input_queue(sqs_client)
 
         if sqs_message:
             # save some messages as examples for development

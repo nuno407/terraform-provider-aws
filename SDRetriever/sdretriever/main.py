@@ -104,7 +104,7 @@ def main(config: SDRetrieverConfig):
 
         # Poll source (SQS queue) for a new message
         source = SRC.get_source()
-        message = CS.listen_to_input_queue(SQS_CLIENT, source)
+        message = CS.get_single_message_from_input_queue(SQS_CLIENT, source)
 
         if message:
 

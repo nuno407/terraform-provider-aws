@@ -776,7 +776,7 @@ def main():
 
     while graceful_exit.continue_running:
         # Check input SQS queue for new messages
-        message = container_services.listen_to_input_queue(sqs_client)
+        message = container_services.get_single_message_from_input_queue(sqs_client)
 
         if message:
             _logger.info(message)

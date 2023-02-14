@@ -365,7 +365,7 @@ class MessageHandler():
         container_services = self.__container_services
         internal_queue = self.__internal_queue
         aws_clients = self.__aws_clients
-        incoming_message = container_services.listen_to_input_queue(
+        incoming_message = container_services.get_single_message_from_input_queue(
             aws_clients.sqs_client)
 
         if not incoming_message:

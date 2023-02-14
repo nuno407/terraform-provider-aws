@@ -23,7 +23,7 @@ class Selector():
     def handle_hq_queue(self):
         """ Function responsible for processing messages from SQS (component entrypoint). """
         # Check input SQS queue for new messages
-        message = self.__container_services.listen_to_input_queue(self.__sqs_client, self.__hq_queue)
+        message = self.__container_services.get_single_message_from_input_queue(self.__sqs_client, self.__hq_queue)
 
         if message:
             # save some messages as examples for development
