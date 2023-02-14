@@ -28,7 +28,7 @@ def main(stop_condition=lambda: True):
 
     while stop_condition():
         # Check input SQS queue for new messages
-        sqs_messages = container_services.get_multiple_messages_from_input_queue(sqs_client, input_queue=DATA_IMPORTER_QUEUE, max_number_of_messages = 100)
+        sqs_messages = container_services.get_multiple_messages_from_input_queue(sqs_client, input_queue=DATA_IMPORTER_QUEUE, max_number_of_messages = 10)
 
         _logger.info("Batch received!")
         for message in sqs_messages:
