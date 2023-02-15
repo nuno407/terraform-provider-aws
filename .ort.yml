@@ -37,6 +37,10 @@ curations:
     curations:
       concluded_license: "Apache-2.0"
       comment: "Scanner was incorrectly detecting additional licenses, but package is under Apache 2.0"
+  - id: "PyPI::typing-extensions:4.4.0"
+    curations:
+      concluded_license: "PSF-2.0"
+      comment: "Scanner was incorrectly detecting additional licenses, but package is under PSF-2.0"
   - id: "NPM:@bci-web-core:core"
     curations:
       comment: |
