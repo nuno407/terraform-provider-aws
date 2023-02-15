@@ -12,6 +12,12 @@ excludes:
     - pattern: "**/requirements_dev.txt"
       reason: "BUILD_TOOL_OF"
       comment: "Packages for development only."
+    - pattern: "**/local_env/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "Configuration for developer environment only"
+    - pattern: "**/.localdev/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "Configuration for developer environment only"
   scopes:
     - pattern: "devDependencies"
       reason: "DEV_DEPENDENCY_OF"
