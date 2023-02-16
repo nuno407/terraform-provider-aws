@@ -246,9 +246,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         return queue_url
 
     def get_single_message_from_input_queue(self, client, input_queue=None):
-        # listen to 1 message
-        """Logs into the input SQS queue of a given container
-        and checks for new messages.
+        """Uses get_multiple_messages_from_input_queue to fetch a single message
 
         - If the queue is empty, it waits up until 20s for
         new messages before continuing
@@ -260,10 +258,10 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                                      (defined in self.__queues["input"]) is
                                      used instead]
         Returns:
-            message {dict} -- [dict with the received message content
-                               (for more info please check the response syntax
-                               of the Boto3 SQS.client.receive_message method).
-                               If no message is received, returns None]
+            message -- [the received message content
+                        (for more info please check the response syntax
+                        of the Boto3 SQS.client.receive_message method).
+                        If no message is received, returns None]
         """
 
         result = self.get_multiple_messages_from_input_queue(client, input_queue, max_number_of_messages=1)
@@ -272,13 +270,14 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         return None
 
-
     def get_multiple_messages_from_input_queue(self, client, input_queue=None, max_number_of_messages=1):
         """Logs into the input SQS queue of a given container
         and checks for new messages.
 
         - If the queue is empty, it waits up until 20s for
         new messages before continuing
+
+        - Returns a batch of messages ranging from 0 to 10 messages.
 
         Arguments:
             client {boto3.client} -- [client used to access the SQS service]
@@ -321,7 +320,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             return response["Messages"]
 
         return []
-
 
     @staticmethod
     def configure_logging(component_name: str) -> logging.Logger:

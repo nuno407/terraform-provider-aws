@@ -1,4 +1,4 @@
-"""SDM container script"""
+"""DataImporter container script"""
 import json
 import boto3
 import os
@@ -31,40 +31,38 @@ class SQSMessage():
         _logger.info("file_path: %s", self.file_path)
         _logger.info("file_extension: %s", self.file_extension)
 
+    # Parses a SQS Message
+    @classmethod
+    def from_raw_sqs_message(cls, sqs_message):
+        body = sqs_message['Body'].replace("\'", "\"")
+        sqs_body = json.loads(body)
+
+        principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
+
+        bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
+        file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
+        file_extension = file_path.suffix.strip(".") if file_path.suffix != '' else None
+
+        return SQSMessage(principal_id, bucket_name, file_path, file_extension)
+
 
 # Class for parsed SQS Message Batch
 @dataclass
 class SQSMessageBatch():
     messages: List[SQSMessage] = field(default_factory=list) # list of SQS Messages
-    batch_size: int = 0 # batch_size defaults to 0
 
     # Add parsed SQS Message to batch
     def add_message(self, sqsmessage : SQSMessage):
         self.messages.append(sqsmessage)
-        self.batch_size = self.batch_size + 1
 
     # Gets batch size
     def get_batch_size(self) -> int:
-        return self.batch_size
+        return len(self.messages)
 
     # Logs the messages content
     def print_messages(self):
         for message in self.messages:
             message.print_message()
-
-
-# Parses a SQS Message
-def message_parsing(sqs_message) -> SQSMessage:
-    body = sqs_message['Body'].replace("\'", "\"")
-    sqs_body = json.loads(body)
-
-    principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
-
-    bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
-    file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
-    file_extension = file_path.suffix.strip(".") if file_path.suffix != '' else None
-
-    return SQSMessage(principal_id, bucket_name, file_path, file_extension)
 
 
 def main(stop_condition=lambda: True):
@@ -96,7 +94,7 @@ def main(stop_condition=lambda: True):
             _logger.info("Message contents from %s: [%s]", CONTAINER_NAME, message)
 
             # Processing step
-            parsed_message = message_parsing(message)
+            parsed_message = SQSMessage.from_raw_sqs_message(message)
             message_batch.add_message(parsed_message)
 
             # Delete message after processing
