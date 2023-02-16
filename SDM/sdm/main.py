@@ -1,21 +1,27 @@
 """SDM container script"""
-import json
-import boto3
+from pathlib import Path
+
 from typing import Optional
 from dataclasses import dataclass
+import json
 from base.aws.container_services import ContainerServices
+
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
-from pathlib import Path
+import boto3
+
 
 CONTAINER_NAME = "SDM"          # Name of the current container
 CONTAINER_VERSION = "v6.2"      # Version of the current container
 MINIMUM_LENGTH = 4              # Minimum length allowed a/b.c
 
-_logger = ContainerServices.configure_logging('sdm')
+_logger = ContainerServices.configure_logging("sdm")
 
 
 @dataclass
 class FileMetadata():
+    """ class for file metadata
+    Contains the file directory(path), file name and file format
+    """
     msp: Optional[str]
     filename: Optional[str]
     file_format: Optional[str]
@@ -34,9 +40,9 @@ def identify_file(s3_path: str) -> FileMetadata:
         return FileMetadata(None, None, None)
 
     pathlib_s3 = Path(s3_path)
-    file_format = pathlib_s3.suffix.strip(".") if pathlib_s3.suffix != '' else None
+    file_format = pathlib_s3.suffix.strip(".") if pathlib_s3.suffix != "" else None
     msp = None
-    if s3_path.find('/') > 0:
+    if s3_path.find("/") > 0:
         msp = str(pathlib_s3.parent)
 
         file_name = pathlib_s3.name
@@ -60,10 +66,10 @@ def processing_sdm(container_services, sqs_client, sqs_message):
                             and to be sent via message to the input queues
                             of the relevant containers]
     """
-    relay_data = dict()
+    relay_data = {}
     # Converts message body from string to dict
     # (in order to perform index access)
-    new_body = sqs_message['Body'].replace("\'", "\"")
+    new_body = sqs_message["Body"].replace("\"", "\"")
     sqs_body = json.loads(new_body)
 
     # Ignore s3:TestEvent
@@ -90,6 +96,7 @@ def processing_sdm(container_services, sqs_client, sqs_message):
         _logger.info(sqs_message)
         return relay_data
 
+    # pylint: disable=fixme
     # TODO: find place to store file formats (video/image) - container_scripts, global var, env var, ...?
     if file_format in VIDEO_FORMATS:
 
@@ -148,8 +155,8 @@ def main(stop_condition=lambda: True):
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    s3_client = boto3.client('s3', region_name='eu-central-1')
-    sqs_client = boto3.client('sqs', region_name='eu-central-1')
+    s3_client = boto3.client("s3", region_name="eu-central-1")
+    sqs_client = boto3.client("sqs", region_name="eu-central-1")
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
@@ -171,8 +178,8 @@ def main(stop_condition=lambda: True):
             processing_sdm(container_services, sqs_client, sqs_message)
 
             # Delete message after processing
-            container_services.delete_message(sqs_client, sqs_message['ReceiptHandle'])
+            container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

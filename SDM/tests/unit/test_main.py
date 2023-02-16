@@ -2,7 +2,6 @@
 import json
 from unittest import mock
 from unittest.mock import Mock
-import os
 import pytest
 from pytest_mock import MockerFixture
 from sdm.main import identify_file, processing_sdm, FileMetadata, main
@@ -28,9 +27,9 @@ class TestMain():
     @pytest.fixture
     def mock_container_services(self, mocker: MockerFixture):
         """ Mock ContainerServices. """
-        mock = mocker.patch("sdm.main.ContainerServices")
-        mock.msp_steps = {"TEST_MSP": ["test1", "test2", "CHC"]}
-        return mock
+        mock_container = mocker.patch("sdm.main.ContainerServices")
+        mock_container.msp_steps = {"TEST_MSP": ["test1", "test2", "CHC"]}
+        return mock_container
 
     @pytest.mark.unit
     @pytest.mark.parametrize("s3_path,expect_metadata", [
@@ -163,7 +162,7 @@ class TestMain():
             {}
         )
     ])
-    def test_processing_sdm_exception(self, mock_container_services: Mock, sqs_message: str, expected_relay_data: dict):
+    def test_processing_sdm_exception(self, mock_container_services: Mock, sqs_message: str, expected_relay_data: dict):   # pylint: disable=unused-argument
         """ Test SDM. """
         # WHEN
         with pytest.raises(ValueError):
