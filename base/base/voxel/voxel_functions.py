@@ -16,10 +16,9 @@ def create_dataset(bucket_name):
         bucket_name: Dataset name to load or create
     """
     if fo.dataset_exists(bucket_name):
-        dataset = fo.load_dataset(bucket_name)
+        fo.load_dataset(bucket_name)
     else:
-        dataset = fo.Dataset(bucket_name, True)
-        dataset.persistent = True
+        fo.Dataset(bucket_name, persistent=True)
 
 
 def update_sample(data_set, sample_info):
@@ -39,8 +38,7 @@ def update_sample(data_set, sample_info):
 
     try:
         sample = dataset.one(F("video_id") == sample_info["video_id"])
-
-    except Exception:  # pylint: disable=broad-except
+    except ValueError:
         sample = fo.Sample(filepath=sample_info["s3_path"])
         dataset.add_sample(sample)
 
