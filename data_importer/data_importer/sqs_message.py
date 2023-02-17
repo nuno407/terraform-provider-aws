@@ -1,0 +1,57 @@
+import json
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from base.aws.container_services import ContainerServices
+
+_logger = ContainerServices.configure_logging(__name__)
+
+
+@dataclass
+class SQSMessage():
+    principal_id: str
+    bucket_name: str
+    file_path: str
+    file_extension: str
+    dataset: str
+    full_path: str = field(init=False)
+
+    def __post_init__(self):
+        self.full_path = f"s3://{self.bucket_name}/{self.file_path}"
+
+    # Logs the message
+    def print_message(self):
+        """
+        Print message attributes to log.
+        """
+        _logger.info("Message")
+        _logger.info("principal_id: %s", self.principal_id)
+        _logger.info("bucket_name: %s", self.bucket_name)
+        _logger.info("file_path: %s", self.file_path)
+        _logger.info("file_extension: %s", self.file_extension)
+        _logger.info("dataset: %s", self.dataset)
+        _logger.info("full_path: %s", self.full_path)
+
+    @classmethod
+    def from_raw_sqs_message(cls, sqs_message):
+        """
+        Creates an SQS Message object from parsing a raw message
+
+        :param sqs_message: Raw message to parse
+        :return: parsed SQSMessage
+        """
+        body = sqs_message['Body'].replace("\'", "\"")
+        sqs_body = json.loads(body)
+
+        principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
+
+        bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
+        file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
+        file_extension = file_path.suffix.strip(".") if file_path.suffix != '' else None
+
+        (directory_structure, _) = os.path.split(file_path)
+        dir_splits = str.split(directory_structure, "/")
+        dataset = dir_splits[0] if dir_splits[0] != '' else 'default'
+
+        return SQSMessage(principal_id, bucket_name, str(file_path), file_extension, dataset)

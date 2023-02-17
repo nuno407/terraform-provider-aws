@@ -1,71 +1,56 @@
 """DataImporter container script"""
-import json
-import boto3
 import os
-from base.aws.container_services import ContainerServices
-from dataclasses import dataclass, field
-from typing import Optional
-from typing import List
-from pathlib import Path
 
-CONTAINER_NAME = "DataImporter" # Name of the current container
-CONTAINER_VERSION = "v1.0"      # Version of the current container
+import boto3
+from base import GracefulExit
+from base.aws.container_services import ContainerServices
+from data_importer.fiftyone_importer import FiftyoneImporter
+from data_importer.processor_repository import ProcessorRepository
+from data_importer.sqs_message import SQSMessage
+
+CONTAINER_NAME = "DataImporter"  # Name of the current container
+CONTAINER_VERSION = "v1.0"  # Version of the current container
 DATA_IMPORTER_QUEUE = os.environ.get("DATA_IMPORTER_QUEUE")
 
-_logger = ContainerServices.configure_logging('dataimporter')
+DATA_OWNER = "IMS"
+
+_logger = ContainerServices.configure_logging(__name__)
 
 
-# Class for parsed SQS Message
-@dataclass
-class SQSMessage():
-    principal_id: str
-    bucket_name: str
-    file_path: str
-    file_extension: str
+def process_message(container_services, importer, s3_client, sqs_client):
+    """
+    Gets a message from the queue, determines what type of file was uploaded and inserts it as a Fiftyone sample
 
-    # Logs the message
-    def print_message(self):
-        _logger.info("Message")
-        _logger.info("principal_id: %s", self.principal_id)
-        _logger.info("bucket_name: %s", self.bucket_name)
-        _logger.info("file_path: %s", self.file_path)
-        _logger.info("file_extension: %s", self.file_extension)
+    :param container_services: container_services instance
+    :param importer: Fiftyone importer
+    :param s3_client: Boto S3 client to fetch files with
+    :param sqs_client: SQS client to get messages
+    """
+    # Check input SQS queue for new messages
+    sqs_message = container_services.get_single_message_from_input_queue(sqs_client, input_queue=DATA_IMPORTER_QUEUE)
 
-    # Parses a SQS Message
-    @classmethod
-    def from_raw_sqs_message(cls, sqs_message):
-        body = sqs_message['Body'].replace("\'", "\"")
-        sqs_body = json.loads(body)
+    if sqs_message:
+        _logger.info("Received a message")
 
-        principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
+        parsed_message = SQSMessage.from_raw_sqs_message(sqs_message)
 
-        bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
-        file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
-        file_extension = file_path.suffix.strip(".") if file_path.suffix != '' else None
+        processor = ProcessorRepository.get_processor(parsed_message.file_extension)
 
-        return SQSMessage(principal_id, bucket_name, file_path, file_extension)
+        dataset = importer.load_dataset(f"{DATA_OWNER}-{parsed_message.dataset}", [DATA_OWNER])
 
+        # FIXME: Dependencies to subprocessors should be passed by DI and never like this
+        metadata = processor.load_metadata(parsed_message, s3_client=s3_client, container_services=container_services)
 
-# Class for parsed SQS Message Batch
-@dataclass
-class SQSMessageBatch():
-    messages: List[SQSMessage] = field(default_factory=list) # list of SQS Messages
+        parsed_message.print_message()
 
-    # Add parsed SQS Message to batch
-    def add_message(self, sqsmessage : SQSMessage):
-        self.messages.append(sqsmessage)
+        # Find or create a new Sample with the given metadata
+        importer.upsert_sample(dataset, parsed_message.full_path, metadata)
 
-    # Gets batch size
-    def get_batch_size(self) -> int:
-        return len(self.messages)
-
-    # Logs the messages content
-    def print_messages(self):
-        for message in self.messages:
-            message.print_message()
+        # Delete message after processing
+        container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"], input_queue=DATA_IMPORTER_QUEUE)
 
 
-def main(stop_condition=lambda: True):
+def main():
     """Main function"""
 
     # Define configuration for logging messages
@@ -73,34 +58,24 @@ def main(stop_condition=lambda: True):
 
     # Create the necessary clients for AWS services access
     sqs_client = boto3.client('sqs', region_name='eu-central-1')
+    s3_client = boto3.client(service_name="s3", region_name="eu-central-1")
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
 
     # Load global variable values from config json file (S3 bucket)
 
-    _logger.info("\nListening to input queue(s)..\n\n")
+    importer = FiftyoneImporter()
+    # Loading all processors from processors folder
+    ProcessorRepository.load_all_processors()
 
-    while stop_condition():
-        # Check input SQS queue for new messages
-        sqs_messages = container_services.get_multiple_messages_from_input_queue(sqs_client, input_queue=DATA_IMPORTER_QUEUE, max_number_of_messages = 10)
+    graceful_exit = GracefulExit()
 
-        _logger.info("Batch received!")
+    _logger.info("Listening to input queue...")
 
-        message_batch = SQSMessageBatch()
+    while graceful_exit.continue_running:
+        process_message(container_services, importer, s3_client, sqs_client)
 
-        for message in sqs_messages:
-            # save some messages as examples for development
-            _logger.info("Message contents from %s: [%s]", CONTAINER_NAME, message)
 
-            # Processing step
-            parsed_message = SQSMessage.from_raw_sqs_message(message)
-            message_batch.add_message(parsed_message)
-
-            # Delete message after processing
-            container_services.delete_message(sqs_client, message['ReceiptHandle'], input_queue=DATA_IMPORTER_QUEUE)
-
-        message_batch.print_messages()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
