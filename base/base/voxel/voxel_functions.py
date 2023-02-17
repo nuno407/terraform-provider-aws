@@ -9,8 +9,12 @@ _logger = logging.getLogger(__name__)
 
 
 def create_dataset(bucket_name):
-    """ Creates voxel datasets. """
+    """
+    Creates a voxel dataset with the given name or loads it if it already exists.
 
+    Args:
+        bucket_name: Dataset name to load or create
+    """
     if fo.dataset_exists(bucket_name):
         dataset = fo.load_dataset(bucket_name)
     else:
@@ -19,11 +23,17 @@ def create_dataset(bucket_name):
 
 
 def update_sample(data_set, sample_info):
-    """ Creates a voxel sample (entry inside the provided dataset). """
+    """
+    Creates a voxel sample (entry inside the provided dataset).
+
+    Args:
+        data_set: Dataset to add the sample to; needs to exist but is automatically loaded
+        sample_info: Metadata to add to the sample
+    """
 
     dataset = fo.load_dataset(data_set)
 
-    # If the sample already exists, update it"s information, otherwise create a new one
+    # If the sample already exists, update its information, otherwise create a new one
     if "filepath" in sample_info:
         sample_info.pop("filepath")
 
@@ -69,5 +79,5 @@ def update_sample(data_set, sample_info):
         _logger.info("No items in recording overview")
         _logger.info(sample_info.get("recording_overview"))
 
-    # Add sample to dataset
+    # Store sample on database
     sample.save()
