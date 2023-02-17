@@ -51,6 +51,13 @@ def update_sample(data_set, sample_info):
             i = "ivs" + i
         sample[i] = j
 
+    _populate_metadata(sample, sample_info)
+
+    # Store sample on database
+    sample.save()
+
+
+def _populate_metadata(sample: fo.Sample, sample_info):
     # Parse and populate labels and metadata on sample
     if "recording_overview" in sample_info:
         for (key, value) in sample_info.get("recording_overview").items():
@@ -76,6 +83,3 @@ def update_sample(data_set, sample_info):
     else:
         _logger.info("No items in recording overview")
         _logger.info(sample_info.get("recording_overview"))
-
-    # Store sample on database
-    sample.save()
