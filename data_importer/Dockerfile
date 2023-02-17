@@ -13,15 +13,15 @@ USER 1000
 COPY --chown=1000:3000 ./base /app/base
 
 # Copy required directories to docker container
-COPY --chown=1000:3000 ./DataImporter/requirements.txt /app/dataimporter/requirements.txt
-WORKDIR /app/dataimporter
+COPY --chown=1000:3000 ./data_importer/requirements.txt /app/data_importer/requirements.txt
+WORKDIR /app/data_importer
 RUN pip install -r requirements.txt
 
 # Copy module
-COPY --chown=1000:3000 ./DataImporter/dataimporter/ /app/dataimporter/dataimporter
-COPY --chown=1000:3000 ./DataImporter/setup.py /app/dataimporter/setup.py
-WORKDIR /app/dataimporter
+COPY --chown=1000:3000 ./data_importer/data_importer/ /app/data_importer/data_importer
+COPY --chown=1000:3000 ./data_importer/setup.py /app/data_importer/setup.py
+WORKDIR /app/data_importer
 RUN pip install -e .
 
 # Run DataImporter python script
-ENTRYPOINT [ "python", "-m", "dataimporter.main"]
+ENTRYPOINT [ "python", "-m", "data_importer.main"]
