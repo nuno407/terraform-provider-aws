@@ -71,9 +71,8 @@ class FootageApiTokenManager():  # pylint: disable=too-few-public-methods,too-ma
 
         try:
             _logger.debug(
-                "Auth token request: Endpoint: %s, Headers: %s, Body: %s",
+                "Auth token request: Endpoint: %s, Body: %s",
                 self.__token_endpoint,
-                headers,
                 body)
             response = self.__http_client.request("POST", self.__token_endpoint, headers=headers, body=encoded_body)
 
