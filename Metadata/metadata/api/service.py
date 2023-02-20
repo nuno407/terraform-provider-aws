@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from metadata.api.db import Persistence
 
-_logger = logging.getLogger('metadata_api.' + __name__)
+_logger = logging.getLogger("metadata_api." + __name__)
 RELEVANT_DEVICE_SIGNALS = {
     "interior_camera_health_response_cvb",
     "interior_camera_health_response_cve",
@@ -95,7 +95,8 @@ class ApiService:
             if number_of_recordings != 1:
                 result_str = f"[{','.join([result['video_id'] for result in query_result])}]"
                 raise LookupError(
-                    "Unable to get LQ video from HQ video_id: %s. Multiple results were found. Query results: %s. Regex:",
+                    """Unable to get LQ video from HQ video_id: %s.
+                        Multiple results were found. Query results: %s. Regex:""",
                     video_id,
                     result_str)
 
@@ -108,30 +109,30 @@ class ApiService:
 
             # We should get all the signals from LQ and put them in HQ signals
             # In order to align LQ signals to HQ signals we should add an offset
-            for signal_group in recording_item_lq['signals']:
-                if signal_group['source'] in {"MDF", "MDFParser"}:
+            for signal_group in recording_item_lq["signals"]:
+                if signal_group["source"] in {"MDF", "MDFParser"}:
                     # LQ video
                     interior_recording_start_at = int(recording_item_lq["video_id"].split("_")[-2])
-                    signals[signal_group['source']] = self.__create_video_signals_object(
+                    signals[signal_group["source"]] = self.__create_video_signals_object(
                         signal_group, time_offset=timedelta(milliseconds=(
                             interior_recording_start_at - training_recording_start_at))
                     )
 
-            for signal_group in recording_item_hq['signals']:
+            for signal_group in recording_item_hq["signals"]:
                 # HQ Video
-                signals[signal_group['algo_out_id'].split(
-                    '_')[-1]] = self.__create_video_signals_object(signal_group)
+                signals[signal_group["algo_out_id"].split(
+                    "_")[-1]] = self.__create_video_signals_object(signal_group)
 
         elif "Interior" in video_id:
             recording_item = self.__db.get_signals(video_id)
 
-            for signal_group in recording_item['signals']:
-                if (signal_group['source'] in {"MDF", "MDFParser"}):
-                    signals[signal_group['source']
+            for signal_group in recording_item["signals"]:
+                if (signal_group["source"] in {"MDF", "MDFParser"}):
+                    signals[signal_group["source"]
                             ] = self.__create_video_signals_object(signal_group)
                 else:
-                    signals[signal_group['algo_out_id'].split(
-                        '_')[-1]] = self.__create_video_signals_object(signal_group)
+                    signals[signal_group["algo_out_id"].split(
+                        "_")[-1]] = self.__create_video_signals_object(signal_group)
         _logger.info(f"{video_id} got signal fields {signals.keys()}")
         return signals
 
@@ -148,33 +149,33 @@ class ApiService:
             return timedelta(**timedelta_input)
 
         result_signals = {}
-        if chc_result['signals'] and len(
-                chc_result['signals']) > 0 and isinstance(
+        if chc_result["signals"] and len(
+                chc_result["signals"]) > 0 and isinstance(
                 list(
-                chc_result['signals'].values())[0],
+                chc_result["signals"].values())[0],
                 dict):
 
-            for timestamp, signals in chc_result['signals'].items():
+            for timestamp, signals in chc_result["signals"].items():
                 timestamp_with_offset = str(__convert_string_into_timedelta(timestamp) + time_offset)
                 result_signals[timestamp_with_offset] = {
                     key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
 
-        elif chc_result['signals'] and type(chc_result['signals']):
-            for k, v in chc_result['signals'].items():
+        elif chc_result["signals"] and type(chc_result["signals"]):
+            for k, v in chc_result["signals"].items():
                 result_signals[k] = {}
-                result_signals[k]['CameraViewBlocked'] = v
+                result_signals[k]["CameraViewBlocked"] = v
 
         return result_signals
 
-    def update_video_description(self, id, description):
-        self.__db.update_recording_description(id, description)
+    def update_video_description(self, video_id, description):
+        self.__db.update_recording_description(video_id, description)
 
     def create_anonymized_video_url(self, recording_id):
         url = None
         entry = self.__db.get_algo_output("Anonymize", recording_id)
         if entry:
             # Get video path and split it into bucket and key
-            s3_path = entry['output_paths']['video']
+            s3_path = entry["output_paths"]["video"]
             bucket, path = s3_path.split("/", 1)
             url = self.__create_video_url(bucket, path)
         return url
@@ -184,8 +185,8 @@ class ApiService:
         return self.__create_video_url(bucket, str(path))
 
     def __create_video_url(self, bucket, path):
-        params_s3 = {'Bucket': bucket, 'Key': path}
-        url = self.__s3.generate_presigned_url('get_object',
+        params_s3 = {"Bucket": bucket, "Key": path}
+        url = self.__s3.generate_presigned_url("get_object",
                                                Params=params_s3)
         return url
 
@@ -228,20 +229,20 @@ class ApiService:
     __query_fields = {
         "_id": "video_id",
         "processing_list": "pipeline_execution.processing_list",
-        'snapshots': 'recording_overview.#snapshots',
-        'data_status': 'pipeline_execution.data_status',
-        'last_updated': 'pipeline_execution.last_updated',
-        'length': 'recording_overview.length',
-        'time': 'recording_overview.time',
-        'resolution': 'resolution',
-        'number_chc_events': 'recording_overview.number_chc_events',
-        'lengthCHC': 'recording_overview.chc_duration',
-        'max_person_count': 'recording_overview.max_person_count',
-        'variance_person_count': 'recording_overview.variance_person_count',
-        'number_of_rides': 'recording_overview.ride_detection_counter',
-        'sum_door_closed': 'recording_overview.sum_door_closed',
-        'deviceID': 'recording_overview.deviceID',
-        'tenantID': 'recording_overview.tenantID'
+        "snapshots": "recording_overview.#snapshots",
+        "data_status": "pipeline_execution.data_status",
+        "last_updated": "pipeline_execution.last_updated",
+        "length": "recording_overview.length",
+        "time": "recording_overview.time",
+        "resolution": "resolution",
+        "number_chc_events": "recording_overview.number_chc_events",
+        "lengthCHC": "recording_overview.chc_duration",
+        "max_person_count": "recording_overview.max_person_count",
+        "variance_person_count": "recording_overview.variance_person_count",
+        "number_of_rides": "recording_overview.ride_detection_counter",
+        "sum_door_closed": "recording_overview.sum_door_closed",
+        "deviceID": "recording_overview.deviceID",
+        "tenantID": "recording_overview.tenantID"
     }
 
     def __parse_query(self, query, logic_operator):
@@ -295,7 +296,7 @@ class ApiService:
                 # NOTE: $exists -> used to make sure items without
                 # the parameter set in key are not also returned
                 subquery = {self.__query_fields[fieldname]: {
-                    '$exists': 'true', mongo_operator: operation_value}}
+                    "$exists": "true", mongo_operator: operation_value}}
 
                 # Append subquery to list
                 query_list.append(subquery)
@@ -331,47 +332,47 @@ class ApiService:
         # add LQ video info if neccessary
         lq_video = self.__check_and_get_lq_video_info(recording_id)
         if lq_video:
-            result['lq_video'] = lq_video
+            result["lq_video"] = lq_video
         return result
 
     def __map_recording_object(self, recording_item):
         recording_object = {}
 
-        recording_overview = recording_item.get('recording_overview', {})
-        recording_object['tenant'] = recording_overview.get('tenantID', '-')
-        # the front-end cannot access the field if we set as '#snapshots'
-        recording_object['snapshots'] = recording_overview.get(
-            '#snapshots', '-')
-        # the front-end cannot access the field if we set as '#snapshots'
-        recording_object['#snapshots'] = recording_overview.get(
-            '#snapshots', '-')
-        recording_object['snapshots_paths'] = recording_overview.get(
-            'snapshots_paths', "")
-        recording_object['length'] = recording_overview.get('length', '-')
-        recording_object['time'] = recording_overview.get('time', '-')
-        recording_object['deviceID'] = recording_overview.get('deviceID', '-')
-        recording_object['description'] = recording_overview.get('description')
-        recording_object['_id'] = recording_item.get('video_id')
-        recording_object['resolution'] = recording_item.get('resolution', '-')
-        recording_object['number_chc_events'] = recording_overview.get(
-            'number_chc_events', '-')
-        recording_object['lengthCHC'] = recording_overview.get(
-            'chc_duration', '-')
-        recording_object['max_person_count'] = recording_overview.get(
-            'max_person_count', '-')
-        recording_object['variance_person_count'] = recording_overview.get(
-            'variance_person_count', '-')
-        recording_object['ride_detection_counter'] = recording_overview.get(
-            'ride_detection_counter', '-')
-        recording_object['sum_door_closed'] = recording_overview.get(
-            'sum_door_closed', '-')
-        pipeline_execution = recording_item.get('pipeline_execution', {})
-        recording_object['processing_list'] = pipeline_execution.get(
-            'processing_list', '-')
-        recording_object['data_status'] = pipeline_execution.get(
-            'data_status', '-')
-        recording_object['last_updated'] = pipeline_execution.get(
-            'last_updated', '2020-01-01T00:00:00.1Z').split(".", 1)[0].replace("T", " ")
+        recording_overview = recording_item.get("recording_overview", {})
+        recording_object["tenant"] = recording_overview.get("tenantID", "-")
+        # the front-end cannot access the field if we set as "#snapshots"
+        recording_object["snapshots"] = recording_overview.get(
+            "#snapshots", "-")
+        # the front-end cannot access the field if we set as "#snapshots"
+        recording_object["#snapshots"] = recording_overview.get(
+            "#snapshots", "-")
+        recording_object["snapshots_paths"] = recording_overview.get(
+            "snapshots_paths", "")
+        recording_object["length"] = recording_overview.get("length", "-")
+        recording_object["time"] = recording_overview.get("time", "-")
+        recording_object["deviceID"] = recording_overview.get("deviceID", "-")
+        recording_object["description"] = recording_overview.get("description")
+        recording_object["_id"] = recording_item.get("video_id")
+        recording_object["resolution"] = recording_item.get("resolution", "-")
+        recording_object["number_chc_events"] = recording_overview.get(
+            "number_chc_events", "-")
+        recording_object["lengthCHC"] = recording_overview.get(
+            "chc_duration", "-")
+        recording_object["max_person_count"] = recording_overview.get(
+            "max_person_count", "-")
+        recording_object["variance_person_count"] = recording_overview.get(
+            "variance_person_count", "-")
+        recording_object["ride_detection_counter"] = recording_overview.get(
+            "ride_detection_counter", "-")
+        recording_object["sum_door_closed"] = recording_overview.get(
+            "sum_door_closed", "-")
+        pipeline_execution = recording_item.get("pipeline_execution", {})
+        recording_object["processing_list"] = pipeline_execution.get(
+            "processing_list", "-")
+        recording_object["data_status"] = pipeline_execution.get(
+            "data_status", "-")
+        recording_object["last_updated"] = pipeline_execution.get(
+            "last_updated", "2020-01-01T00:00:00.1Z").split(".", 1)[0].replace("T", " ")
 
         return recording_object
 
@@ -379,8 +380,8 @@ class ApiService:
         duration = 0.0
         number = 0
         for period in chc_periods:
-            duration += period['duration']
-            if period['duration'] > 0.0:
+            duration += period["duration"]
+            if period["duration"] > 0.0:
                 number += 1
 
         return number, duration
@@ -389,29 +390,29 @@ class ApiService:
         recorder_name_matcher = re.match(r".+_([^_]+)_\d+_\d+", entry_id)
         if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
             _logger.warning(
-                f'Could not parse recorder information from {entry_id}')
+                f"Could not parse recorder information from {entry_id}")
             return None
 
-        if recorder_name_matcher.group(1) != 'TrainingRecorder':
+        if recorder_name_matcher.group(1) != "TrainingRecorder":
             _logger.debug(
-                f'Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}')
+                f"Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}")
             return None
-        lq_id = entry_id.replace('TrainingRecorder', 'InteriorRecorder')
+        lq_id = entry_id.replace("TrainingRecorder", "InteriorRecorder")
         try:
             lq_entry = self.__db.get_single_recording(lq_id)
         except BaseException:
             return None
-        lq_video_details = lq_entry.get('recording_overview', {})
+        lq_video_details = lq_entry.get("recording_overview", {})
 
         lq_video = {}
-        lq_video['id'] = lq_id
-        if 'length' in lq_video_details:
-            lq_video['length'] = lq_video_details['length']
-        if 'time' in lq_video_details:
-            lq_video['time'] = lq_video_details['time']
-        if 'resolution' in lq_entry:
-            lq_video['resolution'] = lq_entry['resolution']
-        if '#snapshots' in lq_video_details:
-            lq_video['snapshots'] = lq_video_details['#snapshots']
+        lq_video["id"] = lq_id
+        if "length" in lq_video_details:
+            lq_video["length"] = lq_video_details["length"]
+        if "time" in lq_video_details:
+            lq_video["time"] = lq_video_details["time"]
+        if "resolution" in lq_entry:
+            lq_video["resolution"] = lq_entry["resolution"]
+        if "#snapshots" in lq_video_details:
+            lq_video["snapshots"] = lq_video_details["#snapshots"]
 
         return lq_video

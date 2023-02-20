@@ -1,12 +1,11 @@
-"""Integration test metadata module."""
+# pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
-from unittest.mock import MagicMock
 from unittest.mock import Mock, PropertyMock, call
-import metadata.consumer.main
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
+import metadata.consumer.main
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -16,25 +15,25 @@ __location__ = os.path.realpath(
 class TestMain:
     @pytest.fixture
     def boto3_mock(self, mocker: MockerFixture):
-        mock = mocker.patch('metadata.consumer.main.boto3')
+        mock = mocker.patch("metadata.consumer.main.boto3")
         return mock
 
     @pytest.fixture
     def container_services_mock(self, mocker: MockerFixture) -> Mock:
         container_services_mock = mocker.patch(
-            'metadata.consumer.main.ContainerServices', autospec=True)
+            "metadata.consumer.main.ContainerServices", autospec=True)
         db_tables_mock = PropertyMock(return_value={
-            'recordings': 'recordings',
-            'signals': 'signals',
-            'pipeline_exec': 'pipeline_exec',
-            'algo_output': 'algo_output'
+            "recordings": "recordings",
+            "signals": "signals",
+            "pipeline_exec": "pipeline_exec",
+            "algo_output": "algo_output"
         })
         type(container_services_mock.return_value).db_tables = db_tables_mock
         return container_services_mock
 
     @pytest.fixture(autouse=True)
     def graceful_exit_mock(self, mocker: MockerFixture) -> Mock:
-        graceful_exit_mock = mocker.patch('metadata.consumer.main.GracefulExit')
+        graceful_exit_mock = mocker.patch("metadata.consumer.main.GracefulExit")
         continue_running_mock = PropertyMock(
             side_effect=[True, True, True, False])
         type(graceful_exit_mock.return_value).continue_running = continue_running_mock
@@ -43,10 +42,10 @@ class TestMain:
     @pytest.fixture
     def mongomock_fix(self):
         mockdb_client = mongomock.MongoClient()
-        _ = mockdb_client.DataIngestion['pipeline_exec']
-        _ = mockdb_client.DataIngestion['algo_output']
-        _ = mockdb_client.DataIngestion['recordings']
-        _ = mockdb_client.DataIngestion['signals']
+        _ = mockdb_client.DataIngestion["pipeline_exec"]
+        _ = mockdb_client.DataIngestion["algo_output"]
+        _ = mockdb_client.DataIngestion["recordings"]
+        _ = mockdb_client.DataIngestion["signals"]
         return mockdb_client.DataIngestion
 
     @pytest.fixture
@@ -73,13 +72,13 @@ class TestMain:
             "length": "0:06:31",
             "sync_file_ext": "_metadata_full.json",
             "resolution": "640x360",
-            "internal_message_reference_id":"Hash_dummy"
+            "internal_message_reference_id": "Hash_dummy"
         }
 
         message = {
-            'Body': json.dumps(body).replace('\"', '\''),
-            'MessageAttributes': message_attributes,
-            'ReceiptHandle': 'receipt_handle'
+            "Body": json.dumps(body).replace("\"", "\""),
+            "MessageAttributes": message_attributes,
+            "ReceiptHandle": "receipt_handle"
         }
 
         return message
@@ -92,7 +91,7 @@ class TestMain:
             "tenant": "ridecare",
             "deviceid": "device",
             "resolution": "640x360",
-            "internal_message_reference_id" : "dummy_hash"
+            "internal_message_reference_id": "dummy_hash"
         }
 
     @pytest.fixture
@@ -102,9 +101,9 @@ class TestMain:
         input_message_snapshot_body_template["timestamp"] = 1662080178308
 
         message = {
-            'Body': json.dumps(input_message_snapshot_body_template).replace('\"', '\''),
-            'MessageAttributes': message_attributes,
-            'ReceiptHandle': 'receipt_handle'
+            "Body": json.dumps(input_message_snapshot_body_template).replace("\"", "\""),
+            "MessageAttributes": message_attributes,
+            "ReceiptHandle": "receipt_handle"
         }
 
         return message
@@ -117,9 +116,9 @@ class TestMain:
         input_message_snapshot_body_template["internal_message_reference_id"] = "dummy_hash"
 
         message = {
-            'Body': json.dumps(input_message_snapshot_body_template).replace('\"', '\''),
-            'MessageAttributes': message_attributes,
-            'ReceiptHandle': 'receipt_handle'
+            "Body": json.dumps(input_message_snapshot_body_template).replace("\"", "\""),
+            "MessageAttributes": message_attributes,
+            "ReceiptHandle": "receipt_handle"
         }
 
         return message
@@ -127,13 +126,13 @@ class TestMain:
     @pytest.fixture
     def environ_mock(self, mocker: MockerFixture) -> Mock:
         environ_mock = mocker.patch.dict(
-            'metadata.consumer.main.os.environ', {'ANON_S3': 'anon_bucket'})
+            "metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
         return environ_mock
 
     @pytest.fixture(autouse=True)
     def voxel_mock(self, mocker: MockerFixture) -> tuple[Mock, Mock]:
-        create_dataset_mock = mocker.patch('metadata.consumer.main.create_dataset')
-        update_sample_mock = mocker.patch('metadata.consumer.main.update_sample')
+        create_dataset_mock = mocker.patch("metadata.consumer.main.create_dataset")
+        update_sample_mock = mocker.patch("metadata.consumer.main.update_sample")
         return create_dataset_mock, update_sample_mock
 
     @pytest.mark.integration
@@ -152,61 +151,58 @@ class TestMain:
         metadata.consumer.main.main()
 
         # THEN
-        snapshot_included_db_entry = mongomock_fix['recordings'].find_one(
-            {'video_id': 'ridecare_device_snapshot_1662080178308'})
-        snapshot_excluded_db_entry = mongomock_fix['recordings'].find_one(
-            {'video_id': 'ridecare_device_snapshot_1692080178308'})
-        recording_db_entry = mongomock_fix['recordings'].find_one(
-            {'video_id': 'ridecare_device_recording_1662080172308_1662080561893'})
+        snapshot_included_db_entry = mongomock_fix["recordings"].find_one(
+            {"video_id": "ridecare_device_snapshot_1662080178308"})
+        snapshot_excluded_db_entry = mongomock_fix["recordings"].find_one(
+            {"video_id": "ridecare_device_snapshot_1692080178308"})
+        recording_db_entry = mongomock_fix["recordings"].find_one(
+            {"video_id": "ridecare_device_recording_1662080172308_1662080561893"})
         # assertions on included snapshot
         # print(snapshot_included_db_entry)
-        assert (snapshot_included_db_entry['recording_overview']
-                ['source_videos'][0] == recording_db_entry['video_id'])
+        assert (snapshot_included_db_entry["recording_overview"]
+                ["source_videos"][0] == recording_db_entry["video_id"])
 
         # assert reference id is present
-        assert snapshot_included_db_entry['recording_overview']["internal_message_reference_id"]
-        assert snapshot_excluded_db_entry['recording_overview']["internal_message_reference_id"]
-        assert recording_db_entry['recording_overview']["internal_message_reference_id"]
+        assert snapshot_included_db_entry["recording_overview"]["internal_message_reference_id"]
+        assert snapshot_excluded_db_entry["recording_overview"]["internal_message_reference_id"]
+        assert recording_db_entry["recording_overview"]["internal_message_reference_id"]
 
         # assertions on excluded snapshot
-        assert (
-            snapshot_excluded_db_entry['recording_overview']['source_videos'] == [])
+        assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == []
 
         # assertions on recording
-        assert (recording_db_entry['recording_overview']['#snapshots'] == 1)
-        assert (
-            len(recording_db_entry['recording_overview']['snapshots_paths']) == 1)
-        assert (recording_db_entry['recording_overview']['snapshots_paths']
-                [0] == snapshot_included_db_entry['video_id'])
+        assert recording_db_entry["recording_overview"]["#snapshots"] == 1
+        assert len(recording_db_entry["recording_overview"]["snapshots_paths"]) == 1
+        assert recording_db_entry["recording_overview"]["snapshots_paths"][0] == snapshot_included_db_entry["video_id"]  # pylint: disable=line-too-long
 
         # assertions for voxel code
         create_dataset, update_sample = voxel_mock
         create_dataset.assert_has_calls(
-            [call('folder'), call('folder_snapshots')], any_order=True)
+            [call("folder"), call("folder_snapshots")], any_order=True)
 
-        snapshot_excluded_db_entry.pop('_id')
-        snapshot_excluded_db_entry['s3_path'] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1692080178308_anonymized.jpeg"
-        recording_db_entry.pop('_id')
-        recording_db_entry['s3_path'] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"
-        snapshot_included_db_entry.pop('_id')
-        snapshot_included_db_entry['s3_path'] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1662080178308_anonymized.jpeg"
+        snapshot_excluded_db_entry.pop("_id")
+        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1692080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        recording_db_entry.pop("_id")
+        recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
+        snapshot_included_db_entry.pop("_id")
+        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
         print(update_sample.call_count)
         update_sample.assert_has_calls([
-            call('folder_snapshots', snapshot_excluded_db_entry),
-            call('folder', recording_db_entry),
+            call("folder_snapshots", snapshot_excluded_db_entry),
+            call("folder", recording_db_entry),
 
             # this verification will currently fail until the source_video field is correctly updated in voxel
-            call('folder_snapshots', snapshot_included_db_entry)
+            call("folder_snapshots", snapshot_included_db_entry)
         ], any_order=True)
 
     @pytest.mark.unit
     def test_transform_data_to_update_query(self):
         # GIVEN
         input_data = {
-            'a': 1,
-            'b': {'c': True},
-            'd': {'e':{'f':[1, 2, 3]}},
-            'g': {'h': None}
+            "a": 1,
+            "b": {"c": True},
+            "d": {"e": {"f": [1, 2, 3]}},
+            "g": {"h": None}
         }
 
         # WHEN
@@ -214,7 +210,7 @@ class TestMain:
 
         # THEN
         assert result == {
-            'a': 1,
-            'b.c': True,
-            'd.e.f': [1, 2, 3]
+            "a": 1,
+            "b.c": True,
+            "d.e.f": [1, 2, 3]
         }

@@ -3,7 +3,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from logging import Logger
 from pathlib import Path
 from typing import Optional, Tuple
@@ -11,13 +11,6 @@ from typing import Optional, Tuple
 import boto3
 import pytimeparse
 import pytz
-from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
-                                       UNKNOWN_FILE_FORMAT_MESSAGE)
-from metadata.common.errors import (EmptyDocumentQueryResult,
-                                    MalformedRecordingEntry)
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.db import Persistence
-from metadata.consumer.service import RelatedMediaService
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import DocumentTooLarge, PyMongoError
@@ -28,11 +21,20 @@ from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from base.voxel.voxel_functions import create_dataset, update_sample
 
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
+                                       UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult,
+                                    MalformedRecordingEntry)
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.db import Persistence
+from metadata.consumer.service import RelatedMediaService
+
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
 
 
 _logger: Logger = ContainerServices.configure_logging("metadata")
+
 
 @dataclass
 class MetadataCollections:
@@ -41,6 +43,7 @@ class MetadataCollections:
     recordings: Collection
     pipeline_exec: Collection
     algo_output: Collection
+
 
 def update_voxel_media(sample: dict):
     def __get_s3_path(raw_path) -> Tuple[str, str]:
@@ -153,10 +156,11 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
     }
 
     recording_entry_result = collection_rec.find_one(
-        {'video_id': message["_id"]})
+        {"video_id": message["_id"]})
 
     if recording_entry_result:
-        _logger.warning("The snapshot already exists in the database, will not be appended to the correlated references")
+        _logger.warning(
+            "The snapshot already exists in the database, will not be appended to the correlated references")  # pylint: disable=line-too-long
         return recording_item
 
     find_and_update_media_references(related_media_paths, update_query={
@@ -190,7 +194,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         media_type=message["media_type"])
 
     footage_time = datetime.fromtimestamp(
-        message["footagefrom"] / 1000.0).strftime(TIME_FORMAT)
+        message["footagefrom"] / 1000.0, timezone.utc).strftime(TIME_FORMAT)
 
     # Update video record
     recording_item = {
@@ -262,6 +266,7 @@ def create_recording_item(message: dict,
     _logger.error(UNKNOWN_FILE_FORMAT_MESSAGE, file_format)
     return None
 
+
 def transform_data_to_update_query(data: dict) -> dict:
     """Transforms nested dict data to mongodb update statement."""
     update_query = {}
@@ -274,6 +279,7 @@ def transform_data_to_update_query(data: dict) -> dict:
             update_query[key] = value
     return update_query
 
+
 def upsert_mdf_data(message: dict, metadata_collections: MetadataCollections) -> Optional[dict]:
     """Upserts recording data and signals to respective collections.
 
@@ -285,39 +291,39 @@ def upsert_mdf_data(message: dict, metadata_collections: MetadataCollections) ->
         recording document (dict) from mongodb and parsed signals file downloaded from S3 (dict).
     """
     # verify message content
-    if not ('signals_file' in message and
-            'bucket' in message['signals_file'] and
-            'key' in message['signals_file']):
+    if not ("signals_file" in message and
+            "bucket" in message["signals_file"] and
+            "key" in message["signals_file"]):
         _logger.warning(
             "Expected fields for upserting MDF data are not present in the message.")
         return None
 
-    s3_client = boto3.client('s3', AWS_REGION)
+    s3_client = boto3.client("s3", AWS_REGION)
     signals_file_raw = ContainerServices.download_file(
-        s3_client, message['signals_file']['bucket'], message['signals_file']['key'])
-    signals = json.loads(signals_file_raw.decode('UTF-8'))
+        s3_client, message["signals_file"]["bucket"], message["signals_file"]["key"])
+    signals = json.loads(signals_file_raw.decode("UTF-8"))
 
     try:
         # Upsert signals item
         aggregated_values = {}
-        for key in message['recording_overview'].keys():
+        for key in message["recording_overview"].keys():
             aggregated_values.update(
-                {f'recording_overview.{key}': message['recording_overview'][key]})
+                {f"recording_overview.{key}": message["recording_overview"][key]})
 
-        signals_data = {'source': "MDFParser", 'signals': signals}
+        signals_data = {"source": "MDFParser", "signals": signals}
 
         recording = metadata_collections.recordings.find_one_and_update(
-            filter={'video_id': message["_id"]},
-            update={'$set': aggregated_values},
+            filter={"video_id": message["_id"]},
+            update={"$set": aggregated_values},
             upsert=True,
             return_document=ReturnDocument.AFTER)
 
         metadata_collections.signals.update_one(
             filter={
-                'recording': message["_id"],
-                'source': {'$regex': 'MDF.*'}
+                "recording": message["_id"],
+                "source": {"$regex": "MDF.*"}
             },
-            update={'$set': signals_data},
+            update={"$set": signals_data},
             upsert=True)
 
         # Create logs message
@@ -353,9 +359,9 @@ def update_pipeline_db(video_id: str, message: dict,
                             of the info received on the sqs message]
     """
     # check that data has at least the absolute minimum of required fields
-    if not all(k in message for k in ('data_status', 's3_path')):
+    if not all(k in message for k in ("data_status", "s3_path")):
         _logger.error(
-            'Skipping pipeline collection update for %s as not all required fields are present in the message.',
+            "Skipping pipeline collection update for %s as not all required fields are present in the message.",
             video_id)
         return None
 
@@ -364,21 +370,21 @@ def update_pipeline_db(video_id: str, message: dict,
         tz=pytz.UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
     upsert_item = {
-        '_id': video_id,
-        'data_status': message['data_status'],
-        'from_container': CONTAINER_NAME,
-        'info_source': source,
-        'last_updated': timestamp,
-        's3_path': message['s3_path']
+        "_id": video_id,
+        "data_status": message["data_status"],
+        "from_container": CONTAINER_NAME,
+        "info_source": source,
+        "last_updated": timestamp,
+        "s3_path": message["s3_path"]
     }
 
-    if 'processing_steps' in message:
-        upsert_item['processing_list'] = message['processing_steps']
+    if "processing_steps" in message:
+        upsert_item["processing_list"] = message["processing_steps"]
 
     try:
         # Upsert pipeline executions item
-        table_pipe.update_one({'_id': video_id}, {
-                              '$set': upsert_item}, upsert=True)
+        table_pipe.update_one({"_id": video_id}, {
+                              "$set": upsert_item}, upsert=True)
         # Create logs message
         _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
     except PyMongoError as err:
@@ -394,12 +400,12 @@ def update_pipeline_db(video_id: str, message: dict,
     if filetype in IMAGE_FORMATS:
         bucket_name = bucket_name + "_snapshots"
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3'] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
+            os.environ["ANON_S3"] + "/" + \
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
     elif filetype in VIDEO_FORMATS:
         anonymized_path = "s3://" + \
-            os.environ['ANON_S3'] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
+            os.environ["ANON_S3"] + "/" + \
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
     else:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     # with dicts either we make a copy or both variables will reference the same object
@@ -434,19 +440,19 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     """
     # get video length from the original recording entry
     recording_entry_result = recordings_collection.find_one(
-        {'video_id': video_id})
+        {"video_id": video_id})
     if not recording_entry_result:
         raise EmptyDocumentQueryResult(
-            f'Empty recording_entry result for video_id: {video_id}')
+            f"Empty recording_entry result for video_id: {video_id}")
 
     assert recording_entry_result is not None
     recording_entry = recording_entry_result
 
-    if not ('recording_overview' in recording_entry and 'length' in recording_entry['recording_overview']):
+    if not ("recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
         raise MalformedRecordingEntry(
-            f'Recording entry for video_id {video_id} does not have a length information.')
+            f"Recording entry for video_id {video_id} does not have a length information.")
     video_length = timedelta(seconds=pytimeparse.parse(
-        recording_entry['recording_overview']['length']))
+        recording_entry["recording_overview"]["length"]))
 
     # do the synchronisation
     chc_syncer = ChcSynchronizer()
@@ -459,7 +465,7 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     chc_counter = ChcCounter()
     chc_metrics = chc_counter.process(chc_sync)
 
-    return chc_sync_parsed, chc_metrics['recording_overview']
+    return chc_sync_parsed, chc_metrics["recording_overview"]
 
 
 def process_outputs(video_id: str, message: dict, metadata_collections: MetadataCollections, source: str):
@@ -490,59 +496,59 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
                             of the info received on the sqs message]
     """
     # check that data has at least the absolute minimum of required fields
-    if not (all(k in message for k in ('output', 's3_path')) and 'bucket' in message['output']):
+    if not (all(k in message for k in ("output", "s3_path")) and "bucket" in message["output"]):
         _logger.error(
             "Not able to create an entry because output or s3_path is missing!")
         return
 
     # Initialise variables used in item creation
-    outputs = message['output']
-    run_id = video_id + '_' + source
+    outputs = message["output"]
+    run_id = video_id + "_" + source
     output_paths = {}
 
     # Check if there is a metadata file path available
-    if 'meta_path' in outputs and outputs['meta_path'] != "-":
+    if "meta_path" in outputs and outputs["meta_path"] != "-":
         output_paths = {
-            'metadata': f"{outputs['bucket']}/{outputs['meta_path']}"}
+            "metadata": f"{outputs['bucket']}/{outputs['meta_path']}"}
 
     # Check if there is a video file path available
-    if "media_path" in outputs and outputs['media_path'] != "-":
+    if "media_path" in outputs and outputs["media_path"] != "-":
         output_paths = {
-            'video': f"{outputs['bucket']}/{outputs['media_path']}"}
+            "video": f"{outputs['bucket']}/{outputs['media_path']}"}
 
     # Item creation (common parameters)
     algo_item: dict = {
-        '_id': run_id,
-        'algorithm_id': source,
-        'pipeline_id': video_id,
-        'output_paths': output_paths
+        "_id": run_id,
+        "algorithm_id": source,
+        "pipeline_id": video_id,
+        "output_paths": output_paths
     }
 
     # Compute results from CHC processing
-    if source == "CHC" and 'meta_path' in outputs and 'bucket' in outputs:
+    if source == "CHC" and "meta_path" in outputs and "bucket" in outputs:
         try:
             synchronized, chc_metrics = download_and_synchronize_chc(
                 video_id,
                 metadata_collections.recordings,
-                outputs['bucket'],
-                outputs['meta_path'])
+                outputs["bucket"],
+                outputs["meta_path"])
 
             # Add video sync data processed from ivs_chain metadata file to created item
             algo_item.update({
-                'results': {
-                    'CHBs_sync': synchronized,
-                    'CHC_metrics': chc_metrics
+                "results": {
+                    "CHBs_sync": synchronized,
+                    "CHC_metrics": chc_metrics
                 }})
 
             signals_item = {
-                'algo_out_id': run_id,
-                'recording': video_id,
-                'source': "CHC",
-                'signals': synchronized,
+                "algo_out_id": run_id,
+                "recording": video_id,
+                "source": "CHC",
+                "signals": synchronized,
             }
             # upsert signals DB item
-            sig_query = {'recording': video_id, 'algo_out_id': run_id}
-            metadata_collections.signals.update_one(sig_query,{'$set': signals_item}, upsert=True)
+            sig_query = {"recording": video_id, "algo_out_id": run_id}
+            metadata_collections.signals.update_one(sig_query, {"$set": signals_item}, upsert=True)
 
             # Create logs message
             _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
@@ -563,8 +569,8 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
     try:
         # Insert previously built item
         # collection_algo_out.insert_one(algo_item,)
-        query = {'_id': run_id}
-        metadata_collections.algo_output.update_one(query, {'$set': algo_item}, upsert=True)
+        query = {"_id": run_id}
+        metadata_collections.algo_output.update_one(query, {"$set": algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
     except PyMongoError as err:
         _logger.exception(
@@ -576,30 +582,30 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
 
     filetype = s3split[-1].split(".")[-1]
     anon_video_path = "s3://" + \
-        os.environ['ANON_S3'] + "/" + \
-        message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
+        os.environ["ANON_S3"] + "/" + \
+        message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
 
     if filetype == "jpeg" or filetype == "png":
         bucket_name = bucket_name + "_snapshots"
 
     if filetype == "jpeg":
         anon_video_path = "s3://" + \
-            os.environ['ANON_S3'] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + '_anonymized.' + filetype
+            os.environ["ANON_S3"] + "/" + \
+            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
 
     sample = algo_item
 
     sample["algorithms"] = {}
 
     if source == "CHC":
-        sample["algorithms"][algo_item['_id']] = {
+        sample["algorithms"][algo_item["_id"]] = {
             "results": algo_item.get("results"), "output_paths": algo_item.get("output_paths")}
     else:
-        sample["algorithms"][algo_item['_id']] = {
+        sample["algorithms"][algo_item["_id"]] = {
             "output_paths": algo_item.get("output_paths")}
 
-    if 'results' in sample:
-        sample.pop('results')
+    if "results" in sample:
+        sample.pop("results")
 
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
@@ -618,6 +624,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
         _logger.exception(
             "Unable to process Voxel entry [%s] on process_outputs %s", bucket_name, err)
 
+
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
     """Set recording data_status as error
     Args:
@@ -627,6 +634,7 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
         filter={"video_id": video_id},
         update={"$set": {"data_status": "error"}}
     )
+
 
 def upsert_data_to_db(db: Database, container_services: ContainerServices,
                       service: RelatedMediaService, message: dict, message_attributes: dict):
@@ -642,28 +650,28 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
                                 define which operations are performed]
     """
     # Validate the message
-    if not ('SourceContainer' in message_attributes and
-            'StringValue' in message_attributes['SourceContainer']):
+    if not ("SourceContainer" in message_attributes and
+            "StringValue" in message_attributes["SourceContainer"]):
         _logger.error(
-            'Skipping message due to neccessary content not being present. Message: %s  Atributes: %s',
+            "Skipping message due to neccessary content not being present. Message: %s  Atributes: %s",
             message,
             message_attributes)
         return
 
     metadata_collections = MetadataCollections(
-        signals=db[container_services.db_tables['signals']],
-        recordings=db[container_services.db_tables['recordings']],
-        pipeline_exec=db[container_services.db_tables['pipeline_exec']],
-        algo_output=db[container_services.db_tables['algo_output']]
+        signals=db[container_services.db_tables["signals"]],
+        recordings=db[container_services.db_tables["recordings"]],
+        pipeline_exec=db[container_services.db_tables["pipeline_exec"]],
+        algo_output=db[container_services.db_tables["algo_output"]]
     )
 
     # Get source container name
-    source = message_attributes['SourceContainer']['StringValue']
+    source = message_attributes["SourceContainer"]["StringValue"]
 
     #################### NOTE: Recording collection handling ##################
     # If the message is related to our data ingestion
-    if source == 'SDRetriever':
-        file_format = message.get("s3_path", '').split(".")[-1]
+    if source == "SDRetriever":
+        file_format = message.get("s3_path", "").split(".")[-1]
         if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
             # Call respective processing function
             recording = create_recording_item(
@@ -696,7 +704,7 @@ def upsert_data_to_db(db: Database, container_services: ContainerServices,
         update_pipeline_db(recording_id, message, metadata_collections.pipeline_exec, source)
 
         # Create/Update item on Algorithm Output DB if message is about algo output
-        if 'output' in message:
+        if "output" in message:
             process_outputs(recording_id, message, metadata_collections, source)
     else:
         _logger.info("Unexpected message source %s - %s, %s",
@@ -741,9 +749,9 @@ def main():
                  CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    s3_client = boto3.client('s3',
+    s3_client = boto3.client("s3",
                              region_name=AWS_REGION)
-    sqs_client = boto3.client('sqs',
+    sqs_client = boto3.client("sqs",
                               region_name=AWS_REGION)
 
     # Initialise instance of ContainerServices class
@@ -773,16 +781,15 @@ def main():
         if message:
             _logger.info(message)
             # Processing step
-            relay_list = read_message(container_services, message['Body'])
+            relay_list = read_message(container_services, message["Body"])
             # Insert/update data in db
             upsert_data_to_db(db_client, container_services,
-                            api_service, relay_list, message['MessageAttributes'])
+                              api_service, relay_list, message["MessageAttributes"])
 
             # Delete message after processing
             container_services.delete_message(
-                sqs_client, message['ReceiptHandle'])
+                sqs_client, message["ReceiptHandle"])
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

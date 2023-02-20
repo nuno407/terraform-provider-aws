@@ -16,10 +16,10 @@ from metadata.common.constants import AWS_REGION
 CONTAINER_NAME = "Metadata"
 CONTAINER_VERSION = "v8.0"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Define configuration for logging messages
-    ContainerServices.configure_logging('metadata_api')
-    s3_client = boto3.client('s3', region_name=AWS_REGION)
+    ContainerServices.configure_logging("metadata_api")
+    s3_client = boto3.client("s3", region_name=AWS_REGION)
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION)
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     app: flask.Flask = init_controller(service)
 
     # Start API process
-    if os.getenv('LOCAL_DEBUG'):
+    if os.getenv("LOCAL_DEBUG"):
         app.run(
             "127.0.0.1", port=7777, use_reloader=True)
     else:

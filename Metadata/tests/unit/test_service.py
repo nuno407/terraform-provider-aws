@@ -1,3 +1,6 @@
+"Test Service component."
+# pylint: disable=missing-function-docstring,missing-module-docstring
+
 import json
 import os
 from typing import Tuple
@@ -16,35 +19,35 @@ service = ApiService(db, s3)
 @pytest.mark.unit
 def test_create_video_url():
     # GIVEN
-    file = 'bar.mp4'
-    folder = 'foo/'
-    bucket = 'baz'
-    url = 'http://spam.egg/baz/'
+    file = "bar.mp4"
+    folder = "foo/"
+    bucket = "baz"
+    url = "http://spam.egg/baz/"
     s3.generate_presigned_url = Mock(return_value=url)
 
     # WHEN
     return_value = service.create_video_url(bucket, folder, file)
 
     # THEN
-    assert (return_value == url)
+    assert return_value == url
     s3.generate_presigned_url.assert_called_once()
     args = s3.generate_presigned_url.call_args.args
-    assert (args[0] == 'get_object')
+    assert args[0] == "get_object"
     kwargs = s3.generate_presigned_url.call_args.kwargs
-    params = kwargs['Params']
-    assert (params['Bucket'] == bucket)
-    assert (params['Key'] == folder + file)
+    params = kwargs["Params"]
+    assert params["Bucket"] == bucket
+    assert params["Key"] == folder + file
 
 
 @pytest.mark.unit
 def test_create_anonymized_video_url():
     # GIVEN
-    recording_id = 'qux'
-    path = 'foobar.mp4'
-    bucket = 'baz'
-    url = 'http://spam.egg/baz/'
+    recording_id = "qux"
+    path = "foobar.mp4"
+    bucket = "baz"
+    url = "http://spam.egg/baz/"
     db.get_algo_output = Mock(
-        return_value={'output_paths': {'video': bucket + '/' + path}})
+        return_value={"output_paths": {"video": bucket + "/" + path}})
     s3.generate_presigned_url = Mock(return_value=url)
 
     # WHEN
@@ -52,16 +55,16 @@ def test_create_anonymized_video_url():
 
     # THEN
     # db-part
-    db.get_algo_output.assert_called_once_with('Anonymize', recording_id)
+    db.get_algo_output.assert_called_once_with("Anonymize", recording_id)
     # s3-part
-    assert (return_value == url)
+    assert return_value == url
     s3.generate_presigned_url.assert_called_once()
     args = s3.generate_presigned_url.call_args.args
-    assert (args[0] == 'get_object')
+    assert args[0] == "get_object"
     kwargs = s3.generate_presigned_url.call_args.kwargs
-    params = kwargs['Params']
-    assert (params['Bucket'] == bucket)
-    assert (params['Key'] == path)
+    params = kwargs["Params"]
+    assert params["Bucket"] == bucket
+    assert params["Key"] == path
 
 
 __location__ = os.path.realpath(
@@ -77,43 +80,43 @@ def read_and_parse_test_data(filepath: str) -> dict:
         dict of the parsed content of test data file.
     """
     with open(os.path.join(
-            __location__, filepath), 'r', encoding='utf-8') as file_handle:
+            __location__, filepath), "r", encoding="utf-8") as file_handle:
         content = file_handle.read()
         return json.loads(content)
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize("aggregation_result_path,get_table_kwargs,expected_result_path", [
-    ('test_data/recording_aggregation_response.json',
+    ("test_data/recording_aggregation_response.json",
         {
-            'page_size': 10,
-            'page': 1,
-            'query': None,
-            'operator': None,
-            'sorting': None,
-            'direction': None
+            "page_size": 10,
+            "page": 1,
+            "query": None,
+            "operator": None,
+            "sorting": None,
+            "direction": None
         },
-     'test_data/table_data_expected.json'),
-    ('test_data/recording_aggregation_response_sorted.json',
+     "test_data/table_data_expected.json"),
+    ("test_data/recording_aggregation_response_sorted.json",
         {
-            'page_size': 10,
-            'page': 1,
-            'query': None,
-            'operator': None,
-            'sorting': 'length',
-            'direction': 'asc'
+            "page_size": 10,
+            "page": 1,
+            "query": None,
+            "operator": None,
+            "sorting": "length",
+            "direction": "asc"
         },
-     'test_data/table_data_expected_sorted.json'),
-    ('test_data/recording_aggregation_response_filtered_sorted.json',
+     "test_data/table_data_expected_sorted.json"),
+    ("test_data/recording_aggregation_response_filtered_sorted.json",
         {
-            'page_size': 10,
-            'page': 1,
-            'query': [{'time': {'>': "2022-04-01 13:00:00"}, '_id': {'has': "srx"}}],
-            'operator': 'and',
-            'sorting': 'length',
-            'direction': 'dsc'
+            "page_size": 10,
+            "page": 1,
+            "query": [{"time": {">": "2022-04-01 13:00:00"}, "_id": {"has": "srx"}}],
+            "operator": "and",
+            "sorting": "length",
+            "direction": "dsc"
         },
-     'test_data/table_data_expected_filtered_sorted.json'),
+     "test_data/table_data_expected_filtered_sorted.json"),
 ])
 def test_get_table_data(aggregation_result_path: str,
                         get_table_kwargs: Tuple[str, dict, str], expected_result_path: str):
@@ -129,7 +132,7 @@ def test_get_table_data(aggregation_result_path: str,
 @ pytest.mark.unit
 def test_get_single_recording():
     jsonstr = open(os.path.join(
-        __location__, 'test_data/recording_aggregation_response.json'), 'r').read()
+        __location__, "test_data/recording_aggregation_response.json"), "r").read()
     aggregation_result = json.loads(jsonstr)
     db.get_single_recording = Mock(
         side_effect=[aggregation_result[2], aggregation_result[3]])
@@ -138,25 +141,25 @@ def test_get_single_recording():
         "srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835387254")
 
     expectedstr = open(os.path.join(
-        __location__, 'test_data/single_recording_expected.json'), 'r').read()
+        __location__, "test_data/single_recording_expected.json"), "r").read()
     expected = json.loads(expectedstr)
-    assert (result == expected)
-    assert (db.get_single_recording.call_count == 2)
+    assert result == expected
+    assert db.get_single_recording.call_count == 2
 
 
 @ pytest.mark.unit
 def test_update_video_description():
     # GIVEN
-    id = 'foo'
-    description = 'bar'
+    video_id = "foo"
+    description = "bar"
     db.update_recording_description = Mock()
 
     # WHEN
-    service.update_video_description(id, description)
+    service.update_video_description(video_id, description)
 
     # THEN
 
-    db.update_recording_description.assert_called_once_with(id, description)
+    db.update_recording_description.assert_called_once_with(video_id, description)
 
 
 @pytest.mark.unit
@@ -201,16 +204,6 @@ def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder_no_video
                 "tenantID": "TestTenant"}})
     db.get_recording_list = MagicMock(return_value=([], 0, None))
     db.get_signals = MagicMock()
-    additional_query = {"$and": [
-        {"recording_overview.deviceID": "TestDevice"},
-        {"recording_overview.tenantID": "TestTenant"},
-        {"video_id": {"$regex": "^((?!TrainingRecorder).)*$"}},
-        {"$and": [{"start_at": {"$gte": 1648835260452}}, {
-            "start_at": {"$lte": 1648835260452 + 130_000}}]},
-        {"$and": [{"end_at": {"$lte": 1648835260452}}, {
-            "end_at": {"$gte": 1648835260452 - 130_000}}]},
-    ]
-    }
     # WHEN/THEN
     with pytest.raises(LookupError):
         service.get_video_signals(

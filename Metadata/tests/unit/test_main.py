@@ -1,4 +1,5 @@
 """Tests for metadata.consumer.main module."""
+# pylint: disable=missing-function-docstring,missing-module-docstring
 import hashlib
 import json
 import os
@@ -6,6 +7,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch, ANY
 
 import pytest
+from pymongo.collection import ReturnDocument
+from pymongo.errors import DocumentTooLarge
+from pytest_mock import MockerFixture
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from metadata.consumer.main import (AWS_REGION, create_recording_item,
                                     create_snapshot_recording_item,
                                     create_video_recording_item,
@@ -14,11 +19,7 @@ from metadata.consumer.main import (AWS_REGION, create_recording_item,
                                     transform_data_to_update_query,
                                     update_voxel_media, upsert_data_to_db,
                                     upsert_mdf_data, MetadataCollections)
-from pymongo.collection import ReturnDocument
-from pymongo.errors import DocumentTooLarge
-from pytest_mock import MockerFixture
 
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 
 FIX_RECORDING = {
     "id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1669376595000_1669376695538",
@@ -121,8 +122,8 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
             "snapshots_paths": [],
             "tenantID": "datanauts",
             "time": "2022-11-25 11:43:15",
-            "internal_message_reference_id":hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
-            },
+            "internal_message_reference_id": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
+        },
         "resolution": "1280x720",
         "video_id": f"{recording_id}"}
 
@@ -136,7 +137,7 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
         "tenant": "honeybadger",
         "media_type": "image",
         "internal_message_reference_id": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
-        }
+    }
 
 
 def _expected_image_recording_item(snapshot_id: str, source_videos: list) -> dict:
@@ -172,8 +173,8 @@ class TestMetadataMain():
     Test functions inside metadata.consumer.main module
     """
 
-    @pytest.fixture
-    def mock_update_voxel_media(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_update_voxel_media")
+    def fixture_update_voxel_media(self, mocker: MockerFixture) -> Mock:
         """mock update_voxel_media
 
         Args:
@@ -224,17 +225,17 @@ class TestMetadataMain():
             call(mocked_recording)
         ])
 
-    @pytest.fixture
+    @pytest.fixture(name="mock_find_and_update_media_references")
     def fixture_find_and_update_media_references(self, mocker: MockerFixture) -> Mock:
         """mocks find_and_update_media_references function
         """
         return mocker.patch("metadata.consumer.main.find_and_update_media_references")
 
     @pytest.mark.unit
-    def test_create_snapshot_recording_item(self, fixture_find_and_update_media_references: Mock):
+    def test_create_snapshot_recording_item(self, mock_find_and_update_media_references: Mock):
         """test_create_snapshot_recording_item."""
         given_related_videos = ["test_videoid1", "test_videoid2"]
-        given_snapshot_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"
+        given_snapshot_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"  # pylint: disable=line-too-long
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=given_related_videos)
         mock_collection = Mock()
@@ -256,17 +257,17 @@ class TestMetadataMain():
             }
         }
         assert snapshot_recording == expected_recording_item
-        fixture_find_and_update_media_references.assert_called_once_with(
+        mock_find_and_update_media_references.assert_called_once_with(
             given_related_videos, update_query={
                 "$inc": {
                     "recording_overview.#snapshots": 1}, "$push": {
                     "recording_overview.snapshots_paths": given_snapshot_id}}, recordings_collection=mock_collection)
 
     @pytest.mark.unit
-    def test_create_snapshot_recording_item_duplicated(self, fixture_find_and_update_media_references: Mock):
+    def test_create_snapshot_recording_item_duplicated(self, mock_find_and_update_media_references: Mock):
         """test_create_snapshot_recording_item."""
         given_related_videos = ["test_videoid1", "test_videoid2"]
-        given_snapshot_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"
+        given_snapshot_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"  # pylint: disable=line-too-long
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=given_related_videos)
         mock_collection = Mock()
@@ -288,10 +289,10 @@ class TestMetadataMain():
             }
         }
         assert snapshot_recording == expected_recording_item
-        fixture_find_and_update_media_references.assert_not_called()
+        mock_find_and_update_media_references.assert_not_called()
 
     @pytest.mark.unit
-    def test_create_video_recording_item(self, fixture_find_and_update_media_references: Mock):
+    def test_create_video_recording_item(self, mock_find_and_update_media_references: Mock):
         """test_create_video_recording_item"""
         given_related_snapshots = ["test_snapshot1", "test_snapshot2"]
         given_video_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"
@@ -318,7 +319,7 @@ class TestMetadataMain():
             "resolution": input_message["resolution"]
         }
         assert video_recording == expected_recording_item
-        fixture_find_and_update_media_references.assert_called_once_with(
+        mock_find_and_update_media_references.assert_called_once_with(
             given_related_snapshots,
             update_query={
                 "$push": {
@@ -333,7 +334,7 @@ class TestMetadataMain():
     ])
     @pytest.mark.unit
     def test_create_recording_item(self, message_body, source_videos, expected_outcome,
-                                   fixture_find_and_update_media_references: Mock):
+                                   mock_find_and_update_media_references: Mock):
         mock_collection = Mock()
         mock_collection.find_one = Mock(return_value=None)
         mock_collection.find_one_and_update = Mock()
@@ -343,7 +344,7 @@ class TestMetadataMain():
         obtained_outcome = create_recording_item(message_body, mock_collection, mock_media_svc)
 
         assert obtained_outcome == expected_outcome
-        fixture_find_and_update_media_references.assert_called()
+        mock_find_and_update_media_references.assert_called()
         mock_collection.find_one_and_update.assert_called_once_with(
             filter={"video_id": message_body["_id"]},
             update={"$set": transform_data_to_update_query(obtained_outcome)},
@@ -444,7 +445,7 @@ class TestMetadataMain():
         # Given
         video_id = "id"
         message = {
-            "s3_path": f"a/b/c.d",
+            "s3_path": "a/b/c.d",
             "output": {
                 "bucket": "a",
                 "meta_path": "e/f.media"
@@ -506,7 +507,7 @@ class TestMetadataMain():
             upsert=True
         )
         collection_algo_out.update_one.assert_called_once_with(
-            {'_id': 'id_CHC'},
+            {"_id": "id_CHC"},
             {
                 "$set": expected_out
             }, upsert=True)
@@ -518,25 +519,25 @@ class TestMetadataMain():
     @pytest.mark.parametrize("input_message_body,input_message_atributes,return_upserts", [
         (
             _snapshot_message_body(
-                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore
+                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body(),  # type: ignore
             True
         ),
         (
             _snapshot_message_body(
-                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore
+                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body(),  # type: ignore
             False
         ),
         (
             _snapshot_message_body(
-                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore
+                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body("MDFParser"),  # type: ignore
             True
         ),
         (
             _snapshot_message_body(
-                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore
+                "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body("MDFParser"),  # type: ignore
             False
         ),
@@ -546,9 +547,9 @@ class TestMetadataMain():
     @patch("metadata.consumer.main.update_voxel_media")
     def test_upsert_data_to_db_sdr_mdf(
             self,
-            update_voxel_media: Mock,
-            upsert_mdf_data: Mock,
-            create_recording_item: Mock,
+            mock_update_voxel_media: Mock,
+            mock_upsert_mdf_data: Mock,
+            mock_create_recording_item: Mock,
             input_message_body: dict,
             input_message_atributes: dict,
             return_upserts: bool
@@ -560,8 +561,8 @@ class TestMetadataMain():
         collection_signals_mock = Mock()
         container_services_mock = Mock()
         container_services_mock.db_tables = MagicMock()
-        create_recording_item.return_value = return_upserts
-        upsert_mdf_data.return_value = return_upserts
+        mock_create_recording_item.return_value = return_upserts
+        mock_upsert_mdf_data.return_value = return_upserts
         db_mock.__getitem__ = Mock(
             side_effect=[
                 collection_signals_mock,
@@ -580,17 +581,17 @@ class TestMetadataMain():
 
         source = input_message_atributes["SourceContainer"]["StringValue"]
         if source == "SDRetriever":
-            create_recording_item.assert_called_once_with(
+            mock_create_recording_item.assert_called_once_with(
                 input_message_body,
                 collection_recordings_mock,
                 related_metadata_service_mock)
         else:
-            upsert_mdf_data.assert_called_once_with(input_message_body, ANY)
+            mock_upsert_mdf_data.assert_called_once_with(input_message_body, ANY)
 
         if return_upserts:
-            update_voxel_media.assert_called_once_with(return_upserts)
+            mock_update_voxel_media.assert_called_once_with(return_upserts)
         else:
-            update_voxel_media.assert_not_called()
+            mock_update_voxel_media.assert_not_called()
 
     @pytest.mark.unit
     @pytest.mark.parametrize("input_message_body,input_message_atributes", [
@@ -599,7 +600,7 @@ class TestMetadataMain():
     @patch("metadata.consumer.main.process_outputs")
     def test_upsert_data_to_db(
             self,
-            process_outputs: Mock,
+            mock_process_outputs: Mock,
             update_pipeline_db: Mock,
             input_message_body: dict,
             input_message_atributes: dict,
@@ -624,9 +625,9 @@ class TestMetadataMain():
 
         # THEN
         upsert_data_to_db(db_mock, container_services_mock,
-            related_metadata_service_mock,
-            input_message_body,
-            input_message_atributes)
+                          related_metadata_service_mock,
+                          input_message_body,
+                          input_message_atributes)
 
         source = input_message_atributes["SourceContainer"]["StringValue"]
         update_pipeline_db.assert_called_once_with(
@@ -636,7 +637,7 @@ class TestMetadataMain():
             source)
 
         if "output" in input_message_body:
-            process_outputs.assert_called_once_with(
+            mock_process_outputs.assert_called_once_with(
                 recording_id,
                 input_message_body,
                 collection_algo_output_mock,
@@ -644,7 +645,7 @@ class TestMetadataMain():
                 collection_signals_mock,
                 source)
         else:
-            process_outputs.assert_not_called()
+            mock_process_outputs.assert_not_called()
 
     read_message_test_data: dict = {
         "mdf": {
@@ -674,48 +675,48 @@ class TestMetadataMain():
         assert got_relay_data == expected_message
         container_services_mock.display_processed_msg.assert_called_once()
 
-    @pytest.fixture
-    def mock_boto3_client(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_boto3_client")
+    def fixture_boto3_client(self, mocker: MockerFixture) -> Mock:
         """Mock boto3 AWS client."""
         return mocker.patch("boto3.client")
 
-    @pytest.fixture
-    def mock_persistence(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_persistence")
+    def fixture_persistence(self, mocker: MockerFixture) -> Mock:
         """Mock Persistence class."""
         return mocker.patch("metadata.consumer.main.Persistence")
 
-    @pytest.fixture
-    def mock_related_media_service(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_related_media_service")
+    def fixture_related_media_service(self, mocker: MockerFixture) -> Mock:
         """Mock RelatedMediaservice class."""
         return mocker.patch("metadata.consumer.main.RelatedMediaService")
 
-    @pytest.fixture
-    def mock_base(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_base")
+    def fixture_base(self, mocker: MockerFixture) -> Mock:
         """Mock base package."""
         return mocker.patch("base")
 
-    @pytest.fixture
-    def mock_graceful_exit(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_graceful_exit")
+    def fixture_graceful_exit(self, mocker: MockerFixture) -> Mock:
         """Mock GracefulExit class."""
         return mocker.patch("metadata.consumer.main.GracefulExit")
 
-    @pytest.fixture
-    def mock_read_message(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_read_message")
+    def fixture_read_message(self, mocker: MockerFixture) -> Mock:
         """Mock read_message function."""
         return mocker.patch("metadata.consumer.main.read_message")
 
-    @pytest.fixture
-    def mock_upsert_data_to_db(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_upsert_data_to_db")
+    def fixture_upsert_data_to_db(self, mocker: MockerFixture) -> Mock:
         """Mock upsert_data_to_db function."""
         return mocker.patch("metadata.consumer.main.upsert_data_to_db")
 
-    @pytest.fixture
-    def mock_container_services(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_container_services")
+    def fixture_container_services(self, mocker: MockerFixture) -> Mock:
         """Mock ContainerServices class."""
         return mocker.patch("metadata.consumer.main.ContainerServices")
 
-    @pytest.fixture
-    def mock_continue_running(self, mocker: MockerFixture) -> Mock:
+    @pytest.fixture(name="mock_continue_running")
+    def fixture_continue_running(self, mocker: MockerFixture) -> Mock:
         """Mock GracefulExit.continue_running property."""
         return mocker.patch("metadata.consumer.main.GracefulExit.continue_running",
                             new_callable=PropertyMock, side_effect=[True, False])
@@ -781,6 +782,7 @@ class TestMetadataMain():
             input_message["MessageAttributes"])
         mock_container_services_object.delete_message.assert_called_once_with(
             sqs_client_mock, input_message["ReceiptHandle"])
+
 
 @pytest.mark.unit
 @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})

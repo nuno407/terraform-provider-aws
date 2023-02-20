@@ -1,18 +1,21 @@
+# pylint: disable=missing-function-docstring,missing-module-docstring
 import os
-from tests.common import db_tables
+
 import pytest
 import mongomock
 from bson.json_util import loads
 from pymongo.collection import Collection
-from metadata.consumer.db import Persistence
 from base.aws.container_services import DATA_INGESTION_DATABASE_NAME
+from metadata.consumer.db import Persistence
+
+from tests.common import db_tables
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-@pytest.fixture()
-def recordings_persistence() -> tuple[Persistence, mongomock.MongoClient]:
+@pytest.fixture(name="recordings_persistence")
+def fixture_recordings_persistence() -> tuple[Persistence, mongomock.MongoClient]:
     client = mongomock.MongoClient()
     recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
 
@@ -37,8 +40,9 @@ def test_related_media_service_image(recordings_persistence):
     media_type = "image"
 
     videos_paths = [
+        # pylint: disable=line-too-long
         "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_InteriorRecorder_1664480133262_1664480395622",
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingRecorder_1664480013262_1664480515622"]
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingRecorder_1664480013262_1664480515622"]  # pylint: disable=line-too-long
 
     # WHEN
     result = recordings_persistence.get_video_snapshot_media(device, tenant, start_ms, None, media_type)
@@ -58,11 +62,11 @@ def test_related_media_service_video(recordings_persistence):
     media_type = "video"
 
     snapshots_paths = [
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_28_1664480356000",
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_24_1664480150000",
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_25_1664480320000",
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_26_1664480325000",
-        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_27_1664480327000"]
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_28_1664480356000",  # pylint: disable=line-too-long
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_24_1664480150000",  # pylint: disable=line-too-long
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_25_1664480320000",  # pylint: disable=line-too-long
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_26_1664480325000",  # pylint: disable=line-too-long
+        "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_27_1664480327000"]  # pylint: disable=line-too-long
 
     # WHEN
     result = recordings_persistence.get_video_snapshot_media(device, tenant, start_ms, end_ms, media_type)
