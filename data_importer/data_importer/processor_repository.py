@@ -20,5 +20,5 @@ class ProcessorRepository():
         return cls._repository.get(file_extension, cls._default_processor)
 
     @classmethod
-    def load_all_processors(cls) -> None:
+    def load_all_processors(cls):
         load_all_processors()

@@ -9,4 +9,4 @@ class Processor(ABC):
     @classmethod
     @abc.abstractmethod
     def load_metadata(cls, message: SQSMessage, **kwargs) -> Optional[dict[str, Any]]:
-        raise NotImplementedError("This method should be implemented by subclasses.")
+        """Load metadata for this message"""

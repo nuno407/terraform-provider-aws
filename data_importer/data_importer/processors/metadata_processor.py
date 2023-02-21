@@ -26,10 +26,10 @@ class JsonMetadataLoader(Processor):
             return metadata
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'NoSuchKey':
-                _logger.warn('File cannot be found on S3 - returning None')
+                _logger.warning('File cannot be found on S3 - returning None')
                 return None
             else:
                 raise ex
         except json.decoder.JSONDecodeError:
-            _logger.warn("Issue decoding metadata file %s", message.full_path)
+            _logger.warning("Issue decoding metadata file %s", message.full_path)
         return None
