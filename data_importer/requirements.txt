@@ -1,4 +1,3 @@
 boto3
--e ../base[aws]
---extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 -e ../base[aws,voxel]
+--extra-index-url https://${TOKEN}@pypi.fiftyone.ai

@@ -4,7 +4,7 @@ timid = true
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
-addopts = "-m unit -v --cov-config=.coveragerc --cov=dataimporter --cov-report=xml"
+addopts = "-m unit -v --cov-config=.coveragerc --cov=data_importer --cov-report=xml"
 markers = [
     "unit",
     "integration"
@@ -35,7 +35,7 @@ docstring-quote = "double"
 
 [tool.mypy]
 files = [
-    "dataimporter/**/*.py",
+    "data_importer/**/*.py",
     "tests/**/*.py"
 ]
 # mypy per-module options:
