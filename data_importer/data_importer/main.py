@@ -50,7 +50,7 @@ def process_message(container_services, importer, s3_client, sqs_client):
         container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"], input_queue=DATA_IMPORTER_QUEUE)
 
 
-def main():
+def main(stop_condition=lambda: True):
     """Main function"""
 
     # Define configuration for logging messages
@@ -58,7 +58,7 @@ def main():
 
     # Create the necessary clients for AWS services access
     sqs_client = boto3.client('sqs', region_name='eu-central-1')
-    s3_client = boto3.client(service_name="s3", region_name="eu-central-1")
+    s3_client = boto3.client("s3", region_name="eu-central-1")
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
@@ -73,7 +73,7 @@ def main():
 
     _logger.info("Listening to input queue...")
 
-    while graceful_exit.continue_running:
+    while stop_condition() and graceful_exit.continue_running:
         process_message(container_services, importer, s3_client, sqs_client)
 
 
