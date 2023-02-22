@@ -56,7 +56,7 @@ class TestMain:
         }
 
         # input queue mocks
-        container_services_mock.return_value.listen_to_input_queue.return_value = message
+        container_services_mock.return_value.get_single_message_from_input_queue.return_value = message
         # downloader mocks
         container_services_mock.download_file.return_value = mdf_data_encoded
 
@@ -85,7 +85,7 @@ class TestMain:
         }
 
         # input queue mocks
-        container_services_mock.return_value.listen_to_input_queue.return_value = message
+        container_services_mock.return_value.get_single_message_from_input_queue.return_value = message
 
         ### WHEN ###
         main(config=mdf_parser_config)
@@ -108,7 +108,7 @@ class TestMain:
         }
 
         # input queue mocks
-        container_services_mock.return_value.listen_to_input_queue.return_value = message
+        container_services_mock.return_value.get_single_message_from_input_queue.return_value = message
         # downloader mocks
         container_services_mock.download_file.side_effect = Exception('Download error')
 

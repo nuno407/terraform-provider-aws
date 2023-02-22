@@ -472,7 +472,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
 
         message_handler_fix.handle_incoming_message = Mock(return_value=None)
         message_handler_fix.handle_processing_output = Mock(return_value=None)
-        message_handler_fix._MessageHandler__container_services.listen_to_input_queue = Mock(  # pylint: disable=protected-access
+        message_handler_fix._MessageHandler__container_services.get_single_message_from_input_queue = Mock(  # pylint: disable=protected-access
             return_value=sqs_queue_message)
         message_handler_fix._MessageHandler__internal_queue.get = Mock(  # pylint: disable=protected-access
             return_value=internal_queue_message)
@@ -531,7 +531,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
 
         message_handler_fix.handle_incoming_message = Mock(return_value=None)
         message_handler_fix.handle_processing_output = Mock(return_value=None)
-        message_handler_fix._MessageHandler__container_services.listen_to_input_queue = Mock(  # pylint: disable=protected-access
+        message_handler_fix._MessageHandler__container_services.get_single_message_from_input_queue = Mock(  # pylint: disable=protected-access
             return_value=sqs_queue_message)
         message_handler_fix._MessageHandler__internal_queue.get = Mock(  # pylint: disable=protected-access
             return_value=internal_queue_message)
@@ -586,7 +586,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
 
         message_handler_fix.handle_incoming_message = Mock(return_value=None)
         message_handler_fix.handle_processing_output = Mock(return_value=None)
-        message_handler_fix._MessageHandler__container_services.listen_to_input_queue = Mock(  # pylint: disable=protected-access
+        message_handler_fix._MessageHandler__container_services.get_single_message_from_input_queue = Mock(  # pylint: disable=protected-access
             return_value=sqs_queue_message)
         message_handler_fix._MessageHandler__internal_queue.get = Mock(  # pylint: disable=protected-access
             return_value=internal_queue_message)

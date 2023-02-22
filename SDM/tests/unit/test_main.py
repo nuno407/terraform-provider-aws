@@ -174,12 +174,12 @@ class TestMain():
     def test_main(self, mock_processing_sdm: Mock, _: Mock, mock_container_services: Mock):
         """ Test Main loop. """
         # GIVEN
-        mock_container_services.listen_to_input_queue.return_value = {}
+        mock_container_services.get_single_message_from_input_queue.return_value = {}
         _stop_condition = Mock(side_effect=[True, False])
 
         # WHEN
         main(stop_condition=_stop_condition)
         # THEN
-        mock_container_services.return_value.listen_to_input_queue.assert_called_once()
+        mock_container_services.return_value.get_single_message_from_input_queue.assert_called_once()
         mock_processing_sdm.assert_called_once()
         mock_container_services.return_value.delete_message.assert_called_once()

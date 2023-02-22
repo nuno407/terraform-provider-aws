@@ -27,14 +27,14 @@ class TestSelector():
             "ReceiptHandle": "receipt_handle"
         }
 
-        mock_container_services.listen_to_input_queue.return_value = message
+        mock_container_services.get_single_message_from_input_queue.return_value = message
         mock_container_services.get_message_body.return_value = body
 
         # WHEN
         selector.handle_hq_queue()
 
         # THEN
-        mock_container_services.listen_to_input_queue.assert_called_once()
+        mock_container_services.get_single_message_from_input_queue.assert_called_once()
         mock_container_services.delete_message.assert_called_once_with(None, "receipt_handle", "super_special_queue")
         mock_footage_api_wrapper.request_footage.assert_called_once_with("test", 1234567, 1234569)
 
@@ -56,13 +56,13 @@ class TestSelector():
             "ReceiptHandle": "receipt_handle"
         }
 
-        mock_container_services.listen_to_input_queue.return_value = message
+        mock_container_services.get_single_message_from_input_queue.return_value = message
         mock_container_services.get_message_body.return_value = body
 
         # WHEN
         selector.handle_hq_queue()
         # THEN
-        mock_container_services.listen_to_input_queue.assert_called_once()
+        mock_container_services.get_single_message_from_input_queue.assert_called_once()
         try:
             mock_container_services.delete_message.assert_called_once_with(
                 None, "receipt_handle", "super_special_queue")

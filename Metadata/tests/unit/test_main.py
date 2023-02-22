@@ -756,7 +756,7 @@ class TestMetadataMain():
         mock_container_services_object.create_db_client = Mock(return_value=mock_db_client)
         mock_container_services_object.db_tables = Mock()
         mock_container_services_object.delete_message = Mock()
-        mock_container_services_object.listen_to_input_queue = Mock(return_value=input_message)
+        mock_container_services_object.get_single_message_from_input_queue = Mock(return_value=input_message)
         mock_persistence_object = Mock()
         mock_persistence.return_value = mock_persistence_object
         mock_api_service = Mock()
@@ -772,7 +772,7 @@ class TestMetadataMain():
         mock_container_services_object.create_db_client.assert_called_once_with()
         mock_persistence.assert_called_once_with(None, mock_container_services_object.db_tables, mock_db_client.client)
         mock_related_media_service.assert_called_once_with(mock_persistence_object)
-        mock_container_services_object.listen_to_input_queue.assert_called_once_with(sqs_client_mock)
+        mock_container_services_object.get_single_message_from_input_queue.assert_called_once_with(sqs_client_mock)
         mock_read_message.assert_called_once_with(mock_container_services_object, input_message["Body"])
         mock_upsert_data_to_db.assert_called_once_with(
             mock_db_client,

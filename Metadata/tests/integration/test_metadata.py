@@ -141,7 +141,7 @@ class TestMain:
                                         input_message_snapshot_excluded, voxel_mock: tuple[Mock, Mock]):
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
-        container_services_mock.return_value.listen_to_input_queue.side_effect = [
+        container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [
             input_message_snapshot_included,
             input_message_snapshot_excluded,
             input_message_recording
