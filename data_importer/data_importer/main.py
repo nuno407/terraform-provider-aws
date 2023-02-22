@@ -38,7 +38,6 @@ def process_message(container_services, importer, s3_client, sqs_client):
 
         dataset = importer.load_dataset(f"{DATA_OWNER}-{parsed_message.dataset}", [DATA_OWNER])
 
-        # FIXME: Dependencies to subprocessors should be passed by DI and never like this
         metadata = processor.load_metadata(parsed_message, s3_client=s3_client, container_services=container_services)
 
         # Find or create a new Sample with the given metadata
@@ -55,7 +54,7 @@ def main(stop_condition=lambda: True):
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    sqs_client = boto3.client('sqs', region_name='eu-central-1')
+    sqs_client = boto3.client("sqs", region_name="eu-central-1")
     s3_client = boto3.client("s3", region_name="eu-central-1")
 
     # Initialise instance of ContainerServices class

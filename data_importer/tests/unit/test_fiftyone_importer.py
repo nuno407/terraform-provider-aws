@@ -1,16 +1,18 @@
+"""Test Fiftyone importer"""
 import sys
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import Mock, call
 
 import pytest
-
-# Mock fiftyone package, to prevent it from trying to establish DB connection
-sys.modules['fiftyone'] = MagicMock()
 from data_importer.fiftyone_importer import FiftyoneImporter
 
 
+# pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
+# pylint: disable=redefined-outer-name, invalid-name
+# mypy: disable-error-code=assignment
+
 @pytest.fixture
-def fo():
-    fo = sys.modules['fiftyone']
+def fiftyone():
+    fo = sys.modules["fiftyone"]
     fo.Dataset = Mock()
     return fo
 
@@ -21,38 +23,38 @@ def importer():
 
 
 @pytest.mark.unit
-def test_create_dataset(fo: Mock, importer: FiftyoneImporter):
+def test_create_dataset(fiftyone, importer: FiftyoneImporter):
     # GIVEN
-    fo.dataset_exists = Mock(return_value=False)
+    fiftyone.dataset_exists = Mock(return_value=False)
 
     # WHEN
     dataset = importer.load_dataset("test", ["test-tag"])
 
     # THEN
-    fo.Dataset.assert_called_once_with("test", persistent=True, overwrite=False)
-    fo.load_dataset.assert_not_called()
+    fiftyone.Dataset.assert_called_once_with("test", persistent=True, overwrite=False)
+    fiftyone.load_dataset.assert_not_called()
     assert dataset.tags == ["test-tag"]
 
 
 @pytest.mark.unit
-def test_load_existing_dataset(fo: Mock, importer: FiftyoneImporter):
+def test_load_existing_dataset(fiftyone, importer: FiftyoneImporter):
     # GIVEN
     dataset = Mock()
-    fo.dataset_exists = Mock(return_value=True)
-    fo.load_dataset = Mock(return_value=dataset)
+    fiftyone.dataset_exists = Mock(return_value=True)
+    fiftyone.load_dataset = Mock(return_value=dataset)
 
     # WHEN
     found_dataset = importer.load_dataset("test", ["test-tag"])
 
     # THEN
-    fo.dataset_exists.assert_called_once_with("test")
-    fo.load_dataset.assert_called_once_with("test")
+    fiftyone.dataset_exists.assert_called_once_with("test")
+    fiftyone.load_dataset.assert_called_once_with("test")
     assert found_dataset == dataset
-    fo.Dataset.assert_not_called()
+    fiftyone.Dataset.assert_not_called()
 
 
 @pytest.mark.unit
-def test_update_existing_sample(fo: Mock, importer: FiftyoneImporter):
+def test_update_existing_sample(importer: FiftyoneImporter):
     # GIVEN
     sample = Mock()
     importer.find_sample = Mock(return_value=sample)
@@ -71,19 +73,19 @@ def test_update_existing_sample(fo: Mock, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_update_new_sample(fo: Mock, importer: FiftyoneImporter):
+def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
     # GIVEN
     sample = Mock()
-    importer.find_sample = Mock(side_effect=ValueError('Not found'))
+    importer.find_sample = Mock(side_effect=ValueError("Not found"))
     importer.override_metadata = Mock()
-    fo.Sample = Mock(return_value=sample)
+    fiftyone.Sample = Mock(return_value=sample)
     dataset = Mock()
 
     # WHEN
     importer.upsert_sample(dataset, "/foo/bar", {})
 
     # THEN
-    fo.Sample.assert_called_with("/foo/bar")
+    fiftyone.Sample.assert_called_with("/foo/bar")
     dataset.add_sample.assert_called_once_with(sample)
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")

@@ -1,33 +1,35 @@
 """ Test SQSMessage Class """
-from data_importer.sqs_message import SQSMessage
 import pytest
-import unittest
+from data_importer.sqs_message import SQSMessage
+
+
+# pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
 
 
 def _sqs_message_helper(principal_id, bucket_name, object_key):
     return {"Body": str({
         "Records": [
             {
-                        "userIdentity": {
-                            "principalId": principal_id
-                        },
-                        "s3": {
-                            "bucket": {
-                                "name": bucket_name
-                            },
-                            "object": {
-                                "key": object_key
-                            }
-                        }
-                        }
+                "userIdentity": {
+                    "principalId": principal_id
+                },
+                "s3": {
+                    "bucket": {
+                        "name": bucket_name
+                    },
+                    "object": {
+                        "key": object_key
+                    }
+                }
+            }
         ]
     })
     }
 
 
+@pytest.mark.unit
 class TestSQSMessage():
 
-    @pytest.mark.unit
     @pytest.mark.parametrize("sqs_message,expected_sqs_message", [
         (
             _sqs_message_helper("mock_id", "mock_bucket", "mock_key/mock_file.mock_extension"),

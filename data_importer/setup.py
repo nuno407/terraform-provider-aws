@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+"""setup script for data_importer package"""
+from setuptools import setup
 
 
 setup(name="data_importer",

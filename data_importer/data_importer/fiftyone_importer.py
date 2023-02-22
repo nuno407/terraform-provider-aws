@@ -1,3 +1,6 @@
+"""Fiftyone Importer module"""
+from typing import Any, Optional
+
 import fiftyone as fo
 from base.aws.container_services import ContainerServices
 from fiftyone import ViewField as F
@@ -7,12 +10,13 @@ _logger = ContainerServices.configure_logging(__name__)
 
 class FiftyoneImporter:
     """
-    Voxel Fiftyone importer for media and metadata has methods to find, create, and delete samples based on the file path
+    Voxel Fiftyone importer for media and metadata has methods to
+    find, create, and delete samples based on the file path
     """
 
     default_sample_fields = [key for key, _ in fo.Sample("blueprint").iter_fields()]
 
-    def load_dataset(self, name: str, tags: [str]):
+    def load_dataset(self, name: str, tags: list[str]):
         """
         Loads an existing dataset or creates a new one if it doesn't exist yet.
 
@@ -26,7 +30,7 @@ class FiftyoneImporter:
         dataset.tags = tags
         return dataset
 
-    def upsert_sample(self, dataset: fo.Dataset, path: str, metadata: dict = None):
+    def upsert_sample(self, dataset: fo.Dataset, path: str, metadata: Optional[dict[Any, Any]] = None):
         """
         Upserts a sample by the given file path by either finding the existing one
         or creating a new one if it doesn't exist yet.
@@ -82,7 +86,8 @@ class FiftyoneImporter:
         :param metadata: New metadata to use for the sample
         """
         self.delete_metadata(sample)
-        [sample.set_field(key, value) for key, value in metadata.items()]
+        for key, value in metadata.items():
+            sample.set_field(key, value)
 
     def delete_metadata(self, sample: fo.Sample):
         """
@@ -90,7 +95,7 @@ class FiftyoneImporter:
 
         :param sample: Sample to delete metadata from
         """
-        metadata_to_remove = filter(
-            lambda metadata: metadata[0] not in self.default_sample_fields,
-            sample.iter_fields())
-        [sample.clear_field(key) for key, _ in metadata_to_remove]
+        metadata_to_remove = filter(lambda metadata: metadata[0] not in self.default_sample_fields,
+                                    sample.iter_fields())
+        for key, _ in metadata_to_remove:
+            sample.clear_field(key)

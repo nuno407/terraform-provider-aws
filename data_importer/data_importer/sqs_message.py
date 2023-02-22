@@ -1,3 +1,5 @@
+"""SQS Message module"""
+
 import json
 import os
 from dataclasses import dataclass, field
@@ -10,6 +12,10 @@ _logger = ContainerServices.configure_logging(__name__)
 
 @dataclass
 class SQSMessage():
+    """
+    Class holing information of a parsed SQS message
+    """
+
     principal_id: str
     bucket_name: str
     file_path: str
