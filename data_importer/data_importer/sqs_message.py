@@ -25,13 +25,13 @@ class SQSMessage():
         """
         Print message attributes to log.
         """
-        _logger.info("Message")
-        _logger.info("principal_id: %s", self.principal_id)
-        _logger.info("bucket_name: %s", self.bucket_name)
-        _logger.info("file_path: %s", self.file_path)
-        _logger.info("file_extension: %s", self.file_extension)
-        _logger.info("dataset: %s", self.dataset)
-        _logger.info("full_path: %s", self.full_path)
+        _logger.debug("Message")
+        _logger.debug("principal_id: %s", self.principal_id)
+        _logger.debug("bucket_name: %s", self.bucket_name)
+        _logger.debug("file_path: %s", self.file_path)
+        _logger.debug("file_extension: %s", self.file_extension)
+        _logger.debug("dataset: %s", self.dataset)
+        _logger.debug("full_path: %s", self.full_path)
 
     @classmethod
     def from_raw_sqs_message(cls, sqs_message):
@@ -41,17 +41,21 @@ class SQSMessage():
         :param sqs_message: Raw message to parse
         :return: parsed SQSMessage
         """
-        body = sqs_message['Body'].replace("\'", "\"")
+        body = sqs_message["Body"].replace("\'", "\"")
         sqs_body = json.loads(body)
 
         principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
 
         bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
         file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
-        file_extension = file_path.suffix.strip(".") if file_path.suffix != '' else None
+        # assumed that file extension is always given (S3 notification configuration)
+        file_extension = file_path.suffix.strip(".")
 
         (directory_structure, _) = os.path.split(file_path)
         dir_splits = str.split(directory_structure, "/")
-        dataset = dir_splits[0] if dir_splits[0] != '' else 'default'
+        dataset = dir_splits[0] if dir_splits[0] != "" else "default"
 
-        return SQSMessage(principal_id, bucket_name, str(file_path), file_extension, dataset)
+        message_to_return = SQSMessage(principal_id, bucket_name, str(file_path), file_extension, dataset)
+        message_to_return.print_message()
+
+        return message_to_return

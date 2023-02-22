@@ -41,8 +41,6 @@ def process_message(container_services, importer, s3_client, sqs_client):
         # FIXME: Dependencies to subprocessors should be passed by DI and never like this
         metadata = processor.load_metadata(parsed_message, s3_client=s3_client, container_services=container_services)
 
-        parsed_message.print_message()
-
         # Find or create a new Sample with the given metadata
         importer.upsert_sample(dataset, parsed_message.full_path, metadata)
 
