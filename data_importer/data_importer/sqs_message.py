@@ -55,7 +55,7 @@ class SQSMessage():
         bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
         file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
         # assumed that file extension is always given (S3 notification configuration)
-        file_extension = file_path.suffix.strip(".")
+        file_extension = file_path.suffix.strip(".").lower()
 
         (directory_structure, _) = os.path.split(file_path)
         dir_splits = str.split(directory_structure, "/")
