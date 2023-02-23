@@ -93,9 +93,17 @@ class TestMetadataProcessor:
         # THEN
         assert metadata == {"foo": "bar", "baar": "baz"}
 
-    def test_load_metadata_removing_filepath(self, message: SQSMessage, container_services, s3_client):
+    def test_load_metadata_removing_prohibited_fields(self, message: SQSMessage, container_services, s3_client):
         # GIVEN
-        raw_metadata = json.dumps({"foo": "bar", "filepath": "path/to/new.jpg"})
+        raw_metadata = json.dumps({
+            "foo": "bar",
+            "filepath": "path/to/new.jpg",
+            "id": "1234",
+            "media_type": "test",
+            "metadata": {
+                "nested": "stuff"
+            }
+        })
         container_services.download_file = Mock(return_value=raw_metadata)
 
         # WHEN

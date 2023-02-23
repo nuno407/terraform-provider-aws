@@ -16,6 +16,9 @@ _logger = ContainerServices.configure_logging(__name__)
 class JsonMetadataLoader(Processor):
     """Processor for JSON metadata files. Gets the metadata from S3 and converts it to a dictionary."""
 
+    # These fields should not be changed by the user provided metadata
+    sanitized_fields = ["filepath", "id", "media_type", "metadata"]
+
     @classmethod
     def load_metadata(cls, message: SQSMessage, **kwargs) -> Optional[dict[str, Any]]:
         _logger.debug("full path: %s", message.full_path)
@@ -23,9 +26,10 @@ class JsonMetadataLoader(Processor):
             raw_file = kwargs.get("container_services").download_file(  # type: ignore
                 kwargs.get("s3_client"), message.bucket_name, message.file_path)
             metadata = json.loads(raw_file)
-            # We don't allow to update the filepath of the sample so metadata and media name don't get out of sync
-            if "filepath" in metadata:
-                metadata.pop("filepath")
+            ignored_fields = list(filter(lambda field: field in cls.sanitized_fields, metadata))
+            for field in ignored_fields:
+                # Ignoring important Sample internal fields
+                metadata.pop(field)
             return metadata
         except ClientError as ex:
             if ex.response["Error"]["Code"] == "NoSuchKey":
