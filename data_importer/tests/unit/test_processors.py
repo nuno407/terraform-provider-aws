@@ -51,6 +51,16 @@ class TestDefaultProcessor:
         # THEN
         assert metadata is None
 
+    def test_upsert(self):
+        # GIVEN
+        message = SQSMessage("principal", "test-bucket", "tmp/test/file.bumlux", "bumlux", "tmp")
+
+        # WHEN
+        ret = DefaultProcessor.upsert_sample(None, message, None, {})
+
+        # THEN
+        assert ret is None
+
 
 @pytest.mark.unit
 class TestImageProcessor:

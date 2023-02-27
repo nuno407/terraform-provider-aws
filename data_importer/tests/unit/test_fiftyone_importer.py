@@ -54,6 +54,46 @@ def test_load_existing_dataset(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
+def test_replace_existing_sample(importer: FiftyoneImporter):
+    # GIVEN
+    sample = Mock()
+    importer.find_sample = Mock(return_value=sample)
+    importer.override_metadata = Mock()
+    dataset = Mock()
+
+    # WHEN
+    importer.replace_sample(dataset, "/foo/bar", {"tst": "label"})
+
+    # THEN
+    dataset.add_sample.assert_not_called()
+
+    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    importer.override_metadata.assert_called_once_with(sample, {"tst": "label"})
+    sample.save.assert_called_once()
+
+
+@pytest.mark.unit
+def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
+    # GIVEN
+    sample = Mock()
+    importer.find_sample = Mock(side_effect=ValueError("Not found"))
+    importer.override_metadata = Mock()
+    fiftyone.Sample = Mock(return_value=sample)
+    dataset = Mock()
+
+    # WHEN
+    importer.replace_sample(dataset, "/foo/bar", {})
+
+    # THEN
+    fiftyone.Sample.assert_called_with("/foo/bar")
+    dataset.add_sample.assert_called_once_with(sample)
+
+    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    importer.override_metadata.assert_called_once_with(sample, {})
+    sample.save.assert_called_once()
+
+
+@pytest.mark.unit
 def test_update_existing_sample(importer: FiftyoneImporter):
     # GIVEN
     sample = Mock()
@@ -62,13 +102,15 @@ def test_update_existing_sample(importer: FiftyoneImporter):
     dataset = Mock()
 
     # WHEN
-    importer.upsert_sample(dataset, "/foo/bar", {})
+    importer.upsert_sample(dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
 
     # THEN
     dataset.add_sample.assert_not_called()
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
-    importer.override_metadata.assert_called_once_with(sample, {})
+    importer.override_metadata.assert_not_called()
+    sample.set_field.assert_has_calls([call("tst", "label"), call("tst2", "label2")])
+    importer.override_metadata.assert_not_called()
     sample.save.assert_called_once()
 
 
@@ -82,14 +124,16 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
     dataset = Mock()
 
     # WHEN
-    importer.upsert_sample(dataset, "/foo/bar", {})
+    importer.upsert_sample(dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
     dataset.add_sample.assert_called_once_with(sample)
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
-    importer.override_metadata.assert_called_once_with(sample, {})
+    importer.override_metadata.assert_not_called()
+    sample.set_field.assert_has_calls([call("tst", "label"), call("tst2", "label2")])
+    importer.override_metadata.assert_not_called()
     sample.save.assert_called_once()
 
 

@@ -41,7 +41,7 @@ def process_message(container_services, importer, s3_client, sqs_client):
         metadata = processor.load_metadata(parsed_message, s3_client=s3_client, container_services=container_services)
 
         # Find or create a new Sample with the given metadata
-        importer.upsert_sample(dataset, parsed_message.full_path, metadata)
+        processor.upsert_sample(dataset, parsed_message, metadata, importer)
 
         # Delete message after processing
         container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"], input_queue=DATA_IMPORTER_QUEUE)

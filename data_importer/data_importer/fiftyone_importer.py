@@ -30,9 +30,39 @@ class FiftyoneImporter:
         dataset.tags = tags
         return dataset
 
-    def upsert_sample(self, dataset: fo.Dataset, path: str, metadata: Optional[dict[Any, Any]] = None):
+    def _find_or_create_sample(self, dataset: fo.Dataset, path: str):
+        try:
+            sample = self.find_sample(dataset, path)
+            _logger.debug("Found sample with path %s", path)
+        except ValueError:
+            sample = fo.Sample(path)
+            dataset.add_sample(sample)
+            _logger.debug("Created sample with path %s", path)
+        return sample
+
+    def replace_sample(self, dataset: fo.Dataset, path: str, metadata: Optional[dict[Any, Any]] = None):
         """
-        Upserts a sample by the given file path by either finding the existing one
+        Replaces a sample by the given file path by either finding the existing one
+        or creating a new one if it doesn't exist yet.
+        If metadata is provided it will override the Sample's metadata with the new one.
+        Fields internal to the Sample are not changed (e.g. ID and filepath).
+
+        :param dataset: Dataset to use
+        :param path: Filepath of the sample
+        :param metadata: Optional metadata to set on the Sample
+        :return: the Sample
+        """
+
+        sample = self._find_or_create_sample(dataset, path)
+
+        if metadata is not None:
+            self.override_metadata(sample, metadata)
+        sample.save()
+        return sample
+
+    def upsert_sample(self, dataset: fo.Dataset, path: str, metadata: dict[Any, Any]):
+        """
+        Updates a sample by the given file path by either finding the existing one
         or creating a new one if it doesn't exist yet.
         If metadata is provided it will override the Sample's metadata with the new one.
 
@@ -41,16 +71,12 @@ class FiftyoneImporter:
         :param metadata: Optional metadata to set on the Sample
         :return: the Sample
         """
-        try:
-            sample = self.find_sample(dataset, path)
-            _logger.debug("Found sample with path %s", path)
-        except ValueError:
-            sample = fo.Sample(path)
-            dataset.add_sample(sample)
-            _logger.debug("Created sample with path %s", path)
 
-        if metadata is not None:
-            self.override_metadata(sample, metadata)
+        sample = self._find_or_create_sample(dataset, path)
+
+        for key, value in metadata.items():
+            _logger.info("Setting key %s value %s", key, value)
+            sample.set_field(key, value)
         sample.save()
         return sample
 

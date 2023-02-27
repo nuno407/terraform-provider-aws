@@ -1,9 +1,12 @@
 """Metadata Processor module"""
 import json
 from typing import Any, Optional
+from botocore.exceptions import ClientError
+from fiftyone import Dataset
 
 from base.aws.container_services import ContainerServices
-from botocore.exceptions import ClientError
+
+from data_importer.fiftyone_importer import FiftyoneImporter
 from data_importer.processor import Processor
 from data_importer.processor_repository import ProcessorRepository
 from data_importer.sqs_message import SQSMessage
@@ -39,3 +42,8 @@ class JsonMetadataLoader(Processor):
         except json.decoder.JSONDecodeError:
             _logger.warning("Issue decoding metadata file %s", message.full_path)
         return None
+
+    @classmethod
+    def upsert_sample(cls, dataset: Dataset, message: SQSMessage, metadata: dict[str, Any],
+                      importer: FiftyoneImporter) -> Any:
+        importer.replace_sample(dataset, message.full_path, metadata)
