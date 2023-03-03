@@ -29,8 +29,8 @@ from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
 
-CONTAINER_NAME = "Metadata"    # Name of the current container
-CONTAINER_VERSION = "v6.2"     # Version of the current container
+CONTAINER_NAME = "Metadata"  # Name of the current container
+CONTAINER_VERSION = "v6.2"   # Version of the current container
 DOCUMENT_TOO_LARGE_MESSAGE = "Document too large %s"
 
 _logger: Logger = ContainerServices.configure_logging("metadata")
@@ -79,16 +79,8 @@ def update_voxel_media(sample: dict):
     else:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     sample["s3_path"] = anonymized_path
-    try:
-        # Create dataset with the bucket_name if it doesn't exist
-        create_dataset(bucket_name)
-        # Add  the video to the dataset
-        update_sample(bucket_name, sample)
-        # Create logs message
-        _logger.info("Voxel sample [%s] created!", bucket_name)
-    except Exception as err:  # pylint: disable=broad-except
-        _logger.exception(
-            "Unable to create dataset [%s] on update_pipeline_db %s", bucket_name, err)
+
+    update_voxel(bucket_name, sample)
 
 
 def find_and_update_media_references(
@@ -412,16 +404,7 @@ def update_pipeline_db(video_id: str, message: dict,
     sample = upsert_item.copy()
     sample.update({"video_id": video_id, "s3_path": anonymized_path})
 
-    try:
-        # Create dataset with the bucket_name if it doesn't exist
-        create_dataset(bucket_name)
-        # Add  the video to the dataset
-        update_sample(bucket_name, sample)
-        # Create logs message
-        _logger.info("Voxel sample [%s] created!", bucket_name)
-    except PyMongoError as err:
-        _logger.exception(
-            "Unable to create dataset [%s] on update_pipeline_db :: %s", bucket_name, err)
+    update_voxel(bucket_name, sample)
 
     return upsert_item
 
@@ -613,19 +596,20 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
 
+    update_voxel(bucket_name, sample)
+
+
+def update_voxel(dataset_name: str, sample: dict):
+    """
+    Updates a sample in a dataset with the given metadata. If the sample or dataset do not exist they will be created.
+    :param dataset_name: Name of the dataset to use
+    :param sample: Sample data to update. Uses `video_id` to find the sample.
+    """
     try:
-        # Create dataset with the bucket_name if it doesn't exist
-        create_dataset(bucket_name)
-
-        # Add  the video to the dataset if it doesn't exist, otherwise update it
-        update_sample(bucket_name, sample)
-
-        # Create logs message
-        _logger.info(
-            "Voxel sample [%s] created from process_outputs!", bucket_name)
+        create_dataset(dataset_name)
+        update_sample(dataset_name, sample)
     except Exception as err:  # pylint: disable=broad-except
-        _logger.exception(
-            "Unable to process Voxel entry [%s] on process_outputs %s", bucket_name, err)
+        _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
 
 
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:

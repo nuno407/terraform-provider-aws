@@ -8,17 +8,18 @@ from fiftyone import ViewField as F
 _logger = logging.getLogger(__name__)
 
 
-def create_dataset(bucket_name):
+def create_dataset(dataset_name):
     """
     Creates a voxel dataset with the given name or loads it if it already exists.
 
     Args:
-        bucket_name: Dataset name to load or create
+        dataset_name: Dataset name to load or create
     """
-    if fo.dataset_exists(bucket_name):
-        fo.load_dataset(bucket_name)
+    if fo.dataset_exists(dataset_name):
+        fo.load_dataset(dataset_name)
     else:
-        fo.Dataset(bucket_name, persistent=True)
+        fo.Dataset(dataset_name, persistent=True)
+        _logger.info("Voxel dataset [%s] created!", dataset_name)
 
 
 def update_sample(data_set, sample_info):
@@ -41,15 +42,16 @@ def update_sample(data_set, sample_info):
     except ValueError:
         sample = fo.Sample(filepath=sample_info["s3_path"])
         dataset.add_sample(sample)
+        _logger.debug("Voxel sample [%s] created!", sample_info["s3_path"])
 
-    _logger.info("sample_info: %s !", sample_info)
+    _logger.debug("sample_info: %s !", sample_info)
 
-    for (i, j) in sample_info.items():
-        if i == "algorithms":
+    for (key, value) in sample_info.items():
+        if key == "algorithms":
             continue
-        if i.startswith("_") or i.startswith("filepath"):
-            i = "ivs" + i
-        sample[i] = j
+        if key.startswith("_") or key.startswith("filepath"):
+            key = "ivs" + key
+        sample[key] = value
 
     _populate_metadata(sample, sample_info)
 
