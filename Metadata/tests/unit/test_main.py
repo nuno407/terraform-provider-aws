@@ -445,7 +445,7 @@ class TestMetadataMain():
         # Given
         video_id = "id"
         message = {
-            "s3_path": "a/b/c.d",
+            "s3_path": "a/b/c.mp4",
             "output": {
                 "bucket": "a",
                 "meta_path": "e/f.media"
@@ -479,7 +479,7 @@ class TestMetadataMain():
                     }
                 }
             },
-            "s3_path": "s3://anon_bucket/a/b/c_anonymized.d",
+            "s3_path": "s3://anon_bucket/a/b/c_anonymized.mp4",
             "video_id": "id"
         }
 
@@ -808,7 +808,7 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
             "bucket": "wow",
             "meta_path": "wow/yeah"
         },
-        "s3_path": "wow/yeah"
+        "s3_path": "wow/yeah.mp4"
     }
     download_and_sync.return_value = ({}, {})
 

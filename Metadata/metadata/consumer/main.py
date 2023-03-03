@@ -21,10 +21,8 @@ from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from base.voxel.voxel_functions import create_dataset, update_sample
 
-from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
-                                       UNKNOWN_FILE_FORMAT_MESSAGE)
-from metadata.common.errors import (EmptyDocumentQueryResult,
-                                    MalformedRecordingEntry)
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT, UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult, MalformedRecordingEntry)
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
@@ -45,42 +43,58 @@ class MetadataCollections:
     algo_output: Collection
 
 
+def __get_s3_path_parts(raw_path) -> Tuple[str, str]:
+    match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
+
+    if match is None or len(match.groups()) != 2:
+        raise ValueError("Invalid path: " + raw_path)
+
+    bucket = match.group(1)
+    key = match.group(2)
+    return bucket, key
+
+
+def _get_anonymized_s3_path_parts(filepath):
+    s3split = filepath.split("/")
+    dataset_name = s3split[0]
+    filetype = s3split[-1].split(".")[-1]
+
+    if filetype in IMAGE_FORMATS:
+        dataset_name = dataset_name + "_snapshots"
+    elif filetype not in VIDEO_FORMATS:
+        raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
+
+    anonymized_path = f"s3://{os.environ['ANON_S3']}/{filepath.rstrip(f'.{filetype}')}_anonymized.{filetype}"
+    return dataset_name, anonymized_path
+
+def _update_on_voxel(dataset_name: str, sample: dict):
+    """
+    Updates a sample in a dataset with the given metadata. If the sample or dataset do not exist they will be created.
+    :param dataset_name: Name of the dataset to use
+    :param sample: Sample data to update. Uses `video_id` to find the sample.
+    """
+    try:
+        create_dataset(dataset_name)
+        update_sample(dataset_name, sample)
+    except Exception as err:  # pylint: disable=broad-except
+        _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
+
+
 def update_voxel_media(sample: dict):
-    def __get_s3_path(raw_path) -> Tuple[str, str]:
-        match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
-
-        if (match is None or len(match.groups()) != 2):
-            raise ValueError("Invalid path: " + raw_path)
-
-        bucket = match.group(1)
-        key = match.group(2)
-        return bucket, key
-
     # Voxel51 code
 
     if "filepath" not in sample:
         _logger.error(f"Filepath field not present in the sample.{sample}")
         return None
 
-    _, filepath = __get_s3_path(sample["filepath"])
-    s3split = filepath.split("/")
-    bucket_name = s3split[0]
-    filetype = s3split[-1].split(".")[-1]
+    _, filepath = __get_s3_path_parts(sample["filepath"])
+
+    bucket_name, anonymized_path = _get_anonymized_s3_path_parts(filepath)
+
     sample.pop("_id", None)
-
-    if filetype in IMAGE_FORMATS:
-        bucket_name = bucket_name + "_snapshots"
-        anonymized_path = "s3://" + \
-            os.environ["ANON_S3"] + "/" + filepath.rstrip(Path(filepath).suffix) + "_anonymized." + filetype
-
-    elif filetype in VIDEO_FORMATS:
-        anonymized_path = "s3://" + \
-            os.environ["ANON_S3"] + "/" + filepath.rstrip(Path(filepath).suffix) + "_anonymized." + filetype
-    else:
-        raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     sample["s3_path"] = anonymized_path
 
-    update_voxel(bucket_name, sample)
+    _update_on_voxel(bucket_name, sample)
 
 
 def find_and_update_media_references(
@@ -384,27 +398,13 @@ def update_pipeline_db(video_id: str, message: dict,
             "Unable to create or replace pipeline executions item for id [%s] :: %s", video_id, err)
 
     # Voxel51 code
-    s3split = message["s3_path"].split("/")
-    bucket_name = s3split[0]
+    bucket_name, anonymized_path = _get_anonymized_s3_path_parts(message["s3_path"])
 
-    filetype = s3split[-1].split(".")[-1]
-
-    if filetype in IMAGE_FORMATS:
-        bucket_name = bucket_name + "_snapshots"
-        anonymized_path = "s3://" + \
-            os.environ["ANON_S3"] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
-    elif filetype in VIDEO_FORMATS:
-        anonymized_path = "s3://" + \
-            os.environ["ANON_S3"] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
-    else:
-        raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
     # with dicts either we make a copy or both variables will reference the same object
     sample = upsert_item.copy()
     sample.update({"video_id": video_id, "s3_path": anonymized_path})
 
-    update_voxel(bucket_name, sample)
+    _update_on_voxel(bucket_name, sample)
 
     return upsert_item
 
@@ -563,21 +563,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             "Error updating the algo output collection with item %s - %s", algo_item, err)
 
     # Voxel51 code
-    s3split = message["s3_path"].split("/")
-    bucket_name = s3split[0]
-
-    filetype = s3split[-1].split(".")[-1]
-    anon_video_path = "s3://" + \
-        os.environ["ANON_S3"] + "/" + \
-        message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
-
-    if filetype == "jpeg" or filetype == "png":
-        bucket_name = bucket_name + "_snapshots"
-
-    if filetype == "jpeg":
-        anon_video_path = "s3://" + \
-            os.environ["ANON_S3"] + "/" + \
-            message["s3_path"].rstrip(Path(message["s3_path"]).suffix) + "_anonymized." + filetype
+    bucket_name, anon_video_path = _get_anonymized_s3_path_parts(message["s3_path"])
 
     sample = algo_item
 
@@ -596,20 +582,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
 
-    update_voxel(bucket_name, sample)
-
-
-def update_voxel(dataset_name: str, sample: dict):
-    """
-    Updates a sample in a dataset with the given metadata. If the sample or dataset do not exist they will be created.
-    :param dataset_name: Name of the dataset to use
-    :param sample: Sample data to update. Uses `video_id` to find the sample.
-    """
-    try:
-        create_dataset(dataset_name)
-        update_sample(dataset_name, sample)
-    except Exception as err:  # pylint: disable=broad-except
-        _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
+    _update_on_voxel(bucket_name, sample)
 
 
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
