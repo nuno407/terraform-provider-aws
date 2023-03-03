@@ -51,9 +51,10 @@ class Selector():
             device_id = message_body["deviceId"]
             from_timestamp = message_body["footageFrom"]
             to_timestamp = message_body["footageTo"]
-
             try:
-                self.footage_api_wrapper.request_footage(device_id, from_timestamp, to_timestamp)
+                self.footage_api_wrapper.request_recorder("TRAINING", device_id, from_timestamp, to_timestamp)
+                self.footage_api_wrapper.request_recorder(
+                    "TRAINING_MULTI_SNAPSHOT", device_id, from_timestamp, to_timestamp)
                 return True
             except Exception as error:  # pylint: disable=broad-except
                 _logger.error("Unexpected error occured when requesting footage: %s", error)

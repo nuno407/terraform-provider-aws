@@ -27,7 +27,7 @@ class TestFootageApiWrapper():  # pylint: disable=too-few-public-methods
         mock_http_client.return_value.request.return_value.status = 200
 
         # WHEN
-        footage_api_wrapper.request_footage("test_device", "123", "1234")
+        footage_api_wrapper.request_recorder("TRAINING", "test_device", 123, 1234)
 
         # THEN
         body = json.dumps({"from": "123", "to": "1234", "recorder": "TRAINING"})
