@@ -352,13 +352,27 @@ class TestMetadataMain():
             upsert=True, return_document=ReturnDocument.AFTER
         )
 
-    @pytest.mark.parametrize("file_format,anonymized_path,voxel_dataset_name",
+    @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name,tags",
                              [*[(file_format,
+                                 f"s3://a/b/c/d.{file_format}",
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "Debug_Lync_snapshots") for file_format in IMAGE_FORMATS],
+                                 "Debug_Lync_snapshots",
+                                 None) for file_format in IMAGE_FORMATS],
                               *[(file_format,
+                                 f"s3://a/b/c/d.{file_format}",
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "Debug_Lync") for file_format in VIDEO_FORMATS],
+                                 "Debug_Lync",
+                                 None) for file_format in VIDEO_FORMATS],
+                              *[(file_format,
+                                 f"s3://a/ridecare_companion_gridwise/c/d.{file_format}",
+                                 f"s3://anon_bucket/ridecare_companion_gridwise/c/d_anonymized.{file_format}",
+                                 "RC-ridecare_companion_gridwise_snapshots",
+                                 ["RC"]) for file_format in IMAGE_FORMATS],
+                              *[(file_format,
+                                 f"s3://a/ridecare_companion_gridwise/c/d.{file_format}",
+                                 f"s3://anon_bucket/ridecare_companion_gridwise/c/d_anonymized.{file_format}",
+                                 "RC-ridecare_companion_gridwise",
+                                 ["RC"]) for file_format in VIDEO_FORMATS]
                               ])
     @pytest.mark.unit
     @patch("metadata.consumer.main.update_sample")
@@ -370,13 +384,15 @@ class TestMetadataMain():
             mock_create_dataset_voxel: Mock,
             mock_update_sample_voxel: Mock,
             file_format: dict,
+            filepath: str,
             anonymized_path: str,
-            voxel_dataset_name: str,):
+            voxel_dataset_name: str,
+            tags: str):
         # Given
         bootstrap_di()
         recording_item: dict = {
             "_id": "test",
-            "filepath": f"s3://a/b/c/d.{file_format}"
+            "filepath": filepath
         }
         sample = recording_item.copy()
         sample.pop("_id")
@@ -386,7 +402,7 @@ class TestMetadataMain():
         update_voxel_media(recording_item)
 
         # Then
-        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name, None)
+        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name, tags)
         mock_update_sample_voxel.assert_called_once_with(voxel_dataset_name, sample)
 
     @patch("metadata.consumer.main.ContainerServices.download_file",

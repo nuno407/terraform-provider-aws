@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
-from unittest.mock import Mock, PropertyMock, call
+from unittest.mock import Mock, PropertyMock, call, patch
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
@@ -11,7 +11,81 @@ __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
+def message_attributes() -> dict:
+    return {
+        "SourceContainer": {"StringValue": "SDRetriever", "DataType": "String"},
+        "ToQueue": {
+            "StringValue": "metadata-queue",
+            "DataType": "String"
+        }
+    }
+
+def input_message_recording(folder) -> dict:
+    body = {
+        "_id": "ridecare_device_recording_1662080172308_1662080561893",
+        "MDF_available": "Yes",
+        "media_type": "video",
+        "s3_path": f"bucket/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
+        "footagefrom": 1662080172308,
+        "footageto": 1662080561893,
+        "tenant": "ridecare",
+        "deviceid": "device",
+        "length": "0:06:31",
+        "sync_file_ext": "_metadata_full.json",
+        "resolution": "640x360",
+        "internal_message_reference_id": "Hash_dummy"
+    }
+
+    message = {
+        "Body": json.dumps(body).replace("\"", "\""),
+        "MessageAttributes": message_attributes(),
+        "ReceiptHandle": "receipt_handle"
+    }
+
+    return message
+
+def input_message_snapshot_body_template() -> dict:
+    return {
+        "MDF_available": "Yes",
+        "media_type": "image",
+        "tenant": "ridecare",
+        "deviceid": "device",
+        "resolution": "640x360",
+        "internal_message_reference_id": "dummy_hash"
+    }
+
+
+def input_message_snapshot_included(folder: str):
+    body_template = input_message_snapshot_body_template()
+    body_template["_id"] = "ridecare_device_snapshot_1662080178308"
+    body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1662080178308.jpeg"
+    body_template["timestamp"] = 1662080178308
+
+    message = {
+        "Body": json.dumps(body_template).replace("\"", "\""),
+        "MessageAttributes": message_attributes(),
+        "ReceiptHandle": "receipt_handle"
+    }
+
+    return message
+
+def input_message_snapshot_excluded(folder: str):
+    body_template = input_message_snapshot_body_template()
+    body_template["_id"] = "ridecare_device_snapshot_1692080178308"
+    body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1692080178308.jpeg"
+    body_template["timestamp"] = 1692080178308
+    body_template["internal_message_reference_id"] = "dummy_hash"
+
+    message = {
+        "Body": json.dumps(body_template).replace("\"", "\""),
+        "MessageAttributes": message_attributes(),
+        "ReceiptHandle": "receipt_handle"
+    }
+    return message
+
+
 @pytest.mark.integration
+@patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
 class TestMain:
     @pytest.fixture
     def boto3_mock(self, mocker: MockerFixture):
@@ -48,80 +122,6 @@ class TestMain:
         _ = mockdb_client.DataIngestion["signals"]
         return mockdb_client.DataIngestion
 
-    @pytest.fixture
-    def message_attributes(self) -> dict:
-        return {
-            "SourceContainer": {"StringValue": "SDRetriever", "DataType": "String"},
-            "ToQueue": {
-                "StringValue": "metadata-queue",
-                "DataType": "String"
-            }
-        }
-
-    @pytest.fixture
-    def input_message_recording(self, message_attributes: dict) -> dict:
-        body = {
-            "_id": "ridecare_device_recording_1662080172308_1662080561893",
-            "MDF_available": "Yes",
-            "media_type": "video",
-            "s3_path": "bucket/folder/ridecare_device_recording_1662080172308_1662080561893.mp4",
-            "footagefrom": 1662080172308,
-            "footageto": 1662080561893,
-            "tenant": "ridecare",
-            "deviceid": "device",
-            "length": "0:06:31",
-            "sync_file_ext": "_metadata_full.json",
-            "resolution": "640x360",
-            "internal_message_reference_id": "Hash_dummy"
-        }
-
-        message = {
-            "Body": json.dumps(body).replace("\"", "\""),
-            "MessageAttributes": message_attributes,
-            "ReceiptHandle": "receipt_handle"
-        }
-
-        return message
-
-    @pytest.fixture
-    def input_message_snapshot_body_template(self) -> dict:
-        return {
-            "MDF_available": "Yes",
-            "media_type": "image",
-            "tenant": "ridecare",
-            "deviceid": "device",
-            "resolution": "640x360",
-            "internal_message_reference_id": "dummy_hash"
-        }
-
-    @pytest.fixture
-    def input_message_snapshot_included(self, input_message_snapshot_body_template: dict, message_attributes: dict):
-        input_message_snapshot_body_template["_id"] = "ridecare_device_snapshot_1662080178308"
-        input_message_snapshot_body_template["s3_path"] = "bucket/folder/ridecare_snapshot_1662080178308.jpeg"
-        input_message_snapshot_body_template["timestamp"] = 1662080178308
-
-        message = {
-            "Body": json.dumps(input_message_snapshot_body_template).replace("\"", "\""),
-            "MessageAttributes": message_attributes,
-            "ReceiptHandle": "receipt_handle"
-        }
-
-        return message
-
-    @pytest.fixture
-    def input_message_snapshot_excluded(self, input_message_snapshot_body_template: dict, message_attributes: dict):
-        input_message_snapshot_body_template["_id"] = "ridecare_device_snapshot_1692080178308"
-        input_message_snapshot_body_template["s3_path"] = "bucket/folder/ridecare_snapshot_1692080178308.jpeg"
-        input_message_snapshot_body_template["timestamp"] = 1692080178308
-        input_message_snapshot_body_template["internal_message_reference_id"] = "dummy_hash"
-
-        message = {
-            "Body": json.dumps(input_message_snapshot_body_template).replace("\"", "\""),
-            "MessageAttributes": message_attributes,
-            "ReceiptHandle": "receipt_handle"
-        }
-
-        return message
 
     @pytest.fixture
     def environ_mock(self, mocker: MockerFixture) -> Mock:
@@ -136,9 +136,23 @@ class TestMain:
         return create_dataset_mock, update_sample_mock
 
     @pytest.mark.integration
+    @pytest.mark.parametrize("input_message_recording, input_message_snapshot_included, "
+                             "input_message_snapshot_excluded, s3_folder, expected_dataset", [
+        (input_message_recording("folder"),
+         input_message_snapshot_included("folder"),
+         input_message_snapshot_excluded("folder"),
+         "folder",
+         "Debug_Lync"),
+        (input_message_recording("ridecare_companion_gridwise"),
+         input_message_snapshot_included("ridecare_companion_gridwise"),
+         input_message_snapshot_excluded("ridecare_companion_gridwise"),
+         "ridecare_companion_gridwise",
+         "RC-ridecare_companion_gridwise")
+    ])
     def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,
                                         mongomock_fix: Mock, input_message_recording, input_message_snapshot_included,
-                                        input_message_snapshot_excluded, voxel_mock: tuple[Mock, Mock]):
+                                        input_message_snapshot_excluded, s3_folder, expected_dataset,
+                                        voxel_mock: tuple[Mock, Mock]):
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
@@ -159,7 +173,6 @@ class TestMain:
         recording_db_entry = mongomock_fix["recordings"].find_one(
             {"video_id": "ridecare_device_recording_1662080172308_1662080561893"})
         # assertions on included snapshot
-        # print(snapshot_included_db_entry)
         assert (snapshot_included_db_entry["recording_overview"]
                 ["source_videos"][0] == recording_db_entry["video_id"])
 
@@ -179,21 +192,19 @@ class TestMain:
         # assertions for voxel code
         create_dataset, update_sample = voxel_mock
         create_dataset.assert_has_calls(
-            [call("folder"), call("folder_snapshots")], any_order=True)
+            [call(expected_dataset, None), call(expected_dataset + "_snapshots", None)], any_order=True)
 
         snapshot_excluded_db_entry.pop("_id")
-        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1692080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_snapshot_1692080178308_anonymized.jpeg"  # pylint: disable=line-too-long
         recording_db_entry.pop("_id")
-        recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
+        recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
         snapshot_included_db_entry.pop("_id")
-        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/folder/ridecare_snapshot_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_snapshot_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
         print(update_sample.call_count)
         update_sample.assert_has_calls([
-            call("folder_snapshots", snapshot_excluded_db_entry),
-            call("folder", recording_db_entry),
-
-            # this verification will currently fail until the source_video field is correctly updated in voxel
-            call("folder_snapshots", snapshot_included_db_entry)
+            call(expected_dataset + "_snapshots", snapshot_excluded_db_entry),
+            call(expected_dataset, recording_db_entry),
+            call(expected_dataset + "_snapshots", snapshot_included_db_entry)
         ], any_order=True)
 
     @pytest.mark.unit
