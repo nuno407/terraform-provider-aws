@@ -73,9 +73,9 @@ def _update_on_voxel(filepath: str, sample: dict):
     :param filepath: File path to extract the dataset information from.
     :param sample: Sample data to update. Uses `video_id` to find the sample.
     """
-    dataset_name = _determine_dataset_name(filepath)
+    dataset_name, tags = _determine_dataset_name(filepath)
     try:
-        create_dataset(dataset_name)
+        create_dataset(dataset_name, tags)
         update_sample(dataset_name, sample)
     except Exception as err:  # pylint: disable=broad-except
         _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
@@ -90,22 +90,24 @@ def _determine_dataset_name(filepath: str, mapping: DatasetMappingConfig):
 
     :param filepath: S3 filepath to extract the tenant from
     :param mapping: Config with mapping information about the tenants
-    :return: the resulting dataset name
+    :return: the resulting dataset name and the tags which should be added on dataset creation
     """
     s3split = filepath.split("/")
     # The root dir on the S3 bucket always is the tenant name
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
 
-    dataset = mapping.default_dataset
+    dataset_name = mapping.default_dataset
+    tags = None
 
     if tenant_name in mapping.create_dataset_for:
-        dataset = f"{mapping.tag}-{tenant_name}"
+        dataset_name = f"{mapping.tag}-{tenant_name}"
+        tags = [mapping.tag]
 
     if filetype in IMAGE_FORMATS:
-        dataset = dataset + "_snapshots"
+        dataset_name = dataset_name + "_snapshots"
 
-    return dataset
+    return dataset_name, tags
 
 
 def update_voxel_media(sample: dict):

@@ -386,7 +386,7 @@ class TestMetadataMain():
         update_voxel_media(recording_item)
 
         # Then
-        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name)
+        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name, None)
         mock_update_sample_voxel.assert_called_once_with(voxel_dataset_name, sample)
 
     @patch("metadata.consumer.main.ContainerServices.download_file",
@@ -515,7 +515,7 @@ class TestMetadataMain():
                 "$set": expected_out
             }, upsert=True)
         mock_download_and_synchronize_chc.assert_called_once_with("id", collection_recordings, "a", "e/f.media")
-        mock_create_dataset_voxel.assert_called_once_with("Debug_Lync")
+        mock_create_dataset_voxel.assert_called_once_with("Debug_Lync", None)
         mock_update_sample_voxel.assert_called_once_with("Debug_Lync", expected_out)
 
     @pytest.mark.unit
