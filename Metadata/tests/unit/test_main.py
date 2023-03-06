@@ -11,6 +11,7 @@ from pymongo.collection import ReturnDocument
 from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.main import (AWS_REGION, create_recording_item,
                                     create_snapshot_recording_item,
                                     create_video_recording_item,
@@ -354,15 +355,16 @@ class TestMetadataMain():
     @pytest.mark.parametrize("file_format,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "b_snapshots") for file_format in IMAGE_FORMATS],
+                                 "Debug_Lync_snapshots") for file_format in IMAGE_FORMATS],
                               *[(file_format,
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "b") for file_format in VIDEO_FORMATS],
+                                 "Debug_Lync") for file_format in VIDEO_FORMATS],
                               ])
     @pytest.mark.unit
     @patch("metadata.consumer.main.update_sample")
     @patch("metadata.consumer.main.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
+    @patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
     def test_update_voxel_media(
             self,
             mock_create_dataset_voxel: Mock,
@@ -371,6 +373,7 @@ class TestMetadataMain():
             anonymized_path: str,
             voxel_dataset_name: str,):
         # Given
+        bootstrap_di()
         recording_item: dict = {
             "_id": "test",
             "filepath": f"s3://a/b/c/d.{file_format}"
@@ -512,8 +515,8 @@ class TestMetadataMain():
                 "$set": expected_out
             }, upsert=True)
         mock_download_and_synchronize_chc.assert_called_once_with("id", collection_recordings, "a", "e/f.media")
-        mock_create_dataset_voxel.assert_called_once_with("a")
-        mock_update_sample_voxel.assert_called_once_with("a", expected_out)
+        mock_create_dataset_voxel.assert_called_once_with("Debug_Lync")
+        mock_update_sample_voxel.assert_called_once_with("Debug_Lync", expected_out)
 
     @pytest.mark.unit
     @pytest.mark.parametrize("input_message_body,input_message_atributes,return_upserts", [
@@ -722,6 +725,7 @@ class TestMetadataMain():
                             new_callable=PropertyMock, side_effect=[True, False])
 
     @pytest.mark.unit
+    @patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
     def test_metadata_consumer_main(
             self,
             mock_container_services: Mock,

@@ -5,12 +5,12 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from logging import Logger
-from pathlib import Path
 from typing import Optional, Tuple
 
 import boto3
 import pytimeparse
 import pytz
+from kink import inject
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import DocumentTooLarge, PyMongoError
@@ -23,7 +23,9 @@ from base.voxel.voxel_functions import create_dataset, update_sample
 
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT, UNKNOWN_FILE_FORMAT_MESSAGE)
 from metadata.common.errors import (EmptyDocumentQueryResult, MalformedRecordingEntry)
+from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
 
@@ -54,25 +56,24 @@ def __get_s3_path_parts(raw_path) -> Tuple[str, str]:
     return bucket, key
 
 
-def _get_anonymized_s3_path_parts(filepath):
-    s3split = filepath.split("/")
-    dataset_name = s3split[0]
-    filetype = s3split[-1].split(".")[-1]
+def _get_anonymized_s3_path(filepath):
+    filetype = filepath.split("/")[-1].split(".")[-1]
 
-    if filetype in IMAGE_FORMATS:
-        dataset_name = dataset_name + "_snapshots"
-    elif filetype not in VIDEO_FORMATS:
+    if filetype not in IMAGE_FORMATS and filetype not in VIDEO_FORMATS:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
 
-    anonymized_path = f"s3://{os.environ['ANON_S3']}/{filepath.rstrip(f'.{filetype}')}_anonymized.{filetype}"
-    return dataset_name, anonymized_path
+    return f"s3://{os.environ['ANON_S3']}/{filepath.rstrip(f'.{filetype}')}_anonymized.{filetype}"
 
-def _update_on_voxel(dataset_name: str, sample: dict):
+
+def _update_on_voxel(filepath: str, sample: dict):
     """
     Updates a sample in a dataset with the given metadata. If the sample or dataset do not exist they will be created.
-    :param dataset_name: Name of the dataset to use
+    The dataset name is derived by the given S3 file path.
+    From the path the tenant is derived and the dataset determined.
+    :param filepath: File path to extract the dataset information from.
     :param sample: Sample data to update. Uses `video_id` to find the sample.
     """
+    dataset_name = _determine_dataset_name(filepath)
     try:
         create_dataset(dataset_name)
         update_sample(dataset_name, sample)
@@ -80,21 +81,50 @@ def _update_on_voxel(dataset_name: str, sample: dict):
         _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
 
 
+@inject
+def _determine_dataset_name(filepath: str, mapping: DatasetMappingConfig):
+    """
+    Checks in config if tenant gets its own dataset or if it is part of the default dataset.
+    Dedicated dataset names are prefixed with the tag given in the config.
+    The tag is not added to the default dataset.
+
+    :param filepath: S3 filepath to extract the tenant from
+    :param mapping: Config with mapping information about the tenants
+    :return: the resulting dataset name
+    """
+    s3split = filepath.split("/")
+    # The root dir on the S3 bucket always is the tenant name
+    tenant_name = s3split[0]
+    filetype = s3split[-1].split(".")[-1]
+
+    dataset = mapping.default_dataset
+
+    if tenant_name in mapping.create_dataset_for:
+        dataset = f"{mapping.tag}-{tenant_name}"
+
+    if filetype in IMAGE_FORMATS:
+        dataset = dataset + "_snapshots"
+
+    return dataset
+
+
 def update_voxel_media(sample: dict):
+    """
+    Update data on a voxel sample.
+    :param sample: Data to update. "s3_path" is used to search for the sample
+    """
     # Voxel51 code
 
     if "filepath" not in sample:
-        _logger.error(f"Filepath field not present in the sample.{sample}")
-        return None
+        _logger.error("Filepath field not present in the sample. %s", sample)
+        return
 
     _, filepath = __get_s3_path_parts(sample["filepath"])
 
-    bucket_name, anonymized_path = _get_anonymized_s3_path_parts(filepath)
-
     sample.pop("_id", None)
-    sample["s3_path"] = anonymized_path
+    sample["s3_path"] = _get_anonymized_s3_path(filepath)
 
-    _update_on_voxel(bucket_name, sample)
+    _update_on_voxel(filepath, sample)
 
 
 def find_and_update_media_references(
@@ -398,13 +428,14 @@ def update_pipeline_db(video_id: str, message: dict,
             "Unable to create or replace pipeline executions item for id [%s] :: %s", video_id, err)
 
     # Voxel51 code
-    bucket_name, anonymized_path = _get_anonymized_s3_path_parts(message["s3_path"])
+    filepath = message["s3_path"]
+    anonymized_path = _get_anonymized_s3_path(filepath)
 
     # with dicts either we make a copy or both variables will reference the same object
     sample = upsert_item.copy()
     sample.update({"video_id": video_id, "s3_path": anonymized_path})
 
-    _update_on_voxel(bucket_name, sample)
+    _update_on_voxel(filepath, sample)
 
     return upsert_item
 
@@ -563,7 +594,8 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             "Error updating the algo output collection with item %s - %s", algo_item, err)
 
     # Voxel51 code
-    bucket_name, anon_video_path = _get_anonymized_s3_path_parts(message["s3_path"])
+    filepath = message["s3_path"]
+    anon_video_path = _get_anonymized_s3_path(filepath)
 
     sample = algo_item
 
@@ -582,7 +614,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
     sample["s3_path"] = anon_video_path
     sample["video_id"] = algo_item["pipeline_id"]
 
-    _update_on_voxel(bucket_name, sample)
+    _update_on_voxel(filepath, sample)
 
 
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
@@ -707,6 +739,8 @@ def main():
     # Define configuration for logging messages
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
                  CONTAINER_VERSION)
+
+    bootstrap_di()
 
     # Create the necessary clients for AWS services access
     sqs_client = boto3.client('sqs',
