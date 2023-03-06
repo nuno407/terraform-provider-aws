@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, call, patch
+from unittest.mock import ANY, Mock, MagicMock, call, patch
 
 import pytest
 
@@ -101,7 +101,7 @@ class TestMetadataIngestor:
             "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
         ))
         obj.CS.send_message = Mock()
-        os.environ["QUEUE_MDFP"] = "dev-terraform-queue-mdf-parser"
+        obj.CS.sqs_queues_list["MDFParser"] = "dev-terraform-queue-mdf-parser"
         result = obj.ingest(
             msg_interior, "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110", mock_chunks_path)
 

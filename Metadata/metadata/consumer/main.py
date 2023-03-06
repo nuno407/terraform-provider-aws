@@ -749,17 +749,17 @@ def main():
                  CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    s3_client = boto3.client("s3",
-                             region_name=AWS_REGION)
-    sqs_client = boto3.client("sqs",
+    sqs_client = boto3.client('sqs',
                               region_name=AWS_REGION)
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION)
 
-    # Load global variable values from config json file (S3 bucket)
-    container_services.load_config_vars(s3_client)
+    # Load global variable values from yaml config
+    container_services.load_config_vars()
+    container_services.load_mongodb_config_vars()
+    os.environ["ANON_S3"] = container_services.anonymized_s3
 
     # initialize DB client
     db_client = container_services.create_db_client()

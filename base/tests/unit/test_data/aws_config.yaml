@@ -1,0 +1,40 @@
+sqs_queues_list:
+  SDM: s3-sdm
+  Anonymize: anonymize
+  API_Anonymize: api-anonymize
+  CHC: chc
+  API_CHC: api-chc
+  SDRetriever: download
+  Selector: selector
+  HQ_Selector: hq-request
+  Metadata: metadata
+  Output: output
+msp_processing_steps:
+  Debug_Uber:
+    - Anonymize
+  Debug_Lyft:
+    - CHC
+  Debug_Lync:
+    - Anonymize
+    - CHC
+api_endpoints:
+  mdl_footage_endpoint: https://dummy-endpoint.com/videofootage
+  selector_token_endpoint: https://dummy-endpoint.com/token
+ivs_api:
+  address: ivs.api.address
+  port: "8081"
+  endpoint: feature_chain
+secret_manager:
+  selector: footage_api_mdl
+rcc_info:
+  role: rcc_role
+  s3_bucket: rcc_bucket
+s3_buckets:
+  raw: raw_bucket
+  anonymized: anon_bucket
+s3_ignore_list:
+  raw:
+    - txt
+    - json
+  anonymized: []
+sdr_dest_folder: {}

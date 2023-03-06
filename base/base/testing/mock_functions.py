@@ -18,11 +18,13 @@ def get_container_services_mock() -> ContainerServices:
     """
 
     # Needed by the constructor of the ContainerServices
-    os.environ["CONFIG_S3"] = "test_bucket"
+    os.environ["AWS_CONFIG"] = "/app/aws-conf/aws_config.yaml"
+    os.environ["MONGODB_CONFIG"] = "/app/mongo-conf/mongo_config.yaml"
     service = ContainerServices("test_container", "alpha")
     service.load_config_vars = Mock(return_value=1)  # type: ignore
+    service.load_mongodb_config_vars = Mock(return_value=1)  # type: ignore
     service.get_sqs_queue_url = Mock(return_value="mock_test_url")  # type: ignore
-    service.listen_to_input_queue = Mock(return_value={"Body": "Queue_message_body"})  # type: ignore
+    service.get_single_message_from_input_queue = Mock(return_value={"Body": "Queue_message_body"})  # type: ignore
     service.delete_message = Mock(return_value=None)  # type: ignore
     service.update_message_visibility = Mock(return_value=None)  # type: ignore
     service.send_message = Mock(return_value=None)  # type: ignore
@@ -31,7 +33,6 @@ def get_container_services_mock() -> ContainerServices:
     service.get_message_body = Mock(return_value=None)  # type: ignore
     service.download_file = Mock(return_value="random_object")  # type: ignore
     service.upload_file = Mock(return_value=None)  # type: ignore
-    service.update_pending_queue = Mock(return_value=[])  # type: ignore
     service.get_kinesis_clip = Mock(return_value="binary_data")  # type: ignore
     service.display_processed_msg = Mock(return_value=None)  # type: ignore
 

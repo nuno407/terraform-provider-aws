@@ -86,16 +86,6 @@
         "fut2": "FUT2/",
         "driver_pr": "Driver-PR/"
     },
-    "sdr_blacklist_tenants": {
-        "ignore": [
-            "TEST_TENANT_INTEGRATION_TEST_DEVICE_InteriorRecorder",
-            "TEST_TENANT_HONEYBADGER_DEV_01",
-            "TEST_TENANT_HONEYBADGER_DEV_02",
-            "TEST_TENANT_HONEYBADGER_DEV_03",
-            "TEST_TENANT_HONEYBADGER_DEV_04"
-        ],
-        "store_only": []
-    },
     "rcc_info": {
         "role": "arn:aws:iam::213279581081:role/dev-DevCloud",
         "s3_bucket": "rcc-dev-device-data"
@@ -111,16 +101,5 @@
     "api_endpoints": {
         "mdl_footage_endpoint": "https://dev.bosch-ridecare.com/footage/devices/{}/videofootage",
         "selector_token_endpoint": "https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token"
-    },
-    "docdb_config": {
-        "cluster_endpoint": "data-ingestion-cluster.cluster-czddtysxwqch.eu-central-1.docdb.amazonaws.com",
-        "tls": "true",
-        "tlsCAFile": "rds-combined-ca-bundle.pem",
-        "replicaSet": "rs0",
-        "readPreference": "secondaryPreferred",
-        "retryWrites": "false",
-        "db": "DB_data_ingestion",
-        "secret_name": "data-ingestion-cluster-credentials",
-        "region_name": "eu-central-1"
     }
 }

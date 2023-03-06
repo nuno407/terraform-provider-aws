@@ -17,7 +17,8 @@ pip install -r requirements_dev.txt
 ## Environment variables
 
 - `CONTAINER_NAME` - container name for ContainerServices
-- `CONFIG_S3` - configuration bucket for ContainerServices
+- `AWS_CONFIG` - AWS configuration file for ContainerServices
+- `MONGODB_CONFIG` - MongoDB configuration file for ContainerServices
 - `LOGLEVEL` - Logger verbosity: INFO, DEBUG, ERROR, WARNING
 - `START_DELAY_SECONDS` - time in seconds to wait during start-up
 - `IVS_FC_HOSTNAME` - Hostname of the ivs feature chain API for requesting processing

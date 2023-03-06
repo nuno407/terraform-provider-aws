@@ -11,6 +11,7 @@ extras_require: Dict[str, List[str]] = {
         "pymongo[srv]==3.12.3",
         "boto3>=1.24.89",
         "pytz>=2022.2",
+        "pyyaml==6.0",
         "expiringdict",
         "boto3-stubs[kinesis-video-archived-media]",
         "boto3-stubs[s3]",

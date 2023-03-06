@@ -745,16 +745,17 @@ class TestMetadataMain():
         input_message = _metadata_sqs_message_helper({
             "dummy_body": "dummy_body_value",
         })
-        s3_client_mock = Mock()
         sqs_client_mock = Mock()
-        mock_boto3_client.side_effect = [s3_client_mock, sqs_client_mock]
+        mock_boto3_client.side_effect = [sqs_client_mock]
         mock_container_services_object = Mock()
         mock_container_services.return_value = mock_container_services_object
         mock_container_services_object.load_config_vars = Mock()
+        mock_container_services_object.load_mongodb_config_vars = Mock()
         mock_db_client = Mock()
         mock_db_client.client = Mock()
         mock_container_services_object.create_db_client = Mock(return_value=mock_db_client)
         mock_container_services_object.db_tables = Mock()
+        mock_container_services_object.anonymized_s3 = "anon_bucket"
         mock_container_services_object.delete_message = Mock()
         mock_container_services_object.get_single_message_from_input_queue = Mock(return_value=input_message)
         mock_persistence_object = Mock()
@@ -766,9 +767,9 @@ class TestMetadataMain():
 
         main()
 
-        mock_boto3_client.assert_any_call("s3", region_name=AWS_REGION)
         mock_boto3_client.assert_any_call("sqs", region_name=AWS_REGION)
-        mock_container_services_object.load_config_vars.assert_called_once_with(s3_client_mock)
+        mock_container_services_object.load_config_vars.assert_called_once_with()
+        mock_container_services_object.load_mongodb_config_vars.assert_called_once_with()
         mock_container_services_object.create_db_client.assert_called_once_with()
         mock_persistence.assert_called_once_with(None, mock_container_services_object.db_tables, mock_db_client.client)
         mock_related_media_service.assert_called_once_with(mock_persistence_object)

@@ -88,3 +88,39 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
             Delimiter="")
 
         assert response == final_data
+
+    def test_load_mongodb_config_vars(self):
+        # GIVEN
+        os.environ["AWS_CONFIG"] = "tests/unit/test_data/aws_config.yaml"
+        os.environ["MONGODB_CONFIG"] = "tests/unit/test_data/mongo_config.yaml"
+        container_services = ContainerServices(container="Selector", version="1.0.0")
+        # WHEN
+        container_services.load_mongodb_config_vars()
+        # THEN
+        assert container_services.db_tables["algo_output"] == "dev-algorithm-output"
+        assert container_services.db_tables["pipeline_exec"] == "dev-pipeline-execution"
+        assert container_services.db_tables["recording"] == "dev-recording"
+        assert container_services.db_tables["recordings"] == "dev-recordings"
+        assert container_services.db_tables["signals"] == "dev-signals"
+
+    def test_load_config_vars(self):
+        # GIVEN
+        os.environ["AWS_CONFIG"] = "tests/unit/test_data/aws_config.yaml"
+        os.environ["MONGODB_CONFIG"] = "tests/unit/test_data/mongo_config.yaml"
+        container_services = ContainerServices(container="Selector", version="1.0.0")
+        # WHEN
+        container_services.load_config_vars()
+        # THEN
+        assert container_services.sqs_queues_list["SDM"] == "s3-sdm"
+        assert container_services.input_queue == "selector"
+        assert container_services.msp_steps["Debug_Lync"] == ["Anonymize", "CHC"]
+        assert container_services.raw_s3 == "raw_bucket"
+        assert container_services.anonymized_s3 == "anon_bucket"
+        assert container_services.raw_s3_ignore == ["txt", "json"]
+        assert not container_services.anonymized_s3_ignore
+        assert container_services.sdr_folder == {}
+        assert container_services.rcc_info["role"] == "rcc_role"
+        assert container_services.rcc_info["s3_bucket"] == "rcc_bucket"
+        assert container_services.ivs_api["address"] == "ivs.api.address"
+        assert container_services.secret_managers["selector"] == "footage_api_mdl"
+        assert container_services.api_endpoints["mdl_footage_endpoint"] == "https://dummy-endpoint.com/videofootage"

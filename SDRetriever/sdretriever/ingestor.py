@@ -948,8 +948,7 @@ class MetadataIngestor(Ingestor):
             source_data, video_msg, video_id)
 
         # Notify MDFP with new metadata processing request
-        # mdfp_queue = self.CS.sqs_queues_list["MDFParser"] # not on config, it was agreed we should walk away from it
-        mdfp_queue = os.environ["QUEUE_MDFP"]
+        mdfp_queue = self.CS.sqs_queues_list["MDFParser"]
 
         if mdf_s3_path:
             message_for_mdfp = dict(

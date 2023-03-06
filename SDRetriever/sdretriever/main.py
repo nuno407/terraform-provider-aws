@@ -81,7 +81,7 @@ def main(config: SDRetrieverConfig):
     SQS_CLIENT = boto3.client('sqs', region_name='eu-central-1')
     STS_CLIENT = boto3.client('sts', region_name='eu-central-1')
     CS = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
-    CS.load_config_vars(S3_CLIENT)
+    CS.load_config_vars()
     STS_HELPER = StsHelper(STS_CLIENT, role=CS.rcc_info.get(
         "role"), role_session="DevCloud-SDRetriever")
     GRACEFUL_EXIT = GracefulExit()

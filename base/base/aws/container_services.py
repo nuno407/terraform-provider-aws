@@ -7,9 +7,9 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
+import yaml
 
 import boto3
-import pytz
 from botocore.errorfactory import ClientError
 from expiringdict import ExpiringDict
 from mypy_boto3_kinesis_video_archived_media import \
@@ -58,20 +58,18 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         self.__msp_steps = {}
         self.__db_tables = {}
         self.__s3_buckets = {"raw": "", "anonymized": ""}
-        self.__s3_ignore = {"raw": "", "anonymized": ""}
+        self.__s3_ignore = {"raw": [], "anonymized": []}
         self.__sdr_folder = {}
-        self.__sdr_blacklist = {}
         self.__rcc_info = {}
         self.__ivs_api = {}
-        self.__docdb_config = {}
 
         # Container info
         self.__container = {"name": container, "version": version}
 
-        # Bucket and path for the config file #"dev-rcd-config-files"
+        # Configure vars with paths for configmaps
         self.__config = {
-            "bucket": os.environ["CONFIG_S3"],
-            "file": "containers/config_file_containers.json"
+            "AWS_CONFIG": os.environ.get("AWS_CONFIG", "/app/aws-conf/aws_config.yaml"),
+            "MONGODB_CONFIG": os.environ.get("MONGODB_CONFIG", "/app/mongo-conf/mongo_config.yaml")
         }
         self.__secretmanagers = {}  # To be modify on dated 16 Jan"2022
 
@@ -121,11 +119,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         return self.__sdr_folder
 
     @property
-    def sdr_blacklist(self):
-        """sdr_blacklist variable"""
-        return self.__sdr_blacklist
-
-    @property
     def rcc_info(self):
         """rcc_info variable"""
         return self.__rcc_info
@@ -134,11 +127,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
     def ivs_api(self):
         """ivs_api variable"""
         return self.__ivs_api
-
-    @property
-    def docdb_config(self):
-        """docdb_config variable"""
-        return self.__docdb_config
 
     @property
     def db_tables(self):
@@ -160,25 +148,14 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         """ Time format """
         return "%Y-%m-%dT%H:%M:%S.%fZ"
 
-    def load_config_vars(self, client):
-        """Gets configuration json file from s3 bucket and initialises the
-        respective class variables based on the info from that file
+    def load_config_vars(self):
+        """Gets configuration yaml (mounted as volume) and initializes
+        the respective class variables based on the info from that file
 
-        Arguments:
-            client {boto3.client} -- [client used to access the S3 service]
         """
-        full_path = self.__config["bucket"] + "/" + self.__config["file"]
-        _logger.info("Loading parameters from: %s ..", full_path)
-
-        # Send request to access the config file (json)
-        response = client.get_object(
-            Bucket=self.__config["bucket"],
-            Key=self.__config["file"]
-        )
-
-        # Load config file (botocore.response.StreamingBody)
-        # content to dictionary
-        dict_body = json.loads(response["Body"].read().decode("utf-8"))
+        _logger.info("Loading aws parameters from: %s ..", self.__config["AWS_CONFIG"])
+        with open(self.__config["AWS_CONFIG"], "r", encoding="utf-8") as configfile:
+            dict_body = dict(yaml.safe_load(configfile).items())
 
         # List of the queues attached to each container
         self.__queues["list"] = dict_body["sqs_queues_list"]
@@ -188,9 +165,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         # List of processing steps required for each file based on the MSP
         self.__msp_steps = dict_body["msp_processing_steps"]
-
-        # Name of the dynamoDB table used to store metadata
-        self.__db_tables = dict_body["db_metadata_tables"]
 
         # Name of the S3 bucket used to store raw video files
         self.__s3_buckets["raw"] = dict_body["s3_buckets"]["raw"]
@@ -206,23 +180,31 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         # Name of the Raw S3 bucket folders where to store RCC KVS clips
         self.__sdr_folder = dict_body["sdr_dest_folder"]
 
-        # Dictionary containing the tenant blacklists for processing and storage of RCC clips
-        self.__sdr_blacklist = dict_body["sdr_blacklist_tenants"]
-
         # Information of the RCC account for cross-account access of services/resources
         self.__rcc_info = dict_body["rcc_info"]
 
         # Information of the ivs_chain endpoint (ip, port, endpoint name)
         self.__ivs_api = dict_body["ivs_api"]
 
-        # To be modify on dated 16 Jan"2022
+        # Secrets manager
         self.__secretmanagers = dict_body["secret_manager"]
 
-        # To be modify on dated 16 Jan"2022
+        # RCC API endpoints
         self.__apiendpoints = dict_body["api_endpoints"]
 
-        # Documentdb information for client login
-        self.__docdb_config = dict_body["docdb_config"]
+        _logger.info("Load complete!\n")
+
+    def load_mongodb_config_vars(self):
+        """Gets configuration yaml (mounted as volume) and initializes
+        the MongoDB variable based on the info from that file
+
+        """
+        _logger.info("Loading mongodb parameters from: %s ..", self.__config["MONGODB_CONFIG"])
+        with open(self.__config["MONGODB_CONFIG"], "r", encoding="utf-8") as configfile:
+            dict_body = dict(yaml.safe_load(configfile).items())
+
+        # Name of the MongoDB tables used to store metadata
+        self.__db_tables = dict_body["db_metadata_tables"]
 
         _logger.info("Load complete!\n")
 
@@ -533,102 +515,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         )
 
         _logger.info("Uploaded [%s]", key_path)
-
-    def update_pending_queue(self, client, uid, mode, dict_body=None):
-        """Inserts a new item on the algorithm output collection and, if
-        there is a CHC file available for that item, processes
-        that info and adds it to the item (plus updates the respective
-        recordings collection item with that CHC info)
-
-        Arguments:
-            client {boto3.client} -- [client used to access the S3 service]
-            uid {string} -- [string containg an identifier used only in the
-                             processing containers to keep track of the
-                             process of a given file]
-            mode {string} -- [The working mode of the current function will
-                              vary based on the value stated in this parameter.
-                              If mode equals to:
-                               -> insert: a pending order will be added to the
-                                          pending queue file based on the uid
-                                          and dict_body info provided
-                               -> read:  a pending order will be read and
-                                         retrieved from the
-                                         pending queue file based on the uid
-                                         provided
-                               -> delete:  a pending order will be deleted from
-                                           the pending queue file based on the
-                                           uid provided]
-            dict_body {dict} -- [Info regarding the pending order that is
-                                 going to be added to the pending queue.
-                                 NOTE: Only required if mode parsed is "insert"]
-
-        Returns:
-            relay_data {dict} -- [The value returned in this variable depends
-                                  on the mode used on the current function call,
-                                  i.e., it will return {} (empty dictionary)
-                                  for the "insert" and "delete" modes, or a
-                                  pending order for the "read" mode]
-        """
-        # Define key s3 paths for each container"s pending queue json file
-        # ADD THIS INFO TO CONFIG FILE
-        key_paths = {
-            "Anonymize": "containers/pending_queue_anonymize.json",
-            "CHC": "containers/pending_queue_chc.json"
-        }
-
-        # Download pending queue json file
-        response = client.get_object(
-            Bucket=self.__config["bucket"],
-            Key=key_paths[self.__container["name"]]
-        )
-
-        # Decode and convert received bytes into json format
-        result_info = json.loads(response["Body"].read().decode("utf-8"))
-
-        # Initialise response as empty dictionary
-        relay_data = {}
-
-        ## NOTE: Mode Selection ##
-
-        if mode == "insert":
-            # Create current time timestamp to add to pending item info (for debug)
-            curr_time = str(datetime.now(
-                tz=pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"))
-
-            # Insert a new pending order on the downloaded file
-            result_info[uid] = {
-                "relay_list": dict_body,
-                "creation_date": curr_time
-            }
-
-        elif mode == "read":
-            # Read stored info for a given uid
-            relay_data = result_info[uid]["relay_list"]
-
-        elif mode == "delete":
-            # Delete stored info for a given uid
-            del result_info[uid]
-
-        else:
-            _logger.error("\nWARNING: Operation (%s) not supported!!\n", mode)
-
-        # Encode and convert updated json into bytes to be uploaded
-        object_body = json.dumps(
-            result_info, indent=4, sort_keys=True).encode("utf-8")
-
-        # Upload updated json file
-        client.put_object(
-            Body=object_body,
-            Bucket=self.__config["bucket"],
-            Key=key_paths[self.__container["name"]],
-            ServerSideEncryption="aws:kms",
-            ContentType="application/json"
-        )
-
-        _logger.info(
-            "S3 Pending queue updated (mode: %s | uid: %s)!", mode, uid)
-
-        return relay_data
 
     ##### Kinesis related functions ###############################################################
     def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:  # pylint: disable=too-many-arguments

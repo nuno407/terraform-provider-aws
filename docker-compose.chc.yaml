@@ -11,7 +11,8 @@ services:
       dockerfile: chc_ivschain/Dockerfile
       context: .
     environment:
-      CONFIG_S3: ${CONFIG_S3:-local-rcd-config-files}
+      AWS_CONFIG: ${AWS_CONFIG:-local-rcd-config-files}
+      MONGODB_CONFIG: ${MONGODB_CONFIG:-local-rcd-config-files}
       LOGLEVEL: DEBUG
       AWS_ENDPOINT: http://mockaws:4566
       # localstack doesn't care

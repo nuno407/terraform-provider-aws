@@ -23,7 +23,8 @@ if __name__ == "__main__":
     container_services = ContainerServices(container=CONTAINER_NAME,
                                            version=CONTAINER_VERSION)
 
-    container_services.load_config_vars(s3_client)
+    container_services.load_config_vars()
+    container_services.load_mongodb_config_vars()
     db_connstring = container_services.get_db_connstring()
     db_tables = container_services.db_tables
     persistence = Persistence(db_connstring, db_tables)

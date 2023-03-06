@@ -17,7 +17,8 @@ pip install -r requirements_dev.txt
 ## Environment variables
 
 - `CONTAINER_NAME` - container name for ContainerServices
-- `CONFIG_S3` - configuration bucket for ContainerServices
+- `AWS_CONFIG` - AWS configuration file for ContainerServices
+- `MONGODB_CONFIG` - MongoDB configuration file for ContainerServices
 - `LOGLEVEL` - Logger verbosity: INFO, DEBUG, ERROR, WARNING
 - `MOCK_POST_PROCESSOR` - Mocks ffmpeg post-processing step to be used with ivsfc `-m "True"` positional args
 - `START_DELAY_SECONDS` - time in seconds to wait during start-up

@@ -73,7 +73,7 @@ class BaseHandler():
         self.aws_clients = aws_clients
         self.mode = mode
 
-        self.container_services.load_config_vars(aws_clients.s3_client)
+        self.container_services.load_config_vars()
         self.validate_container_services_config()
 
         internal_queue: Queue[InternalMessage] = Queue(
@@ -91,7 +91,7 @@ class BaseHandler():
     def validate_container_services_config(self):
         """
         Checks if the loaded configurations in ContainerServices is valid
-        should be called after ContainerServices.load_config_vars(s3_client)
+        should be called after ContainerServices.load_config_vars()
 
         Raises:
             RuntimeError: if the configuration is invalid
