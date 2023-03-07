@@ -44,6 +44,7 @@ class Ingestor(object):
         self.STS_HELPER = sts_helper
         self._rcc_credentials = self.STS_HELPER.get_credentials()
         self.metadata_queue = self.CS.sqs_queues_list["Metadata"]
+        self.rexp_mp4 = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
 
     @abstractmethod
     def ingest(self, message):
@@ -607,10 +608,9 @@ class MetadataIngestor(Ingestor):
             file_path: str = file_entry['Key']
             modified_date: datetime = file_entry['LastModified'].replace(
                 tzinfo=None)
-            rexp = re.compile(r".+\.mp4.*(\.json|\.zip)$")
+            rexp_metadata = re.compile(r".+\.mp4.*(\.json\.zip)$")
 
-            if file_path.endswith('.mp4'):
-
+            if self.rexp_mp4.search(file_path):
                 if start_time and modified_date < start_time:
                     LOGGER.debug(
                         "Ignoring chunk (%s) modified at (%s), it's under the uploadstarted datetime (%s)",
@@ -630,7 +630,7 @@ class MetadataIngestor(Ingestor):
                 video_chunks_set.add(file_path)
                 continue
 
-            if rexp.match(file_path):
+            elif rexp_metadata.match(file_path):
                 metadata_chunks_set.add(file_path)
 
         return metadata_chunks_set, video_chunks_set

@@ -311,47 +311,47 @@ class TestMetadataIngestor:
     def test_search_chunks_in_s3_path(self, obj):
         resp_mock = {
             'Contents': [
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4_stream.json',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_afdgdffde.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-afdgdffde_20.mp4',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_10.mp4',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4_stream.json.zip',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_10.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4.zip',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_11.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_11.mp4',
                         'LastModified': datetime(year=2022, month=10, day=10)
                  }
             ]
         }
 
         metadata_expected = {
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4_stream.json',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4_stream.json.zip',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4.zip'}
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4_stream.json.zip',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_10.mp4_stream.json.zip',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_11.mp4_stream.json.zip'}
 
         video_expected = {
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_afdgdffde.mp4',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4'
-        }
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-afdgdffde_20.mp4',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_10.mp4',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_11.mp4'}
         reference_path = 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/'
         bucket = "BUCKET"
         messageid = "msg"
         obj.check_if_s3_rcc_path_exists = Mock(return_value=(True, resp_mock))
 
         metadata_chunks_set, video_chunks_set = obj._search_chunks_in_s3_path(
+
             reference_path, bucket, messageid)
 
         assert metadata_expected == metadata_chunks_set
@@ -362,40 +362,42 @@ class TestMetadataIngestor:
     def test_search_chunks_in_s3_path_time_bound(self, obj):
         resp_mock = {
             'Contents': [
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=59)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4_stream.json',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_afdgdffde.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-afdgdffde_10.mp4',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_12.mp4',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4_stream.json.zip',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_12.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4.zip',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_15.mp4_stream.json.zip',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  },
-                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4',
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_15.mp4',
                         'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
+                 },
+                {'Key': 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-sdfsdds5e.mp4',
+                 'LastModified': datetime(year=2022, month=9, day=30, hour=20, minute=1)
                  }
             ]
         }
 
         metadata_expected = {
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_498375935.mp4_stream.json',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4_stream.json.zip',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4.zip'}
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-498375935_10.mp4_stream.json.zip',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_12.mp4_stream.json.zip',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_15.mp4_stream.json.zip'}
 
         video_expected = {
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_afdgdffde.mp4',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_fgf12325e.mp4',
-            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_abc12325e.mp4'
-        }
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-afdgdffde_10.mp4',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-fgf12325e_12.mp4',
+            'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/InteriorRecorder_InteriorRecorder-abc12325e_15.mp4'}
         reference_path = 'TEST_TENANT/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/'
         bucket = "BUCKET"
         messageid = "msg"
