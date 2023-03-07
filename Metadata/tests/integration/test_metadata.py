@@ -192,7 +192,7 @@ class TestMain:
         # assertions for voxel code
         create_dataset, update_sample = voxel_mock
         create_dataset.assert_has_calls(
-            [call(expected_dataset, None), call(expected_dataset + "_snapshots", None)], any_order=True)
+            [call(expected_dataset, ["RC"]), call(expected_dataset + "_snapshots", ["RC"])], any_order=True)
 
         snapshot_excluded_db_entry.pop("_id")
         snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_snapshot_1692080178308_anonymized.jpeg"  # pylint: disable=line-too-long

@@ -82,14 +82,14 @@ def _update_on_voxel(filepath: str, sample: dict):
 
 
 @inject
-def _determine_dataset_name(filepath: str, mapping: DatasetMappingConfig):
+def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig):
     """
     Checks in config if tenant gets its own dataset or if it is part of the default dataset.
     Dedicated dataset names are prefixed with the tag given in the config.
     The tag is not added to the default dataset.
 
     :param filepath: S3 filepath to extract the tenant from
-    :param mapping: Config with mapping information about the tenants
+    :param mapping_config: Config with mapping information about the tenants
     :return: the resulting dataset name and the tags which should be added on dataset creation
     """
     s3split = filepath.split("/")
@@ -97,12 +97,11 @@ def _determine_dataset_name(filepath: str, mapping: DatasetMappingConfig):
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
 
-    dataset_name = mapping.default_dataset
-    tags = None
+    dataset_name = mapping_config.default_dataset
+    tags = [mapping_config.tag]
 
-    if tenant_name in mapping.create_dataset_for:
-        dataset_name = f"{mapping.tag}-{tenant_name}"
-        tags = [mapping.tag]
+    if tenant_name in mapping_config.create_dataset_for:
+        dataset_name = f"{mapping_config.tag}-{tenant_name}"
 
     if filetype in IMAGE_FORMATS:
         dataset_name = dataset_name + "_snapshots"

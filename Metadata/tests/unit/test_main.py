@@ -352,27 +352,23 @@ class TestMetadataMain():
             upsert=True, return_document=ReturnDocument.AFTER
         )
 
-    @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name,tags",
+    @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
                                  f"s3://a/b/c/d.{file_format}",
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "Debug_Lync_snapshots",
-                                 None) for file_format in IMAGE_FORMATS],
+                                 "Debug_Lync_snapshots") for file_format in IMAGE_FORMATS],
                               *[(file_format,
                                  f"s3://a/b/c/d.{file_format}",
                                  f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
-                                 "Debug_Lync",
-                                 None) for file_format in VIDEO_FORMATS],
+                                 "Debug_Lync") for file_format in VIDEO_FORMATS],
                               *[(file_format,
                                  f"s3://a/ridecare_companion_gridwise/c/d.{file_format}",
                                  f"s3://anon_bucket/ridecare_companion_gridwise/c/d_anonymized.{file_format}",
-                                 "RC-ridecare_companion_gridwise_snapshots",
-                                 ["RC"]) for file_format in IMAGE_FORMATS],
+                                 "RC-ridecare_companion_gridwise_snapshots") for file_format in IMAGE_FORMATS],
                               *[(file_format,
                                  f"s3://a/ridecare_companion_gridwise/c/d.{file_format}",
                                  f"s3://anon_bucket/ridecare_companion_gridwise/c/d_anonymized.{file_format}",
-                                 "RC-ridecare_companion_gridwise",
-                                 ["RC"]) for file_format in VIDEO_FORMATS]
+                                 "RC-ridecare_companion_gridwise") for file_format in VIDEO_FORMATS]
                               ])
     @pytest.mark.unit
     @patch("metadata.consumer.main.update_sample")
@@ -386,8 +382,7 @@ class TestMetadataMain():
             file_format: dict,
             filepath: str,
             anonymized_path: str,
-            voxel_dataset_name: str,
-            tags: str):
+            voxel_dataset_name: str):
         # Given
         bootstrap_di()
         recording_item: dict = {
@@ -402,7 +397,7 @@ class TestMetadataMain():
         update_voxel_media(recording_item)
 
         # Then
-        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name, tags)
+        mock_create_dataset_voxel.assert_called_once_with(voxel_dataset_name, ["RC"])
         mock_update_sample_voxel.assert_called_once_with(voxel_dataset_name, sample)
 
     @patch("metadata.consumer.main.ContainerServices.download_file",
@@ -531,7 +526,7 @@ class TestMetadataMain():
                 "$set": expected_out
             }, upsert=True)
         mock_download_and_synchronize_chc.assert_called_once_with("id", collection_recordings, "a", "e/f.media")
-        mock_create_dataset_voxel.assert_called_once_with("Debug_Lync", None)
+        mock_create_dataset_voxel.assert_called_once_with("Debug_Lync", ["RC"])
         mock_update_sample_voxel.assert_called_once_with("Debug_Lync", expected_out)
 
     @pytest.mark.unit

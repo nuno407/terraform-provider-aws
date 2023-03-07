@@ -8,7 +8,7 @@ from fiftyone import ViewField as F
 _logger = logging.getLogger(__name__)
 
 
-def create_dataset(dataset_name, tags=None):
+def create_dataset(dataset_name, tags):
     """
     Creates a voxel dataset with the given name or loads it if it already exists.
 
@@ -20,7 +20,8 @@ def create_dataset(dataset_name, tags=None):
         fo.load_dataset(dataset_name)
     else:
         dataset = fo.Dataset(dataset_name, persistent=True)
-        dataset.tags = tags
+        if tags is not None:
+            dataset.tags = tags
         _logger.info("Voxel dataset [%s] created!", dataset_name)
 
 
