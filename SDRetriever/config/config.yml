@@ -1,14 +1,22 @@
 tenant_blacklist:
- - TEST_TENANT
- - systestsrx
- - herbie
- - deviceprep
- - hacknorris
- - jackalope
+  - TEST_TENANT
+  - systestsrx
+  - herbie
+  - deviceprep
+  - hacknorris
+  - jackalope
+  - rubber_duck
+  - honeybadger
+  - ridecare_companion_ces_stresstest
+  - ridecare_companion_ces
 training_whitelist:
- - deepsensation
- - ridecare_companion_trial
+  - datanauts
+  - goaldiggers
+  - deepsensation
+  - srxfut3
+  - ridecare_companion_fut
+  - ridecare_companion_trial
 recorder_blacklist:
- - FrontRecorder
+  - FrontRecorder
 frame_buffer: 120000 # number of extra frames to request at the limits of a training recorder
 request_training_upload: true

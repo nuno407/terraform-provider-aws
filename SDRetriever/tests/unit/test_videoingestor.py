@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY
@@ -37,7 +36,7 @@ class TestVideoIngestor():
 
         db_record_data = obj.ingest(msg_interior)
 
-        expected_raw_path = "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110.mp4"
+        expected_raw_path = "datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110.mp4"
         expected_db_record_data = {
             "_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
             "s3_path": container_services.raw_s3 + "/" + expected_raw_path,

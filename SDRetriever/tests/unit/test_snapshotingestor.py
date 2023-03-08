@@ -3,12 +3,34 @@ from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 
+import hashlib
 from sdretriever.ingestor import SnapshotIngestor
+from sdretriever.message import Chunk, SnapshotMessage
 
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("msg_snapshot", "container_services", "s3_client", "sqs_client",
                          "sts_helper", "snapshot_rcc_folders", "snapshot_rcc_paths")
+def msg_helper() -> SnapshotMessage:
+    msg = Mock()
+    msg.tenant = "datanauts"
+    msg.deviceid = "DATANAUTS_DEV_01"
+    msg.messageid = "bd6261e1-d069-4443-9727-c8a7abfa80ee"
+    msg.senttimestamp = "1657725925161"
+    chunks = [{"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg",
+               "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+               "start_timestamp_ms": 1657642653000,
+               "end_timestamp_ms": 1657642654000,
+               "payload_size": 422576},
+              {"uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg",
+               "upload_status": "UPLOAD_STATUS__SELECTED_FOR_UPLOAD",
+               "start_timestamp_ms": 1657642655000,
+               "end_timestamp_ms": 1657642656000,
+               "payload_size": 455856}]
+    msg.chunks = [Chunk(a) for a in chunks]
+    return msg
+
+
 class TestSnapshotIngestor:
 
     @pytest.fixture
@@ -52,49 +74,147 @@ class TestSnapshotIngestor:
         assert paths == expected_rcc_folders
 
     @patch("sdretriever.ingestor.ContainerServices")
+    @pytest.mark.unit
+    @pytest.mark.parametrize("msg_snapshot,is_present_devCloud,is_available_rcc,message_db_sent,path_files_upload,return_value", [
+        # Success
+        (
+            msg_helper(),
+            [False, False],
+            [True, True, True, True],
+            [{"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000",
+                "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000.jpeg",
+                "deviceid": "DATANAUTS_DEV_01",
+                "timestamp": 1657642653000,
+                "tenant": "datanauts",
+                "media_type": "image",
+                "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000".encode("utf-8")).hexdigest(),
+              },
+             {"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000",
+              "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+              "deviceid": "DATANAUTS_DEV_01",
+              "timestamp": 1657642655000,
+              "tenant": "datanauts",
+              "media_type": "image",
+              "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000".encode("utf-8")).hexdigest()
+              }
+             ],
+            [
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000_metadata.json",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000_metadata.json"
+            ],
+            False
+        ), (
+            msg_helper(),
+            [False, True],
+            [True, True],
+            [{"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000",
+                "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000.jpeg",
+                "deviceid": "DATANAUTS_DEV_01",
+                "timestamp": 1657642653000,
+                "tenant": "datanauts",
+                "media_type": "image",
+                "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000".encode("utf-8")).hexdigest(),
+              }
+             ],
+            [
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000_metadata.json"
+            ],
+            False
+        ),
+        (
+            msg_helper(),
+            [False, False],
+            [False, True, True],
+            [{"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000",
+              "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+              "deviceid": "DATANAUTS_DEV_01",
+              "timestamp": 1657642655000,
+              "tenant": "datanauts",
+              "media_type": "image",
+              "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000".encode("utf-8")).hexdigest()
+              }
+             ],
+            [
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000_metadata.json"
+            ],
+            True
+        ),
+        (
+            msg_helper(),
+            [False, False],
+            [True, False, True, True],
+            [{"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000",
+              "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+              "deviceid": "DATANAUTS_DEV_01",
+              "timestamp": 1657642655000,
+              "tenant": "datanauts",
+              "media_type": "image",
+              "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000".encode("utf-8")).hexdigest()
+              }
+             ],
+            [
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000_metadata.json"
+            ],
+            True
+        ),
+        (
+            msg_helper(),
+            [True, False],
+            [True, True],
+            [{"_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000",
+              "s3_path": "bucket/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+              "deviceid": "DATANAUTS_DEV_01",
+              "timestamp": 1657642655000,
+              "tenant": "datanauts",
+              "media_type": "image",
+              "internal_message_reference_id": hashlib.sha256("datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000".encode("utf-8")).hexdigest()
+              }
+             ],
+            [
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
+                "datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000_metadata.json"
+            ],
+            False
+        )
+    ])
     def test_ingest_exists_on_devcloud(
             self,
-            ingestor_container_services,
-            msg_snapshot,
             container_services,
-            s3_client,
             sqs_client,
-            sts_helper):
+            sts_helper,
+            s3_client,
+            msg_snapshot: dict,
+            is_present_devCloud: list[bool],
+            is_available_rcc: list[bool],
+            message_db_sent: list[dict],
+            path_files_upload: list[str],
+            return_value: bool):
+
+        container_services.raw_s3 = "bucket"
 
         obj = SnapshotIngestor(
             container_services, s3_client, sqs_client, sts_helper)
-        ingestor_container_services.check_s3_file_exists.side_effect = [False, False]
+        container_services.check_s3_file_exists.side_effect = is_present_devCloud
 
-        obj.check_if_s3_rcc_path_exists = Mock()
-        obj.check_if_s3_rcc_path_exists.side_effect = [(True, ""), (True, "")]
+        mock_files = [b'mock_data' for _ in filter(lambda x: x, is_available_rcc)]
+        obj.get_file_in_rcc = Mock()
+        obj.get_file_in_rcc.side_effect = [b'mock_data' if avbl else FileNotFoundError for avbl in is_available_rcc]
 
-        snapshot1_timestamp = datetime.utcfromtimestamp(1657642653000 / 1000.0)
-        snapshot2_timestamp = datetime.utcfromtimestamp(1657642655000 / 1000.0)
-        year1 = snapshot1_timestamp.strftime("%Y")
-        month1 = snapshot1_timestamp.strftime("%m")
-        day1 = snapshot1_timestamp.strftime("%d")
-        hour1 = snapshot1_timestamp.strftime("%H")
-        year2 = snapshot2_timestamp.strftime("%Y")
-        month2 = snapshot2_timestamp.strftime("%m")
-        day2 = snapshot2_timestamp.strftime("%d")
-        hour2 = snapshot2_timestamp.strftime("%H")
+        rtn = obj.ingest(msg_snapshot)
 
-        expected_rcc_paths = [
-            f'datanauts/DATANAUTS_DEV_01/year={year1}/month={month1}/day={day1}/hour={hour1}/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5.jpeg',
-            f'datanauts/DATANAUTS_DEV_01/year={year2}/month={month2}/day={day2}/hour={hour2}/TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6.jpeg',
-        ]
-        expected_devcloud_paths = [
-            "Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_5_1657642653000.jpeg",
-            "Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-552001f5-0d63-461e-9c4c-0ef3d74995e5_6_1657642655000.jpeg",
-        ]
+        # Check file uploaded
+        files_upload = [call(ANY, file, "bucket", path) for path, file in zip(path_files_upload, mock_files)]
+        container_services.upload_file.assert_has_calls(
+            files_upload)
 
-        container_services.download_file = Mock(return_value=b"snapshotbytes")
-        obj.ingest(msg_snapshot)
+        # Check sqs update
+        queue_update = [call(ANY, ANY, message) for message in message_db_sent]
+        obj.CS.send_message.assert_has_calls(queue_update)
 
-        calls = [call(ANY, ANY, path) for path in expected_rcc_paths]
-        container_services.download_file.assert_has_calls(
-            calls, any_order=True)
-
-        calls = [call(ANY, b"snapshotbytes", container_services.raw_s3, path)
-                 for path in expected_devcloud_paths]
-        container_services.upload_file.assert_has_calls(calls, any_order=True)
+        # Check return
+        assert rtn == return_value

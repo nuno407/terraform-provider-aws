@@ -1,10 +1,8 @@
 import json
 import logging as log
-from abc import abstractmethod
-from abc import abstractproperty
+from abc import abstractmethod, abstractproperty
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
@@ -12,7 +10,8 @@ LOGGER = log.getLogger("SDRetriever." + __name__)
 class Chunk(object):
     """Representation of a single message chunk object"""
 
-    def __init__(self, chunk_description: dict = dict()) -> None:
+    def __init__(self, chunk_description: dict = {}) -> None:
+        """class init"""
         self.uuid: Optional[str] = chunk_description.get("uuid")
         self.upload_status: Optional[str] = chunk_description.get("upload_status")
         self.start_timestamp_ms: Optional[str] = chunk_description.get("start_timestamp_ms")
@@ -27,7 +26,7 @@ class Chunk(object):
 class Message(object):
     """Base class, describes a single, generic SQS message for data ingestion."""
 
-    def __init__(self, sqs_message: dict = None) -> None:
+    def __init__(self, sqs_message: Optional[dict] = None) -> None:
         """Class constructor
 
         Args:
@@ -41,7 +40,6 @@ class Message(object):
         """Check for bad format and content of the message.
         If format is bad, send message back to DLQ.
         Last check before working on the message ingestion."""
-        pass
 
     @abstractmethod
     def is_irrelevant(self):
@@ -56,7 +54,6 @@ class Message(object):
         #   otherwise:
         #       continue
         """
-        pass
 
     @property
     def messageid(self) -> Optional[str]:

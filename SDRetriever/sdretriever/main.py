@@ -1,232 +1,387 @@
-"""Sensor Data Retriever - V6
-- removed metadata processing
-- improved logging
-- improved code readibility
+"""Sensor Data Retriever - V7
+- adds ingestion of TrainingRecorder IMU data
 """
 
 import logging as log
 import os
+from typing import Optional
 
 import boto3
-
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import StsHelper
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.ingestor import MetadataIngestor
-from sdretriever.ingestor import SnapshotIngestor
-from sdretriever.ingestor import VideoIngestor
-from sdretriever.message import SnapshotMessage
-from sdretriever.message import VideoMessage
+from sdretriever.ingestor import (IMUIngestor, MetadataIngestor,
+                                  SnapshotIngestor, VideoIngestor)
+from sdretriever.message import Message, SnapshotMessage, VideoMessage
 from sdretriever.sourcecommuter import SourceCommuter
 
 CONTAINER_NAME = "SDRetriever"  # Name of the current container
-CONTAINER_VERSION = "v6"  # Version of the current container
+CONTAINER_VERSION = "v7"  # Version of the current container
+TRAINING_RECORDER = "TrainingRecorder"
+FRONT_RECORDER = "FrontRecorder"
+INTERIOR_RECORDER = "InteriorRecorder"
+SNAPSHOT = "TrainingMultiSnapshot"
+
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
-# Known types of video recorder services (SRX)
-VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
-# Video recorder services that include metadata
-VIDEO_WITH_METADATA = ["InteriorRecorder"]
-# Known types of snapshot recorder services (SRX)
-IMAGE = ["TrainingMultiSnapshot"]
 MESSAGE_VISIBILITY_EXTENSION_HOURS = [0.5, 3, 12, 12]
-
 
 # Global log message formatting
 LOGGER = log.getLogger("SDRetriever")
 ContainerServices.configure_logging('SDRetriever')
 
 
-def message_type_identifier(message: dict):
-    """ Identify if the type of the media described in the message.
+class IngestorHandler:
+    """Handler logic for SDR ingestion scenarios
+    """
+
+    def __init__(
+            self,
+            imu_ing: IMUIngestor,
+            metadata_ing: MetadataIngestor,
+            video_ing: VideoIngestor,
+            snap_ing: SnapshotIngestor,
+            cont_services: ContainerServices,
+            config: SDRetrieverConfig,
+            sqs_client):
+        """IngestorHandler init
+
+        Args:
+            imu_ing (IMUIngestor): instance of IMUIngestor
+            metadata_ing (MetadataIngestor): instance of MetadataIngestor
+            video_ing (VideoIngestor): instance of VideoIngestor
+            snap_ing (SnapshotIngestor): instance of SnapshotIngestor
+            cont_services (ContainerServices): instance of ContainerServices
+            config (SDRetrieverConfig): instance of SDRetrieverConfig
+            sqs_client (boto3 SQS): instance of boto3 SQS client
+        """
+        self.metadata_ing = metadata_ing
+        self.video_ing = video_ing
+        self.cont_services = cont_services
+        self.sqs_client = sqs_client
+        self.config = config
+        self.imu_ing = imu_ing
+        self.snap_ing = snap_ing
+        self.metadata_queue = cont_services.sqs_queues_list["Metadata"]
+        self.hq_request_queue = cont_services.sqs_queues_list["HQ_Selector"]
+
+    @staticmethod
+    def message_type_identifier(message: dict) -> Optional[str]:
+        """ Identify if the type of the media described in the message.
         Only returns a type when its sure its from that type otherwise returns None.
 
-    Args:
-        message (dict): message to identify
+        Args:
+            message (dict): message to identify
 
-    Returns:
-        result (str): type identified, defaults to None.
-    """
-    _message = str(message)
-    result = None
+        Returns:
+            result (Optional[str]): type identified, defaults to None.
+        """
+        _message = str(message)
 
-    # Checks if the message contains *just* InteriorRecorder.
-    if _message.find("InteriorRecorder") != -1 and _message.find("TrainingRecorder") == - \
-            1 and _message.find("TrainingMultiSnapshot") == -1 and _message.find("FrontRecorder") == -1:
-        result = "InteriorRecorder"
+        # Checks if the message contains *just* InteriorRecorder.
+        if all([
+                _message.find("InteriorRecorder") != -1,
+                _message.find("TrainingRecorder") == -1,
+                _message.find("TrainingMultiSnapshot") == -1,
+                _message.find("FrontRecorder") == -1]):
+            return INTERIOR_RECORDER
 
-    # Checks if the message contains *just* TrainingRecorder.
-    elif _message.find("TrainingRecorder") != -1 and _message.find("InteriorRecorder") == -1 and _message.find("TrainingMultiSnapshot") == -1 and _message.find("FrontRecorder") == -1:
-        result = "TrainingRecorder"
+        # Checks if the message contains *just* TrainingRecorder.
+        if all([
+                _message.find("TrainingRecorder") != -1,
+                _message.find("InteriorRecorder") == -1,
+                _message.find("TrainingMultiSnapshot") == -1,
+                _message.find("FrontRecorder") == -1]):
+            return TRAINING_RECORDER
 
-    # Checks if the message contains *just* TrainingMultiSnapshot.
-    elif _message.find("TrainingMultiSnapshot") != -1 and _message.find("TrainingRecorder") == -1 and _message.find("InteriorRecorder") == -1 and _message.find("FrontRecorder") == -1:
-        result = "TrainingMultiSnapshot"
+        # Checks if the message contains *just* TrainingMultiSnapshot.
+        if all([
+                _message.find("TrainingMultiSnapshot") != -1,
+                _message.find("TrainingRecorder") == -1,
+                _message.find("InteriorRecorder") == -1,
+                _message.find("FrontRecorder") == -1]):
+            return SNAPSHOT
 
-    # Checks if the message contains *just* FrontRecorder.
-    elif _message.find("FrontRecorder") != -1 and _message.find("TrainingRecorder") == -1 and _message.find("TrainingMultiSnapshot") == -1 and _message.find("InteriorRecorder") == -1:
-        result = "FrontRecorder"
+        # Checks if the message contains *just* FrontRecorder.
+        if all([
+                _message.find("FrontRecorder") != -1,
+                _message.find("TrainingRecorder") == -1,
+                _message.find("TrainingMultiSnapshot") == -1,
+                _message.find("InteriorRecorder") == -1]):
+            return FRONT_RECORDER
+        return None
 
-    return result
+    def message_ingestable(self, message: VideoMessage, source: str) -> bool:
+        """ Runs validation and relevancy checks for a VideoMessage.
+
+        Args:
+            message (VideoMessage): The video message to be ingested
+            source (str): The source SQS queue
+
+        Returns:
+            bool: True if it is ingestable, False otherwise
+        """
+        if not message.validate():
+            LOGGER.info("Message deemed invalid for ingestion, ignoring",
+                        extra={"messageid": message.messageid})
+            self.__delete_message(message, source)
+            return False
+
+        if message.is_irrelevant(self.config.tenant_blacklist, self.config.recorder_blacklist):
+            LOGGER.info("Message deemed irrelevant", extra={"messageid": message.messageid})
+            self.__delete_message(message, source)
+            return False
+
+        return True
+
+    def handle_interior_recorder(self, message: dict, source: str) -> None:
+        """ Forwards an INTERIOR message to a VideoIngestor if the message is ingestible.
+
+        Args:
+            message (dict): The video interior message to be ingested
+            source (str): The source SQS queue
+        """
+        video_message = VideoMessage(message)
+
+        if not self.message_ingestable(video_message, source):
+            return
+
+        # ask for the request of training data
+        self.__send_to_selector(video_message)
+
+        metadata_is_complete, metadata_chunks = self.metadata_ing.check_allparts_exist(
+            video_message)  # pylint disable=line-too-long
+        if not metadata_is_complete:
+            LOGGER.info("Metadata not available yet")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        db_record_data: Optional[dict] = self.video_ing.ingest(
+            video_message, self.config.training_whitelist, self.config.request_training_upload)
+        if not db_record_data:
+            LOGGER.error("Fail to ingest video")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        is_metadata_ingested = self.metadata_ing.ingest(video_message, db_record_data['_id'], metadata_chunks)
+        if not is_metadata_ingested:
+            LOGGER.error("Some error ocurred while attempting to ingest metadata")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        if db_record_data:
+            db_record_data.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
+            self.__send_to_metadata(video_message, db_record_data)
+            self.__delete_message(video_message, source)
+
+    def handle_training_recorder(self, message: dict, source: str) -> None:
+        """ Forwards a TRAINING message to a VideoIngestor if the message is ingestible.
+
+        Args:
+            message (dict): The video training message to be ingested
+            source (str): The source SQS queue
+        """
+        video_message = VideoMessage(message)
+
+        if not self.message_ingestable(video_message, source):
+            return
+
+        imu_is_complete, imu_chunks = self.imu_ing.check_allparts_exist(video_message)
+        if not imu_is_complete:
+            LOGGER.warning("IMU not available yet")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        db_record_data: Optional[dict] = self.video_ing.ingest(
+            video_message, self.config.training_whitelist, self.config.request_training_upload)
+        if not db_record_data:
+            LOGGER.error("Fail to ingest video")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        imu_path = self.imu_ing.ingest(video_message, db_record_data['_id'], imu_chunks)
+        if not imu_path:
+            LOGGER.error("Some error ocurred while attempting to ingest IMU data")
+            self.__increase_message_visability_timeout(video_message, source)
+            return
+
+        if db_record_data:
+            db_record_data.update({"imu_path": imu_path})
+            self.__send_to_metadata(video_message, db_record_data)
+            self.__delete_message(video_message, source)
+
+    def handle_snapshot(self, message: dict, source: str) -> None:
+        """ Forwards a TRAINING_MULTI_SNAPSHOT message to a SnapshotIngestor if the message is ingestible.
+
+        Args:
+            message (dict): The video training message to be ingested
+            source (str): The source SQS queue
+        """
+        snap_msg_obj = SnapshotMessage(message)
+
+        if not snap_msg_obj.validate():
+            LOGGER.info("Message deemed invalid for ingestion, ignoring",
+                        extra={"messageid": snap_msg_obj.messageid})
+            self.__delete_message(snap_msg_obj, source)
+            return
+
+        if snap_msg_obj.is_irrelevant(self.config.tenant_blacklist):
+            LOGGER.info("Message deemed irrelevant", extra={"messageid": snap_msg_obj.messageid})
+            self.__delete_message(snap_msg_obj, source)
+            return
+
+        data: Optional[dict] = self.snap_ing.ingest(snap_msg_obj)
+        if not data:
+            LOGGER.warning("Some error ocurred while attempting to ingest snapshots")
+            self.__increase_message_visability_timeout(snap_msg_obj, source)
+
+    def route(self, message: dict, source: str) -> None:
+        """ Routes a message to its correct handler for processing.
+
+        Args:
+            message (dict): The video training message to be ingested
+            source (str): The source SQS queue
+        """
+        message_type = IngestorHandler.message_type_identifier(message)
+        LOGGER.info("Pulled a message from %s (%s) -> %s ", source, message_type,
+                    message, extra={"messageid": message.get('MessageId')})
+
+        if message_type == TRAINING_RECORDER:
+            self.handle_training_recorder(message, source)
+        elif message_type == INTERIOR_RECORDER:
+            self.handle_interior_recorder(message, source)
+        elif message_type == FRONT_RECORDER:
+            LOGGER.info("Received a FrontRecording, ignoring it")
+            self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
+            # this is to be replaced with a __delete_message()
+            # when we create a FrontIngestor and FrontMessage
+        elif message_type == SNAPSHOT:
+            self.handle_snapshot(message, source)
+        else:
+            LOGGER.error(
+                "Could not identify message type as video nor snapshot related, ignoring",
+                extra={"messageid": message.get('MessageId')})
+
+    def __delete_message(self, message: Message, source: str) -> None:
+        """ Deletes the message from the queue.
+
+        Args:
+            message (Message): Message to be deleted.
+            source (str): The source to be deleted from.
+        """
+        self.cont_services.delete_message(self.sqs_client, message.receipthandle, source)
+        LOGGER.info("Message deleted from %s", source, extra={"messageid": message.messageid})
+
+    def __send_to_metadata(self, message: Message, data: dict) -> None:
+        """ Sends an update to the DB by using the metadata queue.
+
+        Args:
+            message (Message): Message to be deleted.
+            source (str): The source to be deleted from.
+        """
+        self.cont_services.send_message(self.sqs_client, self.metadata_queue, data)
+        LOGGER.info("Message sent to %s", self.metadata_queue,
+                    extra={"messageid": message.messageid})
+
+    def __send_to_selector(self, message: VideoMessage) -> None:
+        """ Notifies Selector of the arrival of a video.
+
+        Args:
+            message (VideoMessage): message of the ingested video.
+        """
+        data = {
+            "streamName": message.streamname,
+            "deviceId": message.deviceid,
+            "footageFrom": message.footagefrom,
+            "footageTo": message.footageto
+        }
+        self.cont_services.send_message(self.sqs_client, self.hq_request_queue, data)
+        LOGGER.info("Message sent to %s", self.hq_request_queue,
+                    extra={"messageid": message.messageid})
+
+    def __increase_message_visability_timeout(self, message_obj: Message, source: str) -> None:
+        """ Increases the message visibility timeout.
+
+        Args:
+            message (Message): Message to be deleted.
+            source (str): The source to be deleted from.
+        """
+        prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
+            message_obj.receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)] * 3600
+        LOGGER.warning("Prolonging message visibility timeout for %d seconds",
+                       prolong_time)
+        self.cont_services.update_message_visibility(self.sqs_client, message_obj.receipthandle,
+                                                     prolong_time, source)
 
 
 def main(config: SDRetrieverConfig):
+    """Main function of the component.
+
+    Args:
+        config (SDRetrieverConfig): configmap of the component
+    """
 
     # Define configuration for logging messages
-    log.info(f"Starting Container {CONTAINER_NAME} {CONTAINER_VERSION}")
+    LOGGER.info("Starting Container %s %s", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Start necessary services
-    S3_CLIENT = boto3.client('s3', region_name='eu-central-1')
-    SQS_CLIENT = boto3.client('sqs', region_name='eu-central-1')
-    STS_CLIENT = boto3.client('sts', region_name='eu-central-1')
-    CS = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
-    CS.load_config_vars()
-    STS_HELPER = StsHelper(STS_CLIENT, role=CS.rcc_info.get(
-        "role"), role_session="DevCloud-SDRetriever")
-    GRACEFUL_EXIT = GracefulExit()
+    s3_client = boto3.client('s3', region_name='eu-central-1')
+    sqs_client = boto3.client('sqs', region_name='eu-central-1')
+    sts_client = boto3.client('sts', region_name='eu-central-1')
+    cont_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
+    cont_services.load_config_vars()
+    sts_helper = StsHelper(sts_client, role=cont_services.rcc_info.get("role"), role_session="DevCloud-SDRetriever")
+    graceful_exit = GracefulExit()
 
     # Create file ingestors
-    METADATA_ING = MetadataIngestor(container_services=CS, s3_client=S3_CLIENT,
-                                    sqs_client=SQS_CLIENT, sts_helper=STS_HELPER)
-    SNAPSHOT_ING = SnapshotIngestor(container_services=CS, s3_client=S3_CLIENT,
-                                    sqs_client=SQS_CLIENT, sts_helper=STS_HELPER)
-    VIDEO_ING = VideoIngestor(container_services=CS, s3_client=S3_CLIENT, sqs_client=SQS_CLIENT,
-                              sts_helper=STS_HELPER, frame_buffer=config.frame_buffer)
+    metadata_ing = MetadataIngestor(
+        container_services=cont_services,
+        s3_client=s3_client,
+        sqs_client=sqs_client,
+        sts_helper=sts_helper)
+    snapshot_ing = SnapshotIngestor(
+        container_services=cont_services,
+        s3_client=s3_client,
+        sqs_client=sqs_client,
+        sts_helper=sts_helper)
+    video_ing = VideoIngestor(
+        container_services=cont_services,
+        s3_client=s3_client,
+        sqs_client=sqs_client,
+        sts_helper=sts_helper,
+        frame_buffer=config.frame_buffer)
+    imu_ingestor = IMUIngestor(
+        container_services=cont_services,
+        s3_client=s3_client,
+        sqs_client=sqs_client,
+        sts_helper=sts_helper)
+
+    ingestion_handler = IngestorHandler(
+        imu_ingestor,
+        metadata_ing,
+        video_ing,
+        snapshot_ing,
+        cont_services,
+        config,
+        sqs_client)
 
     # Create source commuter
-    SRC = SourceCommuter(
-        [CS.sqs_queues_list['SDRetriever'], CS.sqs_queues_list['Selector']])
-
-    metadata_queue = CS.sqs_queues_list["Metadata"]
-
-    while (GRACEFUL_EXIT.continue_running):
-
+    src = SourceCommuter([
+        cont_services.sqs_queues_list['SDRetriever'],
+        cont_services.sqs_queues_list['Selector']])
+    while graceful_exit.continue_running:
         # Poll source (SQS queue) for a new message
-        source = SRC.get_source()
-        message = CS.get_single_message_from_input_queue(SQS_CLIENT, source)
+        source = src.get_source()
+        message = cont_services.get_single_message_from_input_queue(sqs_client, source)
 
         if message:
-
-            # Identify the message
-            identity = message_type_identifier(message)
-            LOGGER.info(f"Pulled a message from {source} ({identity}) -> {message}", extra={
-                        "messageid": message.get('MessageId')})
-
-            if identity in VIDEO:
-
-                # Parse raw message
-                video_msg_obj = VideoMessage(message)
-
-                # If the message is irrelevant to us, we can delete it imediately
-                if video_msg_obj.is_irrelevant(config.tenant_blacklist, config.recorder_blacklist):
-                    LOGGER.info(f"Message deemed irrelevant to us", extra={
-                        "messageid": message.get('MessageId')})
-
-                    CS.delete_message(
-                        SQS_CLIENT, video_msg_obj.receipthandle, source)
-                    continue
-
-                # If ingestable
-                if video_msg_obj.validate():
-                    request_metadata = identity in VIDEO_WITH_METADATA
-
-                    if request_metadata:
-                        # check if metadata is fully available before ingesting video
-                        metadata_is_complete, metadata_chunks = METADATA_ING.check_metadata_exists_and_is_complete(
-                            video_msg_obj)
-                        if not metadata_is_complete:
-                            # in case it is not available yet, prolong the message visibility timeout
-                            # and put it back in the queue
-                            receive_count = video_msg_obj.receive_count
-                            prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
-                                receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)] * 3600
-                            LOGGER.warning(
-                                f"Metadata not available yet, prolonging message visibility timeout for {prolong_time} seconds", extra={
-                                    "messageid": message.get('MessageId')})
-                            CS.update_message_visibility(
-                                SQS_CLIENT, video_msg_obj.receipthandle, prolong_time, source)
-                            continue
-
-                    # Process parsed message
-                    db_record_data = VIDEO_ING.ingest(
-                        video_msg_obj, config.training_whitelist, config.request_training_upload)
-                    # If metadata is to be downloaded - it's an interior recorder video
-                    if db_record_data and request_metadata:
-                        source_data = METADATA_ING.ingest(
-                            video_msg_obj, db_record_data['_id'], metadata_chunks)
-
-                        # If we successfully ingested metadata, update the record
-                        if source_data:
-                            # we have metadata
-                            db_record_data.update(
-                                {"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
-                            # Send message to input queue of metadata container with the record data
-                            CS.send_message(
-                                SQS_CLIENT, metadata_queue, db_record_data)
-                            LOGGER.info(f"Message sent to {metadata_queue}", extra={
-                                        "messageid": message.get('MessageId')})
-                            # delete from input queue
-                            CS.delete_message(
-                                SQS_CLIENT, video_msg_obj.receipthandle, source)
-                            LOGGER.info(f"Message deleted from {source}", extra={
-                                        "messageid": message.get('MessageId')})
-
-                    elif db_record_data and not request_metadata:  # Training recorders
-                        # Send message to input queue of metadata container with the record data
-                        CS.send_message(
-                            SQS_CLIENT, metadata_queue, db_record_data)
-                        LOGGER.info(f"Message sent to {metadata_queue}", extra={
-                                    "messageid": message.get('MessageId')})
-                        # delete from input queue
-                        CS.delete_message(
-                            SQS_CLIENT, video_msg_obj.receipthandle, source)
-                        LOGGER.info(f"Message deleted from {source}", extra={
-                                    "messageid": message.get('MessageId')})
-                else:
-                    # non-parseable messages should go to DLQ
-                    LOGGER.debug(f"Message deemed invalid for ingestion, ignoring", extra={
-                                 "messageid": message.get('MessageId')})
-
-            elif identity in IMAGE:
-
-                # Parse raw message
-                snap_msg_obj = SnapshotMessage(message)
-
-                # If the message is irrelevant to us, we can delete it imediately
-                if snap_msg_obj.is_irrelevant(config.tenant_blacklist):
-                    LOGGER.info(f"Message deemed irrelevant to us", extra={
-                        "messageid": message.get('MessageId')})
-
-                    CS.delete_message(
-                        SQS_CLIENT, snap_msg_obj.receipthandle, source)
-                    continue
-
-                # If ingestable
-                if snap_msg_obj.validate():
-
-                    # Process parsed message
-                    reprocess = SNAPSHOT_ING.ingest(snap_msg_obj)
-                    if reprocess:
-                        LOGGER.info(f"Message will be re-ingested later",
-                                    extra={"messageid": snap_msg_obj.messageid})
-                    else:
-                        CS.delete_message(
-                            SQS_CLIENT, snap_msg_obj.receipthandle, source)
-                        LOGGER.info(f"Message deleted from {source}", extra={
-                                    "messageid": message.get('MessageId')})
-                else:
-                    # non-parseable messages should go to DLQ
-                    LOGGER.debug(f"Message deemed invalid for ingestion, ignoring", extra={
-                                 "messageid": message.get('MessageId')})
-            else:
-                LOGGER.error(f"Could not identify message type as video nor snapshot related, ignoring", extra={
-                             "messageid": message.get('MessageId')})
-
-        # if no message was obtained from the current source
+            ingestion_handler.route(message, source)
         else:
-            SRC.next()
-    log.info(f'{CONTAINER_NAME} exited gracefully.')
+            # if no message was obtained from the current source
+            src.next()
+
+    LOGGER.info('%s exited gracefully.', CONTAINER_NAME)
 
 
 if __name__ == "__main__":

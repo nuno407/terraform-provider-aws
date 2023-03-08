@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 from dataclasses import fields
-from typing import List
 
 import yaml
 
 
 @dataclass
 class SDRetrieverConfig():
-    tenant_blacklist: List[str]
-    recorder_blacklist: List[str]
+    tenant_blacklist: list[str]
+    recorder_blacklist: list[str]
     frame_buffer: int
-    training_whitelist: List[str]
+    training_whitelist: list[str]
     request_training_upload: bool
 
     @staticmethod
@@ -18,7 +17,7 @@ class SDRetrieverConfig():
         """Loads yaml file into SDRetrieverConfig object. Extra yaml fields are ignored.
 
         Args:
-            path (_type_): path of the yaml file containing the
+            path (str): path of the yaml file containing the
 
         Returns:
             SDRetrieverConfig: SDRetrieverConfig object containing passed yaml config

@@ -1,5 +1,6 @@
 pytest
 pytest_cov
+pytest-lazy-fixture
 
 autopep8
 pylint

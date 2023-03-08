@@ -4,18 +4,20 @@ import os
 from datetime import datetime
 from typing import Any
 from typing import Callable
-from typing import Dict
-from typing import List
+from typing import cast
+from typing import List, Union
 from typing import Optional
 from unittest.mock import Mock
 
 import pytest
 from mypy_boto3_s3 import S3Client
 
-from sdretriever.ingestor import MetadataIngestor as MI
+from sdretriever.ingestor import MetadataIngestor
+from sdretriever.ingestor import MetacontentChunk, IMUIngestor, VideoIngestor
 from sdretriever.message import Chunk
 from sdretriever.message import SnapshotMessage
 from sdretriever.message import VideoMessage
+from sdretriever.config import SDRetrieverConfig
 
 
 @pytest.fixture
@@ -39,7 +41,8 @@ def container_services() -> Mock:
         "Selector": "dev-terraform-queue-selector",
         "HQ_Selector": "dev-terraform-queue-hq-request",
         "Metadata": "dev-terraform-queue-metadata",
-        "Output": "dev-terraform-queue-output"
+        "Output": "dev-terraform-queue-output",
+        "MDFParser": "dev-terraform-queue-mdf-parser"
     }
     cs.RCC_S3_CLIENT = s3_client
     cs.rcc_info = {"s3_bucket": "rcc-dev-device-data"}
@@ -102,13 +105,11 @@ def msg_interior(metadata_full) -> VideoMessage:
 @pytest.fixture
 def metadata_files() -> List[str]:
     return [
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_1.mp4._stream2_20220819181105_0_metadata.json.zip",
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_2.mp4._stream2_20220819181117_1_metadata.json.zip",
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_3.mp4._stream2_20220819181128_2_metadata.json.zip",
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_4.mp4._stream2_20220819181140_3_metadata.json.zip",
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_5.mp4._stream2_20220819181151_4_metadata.json.zip",
-        "InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26_6.mp4._stream2_20220819181203_5_metadata.json.zip",
-    ]
+        "InteriorRecorder_InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63_10.mp4._stream2_20230301132144_9_metadata.json.zip",
+        "InteriorRecorder_InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63_11.mp4._stream2_20230301132155_10_metadata.json.zip",
+        "InteriorRecorder_InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63_12.mp4._stream2_20230301132206_11_metadata.json.zip",
+        "InteriorRecorder_InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63_13.mp4._stream2_20230301132218_12_metadata.json.zip",
+        "InteriorRecorder_InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63_14.mp4._stream2_20230301132229_13_metadata.json.zip"]
 
 
 @pytest.fixture
@@ -139,26 +140,63 @@ def list_s3_objects() -> Callable[[str, str, S3Client, Optional[str]], Any]:
 
 @pytest.fixture
 def metadata_full() -> dict:
-    with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json", "r") as f:
-        mdf = json.load(f)
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/ridecare_companion_fut_rc_srx_prod_a8c08d7b1c19f930892ba6b56fc885b7ffbd3275_InteriorRecorder_1677676914505_1677676967654_metadata_full.json", "r") as f:
+        mdf = json.load(f, object_pairs_hook=MetadataIngestor._json_raise_on_duplicates)
     return mdf
 
 
-@pytest.fixture
-def metadata_chunks(metadata_files) -> Dict[int, dict]:
-    chunks = dict()
-    i = 0
+def helper_read_chunks(metadata_files, file_type="metadata", decode=True) -> Union[list[str], list[bytearray]]:
+    chunks: list[str] = list()
     for file in metadata_files:
-        with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/metadata_raw_chunks/{file}", "rb") as f:
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/{file_type}_raw_chunks/{file}", "rb") as f:
             compressed_metadata_file = f.read()
             metadata = gzip.decompress(compressed_metadata_file)
-            chunks[i] = json.loads(metadata.decode(
-                "utf-8"), object_pairs_hook=MI._json_raise_on_duplicates)
+            if decode:
+                chunks.append(metadata.decode(
+                    "utf-8"))
+            else:
+                chunks.append(metadata)
     return chunks
 
+
+@pytest.fixture
+def metadata_chunks(metadata_files) -> dict[int, dict]:
+    chunks = dict()
+    for i, data_str in enumerate(helper_read_chunks(metadata_files)):
+        chunks[i] = json.loads(data_str, object_pairs_hook=MetadataIngestor._json_raise_on_duplicates)
+    return chunks
+
+
+@pytest.fixture
+def metacontent_chunks_metadata(metadata_files) -> list[MetacontentChunk]:
+    chunks = helper_read_chunks(metadata_files=metadata_files)
+    return [MetacontentChunk(data=chunk, filename=f"MOCKED_FILE_NAME_{i}") for i, chunk in enumerate(chunks)]
+
+
+@pytest.fixture
+def message_metadata(metadata_full) -> VideoMessage:
+    msg = Mock()
+    msg.raw_message = metadata_full["message"]
+    msg.message = '\\"streamName\\\":\\\"ridecare_companion_fut_rc_srx_prod_a8c08d7b1c19f930892ba6b56fc885b7ffbd3275_InteriorRecorder\\\",\\\"footageFrom\\\":1677676905921,\\\"footageTo\\\":1677676966721,\\\"uploadStarted\\\":1677677746823,\\\"uploadFinished\\\":1677677758776}',
+    msg.streamname = "ridecare_companion_fut_rc_srx_prod_a8c08d7b1c19f930892ba6b56fc885b7ffbd3275_InteriorRecorder"
+    msg.footagefrom = 1677676905921
+    msg.footageto = 1677676966721
+    msg.uploadstarted = datetime.fromtimestamp(
+        1677677746823 / 1000.0)  # 1657297078505
+    msg.uploadfinished = datetime.fromtimestamp(
+        1677677758776 / 1000.0)  # 1657297083111
+    msg.messageid = "1804e0d1-fe9f-4138-937d-20c6e1e0ece7"
+    msg.tenant = "ridecare_companion_fut"
+    msg.deviceid = "rc_srx_prod_a8c08d7b1c19f930892ba6b56fc885b7ffbd3275"
+    msg.senttimestamp = "1677677777045"
+    msg.topicarn = "arn:aws:sns:eu-central-1:736745337734:prod-video-footage-events"
+    msg.video_recording_type = Mock(return_value='InteriorRecorder')
+    msg.recording_type = 'InteriorRecorder'
+    msg.recordingid = "InteriorRecorder-fb6cd479-adcf-4af3-a216-1c96ed340d63"
+    return cast(VideoMessage, msg)
+
+
 # Snapshot fixtures
-
-
 @pytest.fixture
 def snapshot_rcc_folders() -> List[str]:
     # folders where to look for - possible snapshot locations
@@ -206,7 +244,65 @@ def msg_snapshot() -> SnapshotMessage:
 
 @pytest.fixture
 def config_yml():
-    from sdretriever.config import SDRetrieverConfig
     _config = SDRetrieverConfig.load_config_from_yaml_file(
         os.environ.get('CONFIG_FILE', './config/config.yml'))
     return _config
+
+
+@pytest.fixture
+def imu_files() -> List[str]:
+    return [
+        "TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_56.mp4._stream1_20230221171736_153_imu_raw.csv.zip",
+        "TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_57.mp4._stream1_20230221171748_154_imu_raw.csv.zip",
+        "TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_58.mp4._stream1_20230221171759_155_imu_raw.csv.zip"]
+
+
+@pytest.fixture
+def imu_chunks(imu_files: list[str]) -> list[MetacontentChunk]:
+    chunks = helper_read_chunks(imu_files, "imu", False)
+    return [MetacontentChunk(imu_file, imu_path) for imu_file, imu_path in zip(chunks, imu_files)]
+
+
+@pytest.fixture
+def imu_ingestor(container_services, s3_client, sqs_client, sts_helper) -> IMUIngestor:
+    return IMUIngestor(container_services, s3_client, sqs_client, sts_helper)
+
+
+@pytest.fixture
+def imu_full(imu_file="TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_imu_concat.csv") -> bytearray:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/{imu_file}", "rb") as f:
+        imu_full = f.read()
+    return imu_full
+
+
+@pytest.fixture
+def training_message_metadata(metadata_full) -> VideoMessage:
+    msg = Mock()
+    msg.raw_message = metadata_full["message"]
+    msg.message = '\\"streamName\\\":\\\"datanauts_DATANAUTS_TEST_02_TrainingRecorder\\\",\\\"footageFrom\\\":1677676905921,\\\"footageTo\\\":1677676966721,\\\"uploadStarted\\\":1677677746823,\\\"uploadFinished\\\":1677677758776}',
+    msg.streamname = "datanauts_DATANAUTS_TEST_02_TrainingRecorder"
+    msg.footagefrom = 1677676905921
+    msg.footageto = 1677676966721
+    msg.uploadstarted = datetime.fromtimestamp(
+        1677677746823 / 1000.0)  # 1657297078505
+    msg.uploadfinished = datetime.fromtimestamp(
+        1677677758776 / 1000.0)  # 1657297083111
+    msg.messageid = "1804e0d1-fe9f-4138-937d-20c6e1e0ece7"
+    msg.tenant = "datanauts"
+    msg.deviceid = "DATANAUTS_TEST_02"
+    msg.senttimestamp = "1677677777045"
+    msg.topicarn = "arn:aws:sns:eu-central-1:736745337734:prod-video-footage-events"
+    msg.video_recording_type = Mock(return_value='TrainingRecorder')
+    msg.recording_type = 'TrainingRecorder'
+    msg.recordingid = "TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749"
+    return cast(VideoMessage, msg)
+
+
+@pytest.fixture
+def metadata_ingestor(container_services, s3_client, sqs_client, sts_helper):
+    return MetadataIngestor(container_services, s3_client, sqs_client, sts_helper)
+
+
+@pytest.fixture
+def video_ingestor(container_services, s3_client, sqs_client, sts_helper):
+    return VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
