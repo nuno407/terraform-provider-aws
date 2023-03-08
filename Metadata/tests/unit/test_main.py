@@ -374,7 +374,7 @@ class TestMetadataMain():
     @patch("metadata.consumer.main.update_sample")
     @patch("metadata.consumer.main.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
-    @patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     def test_update_voxel_media(
             self,
             mock_create_dataset_voxel: Mock,
@@ -736,7 +736,7 @@ class TestMetadataMain():
                             new_callable=PropertyMock, side_effect=[True, False])
 
     @pytest.mark.unit
-    @patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     def test_metadata_consumer_main(
             self,
             mock_container_services: Mock,

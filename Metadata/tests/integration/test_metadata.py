@@ -85,7 +85,7 @@ def input_message_snapshot_excluded(folder: str):
 
 
 @pytest.mark.integration
-@patch.dict("metadata.consumer.main.os.environ", {"CONFIG_PATH": "./config/config.yml"})
+@patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
 class TestMain:
     @pytest.fixture
     def boto3_mock(self, mocker: MockerFixture):
