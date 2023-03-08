@@ -52,6 +52,40 @@ def identify_file(s3_path: str) -> FileMetadata:
     return FileMetadata(msp, file_name, file_format)
 
 
+def get_processing_steps_for_msp(container_services: ContainerServices, msp: str) -> list[str]:
+    """Get processing steps for MSP
+
+    Args:
+        container_services (ContainerServices): container services reference
+        msp (str): managed service provider key
+
+    Returns:
+        list[str]: list of processing steps
+    """
+    return container_services.msp_steps[msp].copy(
+    ) if msp in container_services.msp_steps else container_services.msp_steps["default"].copy()
+
+
+def is_identify_successful(metadata: FileMetadata) -> bool:
+    """Check if file identification was succesful
+
+    Args:
+        metadata (FileMetadata): ingested file metadata
+
+    Returns:
+        bool: true if identification was succesful
+    """
+    if metadata.msp is None:
+        _logger.warning("%s not be processed - File is outside MSP folders.", metadata.filename)
+    if metadata.filename is None:
+        _logger.warning("Could not parse file name.")
+    if metadata.file_format is None:
+        _logger.warning("Could not parse file format.")
+
+    return bool(metadata.msp is not None and metadata.filename
+                is not None and metadata.file_format is not None)
+
+
 def processing_sdm(container_services, sqs_client, sqs_message):
     """Retrieves the MSP name from the message received and creates
     a relay list for the current file
@@ -81,33 +115,24 @@ def processing_sdm(container_services, sqs_client, sqs_message):
     s3_path = sqs_body["Records"][0]["s3"]["object"]["key"]
 
     # Identify the file in the message
-    file_metadata = identify_file(s3_path)
-    msp, file_name, file_format = file_metadata.msp, file_metadata.filename, file_metadata.file_format
+    metadata = identify_file(s3_path)
 
     # if somehting went wrong with the file parsing
-    if msp is None or file_name is None or file_format is None:
-        if msp is None:
-            _logger.warning("File %s will not be processed - File is outside MSP folders.", file_name)
-        if file_name is None:
-            _logger.warning("Could not parse file name.")
-        if file_format is None:
-            _logger.warning("Could not parse file format.")
+    if not is_identify_successful(metadata):
         _logger.info("Message dump:")
         _logger.info(sqs_message)
         return relay_data
 
-    # pylint: disable=fixme
-    # TODO: find place to store file formats (video/image) - container_scripts, global var, env var, ...?
-    if file_format in VIDEO_FORMATS:
+    if metadata.file_format in VIDEO_FORMATS:
 
         _logger.info("Processing video message..")
         # Creates relay list to be used by other containers
-        relay_data["processing_steps"] = container_services.msp_steps[msp].copy()
+        relay_data["processing_steps"] = get_processing_steps_for_msp(container_services, metadata.msp)
         relay_data["s3_path"] = s3_path
         relay_data["data_status"] = "received"
         container_services.display_processed_msg(relay_data["s3_path"])
 
-    elif file_format in IMAGE_FORMATS:
+    elif metadata.file_format in IMAGE_FORMATS:
         # Snapshot processing will only need to go through one stage - anonymization
         # because both anony & CHC call upon the same transforming algorithms.
         # CHC just generates the json?
@@ -115,21 +140,22 @@ def processing_sdm(container_services, sqs_client, sqs_message):
 
         _logger.info("Processing snapshot message..")
         # Creates relay list to be used by other containers
-        relay_data["processing_steps"] = container_services.msp_steps[msp].copy()
+        relay_data["processing_steps"] = get_processing_steps_for_msp(container_services, metadata.msp)
         # to skip image CHC
         relay_data["processing_steps"].remove("CHC")
         relay_data["s3_path"] = s3_path
         relay_data["data_status"] = "received"
         container_services.display_processed_msg(relay_data["s3_path"])
 
-    elif file_format in container_services.raw_s3_ignore:
+    elif metadata.file_format in container_services.raw_s3_ignore:
         _logger.warning(
             "File %s will not be processed - File format '%s' is on the Raw Data S3 ignore list.",
-            file_name,
-            file_format)
+            metadata.filename,
+            metadata.file_format)
 
     else:
-        raise ValueError(f"File '{file_name}' will not be processed - File format '{file_format}' is unexpected.")
+        raise ValueError(f"File '{metadata.filename}' will not be processed - \
+                           File format '{metadata.file_format}' is unexpected.")
 
     # If file received is valid
     if relay_data:
