@@ -31,7 +31,7 @@ from metadata.consumer.service import RelatedMediaService
 
 CONTAINER_NAME = "Metadata"    # Name of the current container
 CONTAINER_VERSION = "v6.2"     # Version of the current container
-
+DOCUMENT_TOO_LARGE_MESSAGE = "Document too large %s"
 
 _logger: Logger = ContainerServices.configure_logging("metadata")
 
@@ -554,7 +554,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
 
         except DocumentTooLarge as err:
-            _logger.warning("Document too large %s", err)
+            _logger.error(DOCUMENT_TOO_LARGE_MESSAGE, err)
             set_error_status(metadata_collections, video_id=video_id)
         except PyMongoError:
             _logger.exception(
@@ -572,6 +572,9 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
         query = {"_id": run_id}
         metadata_collections.algo_output.update_one(query, {"$set": algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
+    except DocumentTooLarge as err:
+        _logger.error(DOCUMENT_TOO_LARGE_MESSAGE, err)
+        set_error_status(metadata_collections, video_id=video_id)
     except PyMongoError as err:
         _logger.exception(
             "Error updating the algo output collection with item %s - %s", algo_item, err)
