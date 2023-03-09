@@ -9,7 +9,7 @@ class DatasetMappingConfig():
     """
     Config holding information about the tenant to dataset mapping
     """
-    create_dataset_for: set[str] = field(default_factory=lambda: {})
+    create_dataset_for: set[str] = field(default_factory=set)
     default_dataset: str = ""
     tag: str = ""
 

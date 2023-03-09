@@ -30,7 +30,7 @@ from metadata.consumer.db import Persistence
 from metadata.consumer.service import RelatedMediaService
 
 CONTAINER_NAME = "Metadata"  # Name of the current container
-CONTAINER_VERSION = "v6.2"   # Version of the current container
+CONTAINER_VERSION = "v6.3"   # Version of the current container
 DOCUMENT_TOO_LARGE_MESSAGE = "Document too large %s"
 
 _logger: Logger = ContainerServices.configure_logging("metadata")

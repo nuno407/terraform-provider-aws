@@ -44,7 +44,7 @@ def test_load_invalid_dataset_config():
         config = MetadataConfig.load_config_from_yaml_file("config/config.yml")
 
         # THEN
-        assert config.dataset_mapping.create_dataset_for == {}
+        assert config.dataset_mapping.create_dataset_for == set()
         assert config.dataset_mapping.default_dataset == ""
         assert config.dataset_mapping.tag == ""
 
@@ -65,6 +65,6 @@ def test_load_invalid_config():
         config = MetadataConfig.load_config_from_yaml_file("config/config.yml")
 
         # THEN
-        assert config.dataset_mapping.create_dataset_for == {}
+        assert config.dataset_mapping.create_dataset_for == set()
         assert config.dataset_mapping.default_dataset == ""
         assert config.dataset_mapping.tag == ""
