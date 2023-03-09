@@ -6,7 +6,6 @@ import pytest
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 from healthcheck.model import Artifact, VideoArtifact
-from healthcheck.voxel_client import VoxelDataset
 
 
 @pytest.mark.unit
@@ -74,4 +73,4 @@ class TestInteriorRecorderArtifactChecker:
             input_artifact)
 
         voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(
-            input_artifact, VoxelDataset.VIDEOS)
+            input_artifact)

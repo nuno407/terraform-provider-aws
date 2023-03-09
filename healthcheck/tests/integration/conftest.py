@@ -3,6 +3,7 @@ import codecs
 import functools
 import json
 import os
+import re
 
 import boto3
 import mongomock
@@ -12,6 +13,8 @@ from moto import mock_s3
 from mypy_boto3_s3 import S3Client
 from unittest.mock import MagicMock
 
+from pathlib import Path
+from typing import Generator, Callable
 from base.aws.container_services import ContainerServices
 from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
@@ -20,7 +23,7 @@ from healthcheck.database import NoSQLDBConfiguration
 from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
-from healthcheck.voxel_client import VoxelDataset, VoxelEntriesGetter
+from healthcheck.voxel_client import VoxelEntriesGetter
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -127,7 +130,7 @@ class VoxelClientMock():
             self.__data[collection] = []
         self.__data[collection].append({"filepath": filepath, "data": data})
 
-    def get_num_entries(self, file_path: str, dataset: VoxelDataset) -> int:
+    def get_num_entries(self, file_path: str, dataset: str) -> int:
         """
         Return the number of entries in a specific dataset.
 
@@ -138,7 +141,7 @@ class VoxelClientMock():
         Returns:
             int: Number of entries found
         """
-        data = self.__data[dataset.value]
+        data = self.__data[dataset]
         count = 0
         for entry in data:
             if entry['filepath'] == file_path:
@@ -153,7 +156,7 @@ def db_configuration():
 
 @pytest.fixture
 def s3_params():
-    return S3Params("dev-rcd-anonymized-video-files", "dev-rcd-raw-video-files", "Debug_Lync")
+    return S3Params("dev-rcd-anonymized-video-files", "dev-rcd-raw-video-files")
 
 
 @pytest.fixture(scope="function")
@@ -180,6 +183,24 @@ def mock_mongo_client() -> mongomock.MongoClient:
     return client
 
 
+def set_files(bucket_path: str, set_function: Callable):
+    _, bucket = os.path.split(bucket_path)
+    for root, _, files in os.walk(bucket_path):
+        if len(files) == 0:
+            continue
+
+        if bucket_path == root:
+            # Matches the datasetname and returns the tenant
+            root_subfolder = re.match(r"RC-([a-zA-Z]+).*", bucket).group(1)
+        else:
+            root_subfolder = root.replace(bucket_path + "/", "")
+
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            file_key = os.path.join(root_subfolder, file_name)
+            set_function(bucket, file_path, file_key)
+
+
 @pytest.fixture(scope="session")
 def moto_s3_client() -> S3Client:
     """s3_mock.
@@ -200,15 +221,15 @@ def moto_s3_client() -> S3Client:
 
             moto_s3_client.create_bucket(Bucket=dir_name)
 
-            # List and create files in bucket
-            for file_name in os.listdir(bucket_path):
-                file_path = os.path.join(bucket_path, file_name)
+            def set_function(bucket: str, file_path: str, file_key: str):
                 moto_s3_client.put_object(
-                    Bucket=dir_name,
+                    Bucket=bucket,
                     Body=get_raw_file(file_path),
-                    Key=os.path.join(
-                        "Debug_Lync",
-                        file_name))
+                    Key=file_key
+                )
+
+            # List and create files in bucket
+            set_files(bucket_path, set_function)
 
         yield moto_s3_client
 
@@ -225,9 +246,11 @@ def voxel_client(scope="session") -> VoxelEntriesGetter:
             continue
 
         # List and create files in bucket
-        for file_name in os.listdir(dataset_path):
-            filepath = f"s3://dev-rcd-anonymized-video-files/Debug_Lync/{file_name}"
-            client.load_file(dir_name, filepath, None)
+        def set_function(dataset: str, _: str, file_key: str):
+            filepath = f"s3://dev-rcd-anonymized-video-files/{file_key}"
+            client.load_file(dataset, filepath, None)
+
+        set_files(dataset_path, set_function)
 
     return client
 

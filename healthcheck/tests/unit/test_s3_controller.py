@@ -11,7 +11,6 @@ from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
 
 S3_ANON_BUCKET = "my-test-anon"
 S3_RAW_BUCKET = "my-test-raw"
-S3_DIR = "TEST_DIR"
 
 
 @pytest.mark.unit
@@ -22,8 +21,7 @@ class TestS3Controller():
     def s3_params(self) -> S3Params:
         return S3Params(
             s3_bucket_anon=S3_ANON_BUCKET,
-            s3_bucket_raw=S3_RAW_BUCKET,
-            s3_dir=S3_DIR
+            s3_bucket_raw=S3_RAW_BUCKET
         )
 
     @pytest.fixture
@@ -51,7 +49,7 @@ class TestS3Controller():
         s3_controller.is_s3_anonymized_file_present_or_raise(
             "mock-anon.mp4", fix_video)
         fix_test_client.head_object.assert_called_once_with(
-            Bucket=S3_ANON_BUCKET, Key=f"{S3_DIR}/mock-anon.mp4")
+            Bucket=S3_ANON_BUCKET, Key=f"{fix_video.tenant_id}/mock-anon.mp4")
 
     def test_is_s3_anonymized_file_present_or_raise_fail(self, fix_video: VideoArtifact, s3_params: S3Params):
         fix_test_client = MagicMock()
@@ -70,7 +68,7 @@ class TestS3Controller():
         s3_controller.is_s3_raw_file_present_or_raise(
             "mock-raw.jpeg", fix_snap)
         fix_test_client.head_object.assert_called_once_with(
-            Bucket=S3_RAW_BUCKET, Key=f"{S3_DIR}/mock-raw.jpeg")
+            Bucket=S3_RAW_BUCKET, Key=f"{fix_snap.tenant_id}/mock-raw.jpeg")
 
     def test_is_s3_raw_file_presence_or_raise_success_fail(self, fix_snap: SnapshotArtifact, s3_params: S3Params):
         fix_test_client = MagicMock()

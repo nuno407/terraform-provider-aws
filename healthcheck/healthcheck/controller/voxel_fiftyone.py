@@ -5,7 +5,7 @@ from kink import inject
 
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import Artifact, ArtifactType, S3Params
-from healthcheck.voxel_client import VoxelDataset, VoxelEntriesGetter
+from healthcheck.voxel_client import VoxelEntriesGetter
 
 
 @inject
@@ -18,7 +18,7 @@ class VoxelFiftyOneController():
         self.__s3_params = s3_params
         self.__voxel_client = voxel_client
 
-    def _full_s3_path(self, file_key: str) -> str:
+    def _full_s3_path(self, tenant_name: str, file_key: str) -> str:
         """
         Given an s3 file name, appends the root folder to the key.
 
@@ -28,33 +28,37 @@ class VoxelFiftyOneController():
         Returns:
             str: The S3 key fot he file requested
         """
-        return f"{self.__s3_params.s3_dir}/{file_key}"
+        return f"{tenant_name}/{file_key}"
 
-    def is_fiftyone_entry_present_or_raise(self, artifact: Artifact, dataset: VoxelDataset) -> None:
+    def is_fiftyone_entry_present_or_raise(self, artifact: Artifact) -> None:
         """
         Checks if the artifact specified is present in the dataset.
         Raises an exception if is either not present or is not unique.
 
         Args:
             artifact_id (str): The id of the artifactto check for.
-            dataset (VoxelDataset): The dataset type to be checked.
 
         Raises:
             VoxelEntryNotPresent: If no record was found.
             VoxelEntryNotUnique: If exists more then 1 records.
         """
         art_id = artifact.artifact_id
-        extension = "jpeg" if artifact.artifact_type == ArtifactType.SNAPSHOT else "mp4"
+        dataset = f"RC-{artifact.tenant_id}"
+        extension = "mp4"
+
+        if artifact.artifact_type == ArtifactType.SNAPSHOT:
+            extension = "jpeg"
+            dataset += "_snapshots"
 
         def get_key():
-            return f"{self._full_s3_path(art_id)}_anonymized.{extension}"
+            return f"{self._full_s3_path(artifact.tenant_id, art_id)}_anonymized.{extension}"
 
         path = f"s3://{self.__s3_params.s3_bucket_anon}/{get_key()}"
 
         entries = self.__voxel_client.get_num_entries(path, dataset)
         if entries == 0:
             raise VoxelEntryNotPresent(
-                artifact, f"Voxel entry for file path {path} does not exist in {dataset.value}")
+                artifact, f"Voxel entry for file path {path} does not exist in {dataset}")
         if entries > 1:
             msg = f"Multiple voxel entries ({entries}) found for file path {path}"
             raise VoxelEntryNotUnique(

@@ -88,8 +88,7 @@ def bootstrap_di() -> None:
 
     di[S3Params] = S3Params(
         config.anonymized_s3_bucket,
-        config.raw_s3_bucket,
-        config.s3_dir)
+        config.raw_s3_bucket)
 
     di[NoSQLDBConfiguration] = lambda _di: NoSQLDBConfiguration(
         _di[HealthcheckConfig].db_name,

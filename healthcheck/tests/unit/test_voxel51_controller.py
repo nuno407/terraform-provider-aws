@@ -6,7 +6,6 @@ import pytest
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params, SnapshotArtifact
-from healthcheck.voxel_client import VoxelDataset
 
 
 @pytest.mark.unit
@@ -17,8 +16,7 @@ class TestVoxelFiftyOneController():
     def s3_params(self) -> S3Params:
         return S3Params(
             s3_bucket_anon="test-anon",
-            s3_bucket_raw="test-raw",
-            s3_dir="test-dir"
+            s3_bucket_raw="test-raw"
         )
 
     @pytest.fixture
@@ -39,11 +37,14 @@ class TestVoxelFiftyOneController():
         result_mock.__gt__ = Mock(return_value=False)
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
-        voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact, VoxelDataset.SNAPSHOTS)
+        voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)
         voxel_client.get_num_entries.assert_called_once_with(
-            self._assemble_path(s3_params.s3_bucket_anon, s3_params.s3_dir, snapshot_artifact.artifact_id, "jpeg"),
-            VoxelDataset.SNAPSHOTS
-        )
+            self._assemble_path(
+                s3_params.s3_bucket_anon,
+                snapshot_artifact.tenant_id,
+                snapshot_artifact.artifact_id,
+                "jpeg"),
+            "RC-test_snapshots")
 
     def test_is_fiftyone_entry_present_or_raise_error_empty(
             self, snapshot_artifact: SnapshotArtifact, s3_params: S3Params):
@@ -53,7 +54,7 @@ class TestVoxelFiftyOneController():
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
         with pytest.raises(VoxelEntryNotPresent):
-            voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact, VoxelDataset.SNAPSHOTS)
+            voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)
 
     def test_is_fiftyone_entry_present_or_raise_error_multiple(
             self, snapshot_artifact: SnapshotArtifact, s3_params: S3Params):
@@ -63,4 +64,4 @@ class TestVoxelFiftyOneController():
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
         with pytest.raises(VoxelEntryNotUnique):
-            voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact, VoxelDataset.SNAPSHOTS)
+            voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)

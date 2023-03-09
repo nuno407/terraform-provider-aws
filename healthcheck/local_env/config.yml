@@ -1,6 +1,5 @@
 anonymized_s3_bucket: dev-rcd-anonymized-video-files
 raw_s3_bucket: dev-rcd-raw-video-files
-s3_dir: Debug_Lync
 input_queue: dev-terraform-queue-healthcheck
 db_name: DataIngestion
 environment_prefix: dev

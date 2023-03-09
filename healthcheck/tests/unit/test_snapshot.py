@@ -6,7 +6,6 @@ import pytest
 from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
 from healthcheck.model import Artifact, SnapshotArtifact
-from healthcheck.voxel_client import VoxelDataset
 
 
 @pytest.mark.unit
@@ -68,4 +67,4 @@ class TestSnapshotArtifactChecker:
 
         if is_matching_recording_ingested:
             voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(
-                input_artifact, VoxelDataset.SNAPSHOTS)
+                input_artifact)

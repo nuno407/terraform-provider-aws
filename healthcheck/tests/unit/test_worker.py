@@ -25,7 +25,6 @@ class TestWorker:
             recorder_blacklist=[
                 "FrontRecorder"
             ],
-            s3_dir="test_dir",
             training_whitelist=[
                 "test-whitelist-tenant"
             ],

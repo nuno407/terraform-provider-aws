@@ -11,7 +11,6 @@ from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 
 from healthcheck.checker.common import ArtifactChecker
 from healthcheck.model import Artifact
-from healthcheck.voxel_client import VoxelDataset
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -63,4 +62,4 @@ class InteriorRecorderArtifactChecker:
 
         # Perform Voxel validations
         self.__voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise(
-            artifact, VoxelDataset.VIDEOS)
+            artifact)

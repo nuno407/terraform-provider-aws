@@ -9,7 +9,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067411688_1639067460000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
@@ -21,7 +21,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000",
@@ -33,7 +33,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639126766137_1639126800000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000",
@@ -45,7 +45,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639131720000_1639131780000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639315740000_1639315800000",
@@ -57,7 +57,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639315740000_1639315800000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639315740000_1639315800000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000",
@@ -69,7 +69,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320898158_1639320900000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320960000_1639321140000",
@@ -81,7 +81,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320960000_1639321140000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639320960000_1639321140000.mp4"
     },
     {
         "_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000",
@@ -93,7 +93,7 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000.mp4"
+        "s3_path": "deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639321140000_1639321380000.mp4"
     },
     {
         "_id": "srxfut2internal01_rc_tst_qa_eur_fut2_001_InteriorRecorder_1643971450000_1643971472700+",
@@ -117,6 +117,6 @@
             "Anonymize",
             "CHC"
         ],
-        "s3_path": "Debug_Lync/deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1639750504360_1639750523828.mp4"
+        "s3_path": "deepsensation/deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1639750504360_1639750523828.mp4"
     }
 ]

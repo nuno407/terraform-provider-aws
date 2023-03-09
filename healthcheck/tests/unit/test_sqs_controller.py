@@ -24,7 +24,6 @@ class TestSQSMessageController():
             anonymized_s3_bucket="",
             db_name="",
             environment_prefix="",
-            s3_dir="",
             raw_s3_bucket="",
             recorder_blacklist=[],
             training_whitelist=[],

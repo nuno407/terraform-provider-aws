@@ -39,7 +39,6 @@ class S3Params():
     """AWS S3 parameters."""
     s3_bucket_anon: str
     s3_bucket_raw: str
-    s3_dir: str
 
 
 @dataclass

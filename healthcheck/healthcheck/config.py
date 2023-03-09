@@ -11,7 +11,6 @@ class HealthcheckConfig():
     input_queue: str
     anonymized_s3_bucket: str
     raw_s3_bucket: str
-    s3_dir: str
     db_name: str
     environment_prefix: str
     tenant_blacklist: list[str]

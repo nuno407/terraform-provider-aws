@@ -113,7 +113,7 @@ class TestTrainingRecorderArtifactChecker:
             FailDocumentValidation
         )
     ])
-    def test_run_healthcheck_snapshot(
+    def test_run_healthcheck(
             self,
             tenant_id: str,
             device_id: str,
@@ -127,7 +127,7 @@ class TestTrainingRecorderArtifactChecker:
     ):
         """Test interior recorder healthcheck."""
 
-        interior_recorder_artifact_checker = TrainingRecorderArtifactChecker(
+        training_recorder_artifact_checker = TrainingRecorderArtifactChecker(
             s3_controller=blob_storage_controller,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
@@ -141,10 +141,10 @@ class TestTrainingRecorderArtifactChecker:
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:
-            interior_recorder_artifact_checker.run_healthcheck(artifact)
+            training_recorder_artifact_checker.run_healthcheck(artifact)
             assert True
 
         # Make sure an exception is raised if provided
         else:
             with pytest.raises(expected_exception_type):  # type: ignore
-                interior_recorder_artifact_checker.run_healthcheck(artifact)
+                training_recorder_artifact_checker.run_healthcheck(artifact)

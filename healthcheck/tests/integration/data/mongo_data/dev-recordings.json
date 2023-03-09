@@ -6,7 +6,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669989865000_1669989911443.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -29,7 +29,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668520287819_1668520339524.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -54,7 +54,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669937546543_1669937582448.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -77,7 +77,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669933942000_1669933976440.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -100,7 +100,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1668525233635_1668525352435.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -127,7 +127,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669920646000_1669920680442.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -150,7 +150,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992688000_1669992725794.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -173,7 +173,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669935745727_1669935774441.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -196,7 +196,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825429.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -221,7 +221,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825530",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825530.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669992746911_1669992825530.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -242,7 +242,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670008538727_1670008567439",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670008538727_1670008567439.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670008538727_1670008567439.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -265,7 +265,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444",
         "MDF_available": "Yes",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669924248635_1669924275444.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -288,7 +288,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1669941151635_1669941177428.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -314,7 +314,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670492537000_1670494337793",
         "MDF_available": "No",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670492537000_1670494337793.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670492537000_1670494337793.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -333,7 +333,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1671454631000_1671455208714",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1671454631000_1671455208714.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1671454631000_1671455208714.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -352,7 +352,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829790543_1670831591892",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829790543_1670831591892.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829790543_1670831591892.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -381,7 +381,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670507347819_1670507467529",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670507347819_1670507467529.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670507347819_1670507467529.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -400,7 +400,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670497785727_1670499585630",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670497785727_1670499585630.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670497785727_1670499585630.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -419,7 +419,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670831590000_1670831868817",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670831590000_1670831868817.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670831590000_1670831868817.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -438,7 +438,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670499585635_1670499861537",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670499585635_1670499861537.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670499585635_1670499861537.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -457,7 +457,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670494337819_1670494456614",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670494337819_1670494456614.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670494337819_1670494456614.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -475,7 +475,7 @@
         },
         "video_id": "deepsensation_rc_srx_develop_stv4sf_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ed93315c-4b73-45ef-936d-4885dee293ae_5_1670432192376",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_rc_srx_develop_stv4sf_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ed93315c-4b73-45ef-936d-4885dee293ae_5_1670432192376.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_rc_srx_develop_stv4sf_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ed93315c-4b73-45ef-936d-4885dee293ae_5_1670432192376.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "rc_srx_develop_stv4sf_01",
@@ -490,7 +490,7 @@
         "video_id": "deepsensation_rc_srx_develop_stv4sf_01_InteriorRecorder_1670432185000_1670432339724",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_rc_srx_develop_stv4sf_01_InteriorRecorder_1670432185000_1670432339724.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_rc_srx_develop_stv4sf_01_InteriorRecorder_1670432185000_1670432339724.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "rc_srx_develop_stv4sf_01",
@@ -517,7 +517,7 @@
         },
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_9_1670829948622",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_9_1670829948622.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_9_1670829948622.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -535,7 +535,7 @@
         },
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_14_1670830952628",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_14_1670830952628.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_14_1670830952628.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -552,7 +552,7 @@
         },
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_11_1670830350607",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_11_1670830350607.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-221ccc49-d2ff-4588-8796-5f980ff2c0e6_11_1670830350607.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -570,7 +570,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670829910819_1670831710707",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670829910819_1670831710707.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670829910819_1670831710707.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -603,7 +603,7 @@
         },
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_3_1670506145053",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_3_1670506145053.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_3_1670506145053.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -620,7 +620,7 @@
         },
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_8_1670507150015",
         "_media_type": "image",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_8_1670507150015.jpeg",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingMultiSnapshot_TrainingMultiSnapshot-62d74bec-f590-4056-87c4-71ca2ffb98d0_8_1670507150015.jpeg",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -638,7 +638,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670505546000_1670507347805",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670505546000_1670507347805.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670505546000_1670507347805.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -666,7 +666,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829944819_1670830065519",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829944819_1670830065519.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_1670829944819_1670830065519.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",
@@ -687,7 +687,7 @@
         "video_id": "deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670505558000_1670507347810",
         "MDF_available": "Yes",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670505558000_1670507347810.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1670505558000_1670507347810.mp4",
         "recording_overview": {
             "tenantID": "deepsensation",
             "deviceID": "ivs_slimscaley_develop_yuj2hi_01",

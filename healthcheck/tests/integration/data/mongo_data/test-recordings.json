@@ -4,7 +4,7 @@
             "$oid": "6305fba5685dfa83933f8d7b"
         },
         "video_id": "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1661336073962_1661336119253",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1661336073962_1661336119253.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1661336073962_1661336119253.mp4",
         "MDF_available": "Yes",
         "chunk": "Chunk0",
         "_media_type": "video",
@@ -27,19 +27,19 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661443391045_1661443926072",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661443391045_1661443926072.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661443391045_1661443926072.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
             "length": "0:08:57",
             "#snapshots": 6,
             "snapshots_paths": [
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_262_1661443592000.jpeg",
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_263_1661443636000.jpeg",
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_264_1661443641000.jpeg",
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_266_1661443661000.jpeg",
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_265_1661443660000.jpeg",
-                "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_267_1661443793000.jpeg"
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_262_1661443592000.jpeg",
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_263_1661443636000.jpeg",
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_264_1661443641000.jpeg",
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_266_1661443661000.jpeg",
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_265_1661443660000.jpeg",
+                "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-295b098b-3695-4234-ae0e-43cea31d355c_267_1661443793000.jpeg"
             ]
         },
         "resolution": "1280x720"
@@ -51,7 +51,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661504362898_1661505548503",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661504362898_1661505548503.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661504362898_1661505548503.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -93,7 +93,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661850209768_1661850415686",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661850209768_1661850415686.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661850209768_1661850415686.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -117,7 +117,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661792765352_1661793136608",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661792765352_1661793136608.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661792765352_1661793136608.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -140,7 +140,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661865806178_1661866052318",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661865806178_1661866052318.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661865806178_1661866052318.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -160,7 +160,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661934307728_1661934526034",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661934307728_1661934526034.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661934307728_1661934526034.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -182,7 +182,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661936700769_1661936837740",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661936700769_1661936837740.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661936700769_1661936837740.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -206,7 +206,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661942168292_1661942356929",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661942168292_1661942356929.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661942168292_1661942356929.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -228,7 +228,7 @@
         "video_id": "datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661956255822_1661956544732",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661956255822_1661956544732.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingRecorder_1661956255822_1661956544732.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
@@ -248,7 +248,7 @@
         "video_id": "deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000",
         "MDF_available": "No",
         "_media_type": "video",
-        "filepath": "s3://dev-rcd-raw-video-files/Debug_Lync/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4",
+        "filepath": "s3://dev-rcd-raw-video-files/deepsensation/deepsensation_rc_srx_develop_ivs1hi_04_InteriorRecorder_1639067580000_1639067640000.mp4",
         "recording_overview": {
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
