@@ -8,6 +8,7 @@ from sdretriever.main import (FRONT_RECORDER, INTERIOR_RECORDER,
                               METADATA_FILE_EXT, SNAPSHOT, TRAINING_RECORDER,
                               IngestorHandler, SDRetrieverConfig)
 from sdretriever.message import SnapshotMessage, VideoMessage
+from sdretriever.ingestor import FileAlreadyExists
 
 
 @pytest.mark.unit
@@ -417,3 +418,64 @@ class TestMain:
         if not result_ingest:
             ing_handler.cont_services.update_message_visibility.assert_called_once_with(
                 ing_handler.sqs_client, snapshot_message.receipthandle, ANY, source)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "message,message_type,source,raise_exception",
+        [
+            (
+                get_raw_sqs_message("TrainingRecorder_Download_SQS.json"),
+                TRAINING_RECORDER,
+                "download",
+                None,
+            ),
+            (
+                get_raw_sqs_message("TrainingMultiSnapshot_Selector_SQS.json"),
+                SNAPSHOT,
+                "selector",
+                None,
+            ),
+            (
+                get_raw_sqs_message("InteriorRecorder_Download_SQS.json"),
+                INTERIOR_RECORDER,
+                "download",
+                None,
+            ),
+            (
+                get_raw_sqs_message("InteriorRecorder_Download_SQS.json"),
+                INTERIOR_RECORDER,
+                "download",
+                FileAlreadyExists("Error"),
+            )
+
+        ]
+    )
+    def test_route(
+        self,
+        ing_handler: IngestorHandler,
+        message: dict,
+        message_type: str,
+        source: str,
+        raise_exception: Exception,
+    ):
+        ing_handler.handle_training_recorder = Mock()
+        ing_handler.handle_interior_recorder = Mock()
+        ing_handler.handle_snapshot = Mock()
+        ing_handler.cont_services.delete_message = Mock()
+
+        if raise_exception:
+            ing_handler.handle_training_recorder.side_effect = raise_exception
+            ing_handler.handle_interior_recorder.side_effect = raise_exception
+            ing_handler.handle_snapshot.side_effect = raise_exception
+
+        ing_handler.route(message, source)
+        if message_type == TRAINING_RECORDER:
+            ing_handler.handle_training_recorder.assert_called_once_with(message, source)
+        elif message_type == INTERIOR_RECORDER:
+            ing_handler.handle_interior_recorder.assert_called_once_with(message, source)
+        elif message_type == SNAPSHOT:
+            ing_handler.handle_snapshot.assert_called_once_with(message, source)
+
+        if raise_exception:
+            ing_handler.cont_services.delete_message.assert_called_once_with(
+                ANY, message.get("ReceiptHandle"), source)

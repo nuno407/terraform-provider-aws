@@ -12,7 +12,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import StsHelper
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.ingestor import (IMUIngestor, MetadataIngestor,
-                                  SnapshotIngestor, VideoIngestor)
+                                  SnapshotIngestor, VideoIngestor, FileAlreadyExists)
 from sdretriever.message import Message, SnapshotMessage, VideoMessage
 from sdretriever.sourcecommuter import SourceCommuter
 
@@ -247,21 +247,25 @@ class IngestorHandler:
         LOGGER.info("Pulled a message from %s (%s) -> %s ", source, message_type,
                     message, extra={"messageid": message.get('MessageId')})
 
-        if message_type == TRAINING_RECORDER:
-            self.handle_training_recorder(message, source)
-        elif message_type == INTERIOR_RECORDER:
-            self.handle_interior_recorder(message, source)
-        elif message_type == FRONT_RECORDER:
-            LOGGER.info("Received a FrontRecording, ignoring it")
+        try:
+            if message_type == TRAINING_RECORDER:
+                self.handle_training_recorder(message, source)
+            elif message_type == INTERIOR_RECORDER:
+                self.handle_interior_recorder(message, source)
+            elif message_type == FRONT_RECORDER:
+                LOGGER.info("Received a FrontRecording, ignoring it")
+                self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
+                # this is to be replaced with a __delete_message()
+                # when we create a FrontIngestor and FrontMessage
+            elif message_type == SNAPSHOT:
+                self.handle_snapshot(message, source)
+            else:
+                LOGGER.error(
+                    "Could not identify message type as video nor snapshot related, ignoring",
+                    extra={"messageid": message.get('MessageId')})
+        except FileAlreadyExists as excpt:
+            LOGGER.info(str(excpt))
             self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
-            # this is to be replaced with a __delete_message()
-            # when we create a FrontIngestor and FrontMessage
-        elif message_type == SNAPSHOT:
-            self.handle_snapshot(message, source)
-        else:
-            LOGGER.error(
-                "Could not identify message type as video nor snapshot related, ignoring",
-                extra={"messageid": message.get('MessageId')})
 
     def __delete_message(self, message: Message, source: str) -> None:
         """ Deletes the message from the queue.
@@ -350,7 +354,8 @@ def main(config: SDRetrieverConfig):
         s3_client=s3_client,
         sqs_client=sqs_client,
         sts_helper=sts_helper,
-        frame_buffer=config.frame_buffer)
+        frame_buffer=config.frame_buffer,
+        discard_repeated_video=config.discard_video_already_ingested)
     imu_ingestor = IMUIngestor(
         container_services=cont_services,
         s3_client=s3_client,

@@ -20,3 +20,4 @@ recorder_blacklist:
   - FrontRecorder
 frame_buffer: 120000 # number of extra frames to request at the limits of a training recorder
 request_training_upload: true
+discard_video_already_ingested: true

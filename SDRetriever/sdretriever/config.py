@@ -11,6 +11,7 @@ class SDRetrieverConfig():
     frame_buffer: int
     training_whitelist: list[str]
     request_training_upload: bool
+    discard_video_already_ingested: bool
 
     @staticmethod
     def load_config_from_yaml_file(path) -> 'SDRetrieverConfig':

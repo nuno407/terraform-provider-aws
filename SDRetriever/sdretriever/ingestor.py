@@ -28,6 +28,10 @@ class FileNotFound(Exception):
     """Error raised when file is not found"""
 
 
+class FileAlreadyExists(Exception):
+    """Error raised when there is already the same file in DevCloud"""
+
+
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
 IMU_FILE_EXT = '_imu.csv'
@@ -396,11 +400,19 @@ class Ingestor():
 
 
 class VideoIngestor(Ingestor):
-    def __init__(self, container_services, s3_client, sqs_client, sts_helper, frame_buffer=0) -> None:
+    def __init__(
+            self,
+            container_services,
+            s3_client,
+            sqs_client,
+            sts_helper,
+            discard_repeated_video: bool,
+            frame_buffer=0) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
         self.clip_ext = ".mp4"
         self.stream_timestamp_type = 'PRODUCER_TIMESTAMP'
         self.frame_buffer = frame_buffer
+        self.discard_repeated_video = discard_repeated_video
 
     @ staticmethod
     def _ffmpeg_probe_video(video_bytes) -> dict:
@@ -440,6 +452,7 @@ class VideoIngestor(Ingestor):
         '''Obtain video from KinesisVideoStreams and upload it to our raw data S3'''
         # Define the target path where to place the video
         s3_folder = str(video_msg.tenant) + "/"
+
         # Get clip from KinesisVideoStream
         try:
             # Requests credentials to assume specific cross-account role on Kinesis
@@ -469,6 +482,13 @@ class VideoIngestor(Ingestor):
         # Upload video clip into raw data S3 bucket
         s3_filename = f"{video_msg.streamname}_{video_start}_{video_end}"
         s3_path = s3_folder + s3_filename + self.clip_ext
+
+        exists_on_devcloud = self.CS.check_s3_file_exists(
+            self.s3_client, self.CS.raw_s3, s3_filename)
+
+        if exists_on_devcloud and self.discard_repeated_video:
+            raise FileAlreadyExists(f"Video {s3_path} already exists on DevCloud, message will be skipped")
+
         try:
             self.CS.upload_file(self.s3_client, video_bytes,
                                 self.CS.raw_s3, s3_path)

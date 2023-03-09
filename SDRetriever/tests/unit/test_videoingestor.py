@@ -1,11 +1,11 @@
 from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from sdretriever.ingestor import VideoIngestor
+from sdretriever.ingestor import VideoIngestor, FileAlreadyExists
 
 
 @pytest.mark.unit
@@ -14,7 +14,7 @@ class TestVideoIngestor():
 
     @mock.patch("sdretriever.ingestor.subprocess.run")
     def test_ffmpeg_probe_video(self, mock_run, video_bytes, container_services, s3_client, sqs_client, sts_helper):
-        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
+        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper, False)
         mock_stdout = MagicMock()
         mock_stdout.configure_mock(
             **{"stdout.decode.return_value": '{"something":"something else"}'.encode("utf-8")}
@@ -32,7 +32,7 @@ class TestVideoIngestor():
         )
 
         mock_run.return_value = mock_stdout
-        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
+        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper, False)
 
         db_record_data = obj.ingest(msg_interior)
 
@@ -53,7 +53,6 @@ class TestVideoIngestor():
             "sync_file_ext": "",
             "tenant": "datanauts"
         }
-        print(msg_interior.footagefrom, msg_interior.footageto)
         video_from = datetime.fromtimestamp(msg_interior.footagefrom / 1000.0)
         video_to = datetime.fromtimestamp(msg_interior.footageto / 1000.0)
         container_services.get_kinesis_clip.assert_called_once_with(
@@ -76,7 +75,7 @@ class TestVideoIngestor():
         )
 
         mock_run.return_value = mock_stdout
-        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper)
+        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper, False)
 
         obj.ingest(msg_interior, training_whitelist=['datanauts'], request_training_upload=True)
         expect_hq_request = {
@@ -87,3 +86,25 @@ class TestVideoIngestor():
         }
         expect_selector_input_queue = container_services.sqs_queues_list["HQ_Selector"]
         container_services.send_message.assert_called_once_with(ANY, expect_selector_input_queue, expect_hq_request)
+
+    @mock.patch("sdretriever.ingestor.subprocess.run")
+    def test_ingest_discard_already_uploaded(
+            self,
+            mock_run,
+            container_services,
+            s3_client,
+            sqs_client,
+            sts_helper,
+            msg_interior):
+        mock_stdout = MagicMock()
+        mock_stdout.configure_mock(
+            **{"stdout.decode.return_value": '{"streams":[{"width":1920,"height":1080}],"format":{"duration":1000}}'.encode("utf-8")}
+        )
+
+        mock_run.return_value = mock_stdout
+        container_services.check_s3_file_exists = Mock(return_value=True)
+        obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper, True)
+
+        with pytest.raises(FileAlreadyExists):
+            obj.ingest(msg_interior, training_whitelist=['datanauts'], request_training_upload=True)
+            assert True
