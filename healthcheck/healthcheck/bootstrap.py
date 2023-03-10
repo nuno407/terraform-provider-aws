@@ -21,6 +21,7 @@ from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.config import HealthcheckConfig
+from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 from healthcheck.controller.aws_s3 import S3Controller
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.controller.db import DatabaseController
@@ -40,6 +41,7 @@ class EnvironmentParams:
     aws_region: str
     container_version: str
     config_path: str
+    tenant_config_path: str
     db_uri: str
     webhook_url: Optional[str]
 
@@ -50,6 +52,7 @@ def get_environment() -> EnvironmentParams:
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
     container_version = os.getenv("CONTAINER_VERSION", "development")
     config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
+    tenant_config_path = os.getenv("TENANT_CONFIG_PATH", "/app/config/config.yml")
     db_uri = os.getenv("FIFTYONE_DATABASE_URI")
     webhook_url = os.getenv("MSTEAMS_WEBHOOK", "")
 
@@ -58,6 +61,7 @@ def get_environment() -> EnvironmentParams:
         aws_region=aws_region,
         container_version=container_version,
         config_path=config_path,
+        tenant_config_path=tenant_config_path,
         db_uri=db_uri,
         webhook_url=webhook_url
     )
@@ -85,6 +89,8 @@ def bootstrap_di() -> None:
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
     di[HealthcheckConfig] = config
+    tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
+    di[DatasetMappingConfig] = tenant_config.dataset_mapping
 
     di[S3Params] = S3Params(
         config.anonymized_s3_bucket,

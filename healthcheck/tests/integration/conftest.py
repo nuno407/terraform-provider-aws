@@ -9,6 +9,7 @@ import boto3
 import mongomock
 import pytest
 from bson import json_util
+from kink import di
 from moto import mock_s3
 from mypy_boto3_s3 import S3Client
 from unittest.mock import MagicMock
@@ -24,6 +25,7 @@ from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
 from healthcheck.voxel_client import VoxelEntriesGetter
+from healthcheck.tenant_config import TenantConfig, DatasetMappingConfig
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -36,6 +38,12 @@ VOXEL_DATA = os.path.join(CURRENT_LOCATION, "data", "voxel_data")
 
 # inspired by pytest-mongodb plugin https://github.com/mdomke/pytest-mongodb/blob/develop/pytest_mongodb/plugin.py
 _memoized_cache: dict = {}
+
+
+@pytest.fixture(autouse=True)
+def initialize_config():
+    tenant_config = TenantConfig.load_config_from_yaml_file("./config.yaml")
+    di[DatasetMappingConfig] = tenant_config.dataset_mapping
 
 
 def get_document_from_fixture_by_id(collection_file: str, id_field: str, id_value: str) -> dict:
@@ -183,24 +191,6 @@ def mock_mongo_client() -> mongomock.MongoClient:
     return client
 
 
-def set_files(bucket_path: str, set_function: Callable):
-    _, bucket = os.path.split(bucket_path)
-    for root, _, files in os.walk(bucket_path):
-        if len(files) == 0:
-            continue
-
-        if bucket_path == root:
-            # Matches the datasetname and returns the tenant
-            root_subfolder = re.match(r"RC-([a-zA-Z]+).*", bucket).group(1)
-        else:
-            root_subfolder = root.replace(bucket_path + "/", "")
-
-        for file_name in files:
-            file_path = os.path.join(root, file_name)
-            file_key = os.path.join(root_subfolder, file_name)
-            set_function(bucket, file_path, file_key)
-
-
 @pytest.fixture(scope="session")
 def moto_s3_client() -> S3Client:
     """s3_mock.
@@ -221,15 +211,15 @@ def moto_s3_client() -> S3Client:
 
             moto_s3_client.create_bucket(Bucket=dir_name)
 
-            def set_function(bucket: str, file_path: str, file_key: str):
-                moto_s3_client.put_object(
-                    Bucket=bucket,
-                    Body=get_raw_file(file_path),
-                    Key=file_key
-                )
-
             # List and create files in bucket
-            set_files(bucket_path, set_function)
+            for root, _, files in os.walk(bucket_path):
+                for file_name in files:
+                    file_path = os.path.join(root, file_name)
+
+                    moto_s3_client.put_object(
+                        Bucket=dir_name,
+                        Body=get_raw_file(file_path),
+                        Key=remove_prefix(file_path, bucket_path + "/"))
 
         yield moto_s3_client
 
@@ -246,13 +236,25 @@ def voxel_client(scope="session") -> VoxelEntriesGetter:
             continue
 
         # List and create files in bucket
-        def set_function(dataset: str, _: str, file_key: str):
-            filepath = f"s3://dev-rcd-anonymized-video-files/{file_key}"
-            client.load_file(dataset, filepath, None)
-
-        set_files(dataset_path, set_function)
+        for file_name in os.listdir(dataset_path):
+            path = find_s3_file_path(file_name)
+            filepath = f"s3://{path}"
+            client.load_file(dir_name, filepath, None)
 
     return client
+
+
+def find_s3_file_path(file_name: str) -> str:
+    for path, _, files in os.walk(S3_DATA):
+        for name in files:
+            if name == file_name:
+                return remove_prefix(os.path.join(path, file_name), S3_DATA + "/")
+
+
+def remove_prefix(text, prefix) -> str:
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
 
 
 @pytest.fixture

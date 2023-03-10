@@ -1,11 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import Mock
 
 import pytest
+from kink import di
 
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
-from healthcheck.model import S3Params, SnapshotArtifact
+from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
+from healthcheck.tenant_config import TenantConfig, DatasetMappingConfig
 
 
 @pytest.mark.unit
@@ -28,40 +30,89 @@ class TestVoxelFiftyOneController():
             timestamp=datetime.now()
         )
 
+    @pytest.fixture
+    def video_artifact(self) -> VideoArtifact:
+        return VideoArtifact(
+            tenant_id="test",
+            device_id="device-test",
+            stream_name="stream-test",
+            footage_from=datetime.now(),
+            footage_to=datetime.now() + timedelta(seconds=100)
+        )
+
+    @pytest.fixture(autouse=True)
+    def initialize_config(self):
+        tenant_config = TenantConfig.load_config_from_yaml_file("./config.yaml")
+        di[DatasetMappingConfig] = tenant_config.dataset_mapping
+
     def _assemble_path(self, bucket: str, dir: str, key: str, ext: str) -> str:
         return f"s3://{bucket}/{dir}/{key}_anonymized.{ext}"
 
-    def test_is_fiftyone_entry_present_or_raise_success(self, snapshot_artifact: SnapshotArtifact, s3_params: S3Params):
+    @pytest.mark.parametrize("tenant,expected_dataset",
+                             [("test", "Debug_Lync_snapshots"), ("datanauts", "RC-datanauts_snapshots")])
+    def test_is_fiftyone_snapshot_present(self, snapshot_artifact: SnapshotArtifact, tenant: str,
+                                          expected_dataset: str, s3_params: S3Params):
+        # GIVEN
+        snapshot_artifact.tenant_id = tenant
         voxel_client = Mock()
         result_mock = Mock()
         result_mock.__gt__ = Mock(return_value=False)
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
+        # WHEN
         voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)
+        # THEN
         voxel_client.get_num_entries.assert_called_once_with(
             self._assemble_path(
                 s3_params.s3_bucket_anon,
                 snapshot_artifact.tenant_id,
                 snapshot_artifact.artifact_id,
                 "jpeg"),
-            "RC-test_snapshots")
+            expected_dataset)
+
+    @pytest.mark.parametrize("tenant,expected_dataset", [("test", "Debug_Lync"), ("datanauts", "RC-datanauts")])
+    def test_is_fiftyone_video_present(self, video_artifact: VideoArtifact, tenant: str,
+                                       expected_dataset: str, s3_params: S3Params):
+        # GIVEN
+        video_artifact.tenant_id = tenant
+        voxel_client = Mock()
+        result_mock = Mock()
+        result_mock.__gt__ = Mock(return_value=False)
+        voxel_client.get_num_entries = Mock(return_value=result_mock)
+        voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
+        # WHEN
+        voxel_controller.is_fiftyone_entry_present_or_raise(video_artifact)
+        # THEN
+        voxel_client.get_num_entries.assert_called_once_with(
+            self._assemble_path(
+                s3_params.s3_bucket_anon,
+                video_artifact.tenant_id,
+                video_artifact.artifact_id,
+                "mp4"),
+            expected_dataset)
 
     def test_is_fiftyone_entry_present_or_raise_error_empty(
             self, snapshot_artifact: SnapshotArtifact, s3_params: S3Params):
+        # GIVEN
         voxel_client = Mock()
         result_mock = Mock()
         result_mock.__eq__ = Mock(return_value=True)
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
+        # THEN
         with pytest.raises(VoxelEntryNotPresent):
+            # WHEN
             voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)
 
     def test_is_fiftyone_entry_present_or_raise_error_multiple(
             self, snapshot_artifact: SnapshotArtifact, s3_params: S3Params):
+        # GIVEN
         voxel_client = Mock()
         result_mock = Mock()
         result_mock.__gt__ = Mock(return_value=True)
         voxel_client.get_num_entries = Mock(return_value=result_mock)
         voxel_controller = VoxelFiftyOneController(s3_params, voxel_client)
+        # THEN
         with pytest.raises(VoxelEntryNotUnique):
+            # WHEN
             voxel_controller.is_fiftyone_entry_present_or_raise(snapshot_artifact)

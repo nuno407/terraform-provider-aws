@@ -14,6 +14,7 @@ class TestBootstrap:
             "us-east-1",
             "development",
             "config.yaml",
+            "tenant_config.yaml",
             "databaseurimock",
             "webhookmock"
         ])
@@ -24,6 +25,7 @@ class TestBootstrap:
         assert params.aws_region == "us-east-1"
         assert params.container_version == "development"
         assert params.config_path == "config.yaml"
+        assert params.tenant_config_path == "tenant_config.yaml"
         assert params.db_uri == "databaseurimock"
         assert params.webhook_url == "webhookmock"
 
@@ -33,6 +35,7 @@ class TestBootstrap:
                 call("AWS_REGION", "eu-central-1"),
                 call("CONTAINER_VERSION", "development"),
                 call("CONFIG_PATH", "/app/config/config.yml"),
+                call("TENANT_CONFIG_PATH", "/app/config/config.yml"),
                 call("FIFTYONE_DATABASE_URI"),
                 call("MSTEAMS_WEBHOOK", "")
             ]

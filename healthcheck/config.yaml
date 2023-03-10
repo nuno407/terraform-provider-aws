@@ -22,3 +22,8 @@ training_whitelist:
 - srxfut3
 recorder_blacklist:
 - FrontRecorder
+dataset_mapping:
+  create_dataset_for:
+    - datanauts
+  default_dataset: Debug_Lync
+  tag: RC
