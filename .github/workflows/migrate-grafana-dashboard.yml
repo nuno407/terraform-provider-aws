@@ -1,0 +1,92 @@
+name: Migrate Grafana dashboard
+
+on:
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: Folder name where grafana dashboard is
+        default: General
+        required: true
+      dashboard:
+        description: Name of the grafana dashboard to migrate
+        required: true
+      source:
+        description: Environment to copy grafana dashboard from
+        required: true
+        default: dev
+        type: choice
+        options:
+        - dev
+        - qa
+      target:
+        description: Environment to paste grafana dashboard to
+        required: true
+        default: qa
+        type: choice
+        options:
+        - dev
+        - qa
+concurrency: grafana-${{ inputs.target || 'dev' }}
+
+jobs:
+  export-dashboard:
+    name: Export dashboard
+    runs-on:
+      labels:
+       - self-hosted
+       - ${{ inputs.source || 'dev' }}
+    environment: ${{ inputs.source || 'dev' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Export ${{ inputs.source }} > ${{ inputs.target }}
+        uses: ./.github/actions/migrate-grafana-dashboard
+        with:
+          action: export
+          folder: ${{ inputs.folder }}
+          dashboard: ${{ inputs.dashboard }}
+          environment: ${{ inputs.source }}
+          token: ${{ secrets.GRAFANA_TOKEN }}
+          file: dashboard.json
+          url: ${{ vars.GRAFANA_URL }}
+
+      - name: Persist exported dashboard
+        uses: actions/upload-artifact@v3
+        with:
+          name: grafana-dashboard
+          path: dashboard.json
+          if-no-files-found: error
+
+
+  import-dashboard:
+    name: Import dashboard
+    needs: export-dashboard
+    runs-on:
+      labels:
+       - self-hosted
+       - ${{ inputs.target || 'qa' }}
+    environment: ${{ inputs.target || 'qa' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Grafana dashboard ${{ inputs.source }}
+        uses: actions/download-artifact@v3
+        with:
+          name: grafana-dashboard
+
+      - name: Show current ip address
+        run: |
+          curl ifconfig.me
+
+      - name: Import ${{ inputs.source }} > ${{ inputs.target }}
+        uses: ./.github/actions/migrate-grafana-dashboard
+        with:
+          action: import
+          folder: ${{ inputs.folder }}
+          dashboard: ${{ inputs.dashboard }}
+          environment: ${{ inputs.target }}
+          token: ${{ secrets.GRAFANA_TOKEN }}
+          file: dashboard.json
+          url: ${{ vars.GRAFANA_URL }}
