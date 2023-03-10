@@ -828,5 +828,10 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                 return False
 
             return True
-        except ClientError:
+        except ClientError as excpt:
+            _logger.exception(
+                "An error has ocurred while checking for the existance of %s key in %s bucket. Exception %s",
+                path,
+                bucket,
+                excpt)
             return False
