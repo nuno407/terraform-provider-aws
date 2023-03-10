@@ -409,6 +409,7 @@ class VideoIngestor(Ingestor):
             discard_repeated_video: bool,
             frame_buffer=0) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
+        LOGGER.info("Loading configuration for video ingestor discard_repeated_video=%s", str(discard_repeated_video))
         self.clip_ext = ".mp4"
         self.stream_timestamp_type = 'PRODUCER_TIMESTAMP'
         self.frame_buffer = frame_buffer
@@ -483,11 +484,13 @@ class VideoIngestor(Ingestor):
         s3_filename = f"{video_msg.streamname}_{video_start}_{video_end}"
         s3_path = s3_folder + s3_filename + self.clip_ext
 
-        exists_on_devcloud = self.CS.check_s3_file_exists(
-            self.s3_client, self.CS.raw_s3, s3_filename)
+        if self.discard_repeated_video:
+            LOGGER.info("Checking for the existance of %s file in the %s bucket", s3_path, self.CS.raw_s3)
+            exists_on_devcloud = self.CS.check_s3_file_exists(
+                self.s3_client, self.CS.raw_s3, s3_path)
 
-        if exists_on_devcloud and self.discard_repeated_video:
-            raise FileAlreadyExists(f"Video {s3_path} already exists on DevCloud, message will be skipped")
+            if exists_on_devcloud:
+                raise FileAlreadyExists(f"Video {s3_path} already exists on DevCloud, message will be skipped")
 
         try:
             self.CS.upload_file(self.s3_client, video_bytes,
