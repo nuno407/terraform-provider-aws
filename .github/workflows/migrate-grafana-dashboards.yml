@@ -1,0 +1,115 @@
+name: Migrate Grafana dashboards
+
+on:
+  push:
+    branches:
+      - feature/MC-38202-copy-grafana-dashboards-action
+  workflow_dispatch:
+    inputs:
+      collections:
+        description: Collections to apply indexes for (comma-separated), leave empty for all
+        default: default
+        required: false
+      src-environment:
+        description: Environment to copy grafana dashboards from
+        required: true
+        default: dev
+        type: choice
+        options:
+        - dev
+        - qa
+      tgt-environment:
+        description: Environment to paste grafana dashboards to
+        required: true
+        default: dev
+        type: choice
+        options:
+        - dev
+        - qa
+concurrency: grafana-${{ inputs.environment || 'dev' }}
+
+jobs:
+  list-dashboards:
+    name: List dashboards
+    runs-on:
+      labels:
+       - self-hosted
+       - ${{ inputs.src-environment || 'dev' }}
+    environment: ${{ inputs.src-environment || 'dev' }}
+    outputs:
+      dashboards: ${{ steps.list-dashboards.outputs.dashboards }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: List Grafana dashboards ${{ inputs.src-environment }}
+        uses: ./.github/actions/list-grafana-dashboards
+        id: list-dashboards
+        with:
+          environment: ${{ inputs.src-environment }}
+
+  export-dashboards:
+    name: Export dashboards
+    needs: list-dashboards
+    runs-on:
+      labels:
+       - self-hosted
+       - ${{ inputs.src-environment || 'dev' }}
+    environment: ${{ inputs.src-environment || 'dev' }}
+    strategy:
+      matrix:
+        dashboard: ${{ fromJson(needs.list-dashboards.outputs.dashboards) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set export path
+        id: set-path
+        run: |
+          echo "path="${{ github.workspace }}/grafana-dashboards-${{ matrix.dashboard.uid }}.json" >> $GITHUB_OUTPUT "
+
+      - name: Export ${{ matrix.dashboard.title }} ${{ inputs.src-environment }} > ${{ inputs.tgt-environment }}
+        uses: ./.github/actions/migrate-grafana-dashboards
+        with:
+          action: export
+          uid: ${{ matrix.dashboard.uid }}
+          environment: ${{ inputs.src-environment }}
+          path: ${{ steps.set-path.outputs.path }}
+
+      - name: Persist ${{ matrix.dashboard.title }} exported dashboard
+        uses: actions/upload-artifact@v3
+        with:
+          name: grafana-dashboard-${{ matrix.dashboard.uid }}
+          path: ${{ steps.set-path.outputs.path }}
+
+
+  import-dashboards:
+    name: Import dashboards
+    needs: export-dashboards
+    runs-on:
+      labels:
+       - self-hosted
+       - ${{ inputs.tgt-environment || 'dev' }}
+    environment: ${{ inputs.tgt-environment || 'dev' }}
+    strategy:
+      matrix:
+        dashboard: ${{ fromJson(needs.list-dashboards.outputs.dashboards) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Grafana dashboards ${{ inputs.src-environment }}
+        uses: actions/download-artifact@v3
+        with:
+          name: grafana-dashboard-${{ matrix.dashboard.uid }}
+
+      - name: DEBUG list artifacts
+        run: ls -R
+
+      - name: Import ${{ matrix.dashboard.title }} ${{ inputs.src-environment }} > ${{ inputs.tgt-environment }}
+        uses: ./.github/actions/migrate-grafana-dashboards
+        with:
+          action: import
+          uid: ${{ matrix.dashboard.uid }}
+          environment: ${{ inputs.tgt-environment }}
+          path: "${{ github.workspace }}/grafana-dashboards-${{ matrix.dashboard.uid }}.json"

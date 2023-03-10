@@ -1,0 +1,32 @@
+name: List Grafana dashboards
+description: List avaible Grafana dashboards
+inputs:
+  environment:
+    description: Environment to perform action on
+    required: true
+    default: dev
+outputs:
+  dashboards:
+    description: List of Grafana dashboards
+    value: ${{ steps.list-dashboards.outputs.dashboards }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set environment variable dev
+      if: ${{ inputs.environment == 'dev' }}
+      shell: bash
+      run: |
+        "GRAFANA_TOKEN=${{ secrets.GRAFANA_TOKEN_DEV }}" >> $GITHUB_ENV
+
+    - name: Set environment variable qa
+      if: ${{ inputs.environment == 'qa' }}
+      shell: bash
+      run: |
+        "GRAFANA_TOKEN=${{ secrets.GRAFANA_TOKEN_QA }}" >> $GITHUB_ENV
+
+    - name: List Grafana dashboards ${{ inputs.environment }}
+      shell: bash
+      id: list-dashboards
+      run: |
+         echo "dashboards=$(curl -sSL --header "Authorization: Bearer ${{ env.GRAFANA_TOKEN }}" "https://grafana.ai-${{ inputs.environment }}.bosch-ridecare.com/api/search" | jq)" >> $GITHUB_OUTPUT
