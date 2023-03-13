@@ -76,6 +76,7 @@ def bootstrap_di() -> None:
     di["config_path"] = env_params.config_path
     di["db_uri"] = env_params.db_uri
     di["webhook_url"] = env_params.webhook_url
+    di["tenant_config_path"] = env_params.tenant_config_path
 
     di[SQSClient] = boto3.client(
         service_name="sqs",
