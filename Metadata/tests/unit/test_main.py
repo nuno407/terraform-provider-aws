@@ -82,8 +82,8 @@ def _metadata_sqs_message_helper(body: dict, source_container: str = "SDRetrieve
                 "DataType": "String"}}}
 
 
-def _video_message_body(recording_id: str) -> dict:
-    return {
+def _video_message_body(recording_id: str, imu_path: str = None) -> dict:
+    result = {
         "_id": f"{recording_id}",
         "MDF_available": "No",
         "media_type": "video",
@@ -99,6 +99,36 @@ def _video_message_body(recording_id: str) -> dict:
         "sync_file_ext": "",
         "internal_message_reference_id": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
         "resolution": "1280x720"}
+
+    if imu_path is not None:
+        result["imu_path"] = imu_path
+
+    return result
+
+
+def _video_message_dict(recording_id: str, imu_path: str = None) -> dict:
+    result = {
+        "video_id": recording_id,
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://" + "dev-rcd-raw-video-files/Debug_Lync/" +
+        f"{recording_id}.mp4",
+        "recording_overview": {
+            "tenantID": "datanauts",
+            "deviceID": "DATANAUTS_DEV_01",
+            "length": "0:01:41",
+            "snapshots_paths": ['test_snapshot1', 'test_snapshot2'],
+            "#snapshots": 2,
+            "time": "2022-11-25 11:43:15",
+            "internal_message_reference_id": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest()
+        },
+        "resolution": "1280x720"
+    }
+
+    if imu_path is not None:
+        result["recording_overview"]["imu_path"] = imu_path
+
+    return result
 
 
 def _message_attributes_body(source_container: str = "SDRetriever") -> dict:
@@ -293,32 +323,26 @@ class TestMetadataMain():
         mock_find_and_update_media_references.assert_not_called()
 
     @pytest.mark.unit
-    def test_create_video_recording_item(self, mock_find_and_update_media_references: Mock):
+    @pytest.mark.parametrize("input_message,expected_recording_item",
+                             [(_video_message_body("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),
+                               _video_message_dict("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044")),
+                                 (_video_message_body("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
+                                                      "imu/path/data.csv"),
+                                  _video_message_dict("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
+                                                      "imu/path/data.csv"))])
+    def test_create_video_recording_item(
+            self,
+            mock_find_and_update_media_references: Mock,
+            input_message: dict,
+            expected_recording_item: dict):
         """test_create_video_recording_item"""
         given_related_snapshots = ["test_snapshot1", "test_snapshot2"]
-        given_video_id = "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=given_related_snapshots)
         mock_collection = Mock()
         mock_collection.find_one_and_update = Mock()
-        input_message = _video_message_body(given_video_id)
+
         video_recording = create_video_recording_item(input_message, mock_collection, mock_media_svc)
-        expected_recording_item: dict = {
-            "video_id": input_message["_id"],
-            "MDF_available": input_message["MDF_available"],
-            "_media_type": input_message["media_type"],
-            "filepath": "s3://" + input_message["s3_path"],
-            "recording_overview": {
-                "tenantID": input_message["tenant"],
-                "deviceID": input_message["deviceid"],
-                "length": input_message["length"],
-                "snapshots_paths": given_related_snapshots,
-                "#snapshots": len(given_related_snapshots),
-                "time": "2022-11-25 11:43:15",
-                "internal_message_reference_id": input_message["internal_message_reference_id"]
-            },
-            "resolution": input_message["resolution"]
-        }
         assert video_recording == expected_recording_item
         mock_find_and_update_media_references.assert_called_once_with(
             given_related_snapshots,

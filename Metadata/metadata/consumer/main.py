@@ -251,6 +251,9 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         "resolution": message["resolution"]
     }
 
+    if "imu_path" in message:
+        recording_item["recording_overview"].update({"imu_path": message["imu_path"]})
+
     find_and_update_media_references(related_media_paths, update_query={
         "$push": {
             "recording_overview.source_videos": message["_id"]
