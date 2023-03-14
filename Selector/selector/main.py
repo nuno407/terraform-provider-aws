@@ -1,15 +1,19 @@
 """Selector container script"""
-import boto3
-from base.aws.container_services import ContainerServices
-from selector.selector import Selector
-from selector.footage_api_wrapper import FootageApiWrapper
-from selector.footage_api_token_manager import FootageApiTokenManager
-from selector.aws_secret_store import AwsSecretStore
+import os
 
+import boto3
+from selector.footage_api_token_manager import FootageApiTokenManager
+from selector.footage_api_wrapper import FootageApiWrapper
+from selector.selector import Selector
+
+from base.aws.container_services import ContainerServices
 
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
-
+FOOTAGE_API_CLIENT_ID = os.getenv('FOOTAGE_API_SECRET', None)
+FOOTAGE_API_CLIENT_SECRET = os.getenv('FOOTAGE_API_SECRET', None)
+class SecretMissingError(Exception):
+    """ Raised when footage api secret is not provided. """
 
 def main():
     """Main function"""
@@ -26,13 +30,16 @@ def main():
     # Load global variable values from config json file (S3 bucket)
     container_services.load_config_vars()
 
-    aws_secret_store = AwsSecretStore()
-    footage_api_secret = aws_secret_store.get_secret(container_services.secret_managers["selector"])
+    if FOOTAGE_API_CLIENT_ID is None:
+        raise SecretMissingError("FOOTAGE_API_CLIENT_ID must be provided")
+    if FOOTAGE_API_CLIENT_SECRET is None:
+        raise SecretMissingError("FOOTAGE_API_CLIENT_SECRET must be provided")
+
     # Create Api Token Manager
     footage_api_token_manager = FootageApiTokenManager(
         token_endpoint=container_services.api_endpoints["selector_token_endpoint"],
-        client_id=footage_api_secret["client_id"],
-        client_secret=footage_api_secret["client_secret"]
+        client_id=FOOTAGE_API_CLIENT_ID,
+        client_secret=FOOTAGE_API_CLIENT_SECRET
     )
 
     footage_api_wrapper = FootageApiWrapper(

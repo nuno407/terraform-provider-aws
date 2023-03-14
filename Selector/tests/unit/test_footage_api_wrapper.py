@@ -3,18 +3,15 @@ import json
 from unittest import mock
 import pytest
 from selector.footage_api_wrapper import FootageApiWrapper
-from selector.aws_secret_store import AwsSecretStore
-
+from selector.footage_api_token_manager import FootageApiTokenManager
 
 @pytest.mark.unit
 class TestFootageApiWrapper():  # pylint: disable=too-few-public-methods
     """ Tests on Footage API Wrapper Component. """
 
     @mock.patch("urllib3.PoolManager")
-    @mock.patch.object(AwsSecretStore, "get_secret", return_value="test_aws_token")
     def test_correct_call_of_footage_api(
             self,
-            _,
             mock_http_client):
         """ Test correct response from footage api. """
         # GIVEN
