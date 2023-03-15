@@ -159,7 +159,7 @@ class Ingestor():
             Optional[bytearray]: Returns the contents of the file if found.
         """
         subfolders: Iterator[str] = self._discover_s3_subfolders(
-            f'{tenant}/{device_id}', bucket, self.RCC_S3_CLIENT, start_time, end_time)
+            f'{tenant}/{device_id}/', bucket, self.RCC_S3_CLIENT, start_time, end_time)
 
         for subfolder in subfolders:
             path = subfolder + prefix

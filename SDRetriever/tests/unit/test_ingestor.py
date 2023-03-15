@@ -197,7 +197,7 @@ class TestIngestor:
             rtn = obj.get_file_in_rcc(bucket, tenant, device_id, prefix, start_time, end_time, extensions)
 
             obj._discover_s3_subfolders.assert_called_once_with(
-                f'{tenant}/{device_id}', bucket, ANY, start_time, end_time)
+                f'{tenant}/{device_id}/', bucket, ANY, start_time, end_time)
             obj.check_if_s3_rcc_path_exists.assert_called()
 
             assert rtn == result
