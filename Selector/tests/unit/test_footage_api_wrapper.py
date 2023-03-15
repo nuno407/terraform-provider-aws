@@ -3,7 +3,7 @@ import json
 from unittest import mock
 import pytest
 from selector.footage_api_wrapper import FootageApiWrapper
-from selector.footage_api_token_manager import FootageApiTokenManager
+
 
 @pytest.mark.unit
 class TestFootageApiWrapper():  # pylint: disable=too-few-public-methods

@@ -2,18 +2,21 @@
 import os
 
 import boto3
+from base.aws.container_services import ContainerServices
 from selector.footage_api_token_manager import FootageApiTokenManager
 from selector.footage_api_wrapper import FootageApiWrapper
 from selector.selector import Selector
 
-from base.aws.container_services import ContainerServices
 
 CONTAINER_NAME = "Selector"    # Name of the current container
 CONTAINER_VERSION = "v1.0"      # Version of the current container
-FOOTAGE_API_CLIENT_ID = os.getenv('FOOTAGE_API_SECRET', None)
-FOOTAGE_API_CLIENT_SECRET = os.getenv('FOOTAGE_API_SECRET', None)
+FOOTAGE_API_CLIENT_ID = os.getenv("FOOTAGE_API_CLIENT_ID", None)
+FOOTAGE_API_CLIENT_SECRET = os.getenv("FOOTAGE_API_CLIENT_SECRET", None)
+
+
 class SecretMissingError(Exception):
     """ Raised when footage api secret is not provided. """
+
 
 def main():
     """Main function"""
