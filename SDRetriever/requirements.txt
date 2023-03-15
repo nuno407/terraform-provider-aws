@@ -1,6 +1,6 @@
-boto3
-pytz
-requests
-datetime
-PyYAML
+boto3 == 1.26.91
+pytz == 2022.6
+requests == 2.28.2
+datetime == 5.1
+PyYAML == 6.0
 -e ../base[aws]

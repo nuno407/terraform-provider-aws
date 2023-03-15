@@ -1,13 +1,13 @@
-pytest
-pytest_cov
-pytest-lazy-fixture
+pytest == 7.2.2
+pytest_cov == 4.0.0
+pytest-lazy-fixture == 0.6.3
 
-autopep8
-pylint
-pylint-quotes
-mypy
-bandit
-moto
+autopep8 == 2.0.2
+pylint == 2.17.0
+pylint-quotes == 0.2.3
+mypy == 1.1.1
+bandit == 1.7.5
+moto == 4.1.4
 
 # install the app itself
 -e .

@@ -7,17 +7,17 @@ extras_require: Dict[str, List[str]] = {
     # we should extract pymongo dependency to mongodb package base.mongodb.
     # Also we should put ContainerServices in base package
     "aws": [
-        "pymongo==3.12.3",
-        "pymongo[srv]==3.12.3",
-        "boto3>=1.24.89",
-        "pytz>=2022.2",
+        "pymongo==3.12",
+        "pymongo[srv]==3.12",
+        "boto3==1.26.91",
+        "pytz==2022.6",
         "pyyaml==6.0",
-        "expiringdict",
-        "boto3-stubs[kinesis-video-archived-media]",
-        "boto3-stubs[s3]",
-        "boto3-stubs[sts]",
-        "boto3-stubs[kinesisvideo]",
-        "boto3-stubs[kinesis-video-archived-media]"
+        "expiringdict==1.2.2",
+        "boto3-stubs[kinesis-video-archived-media]==1.26.91",
+        "boto3-stubs[s3]==1.26.91",
+        "boto3-stubs[sts]==1.26.91",
+        "boto3-stubs[kinesisvideo]==1.26.91",
+        "boto3-stubs[kinesis-video-archived-media]==1.26.91"
     ],
     "voxel": [
         "fiftyone==0.11.1",
