@@ -13,7 +13,6 @@ on:
 env:
   AWS_DEFAULT_REGION: eu-central-1
   AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
-  EXCLUDED_DIRS: '[".git", ".github", ".vscode", ".localdev", ".devcontainer", "base", "basehandler"]'
   GITHUB_ACTIONS_USER: "GitHub Actions"
   GITHUB_ACTIONS_EMAIL: "<41898282+github-actions[bot]@users.noreply.github.com>"
 
@@ -32,29 +31,15 @@ jobs:
     - name: Pre-commit check
       uses: pre-commit/action@v3.0.0
 
-  list-all-service-directories:
-    name: List directories to lint and test
-    if: success() || failure() # making lint optional for now
-    needs: [pre-commit]
-    runs-on: ubuntu-latest
-    outputs:
-      python-directories: ${{ steps.list-step.outputs.python-directories }}
-      javascript-directories: ${{ steps.list-step.outputs.javascript-directories }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - id: list-step
-        uses: bosch-rc-dev/actions/list-all-service-directories@main
-
   lint-python-projects:
     name: Lint Python
     runs-on: ubuntu-latest
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9.12"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.python-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
       - name: Checkout code
@@ -69,12 +54,12 @@ jobs:
   lint-javascript-projects:
     name: Lint Javascript
     runs-on: ubuntu-latest
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:
         node-version: ["18.x"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.javascript-directories) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -90,12 +75,12 @@ jobs:
     name: SAST Python
     runs-on: ubuntu-latest
     if: success() || failure() # making SAST optional for now
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9.12"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.python-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
       - name: Checkout code
@@ -109,12 +94,12 @@ jobs:
     name: Unit tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9.12"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.python-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
       - name: Checkout code
@@ -130,7 +115,7 @@ jobs:
     name: Integration tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     services:
       localstack:
         image: localstack/localstack:latest
@@ -146,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.9.12"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.python-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
       - name: Checkout code
@@ -164,12 +149,12 @@ jobs:
     name: Javascript tests
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
-    needs: [list-all-service-directories]
+    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:
         node-version: ["18.x"]
-        service: ${{ fromJSON(needs.list-all-service-directories.outputs.javascript-directories) }}
+        service: ${{ fromJSON(needs.determine-changed-services.outputs.javascript-directories) }}
 
     steps:
       - name: Checkout code
@@ -221,6 +206,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.changed-services.outputs.services }}
+      needs-testing: ${{ steps.changed-services.outputs.needs-testing }}
+      python-directories: ${{ steps.changed-services.outputs.python-directories }}
+      javascript-directories: ${{ steps.changed-services.outputs.javascript-directories }}
       git-tag: ${{ steps.git-tag-push.outputs.tag }}
     steps:
       - name: Checkout code
@@ -233,7 +221,6 @@ jobs:
         uses: bosch-rc-dev/actions/determine-services-to-build@main
         with:
           services: ${{ inputs.services }}
-          excluded-dirs: '[".git", ".github", ".vscode", ".localdev", ".devcontainer", "base", "basehandler"]'
 
       - name: Git tag & push
         id: git-tag-push
