@@ -35,6 +35,15 @@ def _read_and_parse_msg_body_from_fixture(fixture_file_id: str) -> dict:
 TEST_TIMESTAMP = "2022-12-18T07:37:07.917Z"
 
 
+def _invalid_preview_sqs_message() -> SQSMessage:
+    return SQSMessage(
+        "foo-video-msg",
+        "foo-receipt",
+        "2022-12-15T16:16:32.723Z",
+        _read_and_parse_msg_body_from_fixture("invalid_preview_message.json"),
+        MessageAttributes("herbie", "srx_herbie_dev_hw_02"))
+
+
 def _valid_input_sqs_message_footage() -> SQSMessage:
     return SQSMessage(
         "foo-video-msg",
@@ -102,6 +111,12 @@ class TestArtifactParser():
                                                        datetime.fromtimestamp(1671120149783 / 1000.0))
                                      ],
                                      None
+                                 ),
+                                 (
+                                     "invalid_preview_message",
+                                     _invalid_preview_sqs_message(),
+                                     [],
+                                     InvalidMessageCanSkip
                                  ),
                                  (
                                      "valid_video_training_footage_msg",

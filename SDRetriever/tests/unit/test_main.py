@@ -5,7 +5,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch, call
 
 import pytest
 from sdretriever.main import (FRONT_RECORDER, INTERIOR_RECORDER,
-                              METADATA_FILE_EXT, SNAPSHOT, TRAINING_RECORDER,
+                              METADATA_FILE_EXT, SNAPSHOT, TRAINING_RECORDER, INTERIOR_RECORDER_PREVIEW,
                               IngestorHandler, SDRetrieverConfig)
 from sdretriever.message import SnapshotMessage, VideoMessage
 from sdretriever.ingestor import FileAlreadyExists
@@ -76,6 +76,10 @@ class TestMain:
         (
             get_raw_sqs_message("InteriorRecorder_Download_SQS.json"),
             INTERIOR_RECORDER
+        ),
+        (
+            get_raw_sqs_message("PreviewRecorder_Download_SQS.json"),
+            INTERIOR_RECORDER_PREVIEW
         ),
         (
             get_raw_sqs_message("TrainingRecorder_Download_SQS.json"),
@@ -436,6 +440,12 @@ class TestMain:
                 None,
             ),
             (
+                get_raw_sqs_message("PreviewRecorder_Download_SQS.json"),
+                INTERIOR_RECORDER_PREVIEW,
+                "download",
+                None
+            ),
+            (
                 get_raw_sqs_message("InteriorRecorder_Download_SQS.json"),
                 INTERIOR_RECORDER,
                 "download",
@@ -475,6 +485,14 @@ class TestMain:
             ing_handler.handle_interior_recorder.assert_called_once_with(message, source)
         elif message_type == SNAPSHOT:
             ing_handler.handle_snapshot.assert_called_once_with(message, source)
+
+        if message_type == INTERIOR_RECORDER_PREVIEW:
+            ing_handler.cont_services.delete_message.assert_called_once_with(
+                ANY, message.get("ReceiptHandle"), source)
+
+        if message_type == FRONT_RECORDER:
+            ing_handler.cont_services.delete_message.assert_called_once_with(
+                ANY, message.get("ReceiptHandle"), source)
 
         if raise_exception:
             ing_handler.cont_services.delete_message.assert_called_once_with(

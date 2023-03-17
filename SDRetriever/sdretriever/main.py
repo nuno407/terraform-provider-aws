@@ -22,6 +22,7 @@ TRAINING_RECORDER = "TrainingRecorder"
 FRONT_RECORDER = "FrontRecorder"
 INTERIOR_RECORDER = "InteriorRecorder"
 SNAPSHOT = "TrainingMultiSnapshot"
+INTERIOR_RECORDER_PREVIEW = "InteriorRecorderPreview"
 
 # file format for metadata stored on DevCloud raw S3
 METADATA_FILE_EXT = '_metadata_full.json'
@@ -79,6 +80,14 @@ class IngestorHandler:
         """
         _message = str(message)
 
+        if all([
+                _message.find("FrontRecorder") == -1,
+                _message.find("TrainingRecorder") == -1,
+                _message.find("TrainingMultiSnapshot") == -1,
+                _message.find("InteriorRecorderPreview") != -1
+        ]):
+            return INTERIOR_RECORDER_PREVIEW
+
         # Checks if the message contains *just* InteriorRecorder.
         if all([
                 _message.find("InteriorRecorder") != -1,
@@ -110,6 +119,7 @@ class IngestorHandler:
                 _message.find("TrainingMultiSnapshot") == -1,
                 _message.find("InteriorRecorder") == -1]):
             return FRONT_RECORDER
+
         return None
 
     def message_ingestable(self, message: VideoMessage, source: str) -> bool:
@@ -252,6 +262,9 @@ class IngestorHandler:
                 self.handle_training_recorder(message, source)
             elif message_type == INTERIOR_RECORDER:
                 self.handle_interior_recorder(message, source)
+            elif message_type == INTERIOR_RECORDER_PREVIEW:
+                LOGGER.info("Received a InteriorRecorderPreview, ignoring it")
+                self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
             elif message_type == FRONT_RECORDER:
                 LOGGER.info("Received a FrontRecording, ignoring it")
                 self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)

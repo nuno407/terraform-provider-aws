@@ -10,7 +10,7 @@ from healthcheck.model import (Artifact, SnapshotArtifact, SQSMessage,
                                VideoArtifact)
 
 VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
-IMAGE = ["TrainingMultiSnapshot"]
+IMAGE = ["TrainingMultiSnapshot", "InteriorRecorderPreview"]
 
 
 @inject
@@ -62,12 +62,22 @@ class ArtifactParser:
             "TrainingMultiSnapshot",
             "FrontRecorder"
         ]
+
+        recorders_no_interior = recorders.copy()
+        recorders_no_interior.remove("InteriorRecorder")
+
+        # Check for "InteriorRecorderPreview" without also checking for InteriorRecorder
+        if ArtifactParser.__contains_identifier(
+                raw_body, "InteriorRecorderPreview") and not ArtifactParser.__contains_any_identifier(
+                raw_body, recorders_no_interior):
+            return "InteriorRecorderPreview"
+
         for recorder in recorders:
             other_recorders = [r for r in recorders if r != recorder]
+
             if (ArtifactParser.__contains_identifier(raw_body, recorder) and not
                     ArtifactParser.__contains_any_identifier(raw_body, other_recorders)):
-                result = recorder
-                break
+                return recorder
 
         return result
 
@@ -85,9 +95,16 @@ class ArtifactParser:
             self.__logger.debug(
                 "incoming message from topic %s", message.body["TopicArn"])
 
-        if self.message_type_identifier(message) in IMAGE:  # pylint: disable=no-else-return
+        msg_type = self.message_type_identifier(message)
+        print(message.body)
+        print(msg_type)
+
+        if msg_type in IMAGE:  # pylint: disable=no-else-return
+
+            if msg_type == "InteriorRecorderPreview":
+                raise InvalidMessageCanSkip("Message in related to InteriorRecorderPreview, ignoring")
             return list(self.__extract_snapshots(message))
-        elif self.message_type_identifier(message) in VIDEO:
+        elif msg_type in VIDEO:
             return [self.__extract_recording(message)]
         else:
             raise InvalidMessageError("Unknown message type")
