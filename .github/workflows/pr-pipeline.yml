@@ -193,7 +193,7 @@ jobs:
       - name: Collect SAST reports
         id: sast-reports
         run: |
-          echo "::set-output name=report-paths::$(ls --format=commas *-security-report/*.json | tr -s '[:blank:]' ',' | tr -d '\n')"
+          echo "report-paths=$(ls --format=commas *-security-report/*.json | tr -s '[:blank:]' ',' | tr -d '\n')" >> $GITHUB_OUTPUT
 
       - name: Sonarqube scan
         id: sonarqube-scan

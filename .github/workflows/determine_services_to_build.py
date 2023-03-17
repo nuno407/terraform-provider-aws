@@ -71,4 +71,6 @@ elif os.environ.get('GITHUB_EVENT_NAME') == 'push':
 changed_services = list(filter(lambda f: f not in json.loads(os.environ['EXCLUDED_DIRS']), changed_directories))
 
 summary(f"The following services will be built: {changed_services}")
-print(f"::set-output name=services::{json.dumps(changed_services)}")
+
+with open(os.environ["GITHUB_OUTPUT"], "a") as output_file:
+    print(f"services={json.dumps(changed_services)}", file = output_file)
