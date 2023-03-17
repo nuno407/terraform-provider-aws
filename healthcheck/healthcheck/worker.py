@@ -1,7 +1,6 @@
 # type: ignore
 """Ridecare healthcheck module."""
 import logging
-import time
 from typing import Callable, Dict
 
 import botocore.exceptions
@@ -12,7 +11,7 @@ from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.common import ArtifactChecker
 from healthcheck.config import HealthcheckConfig
 from healthcheck.constants import (ELASTIC_ALERT_MATCHER, TWELVE_HOURS_IN_SECONDS,
-                                   ELASTIC_SUCCESS_MATCHER, LOOP_DELAY_SECONDS)
+                                   ELASTIC_SUCCESS_MATCHER)
 from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageCanSkip, InvalidMessageError,
@@ -155,9 +154,6 @@ class HealthCheckWorker:
         queue_url = self.__sqs_controller.get_queue_url()
 
         while self.__graceful_exit.continue_running and helper_continue_running():
-            logger.debug("waiting %s seconds to pull next message",
-                         LOOP_DELAY_SECONDS)
-            time.sleep(LOOP_DELAY_SECONDS)
 
             raw_message = self.__sqs_controller.get_message(queue_url)
             if not raw_message:

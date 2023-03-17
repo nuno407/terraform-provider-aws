@@ -345,9 +345,7 @@ class TestWorker:
             NotPresentError
         )
     ])
-    @patch("healthcheck.worker.time.sleep")
     def test_run(self,
-                 sleep_mock: Mock,
                  input_sqs_message: SQSMessage,
                  input_artifacts: list[Artifact],
                  fix_config: HealthcheckConfig,

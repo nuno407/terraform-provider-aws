@@ -96,8 +96,6 @@ class ArtifactParser:
                 "incoming message from topic %s", message.body["TopicArn"])
 
         msg_type = self.message_type_identifier(message)
-        print(message.body)
-        print(msg_type)
 
         if msg_type in IMAGE:  # pylint: disable=no-else-return
 
