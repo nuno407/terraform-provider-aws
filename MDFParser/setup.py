@@ -1,8 +1,8 @@
 from setuptools import setup
 
 
-setup(name='mdfparser',
-      version='1.0',
+setup(name="mdfparser",
+      version="1.0",
       # list folders, not files
-      packages=['mdfparser'],
+      packages=["mdfparser"],
       )

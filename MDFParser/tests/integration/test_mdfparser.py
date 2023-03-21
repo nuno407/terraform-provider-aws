@@ -20,7 +20,7 @@ s3_path = "s3://bucket/" + recording_name + "_metadata_full.json"
 class TestMain:
     @fixture
     def boto3_mock(self, mocker: MockerFixture):
-        mock = mocker.patch("mdfparser.main.boto3")
+        _ = mocker.patch("mdfparser.main.boto3")
         return mocker.patch("mdfparser.s3_interaction.boto3")
 
     @fixture

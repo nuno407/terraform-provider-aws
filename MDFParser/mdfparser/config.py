@@ -21,7 +21,7 @@ class MdfParserConfig():
         """
         with open(path, "r", encoding="utf-8") as configfile:
             # We should ignore extra fields
-            field_names = set([f.name for f in fields(MdfParserConfig)])
+            field_names = {f.name for f in fields(MdfParserConfig)}
             return MdfParserConfig(**{key: value for key,
                                       value in yaml.safe_load(configfile).items()
                                       if key in field_names})
