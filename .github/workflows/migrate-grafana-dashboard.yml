@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Export ${{ inputs.source }} > ${{ inputs.target }}
-        uses: ./.github/actions/migrate-grafana-dashboard
+        uses: bosch-rc-dev/actions/migrate-grafana-dashboard@main
         with:
           action: export
           folder: ${{ inputs.folder }}
@@ -81,7 +81,7 @@ jobs:
           curl ifconfig.me
 
       - name: Import ${{ inputs.source }} > ${{ inputs.target }}
-        uses: ./.github/actions/migrate-grafana-dashboard
+        uses: bosch-rc-dev/actions/migrate-grafana-dashboard@main
         with:
           action: import
           folder: ${{ inputs.folder }}

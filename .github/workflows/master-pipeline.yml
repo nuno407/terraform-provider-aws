@@ -44,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - id: list-step
-        uses: ./.github/actions/list-all-service-directories
+        uses: bosch-rc-dev/actions/list-all-service-directories@main
 
   lint-python-projects:
     name: Lint Python
@@ -59,7 +59,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/lint-python
+      - uses: bosch-rc-dev/actions/lint-python@main
         with:
           baseDir: ${{ matrix.service }}
           python-version: ${{ matrix.python-version }}
@@ -78,7 +78,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/lint-javascript
+      - uses: bosch-rc-dev/actions/lint-javascript@main
         with:
           baseDir: ${{ matrix.service }}
           node-version: ${{ matrix.node-version }}
@@ -100,7 +100,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/sast-python
+      - uses: bosch-rc-dev/actions/sast-python@main
         with:
           baseDir: ${{ matrix.service }}
           python-version: ${{ matrix.python-version }}
@@ -119,7 +119,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/test-python
+      - uses: bosch-rc-dev/actions/test-python@main
         name: Run unit tests
         with:
           baseDir: ${{ matrix.service }}
@@ -151,7 +151,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/test-python
+      - uses: bosch-rc-dev/actions/test-python@main
         name: Run integration tests
         with:
           baseDir: ${{ matrix.service }}
@@ -174,7 +174,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: ./.github/actions/test-javascript
+      - uses: bosch-rc-dev/actions/test-javascript@main
         with:
           baseDir: ${{ matrix.service }}
           node-version: ${{ matrix.node-version }}
@@ -203,7 +203,7 @@ jobs:
 
       - name: Sonarqube scan
         id: sonarqube-scan
-        uses: ./.github/actions/scan-code
+        uses: bosch-rc-dev/actions/scan-code@main
         timeout-minutes: 5
         with:
           baseDir: "./"
@@ -230,13 +230,10 @@ jobs:
 
       - name: Determine services to build
         id: changed-services
-        env:
-          # Compare pushes to master with event.before and branch builds with master
-          GITHUB_EVENT_BEFORE: ${{ github.ref_name == 'master' && github.event.before || 'origin/master' }}
-          GITHUB_EVENT_AFTER: ${{ github.event.after }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          INPUT_SERVICES: ${{ inputs.services }}
-        run: python ./.github/workflows/determine_services_to_build.py
+        uses: bosch-rc-dev/actions/determine-services-to-build@main
+        with:
+          services: ${{ inputs.services }}
+          excluded-dirs: '[".git", ".github", ".vscode", ".localdev", "base", "basehandler"]'
 
       - name: Git tag & push
         id: git-tag-push
