@@ -6,12 +6,7 @@ import re
 from typing import Any, TypedDict, cast
 
 import boto3
-from mdfparser.config import MdfParserConfig
-from mdfparser.downloader import Downloader
-from mdfparser.synchronizer import Synchronizer
-from mdfparser.uploader import Uploader
 from mergedeep import merge as recursive_merge
-
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
@@ -20,6 +15,12 @@ from base.processor import Processor
 from base.ride_detection_counter import RideDetectionCounter
 from base.sum_door_closed import SumDoorClosed
 from base.variance_person_count import VariancePersonCount
+
+from mdfparser.config import MdfParserConfig
+from mdfparser.downloader import Downloader
+from mdfparser.synchronizer import Synchronizer
+from mdfparser.uploader import Uploader
+
 
 CONTAINER_NAME = "MDFParser"  # Name of the current container
 CONTAINER_VERSION = "v1.0"  # Version of the current container
@@ -47,7 +48,7 @@ class InputMessage(TypedDict):
     s3_path: str
 
 
-def main(config: MdfParserConfig): # pylint: disable=too-many-locals,too-many-statements
+def main(config: MdfParserConfig):  # pylint: disable=too-many-locals,too-many-statements
     """Main function of the MDFParser container."""
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
@@ -81,7 +82,7 @@ def main(config: MdfParserConfig): # pylint: disable=too-many-locals,too-many-st
             sqs_client, config.input_queue)
         if message:
             # check message has the required fields
-            if not ("Body" in message and "_id" in message["Body"] \
+            if not ("Body" in message and "_id" in message["Body"]
                     and "s3_path" in message["Body"]):
                 _logger.warning("Required fields are not in the message.")
                 continue
@@ -100,8 +101,11 @@ def main(config: MdfParserConfig): # pylint: disable=too-many-locals,too-many-st
                         synchronizer,
                         processors))
                 container_services.send_message(sqs_client, config.metadata_output_queue, metadata)
-                container_services.delete_message(sqs_client, message["ReceiptHandle"], config.input_queue) # pylint: disable=line-too-long
-            except Exception: # pylint: disable=broad-except
+                container_services.delete_message(
+                    sqs_client,
+                    message["ReceiptHandle"],
+                    config.input_queue)  # pylint: disable=line-too-long
+            except Exception:  # pylint: disable=broad-except
                 _logger.exception("Error during processing of request for %s", message_body["_id"])
 
 
@@ -124,11 +128,12 @@ def process_request(mdf_s3_path: str, downloader: Downloader, uploader: Uploader
             process_output = processor.process(synchronized)
             recursive_merge(metadata, process_output)
             successful_processings += 1
-        except Exception: # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             # we do not want the entire recording to fail for a specific processing only
             _logger.exception("Error processing metadata.")
     if successful_processings == 0:
-        raise NoProcessingSuccessfulException("Not a single processing succeeded, therefore not updating metadata.") # pylint: disable=line-too-long
+        raise NoProcessingSuccessfulException(
+            "Not a single processing succeeded, therefore not updating metadata.")  # pylint: disable=line-too-long
 
     _logger.info("Successfully processed metadata for %s", mdf_s3_path)
 
@@ -150,7 +155,8 @@ def extract_timestamps(filepath: str) -> tuple[int, int]:
     """Extracts the timestamps from the filepath."""
     match = re.search(r"_(\d{13,})_(\d{13,})_", filepath)
     if not match or len(match.groups()) < 2:
-        raise InvalidFileNameException("Cannot extract timestamps from filepath \"" + filepath + "\".") # pylint: disable=line-too-long
+        raise InvalidFileNameException("Cannot extract timestamps from filepath \"" +
+                                       filepath + "\".")  # pylint: disable=line-too-long
     timestamp_from = int(match.group(1))
     timestamp_to = int(match.group(2))
     return timestamp_from, timestamp_to
@@ -163,7 +169,8 @@ if __name__ == "__main__":
     # Generating dependencies for dependency injection
     ##
     # External configuration that can be configured as kubernetes secret
-    _config = MdfParserConfig.load_config_from_yaml_file(os.environ.get("CONFIG_FILE", "/app/config/config.yml")) # pylint: disable=line-too-long
+    _config = MdfParserConfig.load_config_from_yaml_file(os.environ.get(
+        "CONFIG_FILE", "/app/config/config.yml"))  # pylint: disable=line-too-long
 
     # Instanciating main loop and injecting dependencies
     main(config=_config)

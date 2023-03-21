@@ -8,6 +8,7 @@ from mdfparser.downloader import Downloader
 
 S3_PATH = "s3://bucket/key_metadata_full.json"
 
+
 @mark.unit
 class TestDownloader():
     """ Tests the Downloader class. """
@@ -24,8 +25,14 @@ class TestDownloader():
     def test_download(self, downloader: Downloader, container_services_mock: Mock):
         """ Tests the download method. """
         # GIVEN
-        data = { "foo": "bar", "test": "hello", "chunk": {
-                "pts_start": 1, "pts_end": 2, "utc_start": 3, "utc_end": 4
+        data = {
+            "foo": "bar",
+            "test": "hello",
+            "chunk": {
+                "pts_start": 1,
+                "pts_end": 2,
+                "utc_start": 3,
+                "utc_end": 4
             }
         }
         data_binary = json.dumps(data).encode("utf-8")
@@ -44,22 +51,22 @@ class TestDownloader():
                                                     container_services_mock: Mock):
         """ Tests the download method with the recreation of timestamps. """
         # GIVEN
-        data = { "foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4} }
+        data = {"foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4}}
         data_binary = json.dumps(data).encode("utf-8")
         compact_data = {
             "partial_timestamps": {
                 "1": {
-                        "pts_start": 2,
-                        "converted_time": 200
+                    "pts_start": 2,
+                    "converted_time": 200
                 },
-                "2": {  "pts_start": 3,
-                        "converted_time": 300
-                }
+                "2": {"pts_start": 3,
+                      "converted_time": 300
+                      }
             }
         }
         compact_data_binary = json.dumps(compact_data).encode("utf-8")
 
-        container_services_mock.download_file.side_effect=[data_binary, compact_data_binary]
+        container_services_mock.download_file.side_effect = [data_binary, compact_data_binary]
 
         # WHEN
         result = downloader.download(S3_PATH)
@@ -75,17 +82,16 @@ class TestDownloader():
         assert result["chunk"]["utc_start"] == 100
         assert result["chunk"]["utc_end"] == 400
 
-
     def test_invalid_compact_mdf(self, caplog: LogCaptureFixture, downloader: Downloader,
                                  container_services_mock: Mock):
         """ Tests the download method with an invalid compact MDF. """
         # GIVEN
-        data = { "foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4} }
+        data = {"foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4}}
         data_binary = json.dumps(data).encode("utf-8")
-        compact_data = { "foo": "bar" }
+        compact_data = {"foo": "bar"}
         compact_data_binary = json.dumps(compact_data).encode("utf-8")
 
-        container_services_mock.download_file.side_effect=[data_binary, compact_data_binary]
+        container_services_mock.download_file.side_effect = [data_binary, compact_data_binary]
 
         # WHEN
         downloader.download(S3_PATH)
@@ -97,9 +103,9 @@ class TestDownloader():
         invalid_path = "foo_path"
 
         # WHEN
-        with raises(ValueError) as e:
+        with raises(ValueError) as err:
             downloader.download(invalid_path)
 
         # THEN
-        assert "Invalid path" in str(e.value)
+            assert "Invalid path" in str(err.value)
         container_services_mock.download_file.assert_not_called()

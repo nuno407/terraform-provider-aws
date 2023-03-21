@@ -9,8 +9,8 @@ from mdfparser import main
 def test_extract_timestamps():
     """ Test extract_timestamps function. """
     # GIVEN
-    last_hour = int((datetime.now() - timedelta(hours=1)).timestamp()*1000)
-    now = int(datetime.now().timestamp()*1000)
+    last_hour = int((datetime.now() - timedelta(hours=1)).timestamp() * 1000)
+    now = int(datetime.now().timestamp() * 1000)
     test_filename = "tenant_device_abcd_" + str(last_hour) + "_" + str(now) + "_metadata_full.json"
 
     # WHEN

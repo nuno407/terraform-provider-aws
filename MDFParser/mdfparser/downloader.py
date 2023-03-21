@@ -1,20 +1,20 @@
 """ S3 Downloader module. """
 import json
 import logging
-from mdfparser.s3_interaction import S3Interaction
-
 from base.aws.container_services import ContainerServices
+from mdfparser.s3_interaction import S3Interaction
 
 _logger = logging.getLogger("mdfparser." + __name__)
 
 
 class InvalidCompactMdfException(Exception):
     """Exception raised when compact MDF is invalid."""
+
     def __init__(self, message: str, *args: object) -> None:
         super().__init__(message, *args)
 
 
-class Downloader(S3Interaction): # pylint: disable=too-few-public-methods
+class Downloader(S3Interaction):  # pylint: disable=too-few-public-methods
     """ S3 Downloader class. """
 
     def download(self, mdf_path: str) -> dict:
@@ -42,7 +42,7 @@ class Downloader(S3Interaction): # pylint: disable=too-few-public-methods
                 mdf["chunk"]["utc_end"] = utc_end
             except InvalidCompactMdfException as err:
                 _logger.exception("Error recreating epoch timestamps from compact MDF: %s", err)
-            except Exception as err: # pylint: disable=broad-except
+            except Exception as err:  # pylint: disable=broad-except
                 _logger.exception("Unexpected error: %s", err)
         else:
             # check for pts_end swapped with utc_start:
@@ -58,7 +58,7 @@ class Downloader(S3Interaction): # pylint: disable=too-few-public-methods
         _logger.debug("Finished metadata download from %s", mdf_path)
         return mdf
 
-    def __recreate_epoch_timestamps(self, bucket: str, mdf_key: str, mdf_pts_start: int,
+    def __recreate_epoch_timestamps(self, bucket: str, mdf_key: str, mdf_pts_start: int,  # pylint: disable=too-many-locals
                                     mdf_pts_end: int) -> tuple[int, int]:
         """Recreates epoch timestamps from compact MDF. """
         key = mdf_key.replace("_metadata_full", "_compact_mdf")
@@ -76,11 +76,6 @@ class Downloader(S3Interaction): # pylint: disable=too-few-public-methods
 
         # epoch calculation formula
         pts_to_epoch_factor = (epoch_end - epoch_start) / (pts_end - pts_start)
-        return self.__calculate_interval(mdf_pts_start, mdf_pts_end, pts_to_epoch_factor,
-                                         epoch_start, epoch_end)
-
-    def __calculate_interval(self, pts_start: int, pts_end: int, pts_to_epoch_factor: float, # pylint: disable=too-many-arguments
-                             epoch_start: int, epoch_end: int) -> tuple[int, int]:
-        """Calculates epoch timestamps from MDF. """
-        return (round((pts_start - pts_end) * pts_to_epoch_factor + epoch_end),
-                round((pts_end - pts_start) * pts_to_epoch_factor + epoch_start))
+        epoch_start_mdf = (mdf_pts_start - pts_start) * pts_to_epoch_factor + epoch_start
+        epoch_end_mdf = (mdf_pts_end - pts_end) * pts_to_epoch_factor + epoch_end
+        return round(epoch_start_mdf), round(epoch_end_mdf)

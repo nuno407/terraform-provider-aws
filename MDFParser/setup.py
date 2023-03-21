@@ -1,3 +1,4 @@
+""" MDFParser setup script """
 from setuptools import setup
 
 

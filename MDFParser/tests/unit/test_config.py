@@ -12,6 +12,7 @@ __location__ = os.path.realpath(os.path.join(
 @pytest.mark.unit
 class TestMdfParserConfig:
     """ Test the MdfParserConfig class. """
+
     def test_current_config(self):
         """ Test that the config loader works. """
         # GIVEN

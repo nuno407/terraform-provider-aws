@@ -4,8 +4,8 @@ import os
 from datetime import timedelta
 
 import pytimeparse
-from mdfparser.synchronizer import InvalidMdfException, Synchronizer
 from pytest import fixture, mark, raises
+from mdfparser.synchronizer import InvalidMdfException, Synchronizer
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -19,8 +19,8 @@ class TestSynchronizer:
         """ Load the test data from the test_assets folder. """
         with open(os.path.join(__location__,
                                "./test_assets/test_data/mdf_synthetic.json"),
-                               "r",
-                               encoding="utf-8") as f_handler:
+                  "r",
+                  encoding="utf-8") as f_handler:
             return json.loads(f_handler.read())
 
     @fixture
@@ -28,8 +28,8 @@ class TestSynchronizer:
         """ Load the expected test data from the test_assets folder. """
         with open(os.path.join(__location__,
                                "./test_assets/test_data/sync_expected.json"),
-                               "r",
-                               encoding="utf-8") as f_handler:
+                  "r",
+                  encoding="utf-8") as f_handler:
             raw_json = json.loads(f_handler.read())
             return {timedelta(seconds=pytimeparse.parse(k)): v for k, v in raw_json.items()}
 

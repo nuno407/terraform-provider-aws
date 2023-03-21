@@ -8,16 +8,16 @@ from base.timestamps import from_epoch_seconds_or_milliseconds
 _logger = logging.getLogger("mdfparser." + __name__)
 
 
-class Synchronizer: # pylint: disable=too-few-public-methods
+class Synchronizer:  # pylint: disable=too-few-public-methods
     """ Synchronizer class for synchronizing MDF data with a recording. """
 
-    def synchronize(self, mdf: dict[str, Any], recording_epoch_from: int, # pylint: disable=too-many-locals
+    def synchronize(self, mdf: dict[str, Any], recording_epoch_from: int,  # pylint: disable=too-many-locals
                     recording_epoch_to: int) -> dict[timedelta, dict[str, Union[bool, float, int]]]:
         """Synchronizes MDF data with a recording. """
         _logger.debug("Synchronizing MDF from %s to %s", recording_epoch_from, recording_epoch_to)
 
         # check MDF format
-        if not ("chunk" in mdf and all(k in mdf["chunk"] for k in ("pts_start", "pts_end", "utc_start", "utc_end")) # pylint: disable=line-too-long
+        if not ("chunk" in mdf and all(k in mdf["chunk"] for k in ("pts_start", "pts_end", "utc_start", "utc_end"))  # pylint: disable=line-too-long
                 and "frame" in mdf):
             raise InvalidMdfException("Not all required keys exist in the passed MDF.")
 
@@ -37,10 +37,11 @@ class Synchronizer: # pylint: disable=too-few-public-methods
         for frame in mdf["frame"]:
 
             # timestamp calculation and processing
-            frame_timestamp_epoch = (int(frame.get("timestamp")) - pts_start) * pts_to_epoch_factor + epoch_start # pylint: disable=line-too-long
+            frame_timestamp_epoch = (int(frame.get("timestamp")) - pts_start) * \
+                pts_to_epoch_factor + epoch_start  # pylint: disable=line-too-long
             frame_timestamp_absolute = from_epoch_seconds_or_milliseconds(frame_timestamp_epoch)
 
-            if frame_timestamp_absolute < recording_start or frame_timestamp_absolute > recording_end: # pylint: disable=line-too-long
+            if frame_timestamp_absolute < recording_start or frame_timestamp_absolute > recording_end:  # pylint: disable=line-too-long
                 # skip frames of MDF that are outside the recording time
                 continue
 
@@ -52,7 +53,10 @@ class Synchronizer: # pylint: disable=too-few-public-methods
             if len(signals) > 0:
                 sync_frames[frame_timestamp] = signals
 
-        _logger.debug("Finished synchronizing MDF from %s to %s", recording_epoch_from, recording_epoch_to) # pylint: disable=line-too-long
+        _logger.debug(
+            "Finished synchronizing MDF from %s to %s",
+            recording_epoch_from,
+            recording_epoch_to)  # pylint: disable=line-too-long
         return sync_frames
 
     def __get_frame_signals(self, frame: dict) -> dict[str, Union[bool, float, int]]:
@@ -92,5 +96,6 @@ class Synchronizer: # pylint: disable=too-few-public-methods
 
 class InvalidMdfException(Exception):
     """ Exception for invalid MDFs. """
+
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
