@@ -6,7 +6,7 @@ from unittest.mock import ANY, Mock, MagicMock, call, patch
 
 import pytest
 
-from sdretriever.ingestor import MetadataIngestor
+from sdretriever.ingestor.metadata import MetadataIngestor
 
 
 @pytest.mark.unit

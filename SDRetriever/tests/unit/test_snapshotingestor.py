@@ -4,8 +4,9 @@ from unittest.mock import ANY, Mock, call, patch
 import pytest
 
 import hashlib
-from sdretriever.ingestor import SnapshotIngestor
-from sdretriever.message import Chunk, SnapshotMessage
+from sdretriever.ingestor.snapshot import SnapshotIngestor
+from sdretriever.message.message import Chunk
+from sdretriever.message.snapshot import SnapshotMessage
 
 
 @pytest.mark.unit
@@ -214,7 +215,7 @@ class TestSnapshotIngestor:
 
         # Check sqs update
         queue_update = [call(ANY, ANY, message) for message in message_db_sent]
-        obj.CS.send_message.assert_has_calls(queue_update)
+        obj.container_svcs.send_message.assert_has_calls(queue_update)
 
         # Check return
         assert rtn == return_value

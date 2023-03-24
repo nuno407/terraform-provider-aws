@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from sdretriever.ingestor import VideoIngestor, FileAlreadyExists
-
+from sdretriever.ingestor.video import VideoIngestor
+from sdretriever.exceptions import FileAlreadyExists
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("container_services", "s3_client", "sqs_client", "sts_helper", "msg_interior")

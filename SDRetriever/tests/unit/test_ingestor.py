@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 from typing import Optional
 
-from sdretriever.ingestor import Ingestor
+from sdretriever.ingestor.ingestor import Ingestor
 
 
 @pytest.mark.unit
@@ -191,7 +191,7 @@ class TestIngestor:
 
         obj._discover_s3_subfolders = Mock(return_value=expected_rcc_folders)
         obj.check_if_s3_rcc_path_exists = Mock(side_effect=list_objects_response)
-        obj.CS.download_file = Mock(return_value=result)
+        obj.container_svcs.download_file = Mock(return_value=result)
 
         if not raise_val:
             rtn = obj.get_file_in_rcc(bucket, tenant, device_id, prefix, start_time, end_time, extensions)

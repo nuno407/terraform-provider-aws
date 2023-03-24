@@ -1,0 +1,10 @@
+"""constants module"""
+CONTAINER_NAME = "SDRetriever"
+CONTAINER_VERSION = "v7"
+MESSAGE_VISIBILITY_EXTENSION_HOURS = [0.5, 3, 12, 12]
+TRAINING_RECORDER = "TrainingRecorder"
+FRONT_RECORDER = "FrontRecorder"
+INTERIOR_RECORDER = "InteriorRecorder"
+SNAPSHOT = "TrainingMultiSnapshot"
+INTERIOR_RECORDER_PREVIEW = "InteriorRecorderPreview"
+METADATA_FILE_EXT = "_metadata_full.json"

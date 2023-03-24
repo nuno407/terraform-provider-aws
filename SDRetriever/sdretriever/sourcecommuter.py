@@ -1,22 +1,30 @@
-class SourceCommuter(object):
-    '''Polymorphic source commuter'''
+"""Source commuter module."""
+
+class SourceCommuter:
+    """Polymorphic source commuter"""
 
     def __init__(self, rules) -> None:
-        '''SourceCommuter - Switches between different sources according to the number of consecutive polls allowed by the rules.
+        """SourceCommuter -
+        Switches between different sources according to the number of
+        consecutive polls allowed by the rules.
 
         Args:
-            rules ({Any:Numeric} | [Any]): Key-Value pairs of sources and number of max consecutive polls, or list of sources. Sources must be hashable objects.
-        '''
-        if type(rules) == dict:
+            rules ({Any:Numeric} | [Any]): Key-Value pairs of sources,
+            and number of max consecutive polls,
+            or list of sources. Sources must be hashable objects.
+        """
+        if isinstance(rules, dict):
             self.sources = rules  # {source:max poll} or [source]
         else:
             self.sources = {source: 1 for source in rules}
         self.index = 0  # index of the currently used source
         self.current_source = list(self.sources)[self.index]
-        self.counter = self.sources.get(self.current_source)  # number of polls left for current source
+        # number of polls left for current source
+        self.counter = self.sources.get(self.current_source)
 
     def get_source(self):
-        """Return a source. If the counter for the current source has reached its limit, the current source gets promoted.
+        """Return a source. If the counter for the current source
+        has reached its limit, the current source gets promoted.
 
         Returns:
             current_source (Any): Source to be used

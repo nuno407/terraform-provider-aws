@@ -1,3 +1,4 @@
+""" sdr config module """
 from dataclasses import dataclass
 from dataclasses import fields
 
@@ -5,7 +6,8 @@ import yaml
 
 
 @dataclass
-class SDRetrieverConfig():
+class SDRetrieverConfig:
+    """ SDR configuration """
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
     frame_buffer: int
@@ -14,7 +16,7 @@ class SDRetrieverConfig():
     discard_video_already_ingested: bool
 
     @staticmethod
-    def load_config_from_yaml_file(path) -> 'SDRetrieverConfig':
+    def load_config_from_yaml_file(path) -> "SDRetrieverConfig":
         """Loads yaml file into SDRetrieverConfig object. Extra yaml fields are ignored.
 
         Args:
@@ -23,8 +25,9 @@ class SDRetrieverConfig():
         Returns:
             SDRetrieverConfig: SDRetrieverConfig object containing passed yaml config
         """
-        with open(path, 'r') as configfile:
+        with open(path, "r", encoding="utf-8") as configfile:
             # We should ignore extra fields
-            field_names = set([f.name for f in fields(SDRetrieverConfig)])
+            field_names = set(f.name for f in fields(SDRetrieverConfig))
             return SDRetrieverConfig(**{key: value for key,
-                                        value in yaml.safe_load(configfile).items() if key in field_names})
+                                        value in yaml.safe_load(configfile).items()
+                                        if key in field_names})

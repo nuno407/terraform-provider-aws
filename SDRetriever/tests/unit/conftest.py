@@ -12,11 +12,14 @@ from unittest.mock import Mock
 import pytest
 from mypy_boto3_s3 import S3Client
 
-from sdretriever.ingestor import MetadataIngestor
-from sdretriever.ingestor import MetacontentChunk, IMUIngestor, VideoIngestor
-from sdretriever.message import Chunk
-from sdretriever.message import SnapshotMessage
-from sdretriever.message import VideoMessage
+from sdretriever.ingestor.metadata import MetadataIngestor
+from sdretriever.ingestor.snapshot import SnapshotIngestor
+from sdretriever.ingestor.imu import IMUIngestor
+from sdretriever.ingestor.video import VideoIngestor
+from sdretriever.ingestor.metacontent import MetacontentChunk
+from sdretriever.message.message import Chunk
+from sdretriever.message.snapshot import SnapshotMessage
+from sdretriever.message.video import VideoMessage
 from sdretriever.config import SDRetrieverConfig
 
 

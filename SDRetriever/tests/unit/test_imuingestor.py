@@ -3,8 +3,9 @@ from unittest.mock import ANY, Mock
 import pytest
 
 from typing import Optional
-from sdretriever.ingestor import IMUIngestor, MetacontentChunk, VideoMessage, IMU_FILE_EXT
-
+from sdretriever.ingestor.metacontent import MetacontentChunk
+from sdretriever.message.video import VideoMessage
+from sdretriever.ingestor.imu import IMUIngestor, IMU_FILE_EXT
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("imu_files", "imu_ingestor", "imu_chunks", "imu_full", "training_message_metadata")
@@ -45,7 +46,7 @@ class TestIMUIngestor:
             bytes([1, 2, 0, 0, 1, 10, 10, 2, 3, 9, 3, 120])
         )
     ])
-    def test_concatenate_chunks(
+    def test_concatenate_chunks2(
             self,
             chunk_list: list[MetacontentChunk],
             expected_concat: bytearray,
@@ -73,10 +74,10 @@ class TestIMUIngestor:
         path = f"{video_msg.tenant}/{video_id}{IMU_FILE_EXT}"
         meta_chunks = [MetacontentChunk(Mock(), file) for file in imu_files]
         imu_ingestor._get_metacontent_chunks = Mock(return_value=meta_chunks)
-        imu_ingestor.CS.download_file = Mock(return_value="MOCKED_DATA")
+        imu_ingestor.container_svcs.download_file = Mock(return_value="MOCKED_DATA")
         IMUIngestor.concatenate_chunks = Mock(return_value=file_merged)
 
         result_path: str = imu_ingestor.ingest(video_msg, video_id, imu_files)
 
-        imu_ingestor.CS.upload_file.assert_called_once_with(ANY, file_merged, imu_ingestor.CS.raw_s3, path)
+        imu_ingestor.container_svcs.upload_file.assert_called_once_with(ANY, file_merged, imu_ingestor.container_svcs.raw_s3, path)
         assert result_path == path

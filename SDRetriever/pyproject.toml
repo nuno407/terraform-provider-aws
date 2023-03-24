@@ -23,6 +23,9 @@ load-plugins = [
 ]
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
+ignore-paths = [
+  "tests/.*$",
+]
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.

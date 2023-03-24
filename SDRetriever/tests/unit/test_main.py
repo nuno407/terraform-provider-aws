@@ -4,11 +4,12 @@ from copy import deepcopy
 from unittest.mock import ANY, MagicMock, Mock, patch, call
 
 import pytest
-from sdretriever.main import (FRONT_RECORDER, INTERIOR_RECORDER,
-                              METADATA_FILE_EXT, SNAPSHOT, TRAINING_RECORDER, INTERIOR_RECORDER_PREVIEW,
-                              IngestorHandler, SDRetrieverConfig)
-from sdretriever.message import SnapshotMessage, VideoMessage
-from sdretriever.ingestor import FileAlreadyExists
+from sdretriever.config import SDRetrieverConfig
+from sdretriever.handler import IngestorHandler
+from sdretriever.constants import FRONT_RECORDER, INTERIOR_RECORDER, METADATA_FILE_EXT, SNAPSHOT, TRAINING_RECORDER, INTERIOR_RECORDER_PREVIEW
+from sdretriever.message.snapshot import SnapshotMessage
+from sdretriever.message.video import VideoMessage
+from sdretriever.exceptions import FileAlreadyExists
 
 
 @pytest.mark.unit
