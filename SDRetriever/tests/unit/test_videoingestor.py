@@ -8,11 +8,12 @@ import pytest
 from sdretriever.ingestor.video import VideoIngestor
 from sdretriever.exceptions import FileAlreadyExists
 
+
 @pytest.mark.unit
 @pytest.mark.usefixtures("container_services", "s3_client", "sqs_client", "sts_helper", "msg_interior")
 class TestVideoIngestor():
 
-    @mock.patch("sdretriever.ingestor.subprocess.run")
+    @mock.patch("sdretriever.ingestor.video.subprocess.run")
     def test_ffmpeg_probe_video(self, mock_run, video_bytes, container_services, s3_client, sqs_client, sts_helper):
         obj = VideoIngestor(container_services, s3_client, sqs_client, sts_helper, False)
         mock_stdout = MagicMock()
@@ -24,7 +25,7 @@ class TestVideoIngestor():
         result = obj._ffmpeg_probe_video(video_bytes)
         assert result == {"something": "something else"}
 
-    @mock.patch("sdretriever.ingestor.subprocess.run")
+    @mock.patch("sdretriever.ingestor.video.subprocess.run")
     def test_ingest(self, mock_run, container_services, s3_client, sqs_client, sts_helper, msg_interior):
         mock_stdout = MagicMock()
         mock_stdout.configure_mock(
@@ -60,7 +61,7 @@ class TestVideoIngestor():
         container_services.upload_file.assert_called_once_with(ANY, ANY, container_services.raw_s3, expected_raw_path)
         assert db_record_data == expected_db_record_data
 
-    @mock.patch("sdretriever.ingestor.subprocess.run")
+    @mock.patch("sdretriever.ingestor.video.subprocess.run")
     def test_ingest_request_training_recorder(
             self,
             mock_run,
@@ -87,7 +88,7 @@ class TestVideoIngestor():
         expect_selector_input_queue = container_services.sqs_queues_list["HQ_Selector"]
         container_services.send_message.assert_called_once_with(ANY, expect_selector_input_queue, expect_hq_request)
 
-    @mock.patch("sdretriever.ingestor.subprocess.run")
+    @mock.patch("sdretriever.ingestor.video.subprocess.run")
     def test_ingest_discard_already_uploaded(
             self,
             mock_run,

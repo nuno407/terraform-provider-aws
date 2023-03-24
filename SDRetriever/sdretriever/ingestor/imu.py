@@ -13,6 +13,7 @@ IMU_FILE_EXT = '_imu.csv'
 LOGGER = log.getLogger("SDRetriever." + __name__)
 IMU_FILE_PATTERN = r"TrainingRecorder_TrainingRecorder.+\.mp4\._\w+?_\w+?_(\d+)_imu_raw.csv.zip"
 
+
 class IMUIngestor(MetacontentIngestor):
     """_summary_
 

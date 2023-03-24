@@ -7,6 +7,7 @@ from sdretriever.message.message import Message, Chunk
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
+
 class SnapshotMessage(Message):
     """ Snapshot message class. """
 
@@ -34,7 +35,7 @@ class SnapshotMessage(Message):
             if self.tenant in tenant_blacklist:
                 LOGGER.info("Tenant %s is blacklisted messageid=%s", self.tenant, self.messageid)
                 return True
-        except BaseException: # pylint: disable=broad-exception-caught
+        except BaseException:  # pylint: disable=broad-exception-caught
             return False
         return False
 

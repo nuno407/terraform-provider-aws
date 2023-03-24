@@ -19,11 +19,12 @@ from sdretriever.message.video import VideoMessage
 
 LOGGER = log.getLogger("SDRetriever")
 
-class IngestorHandler: # pylint: disable=too-many-instance-attributes
+
+class IngestorHandler:  # pylint: disable=too-many-instance-attributes
     """Handler logic for SDR ingestion scenarios
     """
 
-    def __init__( # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments
             self,
             imu_ing: IMUIngestor,
             metadata_ing: MetadataIngestor,
@@ -32,7 +33,6 @@ class IngestorHandler: # pylint: disable=too-many-instance-attributes
             cont_services: ContainerServices,
             config: SDRetrieverConfig,
             sqs_client):
-
         """IngestorHandler init
 
         Args:

@@ -15,11 +15,13 @@ from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
+
 @dataclass
 class MetacontentChunk:
     """Represents the data inside a normal chunk or an IMU chunk"""
     data: bytes
     filename: str
+
 
 @dataclass
 class MetacontentDevCloud:
@@ -29,6 +31,7 @@ class MetacontentDevCloud:
     bucket: str
     msp: str
     extension: str
+
 
 class MetacontentIngestor(Ingestor):
     """ Metacontent ingestor """

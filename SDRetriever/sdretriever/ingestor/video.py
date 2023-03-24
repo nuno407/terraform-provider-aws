@@ -16,8 +16,10 @@ from base.timestamps import from_epoch_seconds_or_milliseconds
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
+
 class VideoIngestor(Ingestor):
     """ Video ingestor class """
+
     def __init__(
             self,
             container_services,
@@ -114,7 +116,7 @@ class VideoIngestor(Ingestor):
 
         try:
             self.container_svcs.upload_file(self.s3_client, video_bytes,
-                                self.container_svcs.raw_s3, s3_path)
+                                            self.container_svcs.raw_s3, s3_path)
             LOGGER.info(f"Successfully uploaded to {self.container_svcs.raw_s3}/{s3_path}", extra={
                         "messageid": video_msg.messageid})
         except Exception as exception:

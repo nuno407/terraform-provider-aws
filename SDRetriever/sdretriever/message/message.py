@@ -8,7 +8,7 @@ from typing import Optional
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
 
-class Chunk: # pylint: disable=too-few-public-methods
+class Chunk:  # pylint: disable=too-few-public-methods
     """Representation of a single message chunk object"""
 
     def __init__(self, chunk_description: dict = None) -> None:

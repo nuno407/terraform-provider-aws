@@ -1,4 +1,4 @@
-"""Message module. """
+""" Message module. """
 import logging as log
 from datetime import datetime
 from typing import Optional
@@ -7,8 +7,10 @@ from sdretriever.message.message import Message
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
+
 class VideoMessage(Message):
     """ Video message """
+
     def __init__(self, sqs_message: dict = None) -> None:
         super().__init__(sqs_message)
         self.__video_recording_types = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
@@ -41,6 +43,34 @@ class VideoMessage(Message):
         # nothing to validate at the moment (tests that we want to send do DLQ when they fail)
         return True
 
+    def __check_blacklists(self, tenant_blacklist, recorder_blacklist):
+        recorder = self.video_recording_type()
+        if recorder in recorder_blacklist:
+            LOGGER.info("Recorder %s is blacklisted messageid=%s", recorder, self.messageid)
+            return True
+        if self.tenant in tenant_blacklist:
+            LOGGER.info("Tenant %s is blacklisted messageid=%s", self.tenant, self.messageid)
+            return True
+        # video messages must have a specific ARN topic
+        if not self.topicarn.endswith("video-footage-events"):
+            LOGGER.debug("Topic %s is not for video footage events messageid=%s",
+                         self.topicarn, self.messageid)
+            return True
+        return False
+
+    def __check_conditions(self):
+        """ Checks recorder conditions for irrelevant """
+        if not self.topicarn:
+            LOGGER.debug("Topic could not be identified messageid=%s", self.messageid)
+            return True
+        if not self.streamname:
+            LOGGER.debug("Could not find a stream name messageid=%s", self.messageid)
+            return True
+        if not self.recordingid:
+            LOGGER.debug("Could not find a recordingid messageid=%s", self.messageid)
+            return True
+        return False
+
     def is_irrelevant(self, tenant_blacklist: Optional[list[str]] = None,
                       recorder_blacklist: Optional[list[str]] = None) -> bool:
         """Runtime tests to determine if message contents are not meant to be ingested.
@@ -54,23 +84,8 @@ class VideoMessage(Message):
         if recorder_blacklist is None:
             recorder_blacklist = []
         try:
-            if any(not field for field in [self.topicarn, self.streamname, self.recordingid]):
-                LOGGER.debug("Field could not be identified messageid=%s", self.messageid)
-                return False
-            recorder = self.video_recording_type()
-            if recorder in recorder_blacklist:
-                LOGGER.info("Recorder %s is blacklisted messageid=%s", recorder, self.messageid)
-                return True
-            if self.tenant in tenant_blacklist:
-                LOGGER.info("Tenant %s is blacklisted messageid=%s", self.tenant, self.messageid)
-                return True
-            # video messages must have a specific ARN topic
-            if not self.topicarn.endswith("video-footage-events"):
-                LOGGER.debug("Topic %s is not for video footage events messageid=%s",
-                             self.topicarn, self.messageid)
-                return True
-            return False
-        except Exception as err: # pylint: disable=broad-exception-caught
+            return self.__check_blacklists(tenant_blacklist, recorder_blacklist) or self.__check_conditions()
+        except Exception as err:  # pylint: disable=broad-exception-caught
             LOGGER.warning("Checks for irrelevancy on VideoMessage raised an exception -\
                             %s messageid=%s",
                            err,
@@ -86,7 +101,7 @@ class VideoMessage(Message):
         return streamname
 
     @property
-    def recording_type(self) -> Optional[str]: # pylint: disable=inconsistent-return-statements
+    def recording_type(self) -> Optional[str]:  # pylint: disable=inconsistent-return-statements
         """ the recording type """
         if not self.streamname:
             return None

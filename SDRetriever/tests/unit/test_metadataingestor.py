@@ -62,8 +62,8 @@ class TestMetadataIngestor:
         result = metadata_ingestor._get_metadata_chunks(
             metadata_start_time, metadata_end_time, msg_interior)
 
-        metadata_ingestor.CS.download_file.assert_has_calls(
-            [call(ANY, metadata_ingestor.CS.rcc_info["s3_bucket"], file_name) for file_name in files_to_download], any_order=True)
+        metadata_ingestor.container_svcs.download_file.assert_has_calls(
+            [call(ANY, metadata_ingestor.container_svcs.rcc_info["s3_bucket"], file_name) for file_name in files_to_download], any_order=True)
         metadata_ingestor.check_if_exists.assert_called_with(
             "datanauts/DATANAUTS_DEV_01/year=2022/month=08/day=19/hour=18/InteriorRecorder_InteriorRecorder-77d21ada-c79e-48c7-b582-cfc737773f26",
             "dev-rcc-raw-video-data")
@@ -87,8 +87,8 @@ class TestMetadataIngestor:
             source_data, ensure_ascii=False, indent=4).encode('UTF-8'))
 
         expected_path = "datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
-        expected_bucket = metadata_ingestor.CS.raw_s3
-        metadata_ingestor.CS.upload_file.assert_called_with(
+        expected_bucket = metadata_ingestor.container_svcs.raw_s3
+        metadata_ingestor.container_svcs.upload_file.assert_called_with(
 
             expected_client, expected_source_bytes, expected_bucket, expected_path)
         assert s3_path == expected_path
@@ -109,7 +109,7 @@ class TestMetadataIngestor:
             "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
             "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
         ))
-        metadata_ingestor.CS.send_message = Mock()
+        metadata_ingestor.container_svcs.send_message = Mock()
         result = metadata_ingestor.ingest(
             message_metadata,
             "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
@@ -117,7 +117,7 @@ class TestMetadataIngestor:
 
         metadata_ingestor._upload_source_data.assert_called_once_with(
             metadata_full, ANY, ANY)
-        metadata_ingestor.CS.send_message.assert_called_once_with(
+        metadata_ingestor.container_svcs.send_message.assert_called_once_with(
             ANY, "dev-terraform-queue-mdf-parser", ANY)
 
         metadata_ingestor._get_metacontent_chunks.assert_called_once_with(ANY, mock_chunks_path)
@@ -338,7 +338,7 @@ class TestMetadataIngestor:
         metadata_ingestor.check_if_s3_rcc_path_exists.assert_called_once_with(
             reference_path, bucket, messageid=messageid, max_s3_api_calls=5)
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.metacontent.ContainerServices")
     def test_check_allparts_exist(self, mock_container_services, metadata_ingestor, msg_interior):
 
         lookup_paths_reference = [
@@ -388,7 +388,7 @@ class TestMetadataIngestor:
         assert metadata == set(metadata_expected)
         lookup_mock.assert_called_once_with(msg_interior)
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.metacontent.ContainerServices")
     def test_check_allparts_exist2(self, mock_container_services, metadata_ingestor, msg_interior):
         lookup_paths_reference = [
             "rc_srx/TEST_DEVICE_ID/year=2022/month=09/day=30/hour=20/TEST_TYPE_TEST_ID",
@@ -454,7 +454,7 @@ class TestMetadataIngestor:
             msg_interior, start_time=msg_interior.uploadfinished + timedelta(hours=1), end_time=ANY)
         match_chunks_mock.assert_called_with(current_date_path, ANY, ANY, ANY, ANY)
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.metacontent.ContainerServices")
     def test_check_allparts_exist3(self, mock_container_services, metadata_ingestor, msg_interior):
 
         lookup_paths_reference = [

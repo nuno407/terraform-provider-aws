@@ -1,5 +1,6 @@
 """Source commuter module."""
 
+
 class SourceCommuter:
     """Polymorphic source commuter"""
 
@@ -52,7 +53,7 @@ class SourceCommuter:
 
     def _promote(self) -> None:
         """Increase the number of max usages for the current source. Uses a factor of 2."""
-        self.sources.update({self.current_source: self.sources[self.current_source]*2})
+        self.sources.update({self.current_source: self.sources[self.current_source] * 2})
 
     def _demote(self) -> None:
         """Decrease the number of max usages for the current source. Uses a factor of 2."""

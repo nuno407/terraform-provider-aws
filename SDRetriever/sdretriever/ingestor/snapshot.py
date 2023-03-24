@@ -1,12 +1,22 @@
 """ snapshot module """
-from typing import TypeVar
+import hashlib
+import logging as log
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import TypeVar
+
+from base.aws.container_services import ContainerServices
 from sdretriever.ingestor.ingestor import Ingestor
+
+
+LOGGER = log.getLogger("SDRetriever." + __name__)
 
 ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
 
+
 class SnapshotIngestor(Ingestor):
     """ Snapshot ingestor """
+
     def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
         super().__init__(container_services, s3_client, sqs_client, sts_helper)
 
@@ -77,8 +87,10 @@ class SnapshotIngestor(Ingestor):
                 self.s3_client, self.container_svcs.raw_s3, snap_msg.tenant + "/" + snap_name)
 
             if exists_on_devcloud:
-                LOGGER.info(f"File {snap_msg.tenant}/{snap_name} already exists on {self.container_svcs.raw_s3}", extra={
-                            "messageid": snap_msg.messageid})
+                LOGGER.info(
+                    f"File {snap_msg.tenant}/{snap_name} already exists on {self.container_svcs.raw_s3}",
+                    extra={
+                        "messageid": snap_msg.messageid})
                 continue
 
             # Generates the hash needed for healthcheck

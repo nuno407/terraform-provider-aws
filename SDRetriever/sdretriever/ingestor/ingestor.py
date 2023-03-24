@@ -14,6 +14,7 @@ from base.aws.shared_functions import StsHelper
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
+
 class Ingestor():
     """Ingestor base class"""
 
@@ -131,7 +132,7 @@ class Ingestor():
             # Filter the file for any of the extensions provided
             files = list(filter(lambda x: any(x['Key'].endswith(extension)
                                               for extension in extensions),
-                                              list_objects_response['Contents']))
+                                list_objects_response['Contents']))
 
             if len(files) > 1:
                 raise RuntimeError(f"Found more then one file for {path}, files found: {str(files)}")

@@ -1,4 +1,6 @@
 """ exceptions module. """
+
+
 class FileNotFound(Exception):
     """Error raised when file is not found"""
 

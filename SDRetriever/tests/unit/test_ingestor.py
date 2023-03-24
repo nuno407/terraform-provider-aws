@@ -31,7 +31,7 @@ class TestIngestor:
     def obj(self, container_services, s3_client, sqs_client, sts_helper):
         return Ingestor(container_services, s3_client, sqs_client, sts_helper)
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.ingestor.ContainerServices")
     def test_check_if_exists(
             self,
             mock_container_services,
@@ -45,7 +45,7 @@ class TestIngestor:
             s3_path, bucket)
         assert exists == bool(response['KeyCount'])
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.ingestor.ContainerServices")
     @pytest.mark.parametrize("paths_reference,wanted_result,start_datetime_reference,end_datetime_reference", [
         # Success
         (

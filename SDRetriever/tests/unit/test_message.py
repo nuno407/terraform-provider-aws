@@ -209,30 +209,21 @@ class TestVideoMessage:
         obj = VideoMessage(sqs_message_queue_download)
         assert obj.validate()
 
-        #obj = VideoMessage(sqs_message_queue_download_invalid)
-        #assert not obj.validate()
+        # obj = VideoMessage(sqs_message_queue_download_invalid)
+        # assert not obj.validate()
 
-    def test_is_irrelevant(self, config_yml):
-        obj = VideoMessage(sqs_message_queue_download)
-        assert not obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_bad_tenant)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_bad_recorder)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_bad_streamname)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_norecordingid)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_no_topicarn)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
-
-        obj = VideoMessage(sqs_message_queue_download_bad_topicarn)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist)
+    @pytest.mark.parametrize("message,result", [
+        (sqs_message_queue_download, False),
+        (sqs_message_queue_download_bad_tenant, True),
+        (sqs_message_queue_download_bad_recorder, True),
+        (sqs_message_queue_download_bad_streamname, True),
+        (sqs_message_queue_download_norecordingid, True),
+        (sqs_message_queue_download_no_topicarn, True),
+        (sqs_message_queue_download_bad_topicarn, True),
+    ])
+    def test_is_irrelevant_video(self, message, result, config_yml):
+        obj = VideoMessage(message)
+        assert obj.is_irrelevant(config_yml.tenant_blacklist, config_yml.recorder_blacklist) == result
 
 
 @pytest.mark.unit
@@ -348,9 +339,10 @@ class TestSnapshotMessage:
         obj = SnapshotMessage(sqs_message_queue_selector_with_chunks)
         assert obj.validate()
 
-    def test_is_irrelevant(self, config_yml):
-        obj = SnapshotMessage(sqs_message_queue_selector)
-        assert obj.is_irrelevant(config_yml.tenant_blacklist)
-
-        obj = SnapshotMessage(sqs_message_queue_selector_good_tenant)
-        assert not obj.is_irrelevant(config_yml.tenant_blacklist)
+    @pytest.mark.parametrize("message,result", [
+        (sqs_message_queue_selector, True),
+        (sqs_message_queue_selector_good_tenant, False)
+    ])
+    def test_is_irrelevant_snapshot(self, message, result, config_yml):
+        obj = SnapshotMessage(message)
+        assert obj.is_irrelevant(config_yml.tenant_blacklist) == result

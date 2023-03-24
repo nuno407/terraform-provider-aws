@@ -3,6 +3,7 @@ import json
 import logging as log
 from operator import itemgetter
 
+from sdretriever.constants import METADATA_FILE_EXT
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)

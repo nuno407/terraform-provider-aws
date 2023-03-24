@@ -7,6 +7,7 @@ from sdretriever.ingestor.metacontent import MetacontentChunk
 from sdretriever.message.video import VideoMessage
 from sdretriever.ingestor.imu import IMUIngestor, IMU_FILE_EXT
 
+
 @pytest.mark.unit
 @pytest.mark.usefixtures("imu_files", "imu_ingestor", "imu_chunks", "imu_full", "training_message_metadata")
 class TestIMUIngestor:
@@ -79,5 +80,6 @@ class TestIMUIngestor:
 
         result_path: str = imu_ingestor.ingest(video_msg, video_id, imu_files)
 
-        imu_ingestor.container_svcs.upload_file.assert_called_once_with(ANY, file_merged, imu_ingestor.container_svcs.raw_s3, path)
+        imu_ingestor.container_svcs.upload_file.assert_called_once_with(
+            ANY, file_merged, imu_ingestor.container_svcs.raw_s3, path)
         assert result_path == path

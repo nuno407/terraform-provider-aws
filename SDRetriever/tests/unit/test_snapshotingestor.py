@@ -74,7 +74,7 @@ class TestSnapshotIngestor:
             msg_snapshot.tenant, msg_snapshot.deviceid, start, end)
         assert paths == expected_rcc_folders
 
-    @patch("sdretriever.ingestor.ContainerServices")
+    @patch("sdretriever.ingestor.snapshot.ContainerServices")
     @pytest.mark.unit
     @pytest.mark.parametrize("msg_snapshot,is_present_devCloud,is_available_rcc,message_db_sent,path_files_upload,return_value", [
         # Success

@@ -146,7 +146,7 @@ class TestMain:
         assert result == result_test
 
     @pytest.mark.unit
-    @patch("sdretriever.main.VideoMessage")
+    @patch("sdretriever.handler.VideoMessage")
     @pytest.mark.parametrize(
         "message,is_ingestable,result_check_all_parts,result_ingest,is_metadata_ingested,source",
         [
@@ -253,7 +253,7 @@ class TestMain:
             ing_handler.sqs_client, video_message.receipthandle, source)
 
     @pytest.mark.unit
-    @patch("sdretriever.main.VideoMessage")
+    @patch("sdretriever.handler.VideoMessage")
     @pytest.mark.parametrize(
         "message,is_ingestable,result_check_all_parts,result_ingest,imu_path,source",
         [
@@ -358,7 +358,7 @@ class TestMain:
             ing_handler.sqs_client, video_message.receipthandle, source)
 
     @pytest.mark.unit
-    @patch("sdretriever.main.SnapshotMessage")
+    @patch("sdretriever.handler.SnapshotMessage")
     @pytest.mark.parametrize(
         "message,is_valid,is_irrelevant,result_ingest",
         [
