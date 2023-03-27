@@ -11,24 +11,25 @@ from kink import inject
 from mypy_boto3_sqs import SQSClient
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from healthcheck.config import HealthcheckConfig
-from healthcheck.exceptions import InitializationError
-from healthcheck.model import SQSMessage
+from base.aws.model import SQSMessage
 
+TWELVE_HOURS_IN_SECONDS = 60 * 60 * 12
 MAX_MESSAGE_VISIBILITY_TIMEOUT = 43200
 MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
+class InitializationError(Exception):
+    """Error raised during healthcheck initialization."""
 
 @inject
-class SQSMessageController():
+class SQSController():
     """SQS message controller."""
 
     def __init__(self,
-                 config: HealthcheckConfig,
+                 input_queue_name: str,
                  sqs_client: SQSClient):
-        self.__config = config
+        self.input_queue_name = input_queue_name
         self.__sqs_client = sqs_client
         self.__message_receive_times: ExpiringDict[str, datetime] = ExpiringDict(
             max_len=1000, max_age_seconds=50400)
@@ -42,7 +43,7 @@ class SQSMessageController():
             str: queue url
         """
         response = self.__sqs_client.get_queue_url(
-            QueueName=self.__config.input_queue)
+            QueueName=self.input_queue_name)
         if not response or ("QueueUrl" not in response):
             raise InitializationError("Invalid get queue url reponse")
         return response["QueueUrl"]

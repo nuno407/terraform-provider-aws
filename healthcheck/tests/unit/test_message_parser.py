@@ -4,9 +4,9 @@ import os
 
 import pytest
 
+from base.aws.model import MessageAttributes, SQSMessage
 from healthcheck.exceptions import InvalidMessagePanic
 from healthcheck.message_parser import SQSMessageParser
-from healthcheck.model import MessageAttributes, SQSMessage
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))

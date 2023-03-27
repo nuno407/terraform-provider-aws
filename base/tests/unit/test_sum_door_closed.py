@@ -1,11 +1,13 @@
 """ Module that tests Person Counter Processor. """
 from datetime import timedelta
 
+import pytest
 from pytest import fixture
 
 from base.sum_door_closed import SumDoorClosed
 
 
+@pytest.mark.unit
 # pylint: disable=missing-function-docstring,missing-class-docstring
 class TestSumDoorClosed:
     @fixture

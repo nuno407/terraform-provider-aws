@@ -1,11 +1,13 @@
 """ Module that tests Person Counter Processor. """
 from datetime import timedelta
 
+import pytest
 from pytest import fixture
 
 from base.max_person_count import MaxPersonCount
 
 
+@pytest.mark.unit
 # pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code
 class TestMaxPersonCounter:
     @fixture

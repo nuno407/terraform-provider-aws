@@ -5,9 +5,9 @@ from typing import Dict, Iterator, Optional
 
 from kink import inject
 
+from base.aws.model import SQSMessage
 from healthcheck.exceptions import InvalidMessageCanSkip, InvalidMessageError
-from healthcheck.model import (Artifact, SnapshotArtifact, SQSMessage,
-                               VideoArtifact)
+from healthcheck.model import Artifact, SnapshotArtifact, VideoArtifact
 
 VIDEO = ["InteriorRecorder", "TrainingRecorder", "FrontRecorder"]
 IMAGE = ["TrainingMultiSnapshot", "InteriorRecorderPreview"]

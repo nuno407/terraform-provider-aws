@@ -1,11 +1,10 @@
 """Test S3 controller."""
-import os
 from datetime import datetime
 from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from healthcheck.controller.aws_s3 import S3Controller
+from base.aws.s3 import S3Controller
 from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
 from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
 

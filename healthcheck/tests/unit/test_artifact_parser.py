@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from base.aws.model import SQSMessage, MessageAttributes
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.exceptions import InvalidMessageCanSkip, InvalidMessageError
-from healthcheck.model import (Artifact, MessageAttributes, SnapshotArtifact,
-                               SQSMessage, VideoArtifact)
+from healthcheck.model import Artifact, SnapshotArtifact, VideoArtifact
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))

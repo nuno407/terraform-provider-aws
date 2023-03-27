@@ -1,7 +1,7 @@
 from kink import inject
 
+from base.aws.model import SQSMessage
 from sanitizer.message.persistence import MessagePersistence
-from sanitizer.model import SQSMessage
 
 
 @inject

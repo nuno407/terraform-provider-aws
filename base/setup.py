@@ -13,6 +13,7 @@ extras_require: Dict[str, List[str]] = {
         "pytz==2022.6",
         "pyyaml==6.0",
         "expiringdict==1.2.2",
+        "kink==0.6.6",
         "boto3-stubs[kinesis-video-archived-media]==1.26.91",
         "boto3-stubs[s3]==1.26.91",
         "boto3-stubs[sts]==1.26.91",

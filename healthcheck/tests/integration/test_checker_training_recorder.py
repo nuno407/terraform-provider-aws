@@ -6,7 +6,7 @@ import pytest
 
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
-from healthcheck.controller.aws_s3 import S3Controller
+from base.aws.s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,

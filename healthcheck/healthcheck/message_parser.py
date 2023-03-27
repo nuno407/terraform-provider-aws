@@ -7,8 +7,8 @@ from typing import Optional, Union
 
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
+from base.aws.model import SQSMessage, MessageAttributes
 from healthcheck.exceptions import InvalidMessagePanic
-from healthcheck.model import MessageAttributes, SQSMessage
 
 _logger: logging.Logger = logging.getLogger(__name__)
 

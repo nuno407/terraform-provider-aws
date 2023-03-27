@@ -13,6 +13,8 @@ from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
+from base.aws.s3 import S3Controller
+from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.interior_recorder import \
@@ -21,9 +23,6 @@ from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
-from healthcheck.controller.aws_s3 import S3Controller
-from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
@@ -31,6 +30,7 @@ from healthcheck.message_parser import SQSMessageParser
 from healthcheck.model import ArtifactType, S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
+from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
 
 
@@ -89,6 +89,7 @@ def bootstrap_di() -> None:
     di[GracefulExit] = GracefulExit()
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
+    di["input_queue_name"] = config.input_queue # used by SQSController
     di[HealthcheckConfig] = config
     tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
     di[DatasetMappingConfig] = tenant_config.dataset_mapping
@@ -109,7 +110,7 @@ def bootstrap_di() -> None:
     di[INoSQLDBClient] = MongoDBClient()
     di[ArtifactParser] = ArtifactParser()
     di[S3Controller] = S3Controller()
-    di[SQSMessageController] = SQSMessageController()
+    di[SQSController] = SQSController()
     di[DatabaseController] = DatabaseController()
     di[VoxelFiftyOneController] = VoxelFiftyOneController()
     di["checkers"] = {

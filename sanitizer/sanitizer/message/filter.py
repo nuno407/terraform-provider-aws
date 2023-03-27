@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sanitizer.model import SQSMessage
+from base.aws.model import SQSMessage
 
 
 class MessageFilter:

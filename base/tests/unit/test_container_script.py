@@ -7,7 +7,7 @@ import boto3
 import pytest
 from base.aws.container_services import ContainerServices
 
-
+@pytest.mark.unit
 @pytest.mark.usefixtures("s3_client", "rcc_bucket", "rcc_s3_list_prefix")
 class TestContainerScripts:  # pylint: disable=missing-function-docstring,missing-class-docstring
 

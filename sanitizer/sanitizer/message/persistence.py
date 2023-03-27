@@ -1,8 +1,7 @@
 """ message persistence module. """
 from pymongo import MongoClient
 
-from sanitizer.model import SQSMessage
-
+from base.aws.model import SQSMessage
 
 class MessagePersistence:
     """ Message persistence class. """

@@ -4,10 +4,10 @@ from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
+from base.aws.model import MessageAttributes, SQSMessage
 from healthcheck.config import HealthcheckConfig
 from healthcheck.exceptions import NotPresentError, NotYetIngestedError
-from healthcheck.model import (Artifact, ArtifactType, MessageAttributes,
-                               SnapshotArtifact, SQSMessage, VideoArtifact)
+from healthcheck.model import Artifact, ArtifactType, SnapshotArtifact, VideoArtifact
 from healthcheck.worker import HealthCheckWorker
 
 

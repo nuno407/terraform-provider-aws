@@ -3,6 +3,7 @@ import logging
 from datetime import timedelta
 from typing import Any, Dict, Union
 
+import pytest
 from pytest import LogCaptureFixture
 
 from base.processor import Processor
@@ -22,7 +23,7 @@ class SampleProcessor(Processor):
     def name(self):
         return "sample"
 
-
+@pytest.mark.unit
 class TestProcessor:  # pylint: disable=too-few-public-methods
     """Test processor class."""
 

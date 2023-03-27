@@ -3,10 +3,11 @@ from typing import Callable
 
 from kink import inject
 
+from base.aws.sqs import SQSController
+from base.graceful_exit import GracefulExit
 from sanitizer.artifact.filter import ArtifactFilter
 from sanitizer.artifact.forwarder import ArtifactForwarder
 from sanitizer.artifact.parser import ArtifactParser
-from sanitizer.aws.sqs import AWSSQSController
 from sanitizer.message.filter import MessageFilter
 from sanitizer.message.parser import MessageParser
 
@@ -16,7 +17,7 @@ class Handler:
     """ message handler """
 
     def __init__(self,
-                 aws_sqs_controller: AWSSQSController,
+                 aws_sqs_controller: SQSController,
                  message_parser: MessageParser,
                  message_filter: MessageFilter,
                  artifact_filter: ArtifactFilter,
@@ -29,11 +30,13 @@ class Handler:
         self.artifact_filter = artifact_filter
         self.forwarder = forwarder
 
-
-    def run(self, helper_continue_running: Callable[[], bool] = lambda: True):
+    @inject
+    def run(self, graceful_exit: GracefulExit,
+            helper_continue_running: Callable[[], bool] = lambda: True):
         """handler incoming message and apply parsers and filters"""
         queue_url = self.aws_sqs_controller.get_queue_url()
-        while helper_continue_running():
+
+        while graceful_exit.continue_running and helper_continue_running():
             raw_sqs_message = self.aws_sqs_controller.get_message(queue_url)
             if not raw_sqs_message:
                 continue

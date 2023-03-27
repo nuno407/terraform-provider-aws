@@ -1,6 +1,5 @@
 """ model module. """
 import hashlib
-import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -8,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -115,28 +114,3 @@ class SnapshotArtifact(Artifact):
         self.timestamp = datetime.fromtimestamp(int(raw_timestamp) / 1000)
         _logger.debug("kinesis sync - new timestamp %s",
                       self.timestamp.timestamp())
-
-
-@dataclass
-class MessageAttributes:
-    """Message attributes."""
-    tenant: Optional[str]
-    device_id: Optional[str] = None
-
-
-@dataclass
-class SQSMessage:
-    """SQS Message dataclass."""
-    message_id: str
-    receipt_handle: str
-    timestamp: str
-    body: dict
-    attributes: MessageAttributes
-
-    def stringify(self) -> str:
-        """returns string JSON representation version of message
-
-        Returns:
-            str: JSON representation
-        """
-        return json.dumps(self, default=lambda o: o.__dict__)

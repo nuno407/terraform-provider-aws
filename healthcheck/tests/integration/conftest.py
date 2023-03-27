@@ -3,7 +3,7 @@ import codecs
 import functools
 import json
 import os
-import re
+from unittest.mock import MagicMock
 
 import boto3
 import mongomock
@@ -12,20 +12,16 @@ from bson import json_util
 from kink import di
 from moto import mock_s3
 from mypy_boto3_s3 import S3Client
-from unittest.mock import MagicMock
 
-from pathlib import Path
-from typing import Generator, Callable
-from base.aws.container_services import ContainerServices
-from healthcheck.controller.aws_s3 import S3Controller
+from base.aws.s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.database import NoSQLDBConfiguration
 from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
+from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 from healthcheck.voxel_client import VoxelEntriesGetter
-from healthcheck.tenant_config import TenantConfig, DatasetMappingConfig
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))

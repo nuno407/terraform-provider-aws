@@ -1,11 +1,13 @@
 """ Module that tests Ride Detection Counter Processor. """
 from datetime import timedelta
 
+import pytest
 from pytest import fixture
 
 from base.ride_detection_counter import RideDetectionCounter
 
 
+@pytest.mark.unit
 # pylint: disable=missing-function-docstring,missing-class-docstring
 class TestRideDetectionCounter:
     @fixture

@@ -7,17 +7,18 @@ import botocore.exceptions
 from kink import inject
 
 from base.graceful_exit import GracefulExit
+from base.aws.sqs import SQSController, TWELVE_HOURS_IN_SECONDS
+from base.aws.model import SQSMessage
 from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.common import ArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.constants import (ELASTIC_ALERT_MATCHER, TWELVE_HOURS_IN_SECONDS,
+from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
                                    ELASTIC_SUCCESS_MATCHER)
-from healthcheck.controller.aws_sqs import SQSMessageController
 from healthcheck.exceptions import (FailedHealthCheckError,
                                     InvalidMessageCanSkip, InvalidMessageError,
                                     InvalidMessagePanic, NotYetIngestedError)
 from healthcheck.message_parser import SQSMessageParser
-from healthcheck.model import Artifact, ArtifactType, SQSMessage, VideoArtifact
+from healthcheck.model import Artifact, ArtifactType, VideoArtifact
 from healthcheck.notification import Notifier
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class HealthCheckWorker:
             graceful_exit: GracefulExit,
             sqs_msg_parser: SQSMessageParser,
             artifact_msg_parser: ArtifactParser,
-            sqs_controller: SQSMessageController,
+            sqs_controller: SQSController,
             notifier: Notifier,
             checkers: Dict[ArtifactType, ArtifactChecker]):
         self.__config = config

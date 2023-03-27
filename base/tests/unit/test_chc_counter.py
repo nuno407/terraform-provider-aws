@@ -1,11 +1,13 @@
 """ Module to test CHC Counter. """
 from datetime import timedelta
 
+import pytest
 from pytest import fixture, mark
 
 from base.chc_counter import ChcCounter
 
 
+@pytest.mark.unit
 # pylint: disable=missing-function-docstring,missing-class-docstring
 class TestChcCounter:
     @fixture
