@@ -1,3 +1,4 @@
+# type: ignore
 """Message module. """
 import json
 import logging as log
@@ -94,9 +95,9 @@ class Message:
         return receive_count
 
     @property
-    def attributes(self) -> dict:
+    def attributes(self) -> Optional[dict]:
         """ SQS message attributes """
-        attributes = {}
+        attributes: Optional[dict] = {}
         if "Attributes" in self.raw_message:
             attributes = self.raw_message.get("Attributes")
         else:

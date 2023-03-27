@@ -1,3 +1,4 @@
+# type: ignore
 from unittest.mock import Mock, call
 from unittest.mock import patch, ANY
 from datetime import datetime

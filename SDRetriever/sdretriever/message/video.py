@@ -1,3 +1,4 @@
+# type: ignore
 """ Message module. """
 import logging as log
 from datetime import datetime

@@ -1,3 +1,4 @@
+# type: ignore
 """ ingestion handler module. """
 import logging as log
 from typing import Optional

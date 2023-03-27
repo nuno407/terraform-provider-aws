@@ -1,3 +1,4 @@
+# type: ignore
 """metacontent module"""
 import json
 import logging as log

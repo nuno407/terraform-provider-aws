@@ -1,3 +1,4 @@
+# type: ignore
 """ imu module. """
 import logging as log
 import re

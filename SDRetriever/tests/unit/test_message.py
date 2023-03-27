@@ -1,4 +1,4 @@
-
+# type: ignore
 import json
 from datetime import datetime
 

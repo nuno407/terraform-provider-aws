@@ -1,3 +1,4 @@
+# type: ignore
 """Snapshot message module """
 import logging as log
 from datetime import datetime

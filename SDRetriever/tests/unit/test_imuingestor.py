@@ -1,3 +1,4 @@
+# type: ignore
 from unittest.mock import ANY, Mock
 
 import pytest

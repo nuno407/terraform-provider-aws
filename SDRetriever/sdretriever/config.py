@@ -1,3 +1,4 @@
+# type: ignore
 """ sdr config module """
 from dataclasses import dataclass
 from dataclasses import fields

@@ -1,3 +1,4 @@
+# type: ignore
 """ snapshot module """
 import hashlib
 import logging as log

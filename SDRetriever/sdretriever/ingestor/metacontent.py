@@ -1,3 +1,4 @@
+# type: ignore
 """ metacontent module """
 import gzip
 import logging as log

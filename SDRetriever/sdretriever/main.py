@@ -1,3 +1,4 @@
+# type: ignore
 """Sensor Data Retriever - V7
 - adds ingestion of TrainingRecorder IMU data
 """

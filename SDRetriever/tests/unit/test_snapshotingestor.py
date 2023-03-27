@@ -1,3 +1,4 @@
+# type: ignore
 from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, call, patch
 

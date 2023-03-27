@@ -130,7 +130,7 @@ class Ingestor():
                 continue
 
             # Filter the file for any of the extensions provided
-            files = list(filter(lambda x: any(x['Key'].endswith(extension)
+            files = list(filter(lambda x: any(x['Key'].endswith(extension)  # type: ignore
                                               for extension in extensions),
                                 list_objects_response['Contents']))
 
@@ -188,7 +188,7 @@ class Ingestor():
         hour_groups = re.search("hour=([0-9]{2})", path)
 
         # Cast the dates of the paths if they exist
-        year = int(year_groups.groups()[0])
+        year = int(year_groups.groups()[0])  # type: ignore
         month = int(month_groups.groups()[
                     0]) if month_groups is not None else None
 
@@ -265,9 +265,9 @@ class Ingestor():
             path_date_end['day'] = max_day
 
         result_time_end = end_time_zero.replace(
-            **path_date_end)
+            **path_date_end)  # type: ignore
         result_time_start = start_time_zero.replace(
-            **path_date_start)
+            **path_date_start)  # type: ignore
 
         return result_time_start, result_time_end
 

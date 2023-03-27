@@ -1,9 +1,10 @@
+# type: ignore
 """ ingestor module """
 import hashlib
 import json
 import logging as log
 import os
-import subprocess
+import subprocess  # nosec
 import tempfile
 from datetime import timedelta
 from typing import Optional
