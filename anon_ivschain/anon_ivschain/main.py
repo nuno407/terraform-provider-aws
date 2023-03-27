@@ -5,7 +5,7 @@ import time
 
 import boto3
 
-from base import ImmediateExit
+from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.entrypoint import BaseHandler
@@ -35,7 +35,7 @@ def main():
     """
 
     _logger.info("Starting Container %s...", CONTAINER_NAME)
-    ImmediateExit()
+    graceful_exit = GracefulExit()
 
     _logger.info("Start delay %s seconds", START_DELAY_SECONDS)
     start_delay = int(START_DELAY_SECONDS)
@@ -43,10 +43,8 @@ def main():
 
     container_services = ContainerServices(CONTAINER_NAME, CONTAINER_VERSION)
     aws_clients = AWSServiceClients(
-        s3_client=boto3.client(
-            "s3", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT),
-        sqs_client=boto3.client(
-            "sqs", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
+        s3_client=boto3.client("s3", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT),
+        sqs_client=boto3.client("sqs", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
     )
 
     post_processor = AnonymizePostProcessor(container_services, aws_clients, MOCK_POST_PROCESSOR)
@@ -57,7 +55,7 @@ def main():
                                CALLBACK_ENDPOINT,
                                AnonymizeCallbackEndpointCreator())
 
-    base_handler.setup_and_run(API_PORT, post_processor)
+    base_handler.setup_and_run(API_PORT, graceful_exit, post_processor)
 
 
 if __name__ == "__main__":

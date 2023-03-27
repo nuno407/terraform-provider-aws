@@ -433,14 +433,14 @@ class MessageHandler():
             _logger.exception("Unexpected exception has happened.")
             raise
 
-    def start(self, mode: str) -> None:
+    def start(self, mode: str, graceful_exit: GracefulExit) -> None:
         """
         Setup graceful exit, start main consumer loop function and exit afterwards
 
         Args:
             mode (str): IVS feature chain procesing mode.
+            graceful_exit (GracefulExit): Exit handler to determine if processing should end
         """
-        graceful_exit = GracefulExit()
         _logger.info("Listening to SQS input queue(s)...")
         self.consumer_loop(mode, graceful_exit)
         _logger.info("Exiting after completion of processing.")

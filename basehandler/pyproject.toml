@@ -5,6 +5,10 @@ timid = true
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-v --cov-config=.coveragerc --cov=basehandler --cov-report=xml"
+markers = [
+    "unit",
+    "integration"
+]
 
 [tool.autopep8]
 max_line_length = 120

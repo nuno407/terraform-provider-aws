@@ -2,6 +2,7 @@
 from unittest import mock
 from unittest.mock import Mock
 
+import pytest
 import flask
 from flask import Blueprint
 
@@ -25,6 +26,7 @@ class MockCallbackEndpointCreator(CallbackBlueprintCreator):
         return chc_output_bp
 
 
+@pytest.mark.unit
 def test_basehandler_creation():
     base_handler = BaseHandler("MOCK",
                                get_container_services_mock(),
@@ -40,6 +42,7 @@ def test_basehandler_creation():
 @mock.patch("basehandler.entrypoint.Process")
 @mock.patch("basehandler.entrypoint.MessageHandler")
 @mock.patch("basehandler.message_handler")
+@pytest.mark.unit
 def test_basehandler_setup_and_run(
         message_handler_module_mock: Mock,
         message_handler_mock: Mock,
@@ -69,7 +72,8 @@ def test_basehandler_setup_and_run(
                                "chc",
                                "/callback",
                                MockCallbackEndpointCreator())
+    mock_graceful_exit = Mock(side_effect=False)
 
-    base_handler.setup_and_run(port)
+    base_handler.setup_and_run(port, mock_graceful_exit)
     process_mock.assert_called()
     mock_object_process.start.assert_called()

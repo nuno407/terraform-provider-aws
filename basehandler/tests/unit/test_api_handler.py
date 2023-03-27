@@ -15,6 +15,7 @@ from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
 from basehandler.message_handler import InternalMessage
 
 
+@pytest.mark.unit
 class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-class-docstring
 
     @staticmethod

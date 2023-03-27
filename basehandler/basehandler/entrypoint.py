@@ -6,6 +6,7 @@ import logging
 
 from flask import Blueprint
 
+from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.aws.shared_functions import AWSServiceClients
 from basehandler.api_handler import (APIHandler, OutputEndpointNotifier,
@@ -103,12 +104,14 @@ class BaseHandler():
 
     def setup_and_run(self,
                       api_port: str,
+                      graceful_exit: GracefulExit,
                       post_processor: PostProcessor = NOOPPostProcessor()) -> None:
         """
         Starts the APIHandler and MessageHandler threads
 
         Args:
             api_port (str): port that the flask API will bind to
+            graceful_exit (GracefulExit): Exit handler to determine if processing should end
             post_processor (PostProcessor): object that implements PostProcessor interface
                                             to be executed after ivs feature chain
         """
@@ -139,5 +142,5 @@ class BaseHandler():
         # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
         # WARNING: possible race-condition if the processing is too fast
         # and a new message arrives before the Flask app initializes
-        message_handler.start(mode=self.mode)
+        message_handler.start(self.mode, graceful_exit)
         api_process.terminate()

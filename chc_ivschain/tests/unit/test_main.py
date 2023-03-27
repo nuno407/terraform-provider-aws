@@ -39,4 +39,4 @@ def test_main(
     endpoint.assert_called_once()
     base_handler.assert_called_once_with(main.CONTAINER_NAME, ANY, ANY, main.MODE,
                                          main.CALLBACK_ENDPOINT, endpoint.return_value)
-    handler_object.setup_and_run.assert_called_once_with(main.API_PORT)
+    handler_object.setup_and_run.assert_called_once_with(main.API_PORT, ANY)

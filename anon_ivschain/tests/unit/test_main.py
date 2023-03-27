@@ -35,4 +35,4 @@ def test_main(_logger, post_processor, boto3_client, base_handler, endpoint, _, 
     boto3_client.assert_any_call("sqs", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
     endpoint.assert_called_once()
     base_handler.assert_called_once_with(CONTAINER_NAME, ANY, ANY, MODE, CALLBACK_ENDPOINT, "MOCK_ENDPOINT")
-    handler_object.setup_and_run.assert_called_once_with(API_PORT, "MOCK_POST_PROCESSOR")
+    handler_object.setup_and_run.assert_called_once_with(API_PORT, ANY, "MOCK_POST_PROCESSOR")

@@ -21,6 +21,7 @@ from basehandler.message_handler import (
     FileIsEmptyException)
 
 
+@pytest.mark.unit
 class TestMessageHandler():  # pylint: disable=too-many-public-methods
     """TestMessageHandler class.
 
@@ -675,6 +676,7 @@ class TestMessageHandler():  # pylint: disable=too-many-public-methods
 
         message_handler_fix.consumer_loop = Mock()
         logger_fixture.info = Mock()
+        graceful_exit = Mock(side_effect=False)
 
-        message_handler_fix.start("chc")
+        message_handler_fix.start("chc", graceful_exit)
         logger_fixture.info.assert_called()
