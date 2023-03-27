@@ -48,6 +48,18 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "setuptools"
 ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "pymongo.*"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "bson.*"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "moto"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "flask_restx"
+ignore_missing_imports = true
 
 [tool.bandit]
 exclude_dirs = ["tests"]

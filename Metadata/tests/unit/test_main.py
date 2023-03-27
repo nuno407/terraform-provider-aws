@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from typing import Optional
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch, ANY
 
 import pytest
@@ -82,7 +83,7 @@ def _metadata_sqs_message_helper(body: dict, source_container: str = "SDRetrieve
                 "DataType": "String"}}}
 
 
-def _video_message_body(recording_id: str, imu_path: str = None) -> dict:
+def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> dict:
     result = {
         "_id": f"{recording_id}",
         "MDF_available": "No",
@@ -106,7 +107,7 @@ def _video_message_body(recording_id: str, imu_path: str = None) -> dict:
     return result
 
 
-def _video_message_dict(recording_id: str, imu_path: str = None) -> dict:
+def _video_message_dict(recording_id: str, imu_path: Optional[str] = None) -> dict:
     result = {
         "video_id": recording_id,
         "MDF_available": "No",
@@ -117,7 +118,7 @@ def _video_message_dict(recording_id: str, imu_path: str = None) -> dict:
             "tenantID": "datanauts",
             "deviceID": "DATANAUTS_DEV_01",
             "length": "0:01:41",
-            "snapshots_paths": ['test_snapshot1', 'test_snapshot2'],
+            "snapshots_paths": ["test_snapshot1", "test_snapshot2"],
             "#snapshots": 2,
             "time": "2022-11-25 11:43:15",
             "internal_message_reference_id": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest()
@@ -198,7 +199,7 @@ def _find_and_update_media_references_param(media_paths: list[str], input_query:
     return media_paths, input_query
 
 
-class TestMetadataMain():
+class TestMetadataMain():  # pylint: disable=too-many-public-methods
     """TestMetadataMain.
 
     Test functions inside metadata.consumer.main module
@@ -323,13 +324,18 @@ class TestMetadataMain():
         mock_find_and_update_media_references.assert_not_called()
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("input_message,expected_recording_item",
-                             [(_video_message_body("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),
-                               _video_message_dict("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044")),
-                                 (_video_message_body("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
-                                                      "imu/path/data.csv"),
-                                  _video_message_dict("deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
-                                                      "imu/path/data.csv"))])
+    @pytest.mark.parametrize(
+        "input_message,expected_recording_item",
+        [(_video_message_body(
+            "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),
+          _video_message_dict(
+            "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044")),
+         (_video_message_body(
+             "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
+             "imu/path/data.csv"),
+          _video_message_dict(
+             "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044",
+             "imu/path/data.csv"))])
     def test_create_video_recording_item(
             self,
             mock_find_and_update_media_references: Mock,
@@ -399,7 +405,7 @@ class TestMetadataMain():
     @patch("metadata.consumer.main.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
-    def test_update_voxel_media(
+    def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
             mock_create_dataset_voxel: Mock,
             mock_update_sample_voxel: Mock,
@@ -583,7 +589,7 @@ class TestMetadataMain():
     @patch("metadata.consumer.main.create_recording_item")
     @patch("metadata.consumer.main.upsert_mdf_data")
     @patch("metadata.consumer.main.update_voxel_media")
-    def test_upsert_data_to_db_sdr_mdf(
+    def test_upsert_data_to_db_sdr_mdf(  # pylint: disable=too-many-arguments
             self,
             mock_update_voxel_media: Mock,
             mock_upsert_mdf_data: Mock,
@@ -761,7 +767,7 @@ class TestMetadataMain():
 
     @pytest.mark.unit
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
-    def test_metadata_consumer_main(
+    def test_metadata_consumer_main(  # pylint: disable=too-many-arguments,unused-argument
             self,
             mock_container_services: Mock,
             mock_boto3_client: Mock,

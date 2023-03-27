@@ -131,8 +131,9 @@ def test_get_table_data(aggregation_result_path: str,
 
 @ pytest.mark.unit
 def test_get_single_recording():
-    jsonstr = open(os.path.join(
-        __location__, "test_data/recording_aggregation_response.json"), "r").read()
+    with open(os.path.join(
+            __location__, "test_data/recording_aggregation_response.json"), "r", encoding="utf8") as json_file:
+        jsonstr = json_file.read()
     aggregation_result = json.loads(jsonstr)
     db.get_single_recording = Mock(
         side_effect=[aggregation_result[2], aggregation_result[3]])
@@ -140,8 +141,9 @@ def test_get_single_recording():
     result = service.get_single_recording(
         "srxfut2internal20_rc_srx_qa_na_fut2_003_TrainingRecorder_1648835260452_1648835387254")
 
-    expectedstr = open(os.path.join(
-        __location__, "test_data/single_recording_expected.json"), "r").read()
+    with open(os.path.join(
+            __location__, "test_data/single_recording_expected.json"), "r", encoding="utf8") as expected_file:
+        expectedstr = expected_file.read()
     expected = json.loads(expectedstr)
     assert result == expected
     assert db.get_single_recording.call_count == 2
@@ -163,7 +165,7 @@ def test_update_video_description():
 
 
 @pytest.mark.unit
-def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder():
+def test_get_video_signals_from_interiorrecorder_given_trainingrecorder():
     # GIVEN
     db.get_single_recording = Mock(
         return_value={
@@ -187,7 +189,7 @@ def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder():
 
     # THEN
     db.get_recording_list.assert_called_once_with(
-        page_size=10,
+        page_size=10,  # pylint: disable=duplicate-code
         page=1,
         additional_query=additional_query,
         order=None,
@@ -195,7 +197,7 @@ def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder():
 
 
 @pytest.mark.unit
-def test_get_video_signals_from_InteriorRecorder_given_TrainingRecorder_no_video_exception():
+def test_get_video_signals_from_interiorrecorder_given_trainingrecorder_no_video_exception():
     # GIVEN
     db.get_single_recording = Mock(
         return_value={

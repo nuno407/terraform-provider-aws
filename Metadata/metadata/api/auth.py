@@ -113,7 +113,7 @@ def require_auth(api_method: Callable):
                 audience=AZURE_CLIENT_ID,
                 issuer=AZURE_ISS_URL
             )
-            if any([scp not in token_claims["scp"] for scp in REQUIRED_SCOPES.split(" ")]):
+            if any(scp not in token_claims["scp"] for scp in REQUIRED_SCOPES.split(" ")):
                 abort(401)
 
             return api_method(*args, **kwargs)

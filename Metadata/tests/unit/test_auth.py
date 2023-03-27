@@ -71,7 +71,7 @@ def requests_get(mocker: MockerFixture) -> Mock:
 @pytest.fixture(name="mock_jwks_response_json_decode_error")
 def jwks_response_json_decode_error(mocker: MockerFixture) -> Mock:
     """mock jwt.decode exception"""
-    class MockedResponse():
+    class MockedResponse():  # pylint: disable=too-few-public-methods
         def json(self):
             raise JSONDecodeError("Error parsing JWKS response", r"{}", 0)
     return mocker.patch(MOCK_REQUEST_GET_PATCH_PATH, return_value=MockedResponse())

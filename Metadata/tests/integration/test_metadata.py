@@ -11,7 +11,7 @@ __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def message_attributes() -> dict:
+def _message_attributes() -> dict:
     return {
         "SourceContainer": {"StringValue": "SDRetriever", "DataType": "String"},
         "ToQueue": {
@@ -20,7 +20,8 @@ def message_attributes() -> dict:
         }
     }
 
-def input_message_recording(folder) -> dict:
+
+def _input_message_recording(folder) -> dict:
     body = {
         "_id": "ridecare_device_recording_1662080172308_1662080561893",
         "MDF_available": "Yes",
@@ -38,13 +39,14 @@ def input_message_recording(folder) -> dict:
 
     message = {
         "Body": json.dumps(body).replace("\"", "\""),
-        "MessageAttributes": message_attributes(),
+        "MessageAttributes": _message_attributes(),
         "ReceiptHandle": "receipt_handle"
     }
 
     return message
 
-def input_message_snapshot_body_template() -> dict:
+
+def _input_message_snapshot_body_template() -> dict:
     return {
         "MDF_available": "Yes",
         "media_type": "image",
@@ -55,22 +57,23 @@ def input_message_snapshot_body_template() -> dict:
     }
 
 
-def input_message_snapshot_included(folder: str):
-    body_template = input_message_snapshot_body_template()
+def _input_message_snapshot_included(folder: str):
+    body_template = _input_message_snapshot_body_template()
     body_template["_id"] = "ridecare_device_snapshot_1662080178308"
     body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1662080178308.jpeg"
     body_template["timestamp"] = 1662080178308
 
     message = {
         "Body": json.dumps(body_template).replace("\"", "\""),
-        "MessageAttributes": message_attributes(),
+        "MessageAttributes": _message_attributes(),
         "ReceiptHandle": "receipt_handle"
     }
 
     return message
 
-def input_message_snapshot_excluded(folder: str):
-    body_template = input_message_snapshot_body_template()
+
+def _input_message_snapshot_excluded(folder: str):
+    body_template = _input_message_snapshot_body_template()
     body_template["_id"] = "ridecare_device_snapshot_1692080178308"
     body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1692080178308.jpeg"
     body_template["timestamp"] = 1692080178308
@@ -78,7 +81,7 @@ def input_message_snapshot_excluded(folder: str):
 
     message = {
         "Body": json.dumps(body_template).replace("\"", "\""),
-        "MessageAttributes": message_attributes(),
+        "MessageAttributes": _message_attributes(),
         "ReceiptHandle": "receipt_handle"
     }
     return message
@@ -122,7 +125,6 @@ class TestMain:
         _ = mockdb_client.DataIngestion["signals"]
         return mockdb_client.DataIngestion
 
-
     @pytest.fixture
     def environ_mock(self, mocker: MockerFixture) -> Mock:
         environ_mock = mocker.patch.dict(
@@ -136,30 +138,30 @@ class TestMain:
         return create_dataset_mock, update_sample_mock
 
     @pytest.mark.integration
-    @pytest.mark.parametrize("input_message_recording, input_message_snapshot_included, "
-                             "input_message_snapshot_excluded, s3_folder, expected_dataset", [
-        (input_message_recording("folder"),
-         input_message_snapshot_included("folder"),
-         input_message_snapshot_excluded("folder"),
-         "folder",
-         "Debug_Lync"),
-        (input_message_recording("ridecare_companion_gridwise"),
-         input_message_snapshot_included("ridecare_companion_gridwise"),
-         input_message_snapshot_excluded("ridecare_companion_gridwise"),
-         "ridecare_companion_gridwise",
-         "RC-ridecare_companion_gridwise")
-    ])
-    def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,
-                                        mongomock_fix: Mock, input_message_recording, input_message_snapshot_included,
-                                        input_message_snapshot_excluded, s3_folder, expected_dataset,
+    @pytest.mark.parametrize("_input_message_recording, _input_message_snapshot_included, "
+                             "_input_message_snapshot_excluded, s3_folder, expected_dataset", [
+                                 (_input_message_recording("folder"),
+                                     _input_message_snapshot_included("folder"),
+                                     _input_message_snapshot_excluded("folder"),
+                                     "folder",
+                                     "Debug_Lync"),
+                                 (_input_message_recording("ridecare_companion_gridwise"),
+                                     _input_message_snapshot_included("ridecare_companion_gridwise"),
+                                     _input_message_snapshot_excluded("ridecare_companion_gridwise"),
+                                     "ridecare_companion_gridwise",
+                                     "RC-ridecare_companion_gridwise")
+                             ])
+    def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
+                                        mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
+                                        _input_message_snapshot_excluded, s3_folder, expected_dataset,
                                         voxel_mock: tuple[Mock, Mock]):
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
         container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [
-            input_message_snapshot_included,
-            input_message_snapshot_excluded,
-            input_message_recording
+            _input_message_snapshot_included,
+            _input_message_snapshot_excluded,
+            _input_message_recording
         ]
 
         # WHEN

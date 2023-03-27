@@ -1,3 +1,4 @@
+"""Metadata service setup"""
 from setuptools import setup
 
 

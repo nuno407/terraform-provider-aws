@@ -48,12 +48,11 @@ def generate_exception_logs(err: Exception):
         "The following exception occured during execution: %s", err)
 
 
-def init_controller(service: ApiService) -> flask.Flask:
+def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-many-locals,too-many-statements
     """Initialize Flask application defined in the controller module.
 
     Args:
         service (ApiService): ApiService object.
-        enable_authn (bool): enable `Authorization` header JWT verification.
     Returns:
         flask.Flask: initialized flask app with routes registered.
     """
@@ -95,7 +94,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     })
 
     @api.route("/alive")
-    class Alive(Resource):
+    class Alive(Resource):  # pylint: disable=too-few-public-methods,unused-variable
+        """Class for /alive endpoint response"""
         @api.response(200, "Success", alive_200_model)
         def get(self):
             """
@@ -110,7 +110,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     })
 
     @api.route("/ready")
-    class Ready(Resource):
+    class Ready(Resource):  # pylint: disable=too-few-public-methods,unused-variable
+        """Class for /ready endpoint response"""
         @api.response(200, "Success", ready_200_model)
         def get(self):
             """
@@ -130,7 +131,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     })
 
     @api.route("/getVideoSignals/<string:video_id>")
-    class VideoSignals(Resource):
+    class VideoSignals(Resource):  # pylint: disable=too-few-public-methods,unused-variable
+        """Class for /getVideoSignals endpoint responses"""
         @api.response(200, "Success", get_videosignals_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
@@ -142,13 +144,14 @@ def init_controller(service: ApiService) -> flask.Flask:
             """
             try:
                 video_signals = service.get_video_signals(video_id)
-                return flask.jsonify(message=video_signals, statusCode="200")
+                video_signals_response = flask.jsonify(message=video_signals, statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+            return video_signals_response
 
     # Custom model for updateVideoUrl code 200 response
     update_videodescription_200_model = api.model("Video_Description_200", {
@@ -157,7 +160,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     })
 
     @api.route("/videoDescription/<string:video_id>")
-    class VideoDescription(Resource):
+    class VideoDescription(Resource):  # pylint: disable=unused-variable
+        """Class for /videoDescription endpoint responses"""
         @api.response(200, "Success", update_videodescription_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
@@ -169,13 +173,14 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 description = request.json["description"]
                 service.update_video_description(video_id, description)
-                return flask.jsonify(statusCode="200")
+                video_description_response = flask.jsonify(statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+            return video_description_response
 
     # Custom model for getTableData code 200 response (Swagger documentation)
     tabledata_nest_model = api.model("tabledata_nest",
@@ -191,7 +196,8 @@ def init_controller(service: ApiService) -> flask.Flask:
     })
 
     @api.route("/getTableData")
-    class TableData(Resource):
+    class TableData(Resource):  # pylint: disable=unused-variable
+        """Class for /getTableData endpoint responses"""
         @api.response(200, "Success", get_tabledata_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
@@ -207,7 +213,7 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, None, None, None, None)
-                return flask.jsonify(
+                table_data_response = flask.jsonify(
                     message=response_msg,
                     pages=number_pages,
                     total=number_recordings,
@@ -218,9 +224,27 @@ def init_controller(service: ApiService) -> flask.Flask:
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+            return table_data_response
+
+        def __sanitize_query(self, raw_query: str) -> list:
+            query_list: list = []
+            raw_query_list = raw_query.split(",")
+            for raw_subquery in raw_query_list:
+                # handle } incidents
+                if raw_subquery == "{}":
+                    continue
+                if raw_subquery.startswith("{") and not raw_subquery.endswith("}}"):
+                    raw_subquery = raw_subquery + "}"
+                if not raw_subquery.startswith("{") and raw_subquery.endswith("}}"):
+                    raw_subquery = "{" + raw_subquery
+                if not raw_subquery.startswith("{") or not raw_subquery.endswith("}"):
+                    raw_subquery = "{" + raw_subquery + "}"
+                query_list.append(
+                    yaml.safe_load(raw_subquery))
+            return query_list
 
         @require_auth
-        def post(self):
+        def post(self):  # pylint: disable=too-many-locals
             """
             Returns the table items filtered and sorted with custom queries
 
@@ -284,26 +308,12 @@ def init_controller(service: ApiService) -> flask.Flask:
             page = request.args.get("page", 1, int)
 
             query_list = []
-            raw_query_list = []
             operator = None
             sorting = "time"
             direction = "asc"
             try:
                 if request.json:
-                    raw_query_list = request.json.get("query").split(",")
-                    if len(raw_query_list) > 0:
-                        for raw_subquery in raw_query_list:
-                            # handle } incidents
-                            if raw_subquery == "{}":
-                                continue
-                            if raw_subquery.startswith("{") and not raw_subquery.endswith("}}"):
-                                raw_subquery = raw_subquery + "}"
-                            if not raw_subquery.startswith("{") and raw_subquery.endswith("}}"):
-                                raw_subquery = "{" + raw_subquery
-                            if not raw_subquery.startswith("{") or not raw_subquery.endswith("}"):
-                                raw_subquery = "{" + raw_subquery + "}"
-                            query_list.append(
-                                yaml.safe_load(raw_subquery))
+                    query_list = self.__sanitize_query(request.json.get("query"))
                     raw_operator = request.json.get("logic_operator")
                     if raw_operator:
                         operator = yaml.safe_load(raw_operator)
@@ -320,7 +330,7 @@ def init_controller(service: ApiService) -> flask.Flask:
             try:
                 response_msg, number_recordings, number_pages = service.get_table_data(
                     page_size, page, query_list, operator, sorting, direction)
-                return flask.jsonify(
+                queried_items_response = flask.jsonify(
                     message=response_msg,
                     pages=number_pages,
                     total=number_recordings,
@@ -334,6 +344,7 @@ def init_controller(service: ApiService) -> flask.Flask:
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+            return queried_items_response
 
     get_single_tabledata_200_model = api.model("Get_single_tabledata_200",
                                                {
@@ -347,7 +358,8 @@ def init_controller(service: ApiService) -> flask.Flask:
         "requested_id", type=str, required=True, help="Name of the video file", location="args")
 
     @api.route("/getTableData/<requested_id>")
-    class SingleTableData(Resource):
+    class SingleTableData(Resource):  # pylint: disable=unused-variable
+        """Class for /getTableData endpoint responses"""
         @api.response(200, "Success", get_single_tabledata_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
@@ -359,13 +371,14 @@ def init_controller(service: ApiService) -> flask.Flask:
             """
             try:
                 response_msg = service.get_single_recording(requested_id)
-                return flask.jsonify(message=response_msg, statusCode="200")
+                single_recording_response = flask.jsonify(message=response_msg, statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+            return single_recording_response
 
     # Custom model for getAnonymizedVideoUrl code 200 response (Swagger documentation)
     get_anonymized_video_url_200_model = api.model(
@@ -377,7 +390,7 @@ def init_controller(service: ApiService) -> flask.Flask:
                 example="200")})
 
     @api.route("/getAnonymizedVideoUrl/<recording_id>")
-    class VideoUrl(Resource):
+    class VideoUrl(Resource):  # pylint: disable=unused-variable
         """
         Gets the URL of an anonymized version of a video file for direct access or embedding as a video stream
         """
@@ -391,12 +404,12 @@ def init_controller(service: ApiService) -> flask.Flask:
             """
             try:
                 video_url = service.create_anonymized_video_url(recording_id)
-                return flask.jsonify(message=video_url, statusCode="200")
+                url_response = flask.jsonify(message=video_url, statusCode="200")
             except (NameError, LookupError, ValueError) as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
-
+            return url_response
     return app

@@ -30,12 +30,13 @@ service = ApiService(persistence, s3mock)
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-testrecordings = json.loads(
-    open(os.path.join(__location__, "test_data/recordings.json"), "r").read())
-testexecs = json.loads(open(os.path.join(
-    __location__, "test_data/pipeline_executions.json"), "r").read())
-testalgo = json.loads(
-    open(os.path.join(__location__, "test_data/algo_output.json"), "r").read())
+with open(os.path.join(__location__, "test_data/recordings.json"), "r", encoding="utf8") as recordings_file:
+    testrecordings = json.loads(recordings_file.read())
+with open(os.path.join(__location__, "test_data/pipeline_executions.json"), "r", encoding="utf8") as execs_file:
+    testexecs = json.loads(execs_file.read())
+with open(os.path.join(__location__, "test_data/algo_output.json"), "r", encoding="utf8") as algo_file:
+    testalgo = json.loads(algo_file.read())
+
 recordings.insert_many(testrecordings)
 pipeline_execs.insert_many(testexecs)
 algo_outputs.insert_one(testalgo)

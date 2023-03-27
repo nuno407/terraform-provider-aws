@@ -153,18 +153,16 @@ def test_get_recording_list_paged(mock_persistence):
 
 
 @pytest.mark.unit
-@pytest.mark.skip
-# FIXME: should recordings with pipeline exec marked as failed not be
-# returned by get_recording_list? currently they"re not being filtered.
 def test_get_empty_recording_list(mock_persistence):
     database: Persistence = mock_persistence[0]
     client: mongomock.MongoClient = mock_persistence[1]
     recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
     pipeline_execs: Collection = client[DATA_INGESTION_DATABASE_NAME].pipeline_exec
+    additional_query: dict = {"pipeline_execution.data_status": {"$not": {"$regex": "failed"}}}
     prepare_recordings_data(recordings, pipeline_execs, "failed")
 
     recording_list, total, pages = database.get_recording_list(
-        10, 1, None, None)
+        10, 1, additional_query, None)
 
     assert len(recording_list) == 0
     assert total == 0

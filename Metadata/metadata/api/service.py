@@ -51,11 +51,23 @@ MONGODB_PIPELINE_PREFIX_ADD_START_AT_END_AT = [
 class ApiService:
     """API service class."""
 
-    def __init__(self, db: Persistence, s3):
-        self.__db = db
-        self.__s3 = s3
+    def __init__(self, database: Persistence, s3_client):
+        self.__db = database
+        self.__s3 = s3_client
 
-    def get_video_signals(self, video_id: str):
+    def get_video_signals(self, video_id: str):  # pylint: disable=too-many-locals
+        """
+        Gets the signals associated with a video
+
+        Args:
+            video_id (str): id of the video to fetch the signals form
+
+        Raises:
+            LookupError: if the video is not found
+
+        Returns:
+            signals (obj): signals for given video_id
+        """
         signals = {}
 
         if "Training" in video_id:
@@ -66,11 +78,11 @@ class ApiService:
             # Obtain training recording (High Quality (HQ) video)
             training_recording = self.__db.get_single_recording(recording_id=video_id)
             # Obtain Interior recording (Low Quality Video) that overlaps with the HQ video
-            # We assumme that interior is contained in training recording
+            # We assume that interior is contained in training recording
             #                                                       Timeline
             # TrainingRecording: Start---------------------------------------------------------------------------End
             # InteriorRecording:                               Start----------------End
-            # Diference          <---Up to 2min (120000MS)---->                        <---Up to 2min (120000MS)--->
+            # Difference          <---Up to 2min (120000MS)---->                        <---Up to 2min (120000MS)--->
             splitted_video_name = video_id.split("_")
             training_recording_start_at = int(splitted_video_name[-2])
             training_recording_end_at = int(splitted_video_name[-1])
@@ -95,10 +107,9 @@ class ApiService:
             if number_of_recordings != 1:
                 result_str = f"[{','.join([result['video_id'] for result in query_result])}]"
                 raise LookupError(
-                    """Unable to get LQ video from HQ video_id: %s.
-                        Multiple results were found. Query results: %s. Regex:""",
-                    video_id,
-                    result_str)
+                    f"""Unable to get LQ video from HQ video_id: {video_id}.
+                        Multiple results were found. Query results: {result_str}. Regex:""",
+                )
 
             _logger.debug("Using signals of Interior Recording %s on Training Recorder %s",
                           query_result[0]["video_id"], training_recording)
@@ -133,7 +144,7 @@ class ApiService:
                 else:
                     signals[signal_group["algo_out_id"].split(
                         "_")[-1]] = self.__create_video_signals_object(signal_group)
-        _logger.info(f"{video_id} got signal fields {signals.keys()}")
+        _logger.info("%s got signal fields %s", video_id, signals.keys())
         return signals
 
     def __create_video_signals_object(self, chc_result, time_offset: timedelta = timedelta(seconds=0)):
@@ -161,16 +172,28 @@ class ApiService:
                     key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
 
         elif chc_result["signals"] and type(chc_result["signals"]):
-            for k, v in chc_result["signals"].items():
-                result_signals[k] = {}
-                result_signals[k]["CameraViewBlocked"] = v
+            for key, value in chc_result["signals"].items():
+                result_signals[key] = {}
+                result_signals[key]["CameraViewBlocked"] = value
 
         return result_signals
 
     def update_video_description(self, video_id, description):
+        """Calls the db module method to update a recording description"""
         self.__db.update_recording_description(video_id, description)
 
     def create_anonymized_video_url(self, recording_id):
+        """
+        Creates a presigned url for an anonymized video in S3. The location
+        of the anonymized video for a given recording is fetched from the
+        database
+
+        Args:
+            recording_id (str): id of the original recording
+
+        Returns:
+            url (str): presigned url for anonymized video
+        """
         url = None
         entry = self.__db.get_algo_output("Anonymize", recording_id)
         if entry:
@@ -181,16 +204,38 @@ class ApiService:
         return url
 
     def create_video_url(self, bucket, folder, file):
+        """
+        Creates a presigned url for any video in S3, given its S3 bucket,
+        folder and file name
+
+        Args:
+            bucket (str): S3 bucket where the video is
+            folder (str): S3 folder where the video is
+            file (str): filename of the video
+
+        Returns:
+            url (str): presigned url for the video
+        """
         path = Path(folder) / Path(file)
         return self.__create_video_url(bucket, str(path))
 
     def __create_video_url(self, bucket, path):
+        """
+        Creates a presigned url for a video in S3 from the S3 client
+
+        Args:
+            bucket (str): s3 bucket where the video is
+            path (str): path within the bucket where the file is
+
+        Returns:
+            url (str): presigned url for the video
+        """
         params_s3 = {"Bucket": bucket, "Key": path}
         url = self.__s3.generate_presigned_url("get_object",
                                                Params=params_s3)
         return url
 
-    def get_table_data(self, page_size: int, page: int,
+    def get_table_data(self, page_size: int, page: int,  # pylint: disable=too-many-arguments
                        query: Optional[List[dict]],
                        operator: Optional[str],
                        sorting: Optional[str],
@@ -263,13 +308,12 @@ class ApiService:
         }
 
         # Check if operator is valid
-        assert logic_operator.lower() in logic_operators.keys(
-        ), "Invalid/Forbidden logical operator"
+        assert logic_operator.lower() in logic_operators, "Invalid/Forbidden logical operator"
 
         # Check if all query fields are valid
         for subquery in query:
-            assert [fieldname for fieldname in subquery.keys(
-            ) if fieldname not in self.__query_fields.keys()] == [], "Invalid/Forbidden query keys"
+            assert [fieldname for fieldname in subquery if fieldname not in self.__query_fields] == [
+            ], "Invalid/Forbidden query keys"
 
         # Create empty list that will contain all sub queries received
         query_list = []
@@ -281,7 +325,7 @@ class ApiService:
 
                 # OPERATOR VALIDATION + CONVERSION
                 # Check if operator is valid
-                assert operator in operators.keys(), "Invalid/Forbidden query operators"
+                assert operator in operators, "Invalid/Forbidden query operators"
 
                 # Convert the operator to mongo syntax
                 mongo_operator = operators[operator]
@@ -313,19 +357,37 @@ class ApiService:
         }
 
         # Check if operator is valid
-        assert direction.lower() in directions.keys(), "Invalid/Forbidden sorting direction"
+        assert direction.lower() in directions, "Invalid/Forbidden sorting direction"
 
         # Check if the sorting field is valid
-        assert sorting in self.__query_fields.keys(), "Invalid/Forbidden sorting field"
+        assert sorting in self.__query_fields, "Invalid/Forbidden sorting field"
 
         return {self.__query_fields[sorting]: directions[direction]}
 
     def get_media_entry(self, recording_id):
+        """
+        Gets media entry from database and produces a mapped version of it
+
+        Args:
+            recording_id (str): id of the recording
+
+        Returns:
+            result (obj): mapped recording object
+        """
         recording_item = self.__db.get_media_entry(recording_id)
         result = self.__map_recording_object(recording_item)
         return result
 
     def get_single_recording(self, recording_id):
+        """
+        Gets a single recording
+
+        Args:
+            recording_id (str): recording item identifier
+
+        Returns:
+            result (obj): recording object
+        """
         recording_item = self.__db.get_single_recording(recording_id)
         result = self.__map_recording_object(recording_item)
 
@@ -336,6 +398,15 @@ class ApiService:
         return result
 
     def __map_recording_object(self, recording_item):
+        """
+        Produces a mapped recording object from a given recording item
+
+        Args:
+            recording_item (obj): recording item
+
+        Returns:
+            result (obj): mapped recording object
+        """
         recording_object = {}
 
         recording_overview = recording_item.get("recording_overview", {})
@@ -376,31 +447,23 @@ class ApiService:
 
         return recording_object
 
-    def __calculate_chc_events(self, chc_periods):
-        duration = 0.0
-        number = 0
-        for period in chc_periods:
-            duration += period["duration"]
-            if period["duration"] > 0.0:
-                number += 1
-
-        return number, duration
-
     def __check_and_get_lq_video_info(self, entry_id):
         recorder_name_matcher = re.match(r".+_([^_]+)_\d+_\d+", entry_id)
         if not recorder_name_matcher or len(recorder_name_matcher.groups()) != 1:
             _logger.warning(
-                f"Could not parse recorder information from {entry_id}")
+                "Could not parse recorder information from %s", entry_id)
             return None
 
         if recorder_name_matcher.group(1) != "TrainingRecorder":
             _logger.debug(
-                f"Skipping LQ video search for {entry_id} because it is recorded with {recorder_name_matcher.group(1)}")
+                "Skipping LQ video search for %s because it is recorded with %s",
+                entry_id,
+                recorder_name_matcher.group(1))
             return None
         lq_id = entry_id.replace("TrainingRecorder", "InteriorRecorder")
         try:
             lq_entry = self.__db.get_single_recording(lq_id)
-        except BaseException:
+        except BaseException:  # pylint: disable=broad-except
             return None
         lq_video_details = lq_entry.get("recording_overview", {})
 
