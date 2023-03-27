@@ -1,0 +1,28 @@
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.12-alpine3.15
+
+WORKDIR /app
+
+# Install ffmpeg program (to convert .avi to .mp4)
+RUN apk update && apk upgrade && apk add ffmpeg
+
+# Run as non-root user and group
+RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
+USER 1000
+
+# Add base library
+COPY --chown=1000:3000 ./base /app/base
+
+# Copy requirements.txt
+COPY --chown=1000:3000 ./sanitizer/requirements.txt /app/sanitizer/requirements.txt
+WORKDIR /app/sanitizer
+RUN pip install -r requirements.txt
+
+# Copy application code
+COPY --chown=1000:3000 ./sanitizer/sdretriever/ /app/sanitizer/sdretriever
+COPY --chown=1000:3000 ./sanitizer/setup.py /app/sanitizer/setup.py
+
+WORKDIR /app/SDRetriever
+RUN pip install -e .
+
+# Run anon_ivschain main by its package name
+ENTRYPOINT [ "python", "-m", "sanitizer.main" ]
