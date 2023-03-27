@@ -38,7 +38,6 @@ class Ingestor():
         self.sts_helper = sts_helper
         self._rcc_credentials = self.sts_helper.get_credentials()
         self.metadata_queue = self.container_svcs.sqs_queues_list["Metadata"]
-        self.rexp_mp4 = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
 
         # Build regex for mp4 (RecorderType, RecorderType, id)
         self.rexp_mp4 = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
@@ -67,7 +66,7 @@ class Ingestor():
             A tuple containing a boolean response if the path was found and a dictionary with the S3 objects information
         """
         s3_object_params = RCCS3ObjectParams(s3_path=s3_path, bucket=bucket)
-        s3_client = self.RCC_S3_CLIENT
+        s3_client = self.rcc_s3_client
 
         # Check if there is a file with the same name already stored on target S3 bucket
         try:
@@ -120,7 +119,7 @@ class Ingestor():
         if extensions is None:
             extensions = []
         subfolders: Iterator[str] = self._discover_s3_subfolders(
-            f'{tenant}/{device_id}/', bucket, self.RCC_S3_CLIENT, start_time, end_time)
+            f'{tenant}/{device_id}/', bucket, self.rcc_s3_client, start_time, end_time)
 
         for subfolder in subfolders:
             path = subfolder + prefix
@@ -138,7 +137,7 @@ class Ingestor():
                 raise RuntimeError(f"Found more then one file for {path}, files found: {str(files)}")
 
             if len(files) == 1:
-                snapshot_bytes: bytearray = self.container_svcs.download_file(self.RCC_S3_CLIENT, bucket, path)
+                snapshot_bytes: bytearray = self.container_svcs.download_file(self.rcc_s3_client, bucket, path)
                 LOGGER.debug("File found at %s", path)
                 return snapshot_bytes
 
@@ -182,10 +181,10 @@ class Ingestor():
         Returns:
             dict: A dictionary containing (year,month,day and hour) if available.
         """
-        year_groups = re.search("year=([0-9]{4})", path)
-        month_groups = re.search("month=([0-9]{2})", path)
-        day_groups = re.search("day=([0-9]{2})", path)
-        hour_groups = re.search("hour=([0-9]{2})", path)
+        year_groups = re.search(r"year=(\d{4})", path)
+        month_groups = re.search(r"month=(\d{2})", path)
+        day_groups = re.search(r"day=(\d{2})", path)
+        hour_groups = re.search(r"hour=(\d{2})", path)
 
         # Cast the dates of the paths if they exist
         year = int(year_groups.groups()[0])  # type: ignore
@@ -340,7 +339,7 @@ class Ingestor():
                 folder, bucket, s3_client, start_time, end_time)
 
     @ property
-    def RCC_S3_CLIENT(self):
+    def rcc_s3_client(self):
         """ RCC boto3 s3 client """
         client = boto3.client('s3',
                               region_name='eu-central-1',

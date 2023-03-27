@@ -48,7 +48,7 @@ def container_services() -> Mock:
         "Output": "dev-terraform-queue-output",
         "MDFParser": "dev-terraform-queue-mdf-parser"
     }
-    cs.RCC_S3_CLIENT = s3_client
+    cs.rcc_s3_client = s3_client
     cs.rcc_info = {"s3_bucket": "rcc-dev-device-data"}
     return cs
 

@@ -117,7 +117,7 @@ class MetacontentIngestor(Ingestor):
         path = f'{message.tenant}/{message.deviceid}/'
 
         paths = self._discover_s3_subfolders(
-            path, self.container_svcs.rcc_info["s3_bucket"], self.RCC_S3_CLIENT, start_time, end_time)
+            path, self.container_svcs.rcc_info["s3_bucket"], self.rcc_s3_client, start_time, end_time)
 
         for s3_path in paths:
             yield s3_path + f'{message.recording_type}_{message.recordingid}'
@@ -146,14 +146,14 @@ class MetacontentIngestor(Ingestor):
             if file_name.endswith('.zip'):
                 # Download metadata file from RCC S3 bucket
                 compressed_metadata_file = self.container_svcs.download_file(
-                    self.RCC_S3_CLIENT, self.container_svcs.rcc_info["s3_bucket"], file_name)
+                    self.rcc_s3_client, self.container_svcs.rcc_info["s3_bucket"], file_name)
                 metadata_bytes = gzip.decompress(
                     compressed_metadata_file)
 
             else:
                 # Download metadata file from RCC S3 bucket
                 metadata_bytes = self.container_svcs.download_file(
-                    self.RCC_S3_CLIENT, self.container_svcs.rcc_info["s3_bucket"], file_name)
+                    self.rcc_s3_client, self.container_svcs.rcc_info["s3_bucket"], file_name)
 
             # Read all bytes from http response body
 
@@ -273,7 +273,7 @@ class MetacontentIngestor(Ingestor):
             tuple[bool, set[str]]: A tuple with a boolean that is true if all metadata is found and a set containing the path for all metadata.
         """
 
-        recording_regex = re.compile(r"/hour=[0-9]{2}/(.+\.mp4).*")
+        recording_regex = re.compile(r"/hour=\d{2}/(.+\.mp4).*")
         metadata_chunks: set[str] = set()
 
         # Check metadata chunks
@@ -336,7 +336,7 @@ class MetacontentIngestor(Ingestor):
 
         # Make sure it has access to tenant and device
         if not ContainerServices.check_if_tenant_and_deviceid_exists_and_log_on_error(
-                self.RCC_S3_CLIENT, s3_object_params, message.messageid):
+                self.rcc_s3_client, s3_object_params, message.messageid):
             return False, set()
 
         # Get all mp4 lookup paths
@@ -353,7 +353,7 @@ class MetacontentIngestor(Ingestor):
         mp4_chunks_left: set[str] = set()
         metadata_chunks: set[str] = set()
 
-        recording_regex = re.compile(r"/hour=[0-9]{2}/(.+\.mp4).*")
+        recording_regex = re.compile(r"/hour=\d{2}/(.+\.mp4).*")
 
         # Search for video and metadata chunks
         for path in mp4_lookup_paths:
