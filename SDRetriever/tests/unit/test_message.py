@@ -3,9 +3,7 @@ import json
 from datetime import datetime
 
 import pytest
-
-from sdretriever.message.message import Chunk
-from sdretriever.message.message import Message
+from sdretriever.message.message import Chunk, Message
 from sdretriever.message.snapshot import SnapshotMessage
 from sdretriever.message.video import VideoMessage
 
@@ -24,6 +22,34 @@ sqs_message_queue_selector = {
     'Body': '{\n  "Type" : "Notification",\n  "MessageId" : "a24584ea-fe55-56a9-bd2f-dfada4266b2c",\n  "TopicArn" : "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",\n  "Message" : "{\\"topic\\":\\"com.bosch.rcc/srx_herbie_test_sim_am_01/things/twin/events/modified\\",\\"headers\\":{\\"orig_adapter\\":\\"hono-mqtt\\",\\"qos\\":\\"1\\",\\"device_id\\":\\"com.bosch.rcc:srx_herbie_test_sim_am_01\\",\\"creation-time\\":\\"1657624627540\\",\\"traceparent\\":\\"00-0a84e899503b765b0ca9c96d86390022-98345f5e303cee11-00\\",\\"kafka.timestamp\\":\\"1657624627540\\",\\"kafka.topic\\":\\"hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub\\",\\"orig_address\\":\\"telemetry\\",\\"kafka.key\\":\\"com.bosch.rcc:srx_herbie_test_sim_am_01\\",\\"ditto-originator\\":\\"integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub\\",\\"response-required\\":false,\\"version\\":2,\\"requested-acks\\":[],\\"content-type\\":\\"application/json\\",\\"correlation-id\\":\\"2c17e5c9-e687-42a4-914e-1fdac9d42af3\\"},\\"path\\":\\"/features/com.bosch.ivs.videorecorder.UploadRecordingEvent\\",\\"value\\":{\\"properties\\":{\\"header\\":{\\"message_type\\":\\"com.bosch.ivs.videorecorder.UploadRecordingEvent\\",\\"timestamp_ms\\":1657624627537,\\"message_id\\":\\"de13f5cc-dfea-46da-8d89-9e3884e30a24\\",\\"device_id\\":\\"srx_herbie_test_sim_am_01\\",\\"boot_id\\":\\"d20ba602-2c06-4405-8ed5-db941573dbbe\\"},\\"correlation_id\\":\\"bda19c79-eac4-4d87-af31-632208257ab3\\",\\"recording_id\\":\\"TrainingMultiSnapshot-bc4d26db-9689-4d77-b173-a21fb26776fa\\",\\"recorder_name\\":\\"TrainingMultiSnapshot\\",\\"command_status\\":{\\"status_code\\":\\"COMMAND_STATUS_CODE__OK\\",\\"details\\":\\"COMMAND_STATUS_CODE__OK\\"}}},\\"extra\\":{\\"attributes\\":{\\"vin\\":\\"unknown\\",\\"tenant\\":\\"TEST_TENANT\\",\\"vehicleType\\":\\"CARMODEL__FIAT_500_312\\",\\"subjectId\\":\\"15afc9be-5e9f-4ca0-b5bd-795420876b09\\",\\"operationMode\\":\\"SAFETY_CALL\\",\\"deviceType\\":\\"hailysharey\\"}},\\"revision\\":4206,\\"timestamp\\":\\"2022-07-12T11:17:07.551341075Z\\"}",\n  "Timestamp" : "2022-07-12T11:17:07.585Z",\n  "SignatureVersion" : "1",\n  "Signature" : "p8ZAMYlyEkbAG+Bg31+ZmUVvw4LN7FC40JoGmGD1Cye7qJh4dXLIuptICLYvMgcYjeb5SVEavW7DWm7dKALGYuRnJH5ffy4Kwd7P6P63IOD1tLHvYMpGSxwSJX4gvgBW6juqkd3lqLrwOVQ21PgGVtdFI/xD8BK7UhDutQZKtWhDXVAWpV1Bqls0m6edOoGu+yhfBwOGG7Kv+AYXQ63xgKseZnsLCRMU5KU4la10Ik/zjk6HSgsI2iWE5hEK1nMWH+Lrb4gxfLjnOGJaUyTxUc6c5uapWPnytc9bKz9/ARqaXgV146nzzr86vjlk26bRayLX9Q5H6mm/wTmQPg1uDw==",\n  "SigningCertURL" : "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",\n  "UnsubscribeURL" : "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:23a2a7a5-1fd3-4bbe-b766-1da13b0577d9",\n  "MessageAttributes" : {\n    "deviceType" : {"Type":"String","Value":"hailysharey"},\n    "operationMode" : {"Type":"String","Value":"SAFETY_CALL"},\n    "eventType" : {"Type":"String","Value":"com.bosch.ivs.videorecorder.UploadRecordingEvent"},\n    "tenant" : {"Type":"String","Value":"TEST_TENANT"},\n    "subjectId" : {"Type":"String","Value":"15afc9be-5e9f-4ca0-b5bd-795420876b09"}\n  }\n}',
     'Attributes': {
         'SentTimestamp': '1657624627631'}}
+sqs_message_queue_selector_video_chunks = {
+    'MessageId': '976fe44d-e413-41e6-a0dc-8e225bb33e46',
+    'ReceiptHandle': 'AQEBxxVjmeLLUSZTFeKAGYExRq2fIUzjHdtXWX5wwZq2UeAm1wC25WWVQZ8m6rF6YZKJ1HLfQvyhKsojvtIM8enyOP4+xRe+DjsRHKXbT6UER1bI+BqnzDobIpvaxNv+IDKFhWB43xX5+9cw703b24L7V/AZITSuL3vfplvrFwwWFblRPapIu1uF6D9lg5tZzltphcTze2eQYffpDdteOgiSfSPbAZpFQA1GyKehB51n2BXrkZHzE+cKLt3t7ail2k5lEGuUz6sA4EzMzrlnriBFXCJr1fy4PT05lYTPsxwnJt+ZZuOacuNAsRCLLjMHghhRjyb4zHZipThOj8Uxsg6eUP6IRUiII2v4xlLSRleXGSNVG6D8vTw/h67jQGtLrrDpMAKtafDC6//dyBQjFaxkPz3fy2ZfVIrFK9HXSmgJzHA=',
+    'MD5OfBody': 'c6a19c569915d574d6a35c2647eb9f43',
+    'Body': '{"topic":"com.bosch.rcc.dev/srx_herbie_dev_hw_01/things/twin/events/modified","headers":{"orig_address":"telemetry","traceparent":"00-345e3dfb85d539163c35e2d3fb5e72b1-efb9ba28492b07d9-00","qos":"1","kafka.timestamp":"1679992422410","creation-time":"1679992422410","device_id":"com.bosch.rcc.dev:srx_herbie_dev_hw_01","kafka.key":"com.bosch.rcc.dev:srx_herbie_dev_hw_01","orig_adapter":"hono-mqtt","kafka.topic":"hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub","ditto-originator":"integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub","response-required":false,"version":2,"requested-acks":[],"content-type":"application/json","correlation-id":"33223a60-1926-431a-960d-3573dda167ed"},"path":"/features/com.bosch.ivs.videorecorder.UploadRecordingEvent","value":{"properties":{"header":{"message_type":"com.bosch.ivs.videorecorder.UploadRecordingEvent","timestamp_ms":1679992421684,"message_id":"5f199fb5-3e75-494d-b7d1-65e50f7cf808","device_id":"srx_herbie_dev_hw_01","boot_id":"48c72a87-fd65-4b40-9377-fcace8ceda2c"},"correlation_id":"232c5272-decb-4b81-8b1d-8d336f74531f","recording_id":"InteriorRecorder-0144693f-48b1-4b48-91c8-1f45c78b7103","recorder_name":"InteriorRecorder","chunk_descriptions":[{"uuid":"InteriorRecorder_InteriorRecorder-0144693f-48b1-4b48-91c8-1f45c78b7103_1.mp4","upload_status":"UPLOAD_STATUS__SELECTED_FOR_UPLOAD","start_timestamp_ms":1679992352917,"end_timestamp_ms":1679992364366,"payload_size":427071},{"uuid":"InteriorRecorder_InteriorRecorder-0144693f-48b1-4b48-91c8-1f45c78b7103_2.mp4","upload_status":"UPLOAD_STATUS__SELECTED_FOR_UPLOAD","start_timestamp_ms":1679992364365,"end_timestamp_ms":1679992370281,"payload_size":263377}],"command_status":{"status_code":"COMMAND_STATUS_CODE__OK"}}},"extra":{"attributes":{"vin":"unknown","tenant":"rubber_duck","vehicleType":"CARMODEL__FIAT_500_312","subjectId":"7c8c1377-38fb-4d00-af6e-b35e32b99c8a","operationMode":"PRIVATE","deviceType":"hailysharey"}},"revision":110886,"timestamp":"2023-03-28T08:33:42.446460156Z"}',
+    'Attributes': {
+        'SentTimestamp': '1679992422557',
+        'ApproximateReceiveCount': '2'},
+    'MD5OfMessageAttributes': '107760eb9b74a5f1a6a4b5f31877bf74',
+    'MessageAttributes': {
+        'deviceType': {
+            'StringValue': 'hailysharey',
+            'DataType': 'String'},
+        'eventType': {
+            'StringValue': 'com.bosch.ivs.videorecorder.UploadRecordingEvent',
+            'DataType': 'String'},
+        'modifiedThingCategory': {
+            'StringValue': 'features',
+            'DataType': 'String'},
+        'operationMode': {
+            'StringValue': 'PRIVATE',
+            'DataType': 'String'},
+        'subjectId': {
+            'StringValue': '7c8c1377-38fb-4d00-af6e-b35e32b99c8a',
+            'DataType': 'String'},
+        'tenant': {
+            'StringValue': 'rubber_duck',
+            'DataType': 'String'}}}
 
 
 sqs_message_queue_download_norecordingid = {
@@ -209,8 +235,8 @@ class TestVideoMessage:
         obj = VideoMessage(sqs_message_queue_download)
         assert obj.validate()
 
-        # obj = VideoMessage(sqs_message_queue_download_invalid)
-        # assert not obj.validate()
+        obj = VideoMessage(sqs_message_queue_selector_video_chunks)
+        assert not obj.validate()
 
     @pytest.mark.parametrize("message,result", [
         (sqs_message_queue_download, False),

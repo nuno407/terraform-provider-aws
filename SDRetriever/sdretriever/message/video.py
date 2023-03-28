@@ -41,6 +41,9 @@ class VideoMessage(Message):
         Returns:
             bool: True, False
         """
+        if self.body.get("value", {}).get("properties", {}).get("chunk_descriptions", {}):
+            LOGGER.debug("Message is listing video chunks, not for ingestion")
+            return False
         # nothing to validate at the moment (tests that we want to send do DLQ when they fail)
         return True
 
