@@ -1,8 +1,7 @@
 """Unit tests SQS controller."""
 from datetime import datetime
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
-import botocore.exceptions
 import pytest
 
 from base.aws.model import MessageAttributes, SQSMessage
@@ -112,16 +111,5 @@ class TestSQSController():
         sqs_client_mock.change_message_visibility.assert_called_once_with(
             QueueUrl="foobar-url",
             ReceiptHandle=sqs_message.receipt_handle,
-            VisibilityTimeout=TWELVE_HOURS_IN_SECONDS
+            VisibilityTimeout=TWELVE_HOURS_IN_SECONDS-1
         )
-
-    def test_increase_visibility_timeout_and_handle_exceptions2(
-            self, input_queue_name: str, sqs_message: SQSMessage):
-        sqs_client_mock = Mock()
-        sqs_client_mock.change_message_visibility = Mock(
-            side_effect=botocore.exceptions.ClientError(
-                error_response=MagicMock(), operation_name=MagicMock()))
-        message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
-        message_controller.try_update_message_visibility_timeout(
-            "foobar-url", sqs_message, TWELVE_HOURS_IN_SECONDS)

@@ -1,8 +1,8 @@
 """ Artifact Parser module. """
 from kink import inject
 
+from base.aws.model import SQSMessage
 from sanitizer.artifact.persistence import ArtifactPersistence
-from sanitizer.model import SQSMessage
 
 
 @inject

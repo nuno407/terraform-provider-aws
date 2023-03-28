@@ -34,7 +34,8 @@ def bootstrap_di():
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
-    di["input_queue_name"] = config.input_queue # used by SQSController
+    di["input_queue_name"] = config.input_queue
+    di["default_sns_topic_arn"] = config.topic_arn
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()
@@ -44,8 +45,8 @@ def bootstrap_di():
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
     di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
 
-    di[SQSController] = SQSController()
-    di[SNSController] = SNSController()
+    di[SQSController] = SQSController(config.input_queue, di[SQSClient])
+    di[SNSController] = SNSController(di[SNSClient])
 
     di[MessageParser] = MessageParser()
     di[MessageFilter] = MessageFilter()

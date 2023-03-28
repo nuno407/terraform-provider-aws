@@ -1,79 +1,39 @@
-"""Test S3 controller."""
-from datetime import datetime
-from unittest.mock import MagicMock, Mock
-
 import pytest
-
+from botocore.errorfactory import ClientError
 from base.aws.s3 import S3Controller
-from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
-from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
-
-S3_ANON_BUCKET = "my-test-anon"
-S3_RAW_BUCKET = "my-test-raw"
-
+from unittest.mock import Mock
 
 @pytest.mark.unit
-class TestS3Controller():
-    """Test S3 controller"""
+@pytest.mark.parametrize("bucket,path,response,expected",[
+    (
+        "foobucket",
+        "exists",
+        {
+            "ResponseMetadata": {
+                "HTTPStatusCode": 200
+            }
+        },
+        True
+    ),
+    (
+        "foobucket",
+        "do-not-exist",
+        {
+            "ResponseMetadata": {
+                "HTTPStatusCode": 404
+            }
+        },
+        False
+    )
+])
+def test_check_s3_file_exists(bucket: str, path: str, response: dict, expected: bool):
+    s3_client = Mock()
+    s3_client.head_object = Mock(return_value=response)
+    assert S3Controller(s3_client).check_s3_file_exists(bucket, path) == expected
+    s3_client.head_object.assert_called_once_with(Bucket=bucket, Key=path)
 
-    @pytest.fixture
-    def s3_params(self) -> S3Params:
-        return S3Params(
-            s3_bucket_anon=S3_ANON_BUCKET,
-            s3_bucket_raw=S3_RAW_BUCKET
-        )
-
-    @pytest.fixture
-    def fix_video(self) -> VideoArtifact:
-        return VideoArtifact(
-            tenant_id="datanauts",
-            device_id="test-device",
-            stream_name="test",
-            footage_from=datetime.min,
-            footage_to=datetime.min)
-
-    @pytest.fixture
-    def fix_snap(self) -> SnapshotArtifact:
-        return SnapshotArtifact(
-            tenant_id="datanauts",
-            device_id="test-device",
-            uuid="foobar",
-            timestamp=datetime.min)
-
-    def test_is_s3_anonymized_file_present_or_raise_success(self, fix_video: VideoArtifact, s3_params: S3Params):
-        fix_test_client = Mock()
-        fix_test_client.head_object = Mock(
-            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
-        s3_controller = S3Controller(s3_params, fix_test_client)
-        s3_controller.is_s3_anonymized_file_present_or_raise(
-            "mock-anon.mp4", fix_video)
-        fix_test_client.head_object.assert_called_once_with(
-            Bucket=S3_ANON_BUCKET, Key=f"{fix_video.tenant_id}/mock-anon.mp4")
-
-    def test_is_s3_anonymized_file_present_or_raise_fail(self, fix_video: VideoArtifact, s3_params: S3Params):
-        fix_test_client = MagicMock()
-        fix_test_client.head_object = Mock(
-            side_effect=AnonymizedFileNotPresent(fix_video, "test"))
-        s3_controller = S3Controller(s3_params, fix_test_client)
-        with pytest.raises(AnonymizedFileNotPresent):
-            s3_controller.is_s3_anonymized_file_present_or_raise(
-                "foobar.mp4", fix_video)
-
-    def test_is_s3_raw_file_presence_or_raise_success(self, fix_snap: SnapshotArtifact, s3_params: S3Params):
-        fix_test_client = MagicMock()
-        s3_controller = S3Controller(s3_params, fix_test_client)
-        fix_test_client.head_object = Mock(
-            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
-        s3_controller.is_s3_raw_file_present_or_raise(
-            "mock-raw.jpeg", fix_snap)
-        fix_test_client.head_object.assert_called_once_with(
-            Bucket=S3_RAW_BUCKET, Key=f"{fix_snap.tenant_id}/mock-raw.jpeg")
-
-    def test_is_s3_raw_file_presence_or_raise_success_fail(self, fix_snap: SnapshotArtifact, s3_params: S3Params):
-        fix_test_client = MagicMock()
-        fix_test_client.head_object = Mock(
-            side_effect=RawFileNotPresent(fix_snap, "test"))
-        s3_controller = S3Controller(s3_params, fix_test_client)
-        with pytest.raises(RawFileNotPresent):
-            s3_controller.is_s3_raw_file_present_or_raise(
-                "foobar.jpeg", fix_snap)
+def test_check_s3_file_exists_client_error():
+    s3_client = Mock()
+    s3_client.head_object = Mock(side_effect=ClientError({"Error": {"Code": "404"}}, "head_object"))
+    s3_controller = S3Controller(s3_client)
+    assert s3_controller.check_s3_file_exists("testbucket", "testpath") == False

@@ -7,10 +7,10 @@ from typing import Optional
 import botocore.exceptions
 from aws_error_utils import errors as aws_errors
 from expiringdict import ExpiringDict
-from kink import inject
 from mypy_boto3_sqs import SQSClient
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
+from kink import inject
 from base.aws.model import SQSMessage
 
 TWELVE_HOURS_IN_SECONDS = 60 * 60 * 12
@@ -23,7 +23,7 @@ class InitializationError(Exception):
     """Error raised during healthcheck initialization."""
 
 @inject
-class SQSController():
+class SQSController:
     """SQS message controller."""
 
     def __init__(self,

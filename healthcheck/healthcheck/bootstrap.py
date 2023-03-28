@@ -69,30 +69,29 @@ def get_environment() -> EnvironmentParams:
 
 def bootstrap_di() -> None:
     """Initializes dependency injection autowiring container."""
-    env_params = get_environment()
+    env = get_environment()
     di[Logger] = logging.getLogger("healthcheck")
 
-    di["container_version"] = env_params.container_version
-    di["config_path"] = env_params.config_path
-    di["db_uri"] = env_params.db_uri
-    di["webhook_url"] = env_params.webhook_url
-    di["tenant_config_path"] = env_params.tenant_config_path
+    di["container_version"] = env.container_version
+    di["config_path"] = env.config_path
+    di["db_uri"] = env.db_uri
+    di["webhook_url"] = env.webhook_url
+    di["tenant_config_path"] = env.tenant_config_path
 
-    di[SQSClient] = boto3.client(
-        service_name="sqs",
-        region_name=env_params.aws_region,
-        endpoint_url=env_params.aws_endpoint)
-    di[S3Client] = boto3.client(
-        service_name="s3",
-        region_name=env_params.aws_region,
-        endpoint_url=env_params.aws_endpoint)
-    di[GracefulExit] = GracefulExit()
+    di[SQSClient] = boto3.client("sqs",
+                                 region_name=env.aws_region, endpoint_url=env.aws_endpoint)
+    di[S3Client] = boto3.client("s3",
+                                region_name=env.aws_region, endpoint_url=env.aws_endpoint)
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
-    di["input_queue_name"] = config.input_queue # used by SQSController
+    di["input_queue_name"] = config.input_queue
     di[HealthcheckConfig] = config
     tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
     di[DatasetMappingConfig] = tenant_config.dataset_mapping
+
+    di[S3Controller] = S3Controller(di[S3Client])
+    di[SQSController] = SQSController(config.input_queue, di[SQSClient])
+    di[GracefulExit] = GracefulExit()
 
     di[S3Params] = S3Params(
         config.anonymized_s3_bucket,
@@ -109,8 +108,6 @@ def bootstrap_di() -> None:
     di[VoxelEntriesGetter] = VoxelClient()
     di[INoSQLDBClient] = MongoDBClient()
     di[ArtifactParser] = ArtifactParser()
-    di[S3Controller] = S3Controller()
-    di[SQSController] = SQSController()
     di[DatabaseController] = DatabaseController()
     di[VoxelFiftyOneController] = VoxelFiftyOneController()
     di["checkers"] = {

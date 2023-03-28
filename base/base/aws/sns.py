@@ -1,10 +1,8 @@
+""" SNS module. """
 import json
 
-from kink import inject
 from mypy_boto3_sns import SNSClient
-
-from base.aws.model import SQSMessage
-
+from kink import inject
 
 @inject
 class SNSController:
@@ -13,20 +11,12 @@ class SNSController:
                 sns_client: SNSClient):
         self.__sns_client = sns_client
 
-    def publish(self, topic_arn: str, message: SQSMessage) -> None:
+    @inject(bind={"sns_topic_arn":"default_sns_topic_arn"})
+    def publish(self, message: str, sns_topic_arn: str) -> None:
         """ Publishes message into a topic """
+
         self.__sns_client.publish(
-            TopicArn=topic_arn,
-            Message=json.dumps({"default": json.dumps(message.body)}),
-            MessageAttributes={
-                "tenant": {
-                    "DataType": "String",
-                    "StringValue": message.attributes.tenant
-                },
-                "device_id": {
-                    "DataType": "String",
-                    "StringValue": message.attributes.device_id
-                }
-            },
+            TopicArn=sns_topic_arn,
+            Message=json.dumps({"default": json.dumps(message)}),
             MessageStructure="json"
         )

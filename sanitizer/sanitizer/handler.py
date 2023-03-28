@@ -1,9 +1,10 @@
 """ handler module. """
-from typing import Callable
+from typing import Callable, Optional
 
 from kink import inject
+from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from base.aws.sqs import SQSController
+from base.aws.sqs import SQSController, SQSMessage
 from base.graceful_exit import GracefulExit
 from sanitizer.artifact.filter import ArtifactFilter
 from sanitizer.artifact.forwarder import ArtifactForwarder
@@ -37,13 +38,13 @@ class Handler:
         queue_url = self.aws_sqs_controller.get_queue_url()
 
         while graceful_exit.continue_running and helper_continue_running():
-            raw_sqs_message = self.aws_sqs_controller.get_message(queue_url)
-            if not raw_sqs_message:
+            raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs_controller.get_message(queue_url)
+            if raw_sqs_message is None:
                 continue
 
-            message = self.message_parser.parse(raw_sqs_message)
+            message: SQSMessage = self.message_parser.parse(raw_sqs_message)
             message = self.message_filter.apply(message)
-            if not message:
+            if message is None:
                 continue
 
             artifacts = self.artifact_parser.parse(message)

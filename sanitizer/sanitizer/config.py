@@ -6,10 +6,10 @@ import yaml
 
 @dataclass
 class SanitizerConfig():
-    """Healtheck Configuration."""
+    """Sanitizer Configuration."""
     input_queue: str
+    topic_arn: str
     db_name: str
-    environment_prefix: str
     tenant_blacklist: list[str]
     training_whitelist: list[str]
     recorder_blacklist: list[str]
