@@ -1,0 +1,8 @@
+version: '3'
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/python:0-3.10
+    volumes:
+      - ../:/workspace
+      - ~/.aws:/home/vscode/.aws
+    command: sh -c "while sleep 1000; do :; done"
