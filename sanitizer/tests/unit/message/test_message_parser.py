@@ -10,7 +10,7 @@ from sanitizer.message.parser import MessageParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-TEST_DATA = os.path.join(CURRENT_LOCATION, "data")
+TEST_DATA = os.path.join(CURRENT_LOCATION, "..", "data")
 MESSAGE_PARSER_DATA = os.path.join(TEST_DATA, "message_parser")
 
 
