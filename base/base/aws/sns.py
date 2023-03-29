@@ -5,7 +5,7 @@ from mypy_boto3_sns import SNSClient
 from kink import inject
 
 @inject
-class SNSController:
+class SNSController: # pylint: disable=too-few-public-methods
     """" AWS SNS message controller. """
     def __init__(self,
                 sns_client: SNSClient):
@@ -17,6 +17,6 @@ class SNSController:
 
         self.__sns_client.publish(
             TopicArn=sns_topic_arn,
-            Message=json.dumps({"default": json.dumps(message)}),
+            Message=json.dumps({"default": message}),
             MessageStructure="json"
         )

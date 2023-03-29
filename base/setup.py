@@ -26,6 +26,8 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "fiftyone==0.12.0"
     ],
+    "model": [
+    ],
     # we should use it in the future
     # "monitoring": [
     #     "elastic-apm >= 6.12.0",

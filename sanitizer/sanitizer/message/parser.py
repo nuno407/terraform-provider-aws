@@ -41,7 +41,8 @@ class MessageParser:
     def __init__(self) -> None:
         pass
 
-    def __flatten_string_value(self, attribute: Union[str, dict]) -> Optional[str]:
+    @staticmethod
+    def flatten_string_value(attribute: Union[str, dict]) -> Optional[str]:
         """Unnest attribute value if is a dictionary to string value
 
         attribute in str format is returned imediately, attrs on dict format e.g:
@@ -79,12 +80,12 @@ class MessageParser:
 
         tenant = None
         if MessageFields.TENANT.value in message_attrs:
-            tenant = self.__flatten_string_value(
+            tenant = MessageParser.flatten_string_value(
                 message_attrs[MessageFields.TENANT.value])
 
         device_id = None
         if MessageFields.DEVICE_ID.value in message_attrs:
-            device_id = self.__flatten_string_value(
+            device_id = MessageParser.flatten_string_value(
                 message_attrs[MessageFields.DEVICE_ID.value])
 
         return MessageAttributes(tenant, device_id)
