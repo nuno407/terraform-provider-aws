@@ -43,7 +43,7 @@ class TestSnapshotArtifactChecker:
         voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise = Mock()
 
         snapshot_artifact_checker = SnapshotArtifactChecker(
-            s3_controller=s3_controller,
+            s3_utils=s3_controller,
             db_controller=db_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

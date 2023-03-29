@@ -5,13 +5,11 @@ import logging
 
 from kink import inject
 
-from base.aws.s3 import S3Controller
+from healthcheck.checker.common import ArtifactChecker
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
-
-
-from healthcheck.checker.common import ArtifactChecker
 from healthcheck.model import Artifact
+from healthcheck.s3_utils import S3Utils
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -22,10 +20,10 @@ class TrainingRecorderArtifactChecker:
 
     def __init__(
             self,
-            s3_controller: S3Controller,
+            s3_utils: S3Utils,
             db_controller: DatabaseController,
             voxel_fiftyone_controller: VoxelFiftyOneController):
-        self.__s3_controller = s3_controller
+        self.__s3_utils = s3_utils
         self.__db_controller = db_controller
         self.__voxel_fiftyone_controller = voxel_fiftyone_controller
 
@@ -42,12 +40,12 @@ class TrainingRecorderArtifactChecker:
 
         video_id = artifact.artifact_id
         # Check s3 files
-        self.__s3_controller.is_s3_raw_file_present_or_raise(f"{video_id}.mp4", artifact)
+        self.__s3_utils.is_s3_raw_file_present_or_raise(f"{video_id}.mp4", artifact)
 
         # This checks can be improved by checking dinamically based on algorithm output
-        self.__s3_controller.is_s3_anonymized_file_present_or_raise(
+        self.__s3_utils.is_s3_anonymized_file_present_or_raise(
             f"{video_id}_anonymized.mp4", artifact)
-        self.__s3_controller.is_s3_anonymized_file_present_or_raise(
+        self.__s3_utils.is_s3_anonymized_file_present_or_raise(
             f"{video_id}_chc.json", artifact)
 
         # Check DB

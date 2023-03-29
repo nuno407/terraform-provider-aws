@@ -16,22 +16,15 @@ from pymongo import MongoClient
 from base.aws.s3 import S3Controller
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from healthcheck.artifact_parser import ArtifactParser
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.controller.db import DatabaseController
-from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
-from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
-from healthcheck.message_parser import SQSMessageParser
+from healthcheck.database import NoSQLDBConfiguration
 from healthcheck.model import ArtifactType, S3Params
-from healthcheck.mongo import MongoDBClient
-from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
 from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
-from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
 
 
 @dataclass
@@ -103,13 +96,6 @@ def bootstrap_di() -> None:
         _di[HealthcheckConfig])
 
     di[MongoClient] = lambda _di: MongoClient(_di["db_uri"])
-    di[SQSMessageParser] = SQSMessageParser()
-    di[DocumentValidator] = JSONSchemaValidator()
-    di[VoxelEntriesGetter] = VoxelClient()
-    di[INoSQLDBClient] = MongoDBClient()
-    di[ArtifactParser] = ArtifactParser()
-    di[DatabaseController] = DatabaseController()
-    di[VoxelFiftyOneController] = VoxelFiftyOneController()
     di["checkers"] = {
         ArtifactType.TRAINING_RECORDER: TrainingRecorderArtifactChecker(),
         ArtifactType.INTERIOR_RECORDER: InteriorRecorderArtifactChecker(),

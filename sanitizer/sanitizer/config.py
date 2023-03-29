@@ -9,6 +9,7 @@ class SanitizerConfig():
     """Sanitizer Configuration."""
     input_queue: str
     topic_arn: str
+    message_collection: str
     db_name: str
     tenant_blacklist: list[str]
     training_whitelist: list[str]
@@ -29,6 +30,6 @@ class SanitizerConfig():
         with open(config_path, "r", encoding="utf-8") as file_handler:
             field_names = {f.name for f in fields(SanitizerConfig)}
             return SanitizerConfig(**{key: value for key,
-                                        value in yaml.safe_load(
-                                            file_handler).items()
-                                        if key in field_names})
+                                      value in yaml.safe_load(
+                                          file_handler).items()
+                                      if key in field_names})

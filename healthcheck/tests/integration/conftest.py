@@ -22,6 +22,7 @@ from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
 from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 from healthcheck.voxel_client import VoxelEntriesGetter
+from healthcheck.s3_utils import S3Utils
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -264,13 +265,20 @@ def document_validator() -> JSONSchemaValidator:
 
 
 @pytest.fixture
-def blob_storage_controller(
-    s3_params: S3Params,
+def s3_controller(
     moto_s3_client: S3Client
 ) -> S3Controller:
     return S3Controller(
-        s3_params,
         moto_s3_client
+    )
+
+
+@pytest.fixture
+def s3_utils(s3_params: S3Params,
+             s3_controller: S3Controller) -> S3Utils:
+    return S3Utils(
+        s3_params=s3_params,
+        s3_controller=s3_controller
     )
 
 

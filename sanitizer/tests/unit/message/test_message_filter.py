@@ -1,9 +1,12 @@
 from datetime import datetime
 from unittest.mock import Mock, PropertyMock
+
 import pytest
+
 from base.aws.model import MessageAttributes, SQSMessage
 from sanitizer.config import SanitizerConfig
-from sanitizer.message.filter import MessageFilter
+from sanitizer.message.message_filter import MessageFilter
+
 
 @pytest.mark.unit
 class TestMessageFilter:

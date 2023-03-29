@@ -22,7 +22,6 @@ class Artifact(ABC):
     device_id: str
     recorder: RecorderType
     timestamp: datetime
-    devcloud_id: str
 
 @dataclass
 class VideoArtifact(Artifact):

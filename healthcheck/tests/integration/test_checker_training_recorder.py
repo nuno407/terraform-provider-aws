@@ -1,18 +1,19 @@
 """Integration test module for interior recorder."""
+import os
 from datetime import datetime
 
-import os
 import pytest
 
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
-from base.aws.s3 import S3Controller
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,
-                                    FailDocumentValidation, RawFileNotPresent, NotYetIngestedError,
-                                    VoxelEntryNotPresent, NotPresentError)
+                                    FailDocumentValidation, NotPresentError,
+                                    NotYetIngestedError, RawFileNotPresent,
+                                    VoxelEntryNotPresent)
 from healthcheck.model import VideoArtifact
+from healthcheck.s3_utils import S3Utils
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -122,13 +123,13 @@ class TestTrainingRecorderArtifactChecker:
             footage_to: int,
             expected_exception_type: Exception,
             database_controller: DatabaseController,
-            blob_storage_controller: S3Controller,
+            s3_utils: S3Utils,
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
         """Test interior recorder healthcheck."""
 
         training_recorder_artifact_checker = TrainingRecorderArtifactChecker(
-            s3_controller=blob_storage_controller,
+            s3_utils=s3_utils,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

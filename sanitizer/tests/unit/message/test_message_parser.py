@@ -6,7 +6,7 @@ import pytest
 
 from base.aws.model import MessageAttributes, SQSMessage
 from sanitizer.exceptions import InvalidMessagePanic
-from sanitizer.message.parser import MessageParser
+from sanitizer.message.message_parser import MessageParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -16,7 +16,7 @@ MESSAGE_PARSER_DATA = os.path.join(TEST_DATA, "message_parser")
 
 def _events_message_body(fixture_file_id: str) -> str:
     filepath = os.path.join(MESSAGE_PARSER_DATA, fixture_file_id)
-    with open(filepath) as fp:
+    with open(filepath, encoding="utf-8") as fp:
         return fp.read()
 
 
@@ -28,8 +28,10 @@ def _read_and_parse_msg_body_from_fixture(fixture_file_id: str) -> dict:
         raw_body = raw_body.replace(args[0], args[1])
     return json.loads(raw_body)
 
+
 MESSAGE_ID = "barfoo"
 RECEIPT_HANDLE = "foobar"
+
 
 def _valid_input_message(fixture_file_id: str) -> dict:
     return {
@@ -43,18 +45,22 @@ def _valid_input_message(fixture_file_id: str) -> dict:
         }
     }
 
+
 def _missing_receipt_handle_message(fixture_file_id: str) -> dict:
     message = _valid_input_message(fixture_file_id)
     message.pop("ReceiptHandle")
     return message
+
 
 def _missing_body_message(fixture_file_id: str) -> dict:
     message = _valid_input_message(fixture_file_id)
     message.pop("Body")
     return message
 
+
 @pytest.mark.unit
-class TestMessageParser():
+class TestMessageParser(): # pylint: disable=too-few-public-methods
+    """ Test class for MessageParser. """
     @pytest.mark.parametrize(
         "test_case,input_message,expected,is_error",
         [

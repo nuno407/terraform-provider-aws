@@ -14,13 +14,6 @@ from pymongo import MongoClient
 from base.aws.sns import SNSController
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from sanitizer.artifact.filter import ArtifactFilter
-from sanitizer.artifact.forwarder import ArtifactForwarder
-from sanitizer.artifact.parser import ArtifactParser
-from sanitizer.artifact.persistence import ArtifactPersistence
-from sanitizer.message.filter import MessageFilter
-from sanitizer.message.parser import MessageParser
-from sanitizer.message.persistence import MessagePersistence
 from sanitizer.config import SanitizerConfig
 
 def bootstrap_di():
@@ -34,8 +27,7 @@ def bootstrap_di():
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
-    di["input_queue_name"] = config.input_queue
-    di["default_sns_topic_arn"] = config.topic_arn
+    di["default_sns_topic_arn"] = config.topic_arn # bound with kink DI
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()
@@ -47,12 +39,3 @@ def bootstrap_di():
 
     di[SQSController] = SQSController(config.input_queue, di[SQSClient])
     di[SNSController] = SNSController(di[SNSClient])
-
-    di[MessageParser] = MessageParser()
-    di[MessageFilter] = MessageFilter()
-    di[MessagePersistence] = MessagePersistence()
-
-    di[ArtifactParser] = ArtifactParser()
-    di[ArtifactFilter] = ArtifactFilter()
-    di[ArtifactPersistence] = ArtifactPersistence()
-    di[ArtifactForwarder] = ArtifactForwarder()

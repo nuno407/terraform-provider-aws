@@ -4,6 +4,7 @@ import json
 import logging
 from enum import Enum
 from typing import Optional, Union
+from kink import inject
 
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
@@ -33,7 +34,7 @@ MANDATORY_FIELDS = [
     MessageFields.ATTRIBUTES
 ]
 
-
+@inject
 class SQSMessageParser():
     """SQS message parser."""
 

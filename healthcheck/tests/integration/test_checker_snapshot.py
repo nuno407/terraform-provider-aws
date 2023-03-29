@@ -6,11 +6,11 @@ import pytest
 
 from healthcheck.checker.snapshot import \
     SnapshotArtifactChecker
-from base.aws.s3 import S3Controller
+from healthcheck.s3_utils import S3Utils
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,
-                                    FailDocumentValidation, RawFileNotPresent, NotYetIngestedError,
+                                    RawFileNotPresent, NotYetIngestedError,
                                     VoxelEntryNotPresent)
 from healthcheck.model import SnapshotArtifact
 
@@ -85,11 +85,11 @@ class TestSnapshotArtifactChecker:
             timestamp: int,
             expected_exception_type: Exception,
             database_controller: DatabaseController,
-            blob_storage_controller: S3Controller,
+            s3_utils: S3Utils,
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
         snapshot_artifact_checker = SnapshotArtifactChecker(
-            s3_controller=blob_storage_controller,
+            s3_utils=s3_utils,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

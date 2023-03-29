@@ -6,7 +6,7 @@ import pytest
 
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
-from base.aws.s3 import S3Controller
+from healthcheck.s3_utils import S3Utils
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,
@@ -163,12 +163,12 @@ class TestInteriorRecorderArtifactChecker:
             footage_to: int,
             expected_exception_type: Exception,
             database_controller: DatabaseController,
-            blob_storage_controller: S3Controller,
+            s3_utils: S3Utils,
             voxel_fiftyone_controller: VoxelFiftyOneController,
     ):
         """Test interior recorder healthcheck."""
         interior_recorder_artifact_checker = InteriorRecorderArtifactChecker(
-            s3_controller=blob_storage_controller,
+            s3_controller=s3_utils,
             db_controller=database_controller,
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )

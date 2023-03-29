@@ -1,9 +1,9 @@
 # pylint: disable=invalid-string-quote
-"""SQS Message Parser module."""
+""" SQS Message Parser module. """
 import json
 import logging
 from enum import Enum
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 from kink import inject
 
 from mypy_boto3_sqs.type_defs import MessageTypeDef
@@ -13,7 +13,6 @@ from sanitizer.exceptions import InvalidMessagePanic
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
-from sanitizer.message.persistence import MessagePersistence
 
 class MessageFields(Enum):
     """Message fields."""
@@ -35,11 +34,10 @@ MANDATORY_FIELDS = [
     MessageFields.ATTRIBUTES
 ]
 
+
 @inject
 class MessageParser:
     """SQS message parser."""
-    def __init__(self) -> None:
-        pass
 
     @staticmethod
     def flatten_string_value(attribute: Union[str, dict]) -> Optional[str]:
@@ -64,6 +62,18 @@ class MessageParser:
         elif "StringValue" in attribute:
             result = attribute["StringValue"]
         return result
+
+    @staticmethod
+    def get_recursive_from_dict(  # pylint: disable=dangerous-default-value
+            data_dict: dict,
+            *keys: str,
+            default=None):
+        """Get value from dict recursively."""
+        for key in keys:
+            if not isinstance(data_dict, Dict) or key not in data_dict:
+                return default
+            data_dict = data_dict[key]
+        return data_dict
 
     def parse_message_attrs(self, body: dict) -> MessageAttributes:
         """Parses SQS message attributes

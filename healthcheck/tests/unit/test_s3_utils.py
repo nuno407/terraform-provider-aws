@@ -45,7 +45,7 @@ class TestS3Utils:
         fix_test_client = Mock()
         fix_test_client.head_object = Mock(
             return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
-        s3_controller = S3Controller(s3_params, fix_test_client)
+        s3_controller = S3Controller(fix_test_client)
         s3_utils = S3Utils(s3_params, s3_controller)
         s3_utils.is_s3_anonymized_file_present_or_raise(
             "mock-anon.mp4", fix_video)
@@ -56,7 +56,7 @@ class TestS3Utils:
         fix_test_client = MagicMock()
         fix_test_client.head_object = Mock(
             side_effect=AnonymizedFileNotPresent(fix_video, "test"))
-        s3_controller = S3Controller(s3_params, fix_test_client)
+        s3_controller = S3Controller(fix_test_client)
         s3_utils = S3Utils(s3_params, s3_controller)
         with pytest.raises(AnonymizedFileNotPresent):
             s3_utils.is_s3_anonymized_file_present_or_raise(
@@ -64,7 +64,7 @@ class TestS3Utils:
 
     def test_is_s3_raw_file_presence_or_raise_success(self, fix_snap: SnapshotArtifact, s3_params: S3Params):
         fix_test_client = MagicMock()
-        s3_controller = S3Controller(s3_params, fix_test_client)
+        s3_controller = S3Controller(fix_test_client)
         s3_utils = S3Utils(s3_params, s3_controller)
         fix_test_client.head_object = Mock(
             return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
@@ -77,7 +77,7 @@ class TestS3Utils:
         fix_test_client = MagicMock()
         fix_test_client.head_object = Mock(
             side_effect=RawFileNotPresent(fix_snap, "test"))
-        s3_controller = S3Controller(s3_params, fix_test_client)
+        s3_controller = S3Controller(fix_test_client)
         s3_utils = S3Utils(s3_params, s3_controller)
         with pytest.raises(RawFileNotPresent):
             s3_utils.is_s3_raw_file_present_or_raise(

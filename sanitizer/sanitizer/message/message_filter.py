@@ -1,10 +1,12 @@
-from typing import Optional
-
+""" message filter module. """
 from base.aws.model import SQSMessage
 from sanitizer.config import SanitizerConfig
+from kink import inject
 
+@inject
+class MessageFilter: # pylint: disable=too-few-public-methods
+    """ Message filter class. """
 
-class MessageFilter:
     def __init__(self, config: SanitizerConfig) -> None:
         self.__config = config
 
@@ -34,5 +36,5 @@ class MessageFilter:
         """
         if message.attributes.tenant is None:
             return False
-        else:
-            return message.attributes.tenant in self.__config.tenant_blacklist
+
+        return message.attributes.tenant in self.__config.tenant_blacklist
