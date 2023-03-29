@@ -5,6 +5,7 @@ timid = true
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-m unit -v --cov-config=.coveragerc --cov=sanitizer --cov-report=xml"
+
 markers = [
     "unit",
     "integration"
@@ -23,6 +24,9 @@ load-plugins = [
 ]
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
+ignore-paths = [
+  "tests/.*$",
+]
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.

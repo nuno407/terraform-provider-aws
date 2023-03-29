@@ -1,7 +1,9 @@
 """ message filter module. """
+from kink import inject
+
 from base.aws.model import SQSMessage
 from sanitizer.config import SanitizerConfig
-from kink import inject
+
 
 @inject
 class MessageFilter: # pylint: disable=too-few-public-methods

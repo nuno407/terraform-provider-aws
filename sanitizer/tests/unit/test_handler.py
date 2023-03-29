@@ -22,6 +22,12 @@ def test_handler_run():
     message_filter.is_relevant.return_value = sqs_message
     message_persistence = Mock()
     message_persistence.save.return_value = None
+
+    message_wrapper = Mock()
+    message_wrapper.parser = message_parser
+    message_wrapper.filter = message_filter
+    message_wrapper.persistence = message_persistence
+
     video_artifact = Mock()
     snapshot_artifact = Mock()
     artifacts = [video_artifact, snapshot_artifact]
@@ -34,9 +40,7 @@ def test_handler_run():
     sqs_controller.delete_message.return_value = None
 
     handler = Handler(sqs_controller,
-                      message_parser,
-                      message_filter,
-                      message_persistence,
+                      message_wrapper,
                       artifact_parser,
                       artifact_filter,
                       artifact_forwarder)
@@ -67,11 +71,11 @@ def test_handler_run_no_raw_message():
     message_parser = Mock()
 
     message_parser.parse.return_value = None
+    message_wrapper = Mock()
+    message_wrapper.parser = message_parser
 
     handler = Handler(sqs_controller,
-                      message_parser,
-                      Mock(),
-                      Mock(),
+                      message_wrapper,
                       Mock(),
                       Mock(),
                       Mock())
@@ -101,10 +105,12 @@ def test_handler_run_not_relevant():
     message_filter.is_relevant.return_value = None
     sqs_controller.delete_message.return_value = None
 
+    message_wrapper = Mock()
+    message_wrapper.parser = message_parser
+    message_wrapper.filter = message_filter
+
     handler = Handler(sqs_controller,
-                      message_parser,
-                      message_filter,
-                      Mock(),
+                      message_wrapper,
                       Mock(),
                       Mock(),
                       Mock())

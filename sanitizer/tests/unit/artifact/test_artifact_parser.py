@@ -12,6 +12,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
 
 @pytest.mark.unit
 @pytest.mark.parametrize("sqs_message,expected_artifacts", [
+    # snapshot
     (
         SQSMessage(
             message_id="foo",
@@ -46,6 +47,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             )
         ]
     ),
+    # interior recorder
     (
         SQSMessage(
             message_id="foo",
@@ -73,6 +75,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             )
         ]
     ),
+    # training recorder
     (
         SQSMessage(
             message_id="bar",
@@ -99,9 +102,37 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 end_timestamp=datetime.now(),
             )
         ]
+    ),
+    # front recorder
+    (
+        SQSMessage(
+            message_id="bar",
+            receipt_handle="foobar",
+            body={
+                "MessageAttributes": {
+                    "recorder": {
+                        "Type": "String",
+                        "Value": "FRONT"
+                    }
+                }
+            },
+            timestamp="123456789",
+            attributes=MessageAttributes(
+                tenant="goaldiggers",
+                device_id="DEV04")),
+        [
+            VideoArtifact(
+                stream_name="baz",
+                tenant_id="deepsensation",
+                device_id="DEV04",
+                recorder=RecorderType.FRONT,
+                timestamp=datetime.now(),
+                end_timestamp=datetime.now(),
+            )
+        ]
     )
 ])
-def test_artifact_parser_stub(sqs_message: SQSMessage, expected_artifacts: list[Artifact]):
+def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artifact]):
     snapshot_parser = Mock()
     snapshot_parser.parse = Mock(return_value=expected_artifacts)
     video_parser = Mock()

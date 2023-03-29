@@ -11,29 +11,23 @@ from sanitizer.artifact.artifact_filter import ArtifactFilter
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 from sanitizer.artifact.artifact_parser import ArtifactParser
 from sanitizer.exceptions import ArtifactException, MessageException
-from sanitizer.message.message_filter import MessageFilter
-from sanitizer.message.message_parser import MessageParser
-from sanitizer.message.message_persistence import MessagePersistence
+from sanitizer.message.message_wrapper import MessageWrapper
 
 __logger = logging.getLogger(__name__)
 
 
 @inject
-class Handler:
+class Handler:  # pylint: disable=too-few-public-methods
     """ message handler """
 
-    def __init__(self,
+    def __init__(self, # pylint: disable=too-many-arguments
                  aws_sqs_controller: SQSController,
-                 message_parser: MessageParser,
-                 message_filter: MessageFilter,
-                 message_persistence: MessagePersistence,
+                 message: MessageWrapper,
                  artifact_parser: ArtifactParser,
                  artifact_filter: ArtifactFilter,
                  artifact_forwarder: ArtifactForwarder) -> None:
         self.aws_sqs = aws_sqs_controller
-        self.message_parser = message_parser
-        self.message_filter = message_filter
-        self.message_persistence = message_persistence
+        self.message = message
         self.artifact_parser = artifact_parser
         self.artifact_filter = artifact_filter
         self.forwarder = artifact_forwarder
@@ -49,7 +43,7 @@ class Handler:
                 continue
 
             try:
-                message: SQSMessage = self.message_parser.parse(raw_sqs_message)
+                message: SQSMessage = self.message.parser.parse(raw_sqs_message)
                 self._process_message(message)
             except MessageException as err:
                 __logger.exception("SKIP: Unable to parse message -> %s", err)
@@ -57,12 +51,12 @@ class Handler:
 
     def _process_message(self, message: SQSMessage):
         """processes a single message to artifacts and publishes them"""
-        is_relevant = self.message_filter.is_relevant(message)
+        is_relevant = self.message.filter.is_relevant(message)
         if not is_relevant:
             self.aws_sqs.delete_message(self.__queue_url, message)
             return
 
-        self.message_persistence.save(message)
+        self.message.persistence.save(message)
 
         artifacts = self.artifact_parser.parse(message)
         for artifact in artifacts:

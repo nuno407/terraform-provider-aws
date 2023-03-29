@@ -22,6 +22,10 @@ load-plugins = [
     "pylint_quotes",
 ]
 
+ignore-paths = [
+  "tests/.*$",
+]
+
 [tool.pylint.format]
 # Maximum number of characters on a single line.
 max-line-length = 120

@@ -1,4 +1,5 @@
 """ Message persistence module tests. """
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,11 +13,9 @@ def test_save():
     mongo_client = MagicMock()
     config = MagicMock()
     message = MagicMock()
-    message.stringify.return_value = "stringified message"
 
     persistence = MessagePersistence(mongo_client, config)
     persistence.save(message)
 
-    message.stringify.assert_called_once()
     collection = mongo_client[config.db_name][config.message_collection]
-    collection.insert_one.assert_called_once_with("stringified message")
+    collection.insert_one.assert_called_once_with(json.loads(json.dumps(message, default=lambda o: o.__dict__)))

@@ -12,8 +12,9 @@ from sanitizer.message.message_parser import MessageParser
 
 __logger = logging.getLogger(__name__)
 
+
 @inject
-class SnapshotParser: # pylint: disable=too-few-public-methods
+class SnapshotParser:  # pylint: disable=too-few-public-methods
     """SnapshotParser class"""
 
     def parse(self, sqs_message: SQSMessage) -> Iterator[SnapshotArtifact]:

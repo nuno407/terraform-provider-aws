@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class MessageAttributes:
     """Message attributes."""

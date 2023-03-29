@@ -16,6 +16,7 @@ from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from sanitizer.config import SanitizerConfig
 
+
 def bootstrap_di():
     """ Initializes dependency injection autowiring. """
     db_uri = os.getenv("DB_URI", None)
@@ -27,7 +28,7 @@ def bootstrap_di():
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
-    di["default_sns_topic_arn"] = config.topic_arn # bound with kink DI
+    di["default_sns_topic_arn"] = config.topic_arn  # bound with kink DI
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()

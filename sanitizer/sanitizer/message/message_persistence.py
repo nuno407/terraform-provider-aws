@@ -1,4 +1,5 @@
 """ message persistence module. """
+import json
 import logging
 from logging import Logger
 
@@ -24,4 +25,13 @@ class MessagePersistence: # pylint: disable=too-few-public-methods
         """ Saves given message in database collection """
         collection = self.mongo_client[self.config.db_name][self.config.message_collection]
         _logger.info("Saving message in collection %s", self.config.message_collection)
-        collection.insert_one(message.stringify())
+        document = self.__to_dict(message)
+        collection.insert_one(document)
+
+    def __to_dict(self, message: SQSMessage) -> dict:
+        """ returns dictionary from dataobject
+
+        Returns:
+            dict: dictionary for given dataobject
+        """
+        return json.loads(json.dumps(message, default=lambda o: o.__dict__))

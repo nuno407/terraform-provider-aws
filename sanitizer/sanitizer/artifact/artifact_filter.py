@@ -25,7 +25,7 @@ class ArtifactFilter:  # pylint: disable=too-few-public-methods
         if artifact.tenant_id is None:
             return False
 
-        return artifact.tenant_id in config.tenant_blacklist
+        return artifact.tenant_id in set(config.tenant_blacklist)
 
     def __is_recorder_blacklisted(self,
                                   artifact: Artifact,
@@ -34,4 +34,4 @@ class ArtifactFilter:  # pylint: disable=too-few-public-methods
         if artifact.recorder is None:
             return False
 
-        return artifact.recorder in config.recorder_blacklist
+        return artifact.recorder in set(config.recorder_blacklist)
