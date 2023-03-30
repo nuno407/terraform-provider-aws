@@ -39,6 +39,9 @@ MANDATORY_FIELDS = [
 class MessageParser:
     """SQS message parser."""
 
+    def __init__(self) -> None:
+        """ SQS message parser constructor. """
+
     @staticmethod
     def flatten_string_value(attribute: Union[str, dict]) -> Optional[str]:
         """Unnest attribute value if is a dictionary to string value

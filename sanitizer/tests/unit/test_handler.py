@@ -5,6 +5,7 @@ import pytest
 
 from sanitizer.handler import Handler
 
+
 @pytest.mark.unit
 def test_handler_run():
     """ test handler run. """
@@ -23,10 +24,10 @@ def test_handler_run():
     message_persistence = Mock()
     message_persistence.save.return_value = None
 
-    message_wrapper = Mock()
-    message_wrapper.parser = message_parser
-    message_wrapper.filter = message_filter
-    message_wrapper.persistence = message_persistence
+    message_controller = Mock()
+    message_controller.parser = message_parser
+    message_controller.filter = message_filter
+    message_controller.persistence = message_persistence
 
     video_artifact = Mock()
     snapshot_artifact = Mock()
@@ -37,13 +38,17 @@ def test_handler_run():
     artifact_filter.is_relevant.return_value = artifacts
     artifact_forwarder = Mock()
     artifact_forwarder.publish.return_value = None
+
+    artifact_controller = Mock()
+    artifact_controller.parser = artifact_parser
+    artifact_controller.filter = artifact_filter
+    artifact_controller.forwarder = artifact_forwarder
+
     sqs_controller.delete_message.return_value = None
 
     handler = Handler(sqs_controller,
-                      message_wrapper,
-                      artifact_parser,
-                      artifact_filter,
-                      artifact_forwarder)
+                      message_controller,
+                      artifact_controller)
 
     test_helper_continue_running = Mock(side_effect=[True, False])
 
@@ -71,13 +76,11 @@ def test_handler_run_no_raw_message():
     message_parser = Mock()
 
     message_parser.parse.return_value = None
-    message_wrapper = Mock()
-    message_wrapper.parser = message_parser
+    message_controller = Mock()
+    message_controller.parser = message_parser
 
     handler = Handler(sqs_controller,
-                      message_wrapper,
-                      Mock(),
-                      Mock(),
+                      message_controller,
                       Mock())
 
     test_helper_continue_running = Mock(side_effect=[True, False])
@@ -87,6 +90,7 @@ def test_handler_run_no_raw_message():
     sqs_controller.get_queue_url.assert_called_once()
     sqs_controller.get_message.assert_called_once_with("queue_url")
     message_parser.parse.assert_not_called()
+
 
 @pytest.mark.unit
 def test_handler_run_not_relevant():
@@ -105,14 +109,12 @@ def test_handler_run_not_relevant():
     message_filter.is_relevant.return_value = None
     sqs_controller.delete_message.return_value = None
 
-    message_wrapper = Mock()
-    message_wrapper.parser = message_parser
-    message_wrapper.filter = message_filter
+    message_controller = Mock()
+    message_controller.parser = message_parser
+    message_controller.filter = message_filter
 
     handler = Handler(sqs_controller,
-                      message_wrapper,
-                      Mock(),
-                      Mock(),
+                      message_controller,
                       Mock())
 
     test_helper_continue_running = Mock(side_effect=[True, False])

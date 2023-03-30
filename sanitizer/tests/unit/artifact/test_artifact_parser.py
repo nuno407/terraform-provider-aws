@@ -1,6 +1,6 @@
 """ Unit tests for the artifact parser. """
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -142,6 +142,6 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT:
-        snapshot_parser.parse.assert_called_once_with(sqs_message)
+        snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.SNAPSHOT)
     else:
-        video_parser.parse.assert_called_once_with(sqs_message)
+        video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])

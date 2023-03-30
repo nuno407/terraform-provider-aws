@@ -5,6 +5,7 @@ import pytest
 
 from sanitizer.main import main
 
+
 @pytest.mark.unit
 def test_main_method():
     """ test main method """

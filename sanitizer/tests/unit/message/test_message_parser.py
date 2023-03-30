@@ -59,7 +59,7 @@ def _missing_body_message(fixture_file_id: str) -> dict:
 
 
 @pytest.mark.unit
-class TestMessageParser(): # pylint: disable=too-few-public-methods
+class TestMessageParser():  # pylint: disable=too-few-public-methods
     """ Test class for MessageParser. """
     @pytest.mark.parametrize(
         "test_case,input_message,expected,is_error",

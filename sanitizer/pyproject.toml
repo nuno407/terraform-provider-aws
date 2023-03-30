@@ -5,7 +5,6 @@ timid = true
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-m unit -v --cov-config=.coveragerc --cov=sanitizer --cov-report=xml"
-
 markers = [
     "unit",
     "integration"
@@ -41,6 +40,10 @@ docstring-quote = "double"
 files = [
     "sanitizer/**/*.py",
     "tests/**/*.py"
+]
+exclude = [
+    "^test.*\\.py$",
+    "conftest.py",
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]

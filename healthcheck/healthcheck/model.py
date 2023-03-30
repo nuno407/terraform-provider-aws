@@ -123,4 +123,5 @@ class SnapshotArtifact(Artifact):
         _logger.debug("kinesis sync - new timestamp %s",
                       self.timestamp.timestamp())
 
+
 DBDocument = NewType("DBDocument", dict)

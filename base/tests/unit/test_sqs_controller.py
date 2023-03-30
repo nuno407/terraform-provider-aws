@@ -1,3 +1,4 @@
+# type: ignore
 """Unit tests SQS controller."""
 from datetime import datetime
 from unittest.mock import Mock
@@ -111,5 +112,5 @@ class TestSQSController():
         sqs_client_mock.change_message_visibility.assert_called_once_with(
             QueueUrl="foobar-url",
             ReceiptHandle=sqs_message.receipt_handle,
-            VisibilityTimeout=TWELVE_HOURS_IN_SECONDS-1
+            VisibilityTimeout=TWELVE_HOURS_IN_SECONDS - 1
         )

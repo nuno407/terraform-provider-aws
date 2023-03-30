@@ -5,8 +5,9 @@ from sanitizer.message.message_parser import MessageParser
 from sanitizer.message.message_filter import MessageFilter
 from sanitizer.message.message_persistence import MessagePersistence
 
+
 @inject
-class MessageWrapper: # pylint: disable=too-few-public-methods
+class MessageController:  # pylint: disable=too-few-public-methods
     """ Message wrapper class. """
 
     def __init__(self,

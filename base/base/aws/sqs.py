@@ -19,8 +19,10 @@ MESSAGE_VISIBILITY_TIMEOUT_BUFFER = 0.5
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
+
 class InitializationError(Exception):
     """Error raised during healthcheck initialization."""
+
 
 @inject
 class SQSController:

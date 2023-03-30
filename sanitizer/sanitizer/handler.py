@@ -1,3 +1,4 @@
+# type: ignore
 """ handler module. """
 import logging
 from typing import Callable, Optional
@@ -7,11 +8,9 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from base.aws.sqs import SQSController, SQSMessage
 from base.graceful_exit import GracefulExit
-from sanitizer.artifact.artifact_filter import ArtifactFilter
-from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
-from sanitizer.artifact.artifact_parser import ArtifactParser
+from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
-from sanitizer.message.message_wrapper import MessageWrapper
+from sanitizer.message.message_controller import MessageController
 
 __logger = logging.getLogger(__name__)
 
@@ -20,17 +19,13 @@ __logger = logging.getLogger(__name__)
 class Handler:  # pylint: disable=too-few-public-methods
     """ message handler """
 
-    def __init__(self, # pylint: disable=too-many-arguments
+    def __init__(self,
                  aws_sqs_controller: SQSController,
-                 message: MessageWrapper,
-                 artifact_parser: ArtifactParser,
-                 artifact_filter: ArtifactFilter,
-                 artifact_forwarder: ArtifactForwarder) -> None:
+                 message: MessageController,
+                 artifact: ArtifactController) -> None:
         self.aws_sqs = aws_sqs_controller
         self.message = message
-        self.artifact_parser = artifact_parser
-        self.artifact_filter = artifact_filter
-        self.forwarder = artifact_forwarder
+        self.artifact = artifact
         self.__queue_url = self.aws_sqs.get_queue_url()
 
     @inject
@@ -58,12 +53,12 @@ class Handler:  # pylint: disable=too-few-public-methods
 
         self.message.persistence.save(message)
 
-        artifacts = self.artifact_parser.parse(message)
+        artifacts = self.artifact.parser.parse(message)
         for artifact in artifacts:
             try:
-                is_relevant = self.artifact_filter.is_relevant(artifact)
+                is_relevant = self.artifact.filter.is_relevant(artifact)
                 if is_relevant:
-                    self.forwarder.publish(artifact)
+                    self.artifact.forwarder.publish(artifact)
             except ArtifactException as err:
                 __logger.exception("SKIP: Unable to parse artifact -> %s", err)
                 continue

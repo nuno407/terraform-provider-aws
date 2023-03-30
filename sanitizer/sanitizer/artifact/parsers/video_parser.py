@@ -1,12 +1,12 @@
 """ VideoParser class """
+import json
 from typing import Iterator, Optional
 
 from kink import inject
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import VideoArtifact
+from base.model.artifacts import RecorderType, VideoArtifact
 from base.timestamps import from_epoch_seconds_or_milliseconds
-from sanitizer.artifact.recorder_finder import RecorderTypeFinder
 from sanitizer.exceptions import InvalidMessageError
 
 
@@ -14,7 +14,7 @@ from sanitizer.exceptions import InvalidMessageError
 class VideoParser:  # pylint: disable=too-few-public-methods
     """VideoParser class"""
 
-    def parse(self, sqs_message: SQSMessage) -> Iterator[VideoArtifact]:
+    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[VideoArtifact]:
         """Extract recording artifact from SQS message
 
         Args:
@@ -33,6 +33,12 @@ class VideoParser:  # pylint: disable=too-few-public-methods
         if not inner_message:
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract message contents.")
+
+        if isinstance(inner_message, str):
+            inner_message = json.loads(inner_message)
+            if not inner_message:
+                raise InvalidMessageError(
+                    "Invalid message body. Cannot extract message contents.")
 
         stream_name = inner_message.get("streamName")
         if not stream_name:
@@ -63,6 +69,6 @@ class VideoParser:  # pylint: disable=too-few-public-methods
             tenant_id=tenant,
             device_id=device,
             stream_name=stream_name,
-            recorder=RecorderTypeFinder.get_recorder_type_from_msg(sqs_message),
+            recorder=recorder_type,
             timestamp=from_epoch_seconds_or_milliseconds(footage_from),
             end_timestamp=from_epoch_seconds_or_milliseconds(footage_to)))

@@ -4,8 +4,9 @@ from kink import inject
 from base.aws.sns import SNSController
 from base.model.artifacts import Artifact
 
+
 @inject
-class ArtifactForwarder: # pylint: disable=too-few-public-methods
+class ArtifactForwarder:  # pylint: disable=too-few-public-methods
     """ Publishes artifact message to output topic """
 
     def __init__(self, aws_sns_controller: SNSController) -> None:

@@ -3,6 +3,7 @@ import json
 from base.aws.sns import SNSController
 from unittest.mock import Mock
 
+
 @pytest.mark.unit
 @pytest.mark.parametrize("topic_arn,message", [
     (

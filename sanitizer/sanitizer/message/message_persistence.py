@@ -11,8 +11,9 @@ from sanitizer.config import SanitizerConfig
 
 _logger: Logger = logging.getLogger(__name__)
 
+
 @inject
-class MessagePersistence: # pylint: disable=too-few-public-methods
+class MessagePersistence:  # pylint: disable=too-few-public-methods
     """ Message persistence class. """
 
     def __init__(self,

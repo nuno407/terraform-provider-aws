@@ -8,8 +8,9 @@ from mypy_boto3_s3 import S3Client
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
+
 @inject
-class S3Controller: # pylint: disable=too-few-public-methods
+class S3Controller:  # pylint: disable=too-few-public-methods
     """Blob storage healthcheck controller."""
 
     def __init__(

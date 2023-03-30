@@ -34,6 +34,7 @@ MANDATORY_FIELDS = [
     MessageFields.ATTRIBUTES
 ]
 
+
 @inject
 class SQSMessageParser():
     """SQS message parser."""

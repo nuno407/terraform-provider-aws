@@ -7,10 +7,11 @@ from sanitizer.message.message_parser import MessageParser
 ATTRIBUTE_INTERIOR = "INTERIOR"
 ATTRIBUTE_FRONT = "FRONT"
 ATTRIBUTE_TRAINING = "TRAINING"
+ATTRIBUTE_SNAPSHOT = "TrainingMultiSnapshot"
 
 
-class RecorderTypeFinder:  # pylint: disable=too-few-public-methods
-    """ RecorderTypeFinder class. """
+class RecorderTypeParser:  # pylint: disable=too-few-public-methods
+    """ RecorderTypeParser class. """
     @staticmethod
     def get_recorder_type_from_msg(sqs_message: SQSMessage) -> RecorderType:
         """ Get recorder type from SQS message. """
@@ -31,7 +32,7 @@ class RecorderTypeFinder:  # pylint: disable=too-few-public-methods
                                                            .get("value", {})
                                                            .get("properties", {})
                                                            .get("recorder_name", {}))
-        if recorder_name == "TrainingMultiSnapshot":
+        if recorder_name == ATTRIBUTE_SNAPSHOT:
             return RecorderType.SNAPSHOT
 
         raise ValueError(f"Unknown recorder name: {recorder_name}")

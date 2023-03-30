@@ -1,3 +1,4 @@
+# type: ignore
 """ main module. """
 from kink import inject
 
@@ -13,4 +14,4 @@ def main(handler: Handler):
 
 if __name__ == "__main__":
     bootstrap_di()
-    main() # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

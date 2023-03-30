@@ -10,14 +10,14 @@ from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.exceptions import ArtifactException, InvalidMessageError
 from sanitizer.message.message_parser import MessageParser
 
-__logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @inject
 class SnapshotParser:  # pylint: disable=too-few-public-methods
     """SnapshotParser class"""
 
-    def parse(self, sqs_message: SQSMessage) -> Iterator[SnapshotArtifact]:
+    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[SnapshotArtifact]:
         """Generator method for extracting a list of snapshot artifacts
 
         Args:
@@ -65,7 +65,7 @@ class SnapshotParser:  # pylint: disable=too-few-public-methods
                 "Snapshot Message does not contain any chunks. Cannot extract snapshots.")  # pylint: disable=line-too-long
 
         # extract snapshots from chunks
-        __logger.debug("extracting snapshots from all chunks...")
+        _logger.debug("extracting snapshots from all chunks...")
 
         for chunk in chunks:
             try:
@@ -75,7 +75,7 @@ class SnapshotParser:  # pylint: disable=too-few-public-methods
                 yield SnapshotArtifact(tenant_id=tenant,
                                        device_id=device_id,
                                        uuid=chunk["uuid"],
-                                       recorder=RecorderType.SNAPSHOT,
+                                       recorder=recorder_type,
                                        timestamp=from_epoch_seconds_or_milliseconds(chunk["start_timestamp_ms"]))  # pylint: disable=line-too-long
             except ArtifactException as err:
-                __logger.exception("Error parsing snapshot artifact: %s", err)
+                _logger.exception("Error parsing snapshot artifact: %s", err)

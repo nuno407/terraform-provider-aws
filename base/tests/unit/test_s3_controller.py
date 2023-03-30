@@ -3,8 +3,9 @@ from botocore.errorfactory import ClientError
 from base.aws.s3 import S3Controller
 from unittest.mock import Mock
 
+
 @pytest.mark.unit
-@pytest.mark.parametrize("bucket,path,response,expected",[
+@pytest.mark.parametrize("bucket,path,response,expected", [
     (
         "foobucket",
         "exists",
@@ -31,6 +32,7 @@ def test_check_s3_file_exists(bucket: str, path: str, response: dict, expected: 
     s3_client.head_object = Mock(return_value=response)
     assert S3Controller(s3_client).check_s3_file_exists(bucket, path) == expected
     s3_client.head_object.assert_called_once_with(Bucket=bucket, Key=path)
+
 
 def test_check_s3_file_exists_client_error():
     s3_client = Mock()

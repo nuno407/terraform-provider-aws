@@ -9,6 +9,7 @@ from healthcheck.model import Artifact, S3Params
 @inject
 class S3Utils:
     """ S3 interface utility class. """
+
     def __init__(self,
                  s3_params: S3Params,
                  s3_controller: S3Controller):

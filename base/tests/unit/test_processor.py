@@ -23,6 +23,7 @@ class SampleProcessor(Processor):
     def name(self):
         return "sample"
 
+
 @pytest.mark.unit
 class TestProcessor:  # pylint: disable=too-few-public-methods
     """Test processor class."""

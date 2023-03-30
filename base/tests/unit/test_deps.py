@@ -14,6 +14,7 @@ def _calculate_all_submodules(package):
             results.extend(_calculate_all_submodules(importlib.import_module(full_name)))
     return results
 
+
 @pytest.mark.unit
 def test_import_of_all_submodules():
     """ Objective of this test is to test if the dispendencies installed via pip install .[all] are correct """

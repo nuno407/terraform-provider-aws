@@ -6,7 +6,7 @@ from sanitizer.config import SanitizerConfig
 
 
 @inject
-class MessageFilter: # pylint: disable=too-few-public-methods
+class MessageFilter:  # pylint: disable=too-few-public-methods
     """ Message filter class. """
 
     def __init__(self, config: SanitizerConfig) -> None:

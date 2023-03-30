@@ -20,6 +20,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         training_whitelist=[]
     )
 
+
 @pytest.mark.unit
 @pytest.mark.parametrize("artifact,config,expected", [
     # good artifact
