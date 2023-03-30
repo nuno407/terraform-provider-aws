@@ -1,8 +1,9 @@
 """ Test container script. """
 import json
 from unittest.mock import Mock
-
 import os
+from moto import mock_s3
+import boto3
 import pytest
 from base.aws.container_services import ContainerServices
 
@@ -124,3 +125,26 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
         assert container_services.ivs_api["address"] == "ivs.api.address"
         assert container_services.secret_managers["selector"] == "footage_api_mdl"
         assert container_services.api_endpoints["mdl_footage_endpoint"] == "https://dummy-endpoint.com/videofootage"
+
+    def test_check_s3_file_exists(self):
+        bucket_name = "bucket_mock"
+        existent_file_name = "exist.json"
+
+        with mock_s3():
+            # moto only accepts us-east-1 https://github.com/spulec/moto/issues/3292#issuecomment-718116897
+            moto_s3_client = boto3.client("s3", region_name="us-east-1")
+            moto_s3_client.create_bucket(Bucket=bucket_name)
+            moto_s3_client.put_object(
+                Bucket=bucket_name,
+                Body=b"MOCK",
+                Key=existent_file_name)
+
+            file_exist = ContainerServices.check_s3_file_exists(moto_s3_client, bucket_name, existent_file_name)
+            file_not_exist = ContainerServices.check_s3_file_exists(moto_s3_client, bucket_name, "NO_FILE")
+
+            # Test bucket do not exist
+            with pytest.raises(moto_s3_client.exceptions.NoSuchBucket):
+                ContainerServices.check_s3_file_exists(moto_s3_client, "NON_EXISTENT_BUCKET", existent_file_name)
+
+            assert file_exist
+            assert not file_not_exist

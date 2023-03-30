@@ -129,15 +129,16 @@ class Ingestor():
                 continue
 
             # Filter the file for any of the extensions provided
-            files = list(filter(lambda x: any(x['Key'].endswith(extension)  # type: ignore
-                                              for extension in extensions),
-                                list_objects_response['Contents']))
+            files: list[dict] = list(filter(lambda x: any(x['Key'].endswith(extension)  # type: ignore
+                                                          for extension in extensions),
+                                            list_objects_response['Contents']))
 
             if len(files) > 1:
                 raise RuntimeError(f"Found more then one file for {path}, files found: {str(files)}")
 
             if len(files) == 1:
-                snapshot_bytes: bytearray = self.container_svcs.download_file(self.rcc_s3_client, bucket, path)
+                snapshot_bytes: bytearray = self.container_svcs.download_file(
+                    self.rcc_s3_client, bucket, files[0]['Key'])
                 LOGGER.debug("File found at %s", path)
                 return snapshot_bytes
 

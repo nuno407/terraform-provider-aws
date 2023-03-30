@@ -142,7 +142,23 @@ class TestIngestor:
         assert set(paths) == set(wanted_result)
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("list_objects_response,prefix,extensions,raise_val", [
+    @pytest.mark.parametrize("list_objects_response,prefix,extensions,raise_val,expected_download_path", [
+        (
+            [(True, {
+                "Contents": [
+                    {
+                        "Key": "mocked_path/random_snap.jpegasd.json"
+                    },
+                    {
+                        "Key": "mocked_path/random_snap.jpeg"
+                    }
+                ]
+            }), (False, {}), (False, {})],
+            "random_snap",
+            [".json"],
+            None,
+            "mocked_path/random_snap.jpegasd.json"
+        ),
         (
             [(True, {
                 "Contents": [
@@ -156,7 +172,8 @@ class TestIngestor:
             }), (False, {}), (False, {})],
             "video",
             [".json"],
-            None
+            None,
+            "mocked_path/video.mp4.json"
         ),
         (
             [(True, {
@@ -171,7 +188,8 @@ class TestIngestor:
             }), (False, {}), (False, {})],
             "video",
             [".txt"],
-            FileNotFoundError
+            FileNotFoundError,
+            None
         )
     ])
     def test_get_file_in_rcc(self,
@@ -180,7 +198,8 @@ class TestIngestor:
                              list_objects_response: tuple[bool, list[dict]],
                              prefix: str,
                              extensions: list[str],
-                             raise_val: Optional[Exception]):
+                             raise_val: Optional[Exception],
+                             expected_download_path: Optional[str]):
 
         bucket = "test"
         tenant = "test"
@@ -200,10 +219,9 @@ class TestIngestor:
             obj._discover_s3_subfolders.assert_called_once_with(
                 f'{tenant}/{device_id}/', bucket, ANY, start_time, end_time)
             obj.check_if_s3_rcc_path_exists.assert_called()
-
+            obj.container_svcs.download_file.assert_called_once_with(ANY, bucket, expected_download_path)
             assert rtn == result
 
         else:
             with pytest.raises(raise_val):
                 obj.get_file_in_rcc(bucket, tenant, device_id, prefix, start_time, end_time, extensions)
-                assert True

@@ -9,6 +9,7 @@ mypy == 1.1.1
 pymongo-stubs == 0.2.0
 types-pytz == 2022.7.1.2
 bandit == 1.7.5
+moto[s3] == 4.1.4
 
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai

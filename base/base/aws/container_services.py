@@ -820,18 +820,20 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         try:
 
-            resp = s3_client.head_object(
+            s3_client.head_object(
                 Bucket=bucket,
                 Key=path
             )
-            if resp["ResponseMetadata"]["HTTPStatusCode"] == 404:
-                return False
 
             return True
         except ClientError as excpt:
-            _logger.exception(
-                "An error has ocurred while checking for the existance of %s key in %s bucket. Exception %s",
+            # Following this: https://stackoverflow.com/questions/33068055/how-to-handle-errors-with-boto3
+
+            if excpt.response["Error"]["Code"] == "404":
+                return False
+
+            _logger.error(
+                "An error has ocurred while checking for the existance of %s key in %s bucket.",
                 path,
-                bucket,
-                excpt)
-            return False
+                bucket)
+            raise excpt
