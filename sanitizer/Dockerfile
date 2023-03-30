@@ -18,10 +18,10 @@ WORKDIR /app/sanitizer
 RUN pip install -r requirements.txt
 
 # Copy application code
-COPY --chown=1000:3000 ./sanitizer/sdretriever/ /app/sanitizer/sdretriever
+COPY --chown=1000:3000 ./sanitizer/sanitizer/ /app/sanitizer/sanitizer
 COPY --chown=1000:3000 ./sanitizer/setup.py /app/sanitizer/setup.py
 
-WORKDIR /app/SDRetriever
+WORKDIR /app/sanitizer
 RUN pip install -e .
 
 # Run anon_ivschain main by its package name

@@ -27,11 +27,11 @@ from unittest.mock import Mock
 ])
 def test_sns_publish(topic_arn: str, message: str):
     sns_client = Mock()
-    sns_client.publish = Mock()
+    sns_client.publish = Mock(return_value={"MessageId": "1234"})
     sns_controller = SNSController(sns_client)
     sns_controller.publish(message, topic_arn)
     sns_client.publish.assert_called_once_with(
         TopicArn=topic_arn,
-        Message=json.dumps({"default": message}),
+        Message=json.dumps({"default": json.loads(message)}),
         MessageStructure="json"
     )

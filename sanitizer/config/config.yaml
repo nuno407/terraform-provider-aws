@@ -1,0 +1,9 @@
+# example config
+input_queue: "local-sanitize-input"
+topic_arn: "arn:aws:sns:us-east-1:000000000000:local-sanitize-output"
+message_collection: "local-incoming-messages"
+db_name: "DataIngestion"
+tenant_blacklist:
+- TEST_TENANT
+recorder_blacklist:
+- FrontRecorder

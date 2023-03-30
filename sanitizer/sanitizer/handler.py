@@ -12,7 +12,7 @@ from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_controller import MessageController
 
-__logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @inject
@@ -26,40 +26,52 @@ class Handler:  # pylint: disable=too-few-public-methods
         self.aws_sqs = aws_sqs_controller
         self.message = message
         self.artifact = artifact
-        self.__queue_url = self.aws_sqs.get_queue_url()
 
     @inject
     def run(self, graceful_exit: GracefulExit,
             helper_continue_running: Callable[[], bool] = lambda: True):
         """retrieves incoming messages, parses them and forwards them to the next step"""
+        queue_url = self.aws_sqs.get_queue_url()
+        _logger.info("SQS queue url: %s", queue_url)
+
         while graceful_exit.continue_running and helper_continue_running():
-            raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs.get_message(self.__queue_url)
+            raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs.get_message(queue_url)
+            _logger.debug("receveid raw message %s", raw_sqs_message)
             if raw_sqs_message is None:
                 continue
 
             try:
                 message: SQSMessage = self.message.parser.parse(raw_sqs_message)
-                self._process_message(message)
+                _logger.debug("parsed message %s", message)
+                self._process_message(message, queue_url)
             except MessageException as err:
-                __logger.exception("SKIP: Unable to parse message -> %s", err)
+                _logger.exception("SKIP: Unable to parse message -> %s", err)
                 continue
 
-    def _process_message(self, message: SQSMessage):
+    def _process_message(self, message: SQSMessage, queue_url: str):
         """processes a single message to artifacts and publishes them"""
         is_relevant = self.message.filter.is_relevant(message)
         if not is_relevant:
-            self.aws_sqs.delete_message(self.__queue_url, message)
+            _logger.info("SKIP: message is irrelevant - %s", message.message_id)
+            self.aws_sqs.delete_message(queue_url, message)
             return
 
         self.message.persistence.save(message)
 
         artifacts = self.artifact.parser.parse(message)
         for artifact in artifacts:
+            _logger.info("checking artifact %s %s %s",
+                         artifact.recorder.value,
+                         artifact.device_id,
+                         artifact.tenant_id)
             try:
                 is_relevant = self.artifact.filter.is_relevant(artifact)
                 if is_relevant:
                     self.artifact.forwarder.publish(artifact)
+                else:
+                    _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
+                                 artifact.device_id, artifact.tenant_id)
             except ArtifactException as err:
-                __logger.exception("SKIP: Unable to parse artifact -> %s", err)
+                _logger.exception("SKIP: Unable to parse artifact -> %s", err)
                 continue
-        self.aws_sqs.delete_message(self.__queue_url, message)
+        self.aws_sqs.delete_message(queue_url, message)

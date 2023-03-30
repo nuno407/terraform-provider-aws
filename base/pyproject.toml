@@ -4,7 +4,7 @@ timid = true
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
-addopts = "-v --cov-config=.coveragerc --cov=base --cov-report=xml"
+addopts = "-m unit -v --cov-config=.coveragerc --cov=base --cov-report=xml"
 markers = [
     "unit",
     "integration"

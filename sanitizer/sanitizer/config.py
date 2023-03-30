@@ -12,7 +12,6 @@ class SanitizerConfig():
     message_collection: str
     db_name: str
     tenant_blacklist: list[str]
-    training_whitelist: list[str]
     recorder_blacklist: list[str]
 
     @staticmethod

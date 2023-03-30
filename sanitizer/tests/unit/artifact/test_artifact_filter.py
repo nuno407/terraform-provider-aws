@@ -16,8 +16,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         db_name="db-foo",
         message_collection="foobar-collection",
         recorder_blacklist=recorder_blacklist,
-        tenant_blacklist=tenant_blacklist,
-        training_whitelist=[]
+        tenant_blacklist=tenant_blacklist
     )
 
 

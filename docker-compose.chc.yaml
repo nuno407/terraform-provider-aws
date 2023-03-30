@@ -47,7 +47,7 @@ services:
       - 4566:4566
       - 8080:8080
     volumes:
-      - ./.localdev/initscripts:/docker-entrypoint-initaws.d
+      - ./.localdev/localstack_init/inference:/docker-entrypoint-initaws.d
   ivschain:
     container_name: ivschain
     command:

@@ -1,8 +1,13 @@
 """ artifact forwarder module. """
 
+import logging
+
 from kink import inject
+
 from base.aws.sns import SNSController
 from base.model.artifacts import Artifact
+
+_logger = logging.getLogger(__name__)
 
 
 @inject
@@ -16,4 +21,5 @@ class ArtifactForwarder:  # pylint: disable=too-few-public-methods
         """ publishes artifact to output topic. """
         # convert to raw JSON message and send to sns
         raw_message = artifact.stringify()
+        _logger.debug("publishing message %s", raw_message)
         self.aws_sns_controller.publish(raw_message)

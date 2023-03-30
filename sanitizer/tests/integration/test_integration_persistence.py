@@ -56,7 +56,6 @@ def test_integration_persistence(sqs_message: SQSMessage):
         db_name=db_name,
         message_collection=message_collection,
         tenant_blacklist=[],
-        training_whitelist=[],
         recorder_blacklist=[]
     )
 

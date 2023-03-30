@@ -14,8 +14,6 @@ def test_load_yaml_config():
     message_collection: test-incoming-messages
     tenant_blacklist:
     - onetenant
-    training_whitelist:
-    - anothertenant
     recorder_blacklist:
     - FrontRecorder
     """
@@ -28,7 +26,6 @@ def test_load_yaml_config():
     assert config.topic_arn == "test-topic"
     assert config.recorder_blacklist == ["FrontRecorder"]
     assert config.tenant_blacklist == ["onetenant"]
-    assert config.training_whitelist == ["anothertenant"]
     assert config.message_collection == "test-incoming-messages"
 
 

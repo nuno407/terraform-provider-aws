@@ -18,7 +18,24 @@ class RecorderType(Enum):
 
 
 class ArtifactEncoder(json.JSONEncoder):
-    """ JSON encoder for artifacts. """
+    """ JSON encoder for artifacts.
+
+        Serializes messages to be published in SNS like this:
+
+        'Message': {
+            'default': {
+                'tenant_id': 'test-tenant-id',
+                'device_id': 'test-device-id',
+                'recorder': {
+                    '__enum__': 'TrainingMultiSnapshot'
+                },
+                'timestamp': {
+                    '__datetime__': '2023-03-30T14:59:29.761066'
+                },
+                'uuid': 'test-uuid'
+            }
+        }
+    """
 
     def default(self, o):
         if isinstance(o, Enum):
@@ -28,24 +45,6 @@ class ArtifactEncoder(json.JSONEncoder):
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
         return json.JSONEncoder.default(self, o)
-
-
-class ArtifactDecoder(json.JSONDecoder):
-    """ JSON decoder for artifacts. """
-
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(self,
-                                  object_hook=self.dict_to_object,
-                                  *args,
-                                  **kwargs)
-
-    def dict_to_object(self, dictionary):
-        """ converts a dict to an object. """
-        if "__enum__" in dictionary:
-            return RecorderType(dictionary["__enum__"])
-        if "__datetime__" in dictionary:
-            return datetime.fromisoformat(dictionary["__datetime__"])
-        return dictionary
 
 
 @dataclass
@@ -77,3 +76,25 @@ class VideoArtifact(Artifact):
 class SnapshotArtifact(Artifact):
     """Snapshot artifact"""
     uuid: str
+
+
+class ArtifactDecoder(json.JSONDecoder):
+    """ JSON decoder for artifacts. """
+
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self,
+                                  object_hook=self.dict_to_object,
+                                  *args,
+                                  **kwargs)
+
+    def dict_to_object(self, obj):
+        """ converts a dict to an object. """
+        if "__enum__" in obj:
+            return RecorderType(obj["__enum__"])
+        if "__datetime__" in obj:
+            return datetime.fromisoformat(obj["__datetime__"])
+        if isinstance(obj, dict):
+            if obj["recorder"] == RecorderType.SNAPSHOT:
+                return SnapshotArtifact(**obj)
+            return VideoArtifact(**obj)
+        return obj

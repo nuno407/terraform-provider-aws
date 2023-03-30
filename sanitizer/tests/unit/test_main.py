@@ -11,5 +11,5 @@ def test_main_method():
     """ test main method """
     handler = Mock()
     handler.run = Mock(return_value=None)
-    main(handler)
+    main(handler, 0)
     handler.run.assert_called_once()

@@ -19,16 +19,22 @@ from sanitizer.config import SanitizerConfig
 
 def bootstrap_di():
     """ Initializes dependency injection autowiring. """
+    str_level = os.environ.get("LOGLEVEL", "INFO")
+    log_level = logging.getLevelName(str_level)
+    logging.basicConfig(
+        format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=log_level)
     db_uri = os.getenv("DB_URI", None)
-
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
 
+    # useful for local testing
+    di["start_delay"] = int(os.getenv("START_DELAY_SECONDS", "0"))
     di["config_path"] = os.getenv("CONFIG_PATH", "/app/config/config.yml")
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
-    di["default_sns_topic_arn"] = config.topic_arn  # bound with kink DI
+    di["default_sns_topic_arn"] = config.topic_arn
+    di["input_queue_name"] = config.input_queue
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()

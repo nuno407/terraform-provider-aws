@@ -1,0 +1,54 @@
+#
+# for quick local testing
+#
+version: '3.3'
+
+services:
+  sanitizer:
+    container_name: sanitizer
+    image: sanitizer:test-local
+    build:
+      dockerfile: sanitizer/Dockerfile
+      context: .
+    environment:
+      AWS_ENDPOINT: http://localstack:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      START_DELAY_SECONDS: 15
+      CONFIG_PATH: /config/config.yaml
+      DB_URI: mongodb://sanitizer:thisisnotsecure@mongodb:27017/?authSource=admin
+    volumes:
+      - ./sanitizer/config:/config
+
+  localstack:
+    container_name: localstack
+    image: localstack/localstack
+    healthcheck:
+      test: ["CMD", "bash" ,"-c", "awslocal sqs list-queues"]
+      timeout: 5s
+      interval: 25s
+      retries: 5
+    environment:
+      SERVICES: sns,sqs
+    ports:
+      - 4566:4566
+      - 8080:8080
+    volumes:
+      - ./.localdev/localstack_init/sanitizer:/docker-entrypoint-initaws.d
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sanitizer
+      MONGO_INITDB_ROOT_PASSWORD: thisisnotsecure
+      MONGO_INITDB_DATABASE: DataIngestion
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+      - ./.localdev/localstack_init/sanitizer/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+volumes:
+  mongodb:
