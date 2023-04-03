@@ -27,7 +27,6 @@ class MessagePersistence:  # pylint: disable=too-few-public-methods
         """ Saves given message in database collection """
         collection = self.mongo_client[self.config.db_name][self.config.message_collection]
         _logger.info("Saving message in collection %s", self.config.message_collection)
-        message.timestamp = DateUtils.from_iso8601_to_datetime(message.timestamp)
         document = self.to_persistable_dict(message)
         collection.insert_one(document)
 
@@ -40,7 +39,7 @@ class MessagePersistence:  # pylint: disable=too-few-public-methods
         return {
             "message_id": message.message_id,
             "receipt_handle": message.receipt_handle,
-            "timestamp": message.timestamp,
+            "timestamp": DateUtils.from_iso8601_to_datetime(message.timestamp),
             "body": message.body,
             "attributes": dataclasses.asdict(message.attributes)
         }

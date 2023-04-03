@@ -176,6 +176,7 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     else:
         video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
 
+
 def test_artifact_parser_unknown_recorder():
     sqs_message = SQSMessage(
         message_id="bar",

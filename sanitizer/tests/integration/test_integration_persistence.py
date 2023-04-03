@@ -2,6 +2,7 @@
 
 import pytest
 from mongomock import MongoClient
+from datetime import datetime
 
 from base.aws.model import SQSMessage, MessageAttributes
 from sanitizer.config import SanitizerConfig
@@ -70,7 +71,7 @@ def test_integration_persistence(sqs_message: SQSMessage):
     })
 
     assert found["receipt_handle"] == sqs_message.receipt_handle
-    assert found["timestamp"] == sqs_message.timestamp
+    assert found["timestamp"] == datetime.fromisoformat(sqs_message.timestamp)
     assert found["body"] == sqs_message.body
     assert found["attributes"]["tenant"] == sqs_message.attributes.tenant
     assert found["attributes"]["device_id"] == sqs_message.attributes.device_id

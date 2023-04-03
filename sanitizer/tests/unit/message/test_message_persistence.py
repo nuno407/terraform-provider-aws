@@ -50,7 +50,7 @@ from sanitizer.message.message_persistence import MessagePersistence
             )
         )
     ),
-        (
+    (
         SQSMessage(
             message_id="foo2",
             receipt_handle="bar2",

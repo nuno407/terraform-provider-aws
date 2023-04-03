@@ -6,9 +6,11 @@ from kink import inject
 from base.aws.model import SQSMessage
 from base.model.artifacts import Artifact, RecorderType
 from sanitizer.artifact.parsers.iparser import IArtifactParser
-from sanitizer.artifact.parsers.snapshot_preview_parser import SnapshotPreviewParser
+from sanitizer.artifact.parsers.snapshot_preview_parser import \
+    SnapshotPreviewParser
 from sanitizer.artifact.parsers.video_parser import VideoParser
 from sanitizer.artifact.recorder_type_parser import RecorderTypeParser
+from sanitizer.exceptions import ArtifactException
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +32,6 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
                  snapshot_parser: SnapshotPreviewParser) -> None:
         self._video_parser = video_parser
         self._snapshot_parser = snapshot_parser
-        self._interior_preview_parser = None
 
     def __get_parser_for_recorder(self, recorder_type: RecorderType) -> IArtifactParser:
         if recorder_type in {RecorderType.FRONT, RecorderType.INTERIOR, RecorderType.TRAINING}:
@@ -39,7 +40,7 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
         if recorder_type in {RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW}:
             return self._snapshot_parser
 
-        raise ValueError(f"Unknown recorder type: {recorder_type}")
+        raise ArtifactException(f"Recorder type not supported: {recorder_type}")
 
     def parse(self, sqs_message: SQSMessage) -> list[Artifact]:
         """ Parse SQS message and return list of artifacts. """

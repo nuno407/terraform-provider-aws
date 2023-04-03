@@ -1,13 +1,10 @@
 """ artifact forwarder module. """
 
-import logging
 
 from kink import inject
 
 from base.aws.sns import SNSController
 from base.model.artifacts import Artifact
-
-_logger = logging.getLogger(__name__)
 
 
 @inject

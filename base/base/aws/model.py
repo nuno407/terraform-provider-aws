@@ -27,6 +27,3 @@ class SQSMessage:
             str: JSON representation
         """
         return json.dumps(self, default=lambda o: o.__dict__)
-
-    def __repr__(self) -> str:
-        return self.stringify()

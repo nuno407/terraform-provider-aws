@@ -59,21 +59,21 @@ class Handler:  # pylint: disable=too-few-public-methods
             return
 
         self.message.persistence.save(message)
+        try:
+            artifacts = self.artifact.parser.parse(message)
+            for artifact in artifacts:
+                _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
+                             artifact.recorder.value,
+                             artifact.device_id,
+                             artifact.tenant_id)
 
-        artifacts = self.artifact.parser.parse(message)
-        for artifact in artifacts:
-            _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
-                         artifact.recorder.value,
-                         artifact.device_id,
-                         artifact.tenant_id)
-            try:
                 is_relevant = self.artifact.filter.is_relevant(artifact)
                 if is_relevant:
                     self.artifact.forwarder.publish(artifact)
                 else:
                     _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
-                                 artifact.device_id, artifact.tenant_id)
-            except ArtifactException as err:
-                _logger.exception("SKIP: Unable to parse artifact -> %s", err)
-                continue
+                                 artifact.device_id,
+                                 artifact.tenant_id)
+        except ArtifactException as err:
+            _logger.warning("SKIP: Unable to parse artifacts -> %s", err)
         self.aws_sqs.delete_message(queue_url, message)

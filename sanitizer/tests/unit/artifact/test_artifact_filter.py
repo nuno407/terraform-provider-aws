@@ -79,7 +79,23 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
-            recorder_blacklist=[RecorderType.FRONT]
+            recorder_blacklist=[RecorderType.FRONT.value]
+        ),
+        False
+    ),
+    # multiple blacklisted recorder
+    (
+        VideoArtifact(
+            stream_name="foobar4",
+            tenant_id="deepsensation",
+            device_id="DEV04",
+            recorder=RecorderType.INTERIOR_PREVIEW,
+            timestamp=datetime.now(),
+            end_timestamp=datetime.now()
+        ),
+        _sanitizer_config(
+            tenant_blacklist=["datanauts"],
+            recorder_blacklist=[RecorderType.INTERIOR_PREVIEW.value, RecorderType.FRONT.value]
         ),
         False
     ),

@@ -35,4 +35,4 @@ class ArtifactFilter:  # pylint: disable=too-few-public-methods
         if artifact.recorder is None:
             return False
 
-        return artifact.recorder in set(config.recorder_blacklist)
+        return artifact.recorder.value in set(config.recorder_blacklist)
