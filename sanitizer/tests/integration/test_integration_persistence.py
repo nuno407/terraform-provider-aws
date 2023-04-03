@@ -3,6 +3,7 @@
 import pytest
 from mongomock import MongoClient
 
+from datetime import datetime
 from base.aws.model import SQSMessage, MessageAttributes
 from sanitizer.config import SanitizerConfig
 from sanitizer.message.message_persistence import MessagePersistence
@@ -23,7 +24,7 @@ from sanitizer.message.message_persistence import MessagePersistence
                     }
                 }
             },
-            timestamp="123456",
+            timestamp="2023-04-03T10:00:47.462",
             attributes=MessageAttributes(
                 tenant="datanauts",
                 device_id="DEV_01"))
@@ -40,7 +41,7 @@ from sanitizer.message.message_persistence import MessagePersistence
                     }
                 }
             },
-            timestamp="1234567890",
+            timestamp="2023-04-03T10:00:47.462",
             attributes=MessageAttributes(
                 tenant="rubberduck",
                 device_id="DEV_02"))

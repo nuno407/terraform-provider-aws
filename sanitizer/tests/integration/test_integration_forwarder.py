@@ -116,6 +116,8 @@ def test_forwarder_publish_to_sns_topic(artifact: Artifact,
     messages = sqs_client.receive_message(QueueUrl=queue_url["QueueUrl"])
     raw_body = messages["Messages"][0]["Body"]
     body = _read_and_parse_msg_body_from_sns_topic(raw_body)
+
     # using ArtifactDecoder to deserialize the message published in the topic
     got_artifact = json.loads(json.dumps(body["Message"]["default"]), cls=ArtifactDecoder)
+    assert got_artifact.devcloudid == artifact.devcloudid
     assert got_artifact == artifact

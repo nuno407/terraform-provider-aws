@@ -8,7 +8,7 @@ ATTRIBUTE_INTERIOR = "INTERIOR"
 ATTRIBUTE_FRONT = "FRONT"
 ATTRIBUTE_TRAINING = "TRAINING"
 ATTRIBUTE_SNAPSHOT = "TrainingMultiSnapshot"
-
+ATTRIBUTE_INTERIOR_PREVIEW = "InteriorRecorderPreview"
 
 class RecorderTypeParser:  # pylint: disable=too-few-public-methods
     """ RecorderTypeParser class. """
@@ -34,5 +34,8 @@ class RecorderTypeParser:  # pylint: disable=too-few-public-methods
                                                            .get("recorder_name", {}))
         if recorder_name == ATTRIBUTE_SNAPSHOT:
             return RecorderType.SNAPSHOT
+
+        if recorder_name == ATTRIBUTE_INTERIOR_PREVIEW:
+            return RecorderType.INTERIOR_PREVIEW
 
         raise ValueError(f"Unknown recorder name: {recorder_name}")

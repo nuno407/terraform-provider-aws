@@ -52,7 +52,9 @@ class Handler:  # pylint: disable=too-few-public-methods
         """processes a single message to artifacts and publishes them"""
         is_relevant = self.message.filter.is_relevant(message)
         if not is_relevant:
-            _logger.info("SKIP: message is irrelevant - %s", message.message_id)
+            _logger.info("SKIP: message is irrelevant - message_id=%s: tenant=%s",
+                         message.message_id,
+                         message.attributes.tenant)
             self.aws_sqs.delete_message(queue_url, message)
             return
 
@@ -60,7 +62,7 @@ class Handler:  # pylint: disable=too-few-public-methods
 
         artifacts = self.artifact.parser.parse(message)
         for artifact in artifacts:
-            _logger.info("checking artifact %s %s %s",
+            _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
                          artifact.recorder.value,
                          artifact.device_id,
                          artifact.tenant_id)

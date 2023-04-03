@@ -9,6 +9,7 @@ from sanitizer.config import SanitizerConfig
 class ArtifactFilter:  # pylint: disable=too-few-public-methods
     """ Artifact filter class. """
 
+    @inject
     def is_relevant(self,
                     artifact: Artifact,
                     config: SanitizerConfig) -> bool:

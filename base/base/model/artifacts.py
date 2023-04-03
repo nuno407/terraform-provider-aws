@@ -1,10 +1,12 @@
 """ Artifact model. """
-import json
 import dataclasses
-from abc import ABC
+import hashlib
+import json
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 
 
 class RecorderType(Enum):
@@ -59,6 +61,16 @@ class Artifact(ABC):
         """ stringifies the artifact. """
         return json.dumps(self, cls=ArtifactEncoder)
 
+    @property
+    @abstractmethod
+    def artifact_id(self) -> str:
+        """Artifact ID."""
+
+    @property
+    def devcloudid(self) -> str:
+        """Compute hash for checking data completion"""
+        return hashlib.sha256(self.artifact_id.encode("utf-8")).hexdigest()
+
 
 @dataclass
 class VideoArtifact(Artifact):
@@ -71,11 +83,20 @@ class VideoArtifact(Artifact):
         """ duration of the video in seconds. """
         return (self.end_timestamp - self.timestamp).total_seconds()
 
+    @property
+    def artifact_id(self) -> str:
+        return f"{self.stream_name}_{int(self.timestamp.timestamp()*1000)}_{int(self.end_timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
+
 
 @dataclass
 class SnapshotArtifact(Artifact):
     """Snapshot artifact"""
     uuid: str
+
+    @property
+    def artifact_id(self) -> str:
+        uuid_without_ext = self.uuid.rstrip(Path(self.uuid).suffix)
+        return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{int(self.timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
 
 
 class ArtifactDecoder(json.JSONDecoder):
