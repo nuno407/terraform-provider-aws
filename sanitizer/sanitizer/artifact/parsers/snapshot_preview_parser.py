@@ -14,11 +14,11 @@ _logger = logging.getLogger(__name__)
 
 
 @inject
-class SnapshotParser:  # pylint: disable=too-few-public-methods
-    """SnapshotParser class"""
+class SnapshotPreviewParser:  # pylint: disable=too-few-public-methods
+    """SnapshotPreviewParser class"""
 
     def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[SnapshotArtifact]:
-        """Generator method for extracting a list of snapshot artifacts
+        """Generator method for extracting a list of snapshot or previews artifacts
 
         Args:
             message (SQSMessage): incoming SQS message
@@ -27,7 +27,7 @@ class SnapshotParser:  # pylint: disable=too-few-public-methods
             InvalidMessageError: error parsing the incoming message
 
         Yields:
-            Iterator[Artifact]: iterator of snapshot artifacts
+            Iterator[Artifact]: iterator of snapshot or preview artifacts
         """
         # get tenant information
         tenant = MessageParser.flatten_string_value(MessageParser.get_recursive_from_dict(

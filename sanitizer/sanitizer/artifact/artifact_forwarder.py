@@ -21,5 +21,4 @@ class ArtifactForwarder:  # pylint: disable=too-few-public-methods
         """ publishes artifact to output topic. """
         # convert to raw JSON message and send to sns
         raw_message = artifact.stringify()
-        _logger.debug("publishing message %s", raw_message)
         self.aws_sns_controller.publish(raw_message)

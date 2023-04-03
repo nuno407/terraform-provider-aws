@@ -47,6 +47,34 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             )
         ]
     ),
+    # # interior preview
+    (
+        SQSMessage(
+            message_id="foo",
+            receipt_handle="bar",
+            body={
+                "Message": {
+                    "value": {
+                        "properties": {
+                            "recorder_name": "InteriorRecorderPreview"
+                        }
+                    }
+                }
+            },
+            timestamp="123456",
+            attributes=MessageAttributes(
+                tenant="datanauts",
+                device_id="DEV01")),
+        [
+            SnapshotArtifact(
+                uuid="foo1",
+                tenant_id="datanauts",
+                recorder=RecorderType.INTERIOR_PREVIEW,
+                device_id="DEV01",
+                timestamp=datetime.now()
+            )
+        ]
+    ),
     # interior recorder
     (
         SQSMessage(
@@ -143,5 +171,33 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT:
         snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.SNAPSHOT)
+    elif expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
+        snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.INTERIOR_PREVIEW)
     else:
         video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
+
+def test_artifact_parser_unknown_recorder():
+    sqs_message = SQSMessage(
+        message_id="bar",
+        receipt_handle="foobar",
+        body={
+            "MessageAttributes": {
+                "recorder": {
+                    "Type": "String",
+                    "Value": "FOO"
+                }
+            }
+        },
+        timestamp="123456789",
+        attributes=MessageAttributes(
+            tenant="goaldiggers",
+            device_id="DEV03"))
+
+    snapshot_parser = Mock()
+    snapshot_parser.parse = Mock(return_value=[])
+    video_parser = Mock()
+    video_parser.parse = Mock(return_value=[])
+
+    artifact_parser = ArtifactParser(video_parser, snapshot_parser)
+    with pytest.raises(ValueError):
+        artifact_parser.parse(sqs_message)

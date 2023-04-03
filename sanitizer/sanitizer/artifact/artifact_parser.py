@@ -6,7 +6,7 @@ from kink import inject
 from base.aws.model import SQSMessage
 from base.model.artifacts import Artifact, RecorderType
 from sanitizer.artifact.parsers.iparser import IArtifactParser
-from sanitizer.artifact.parsers.snapshot_parser import SnapshotParser
+from sanitizer.artifact.parsers.snapshot_preview_parser import SnapshotPreviewParser
 from sanitizer.artifact.parsers.video_parser import VideoParser
 from sanitizer.artifact.recorder_type_parser import RecorderTypeParser
 
@@ -15,19 +15,28 @@ _logger = logging.getLogger(__name__)
 
 @inject
 class ArtifactParser:  # pylint: disable=too-few-public-methods
-    """ ArtifactParser class. """
+    """ ArtifactParser class.
+
+    This class is responsible for parsing SQS message into artifacts.
+    The artifacts are divided into two categories: video and snapshot or interior preview (GIF).
+    All the video artifacts are parsed by VideoParser, their messages come from <env>-video-footage-events topic.
+    All the snapshot and interior preview artifacts are parsed by SnapshotPreviewParser,
+    their message comes from <env>-inputEventsTerraform.
+    The RecorderTypeParser is responsible for choosing the correct parser for the artifact type.
+    """
 
     def __init__(self,
                  video_parser: VideoParser,
-                 snapshot_parser: SnapshotParser) -> None:
+                 snapshot_parser: SnapshotPreviewParser) -> None:
         self._video_parser = video_parser
         self._snapshot_parser = snapshot_parser
+        self._interior_preview_parser = None
 
     def __get_parser_for_recorder(self, recorder_type: RecorderType) -> IArtifactParser:
         if recorder_type in {RecorderType.FRONT, RecorderType.INTERIOR, RecorderType.TRAINING}:
             return self._video_parser
 
-        if recorder_type == RecorderType.SNAPSHOT:
+        if recorder_type in {RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW}:
             return self._snapshot_parser
 
         raise ValueError(f"Unknown recorder type: {recorder_type}")

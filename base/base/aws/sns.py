@@ -21,9 +21,11 @@ class SNSController:  # pylint: disable=too-few-public-methods
     def publish(self, message: str, sns_topic_arn: str) -> None:
         """ Publishes message into a topic """
         try:
+            message_to_publish = json.dumps({"default": message})
+            _logger.info("Publishing message to topic %s: %s", sns_topic_arn, message_to_publish)
             response = self.__sns_client.publish(
                 TopicArn=sns_topic_arn,
-                Message=json.dumps({"default": json.loads(message)}),
+                Message=message_to_publish,
                 MessageStructure="json"
             )
             message_id = response["MessageId"]

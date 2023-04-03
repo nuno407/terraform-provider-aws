@@ -15,6 +15,7 @@ class RecorderTypeParser:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_recorder_type_from_msg(sqs_message: SQSMessage) -> RecorderType:
         """ Get recorder type from SQS message. """
+        # messages from <env>-video-footage-events topic
         recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                            .get("MessageAttributes", {})
                                                            .get("recorder", {}))
@@ -27,6 +28,7 @@ class RecorderTypeParser:  # pylint: disable=too-few-public-methods
         if recorder_name == ATTRIBUTE_TRAINING:
             return RecorderType.TRAINING
 
+        # messages from <env>-inputEventsTerraform
         recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                            .get("Message", {})
                                                            .get("value", {})

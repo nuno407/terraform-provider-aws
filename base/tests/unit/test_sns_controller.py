@@ -32,6 +32,6 @@ def test_sns_publish(topic_arn: str, message: str):
     sns_controller.publish(message, topic_arn)
     sns_client.publish.assert_called_once_with(
         TopicArn=topic_arn,
-        Message=json.dumps({"default": json.loads(message)}),
+        Message=json.dumps({"default": message}),
         MessageStructure="json"
     )

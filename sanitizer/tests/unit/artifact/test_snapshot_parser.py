@@ -6,7 +6,7 @@ import pytest
 from base.aws.model import SQSMessage, MessageAttributes
 from base.model.artifacts import RecorderType, SnapshotArtifact, Artifact
 from base.timestamps import from_epoch_seconds_or_milliseconds
-from sanitizer.artifact.parsers.snapshot_parser import SnapshotParser
+from sanitizer.artifact.parsers.snapshot_preview_parser import SnapshotPreviewParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -63,5 +63,5 @@ def test_snapshot_parser(test_case: str,
                          expected: Artifact):
     """ Test for parsing snapshot artifact. """
     print(f"test case: {test_case}")
-    got_artifact = SnapshotParser().parse(input_message, RecorderType.SNAPSHOT)
+    got_artifact = SnapshotPreviewParser().parse(input_message, RecorderType.SNAPSHOT)
     assert list(got_artifact) == expected

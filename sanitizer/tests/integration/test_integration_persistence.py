@@ -3,7 +3,6 @@
 import pytest
 from mongomock import MongoClient
 
-from datetime import datetime
 from base.aws.model import SQSMessage, MessageAttributes
 from sanitizer.config import SanitizerConfig
 from sanitizer.message.message_persistence import MessagePersistence
