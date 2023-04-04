@@ -51,6 +51,15 @@ sqs_message_queue_selector_video_chunks = {
             'StringValue': 'rubber_duck',
             'DataType': 'String'}}}
 
+sqs_message_queue_selector_video_chunks_with_message_field = {
+    'MessageId': '2176790b-7abe-4d40-86e8-e5a37c0c9fa6',
+    'ReceiptHandle': 'AQEBmyyhaq6AgwXODpSZF1nQrG/rbp59/7+j2XtUkOLZxNTWNN9SN/X4zrKarHjedznNspLdxJXPZE51+kxsVHDxfTkfpGd0551FBzeTgtQAoyXXafTRTeiMWoSO/0gnKeF6WH7y7KoecAjOO6bUI0ujtFOH9GA1/e5e4RUC9gEeRaGW/K76Ymig2aJUv41Ip6/4QcML/no1xXBft1ZyeWFUOX8SerWObqXwxCfL1xpl1l95euoX4TL85S7Bn0aukqxoz8U42XNA0sYX48aQHJKE9Xm8HIdmkRKgJiAkXha7ZRhUEGafs5EiCrnO+h21WZqQmKvLSlR9aQ25+nZN2yOFHCtZxwnWHto0+NQ97ym2DUeNCx0H7Wi79a4cTS5ZTrs/X6lwjKvVXEhCTELwsfa0ogEug1v599sN6R9/Gxin+AA=',
+    'MD5OfBody': '379467e5c134606c38a04ce9a88eefa3',
+    'Body': '{\n  "Type" : "Notification",\n  "MessageId" : "62b4c210-0cb0-5ae4-af89-9eb646b7b7ae",\n  "TopicArn" : "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",\n  "Message" : "{\\"topic\\":\\"com.bosch.rcc/rc_srx_prod_277a6ff10d57234dc7edc126d0dc4d9a049a5ef3/things/twin/events/modified\\",\\"headers\\":{\\"device_id\\":\\"com.bosch.rcc:rc_srx_prod_277a6ff10d57234dc7edc126d0dc4d9a049a5ef3\\",\\"creation-time\\":\\"1680623559653\\",\\"kafka.timestamp\\":\\"1680623559653\\",\\"qos\\":\\"1\\",\\"traceparent\\":\\"00-b17a8e742b51a634be2a8b1a7e446faa-1f3b576e03c64370-00\\",\\"orig_address\\":\\"telemetry\\",\\"kafka.topic\\":\\"hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub\\",\\"orig_adapter\\":\\"hono-mqtt\\",\\"kafka.key\\":\\"com.bosch.rcc:rc_srx_prod_277a6ff10d57234dc7edc126d0dc4d9a049a5ef3\\",\\"ditto-originator\\":\\"integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub\\",\\"response-required\\":false,\\"version\\":2,\\"requested-acks\\":[],\\"content-type\\":\\"application/json\\",\\"correlation-id\\":\\"5645342f-6609-44ab-aa8b-6ae06bdd647d\\"},\\"path\\":\\"/features/com.bosch.ivs.videorecorder.UploadRecordingEvent\\",\\"value\\":{\\"properties\\":{\\"header\\":{\\"message_type\\":\\"com.bosch.ivs.videorecorder.UploadRecordingEvent\\",\\"timestamp_ms\\":1680623559519,\\"message_id\\":\\"3a4e1c48-88d9-4f43-acc6-f4a9e4b15d7e\\",\\"device_id\\":\\"rc_srx_prod_277a6ff10d57234dc7edc126d0dc4d9a049a5ef3\\",\\"boot_id\\":\\"b3edbeb6-afd8-48fd-923a-1d359b755074\\"},\\"correlation_id\\":\\"9ba4ef6f-1f45-45ce-ae29-b4ab9765eba6\\",\\"recording_id\\":\\"InteriorRecorder-fdba7ce1-50c5-469c-8072-4010a11b14d1\\",\\"recorder_name\\":\\"InteriorRecorder\\",\\"chunk_descriptions\\":[{\\"uuid\\":\\"InteriorRecorder_InteriorRecorder-fdba7ce1-50c5-469c-8072-4010a11b14d1_1.mp4\\",\\"upload_status\\":\\"UPLOAD_STATUS__SELECTED_FOR_UPLOAD\\",\\"start_timestamp_ms\\":1680623541418,\\"end_timestamp_ms\\":1680623552867,\\"payload_size\\":436256}],\\"command_status\\":{\\"status_code\\":\\"COMMAND_STATUS_CODE__OK\\"}}},\\"extra\\":{\\"attributes\\":{\\"vin\\":\\"unknown\\",\\"tenant\\":\\"ridecare_companion_fut\\",\\"vehicleType\\":\\"CARMODEL__FIAT_500_312\\",\\"subjectId\\":\\"1469ae57-9e9b-47df-827e-e0bf844b7aa8\\",\\"operationMode\\":\\"SILENT_ALARM\\",\\"deviceType\\":\\"hailysharey\\"}},\\"revision\\":42826,\\"timestamp\\":\\"2023-04-04T15:52:39.678131844Z\\"}",\n  "Timestamp" : "2023-04-04T15:52:39.707Z",\n  "SignatureVersion" : "1",\n  "Signature" : "h6pW+12afdPG1i6PrMcvgRK60nXNRIYNfB2BNtW+Dla7ITw9bEogoEXgVYxCjL0YttQ4merM/dKHF82bm9OfbOn8fIU19ai7KRuOQPcshC3O1VR65GSHjgN3x4fj8mF+kIZ8iuOgeDzLL+nX7PEXfKcx7jkaXXkIC3Bal+4W4mEdw1Ch2PVo3XWUU0xmClf8Q7abEv/AkchScNafo+Kpysf0pe0PmGdlk8cL1qKO2WvohfO+wEHSbmo+r+whDi4w2lhXAMJ57kVGi0ztdDVzwW+QMMJ+N3Epa8Lz6qX7MJmKajUR1Sq0+4CnBPURKdAFwTCpe5vnuR+0HCi6qcn75g==",\n  "SigningCertURL" : "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem",\n  "UnsubscribeURL" : "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:e5e2f9eb-a41a-4d3a-9d95-ea10cbb5188d",\n  "MessageAttributes" : {\n    "deviceType" : {"Type":"String","Value":"hailysharey"},\n    "modifiedThingCategory" : {"Type":"String","Value":"features"},\n    "operationMode" : {"Type":"String","Value":"SILENT_ALARM"},\n    "eventType" : {"Type":"String","Value":"com.bosch.ivs.videorecorder.UploadRecordingEvent"},\n    "tenant" : {"Type":"String","Value":"ridecare_companion_fut"},\n    "subjectId" : {"Type":"String","Value":"1469ae57-9e9b-47df-827e-e0bf844b7aa8"}\n  }\n}',
+    'Attributes': {
+        'SentTimestamp': '1680623559748',
+        'ApproximateReceiveCount': '1'}}
+
 
 sqs_message_queue_download_norecordingid = {
     'MessageId': '6615420b-68df-4b65-94e3-8e4ed63935f4',
@@ -236,6 +245,9 @@ class TestVideoMessage:
         assert obj.validate()
 
         obj = VideoMessage(sqs_message_queue_selector_video_chunks)
+        assert not obj.validate()
+
+        obj = VideoMessage(sqs_message_queue_selector_video_chunks_with_message_field)
         assert not obj.validate()
 
     @pytest.mark.parametrize("message,result", [

@@ -35,13 +35,30 @@ class VideoMessage(Message):
                 return video_recording_type
         return None
 
+    @staticmethod
+    def __get_recursive_from_dict(  # pylint: disable=dangerous-default-value
+            data_dict: dict,
+            *keys: str,
+            default=None):
+        """Get value from dict recursively."""
+        for key in keys:
+            if not isinstance(data_dict, dict) or key not in data_dict:
+                return default
+            data_dict = data_dict[key]
+        return data_dict
+
     def validate(self) -> bool:
         """Runtime tests to determine if message contents are usable.
 
         Returns:
             bool: True, False
         """
-        if self.body.get("value", {}).get("properties", {}).get("chunk_descriptions", {}):
+        if self.__get_recursive_from_dict(self.body, "value", "properties", "chunk_descriptions",
+                                          default=[]):
+            LOGGER.debug("Message is listing video chunks, not for ingestion")
+            return False
+        if self.__get_recursive_from_dict(self.message, "value", "properties",
+                                          "chunk_descriptions", default=[]):
             LOGGER.debug("Message is listing video chunks, not for ingestion")
             return False
         # nothing to validate at the moment (tests that we want to send do DLQ when they fail)
