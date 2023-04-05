@@ -130,9 +130,9 @@ class BaseHandler():
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
                                  self.endpoint_notifier)
-        output_api = api_handler.create_routes()
+        api_handler.create_routes()
 
-        api_process = Process(target=output_api.run,
+        api_process = Process(target=api_handler.run,
                               kwargs={"host": "0.0.0.0", "port": int(api_port)})  # nosec this is as intended
         _logger.info("Starting api child process")
         api_process.start()
@@ -143,4 +143,7 @@ class BaseHandler():
         # WARNING: possible race-condition if the processing is too fast
         # and a new message arrives before the Flask app initializes
         message_handler.start(self.mode, graceful_exit)
+        _logger.info("Going to terminate API")
         api_process.terminate()
+        api_process.join()
+        _logger.info("Just terminated the API")
