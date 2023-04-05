@@ -29,7 +29,6 @@ jobs:
   list-all-service-directories:
     name: List directories to lint and test
     if: success() || failure() # making lint optional for now
-    needs: [pre-commit]
     runs-on: ubuntu-latest
     outputs:
       python-directories: ${{ steps.list-step.outputs.python-directories }}
