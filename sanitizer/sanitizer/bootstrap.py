@@ -34,7 +34,7 @@ def bootstrap_di():
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
     di["default_sns_topic_arn"] = config.topic_arn
-    di["input_queue_name"] = config.input_queue
+    di["default_input_queue_name"] = config.input_queue
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()

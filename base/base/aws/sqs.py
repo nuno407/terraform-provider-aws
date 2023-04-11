@@ -21,13 +21,14 @@ _logger: logging.Logger = logging.getLogger(__name__)
 
 
 class InitializationError(Exception):
-    """Error raised during healthcheck initialization."""
+    """Error raised during initialization."""
 
 
 @inject
 class SQSController:
     """SQS message controller."""
 
+    @inject(bind={"input_queue_name": "default_sqs_queue_name"})
     def __init__(self,
                  input_queue_name: str,
                  sqs_client: SQSClient):
