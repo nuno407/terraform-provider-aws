@@ -105,7 +105,7 @@ class VideoMessage(Message):
         if recorder_blacklist is None:
             recorder_blacklist = []
         try:
-            return self.__check_blacklists(tenant_blacklist, recorder_blacklist) or self.__check_conditions()
+            return self.__check_conditions() or self.__check_blacklists(tenant_blacklist, recorder_blacklist)
         except Exception as err:  # pylint: disable=broad-exception-caught
             LOGGER.warning("Checks for irrelevancy on VideoMessage raised an exception -\
                             %s messageid=%s",

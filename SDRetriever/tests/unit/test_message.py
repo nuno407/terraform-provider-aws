@@ -119,6 +119,15 @@ sqs_message_queue_download_bad_streamname = {
     'Attributes': {
         'SentTimestamp': '1657297206893'}}
 
+sqs_message_queue_download_bad_recording_id = {
+    'MessageId': 'f3d0acfb-64c0-4395-b38e-405929973b12',
+    'ReceiptHandle': 'AQEBBRDuoEDnXrQeK/5GPyYFpg1jwMjykUOHF/GR3UYaMUJypj2AM8XE2zTlB2diM6RlYxUBHtBGjw89PARi2mv57osSTsW/kAmq03IrLxlLmvLh7BNUkHJ+AWiVu7W8RE3bHWWnWIrGs2JdyrsD1CeQv/yBbgch943vrNeUbTBeZWnW0M0nwSeGUJ01O677uMPa2p7sSNbetocZLl6tMr3S+8dKm8HNgkXFIqG0HOg+xkiInUOcYfhd/5E8UM3ItwL5L0r82RyZQykbeOhCCw9iiVu9Z3K+vqEgaP6snKV7Xs88h69wLYp6ve9yXdIIYKBCR5axqd0cyXu9QCoPrhZgjHSbqNghMZHSQ28Wsg6NifOKgO1OzH5oKLmh8uV3mnorr6k2ZF6vnStskyfwjZxYIxx0IOaJeeL7AEQDJbVVD+E=',
+    'MD5OfBody': '40849dec19c012c3cf84a135f11d7996',
+    'Body': '{"topic":"com.bosch.rcc.dev/DATANAUTS_DEV_02/things/twin/events/modified","headers":{"kafka.key":"com.bosch.rcc.dev:DATANAUTS_DEV_02","orig_adapter":"hono-mqtt","kafka.topic":"hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub","orig_address":"telemetry","traceparent":"00-b32ea812edb7e42a1c324497cd625dd6-46813aecd2fd3d23-00","qos":"1","kafka.timestamp":"1681294167805","creation-time":"1681294167805","device_id":"com.bosch.rcc.dev:DATANAUTS_DEV_02","ditto-originator":"integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub","response-required":false,"version":2,"requested-acks":[],"content-type":"application/json","correlation-id":"168b68d1-25c1-48bb-a5a9-83342341b304"},"path":"/features/com.bosch.ivs.videorecorder.UploadRecordingEvent","value":{"properties":{"header":{"message_type":"com.bosch.ivs.videorecorder.UploadRecordingEvent","timestamp_ms":1681294167252,"message_id":"4bf79741-e0ba-43d6-b9b5-8c03a9a7ca5f","device_id":"DATANAUTS_DEV_02","boot_id":"e8bdee35-85e9-4df0-8f26-78301f5c10e0"},"correlation_id":"2b1b2e48-fbd0-4bc5-ad35-8321d907d860","recording_id":"TrainingRecorder-5fabee9c-3af3-4936-8374-f3d08d68d01e","command_status":{"status_code":"COMMAND_STATUS_CODE__OK"}}},"extra":{"attributes":{"vin":"unknown","tenant":"datanauts","vehicleType":"CARMODEL__FIAT_500_312","subjectId":"b330dd5b-b505-446f-ba5c-637ae71bf751","operationMode":"PRIVATE","deviceType":"hailysharey"}},"revision":25757,"timestamp":"2023-04-12T10:09:27.814252010Z"}',
+    'Attributes': {
+        'SentTimestamp': '1681294167952',
+        'ApproximateReceiveCount': '1'}}
+
 
 @pytest.mark.unit
 class TestChunk:
@@ -259,6 +268,7 @@ class TestVideoMessage:
         (sqs_message_queue_download_norecordingid, True),
         (sqs_message_queue_download_no_topicarn, True),
         (sqs_message_queue_download_bad_topicarn, True),
+        (sqs_message_queue_download_bad_recording_id, True)
     ])
     def test_is_irrelevant_video(self, message, result, config_yml):
         obj = VideoMessage(message)
