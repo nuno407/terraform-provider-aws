@@ -1,0 +1,8 @@
+{
+    "id": "datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_imu.csv",
+    "data_type": "imu",
+    "tenant": "datanauts",
+    "device_id": "DATANAUTS_DEV_02",
+    "recorder": "TrainingRecorder"
+}

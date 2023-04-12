@@ -51,6 +51,7 @@ sqs_message_queue_selector_video_chunks = {
             'StringValue': 'rubber_duck',
             'DataType': 'String'}}}
 
+
 sqs_message_queue_selector_video_chunks_with_message_field = {
     'MessageId': '2176790b-7abe-4d40-86e8-e5a37c0c9fa6',
     'ReceiptHandle': 'AQEBmyyhaq6AgwXODpSZF1nQrG/rbp59/7+j2XtUkOLZxNTWNN9SN/X4zrKarHjedznNspLdxJXPZE51+kxsVHDxfTkfpGd0551FBzeTgtQAoyXXafTRTeiMWoSO/0gnKeF6WH7y7KoecAjOO6bUI0ujtFOH9GA1/e5e4RUC9gEeRaGW/K76Ymig2aJUv41Ip6/4QcML/no1xXBft1ZyeWFUOX8SerWObqXwxCfL1xpl1l95euoX4TL85S7Bn0aukqxoz8U42XNA0sYX48aQHJKE9Xm8HIdmkRKgJiAkXha7ZRhUEGafs5EiCrnO+h21WZqQmKvLSlR9aQ25+nZN2yOFHCtZxwnWHto0+NQ97ym2DUeNCx0H7Wi79a4cTS5ZTrs/X6lwjKvVXEhCTELwsfa0ogEug1v599sN6R9/Gxin+AA=',

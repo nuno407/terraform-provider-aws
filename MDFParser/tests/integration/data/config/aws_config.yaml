@@ -1,0 +1,40 @@
+sqs_queues_list:
+  SDM: dev-terraform-queue-s3-sdm
+  Anonymize: dev-terraform-queue-anonymize
+  API_Anonymize: dev-terraform-queue-api-anonymize
+  CHC: dev-terraform-queue-chc
+  API_CHC: dev-terraform-queue-api-chc
+  SDRetriever: dev-terraform-queue-download
+  Selector: dev-terraform-queue-selector
+  HQ_Selector: dev-terraform-queue-hq-request
+  Metadata: dev-terraform-queue-metadata
+  Output: dev-terraform-queue-output
+  MDFParser: dev-terraform-queue-mdf-parser
+msp_processing_steps:
+  default:
+    - Anonymize
+    - CHC
+api_endpoints:
+  mdl_footage_endpoint: https://dev.bosch-ridecare.com/footage/devices/{}/videofootage
+  selector_token_endpoint: https://dev-ridecare.auth.eu-central-1.amazoncognito.com/oauth2/token
+ivs_api:
+  address: ivschain-svc.data-ingestion.svc.cluster.local
+  port: "8081"
+  endpoint: feature_chain
+secret_manager:
+  selector: footage_api_mdl
+rcc_info:
+  role: arn:aws:iam::213279581081:role/dev-DevCloud
+  s3_bucket: rcc-dev-device-data
+s3_buckets:
+  raw: dev-rcd-raw-video-files
+  anonymized: dev-rcd-anonymized-video-files
+s3_ignore_list:
+  raw:
+    - txt
+    - json
+  anonymized: []
+sdr_dest_folder:
+  debug: Debug_Lync/
+  fut2: FUT2/
+  driver_pr: Driver-PR/

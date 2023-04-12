@@ -1,13 +1,13 @@
 {
-    "_id": "honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438",
+    "_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651",
+    "parsed_file_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json",
+    "data_type": "metadata",
     "recording_overview": {
+        "chc_duration": 26.478034,
+        "max_person_count": 1,
         "number_chc_events": 1,
-        "chc_duration": 18.956827,
-        "max_person_count": 1.0,
-        "ride_detection_counter": 0
-    },
-    "signals_file": {
-        "bucket": "dev-rcd-raw-video-files",
-        "key": "Debug_Lync/honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438_signals.json"
+        "ride_detection_counter": 1,
+        "sum_door_closed": 0,
+        "variance_person_count": 0.04
     }
 }

@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 
 import pytest
-from mdfparser import main
+from mdfparser.metadata.handler import MetadataHandler
 
 
 @pytest.mark.unit
@@ -14,7 +14,7 @@ def test_extract_timestamps():
     test_filename = "tenant_device_abcd_" + str(last_hour) + "_" + str(now) + "_metadata_full.json"
 
     # WHEN
-    ts_from, ts_to = main.extract_timestamps(test_filename)
+    ts_from, ts_to = MetadataHandler.extract_timestamps(test_filename)
 
     # THEN
     assert ts_from == last_hour

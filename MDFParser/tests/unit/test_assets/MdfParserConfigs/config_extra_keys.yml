@@ -1,3 +1,4 @@
 input_queue: dev-terraform-queue-mdf-parser
 metadata_output_queue: dev-terraform-queue-metadata
+temporary_bucket: mock_bucket
 extra_metadata_output_queue: test

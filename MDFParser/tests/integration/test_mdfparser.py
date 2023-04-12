@@ -1,162 +1,125 @@
-""" Test mdfparser """
+"""Integration test module for interior recorder."""
+from pytest_lazyfixture import lazy_fixture
+import pytest
+from typing import Any, Optional
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_sqs import SQSClient
+from mdfparser.consumer import Consumer
+from unittest.mock import Mock
+from base.aws.container_services import ContainerServices
 import json
+import re
+from mdfparser.bootstrap import bootstrap_di
 import os
-from unittest.mock import ANY, Mock, PropertyMock
-
-from pytest import LogCaptureFixture, fixture, mark
-from pytest_mock import MockerFixture
-from mdfparser.main import main
-from mdfparser.config import MdfParserConfig
-
-__location__ = os.path.realpath(
+CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
-RECORDING_FROM = 1659962815000
-RECORDING_TO = 1659962819000
-RECORDING_NAME = "tenant_recording_" + str(RECORDING_FROM) + "_" + str(RECORDING_TO)
-S3_PATH = "s3://bucket/" + RECORDING_NAME + "_metadata_full.json"
+S3_DATA = os.path.join(CURRENT_LOCATION, "data", "s3_data")
+SQS_MESSAGES = os.path.join(CURRENT_LOCATION, "data", "sqs_messages")
 
 
-@mark.integration
-class TestMain:
-    """ Test main """
-    @fixture
-    def boto3_mock(self, mocker: MockerFixture):
-        """ Mock boto3 for all tests in this class """
-        _ = mocker.patch("mdfparser.main.boto3")
-        return mocker.patch("mdfparser.s3_interaction.boto3")
+def helper_split_s3_path(s3_path: str) -> tuple[str, str, str]:
+    match = re.match(r"^s3://([^/]+)/(.*)$", s3_path)
+    bucket = match.group(1)
+    key = match.group(2)
 
-    @fixture
-    def container_services_mock(self, mocker: MockerFixture, boto3_mock: Mock) -> Mock:  # pylint: disable=unused-argument
-        """ Mock ContainerServices for all tests in this class """
-        container_services_mock = mocker.patch("mdfparser.main.ContainerServices", autospec=True)
-        mocker.patch("mdfparser.downloader.ContainerServices", container_services_mock)
-        mocker.patch("mdfparser.uploader.ContainerServices", container_services_mock)
-        return container_services_mock
+    file_name = key.split("/")[-1]
 
-    @fixture
-    def graceful_exit_mock(self, mocker: MockerFixture) -> Mock:
-        """ Mock GracefulExit for all tests in this class """
-        graceful_exit_mock = mocker.patch("mdfparser.main.GracefulExit")
-        continue_running_mock = PropertyMock(side_effect=[True, False])
-        type(graceful_exit_mock.return_value).continue_running = continue_running_mock
-        return continue_running_mock
+    return bucket, key, file_name
 
-    @fixture
-    def mdf_parser_config(self) -> MdfParserConfig:
-        """ Return a MdfParserConfig for all tests in this class """
-        return MdfParserConfig(
-            input_queue="dev-terraform-queue-mdf-parser",
-            metadata_output_queue="dev-terraform-queue-metadata")
 
-    def test_mdf_parsing(self, container_services_mock: Mock, graceful_exit_mock: PropertyMock,
-                         mdf_parser_config: MdfParserConfig):
-        """ Test mdf parsing """
-        ### GIVEN ###
-        # data preparation
-        cs_mock = container_services_mock
+def helper_download_file_from_bucket(s3_client: S3Client, s3_path: str) -> bytes:
+    bucket, key, _ = helper_split_s3_path(s3_path)
+    obj = s3_client.get_object(Bucket=bucket, Key=key)
+    return obj["Body"].read()
 
-        given_path = os.path.join(__location__, "test_data/mdf_synthetic.json")
-        with open(given_path, "r", encoding="utf-8") as f_handler:
-            mdf_data_encoded = f_handler.read().encode("utf-8")
 
-        message = {
-            "Body": json.dumps({
-                "_id": RECORDING_NAME,
-                "s3_path": S3_PATH
-            }).replace("\"", "\'"),
-            "ReceiptHandle": "receipt_handle"
-        }
+def local_file(path: str) -> bytes:
+    local_file_path = os.path.join(S3_DATA, path)
+    with open(local_file_path, "rb") as f:
+        return f.read()
 
-        # input queue mocks
-        cs_mock.return_value.get_single_message_from_input_queue.return_value = message
-        # downloader mocks
-        cs_mock.download_file.return_value = mdf_data_encoded
 
-        ### WHEN ###
-        main(config=mdf_parser_config)
+def local_sqs_message(path: str) -> json:
+    local_file_path = os.path.join(SQS_MESSAGES, path)
+    with open(local_file_path, "r") as f:
+        return json.load(f)
 
-        ### THEN ###
-        expect_update_path = os.path.join(__location__, "test_data/recording_update_expected.json")
-        with open(expect_update_path, "r", encoding="utf-8") as f_handler:
-            expected_update = json.loads(f_handler.read())
 
-        expect_sync_path = os.path.join(__location__, "test_data/sync_expected.json")
-        with open(expect_sync_path, "r", encoding="utf-8") as f_handler:
-            expected_sync = json.dumps(json.loads(f_handler.read().encode("utf-8"))).encode("utf-8")
+def helper_msg_parser(msg_body: str) -> dict[Any, Any]:
+    return json.loads(msg_body.replace("\\", "").replace("\n", "").replace("'", ""))
 
-        cs_mock.return_value \
-            .send_message.assert_called_once_with(
-                ANY, "dev-terraform-queue-metadata", expected_update)
-        cs_mock.return_value\
-            .delete_message.assert_called_once_with(
-                ANY, message["ReceiptHandle"], "dev-terraform-queue-mdf-parser")
-        cs_mock.upload_file\
-            .assert_called_once_with(
-                ANY, expected_sync, "bucket", RECORDING_NAME + "_signals.json")
-        assert graceful_exit_mock.call_count == 2
 
-    def test_mdf_parsing_invalid_path(self, container_services_mock: Mock,
-                                      graceful_exit_mock,
-                                      caplog: LogCaptureFixture,
-                                      mdf_parser_config: MdfParserConfig):
-        """ Test MDF parsing invalid path """
-        ### GIVEN ###
-        message = {
-            "Body": json.dumps({
-                "_id": RECORDING_NAME,
-                "s3_path": "i_am_invalid"
-            }).replace("\"", "\'"),
-            "ReceiptHandle": "receipt_handle"
-        }
+def helper_to_json(file: bytes) -> dict[Any, Any]:
+    return json.loads(file)
 
-        # input queue mocks
-        container_services_mock.return_value \
-            .get_single_message_from_input_queue.return_value = message
 
-        ### WHEN ###
-        main(config=mdf_parser_config)
+@pytest.mark.usefixtures("input_sqs_message", "output_sqs_metadata", "consumer_mocks",
+                         "dev_input_queue_url", "dev_output_queue_url")
+class TestMDFParser:
+    @ pytest.mark.integration
+    @ pytest.mark.parametrize("input_sqs_message, output_sqs_metadata, expected_output_file, input_file", [
+        # Success
+        (
+            local_sqs_message("mdf_queue_metadata.json"),
+            local_sqs_message("metadata_queue_metadata.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json"),
+        ),
+        (
+            local_sqs_message("mdf_queue_imu.json"),
+            local_sqs_message("metadata_queue_imu.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_processed_imu.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_imu.csv")
+        )
+    ], ids=["metadata_integration_test_1", "imu_integration_test_1"])
+    def test_mdfparser_success(self,
+                               input_sqs_message: dict[Any,
+                                                       Any],
+                               output_sqs_metadata: Optional[dict[Any,
+                                                                  Any]],
+                               expected_output_file: bytes,
+                               input_file: bytes,
+                               consumer_mocks: tuple[Consumer, SQSClient, S3Client],
+                               dev_input_queue_url: str,
+                               dev_output_queue_url: str):
+        """
+        This test function mocks the SQS and S3 and tests the component end2end.
+        TODO: The check for the message deletion should be replaced by intercepting the call to the container services.
 
-        ### THEN ###
-        assert bool([
-            "Invalid MDF path" in rec.message
-            for rec in caplog.records if rec.levelname == "ERROR"
-        ])
-        container_services_mock.return_value.send_message.assert_not_called()
-        container_services_mock.return_value.delete_message.assert_not_called()
-        container_services_mock.upload_file.assert_not_called()
-        assert graceful_exit_mock.call_count == 2
+        Args:
+            input_sqs_message (dict[Any, Any]): _description_
+            output_sqs_metadata (Optional[dict[Any, Any]]): _description_
+            expected_output_file (bytes): _description_
+            input_file (bytes): _description_
+            consumer_mocks (tuple[Consumer, SQSClient, S3Client]): _description_
+            dev_input_queue_url (str): _description_
+            dev_output_queue_url (str): _description_
+        """
 
-    def test_mdf_parsing_download_error(self, container_services_mock: Mock,
-                                        graceful_exit_mock,
-                                        caplog: LogCaptureFixture,
-                                        mdf_parser_config: MdfParserConfig):
-        """ Test MDF parsing download error """
-        ### GIVEN ###
-        message = {
-            "Body": json.dumps({
-                "_id": RECORDING_NAME,
-                "s3_path": S3_PATH
-            }).replace("\"", "\'"),
-            "ReceiptHandle": "receipt_handle"
-        }
+        consumer, moto_sqs_client, moto_s3_client = consumer_mocks
 
-        # input queue mocks
-        container_services_mock.return_value \
-            .get_single_message_from_input_queue.return_value = message
-        # downloader mocks
-        container_services_mock.download_file.side_effect = Exception("Download error")
+        # Load sqs messages to memory
+        input_file_path = input_sqs_message["s3_path"]
+        output_file = output_sqs_metadata["parsed_file_path"]
+        json_input_message = json.dumps(input_sqs_message)
 
-        ### WHEN ###
-        main(config=mdf_parser_config)
+        # Creates a bucket and uploads the file based on the message
+        input_bucket, input_key, _ = helper_split_s3_path(input_file_path)
+        moto_s3_client.put_object(Key=input_key, Bucket=input_bucket, Body=input_file)
 
-        ### THEN ###
-        assert bool([
-            "Download error" in rec.message
-            for rec in caplog.records
-            if rec.levelname == "ERROR"
-        ])
-        container_services_mock.return_value.send_message.assert_not_called()
-        container_services_mock.return_value.delete_message.assert_not_called()
-        container_services_mock.upload_file.assert_not_called()
-        assert graceful_exit_mock.call_count == 2
+        # Insert message
+        moto_sqs_client.send_message(QueueUrl=dev_input_queue_url, MessageBody=json_input_message)
+
+        # Run
+        consumer.run(Mock(side_effect=[True, False]))
+
+        metadata_msg = moto_sqs_client.receive_message(QueueUrl=dev_output_queue_url, WaitTimeSeconds=2)
+        mdfparser_msg = moto_sqs_client.receive_message(QueueUrl=dev_input_queue_url, WaitTimeSeconds=2)
+        output_file_data = helper_download_file_from_bucket(moto_s3_client, output_file)
+
+        # Assert
+        json_metadata_msg = helper_msg_parser(metadata_msg["Messages"][0]["Body"])
+        assert json_metadata_msg == output_sqs_metadata
+
+        assert helper_to_json(expected_output_file) == helper_to_json(output_file_data)
+        assert "Messages" not in mdfparser_msg

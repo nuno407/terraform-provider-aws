@@ -1,0 +1,21 @@
+{
+    "MessageId": "cf481f0e-2c7d-4f75-89a5-7dedc4a19230",
+    "ReceiptHandle": "AQEBgK7+lA59yM/kNUqRrzXOc3zLf6XN23nWJs3DCBwB/q8llfm9WHVYvn2a6iBDiuidvLQZ2CUBCSKTD/nPu01If/xlAaDgrnDBLVCUBA5Bwafk5yNqo56xFGvICnMAY5J47dmoWIh5Wf/nPfc7lsmWPHe6snd8L86h7nfTb0196xrc8iP3w1g6GBTMVIfLb1vZ4DPr1Z5KRRJta+cP9xgGshqjFtGbGmPdI2rMz3suquMDCKD7IHu0Dv1QazZ7Upj6kSWT3UI+yD2EIGKRhouPDK/8ZiRi/sR+N9tMs6d4yYuAToZ0jT1gSHesb7OnsE2rE72YvyPXVDnqcBtx4BQIN4Harda70uvAYkRWe10L+h5TPlUuUBdh/AOZjZYhgTGiORcj+XDj9hzcWUx+6TbKyIMuxn3L4//0OncO1Uf49rk=",
+    "MD5OfBody": "da799ea57465f1446bed4b0a21115238",
+    "Body": "{'id': 'datanauts_DATANAUTS_DEV_02_InteriorRecorder_1681204693189_1681204763361', 's3_path': 's3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorder_1681204693189_1681204763361_metadata_full.json', 'data_type': 'metadata', 'tenant': 'datanauts', 'device_id': 'DATANAUTS_DEV_02', 'recorder': 'InteriorRecorder'}",
+    "Attributes": {
+        "SentTimestamp": "1681205299539",
+        "ApproximateReceiveCount": "1"
+    },
+    "MD5OfMessageAttributes": "891b6a28a064ae96ab01624b25dd22e2",
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "SDRetriever",
+            "DataType": "String"
+        },
+        "ToQueue": {
+            "StringValue": "dev-terraform-queue-mdf-parser",
+            "DataType": "String"
+        }
+    }
+}

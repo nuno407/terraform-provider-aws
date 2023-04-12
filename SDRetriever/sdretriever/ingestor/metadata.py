@@ -54,12 +54,11 @@ class MetadataIngestor(MetacontentIngestor):
 
         return formated_chunks
 
-    def _process_chunks_into_mdf(self, chunks, video_msg):
+    def _process_chunks_into_mdf(self, chunks):
         """Extract metadata from raw chunks and transform it into MDF data
 
         Args:
             chunks (dict): Dictionary of chunks, indexed by their relative order
-            video_msg (VideoMessage): Message object
 
         Returns:
             resolution (str): Video resolution
@@ -98,8 +97,7 @@ class MetadataIngestor(MetacontentIngestor):
                 for frame in chunks[chunk]["frame"]:
                     frames.append(frame)
             else:
-                LOGGER.warning(
-                    f"No frames in metadata chunk -> {chunks[chunk]}", extra={"messageid": video_msg.messageid})
+                LOGGER.warning("No frames in metadata chunk -> %s", chunks[chunk])
 
         # Sort frames by number
         mdf_data = sorted(frames, key=lambda x: int(itemgetter("number")(x)))
@@ -147,11 +145,10 @@ class MetadataIngestor(MetacontentIngestor):
         if not chunks:
             return False
 
-        LOGGER.debug("Ingesting %d Metadata chunks" % len(chunks))
+        LOGGER.debug("Ingesting %d Metadata chunks", len(chunks))
 
         # Process the raw metadata into MDF (fields 'resolution', 'chunk', 'frame', 'chc_periods')
-        resolution, pts, frames = self._process_chunks_into_mdf(
-            self.__convert_metachunk_to_mdf(chunks), video_msg)
+        resolution, pts, frames = self._process_chunks_into_mdf(self.__convert_metachunk_to_mdf(chunks))
 
         # Build source file to be stored - 'source_data' is the MDF, extended with
         # the original queue message and its identifier
@@ -165,20 +162,7 @@ class MetadataIngestor(MetacontentIngestor):
         mdf_s3_path = self._upload_source_data(
             source_data, video_msg, video_id)
 
-        # Notify MDFP with new metadata processing request
-        mdfp_queue = self.container_svcs.sqs_queues_list["MDFParser"]
-
         if mdf_s3_path:
-            message_for_mdfp = dict(
-                _id=video_id, s3_path=f"s3://{self.container_svcs.raw_s3}/{mdf_s3_path}")
-            try:
-                self.container_svcs.send_message(
-                    self.sqs_client, mdfp_queue, message_for_mdfp)
-                return True
-            except Exception as exception:
-                LOGGER.error(f"Could not send message to queue {mdfp_queue} -> {repr(exception)}", extra={
-                             "messageid": video_msg.messageid})
+            return f"s3://{self.container_svcs.raw_s3}/{mdf_s3_path}"
         else:
-            LOGGER.info(f"Will not send message to queue {mdfp_queue} as source data could not be uploaded ->", extra={
-                        "messageid": video_msg.messageid})
-        return False
+            return False

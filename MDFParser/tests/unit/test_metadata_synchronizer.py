@@ -5,14 +5,14 @@ from datetime import timedelta
 
 import pytimeparse
 from pytest import fixture, mark, raises
-from mdfparser.synchronizer import InvalidMdfException, Synchronizer
+from mdfparser.metadata.synchronizer import InvalidMdfException, Synchronizer
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 @mark.unit
-class TestSynchronizer:
+class TestMetadataSynchronizer:
     """ Test the Synchronizer class. """
     @fixture
     def mdf_data(self) -> dict:

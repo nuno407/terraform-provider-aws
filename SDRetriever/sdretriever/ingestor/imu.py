@@ -89,8 +89,7 @@ class IMUIngestor(MetacontentIngestor):
         """
         return [".csv.zip"]
 
-    def ingest(self, video_msg: VideoMessage, video_id: str,
-               imu_chunk_paths: set[str]) -> Optional[str]:
+    def ingest(self, video_msg: VideoMessage, video_id: str, imu_chunk_paths: set[str]) -> Optional[str]:
         """
         Concatenates the IMU chunks and ingest them.
 
@@ -101,7 +100,7 @@ class IMUIngestor(MetacontentIngestor):
             paths or keys to find the imu chunks
 
         Returns:
-            _type_: _description_
+            path_uploaded: S3 key with the location of the concatenated IMU
         """
         # Fetch metadata chunks from RCC S3
         chunks = self._get_metacontent_chunks(video_msg, imu_chunk_paths)
@@ -124,4 +123,4 @@ class IMUIngestor(MetacontentIngestor):
         path_uploaded = self._upload_metacontent_to_devcloud(file_to_upload)
         del file_to_upload
 
-        return path_uploaded
+        return f"s3://{self.container_svcs.raw_s3}/{path_uploaded}"

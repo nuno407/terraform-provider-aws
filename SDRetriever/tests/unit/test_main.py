@@ -3,6 +3,7 @@ import json
 import os
 from copy import deepcopy
 from unittest.mock import ANY, MagicMock, Mock, patch, call
+from typing import Optional
 
 import pytest
 from sdretriever.config import SDRetrieverConfig
@@ -149,14 +150,14 @@ class TestMain:
     @pytest.mark.unit
     @patch("sdretriever.handler.VideoMessage")
     @pytest.mark.parametrize(
-        "message,is_ingestable,result_check_all_parts,result_ingest,is_metadata_ingested,source",
+        "message,is_ingestable,result_check_all_parts,result_ingest,metadata_path,source",
         [
             (
                 get_raw_sqs_message("InteriorRecorder_Download_SQS.json"),
                 True,
                 (True, {"some_path"}),
                 result_ingestor(),
-                True,
+                "some_path",
                 "download"
             ),
             (
@@ -164,7 +165,7 @@ class TestMain:
                 False,
                 (True, {"some_path"}),
                 result_ingestor(),
-                True,
+                "some_path",
                 "download"
             ),
             (
@@ -172,7 +173,7 @@ class TestMain:
                 True,
                 (False, {}),
                 result_ingestor(),
-                True,
+                "some_path",
                 "download"
             ),
             (
@@ -180,7 +181,7 @@ class TestMain:
                 True,
                 (True, {"some_path"}),
                 result_ingestor(),
-                False,
+                None,
                 "download"
             ),
             (
@@ -188,7 +189,7 @@ class TestMain:
                 True,
                 (True, {"some_path"}),
                 {},
-                True,
+                "some_path",
                 "download"
             )
 
@@ -202,7 +203,7 @@ class TestMain:
         is_ingestable: bool,
         result_check_all_parts: tuple[bool, list[str]],
         result_ingest: dict,
-        is_metadata_ingested: bool,
+        metadata_path: Optional[str],
         source: str,
     ):
         video_message = VideoMessage(message)
@@ -210,7 +211,7 @@ class TestMain:
 
         ing_handler.message_ingestable = Mock(return_value=is_ingestable)
         ing_handler.metadata_ing.check_allparts_exist = Mock(return_value=result_check_all_parts)
-        ing_handler.metadata_ing.ingest = Mock(return_value=is_metadata_ingested)
+        ing_handler.metadata_ing.ingest = Mock(return_value=metadata_path)
         ing_handler.video_ing.ingest = Mock(return_value=deepcopy(result_ingest))
 
         # Function to test
@@ -240,15 +241,26 @@ class TestMain:
         # Assert metadata is ingested
         ing_handler.metadata_ing.ingest.assert_called_once_with(
             video_message, result_ingest['_id'], result_check_all_parts[1])
-        if not is_metadata_ingested:
+        if not metadata_path:
             ing_handler.cont_services.update_message_visibility.assert_called_once_with(
                 ing_handler.sqs_client, video_message.receipthandle, ANY, source)
             return
 
+        # Set MDF data
+        mdf_data = {
+            "id": result_ingest.get("_id"),
+            "s3_path": metadata_path,
+            "data_type": "metadata",
+            "tenant": result_ingest.get("tenant"),
+            "device_id": result_ingest.get("deviceid"),
+            "recorder": "InteriorRecorder",
+        }
+
         result_ingest.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
         ing_handler.cont_services.send_message.assert_has_calls([
             call(ing_handler.sqs_client, ing_handler.hq_request_queue, ANY),
-            call(ing_handler.sqs_client, ing_handler.metadata_queue, result_ingest)
+            call(ing_handler.sqs_client, ing_handler.metadata_queue, result_ingest),
+            call(ing_handler.sqs_client, ing_handler.mdfp_queue, mdf_data)
         ])
         ing_handler.cont_services.delete_message.assert_called_once_with(
             ing_handler.sqs_client, video_message.receipthandle, source)
@@ -352,9 +364,22 @@ class TestMain:
                 ing_handler.sqs_client, video_message.receipthandle, ANY, source)
             return
 
+        # Set MDF data
+        mdf_data = {
+            "id": result_ingest.get("_id"),
+            "s3_path": imu_path,
+            "data_type": "imu",
+            "tenant": result_ingest.get("tenant"),
+            "device_id": result_ingest.get("deviceid"),
+            "recorder": "TrainingRecorder",
+        }
+
         result_ingest.update({"imu_path": imu_path})
-        ing_handler.cont_services.send_message.assert_called_once_with(
-            ing_handler.sqs_client, ing_handler.metadata_queue, result_ingest)
+        ing_handler.cont_services.send_message.assert_has_calls(
+            [
+                call(ing_handler.sqs_client, ing_handler.metadata_queue, result_ingest),
+                call(ing_handler.sqs_client, ing_handler.mdfp_queue, mdf_data)
+            ])
         ing_handler.cont_services.delete_message.assert_called_once_with(
             ing_handler.sqs_client, video_message.receipthandle, source)
 

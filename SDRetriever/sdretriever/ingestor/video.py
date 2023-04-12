@@ -9,11 +9,10 @@ import tempfile
 from datetime import timedelta
 from typing import Optional
 
-from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.exceptions import FileAlreadyExists
-from sdretriever.message.video import VideoMessage
-
 from base.timestamps import from_epoch_seconds_or_milliseconds
+from sdretriever.exceptions import FileAlreadyExists
+from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.message.video import VideoMessage
 
 LOGGER = log.getLogger("SDRetriever." + __name__)
 
@@ -47,8 +46,8 @@ class VideoIngestor(Ingestor):
             # Store bytes into current working directory as video
             temp_video_file = os.path.join(
                 auto_cleaned_up_dir, 'input_video.mp4')
-            with open(temp_video_file, "wb") as f:
-                f.write(video_bytes)
+            with open(temp_video_file, "wb") as f_p:
+                f_p.write(video_bytes)
 
             # Execute ffprobe command to get video clip info
             result = subprocess.run(["/usr/bin/ffprobe",  # nosec
@@ -96,11 +95,8 @@ class VideoIngestor(Ingestor):
             video_start = round(video_start_ts.timestamp() * 1000)
             video_end = round(video_end_ts.timestamp() * 1000)
         except Exception as exception:
-            LOGGER.exception(
-                f"Could not obtain Kinesis clip from stream {video_msg.streamname} between {repr(video_from)} and {repr(video_to)} -> {repr(exception)}",
-                exception,
-                extra={
-                    "messageid": video_msg.messageid})
+            LOGGER.exception("Could not obtain Kinesis clip from stream %s between %s and %s -> %s",
+                             video_msg.streamname, repr(video_from), repr(video_to), repr(exception))
             return None
 
         # Upload video clip into raw data S3 bucket
@@ -118,11 +114,9 @@ class VideoIngestor(Ingestor):
         try:
             self.container_svcs.upload_file(self.s3_client, video_bytes,
                                             self.container_svcs.raw_s3, s3_path)
-            LOGGER.info(f"Successfully uploaded to {self.container_svcs.raw_s3}/{s3_path}", extra={
-                        "messageid": video_msg.messageid})
+            LOGGER.info("Successfully uploaded to %s", self.container_svcs.raw_s3 + "/" + s3_path)
         except Exception as exception:
-            LOGGER.error(f"Could not upload file to {s3_path} -> {repr(exception)}", extra={
-                         "messageid": video_msg.messageid})
+            LOGGER.error("Could not upload file to %s -> %s", s3_path, repr(exception))
             raise exception
 
         # Obtain video details via ffprobe and prepare data to be used
@@ -150,7 +144,7 @@ class VideoIngestor(Ingestor):
             'snapshots_paths': [],
             "sync_file_ext": "",
             'resolution': width + "x" + height,
-            "internal_message_reference_id": internal_message_reference_id,
+            "internal_message_reference_id": internal_message_reference_id
         }
 
         # Generate dictionary with info to send to Selector container for training data request (high quality )

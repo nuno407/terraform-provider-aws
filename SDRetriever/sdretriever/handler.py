@@ -6,8 +6,10 @@ from typing import Optional
 from base.aws.container_services import ContainerServices
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import (FRONT_RECORDER, INTERIOR_RECORDER,
-                                   INTERIOR_RECORDER_PREVIEW, SNAPSHOT,
-                                   TRAINING_RECORDER, MESSAGE_VISIBILITY_EXTENSION_HOURS, METADATA_FILE_EXT)
+                                   INTERIOR_RECORDER_PREVIEW,
+                                   MESSAGE_VISIBILITY_EXTENSION_HOURS,
+                                   METADATA_FILE_EXT, SNAPSHOT,
+                                   TRAINING_RECORDER)
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.imu import IMUIngestor
 from sdretriever.ingestor.metadata import MetadataIngestor
@@ -16,7 +18,6 @@ from sdretriever.ingestor.video import VideoIngestor
 from sdretriever.message.message import Message
 from sdretriever.message.snapshot import SnapshotMessage
 from sdretriever.message.video import VideoMessage
-
 
 LOGGER = log.getLogger("SDRetriever")
 
@@ -54,6 +55,7 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
         self.snap_ing = snap_ing
         self.metadata_queue = cont_services.sqs_queues_list["Metadata"]
         self.hq_request_queue = cont_services.sqs_queues_list["HQ_Selector"]
+        self.mdfp_queue = cont_services.sqs_queues_list["MDFParser"]
 
     @staticmethod
     def message_type_identifier(message: dict) -> Optional[str]:
@@ -162,16 +164,17 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
             self.__increase_message_visability_timeout(video_message, source)
             return
 
-        is_metadata_ingested = self.metadata_ing.ingest(
+        metadata_path = self.metadata_ing.ingest(
             video_message, db_record_data["_id"], metadata_chunks)
-        if not is_metadata_ingested:
+        if not metadata_path:
             LOGGER.error("Some error ocurred while attempting to ingest metadata")
             self.__increase_message_visability_timeout(video_message, source)
             return
 
         if db_record_data:
             db_record_data.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
-            self.__send_to_metadata(video_message, db_record_data)
+            self.__send_to_metadata(db_record_data)
+            self.__send_to_mdfparser(db_record_data, "metadata", metadata_path, video_message.recording_type)
             self.__delete_message(video_message, source)
 
     def handle_training_recorder(self, message: dict, source: str) -> None:
@@ -207,7 +210,8 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
 
         if db_record_data:
             db_record_data.update({"imu_path": imu_path})
-            self.__send_to_metadata(video_message, db_record_data)
+            self.__send_to_metadata(db_record_data)
+            self.__send_to_mdfparser(db_record_data, "imu", imu_path, video_message.recording_type)
             self.__delete_message(video_message, source)
 
     def handle_snapshot(self, message: dict, source: str) -> None:
@@ -221,13 +225,12 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
         snap_msg_obj = SnapshotMessage(message)
 
         if not snap_msg_obj.validate():
-            LOGGER.info("Message deemed invalid for ingestion, ignoring",
-                        extra={"messageid": snap_msg_obj.messageid})
+            LOGGER.info("Message deemed invalid for ingestion, ignoring")
             self.__delete_message(snap_msg_obj, source)
             return
 
         if snap_msg_obj.is_irrelevant(self.config.tenant_blacklist):
-            LOGGER.info("Message deemed irrelevant", extra={"messageid": snap_msg_obj.messageid})
+            LOGGER.info("Message deemed irrelevant")
             self.__delete_message(snap_msg_obj, source)
             return
 
@@ -244,8 +247,7 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
             source (str): The source SQS queue
         """
         message_type = IngestorHandler.message_type_identifier(message)
-        LOGGER.info("Pulled a message from %s (%s) -> %s ", source, message_type,
-                    message, extra={"messageid": message.get("MessageId")})
+        LOGGER.info("Pulled a message from %s (%s) -> %s ", source, message_type, message)
 
         try:
             if message_type == TRAINING_RECORDER:
@@ -266,8 +268,7 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
                 self.handle_snapshot(message, source)
             else:
                 LOGGER.error(
-                    "Could not identify message type as video nor snapshot related, ignoring",
-                    extra={"messageid": message.get("MessageId")})
+                    "Could not identify message type as video nor snapshot related, ignoring")
         except FileAlreadyExists as excpt:
             LOGGER.info(str(excpt))
             self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
@@ -280,18 +281,16 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
             source (str): The source to be deleted from.
         """
         self.cont_services.delete_message(self.sqs_client, message.receipthandle, source)
-        LOGGER.info("Message deleted from %s", source, extra={"messageid": message.messageid})
+        LOGGER.info("Message deleted from %s", source)
 
-    def __send_to_metadata(self, message: Message, data: dict) -> None:
+    def __send_to_metadata(self, data: dict) -> None:
         """ Sends an update to the DB by using the metadata queue.
 
         Args:
-            message (Message): Message to be deleted.
             source (str): The source to be deleted from.
         """
         self.cont_services.send_message(self.sqs_client, self.metadata_queue, data)
-        LOGGER.info("Message sent to %s", self.metadata_queue,
-                    extra={"messageid": message.messageid})
+        LOGGER.info("Message sent to %s", self.metadata_queue)
 
     def __send_to_selector(self, message: VideoMessage) -> None:
         """ Notifies Selector of the arrival of a video.
@@ -306,8 +305,32 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
             "footageTo": message.footageto
         }
         self.cont_services.send_message(self.sqs_client, self.hq_request_queue, data)
-        LOGGER.info("Message sent to %s", self.hq_request_queue,
-                    extra={"messageid": message.messageid})
+        LOGGER.info("Message sent to %s", self.hq_request_queue)
+
+    def __send_to_mdfparser(
+            self,
+            db_record_data: dict,
+            data_type: str,
+            metacontent_path: str,
+            video_recording_type: str) -> None:
+        """ Notifies MDFParser of the arrival of a signal file.
+
+        Args:
+            db_record_data (dict): record data of the present ingestion
+            data_type (str): type of file in question, either "metadata" or "imu"
+            metacontent_path (str): the path to the content (Needs to be the full path containing s3://bucket/key)
+            video_recording_type (str): The recording type
+        """
+        data = {
+            "id": db_record_data.get("_id"),
+            "s3_path": metacontent_path,
+            "data_type": data_type,
+            "tenant": db_record_data.get("tenant"),
+            "device_id": db_record_data.get("deviceid"),
+            "recorder": video_recording_type,
+        }
+        self.cont_services.send_message(self.sqs_client, self.mdfp_queue, data)
+        LOGGER.info("Message sent to %s: %s", self.mdfp_queue, data)
 
     def __increase_message_visability_timeout(self, message_obj: Message, source: str) -> None:
         """ Increases the message visibility timeout.

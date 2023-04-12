@@ -1,8 +1,8 @@
 """ S3 Downloader module. """
 import json
 import logging
-from base.aws.container_services import ContainerServices
-from mdfparser.s3_interaction import S3Interaction
+from typing import Any
+from mdfparser.interfaces.s3_interaction import S3Interaction
 
 _logger = logging.getLogger("mdfparser." + __name__)
 
@@ -14,10 +14,10 @@ class InvalidCompactMdfException(Exception):
         super().__init__(message, *args)
 
 
-class Downloader(S3Interaction):  # pylint: disable=too-few-public-methods
+class MetadataDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
     """ S3 Downloader class. """
 
-    def download(self, mdf_path: str) -> dict:
+    def download(self, mdf_path: str) -> dict[str, Any]:
         """Downloads metadata full file from S3.
 
         Args:
@@ -28,7 +28,7 @@ class Downloader(S3Interaction):  # pylint: disable=too-few-public-methods
         """
         _logger.debug("Downloading metadata from %s", mdf_path)
         bucket, key = self._get_s3_path(mdf_path)
-        binary_data = ContainerServices.download_file(self._s3_client, bucket, key)
+        binary_data = self._container_services.download_file(self._s3_client, bucket, key)
         json_string = binary_data.decode("utf-8")
         mdf = json.loads(json_string)
 
@@ -56,19 +56,19 @@ class Downloader(S3Interaction):  # pylint: disable=too-few-public-methods
                 _logger.warning(
                     "Auto-correcting swapped pts_end and utc_start in MDF file %s", mdf_path)
         _logger.debug("Finished metadata download from %s", mdf_path)
-        return mdf
+        return mdf  # type: ignore
 
     def __recreate_epoch_timestamps(self, bucket: str, mdf_key: str, mdf_pts_start: int,  # pylint: disable=too-many-locals
                                     mdf_pts_end: int) -> tuple[int, int]:
         """Recreates epoch timestamps from compact MDF. """
         key = mdf_key.replace("_metadata_full", "_compact_mdf")
-        binary_data = ContainerServices.download_file(self._s3_client, bucket, key)
+        binary_data = self._container_services.download_file(self._s3_client, bucket, key)
         compact_mdf = json.loads(binary_data.decode("utf-8"))
         if not ("partial_timestamps" in compact_mdf and len(compact_mdf["partial_timestamps"]) > 1):
             raise InvalidCompactMdfException(
                 "partial_timestamps object not in compact MDF or only consists of one entry")
 
-        pts_infos: list = list(compact_mdf["partial_timestamps"].values())
+        pts_infos: list = list(compact_mdf["partial_timestamps"].values())  # type: ignore
         pts_start: int = pts_infos[0]["pts_start"]
         epoch_start: int = pts_infos[0]["converted_time"]
         pts_end: int = pts_infos[-1]["pts_start"]

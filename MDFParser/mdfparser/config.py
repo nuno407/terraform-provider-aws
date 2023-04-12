@@ -8,13 +8,14 @@ class MdfParserConfig():
     """ MDF Parser configuration """
     input_queue: str
     metadata_output_queue: str
+    temporary_bucket: str
 
     @staticmethod
-    def load_config_from_yaml_file(path) -> "MdfParserConfig":
+    def load_config_from_yaml_file(path: str) -> "MdfParserConfig":
         """Loads yaml file into MdfParserConfig object. Extra yaml fields are ignored.
 
         Args:
-            path (_type_): path of the yaml file containing the config.
+            path (str): path of the yaml file containing the config.
 
         Returns:
             MdfParserConfig: MdfParserConfig object containing passed yaml config

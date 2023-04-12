@@ -3,10 +3,9 @@ import json
 import os
 import pickle
 from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import pytest
-
 from sdretriever.ingestor.metadata import MetadataIngestor
 
 
@@ -71,8 +70,7 @@ class TestMetadataIngestor:
         assert result == {0: {1: 2, 3: 4}, 1: {5: 6, 7: 8}}
 
     def test_process_chunks_into_mdf(self, metadata_ingestor, metadata_chunks, msg_interior):
-        resolution, pts, mdf_data = metadata_ingestor._process_chunks_into_mdf(
-            metadata_chunks, msg_interior)
+        resolution, pts, mdf_data = metadata_ingestor._process_chunks_into_mdf(metadata_chunks)
         with open(f"{os.path.dirname(os.path.abspath(__file__))}/artifacts/ridecare_companion_fut_rc_srx_prod_a8c08d7b1c19f930892ba6b56fc885b7ffbd3275_InteriorRecorder_1677676914505_1677676967654_metadata_full.json", "r") as f:
             expected_metadata = json.load(f)
 
@@ -100,29 +98,25 @@ class TestMetadataIngestor:
 
         mock_chunks_path = Mock()
 
+        id_video = "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110"
+
         metadata_ingestor._get_metacontent_chunks = Mock(return_value=metacontent_chunks_metadata)
         metadata_ingestor._process_chunks_into_mdf = Mock(return_value=(
             metadata_full["resolution"],
             metadata_full["chunk"],
             metadata_full["frame"]
         ))
-        metadata_ingestor._upload_source_data = Mock(return_value=(
-            "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
-            "Debug_Lync/datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110_metadata_full.json"
-        ))
+        metadata_ingestor._upload_source_data = Mock(return_value=f"datanauts/{id_video}_metadata_full.json")
         metadata_ingestor.container_svcs.send_message = Mock()
         result = metadata_ingestor.ingest(
-            message_metadata,
-            "datanauts_DATANAUTS_DEV_01_InteriorRecorder_1657297040802_1657297074110",
+            message_metadata, id_video,
             mock_chunks_path)
 
         metadata_ingestor._upload_source_data.assert_called_once_with(
             metadata_full, ANY, ANY)
-        metadata_ingestor.container_svcs.send_message.assert_called_once_with(
-            ANY, "dev-terraform-queue-mdf-parser", ANY)
 
         metadata_ingestor._get_metacontent_chunks.assert_called_once_with(ANY, mock_chunks_path)
-        assert result
+        assert result == f"s3://dev-rcd-raw-video-files/datanauts/{id_video}_metadata_full.json"
 
     def test_get_chunks_lookup_paths(self, metadata_ingestor, msg_interior):
         paths_reference = [

@@ -1,21 +1,21 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import os
 
-import pytest
 import mongomock
+import pytest
 from bson.json_util import loads
+from metadata.consumer.persistence import Persistence
 from pymongo.collection import Collection
-from base.aws.container_services import DATA_INGESTION_DATABASE_NAME
-from metadata.consumer.db import Persistence
-
 from tests.common import db_tables
+
+from base.aws.container_services import DATA_INGESTION_DATABASE_NAME
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 @pytest.fixture(name="recordings_persistence")
-def fixture_recordings_persistence() -> tuple[Persistence, mongomock.MongoClient]:
+def fixture_recordings_persistence() -> Persistence:
     client = mongomock.MongoClient()
     recordings: Collection = client[DATA_INGESTION_DATABASE_NAME].recordings
 
@@ -27,7 +27,7 @@ def fixture_recordings_persistence() -> tuple[Persistence, mongomock.MongoClient
         data = loads(f.read())
         recordings.insert(data)
 
-    return Persistence(None, db_tables, client)
+    return Persistence(db_tables, client)
 
 
 @ pytest.mark.unit
@@ -45,7 +45,12 @@ def test_related_media_service_image(recordings_persistence):
         "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingRecorder_1664480013262_1664480515622"]  # pylint: disable=line-too-long
 
     # WHEN
-    result = recordings_persistence.get_video_snapshot_media(device, tenant, start_ms, None, media_type)
+    result = recordings_persistence.get_video_snapshot_media(
+        device,
+        tenant,
+        start_ms,
+        None,
+        media_type)
 
     # THEN
     assert result == videos_paths
@@ -69,7 +74,12 @@ def test_related_media_service_video(recordings_persistence):
         "ridecare_companion_trial_rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed_TrainingMultiSnapshot_TrainingMultiSnapshot-8160e619-be7e-4d0f-987d-a2a5292e7a24_27_1664480327000"]  # pylint: disable=line-too-long
 
     # WHEN
-    result = recordings_persistence.get_video_snapshot_media(device, tenant, start_ms, end_ms, media_type)
+    result = recordings_persistence.get_video_snapshot_media(
+        device,
+        tenant,
+        start_ms,
+        end_ms,
+        media_type)
 
     # THEN
     assert result == snapshots_paths

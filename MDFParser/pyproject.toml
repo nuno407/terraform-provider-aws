@@ -5,6 +5,7 @@ timid = true
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-m unit -v --cov-config=.coveragerc --cov=mdfparser --cov-report=xml"
+
 markers = [
     "unit",
     "integration"
@@ -33,10 +34,15 @@ string-quote = "double"
 triple-quote = "double"
 docstring-quote = "double"
 
+ignore-patterns="(.)*_test\\.py,test_(.)*\\.py,conftest.py"
+
 [tool.mypy]
 files = [
-    "mdfparser/**/*.py",
-    "tests/**/*.py"
+    "mdfparser/**/*.py"
+]
+exclude = [
+    "^test.*\\.py$",
+    "conftest.py",
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]

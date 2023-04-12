@@ -503,7 +503,8 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             "txt": "text/plain",
             "webm": "video/webm",
             "jpeg": "image/jpeg",
-            "csv": "text/plain"
+            "csv": "text/plain",
+            "pickle": "application/octet-stream"
         }
         file_extension = key_path.split(".")[-1]
 

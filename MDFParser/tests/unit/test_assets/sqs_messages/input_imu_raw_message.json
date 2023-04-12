@@ -1,0 +1,21 @@
+{
+    "MessageId": "322cc5fa-871f-4987-b94e-8f3e20823995",
+    "ReceiptHandle": "AQEBhUVM2e4WdsmrbsBKgyE5WuK0U+4eF8Tt8CiXqFIRBnSV7dkQmcP9A3oUJ5f2vY71q/GCi6lrTJc4HlYwUJbgCeCWcfe/5KjdCbzcAPBNhYiKAORrEL+OHl5oFTTS2LcqP+zqyEboyeqayxwppUcM7IeYZZvRYGGXTrVrjKMXi5MxG3t1gf/smrcbiGn5yN2aaYlHv86rK8fE/dC8EEIrr1Ss/JybVPQv2K7lSFHt98CoLyN2ddKhxr7pkhgHO6nonxzFUDwdERiexSVOo3SAZ0FbVQurr6SNaE9dw8pam4XUiG8DAbCJzBInywBJw4ciCrLRD9d+WlqKUgN9mNekglQz/XuUbelzZ9/Y28zDTfUioN6wiVOF8zgOm1cvCxwTKVz9+nVQb0K7dfuKqrLgp+tPBTye1eFagMNhY1qDMKg=",
+    "MD5OfBody": "9d63f3884808654dd02e4716bac3fdc5",
+    "Body": "{'id': 'datanauts_DATANAUTS_DEV_02_TrainingRecorder_1681204983354_1681205154974', 's3_path': 's3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_TrainingRecorder_1681204983354_1681205154974_imu.csv', 'data_type': 'imu', 'tenant': 'datanauts', 'device_id': 'DATANAUTS_DEV_02', 'recorder': 'TrainingRecorder'}",
+    "Attributes": {
+        "SentTimestamp": "1681205422103",
+        "ApproximateReceiveCount": "1"
+    },
+    "MD5OfMessageAttributes": "891b6a28a064ae96ab01624b25dd22e2",
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "SDRetriever",
+            "DataType": "String"
+        },
+        "ToQueue": {
+            "StringValue": "dev-terraform-queue-mdf-parser",
+            "DataType": "String"
+        }
+    }
+}

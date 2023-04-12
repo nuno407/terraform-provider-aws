@@ -8,6 +8,7 @@ from typing import Optional
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch, ANY
 
 import pytest
+from botocore.errorfactory import ClientError
 from pymongo.collection import ReturnDocument
 from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
@@ -20,7 +21,7 @@ from metadata.consumer.main import (AWS_REGION, create_recording_item,
                                     process_outputs, read_message,
                                     transform_data_to_update_query,
                                     update_voxel_media, upsert_data_to_db,
-                                    upsert_mdf_data, MetadataCollections)
+                                    upsert_mdf_signals_data, insert_mdf_imu_data, MetadataCollections)
 
 
 FIX_RECORDING = {
@@ -169,6 +170,27 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
         "tenant": "honeybadger",
         "media_type": "image",
         "internal_message_reference_id": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
+    }
+
+
+def _mdf_imu_message_body(_id: str) -> dict:
+    return {
+        "_id": _id,
+        "parsed_file_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{_id}_signals.json",
+        "data_type": "metadata",
+        "recording_overview": {}
+    }
+
+
+def _mdf_metadata_message_body(_id: str) -> dict:
+    return {
+        "_id": _id,
+        "parsed_file_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{_id}_signals.json",
+        "data_type": "metadata",
+        "recording_overview": {"number_chc_events": 1,
+                               "ride_detection_counter": 1,
+                               "sum_door_closed": 0,
+                               "variance_person_count": 0.04}
     }
 
 
@@ -445,28 +467,31 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             signals=mock_collection_sig,
             recordings=mock_collection_rec,
             pipeline_exec=MagicMock(),
-            algo_output=MagicMock()
+            algo_output=MagicMock(),
+            processed_imu=MagicMock(),
         )
-
+        print(message)
         # When
-        recording = upsert_mdf_data(message, metadata_collections)
+        recording = upsert_mdf_signals_data(message, metadata_collections)
 
         # Then
         assert recording is not None
         mock_collection_rec.find_one_and_update.assert_called_once_with(
             filter={
-                "video_id": "honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438"},
+                "video_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651"},
             update={
                 "$set": {
+                    "recording_overview.chc_duration": 26.478034,
+                    "recording_overview.max_person_count": 1,
                     "recording_overview.number_chc_events": 1,
-                    "recording_overview.chc_duration": 18.956827,
-                    "recording_overview.max_person_count": 1.0,
-                    "recording_overview.ride_detection_counter": 0}},
+                    "recording_overview.ride_detection_counter": 1,
+                    "recording_overview.sum_door_closed": 0,
+                    "recording_overview.variance_person_count": 0.04}},
             upsert=True,
             return_document=True)
         mock_collection_sig.update_one.assert_called_once_with(
             filter={
-                "recording": "honeybadger_rc_srx_develop_cst2hi_01_InteriorRecorder_1669638678819_1669638709438",
+                "recording": "datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651",
                 "source": {
                     "$regex": "MDF.*"}},
             update={
@@ -531,7 +556,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             recordings=collection_recordings,
             signals=collection_signals,
             algo_output=collection_algo_out,
-            pipeline_exec=MagicMock()
+            pipeline_exec=MagicMock(),
+            processed_imu=MagicMock(),
         )
 
         # When
@@ -574,20 +600,20 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             False
         ),
         (
-            _snapshot_message_body(
+            _mdf_metadata_message_body(
                 "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body("MDFParser"),  # type: ignore
             True
         ),
         (
-            _snapshot_message_body(
+            _mdf_imu_message_body(
                 "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body("MDFParser"),  # type: ignore
             False
         ),
     ])
     @patch("metadata.consumer.main.create_recording_item")
-    @patch("metadata.consumer.main.upsert_mdf_data")
+    @patch("metadata.consumer.main.upsert_mdf_signals_data")
     @patch("metadata.consumer.main.update_voxel_media")
     def test_upsert_data_to_db_sdr_mdf(  # pylint: disable=too-many-arguments
             self,
@@ -612,7 +638,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 collection_signals_mock,
                 collection_recordings_mock,
                 "pipeline_exec",
-                "algo_output"])
+                "algo_output",
+                "processed_imu"])
         related_metadata_service_mock = Mock()
 
         # THEN
@@ -791,7 +818,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             "dummy_body": "dummy_body_value",
         })
         sqs_client_mock = Mock()
-        mock_boto3_client.side_effect = [sqs_client_mock]
+        s3_client_mock = Mock()
+        mock_boto3_client.side_effect = [s3_client_mock, sqs_client_mock]
         mock_container_services_object = Mock()
         mock_container_services.return_value = mock_container_services_object
         mock_container_services_object.load_config_vars = Mock()
@@ -816,7 +844,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_container_services_object.load_config_vars.assert_called_once_with()
         mock_container_services_object.load_mongodb_config_vars.assert_called_once_with()
         mock_container_services_object.create_db_client.assert_called_once_with()
-        mock_persistence.assert_called_once_with(None, mock_container_services_object.db_tables, mock_db_client.client)
+        mock_persistence.assert_called_once_with(mock_container_services_object.db_tables, mock_db_client.client)
         mock_related_media_service.assert_called_once_with(mock_persistence_object)
         mock_container_services_object.get_single_message_from_input_queue.assert_called_once_with(sqs_client_mock)
         mock_read_message.assert_called_once_with(mock_container_services_object, input_message["Body"])
@@ -846,7 +874,8 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
         recordings=MagicMock(),
         pipeline_exec=pipeline_exec_collection,
         signals=signals_collection,
-        algo_output=algo_out_collection
+        algo_output=algo_out_collection,
+        processed_imu=MagicMock()
     )
     mock_message = {
         "output": {
@@ -868,3 +897,54 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
     )
     create_dataset_mock.assert_called_once()
     update_sample_mock.assert_called_once()
+
+
+@patch("metadata.consumer.main.json.loads")
+@pytest.mark.parametrize("file_exists", [
+    (True),
+    (False)
+])
+@pytest.mark.unit
+def test_insert_mdf_imu_data(mock_json_loads: Mock, file_exists: bool):
+    """ tests insert_mdf_imu_data """
+    s3_client = Mock()
+    s3_client.get_object = Mock(return_value=MagicMock())
+    s3_client.delete_object = Mock()
+
+    if not file_exists:
+        s3_client.head_object = Mock(side_effect=ClientError({"Error": {"Code": "404"}}, operation_name="Mock_error"))
+    else:
+        s3_client.head_object = Mock(return_value={})
+
+    imu_message: dict = {
+        "_id": "foo",
+        "parsed_file_path": "s3://bucket/dir/parsed_imu.json",
+        "data_type": "imu",
+        "recording_overview": {
+            "foo": "bar"
+        }
+    }
+
+    mock_imu_col = Mock()
+    mock_imu_col.insert_many = Mock()
+
+    metadata_collections = MetadataCollections(
+        signals=MagicMock(),
+        recordings=MagicMock(),
+        algo_output=MagicMock(),
+        pipeline_exec=MagicMock(),
+        processed_imu=mock_imu_col
+    )
+
+    insert_mdf_imu_data(imu_message, metadata_collections, s3_client)
+
+    s3_client.head_object.assert_called_once_with(Bucket="bucket", Key="dir/parsed_imu.json")
+
+    if file_exists:
+        s3_client.get_object.assert_called_once_with(Bucket="bucket", Key="dir/parsed_imu.json")
+        mock_imu_col.insert_many.assert_called_once()
+        s3_client.delete_object.assert_called_once_with(Bucket="bucket", Key="dir/parsed_imu.json")
+    else:
+        s3_client.get_object.assert_not_called()
+        mock_imu_col.insert_many.assert_not_called()
+        s3_client.delete_object.assert_not_called()

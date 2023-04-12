@@ -1,10 +1,10 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.12-alpine3.15
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.16-bullseye
 
 # Install latest patches
-RUN apk update && apk upgrade
+RUN apt -y update && apt -y upgrade
 
 # Run as non-root user and group
-RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
+RUN addgroup --system --gid 3000 docker-group && adduser --disabled-login --system --gid 3000 --uid 1000 docker
 USER 1000
 
 # Add base library

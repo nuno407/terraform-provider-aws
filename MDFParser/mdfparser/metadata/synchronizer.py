@@ -59,7 +59,7 @@ class Synchronizer:  # pylint: disable=too-few-public-methods
             recording_epoch_to)  # pylint: disable=line-too-long
         return sync_frames
 
-    def __get_frame_signals(self, frame: dict) -> dict[str, Union[bool, float, int]]:
+    def __get_frame_signals(self, frame: dict[Any, Any]) -> dict[str, Union[bool, float, int]]:
         signals: dict[str, Union[bool, float, int]] = {}
         if "objectlist" in frame.keys():
             for item in frame["objectlist"]:
@@ -68,7 +68,7 @@ class Synchronizer:  # pylint: disable=too-few-public-methods
                 signals.update(self.__extract_ints(item))
         return signals
 
-    def __extract_bools(self, frame_objects: dict) -> dict[str, bool]:
+    def __extract_bools(self, frame_objects: dict[Any, Any]) -> dict[str, bool]:
         values: dict[str, bool] = {}
         if "boolAttributes" in frame_objects:
             for attribute in frame_objects["boolAttributes"]:
@@ -77,7 +77,7 @@ class Synchronizer:  # pylint: disable=too-few-public-methods
                         attribute["value"] == "true")
         return values
 
-    def __extract_floats(self, frame_objects: dict) -> dict[str, float]:
+    def __extract_floats(self, frame_objects: dict[Any, Any]) -> dict[str, float]:
         values: dict[str, float] = {}
         if "floatAttributes" in frame_objects:
             for attribute in frame_objects["floatAttributes"]:
@@ -85,7 +85,7 @@ class Synchronizer:  # pylint: disable=too-few-public-methods
                     values[attribute["name"]] = float(attribute["value"])
         return values
 
-    def __extract_ints(self, frame_objects: dict) -> dict[str, int]:
+    def __extract_ints(self, frame_objects: dict[Any, Any]) -> dict[str, int]:
         values: dict[str, int] = {}
         if "integerAttributes" in frame_objects:
             for attribute in frame_objects["integerAttributes"]:

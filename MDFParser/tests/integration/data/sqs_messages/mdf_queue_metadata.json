@@ -1,0 +1,8 @@
+{
+    "id": "datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json",
+    "data_type": "metadata",
+    "tenant": "datanauts",
+    "device_id": "DATANAUTS_DEV_02",
+    "recorder": "Interior"
+}

@@ -103,7 +103,8 @@ class TestMain:
             "recordings": "recordings",
             "signals": "signals",
             "pipeline_exec": "pipeline_exec",
-            "algo_output": "algo_output"
+            "algo_output": "algo_output",
+            "processed_imu": "processed_imu"
         })
         type(container_services_mock.return_value).db_tables = db_tables_mock
         return container_services_mock

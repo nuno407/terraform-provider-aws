@@ -4,3 +4,4 @@ db_metadata_tables:
   recording: dev-recording
   recordings: dev-recordings
   signals: dev-signals
+  processed_imu: dev-processed-imu

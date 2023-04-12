@@ -62,7 +62,7 @@ class TestIMUIngestor:
                                {"TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_56.mp4._stream1_20230221171736_153_imu_raw.csv.zip",
                                 "TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_57.mp4._stream1_20230221171748_154_imu_raw.csv.zip",
                                 "TrainingRecorder_TrainingRecorder-7d5d57c3-aa1d-4554-8d44-7a3e13227749_58.mp4._stream1_20230221171759_155_imu_raw.csv.zip"},
-                                 f"some_video_id.{IMU_FILE_EXT}"),
+                                 f"s3://dev-rcd-raw-video-files/datanauts/some_video_id{IMU_FILE_EXT}"),
                               ])
     def test_ingest(
             self,
@@ -83,4 +83,4 @@ class TestIMUIngestor:
 
         imu_ingestor.container_svcs.upload_file.assert_called_once_with(
             ANY, file_merged, imu_ingestor.container_svcs.raw_s3, path)
-        assert result_path == path
+        assert result_path == return_expected
