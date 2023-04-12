@@ -28,11 +28,10 @@ class InitializationError(Exception):
 class SQSController:
     """SQS message controller."""
 
-    @inject(bind={"input_queue_name": "default_sqs_queue_name"})
     def __init__(self,
-                 input_queue_name: str,
+                 default_sqs_queue_name: str,
                  sqs_client: SQSClient):
-        self.input_queue_name = input_queue_name
+        self.input_queue_name = default_sqs_queue_name
         self.__sqs_client = sqs_client
         self.__message_receive_times: ExpiringDict[str, datetime] = ExpiringDict(
             max_len=1000, max_age_seconds=50400)

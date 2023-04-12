@@ -35,7 +35,7 @@ class TestSQSController():
             "QueueUrl": "foobar"
         })
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         queue_url = message_controller.get_queue_url()
         assert queue_url == "foobar"
         sqs_client_mock.get_queue_url.assert_called_once()
@@ -45,7 +45,7 @@ class TestSQSController():
         sqs_client_mock.get_queue_url = Mock(
             side_effect=InitializationError("error"))
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         with pytest.raises(InitializationError):
             message_controller.get_queue_url()
 
@@ -53,7 +53,7 @@ class TestSQSController():
         sqs_client_mock = Mock()
         sqs_client_mock.delete_message = Mock()
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         message_controller.delete_message("foobar-url", sqs_message)
         sqs_client_mock.delete_message.assert_called_once_with(
             QueueUrl="foobar-url", ReceiptHandle="foobar-receipt")
@@ -65,7 +65,7 @@ class TestSQSController():
         sqs_client_mock.receive_message = Mock(
             return_value={"Messages": [given_message]})
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         got_message = message_controller.get_message("foobar-url")
         sqs_client_mock.receive_message.assert_called_once_with(
             QueueUrl="foobar-url",
@@ -85,7 +85,7 @@ class TestSQSController():
         sqs_client_mock = Mock()
         sqs_client_mock.receive_message = Mock(return_value={"Messages": []})
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         got_message = message_controller.get_message("foobar-url")
         sqs_client_mock.receive_message.assert_called_once_with(
             QueueUrl="foobar-url",
@@ -106,7 +106,7 @@ class TestSQSController():
         sqs_client_mock = Mock()
         sqs_client_mock.change_message_visibility = Mock()
         message_controller = SQSController(
-            input_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
         message_controller.try_update_message_visibility_timeout(
             "foobar-url", sqs_message, TWELVE_HOURS_IN_SECONDS)
         sqs_client_mock.change_message_visibility.assert_called_once_with(

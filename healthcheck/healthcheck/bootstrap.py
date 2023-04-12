@@ -20,9 +20,12 @@ from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.database import NoSQLDBConfiguration
-from healthcheck.model import ArtifactType, S3Params
 from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
+from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
+from healthcheck.model import ArtifactType, S3Params
+from healthcheck.mongo import MongoDBClient
+from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
+from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
 
 
 @dataclass
@@ -69,18 +72,21 @@ def bootstrap_di() -> None:
     di["webhook_url"] = env.webhook_url
     di["tenant_config_path"] = env.tenant_config_path
 
-    di[SQSClient] = boto3.client("sqs",
-                                 region_name=env.aws_region, endpoint_url=env.aws_endpoint)
-    di[S3Client] = boto3.client("s3",
-                                region_name=env.aws_region, endpoint_url=env.aws_endpoint)
+    di[SQSClient] = boto3.client(
+        service_name="sqs",
+        region_name=env.aws_region,
+        endpoint_url=env.aws_endpoint)
+    di[S3Client] = boto3.client(
+        service_name="s3",
+        region_name=env.aws_region,
+        endpoint_url=env.aws_endpoint)
+    di[GracefulExit] = GracefulExit()
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
-    di["default_sqs_queue_name"] = config.input_queue
     di[HealthcheckConfig] = config
     tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
     di[DatasetMappingConfig] = tenant_config.dataset_mapping
-
-    di[GracefulExit] = GracefulExit()
+    di["default_sqs_queue_name"] = config.input_queue
 
     di[S3Params] = S3Params(
         config.anonymized_s3_bucket,
@@ -92,6 +98,11 @@ def bootstrap_di() -> None:
         _di[HealthcheckConfig])
 
     di[MongoClient] = lambda _di: MongoClient(_di["db_uri"])
+
+    di[DocumentValidator] = JSONSchemaValidator()
+    di[VoxelEntriesGetter] = VoxelClient()
+    di[INoSQLDBClient] = MongoDBClient()
+
     di["checkers"] = {
         ArtifactType.TRAINING_RECORDER: TrainingRecorderArtifactChecker(),
         ArtifactType.INTERIOR_RECORDER: InteriorRecorderArtifactChecker(),
