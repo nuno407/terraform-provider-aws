@@ -11,8 +11,6 @@ from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
-from base.aws.sns import SNSController
-from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from sanitizer.config import SanitizerConfig
 
@@ -23,7 +21,7 @@ def bootstrap_di():
     log_level = logging.getLevelName(str_level)
     logging.basicConfig(
         format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=log_level)
-    db_uri = os.getenv("DB_URI", None)
+    db_uri = os.environ["DB_URI"]
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
 
@@ -34,7 +32,7 @@ def bootstrap_di():
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
     di["default_sns_topic_arn"] = config.topic_arn
-    di["default_input_queue_name"] = config.input_queue
+    di["default_sqs_queue_name"] = config.input_queue
 
     di[Logger] = logging.getLogger("sanitizer")
     di[GracefulExit] = GracefulExit()
@@ -43,6 +41,3 @@ def bootstrap_di():
 
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
     di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
-
-    di[SQSController] = SQSController(config.input_queue, di[SQSClient])
-    di[SNSController] = SNSController(di[SNSClient])

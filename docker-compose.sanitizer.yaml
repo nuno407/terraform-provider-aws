@@ -10,6 +10,9 @@ services:
     build:
       dockerfile: sanitizer/Dockerfile
       context: .
+    depends_on:
+      - localstack
+      - mongodb
     environment:
       AWS_ENDPOINT: http://localstack:4566
       AWS_REGION: us-east-1

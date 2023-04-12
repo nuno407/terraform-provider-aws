@@ -13,8 +13,6 @@ from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
-from base.aws.s3 import S3Controller
-from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
@@ -77,13 +75,11 @@ def bootstrap_di() -> None:
                                 region_name=env.aws_region, endpoint_url=env.aws_endpoint)
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
-    di["default_input_queue_name"] = config.input_queue
+    di["default_sqs_queue_name"] = config.input_queue
     di[HealthcheckConfig] = config
     tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
     di[DatasetMappingConfig] = tenant_config.dataset_mapping
 
-    di[S3Controller] = S3Controller(di[S3Client])
-    di[SQSController] = SQSController(config.input_queue, di[SQSClient])
     di[GracefulExit] = GracefulExit()
 
     di[S3Params] = S3Params(

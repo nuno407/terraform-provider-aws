@@ -18,6 +18,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             message_id="foo",
             receipt_handle="bar",
             body={
+                "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
                 "Message": {
                     "value": {
                         "properties": {
@@ -53,6 +54,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             message_id="foo",
             receipt_handle="bar",
             body={
+                "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
                 "Message": {
                     "value": {
                         "properties": {
@@ -81,6 +83,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             message_id="foo",
             receipt_handle="bar",
             body={
+                "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",
                 "MessageAttributes": {
                     "recorder": {
                         "Type": "String",
@@ -109,6 +112,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             message_id="bar",
             receipt_handle="foobar",
             body={
+                "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",
                 "MessageAttributes": {
                     "recorder": {
                         "Type": "String",
@@ -137,6 +141,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
             message_id="bar",
             receipt_handle="foobar",
             body={
+                "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",
                 "MessageAttributes": {
                     "recorder": {
                         "Type": "String",

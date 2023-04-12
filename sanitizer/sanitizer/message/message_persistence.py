@@ -27,10 +27,10 @@ class MessagePersistence:  # pylint: disable=too-few-public-methods
         """ Saves given message in database collection """
         collection = self.mongo_client[self.config.db_name][self.config.message_collection]
         _logger.info("Saving message in collection %s", self.config.message_collection)
-        document = self.to_persistable_dict(message)
+        document = self.__to_persistable_dict(message)
         collection.insert_one(document)
 
-    def to_persistable_dict(self, message: SQSMessage) -> dict:
+    def __to_persistable_dict(self, message: SQSMessage) -> dict:
         """ returns timeseries persistable dictionary from dataobject
 
         Returns:

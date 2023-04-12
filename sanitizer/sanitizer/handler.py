@@ -1,7 +1,7 @@
 # type: ignore
 """ handler module. """
 import logging
-from typing import Callable, Optional
+from typing import Optional
 
 from kink import inject
 from mypy_boto3_sqs.type_defs import MessageTypeDef
@@ -28,13 +28,12 @@ class Handler:  # pylint: disable=too-few-public-methods
         self.artifact = artifact
 
     @inject
-    def run(self, graceful_exit: GracefulExit,
-            helper_continue_running: Callable[[], bool] = lambda: True):
+    def run(self, graceful_exit: GracefulExit):
         """retrieves incoming messages, parses them and forwards them to the next step"""
         queue_url = self.aws_sqs.get_queue_url()
         _logger.info("SQS queue url: %s", queue_url)
 
-        while graceful_exit.continue_running and helper_continue_running():
+        while graceful_exit.continue_running:
             raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs.get_message(queue_url)
             _logger.debug("receveid raw message %s", raw_sqs_message)
             if raw_sqs_message is None:
@@ -62,18 +61,21 @@ class Handler:  # pylint: disable=too-few-public-methods
         try:
             artifacts = self.artifact.parser.parse(message)
             for artifact in artifacts:
-                _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
-                             artifact.recorder.value,
-                             artifact.device_id,
-                             artifact.tenant_id)
-
-                is_relevant = self.artifact.filter.is_relevant(artifact)
-                if is_relevant:
-                    self.artifact.forwarder.publish(artifact)
-                else:
-                    _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
+                try:
+                    _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
+                                 artifact.recorder.value,
                                  artifact.device_id,
                                  artifact.tenant_id)
+
+                    is_relevant = self.artifact.filter.is_relevant(artifact)
+                    if is_relevant:
+                        self.artifact.forwarder.publish(artifact)
+                    else:
+                        _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
+                                     artifact.device_id,
+                                     artifact.tenant_id)
+                except ArtifactException as err:
+                    _logger.warning("SKIP: Unable to publish artifact -> %s", err)
         except ArtifactException as err:
             _logger.warning("SKIP: Unable to parse artifacts -> %s", err)
         self.aws_sqs.delete_message(queue_url, message)

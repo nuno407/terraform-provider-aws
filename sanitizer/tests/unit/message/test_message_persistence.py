@@ -1,10 +1,11 @@
 """ Message persistence module tests. """
-import json
+import dataclasses
 from unittest.mock import MagicMock
 
 import pytest
-from base.aws.model import SQSMessage, MessageAttributes
-from sanitizer.message.message_persistence import MessagePersistence
+
+from base.aws.model import MessageAttributes, SQSMessage
+from sanitizer.message.message_persistence import DateUtils, MessagePersistence
 
 
 @pytest.mark.unit
@@ -84,4 +85,10 @@ def test_save(message: SQSMessage):
     persistence = MessagePersistence(mongo_client, config)
     persistence.save(message)
 
-    collection.insert_one.assert_called_once_with(persistence.to_persistable_dict(message))
+    collection.insert_one.assert_called_once_with({
+        "message_id": message.message_id,
+        "receipt_handle": message.receipt_handle,
+        "timestamp": DateUtils.from_iso8601_to_datetime(message.timestamp),
+        "body": message.body,
+        "attributes": dataclasses.asdict(message.attributes)
+    })

@@ -1,5 +1,5 @@
 """ test handler. """
-from unittest.mock import Mock, MagicMock, call
+from unittest.mock import MagicMock, Mock, PropertyMock, call
 
 import pytest
 
@@ -10,7 +10,8 @@ from sanitizer.handler import Handler
 def test_handler_run():
     """ test handler run. """
     graceful_exit = MagicMock()
-    graceful_exit.continue_running = True
+    prop = PropertyMock(side_effect=[True, False])
+    type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
     sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = "raw_sqs_message"
@@ -50,9 +51,7 @@ def test_handler_run():
                       message_controller,
                       artifact_controller)
 
-    test_helper_continue_running = Mock(side_effect=[True, False])
-
-    handler.run(graceful_exit, test_helper_continue_running)
+    handler.run(graceful_exit)
 
     sqs_controller.get_queue_url.assert_called_once()
     sqs_controller.get_message.assert_called_once_with("queue_url")
@@ -68,8 +67,9 @@ def test_handler_run():
 @pytest.mark.unit
 def test_handler_run_no_raw_message():
     """ test handler run. """
-    graceful_exit = MagicMock()
-    graceful_exit.continue_running = True
+    graceful_exit = Mock()
+    prop = PropertyMock(side_effect=[True, False])
+    type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
     sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = None
@@ -83,9 +83,7 @@ def test_handler_run_no_raw_message():
                       message_controller,
                       Mock())
 
-    test_helper_continue_running = Mock(side_effect=[True, False])
-
-    handler.run(graceful_exit, test_helper_continue_running)
+    handler.run(graceful_exit)
 
     sqs_controller.get_queue_url.assert_called_once()
     sqs_controller.get_message.assert_called_once_with("queue_url")
@@ -95,8 +93,9 @@ def test_handler_run_no_raw_message():
 @pytest.mark.unit
 def test_handler_run_not_relevant():
     """ test handler run. """
-    graceful_exit = MagicMock()
-    graceful_exit.continue_running = True
+    graceful_exit = Mock()
+    prop = PropertyMock(side_effect=[True, False])
+    type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
     sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = "raw_sqs_message"
@@ -117,9 +116,7 @@ def test_handler_run_not_relevant():
                       message_controller,
                       Mock())
 
-    test_helper_continue_running = Mock(side_effect=[True, False])
-
-    handler.run(graceful_exit, test_helper_continue_running)
+    handler.run(graceful_exit)
 
     sqs_controller.get_queue_url.assert_called_once()
     sqs_controller.get_message.assert_called_once_with("queue_url")

@@ -2,8 +2,7 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.12-al
 
 WORKDIR /app
 
-# Install ffmpeg program (to convert .avi to .mp4)
-RUN apk update && apk upgrade && apk add ffmpeg
+RUN apk update && apk upgrade
 
 # Run as non-root user and group
 RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
