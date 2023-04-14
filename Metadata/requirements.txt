@@ -6,7 +6,7 @@ flask-restx == 1.1.0
 pytimeparse == 1.1.8
 PyYaml == 6.0
 requests == 2.28.2
-waitress == 2.0.0
+waitress == 2.1.1
 werkzeug == 2.2.3
 python-jose == 3.3.0
 kink == 0.6.6
