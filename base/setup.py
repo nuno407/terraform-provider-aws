@@ -24,7 +24,7 @@ extras_require: Dict[str, List[str]] = {
         "boto3-stubs[kinesis-video-archived-media]==1.26.91"
     ],
     "voxel": [
-        "fiftyone==0.12.0"
+        "fiftyone==0.12.1"
     ],
     "model": [
     ],
