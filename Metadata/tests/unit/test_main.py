@@ -93,7 +93,7 @@ def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> di
         "_id": f"{recording_id}",
         "MDF_available": "No",
         "media_type": "video",
-        "s3_path": "dev-rcd-raw-video-files/Debug_Lync/" +
+        "s3_path": "s3://dev-rcd-raw-video-files/Debug_Lync/" +
         f"{recording_id}.mp4",
         "footagefrom": 1669376595000,
         "footageto": 1669376695538,
@@ -167,7 +167,7 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
 def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
     result = {
         "_id": f"{snapshot_id}",
-        "s3_path": f"dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
+        "s3_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
         "deviceid": "rc_srx_develop_cst2hi_01",
         "timestamp": 1669638188317,
         "tenant": "honeybadger",
@@ -525,11 +525,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                         "a": "b"}}},
             upsert=True)
 
-    @patch("metadata.consumer.main.update_sample")
-    @patch("metadata.consumer.main.create_dataset")
+    @patch("metadata.consumer.voxel.functions.update_sample")
+    @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
-    @pytest.mark.unit
+ 	@pytest.mark.unit
     def test_process_outputs(
             self,
             mock_download_and_synchronize_chc: Mock,
@@ -544,6 +545,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "meta_path": "e/f.media"
             }
         }
+        bootstrap_di()
         collection_algo_out = Mock()
         collection_algo_out.update_one = Mock()
         collection_recordings = Mock()

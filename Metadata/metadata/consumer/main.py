@@ -13,6 +13,15 @@ import boto3
 import pytimeparse
 import pytz
 from kink import inject
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
+                                       UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult,
+                                    MalformedRecordingEntry)
+from metadata.consumer.bootstrap import bootstrap_di
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.persistence import Persistence
+from metadata.consumer.service import RelatedMediaService
+from metadata.consumer.voxel.functions import update_on_voxel, add_voxel_snapshot_metadata
 from mypy_boto3_s3 import S3Client
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
@@ -36,6 +45,7 @@ from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.exceptions import NotSupportedArtifactError
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
+from base.aws.s3 import S3Controller
 
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
@@ -54,70 +64,13 @@ class MetadataCollections:
     processed_imu: Collection
 
 
-def __get_s3_path_parts(raw_path) -> Tuple[str, str]:
-    match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
-
-    if match is None or len(match.groups()) != 2:
-        raise ValueError("Invalid path: " + raw_path)
-
-    bucket = match.group(1)
-    key = match.group(2)
-    return bucket, key
-
-
-def _get_anonymized_s3_path(file_key):
-    filetype = file_key.split("/")[-1].split(".")[-1]
+def _get_anonymized_s3_path(filepath):
+    filetype = filepath.split("/")[-1].split(".")[-1]
 
     if filetype not in IMAGE_FORMATS and filetype not in VIDEO_FORMATS:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
 
     return f"s3://{os.environ['ANON_S3']}/{file_key.rstrip(f'.{filetype}')}_anonymized.{filetype}"
-
-
-def _update_on_voxel(filepath: str, sample: dict):
-    """
-    Updates a sample in a dataset with the given metadata. If the sample or dataset do not exist they will be created.
-    The dataset name is derived by the given S3 file path.
-    From the path the tenant is derived and the dataset determined.
-    :param filepath: File path to extract the dataset information from.
-    :param sample: Sample data to update. Uses `video_id` to find the sample.
-    """
-    dataset_name, tags = _determine_dataset_name(filepath)
-    try:
-        create_dataset(dataset_name, tags)
-        update_sample(dataset_name, sample)
-    except Exception as err:  # pylint: disable=broad-except
-        _logger.exception(
-            "Unable to process Voxel entry [%s] with %s", dataset_name, err)
-
-
-@inject
-def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig):
-    """
-    Checks in config if tenant gets its own dataset or if it is part of the default dataset.
-    Dedicated dataset names are prefixed with the tag given in the config.
-    The tag is not added to the default dataset.
-
-    :param filepath: S3 filepath to extract the tenant from
-    :param mapping_config: Config with mapping information about the tenants
-    :return: the resulting dataset name and the tags which should be added on dataset creation
-    """
-    _, file_key = __get_s3_path_parts(filepath)
-    s3split = file_key.split("/")
-    # The root dir on the S3 bucket always is the tenant name
-    tenant_name = s3split[0]
-    filetype = s3split[-1].split(".")[-1]
-
-    dataset_name = mapping_config.default_dataset
-    tags = [mapping_config.tag]
-
-    if tenant_name in mapping_config.create_dataset_for:
-        dataset_name = f"{mapping_config.tag}-{tenant_name}"
-
-    if filetype in IMAGE_FORMATS:
-        dataset_name = dataset_name + "_snapshots"
-
-    return dataset_name, tags
 
 
 def update_voxel_media(sample: dict):
@@ -130,14 +83,13 @@ def update_voxel_media(sample: dict):
     if "filepath" not in sample:
         _logger.error("Filepath field not present in the sample. %s", sample)
         return
-
-    _, file_key = __get_s3_path_parts(sample["filepath"])
+    _, filepath = S3Controller.get_s3_path_parts(sample["filepath"])
 
     sample.pop("_id", None)
     sample["s3_path"] = _get_anonymized_s3_path(file_key)
     sample["raw_filepath"] = sample["filepath"]
 
-    _update_on_voxel(sample["s3_path"], sample)
+    update_on_voxel(sample["s3_path"], sample)
 
 
 def find_and_update_media_references(
@@ -353,10 +305,7 @@ def upsert_mdf_signals_data(message: dict, metadata_collections: MetadataCollect
             "Expected fields for upserting MDF data are not present in the message.")
         return None
 
-    match = re.match(r"^s3://([^/]+)/(.*)$", message["parsed_file_path"])
-
-    bucket = match.group(1)
-    key = match.group(2)
+    bucket, key = S3Controller.get_s3_path_parts(message["parsed_file_path"])
 
     s3_client = boto3.client("s3", AWS_REGION)
     signals_file_raw = ContainerServices.download_file(
@@ -459,7 +408,7 @@ def update_pipeline_db(video_id: str, message: dict,
     sample = copy.deepcopy(upsert_item)
     sample.update({"video_id": video_id, "s3_path": anonymized_path, "raw_filepath": message["s3_path"]})
 
-    _update_on_voxel(sample["s3_path"], sample)
+    update_on_voxel(sample["s3_path"], sample)
 
     return upsert_item
 
@@ -641,7 +590,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
     sample["raw_filepath"] = message["s3_path"]
     sample["video_id"] = algo_item["pipeline_id"]
 
-    _update_on_voxel(sample["s3_path"], sample)
+    update_on_voxel(sample["s3_path"], sample)
 
 
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
@@ -767,6 +716,10 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections, serv
             _logger.warning("No recording item created on DB.")
             return
         update_voxel_media(recording)
+        if file_format in IMAGE_FORMATS:
+            _logger.debug("message sent2 [%s]", str(message))
+            add_voxel_snapshot_metadata(message["_id"], message["s3_path"], message["metadata_path"]
+                                        )    # pylint: disable=no-value-for-parameter
     else:
         _logger.warning(
             "Unexpected file format %s from SDRetriever.", file_format)

@@ -6,6 +6,7 @@ from typing import Callable
 from botocore.errorfactory import ClientError
 from kink import inject
 from mypy_boto3_s3 import S3Client
+import re
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -99,6 +100,29 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         )
 
         _logger.info("Uploaded [%s]", path)
+
+    @staticmethod
+    def get_s3_path_parts(raw_path: str) -> tuple[str, str]:
+        """
+        Splits a full s3 path into bucket and key
+
+        Args:
+            raw_path (str): _description_
+
+        Raises:
+            ValueError: If raw_path is not a full an s3 path.
+
+        Returns:
+            tuple[str, str]: The bucket and the key respectively
+        """
+        match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
+
+        if match is None or len(match.groups()) != 2:
+            raise ValueError("Invalid path: " + raw_path)
+
+        bucket = match.group(1)
+        key = match.group(2)
+        return bucket, key
 
 
 S3ControllerFactory = Callable[[], S3Controller]

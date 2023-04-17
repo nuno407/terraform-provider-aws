@@ -127,9 +127,9 @@ class TestMain:
     @pytest.fixture(autouse=True)
     def voxel_mock(self, mocker: MockerFixture) -> tuple[Mock, Mock]:
         create_dataset_mock = mocker.patch(
-            "metadata.consumer.main.create_dataset")
+            "metadata.consumer.voxel.functions.create_dataset")
         update_sample_mock = mocker.patch(
-            "metadata.consumer.main.update_sample")
+            "metadata.consumer.voxel.functions.update_sample")
         return create_dataset_mock, update_sample_mock
 
     @pytest.mark.integration

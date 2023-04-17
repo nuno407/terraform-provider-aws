@@ -11,6 +11,7 @@ werkzeug == 2.2.3
 python-jose == 3.3.0
 kink == 0.6.6
 PyYAML == 6.0
+fiftyone== 0.12.1
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
 -e ../base[aws,voxel,model]
