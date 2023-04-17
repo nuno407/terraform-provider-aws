@@ -233,7 +233,7 @@ jobs:
         uses: bosch-rc-dev/actions/determine-services-to-build@main
         with:
           services: ${{ inputs.services }}
-          excluded-dirs: '[".git", ".github", ".vscode", ".localdev", "base", "basehandler"]'
+          excluded-dirs: '[".git", ".github", ".vscode", ".localdev", ".devcontainer", "base", "basehandler"]'
 
       - name: Git tag & push
         id: git-tag-push
