@@ -46,6 +46,8 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
         """ Parse SQS message and return list of artifacts. """
         _logger.info("parsing message into artifact...")
         recorder_type = RecorderTypeParser.get_recorder_type_from_msg(sqs_message)
+        if recorder_type is None:
+            raise ArtifactException("Cannot extract recorder type from message.")
         parser = self.__get_parser_for_recorder(recorder_type)
         _logger.info("parsing artifact of type: %s", recorder_type.value)
         return list(parser.parse(sqs_message, recorder_type))

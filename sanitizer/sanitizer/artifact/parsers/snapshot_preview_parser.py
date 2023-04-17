@@ -7,6 +7,7 @@ from kink import inject
 from base.aws.model import SQSMessage
 from base.model.artifacts import RecorderType, SnapshotArtifact
 from base.timestamps import from_epoch_seconds_or_milliseconds
+from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import ArtifactException, InvalidMessageError
 from sanitizer.message.message_parser import MessageParser
 
@@ -14,7 +15,7 @@ _logger = logging.getLogger(__name__)
 
 
 @inject
-class SnapshotPreviewParser:  # pylint: disable=too-few-public-methods
+class SnapshotPreviewParser(IArtifactParser):  # pylint: disable=too-few-public-methods
     """SnapshotPreviewParser class"""
 
     def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[SnapshotArtifact]:

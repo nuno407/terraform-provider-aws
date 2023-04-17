@@ -1,12 +1,18 @@
+# pylint: disable=no-self-argument
 """ Artifact model. """
-import dataclasses
 import hashlib
 import json
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Union
+
+from pydantic import parse_raw_as, validator
+from pydantic.dataclasses import dataclass
+from pydantic.json import pydantic_encoder
+
+from base.model.config import dataclass_config
 
 
 class RecorderType(Enum):
@@ -16,40 +22,9 @@ class RecorderType(Enum):
     INTERIOR_PREVIEW = "InteriorRecorderPreview"
     TRAINING = "TrainingRecorder"
     SNAPSHOT = "TrainingMultiSnapshot"
-    UNKNOWN = "Unknown"
 
 
-class ArtifactEncoder(json.JSONEncoder):
-    """ JSON encoder for artifacts.
-
-        Serializes messages to be published in SNS like this:
-
-        'Message': {
-            'default': {
-                'tenant_id': 'test-tenant-id',
-                'device_id': 'test-device-id',
-                'recorder': {
-                    '__enum__': 'TrainingMultiSnapshot'
-                },
-                'timestamp': {
-                    '__datetime__': '2023-03-30T14:59:29.761066'
-                },
-                'uuid': 'test-uuid'
-            }
-        }
-    """
-
-    def default(self, o):
-        if isinstance(o, Enum):
-            return {"__enum__": str(o.value)}
-        if isinstance(o, datetime):
-            return {"__datetime__": o.isoformat()}
-        if dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
-        return json.JSONEncoder.default(self, o)
-
-
-@dataclass
+@dataclass(config=dataclass_config)
 class Artifact(ABC):
     """Generic artifact"""
     tenant_id: str
@@ -59,12 +34,22 @@ class Artifact(ABC):
 
     def stringify(self) -> str:
         """ stringifies the artifact. """
-        return json.dumps(self, cls=ArtifactEncoder)
+        return json.dumps(self, default=pydantic_encoder)
 
     @property
     @abstractmethod
     def artifact_id(self) -> str:
         """Artifact ID."""
+
+    @validator("timestamp")
+    def check_timestamp(cls, value: datetime) -> datetime:
+        """Validate timestamp"""
+        if value.tzinfo is None:
+            raise ValueError("timestamp must be timezone aware")
+        # check if timestamp is in the future
+        if value > datetime.now(tz=value.tzinfo):
+            raise ValueError("timestamp must be in the past")
+        return value
 
     @property
     def devcloudid(self) -> str:
@@ -77,6 +62,18 @@ class VideoArtifact(Artifact):
     """Video artifact"""
     stream_name: str
     end_timestamp: datetime
+
+    @validator("recorder")
+    def check_recorder(cls, value: RecorderType) -> RecorderType:
+        """Validate recorder type"""
+        if value not in [RecorderType.INTERIOR, RecorderType.FRONT, RecorderType.TRAINING]:
+            raise ValueError("Invalid recorder type")
+        return value
+
+    @validator("end_timestamp")
+    def check_end_timestamp(cls, value: datetime) -> datetime:
+        """Validate end timestamp"""
+        return super().check_timestamp(value)
 
     @property
     def duration(self) -> float:
@@ -93,29 +90,19 @@ class SnapshotArtifact(Artifact):
     """Snapshot artifact"""
     uuid: str
 
+    @validator("recorder")
+    def check_recorder(cls, value: RecorderType) -> RecorderType:
+        """Validate recorder type"""
+        if value not in [RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW]:
+            raise ValueError("Invalid recorder type")
+        return value
+
     @property
     def artifact_id(self) -> str:
         uuid_without_ext = self.uuid.rstrip(Path(self.uuid).suffix)
         return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{int(self.timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
 
 
-class ArtifactDecoder(json.JSONDecoder):
-    """ JSON decoder for artifacts. """
-
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(self,
-                                  object_hook=self.dict_to_object,
-                                  *args,
-                                  **kwargs)
-
-    def dict_to_object(self, obj):
-        """ converts a dict to an object. """
-        if "__enum__" in obj:
-            return RecorderType(obj["__enum__"])
-        if "__datetime__" in obj:
-            return datetime.fromisoformat(obj["__datetime__"])
-        if isinstance(obj, dict):
-            if obj["recorder"] == RecorderType.SNAPSHOT:
-                return SnapshotArtifact(**obj)
-            return VideoArtifact(**obj)
-        return obj
+def parse_artifact(json_data: str) -> Artifact:
+    """Parse artifact from string"""
+    return parse_raw_as(Union[VideoArtifact, SnapshotArtifact], json_data)  # type: ignore

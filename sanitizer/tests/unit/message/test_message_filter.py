@@ -15,8 +15,8 @@ class TestMessageFilter:
         return SQSMessage(
             message_id="foo",
             receipt_handle="bar",
-            timestamp=datetime.now(),
-            body="{}",
+            timestamp="now",
+            body={},
             attributes=MessageAttributes(tenant=tenant_id, device_id="baz"),
         )
 

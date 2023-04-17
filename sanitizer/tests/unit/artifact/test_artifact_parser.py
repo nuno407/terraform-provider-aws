@@ -1,6 +1,7 @@
 """ Unit tests for the artifact parser. """
 from datetime import datetime
 from unittest.mock import Mock, call
+from pytz import UTC
 
 import pytest
 
@@ -37,14 +38,14 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="datanauts",
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
-                timestamp=datetime.now()
+                timestamp=datetime.now(tz=UTC)
             ),
             SnapshotArtifact(
                 uuid="foo2",
                 tenant_id="datanauts",
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
-                timestamp=datetime.now()
+                timestamp=datetime.now(tz=UTC)
             )
         ]
     ),
@@ -73,7 +74,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="datanauts",
                 recorder=RecorderType.INTERIOR_PREVIEW,
                 device_id="DEV01",
-                timestamp=datetime.now()
+                timestamp=datetime.now(tz=UTC)
             )
         ]
     ),
@@ -101,8 +102,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="deepsensation",
                 device_id="DEV02",
                 recorder=RecorderType.INTERIOR,
-                timestamp=datetime.now(),
-                end_timestamp=datetime.now(),
+                timestamp=datetime.now(tz=UTC),
+                end_timestamp=datetime.now(tz=UTC),
             )
         ]
     ),
@@ -130,8 +131,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="deepsensation",
                 device_id="DEV02",
                 recorder=RecorderType.TRAINING,
-                timestamp=datetime.now(),
-                end_timestamp=datetime.now(),
+                timestamp=datetime.now(tz=UTC),
+                end_timestamp=datetime.now(tz=UTC),
             )
         ]
     ),
@@ -159,8 +160,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="deepsensation",
                 device_id="DEV04",
                 recorder=RecorderType.FRONT,
-                timestamp=datetime.now(),
-                end_timestamp=datetime.now(),
+                timestamp=datetime.now(tz=UTC),
+                end_timestamp=datetime.now(tz=UTC),
             )
         ]
     )

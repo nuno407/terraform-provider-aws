@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY
 from unittest.mock import MagicMock, Mock
-
+from pytz import UTC
 import pytest
 
 from sdretriever.ingestor.video import VideoIngestor
@@ -55,8 +55,8 @@ class TestVideoIngestor():
             "sync_file_ext": "",
             "tenant": "datanauts"
         }
-        video_from = datetime.fromtimestamp(msg_interior.footagefrom / 1000.0)
-        video_to = datetime.fromtimestamp(msg_interior.footageto / 1000.0)
+        video_from = datetime.fromtimestamp(msg_interior.footagefrom / 1000.0, tz=UTC)
+        video_to = datetime.fromtimestamp(msg_interior.footageto / 1000.0, tz=UTC)
         container_services.get_kinesis_clip.assert_called_once_with(
             ANY, "datanauts_DATANAUTS_DEV_01_InteriorRecorder", video_from, video_to, "PRODUCER_TIMESTAMP")
         container_services.upload_file.assert_called_once_with(ANY, ANY, container_services.raw_s3, expected_raw_path)

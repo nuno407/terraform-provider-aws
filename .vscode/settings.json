@@ -2,5 +2,31 @@
     "python.analysis.extraPaths": [
         "./base",
         "./basehandler"
-    ]
+    ],
+    "mypy.runUsingActiveInterpreter": true,
+    "mypy.targets": [
+        "base/base",
+        "basehandler/basehandler",
+        "chc_ivschain/chc_ivschain",
+        "data_importer/data_importer",
+        "healthcheck/healthcheck",
+        "sanitizer/sanitizer",
+        "MDFParser/MDFParser",
+        "Metadata/Metadata",
+        "SDM/SDM",
+        "SDRetriever/SDRetriever",
+        "Selector/Selector"
+    ],
+    "python.linting.mypyArgs": [
+        "--follow-imports=silent",
+        "--show-column-numbers",
+        "--no-pretty",
+        "--namespace-packages",
+        "--explicit-package-bases"
+    ],
+    "python.linting.pylintArgs": [
+        "--load-plugins",
+        "pylint_pydantic"
+    ],
+    "python.linting.pylintEnabled": true
 }

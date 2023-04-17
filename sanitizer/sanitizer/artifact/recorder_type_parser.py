@@ -1,4 +1,5 @@
 """ record type finder module. """
+from typing import Optional
 from base.aws.model import SQSMessage
 from base.model.artifacts import RecorderType
 from sanitizer.message.message_parser import MessageParser
@@ -14,7 +15,7 @@ ATTRIBUTE_INTERIOR_PREVIEW = "InteriorRecorderPreview"
 class RecorderTypeParser:  # pylint: disable=too-few-public-methods
     """ RecorderTypeParser class. """
     @staticmethod
-    def get_recorder_type_from_msg(sqs_message: SQSMessage) -> RecorderType:
+    def get_recorder_type_from_msg(sqs_message: SQSMessage) -> Optional[RecorderType]:
         """ Get recorder type from SQS message. """
         topic_arn = sqs_message.body.get("TopicArn", "MISSINGTOPIC")
 
@@ -43,4 +44,4 @@ class RecorderTypeParser:  # pylint: disable=too-few-public-methods
             if recorder_name == ATTRIBUTE_INTERIOR_PREVIEW:
                 return RecorderType.INTERIOR_PREVIEW
 
-        return RecorderType.UNKNOWN
+        return None

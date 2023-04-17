@@ -1,6 +1,7 @@
 """ Module containing timestamp operations. """
 from datetime import datetime
 from math import log10
+from pytz import UTC
 
 
 def from_epoch_seconds_or_milliseconds(epoch_value: int) -> datetime:
@@ -13,5 +14,5 @@ def from_epoch_seconds_or_milliseconds(epoch_value: int) -> datetime:
         number_of_digits = int(log10(-epoch_value)) + 1
 
     if number_of_digits >= 12:
-        return datetime.fromtimestamp(epoch_value / 1000.0)
-    return datetime.fromtimestamp(epoch_value)
+        return datetime.fromtimestamp(epoch_value / 1000.0, tz=UTC)
+    return datetime.fromtimestamp(epoch_value, tz=UTC)

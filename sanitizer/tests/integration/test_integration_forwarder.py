@@ -1,6 +1,7 @@
 """ Integration tests for the forwarder. """
 import json
 from datetime import datetime
+from pytz import UTC
 
 import boto3
 import pytest
@@ -10,8 +11,8 @@ from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
 
 from base.aws.sns import SNSController
-from base.model.artifacts import (Artifact, ArtifactDecoder, RecorderType,
-                                  SnapshotArtifact, VideoArtifact)
+from base.model.artifacts import (Artifact, RecorderType,
+                                  SnapshotArtifact, VideoArtifact, parse_artifact)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 TEST_TOPIC_NAME = "test-topic"
@@ -60,7 +61,7 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
     (
         SnapshotArtifact(
             uuid="test-uuid00",
-            timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.SNAPSHOT,
             device_id="test-device-id00",
             tenant_id="test-tenant-id00",
@@ -69,8 +70,8 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
     (
         VideoArtifact(
             stream_name="test-stream-name01",
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.INTERIOR,
             device_id="test-device-id01",
             tenant_id="test-tenant-id01",
@@ -79,8 +80,8 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
     (
         VideoArtifact(
             stream_name="test-training-stream-name02",
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.TRAINING,
             device_id="test-device-id02",
             tenant_id="test-tenant-id02",
@@ -118,6 +119,6 @@ def test_forwarder_publish_to_sns_topic(artifact: Artifact,
     body = _read_and_parse_msg_body_from_sns_topic(raw_body)
 
     # using ArtifactDecoder to deserialize the message published in the topic
-    got_artifact = json.loads(json.dumps(body["Message"]["default"]), cls=ArtifactDecoder)
+    got_artifact = parse_artifact(json.dumps(body["Message"]["default"]))
     assert got_artifact.devcloudid == artifact.devcloudid
     assert got_artifact == artifact

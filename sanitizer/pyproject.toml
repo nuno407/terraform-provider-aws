@@ -20,6 +20,7 @@ diff = true
 recursive = true
 load-plugins = [
     "pylint_quotes",
+    "pylint-pydantic"
 ]
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
@@ -40,6 +41,9 @@ docstring-quote = "double"
 files = [
     "sanitizer/**/*.py",
     "tests/**/*.py"
+]
+plugins = [
+    "pydantic.mypy"
 ]
 exclude = [
     "^test.*\\.py$",

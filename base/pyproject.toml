@@ -20,11 +20,15 @@ diff = true
 recursive = true
 load-plugins = [
     "pylint_quotes",
+    "pylint_pydantic"
 ]
 
 ignore-paths = [
   "tests/.*$",
 ]
+
+[tool.pylint.'MESSAGES CONTROL']
+extension-pkg-whitelist = "pydantic"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
@@ -40,6 +44,9 @@ files = [
     "base/**/*.py",
     "tests/**/*.py"
 ]
+plugins = [
+    "pydantic.mypy"
+]
 # mypy per-module options:
 [[tool.mypy.overrides]]
 module = "setuptools"
@@ -53,6 +60,12 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "moto"
 ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
 
 [tool.bandit]
 exclude_dirs = ["tests"]

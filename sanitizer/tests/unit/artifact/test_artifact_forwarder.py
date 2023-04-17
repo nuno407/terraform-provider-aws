@@ -1,6 +1,7 @@
 """ Test artifact forwarder module. """
 from datetime import datetime
 from unittest.mock import Mock
+from pytz import UTC
 
 import pytest
 
@@ -15,8 +16,8 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             stream_name="mystream01",
             tenant_id="123456",
             device_id="12345",
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.INTERIOR,
         )
     ),
@@ -26,7 +27,7 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             tenant_id="deepsensation",
             device_id="DEV_01",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now()
+            timestamp=datetime.now(tz=UTC)
         )
     )
 ])

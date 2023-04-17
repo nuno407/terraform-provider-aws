@@ -27,6 +27,7 @@ extras_require: Dict[str, List[str]] = {
         "fiftyone==0.12.1"
     ],
     "model": [
+        "pydantic==1.10.7"
     ],
     # we should use it in the future
     # "monitoring": [

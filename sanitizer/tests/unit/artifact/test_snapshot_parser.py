@@ -59,7 +59,7 @@ RECEIPT_HANDLE = "foobar"
     )
 ])
 def test_snapshot_parser(test_case: str,
-                         input_message: dict,
+                         input_message: SQSMessage,
                          expected: Artifact):
     """ Test for parsing snapshot artifact. """
     print(f"test case: {test_case}")

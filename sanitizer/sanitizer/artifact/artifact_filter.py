@@ -23,16 +23,10 @@ class ArtifactFilter:  # pylint: disable=too-few-public-methods
                                 artifact: Artifact,
                                 config: SanitizerConfig) -> bool:
         """Check if artifact is from blacklisted tenant."""
-        if artifact.tenant_id is None:
-            return False
-
         return artifact.tenant_id in set(config.tenant_blacklist)
 
     def __is_recorder_blacklisted(self,
                                   artifact: Artifact,
                                   config: SanitizerConfig) -> bool:
         """Check if artifact is from blacklisted recorder."""
-        if artifact.recorder is None:
-            return False
-
         return artifact.recorder.value in set(config.recorder_blacklist)

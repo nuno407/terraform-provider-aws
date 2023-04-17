@@ -1,5 +1,6 @@
 """ artifact filter test module. """
-from datetime import datetime
+from datetime import datetime, timedelta
+from pytz import UTC
 
 import pytest
 
@@ -29,7 +30,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="datanauts",
             device_id="DEV01",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
         ),
         _sanitizer_config(
             tenant_blacklist=[],
@@ -44,7 +45,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="datanauts",
             device_id="DEV02",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
@@ -56,10 +57,10 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
     (
         SnapshotArtifact(
             uuid="foobar3",
-            tenant_id=None,
+            tenant_id="",
             device_id="DEV03",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
         ),
         _sanitizer_config(
             tenant_blacklist=[],
@@ -74,8 +75,8 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.FRONT,
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now()
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC)
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
@@ -89,31 +90,15 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             stream_name="foobar4",
             tenant_id="deepsensation",
             device_id="DEV04",
-            recorder=RecorderType.INTERIOR_PREVIEW,
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now()
+            recorder=RecorderType.INTERIOR,
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC)
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
-            recorder_blacklist=[RecorderType.INTERIOR_PREVIEW.value, RecorderType.FRONT.value]
+            recorder_blacklist=[RecorderType.INTERIOR.value, RecorderType.FRONT.value]
         ),
         False
-    ),
-    # no recorder specified
-    (
-        VideoArtifact(
-            stream_name="foobar5",
-            tenant_id="deepsensation",
-            device_id="DEV05",
-            recorder=None,
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now()
-        ),
-        _sanitizer_config(
-            tenant_blacklist=["datanauts"],
-            recorder_blacklist=[RecorderType.FRONT]
-        ),
-        True
     ),
     # blacklisted tenant and recorder
     (
@@ -122,12 +107,12 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="deepsensation",
             device_id="DEV05",
             recorder=RecorderType.TRAINING,
-            timestamp=datetime.now(),
-            end_timestamp=datetime.now()
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC)
         ),
         _sanitizer_config(
             tenant_blacklist=["deepsensation"],
-            recorder_blacklist=[RecorderType.TRAINING]
+            recorder_blacklist=[RecorderType.TRAINING.value]
         ),
         False
     )

@@ -7,11 +7,12 @@ from kink import inject
 from base.aws.model import SQSMessage
 from base.model.artifacts import RecorderType, VideoArtifact
 from base.timestamps import from_epoch_seconds_or_milliseconds
+from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import InvalidMessageError
 
 
 @inject
-class VideoParser:  # pylint: disable=too-few-public-methods
+class VideoParser(IArtifactParser):  # pylint: disable=too-few-public-methods
     """VideoParser class"""
 
     def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[VideoArtifact]:

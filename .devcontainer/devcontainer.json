@@ -36,7 +36,18 @@
 			"version": "latest"
 		}
 	},
-	"postCreateCommand": "/usr/bin/zsh ./.devcontainer/post-create.sh > ~/post-create.log"
+	"postCreateCommand": "/usr/bin/zsh ./.devcontainer/post-create.sh > ~/post-create.log",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vsliveshare.vsliveshare",
+				"matangover.mypy",
+				"elagil.pre-commit-helper",
+				"ms-python.python",
+				"ms-python.pylint"
+			]
+		}
+	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
