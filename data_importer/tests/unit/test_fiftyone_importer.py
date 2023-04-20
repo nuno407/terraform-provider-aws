@@ -1,10 +1,12 @@
 """Test Fiftyone importer"""
 import sys
-from unittest.mock import Mock, call
+from unittest.mock import Mock, call, MagicMock
 
 import pytest
+import fiftyone as fo
 
 from data_importer.fiftyone_importer import FiftyoneImporter
+
 
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
 # pylint: disable=redefined-outer-name, invalid-name
@@ -139,6 +141,35 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
+def test_update_new_sample2(fiftyone, importer: FiftyoneImporter):
+    # GIVEN
+    sample = MagicMock()
+    importer.find_sample = Mock(side_effect=ValueError("Not found"))
+    importer.override_metadata = Mock()
+    fiftyone.Sample = Mock(return_value=sample)
+    dataset = Mock()
+    nested = Mock()
+    fiftyone.DynamicEmbeddedDocument = Mock(return_value=nested)
+    test_dict = {"test": "value", "test2": "value2"}
+
+    # WHEN
+    importer.upsert_sample(dataset, "/foo/bar", {"tst": test_dict, "tst2": "label2"})
+
+    # THEN
+    fiftyone.Sample.assert_called_with("/foo/bar")
+    dataset.add_sample.assert_called_once_with(sample)
+
+    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    importer.override_metadata.assert_not_called()
+
+    sample.set_field.assert_has_calls([call("tst", nested), call("tst2", "label2")])
+    fiftyone.DynamicEmbeddedDocument.assert_called_once_with(**test_dict)
+
+    importer.override_metadata.assert_not_called()
+    sample.save.assert_called_once()
+
+
+@pytest.mark.unit
 def test_delete_existing_sample(importer: FiftyoneImporter):
     # GIVEN
     sample = Mock()
@@ -209,3 +240,25 @@ def test_delete_metadata(importer: FiftyoneImporter):
 
     # THEN
     sample.clear_field.assert_has_calls([call("foo"), call("boo")])
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("values, expected_sample, sample_to_test", [
+    (
+        {"test": "value", "testnested": {"test1": "value1"}},
+        fo.Sample(
+            filepath="test_path",
+            test="value",
+            testnested=fo.DynamicEmbeddedDocument(test1="value1")
+        ),
+        fo.Sample(
+            filepath="test_path",
+        )
+    )
+]
+)
+def test_set_field(importer: FiftyoneImporter, values, expected_sample: fo.Sample, sample_to_test: fo.Sample):
+
+    for key, value in values.items():
+        importer._set_field(sample_to_test, key, value)  # pylint: disable=protected-access
+        assert sample_to_test[key] == expected_sample[key]

@@ -81,7 +81,8 @@ class FiftyoneImporter:
 
         for key, value in metadata.items():
             _logger.info("Setting key %s value %s", key, value)
-            sample.set_field(key, value)
+            self._set_field(sample, key, value)
+
         sample.save()
         return sample
 
@@ -118,7 +119,7 @@ class FiftyoneImporter:
         """
         self.delete_metadata(sample)
         for key, value in metadata.items():
-            sample.set_field(key, value)
+            self._set_field(sample, key, value)
 
     def delete_metadata(self, sample: fo.Sample):
         """
@@ -130,6 +131,21 @@ class FiftyoneImporter:
                                     sample.iter_fields())
         for key, _ in metadata_to_remove:
             sample.clear_field(key)
+
+    def _set_field(self, sample: fo.Sample, key, value):
+        """
+        Set field in voxel sample
+        -> if value is a dict sets it as DynamicEmbddedDocument so it can be visualized in the UI
+
+        Args:
+            sample : fiftyone.sample
+            key : field name
+            value : field value
+        """
+        if isinstance(value, dict):
+            sample.set_field(key, fo.DynamicEmbeddedDocument(**value))
+        else:
+            sample.set_field(key, value)
 
     def from_dir(self, **kwargs):
         """ Imports a fiftyone dataset from a local directory. """
