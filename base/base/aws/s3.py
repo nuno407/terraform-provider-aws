@@ -2,11 +2,11 @@
 
 import logging
 from typing import Callable
+import re
 
 from botocore.errorfactory import ClientError
 from kink import inject
 from mypy_boto3_s3 import S3Client
-import re
 
 _logger: logging.Logger = logging.getLogger(__name__)
 

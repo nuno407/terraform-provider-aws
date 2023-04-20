@@ -1,5 +1,5 @@
 import fiftyone as fo
-from fiftyone import ViewField as F
+from fiftyone import ViewField
 import logging
 from datetime import datetime
 from metadata.consumer.config import DatasetMappingConfig
@@ -30,7 +30,7 @@ def add_voxel_snapshot_metadata(snapshot_id: str, snapshot_path: str, metadata_p
 
     _logger.info("Searching for snapshot sample with id=%s in dataset=%s", snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
-    sample = dataset.one(F("video_id") == snapshot_id)
+    sample = dataset.one(ViewField("video_id") == snapshot_id)
 
     raw_snapshot_metadata = ContainerServices.download_file(s3_client, metadata_bucket, metadata_key)
     metadata = json.loads(raw_snapshot_metadata.decode("UTF-8"))
@@ -54,7 +54,7 @@ def update_sample(data_set, sample_info):
         sample_info.pop("filepath")
 
     try:
-        sample = dataset.one(F("video_id") == sample_info["video_id"])
+        sample = dataset.one(ViewField("video_id") == sample_info["video_id"])
     except ValueError:
         sample = fo.Sample(filepath=sample_info["s3_path"])
         dataset.add_sample(sample)
@@ -71,7 +71,6 @@ def update_sample(data_set, sample_info):
 
     _populate_metadata(sample, sample_info)
 
-    sample.compute_metadata()
     # Store sample on database
     sample.save()
     _logger.info("Voxel sample has been saved correctly")
@@ -172,8 +171,5 @@ def update_on_voxel(filepath: str, sample: dict):
 
     dataset_name, tags = _determine_dataset_name(filepath)  # pylint: disable=no-value-for-parameter
     _logger.debug("Updating voxel path(%s) in dataset(%s)", filepath, dataset_name)
-    try:
-        create_dataset(dataset_name, tags)
-        update_sample(dataset_name, sample)
-    except Exception as err:  # pylint: disable=broad-except
-        _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
+    create_dataset(dataset_name, tags)
+    update_sample(dataset_name, sample)

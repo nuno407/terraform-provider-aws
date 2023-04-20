@@ -1,7 +1,7 @@
 #### VOXEL 51
 FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.16-bullseye
 
-RUN apt -y update && apt -y upgrade
+RUN apt -y update && apt -y upgrade && apt -y --no-install-recommends install ffmpeg
 
 # Run as non-root user and group
 RUN addgroup --system --gid 3000 docker-group && adduser --disabled-login --system --gid 3000 --uid 1000 docker

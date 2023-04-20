@@ -164,6 +164,7 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
         "resolution": "1280x720",
         "video_id": f"{recording_id}"}
 
+
 def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
     result = {
         "_id": f"{snapshot_id}",
@@ -625,13 +626,13 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @pytest.mark.skip(reason="Not worth updateing the test before refactoring")
     @pytest.mark.parametrize("input_message_body,input_message_atributes,return_upserts", [
         (
-            _snapshot_message_body(
+            _snapshot_sdr_message_body(
                 "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body(),  # type: ignore
             True
         ),
         (
-            _snapshot_message_body(
+            _snapshot_sdr_message_body(
                 "deepsensation_ivs_slimscaley_develop_bic2hi_01_InteriorRecorder_1647260354251_1647260389044"),   # type: ignore # pylint: disable=line-too-long
             _message_attributes_body(),  # type: ignore
             False
@@ -649,9 +650,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             False
         ),
     ])
-    @ patch("metadata.consumer.main.create_recording_item")
-    @ patch("metadata.consumer.main.upsert_mdf_signals_data")
-    @ patch("metadata.consumer.main.update_voxel_media")
+    @patch("metadata.consumer.main.create_recording_item")
+    @patch("metadata.consumer.main.upsert_mdf_signals_data")
+    @patch("metadata.consumer.main.update_voxel_media")
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     def test_upsert_data_to_db_sdr_mdf(  # pylint: disable=too-many-arguments
             self,
             mock_update_voxel_media: Mock,
@@ -678,6 +680,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "algo_output",
                 "processed_imu"])
         related_metadata_service_mock = Mock()
+
+        bootstrap_di()
 
         # THEN
         upsert_data_to_db(
@@ -707,8 +711,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     ])
     @patch("metadata.consumer.main.update_pipeline_db")
     @patch("metadata.consumer.main.process_outputs")
+    @patch("metadata.consumer.voxel.functions.add_voxel_snapshot_metadata")
     def test_upsert_data_to_db(
             self,
+            add_voxel_snapshot_metadata_mock: Mock,
             mock_process_outputs: Mock,
             update_pipeline_db: Mock,
             input_message_body: dict,
@@ -745,6 +751,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             input_message_body,
             collection_pipeline_exec_mock,
             source)
+
+        if input_message_body["s3_path"].endswith(".jpeg"):
+            add_voxel_snapshot_metadata_mock.assert_called_once_with(
+                input_message_body["_id"], input_message_body["s3_path"], input_message_body["metadata_path"])
 
         if "output" in input_message_body:
             mock_process_outputs.assert_called_once_with(

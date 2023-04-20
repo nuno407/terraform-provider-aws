@@ -390,15 +390,11 @@ def update_pipeline_db(video_id: str, message: dict,
     if "processing_steps" in message:
         upsert_item["processing_list"] = message["processing_steps"]
 
-    try:
-        # Upsert pipeline executions item
-        table_pipe.update_one({"_id": video_id}, {
-                              "$set": upsert_item}, upsert=True)
-        # Create logs message
-        _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
-    except PyMongoError as err:
-        _logger.exception(
-            "Unable to create or replace pipeline executions item for id [%s] :: %s", video_id, err)
+    # Upsert pipeline executions item
+    table_pipe.update_one({"_id": video_id}, {
+        "$set": upsert_item}, upsert=True)
+    # Create logs message
+    _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
 
     # Voxel51 code
     _, file_key = __get_s3_path_parts(message["s3_path"])
@@ -551,8 +547,6 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             _logger.exception("Recording with video_id not found %s", err)
         except MalformedRecordingEntry as err:
             _logger.exception("Error in recording overview %s", err)
-        except Exception:  # pylint: disable=broad-except
-            _logger.exception("Error synchronizing CHC output [%s]", outputs)
 
     try:
         # Insert previously built item

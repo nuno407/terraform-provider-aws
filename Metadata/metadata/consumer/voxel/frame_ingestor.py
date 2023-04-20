@@ -1,10 +1,12 @@
-from typing import Any
 import fiftyone as fo
 
 
 class VoxelFrameParser:
     """
-    Class responsible for parsing and converting the metadafull to the voxel format currently difined here (TODO: place specification doc link).
+    Class responsible for parsing and converting a frame from the metadata to the voxel format currently difined here (TODO: place specification doc link).
+    This class needs to be intilized every time a media file has a diferent resolution.
+    The object should be intiliazed with width x height and the frame should be passed to the function "parse" that will parse it and make
+    the parsed data available trough the get functions.
     """
 
     # A map to specify the position of each keypoint
@@ -32,7 +34,6 @@ class VoxelFrameParser:
     def __init__(self, frame_width: int, frame_height: int):
         """
         Args:
-            frame_data (dict[str, Any]): One frame from the metadata file.
             frame_width (int): The width of the frame.
             frame_height (int): The height of the frame.
         """
@@ -71,7 +72,15 @@ class VoxelFrameParser:
 
     def parse(self, frame_data: dict):
         """
-        Parses the metadata and caches the processed information.
+        Parses a frame data.
+        After the call to this function, the fiftyone parsed data will be available trough the functions:
+        - get_classifications
+        - get_bouding_boxes
+        - get_keypoints
+        Also a call to this function will delete any data already parsed before.
+
+        Args:
+            frame_data (dict): The frame data, this should be just one frame that is contained inside the metadata "frame" array.
         """
         self.__bboxes.clear()
         self.__key_points.clear()
