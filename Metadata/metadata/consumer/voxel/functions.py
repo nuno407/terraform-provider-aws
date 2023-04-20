@@ -20,7 +20,7 @@ def add_voxel_snapshot_metadata(snapshot_id: str, snapshot_path: str, metadata_p
 
     # Load metadata file
     metadata_bucket, metadata_key = S3Controller.get_s3_path_parts(metadata_path)
-    _, img_key = S3Controller.get_s3_path_parts(metadata_path)
+    _, img_key = S3Controller.get_s3_path_parts(snapshot_path)
 
     if not ContainerServices.check_s3_file_exists(s3_client, metadata_bucket, metadata_key):
         raise ValueError(f"Snapshot metadata {metadata_path} does not exist")
@@ -28,7 +28,7 @@ def add_voxel_snapshot_metadata(snapshot_id: str, snapshot_path: str, metadata_p
     # Load dataset name
     dataset_name, _ = _determine_dataset_name(img_key)    # pylint: disable=no-value-for-parameter
 
-    _logger.info("Searching for snapshot sample with s3_path=%s in dataset=%s", snapshot_path, dataset_name)
+    _logger.info("Searching for snapshot sample with id=%s in dataset=%s", snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
     sample = dataset.one(F("video_id") == snapshot_id)
 
@@ -71,6 +71,7 @@ def update_sample(data_set, sample_info):
 
     _populate_metadata(sample, sample_info)
 
+    sample.compute_metadata()
     # Store sample on database
     sample.save()
     _logger.info("Voxel sample has been saved correctly")

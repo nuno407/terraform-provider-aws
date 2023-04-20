@@ -1,7 +1,7 @@
 import fiftyone as fo
 import logging
 from metadata.consumer.voxel.frame_ingestor import VoxelFrameParser
-from metadata.consumer.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
+from metadata.consumer.voxel.constants import CLASSIFICATION_LABEL, POSE_LABEL
 _logger = logging.getLogger(__name__)
 
 
@@ -23,12 +23,21 @@ class VoxelMetadataLoader:
 
         frame_processor = VoxelFrameParser(snapshot_width, snapshot_height)
 
-        if "frame" not in snapshot_metadata or len(snapshot_metadata["frame"]) != 1:
+        if "frame" not in snapshot_metadata:
+            _logger.info("The current snapshot doesn't have metadata. Skipping voxel metadata update.")
+            return
+
+        list_frames = snapshot_metadata["frame"]
+
+        if len(list_frames) == 0:
+            _logger.info("The current snapshot doesn't have metadata. Skipping voxel metadata update.")
+            return
+        elif len(list_frames) >= 1:
             raise ValueError("The metadata of the snapshot must have just one frame")
 
         frame_processor.parse(snapshot_metadata["frame"][0])
         sample[POSE_LABEL] = frame_processor.get_keypoints()
-        sample[BBOX_LABEL] = frame_processor.get_bouding_boxes()
+        # sample[BBOX_LABEL] = frame_processor.get_bouding_boxes()
         sample[CLASSIFICATION_LABEL] = frame_processor.get_classifications()
 
         # Log
