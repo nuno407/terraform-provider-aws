@@ -3,12 +3,13 @@ import sys
 from unittest.mock import Mock, call
 
 import pytest
-from data_importer.fiftyone_importer import FiftyoneImporter
 
+from data_importer.fiftyone_importer import FiftyoneImporter
 
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
 # pylint: disable=redefined-outer-name, invalid-name
 # mypy: disable-error-code=assignment
+
 
 @pytest.fixture
 def fiftyone():

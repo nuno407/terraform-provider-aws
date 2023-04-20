@@ -1,13 +1,15 @@
 """SQS Message module"""
 
 import json
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from base.aws.container_services import ContainerServices
 
 _logger = ContainerServices.configure_logging(__name__)
+
+ROOT_FOLDER = "samples"
+DATA_OWNER = "IMS"
 
 
 @dataclass
@@ -22,6 +24,7 @@ class SQSMessage():
     file_extension: str
     dataset: str
     full_path: str = field(init=False)
+    data_owner: str = DATA_OWNER
 
     def __post_init__(self):
         self.full_path = f"s3://{self.bucket_name}/{self.file_path}"
@@ -57,9 +60,11 @@ class SQSMessage():
         # assumed that file extension is always given (S3 notification configuration)
         file_extension = file_path.suffix.strip(".").lower()
 
-        (directory_structure, _) = os.path.split(file_path)
-        dir_splits = str.split(directory_structure, "/")
-        dataset = dir_splits[0] if dir_splits[0] != "" else "default"
+        dir_splits = file_path.parts
+
+        # we check the length to see if there is one nested folder
+        # minimun length is always 2 since we have at least "samples/filename.extension"
+        dataset = dir_splits[1] if len(dir_splits) > 2 else "default"
 
         message_to_return = SQSMessage(principal_id, bucket_name, str(file_path), file_extension, dataset)
         message_to_return.print_message()

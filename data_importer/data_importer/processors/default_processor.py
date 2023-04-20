@@ -13,11 +13,6 @@ class DefaultProcessor(Processor):
     """A Processor always returning None and logging a warning."""
 
     @classmethod
-    def load_metadata(cls, message: SQSMessage, **_kwargs) -> Optional[dict[str, Any]]:
+    def process(cls, message: SQSMessage, **_kwargs) -> Optional[dict[str, Any]]:
         _logger.warning("S3 file with file extension %s has no processor. Object: %s", message.file_extension, message)
         return None
-
-    @classmethod
-    def upsert_sample(cls, _dataset, message: SQSMessage, _metadata, _importer) -> Any:
-        _logger.warning("S3 file with file extension %s has no processor. Will not store it. Object: %s",
-                        message.file_extension, message)

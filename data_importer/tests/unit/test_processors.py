@@ -1,18 +1,28 @@
 """Test Processors"""
 import json
+import os
+import shutil
 import sys
-from unittest.mock import Mock
+from unittest.mock import ANY, MagicMock, Mock
 
 import pytest
 from botocore.exceptions import ClientError
+
+from data_importer.fiftyone_importer import FiftyoneImporter
 from data_importer.processor_repository import ProcessorRepository
 from data_importer.processors.default_processor import DefaultProcessor
 from data_importer.processors.image_processor import ImageMetadataLoader
 from data_importer.processors.metadata_processor import JsonMetadataLoader
+from data_importer.processors.zip_dataset_processor import ZipDatasetProcessor
 from data_importer.sqs_message import SQSMessage
 
+CURRENT_LOCATION = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+DATA = os.path.join(CURRENT_LOCATION, "data")
 
 # pylint: disable=missing-function-docstring, missing-class-docstring, too-few-public-methods
+
+
 @pytest.mark.unit
 class TestProcessorRepositoryLoading:
 
@@ -30,6 +40,11 @@ class TestProcessorRepositoryLoading:
 
         isinstance(jpg_processor, ImageMetadataLoader)
 
+    def test_get_processor_for_zip_extension(self):
+        zip_processor = ProcessorRepository.get_processor("zip")
+
+        isinstance(zip_processor, ZipDatasetProcessor)
+
     def test_get_processor_for_unknown_extension(self):
         bumlux_processor = ProcessorRepository.get_processor("bumlux")
 
@@ -41,25 +56,15 @@ class TestProcessorRepositoryLoading:
 
 @pytest.mark.unit
 class TestDefaultProcessor:
-    def test_load_metadata(self):
+    def test_process(self):
         # GIVEN
         message = SQSMessage("principal", "test-bucket", "tmp/test/file.bumlux", "bumlux", "tmp")
 
         # WHEN
-        metadata = DefaultProcessor.load_metadata(message)
+        result = DefaultProcessor.process(message)
 
         # THEN
-        assert metadata is None
-
-    def test_upsert(self):
-        # GIVEN
-        message = SQSMessage("principal", "test-bucket", "tmp/test/file.bumlux", "bumlux", "tmp")
-
-        # WHEN
-        ret = DefaultProcessor.upsert_sample(None, message, None, {})
-
-        # THEN
-        assert ret is None
+        assert result is None
 
 
 @pytest.mark.unit
@@ -71,7 +76,7 @@ class TestImageProcessor:
         fo_metadata.ImageMetadata.build_for = Mock(return_value={"width": 111, "height": 222})
 
         # WHEN
-        metadata = ImageMetadataLoader.load_metadata(message)
+        metadata = ImageMetadataLoader._load_metadata(message)  # type: ignore # pylint: disable=protected-access
 
         # THEN
         assert metadata == {"filepath": "s3://test-bucket/tmp/test/file.jpg", "metadata": {"width": 111, "height": 222}}
@@ -98,7 +103,8 @@ class TestMetadataProcessor:
         container_services.download_file = Mock(return_value=raw_metadata)
 
         # WHEN
-        metadata = JsonMetadataLoader.load_metadata(message, container_services=container_services, s3_client=s3_client)
+        metadata = JsonMetadataLoader._load_metadata(  # type: ignore # pylint: disable=protected-access
+            message, container_services=container_services, s3_client=s3_client)
 
         # THEN
         assert metadata == {"foo": "bar", "baar": "baz"}
@@ -117,7 +123,8 @@ class TestMetadataProcessor:
         container_services.download_file = Mock(return_value=raw_metadata)
 
         # WHEN
-        metadata = JsonMetadataLoader.load_metadata(message, container_services=container_services, s3_client=s3_client)
+        metadata = JsonMetadataLoader._load_metadata(  # type: ignore # pylint: disable=protected-access
+            message, container_services=container_services, s3_client=s3_client)
 
         # THEN
         assert metadata == {"foo": "bar"}
@@ -127,7 +134,8 @@ class TestMetadataProcessor:
         container_services.download_file = Mock(side_effect=ClientError({"Error": {"Code": "NoSuchKey"}}, "get_object"))
 
         # WHEN
-        metadata = JsonMetadataLoader.load_metadata(message, container_services=container_services, s3_client=s3_client)
+        metadata = JsonMetadataLoader._load_metadata(  # type: ignore # pylint: disable=protected-access
+            message, container_services=container_services, s3_client=s3_client)
 
         # THEN
         assert metadata is None
@@ -139,7 +147,10 @@ class TestMetadataProcessor:
 
         # WHEN
         with pytest.raises(ClientError):
-            JsonMetadataLoader.load_metadata(message, container_services=container_services, s3_client=s3_client)
+            JsonMetadataLoader._load_metadata(  # type: ignore # pylint: disable=protected-access
+                message,
+                container_services=container_services,
+                s3_client=s3_client)
 
     def test_load_metadata_on_invalid_raw_data(self, message: SQSMessage, container_services, s3_client):
         # GIVEN
@@ -147,7 +158,67 @@ class TestMetadataProcessor:
         container_services.download_file = Mock(return_value=raw_metadata)
 
         # WHEN
-        metadata = JsonMetadataLoader.load_metadata(message, container_services=container_services, s3_client=s3_client)
+        metadata = JsonMetadataLoader._load_metadata(  # type: ignore # pylint: disable=protected-access
+            message, container_services=container_services, s3_client=s3_client)
 
         # THEN
         assert metadata is None
+
+
+@pytest.mark.unit
+class TestZipDatasetProcessor:
+    @pytest.fixture
+    def message(self):
+        return SQSMessage("principal", "test-bucket", "batches/file.zip", "zip", "tmp")
+
+    @pytest.fixture
+    def container_services(self):
+        return Mock()
+
+    @pytest.fixture
+    def s3_client(self):
+        return Mock()
+
+    @pytest.fixture
+    def mock_download_file_to_disk(self):
+
+        # pylint: disable=unused-argument
+        def _mock_download_file_to_disk(s3_client, bucket_name, s3_path, file_name):
+            shutil.copy(os.path.join(DATA, "test_zip.zip"), file_name)
+
+        return _mock_download_file_to_disk
+
+    def test_process(self, message: SQSMessage, container_services, s3_client, mock_download_file_to_disk):
+        # GIVEN
+        importer = FiftyoneImporter()
+        container_services.download_file_to_disk = MagicMock(side_effect=mock_download_file_to_disk)
+        container_services.upload_file = Mock()
+        importer.check_if_dataset_exists = Mock(return_value=False)  # type: ignore
+        importer.from_dir = Mock()  # type: ignore
+
+        # WHEN
+        ZipDatasetProcessor.process(
+            message,
+            fiftyone_importer=importer,
+            s3_client=s3_client,
+            container_services=container_services)
+
+        # THEN
+        container_services.download_file_to_disk.assert_called_once_with(
+            s3_client, message.bucket_name, message.file_path, ANY)
+        importer.check_if_dataset_exists.assert_called_once_with("IMS-RC-datanauts_snapshots")
+        container_services.upload_file.assert_any_call(
+            s3_client,
+            ANY,
+            message.bucket_name,
+            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-49f1bbe8-7329-4a3d-8e2f-e1359951397e_1_1681220927210_anonymized.jpeg")  # pylint: disable=line-too-long
+        container_services.upload_file.assert_any_call(
+            s3_client,
+            ANY,
+            message.bucket_name,
+            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot-5a8a8f3d-5f81-4efb-8c68-a504687454b0_1_1680795110813_anonymized.jpeg")  # pylint: disable=line-too-long
+        importer.from_dir.assert_called_once_with(
+            dataset_dir=ANY,
+            tags=["IMS"],
+            name="IMS-RC-datanauts_snapshots",
+            rel_dir=f"s3://{message.bucket_name}/batches/RC-datanauts_snapshots/")

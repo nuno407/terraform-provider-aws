@@ -2,8 +2,9 @@
 from typing import Any, Optional
 
 import fiftyone as fo
-from base.aws.container_services import ContainerServices
 from fiftyone import ViewField as F
+
+from base.aws.container_services import ContainerServices
 
 _logger = ContainerServices.configure_logging(__name__)
 
@@ -16,6 +17,10 @@ class FiftyoneImporter:
 
     default_sample_fields = [key for key, _ in fo.Sample("blueprint").iter_fields()]
 
+    def check_if_dataset_exists(self, name: str):
+        """ Checks if the dataset with the provided name exists. """
+        return fo.dataset_exists(name)
+
     def load_dataset(self, name: str, tags: list[str]):
         """
         Loads an existing dataset or creates a new one if it doesn't exist yet.
@@ -24,7 +29,7 @@ class FiftyoneImporter:
         :param tags: Tags added when creating the dataset
         :return: fiftyone.Dataset
         """
-        if fo.dataset_exists(name):
+        if self.check_if_dataset_exists(name):
             return fo.load_dataset(name)
         dataset = fo.Dataset(name, persistent=True, overwrite=False)
         dataset.tags = tags
@@ -125,3 +130,7 @@ class FiftyoneImporter:
                                     sample.iter_fields())
         for key, _ in metadata_to_remove:
             sample.clear_field(key)
+
+    def from_dir(self, **kwargs):
+        """ Imports a fiftyone dataset from a local directory. """
+        return fo.Dataset.from_dir(dataset_type=fo.types.FiftyOneDataset, **kwargs)

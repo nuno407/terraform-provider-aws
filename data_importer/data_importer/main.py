@@ -1,7 +1,9 @@
 """DataImporter container script"""
+import json
 import os
 
 import boto3
+
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from data_importer.fiftyone_importer import FiftyoneImporter
@@ -12,7 +14,6 @@ CONTAINER_NAME = "DataImporter"  # Name of the current container
 CONTAINER_VERSION = "v1.0"  # Version of the current container
 DATA_IMPORTER_QUEUE = os.environ.get("DATA_IMPORTER_QUEUE")
 
-DATA_OWNER = "IMS"
 
 _logger = ContainerServices.configure_logging(__name__)
 
@@ -32,19 +33,32 @@ def process_message(container_services, importer, s3_client, sqs_client):
     if sqs_message:
         _logger.info("Received a message")
 
+        if _drop_test_message(sqs_message, container_services, sqs_client):
+            return
+
         parsed_message = SQSMessage.from_raw_sqs_message(sqs_message)
 
         processor = ProcessorRepository.get_processor(parsed_message.file_extension)
 
-        dataset = importer.load_dataset(f"{DATA_OWNER}-{parsed_message.dataset}", [DATA_OWNER])
-
-        metadata = processor.load_metadata(parsed_message, s3_client=s3_client, container_services=container_services)
-
-        # Find or create a new Sample with the given metadata
-        processor.upsert_sample(dataset, parsed_message, metadata, importer)
+        processor.process(
+            parsed_message,
+            fiftyone_importer=importer,
+            s3_client=s3_client,
+            container_services=container_services)
 
         # Delete message after processing
         container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"], input_queue=DATA_IMPORTER_QUEUE)
+
+
+def _drop_test_message(message, container_services, sqs_client):
+    body = message["Body"].replace("\'", "\"")
+    sqs_body = json.loads(body)
+    event = sqs_body.get("Event", None)
+    if event == "s3:TestEvent":
+        _logger.info("Deleting S3 test message")
+        container_services.delete_message(sqs_client, message["ReceiptHandle"], input_queue=DATA_IMPORTER_QUEUE)
+        return True
+    return False
 
 
 def main(stop_condition=lambda: True):

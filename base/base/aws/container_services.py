@@ -481,6 +481,31 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         return object_file
 
     @staticmethod
+    def download_file_to_disk(client, s3_bucket: str, file_path: str, stored_file: str):
+        """Retrieves a given file from the selected s3 bucket and stores it to disk
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            s3_bucket {string} -- [name of the source s3 bucket]
+            file_path {string} -- [string containing the path + file name of
+                                   the target file to be downloaded
+                                   from the source s3 bucket
+                                   (e.g. "uber/test_file_s3.txt")]
+            stored_file {string} -- [string containing the full path where
+                                     to download the file
+                                     (e.g. "~/abc/test_file_s3.txt")]
+        """
+        full_path = s3_bucket + "/" + file_path
+        _logger.debug("Downloading to disk from [%s]..", full_path)
+        client.download_file(
+            Bucket=s3_bucket,
+            Key=file_path,
+            Filename=stored_file
+        )
+
+        _logger.debug("Downloaded to [%s]", stored_file)
+
+    @staticmethod
     def upload_file(client, object_body, s3_bucket, key_path):
         """Stores a given file in the selected s3 bucket
 
@@ -504,17 +529,21 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             "webm": "video/webm",
             "jpeg": "image/jpeg",
             "csv": "text/plain",
-            "pickle": "application/octet-stream"
+            "pickle": "application/octet-stream",
+            "png": "image/png"
         }
-        file_extension = key_path.split(".")[-1]
+        file_extension = key_path.split(".")
 
-        client.put_object(
-            Body=object_body,
-            Bucket=s3_bucket,
-            Key=key_path,
-            ServerSideEncryption="aws:kms",
-            ContentType=type_dict[file_extension]
-        )
+        request = {
+            "Body": object_body,
+            "Bucket": s3_bucket,
+            "Key": key_path,
+            "ServerSideEncryption": "aws:kms"
+        }
+        if len(file_extension) == 2:
+            request["ContentType"] = type_dict[file_extension[-1]]
+
+        client.put_object(**request)
 
         _logger.info("Uploaded [%s]", key_path)
 

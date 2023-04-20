@@ -1,7 +1,7 @@
 """ Test SQSMessage Class """
 import pytest
-from data_importer.sqs_message import SQSMessage
 
+from data_importer.sqs_message import SQSMessage
 
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
 
@@ -32,18 +32,18 @@ class TestSQSMessage():
 
     @pytest.mark.parametrize("sqs_message,expected_sqs_message", [
         (
-            _sqs_message_helper("mock_id", "mock_bucket", "mock_key/mock_file.mock_extension"),
+            _sqs_message_helper("mock_id", "mock_bucket", "samples/mock_key/mock_file.mock_extension"),
             SQSMessage(principal_id="mock_id",
                        bucket_name="mock_bucket",
-                       file_path="mock_key/mock_file.mock_extension",
+                       file_path="samples/mock_key/mock_file.mock_extension",
                        file_extension="mock_extension",
                        dataset="mock_key")
         ),
         (
-            _sqs_message_helper("mock_id", "mock_bucket", "mock_file.mock_extension"),
+            _sqs_message_helper("mock_id", "mock_bucket", "samples/mock_file.mock_extension"),
             SQSMessage(principal_id="mock_id",
                        bucket_name="mock_bucket",
-                       file_path="mock_file.mock_extension",
+                       file_path="samples/mock_file.mock_extension",
                        file_extension="mock_extension",
                        dataset="default")
         )

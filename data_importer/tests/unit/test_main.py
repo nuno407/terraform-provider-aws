@@ -1,15 +1,15 @@
 """Test main"""
 import json
 from unittest import mock
-from unittest.mock import Mock, ANY, call
+from unittest.mock import ANY, Mock, call
 
 import pytest
-from data_importer.main import main
-from data_importer.main import process_message
 
+from data_importer.main import main, process_message
 
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring, too-few-public-methods
 # pylint: disable=redefined-outer-name
+
 
 def message(extension):
     return {
@@ -28,7 +28,7 @@ def message(extension):
                                      "bucket": {"name": "test-bucket",
                                                 "ownerIdentity": {"principalId": "SOMETHING"},
                                                 "arn": "arn:aws:s3:::-test-bucket"},
-                                     "object": {"key": f"test-dataset/bumlux.{extension}",
+                                     "object": {"key": f"samples/test-dataset/bumlux.{extension}",
                                                 "size": 4043, "eTag": "2712b08adeeecf9ab9fda9beec1d6adf",
                                                 "sequencer": "0063F4FE942D3BC51D"}}}]}
             ),
@@ -82,7 +82,7 @@ class TestMain:
         process_message(container_services, importer, s3_client, sqs_client)
 
         # THEN
-        expected_file_path = "s3://test-bucket/test-dataset/bumlux."
+        expected_file_path = "s3://test-bucket/samples/test-dataset/bumlux."
         expected_image = expected_file_path + "jpg"
         expected_json = expected_file_path + "json"
         importer.load_dataset.assert_has_calls([call("IMS-test-dataset", ["IMS"]), call("IMS-test-dataset", ["IMS"])])

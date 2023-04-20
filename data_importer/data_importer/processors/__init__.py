@@ -9,3 +9,4 @@ def load_all_processors():
     # pylint: disable=import-outside-toplevel,unused-import,cyclic-import
     from data_importer.processors.image_processor import ImageMetadataLoader
     from data_importer.processors.metadata_processor import JsonMetadataLoader
+    from data_importer.processors.zip_dataset_processor import ZipDatasetProcessor
