@@ -1,11 +1,8 @@
 import fiftyone as fo
 import logging
 from metadata.consumer.voxel.frame_ingestor import VoxelFrameParser
+from metadata.consumer.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 _logger = logging.getLogger(__name__)
-
-CLASSIFICATION_LABEL = "PRED_DEVICE_CLASSIFICATIONS"
-BBOX_LABEL = "PRED_DEVICE_BBOX"
-POSE_LABEL = "PRED_DEVICE_POSE"
 
 
 class VoxelMetadataLoader:

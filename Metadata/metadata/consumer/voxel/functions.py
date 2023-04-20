@@ -6,6 +6,7 @@ from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.voxel.metadata_loader import VoxelMetadataLoader
 from kink import inject
 from mypy_boto3_s3 import S3Client
+from metadata.consumer.voxel.constants import POSE_LABEL, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS
 from base.aws.container_services import ContainerServices
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
@@ -15,16 +16,17 @@ _logger = logging.getLogger(__name__)
 
 @inject
 def add_voxel_snapshot_metadata(snapshot_id: str, snapshot_path: str, metadata_path: str, s3_client: S3Client):
-    _logger.info("Loading snapshot metadata from %s", metadata_path)
+    _logger.debug("Loading snapshot metadata from %s", metadata_path)
 
     # Load metadata file
     metadata_bucket, metadata_key = S3Controller.get_s3_path_parts(metadata_path)
+    _, img_key = S3Controller.get_s3_path_parts(metadata_path)
 
     if not ContainerServices.check_s3_file_exists(s3_client, metadata_bucket, metadata_key):
         raise ValueError(f"Snapshot metadata {metadata_path} does not exist")
 
     # Load dataset name
-    dataset_name, _ = _determine_dataset_name(snapshot_path)    # pylint: disable=no-value-for-parameter
+    dataset_name, _ = _determine_dataset_name(img_key)    # pylint: disable=no-value-for-parameter
 
     _logger.info("Searching for snapshot sample with s3_path=%s in dataset=%s", snapshot_path, dataset_name)
     dataset = fo.load_dataset(dataset_name)
@@ -102,6 +104,15 @@ def _populate_metadata(sample: fo.Sample, sample_info):
         _logger.info(sample_info.get("recording_overview"))
 
 
+def __set_dataset_skeleton_configuration(dataset: fo.Dataset) -> None:
+    dataset.skeletons = {
+        POSE_LABEL: fo.KeypointSkeleton(
+            labels=VOXEL_KEYPOINTS_LABELS,
+            edges=VOXEL_SKELETON_LIMBS,
+        )
+    }
+
+
 def create_dataset(dataset_name, tags) -> fo.Dataset:
     """
     Creates a voxel dataset with the given name or loads it if it already exists.
@@ -114,6 +125,7 @@ def create_dataset(dataset_name, tags) -> fo.Dataset:
         return fo.load_dataset(dataset_name)
     else:
         dataset = fo.Dataset(dataset_name, persistent=True)
+        __set_dataset_skeleton_configuration(dataset)
         if tags is not None:
             dataset.tags = tags
         _logger.info("Voxel dataset [%s] created!", dataset_name)
@@ -131,8 +143,7 @@ def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig)
     :param mapping_config: Config with mapping information about the tenants
     :return: the resulting dataset name and the tags which should be added on dataset creation
     """
-    _, path = S3Controller.get_s3_path_parts(filepath)
-    s3split = path.split("/")
+    s3split = filepath.split("/")
     # The root dir on the S3 bucket always is the tenant name
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
