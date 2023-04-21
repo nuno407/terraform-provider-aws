@@ -41,7 +41,7 @@ class FiftyoneImporter:
             _logger.debug("Found sample with path %s", path)
         except ValueError:
             sample = fo.Sample(path)
-            dataset.add_sample(sample)
+            dataset.add_sample(sample, dynamic=True)
             _logger.debug("Created sample with path %s", path)
         return sample
 
@@ -143,9 +143,9 @@ class FiftyoneImporter:
             value : field value
         """
         if isinstance(value, dict):
-            sample.set_field(key, fo.DynamicEmbeddedDocument(**value))
+            sample.set_field(key, fo.DynamicEmbeddedDocument(**value), dynamic=True)
         else:
-            sample.set_field(key, value)
+            sample.set_field(key, value, dynamic=True)
 
     def from_dir(self, **kwargs):
         """ Imports a fiftyone dataset from a local directory. """

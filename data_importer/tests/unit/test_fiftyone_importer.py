@@ -89,7 +89,7 @@ def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
-    dataset.add_sample.assert_called_once_with(sample)
+    dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_called_once_with(sample, {})
@@ -112,7 +112,7 @@ def test_update_existing_sample(importer: FiftyoneImporter):
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
-    sample.set_field.assert_has_calls([call("tst", "label"), call("tst2", "label2")])
+    sample.set_field.assert_has_calls([call("tst", "label", dynamic=True), call("tst2", "label2", dynamic=True)])
     importer.override_metadata.assert_not_called()
     sample.save.assert_called_once()
 
@@ -131,11 +131,11 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
-    dataset.add_sample.assert_called_once_with(sample)
+    dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
-    sample.set_field.assert_has_calls([call("tst", "label"), call("tst2", "label2")])
+    sample.set_field.assert_has_calls([call("tst", "label", dynamic=True), call("tst2", "label2", dynamic=True)])
     importer.override_metadata.assert_not_called()
     sample.save.assert_called_once()
 
@@ -157,12 +157,12 @@ def test_update_new_sample2(fiftyone, importer: FiftyoneImporter):
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
-    dataset.add_sample.assert_called_once_with(sample)
+    dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
 
-    sample.set_field.assert_has_calls([call("tst", nested), call("tst2", "label2")])
+    sample.set_field.assert_has_calls([call("tst", nested, dynamic=True), call("tst2", "label2", dynamic=True)])
     fiftyone.DynamicEmbeddedDocument.assert_called_once_with(**test_dict)
 
     importer.override_metadata.assert_not_called()
@@ -224,7 +224,7 @@ def test_override_metadata(importer: FiftyoneImporter):
 
     # THEN
     importer.delete_metadata.assert_called_once_with(sample)
-    sample.set_field.assert_has_calls([call("foo", "bar"), call("boo", "baz")])
+    sample.set_field.assert_has_calls([call("foo", "bar", dynamic=True), call("boo", "baz", dynamic=True)])
 
 
 @pytest.mark.unit
