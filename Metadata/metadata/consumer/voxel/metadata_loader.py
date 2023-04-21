@@ -1,6 +1,6 @@
 import fiftyone as fo
 import logging
-from metadata.consumer.voxel.frame_ingestor import VoxelFrameParser
+from Metadata.metadata.consumer.voxel.metadata_parser import VoxelFrameParser
 from metadata.consumer.voxel.constants import CLASSIFICATION_LABEL, POSE_LABEL
 _logger = logging.getLogger(__name__)
 
