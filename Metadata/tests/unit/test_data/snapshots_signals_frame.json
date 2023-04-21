@@ -1,0 +1,347 @@
+{
+    "resolution": {
+      "width": "1280",
+      "height": "720"
+    },
+    "metaData version": "unknown",
+    "PoseNetwork version": "",
+    "SegmentationNetwork version": "",
+    "CVEReference file": "",
+    "blockingrect": [
+    ],
+    "chunkPts": {
+      "pts_start": "118957",
+      "pts_end": "118957"
+    },
+    "chunkUtc": {
+      "utc_start": "1680704203693",
+      "utc_end": "1680704203693"
+    },
+    "frame": [
+      {
+        "number": "90",
+        "timestamp": "118957",
+        "timestamp64": "118957",
+        "objectlist": [
+          {
+            "id": "16",
+            "confidence": "0",
+            "box": {
+              "height": "0",
+              "width": "0",
+              "x": "0",
+              "y": "0"
+            },
+            "personDetail": {
+              "KeyPoint": [
+                {
+                  "Name": "LeftAnkle",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftEar",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "415",
+                  "Y": "199",
+                  "Conf": "0.591"
+                },
+                {
+                  "Name": "LeftElbow",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "427",
+                  "Y": "259",
+                  "Conf": "0.303"
+                },
+                {
+                  "Name": "LeftEye",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftHip",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "397",
+                  "Y": "275",
+                  "Conf": "0.34"
+                },
+                {
+                  "Name": "LeftKnee",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftShoulder",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "421",
+                  "Y": "227",
+                  "Conf": "0.649"
+                },
+                {
+                  "Name": "LeftWrist",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "Neck",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "408",
+                  "Y": "221",
+                  "Conf": "0.769"
+                },
+                {
+                  "Name": "Nose",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "420",
+                  "Y": "204",
+                  "Conf": "0.646"
+                },
+                {
+                  "Name": "RightAnkle",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightEar",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "397",
+                  "Y": "202",
+                  "Conf": "0.78"
+                },
+                {
+                  "Name": "RightElbow",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "347",
+                  "Y": "277",
+                  "Conf": "0.718"
+                },
+                {
+                  "Name": "RightEye",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "416",
+                  "Y": "199",
+                  "Conf": "0.664"
+                },
+                {
+                  "Name": "RightHip",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "365",
+                  "Y": "284",
+                  "Conf": "0.411"
+                },
+                {
+                  "Name": "RightKnee",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightShoulder",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "376",
+                  "Y": "229",
+                  "Conf": "0.808"
+                },
+                {
+                  "Name": "RightWrist",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "379",
+                  "Y": "235",
+                  "Conf": "0.296"
+                }
+              ]
+            }
+          },
+          {
+            "id": "16",
+            "confidence": "0",
+            "box": {
+              "height": "0",
+              "width": "0",
+              "x": "0",
+              "y": "0"
+            },
+            "personDetail": {
+              "KeyPoint": [
+                {
+                  "Name": "LeftAnkle",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftEar",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftElbow",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftEye",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftHip",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftKnee",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftShoulder",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "LeftWrist",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "Neck",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "Nose",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightAnkle",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightEar",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightElbow",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "1240",
+                  "Y": "306",
+                  "Conf": "0.101"
+                },
+                {
+                  "Name": "RightEye",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightHip",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightKnee",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightShoulder",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "0",
+                  "Y": "0",
+                  "Conf": "0"
+                },
+                {
+                  "Name": "RightWrist",
+                  "Valid": "1",
+                  "OutOfFrame": "0",
+                  "X": "1130",
+                  "Y": "226",
+                  "Conf": "0.346"
+                }
+              ]
+            }
+          }
+        ],
+        "facelist": [
+        ]
+      }
+    ]
+  }
