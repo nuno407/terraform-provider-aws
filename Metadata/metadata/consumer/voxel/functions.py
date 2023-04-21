@@ -3,10 +3,13 @@ from fiftyone import ViewField
 import logging
 from datetime import datetime
 from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.voxel.metadata_loader import VoxelMetadataLoader
+from Metadata.metadata.consumer.voxel.voxel_metadata_loader import VoxelSnapshotMetadataLoader
+from metadata.consumer.voxel.metadata_artifacts import Frame
+from Metadata.metadata.consumer.voxel.metadata_parser import MetadataParser
 from kink import inject
 from mypy_boto3_s3 import S3Client
 from metadata.consumer.voxel.constants import POSE_LABEL, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS
+from metadata.consumer.voxel.constants import POSE_LABEL
 from base.aws.container_services import ContainerServices
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
@@ -16,27 +19,47 @@ _logger = logging.getLogger(__name__)
 
 @inject
 def add_voxel_snapshot_metadata(snapshot_id: str, snapshot_path: str, metadata_path: str, s3_client: S3Client):
+    """
+    Downloads the metadata form S3, parses and uploads it to voxel.
+
+    Args:
+        snapshot_id (str): The snapshot ID
+        snapshot_path (str): The snapshot path (with s3://)
+        metadata_path (str):  The metadata path (with s3://)
+        s3_client (S3Client): An S3 client to download from S3
+
+    Raises:
+        ValueError: If a metadata file was not found or there was some problem on the ingestion
+    """
     _logger.debug("Loading snapshot metadata from %s", metadata_path)
 
     # Load metadata file
     metadata_bucket, metadata_key = S3Controller.get_s3_path_parts(metadata_path)
     _, img_key = S3Controller.get_s3_path_parts(snapshot_path)
 
+    # Check if the metadata file exists
     if not ContainerServices.check_s3_file_exists(s3_client, metadata_bucket, metadata_key):
         raise ValueError(f"Snapshot metadata {metadata_path} does not exist")
 
-    # Load dataset name
+    # Load sample
     dataset_name, _ = _determine_dataset_name(img_key)    # pylint: disable=no-value-for-parameter
-
     _logger.info("Searching for snapshot sample with id=%s in dataset=%s", snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
     sample = dataset.one(ViewField("video_id") == snapshot_id)
 
+    # Download and convert metadata file
     raw_snapshot_metadata = ContainerServices.download_file(s3_client, metadata_bucket, metadata_key)
     metadata = json.loads(raw_snapshot_metadata.decode("UTF-8"))
 
-    VoxelMetadataLoader.load_snapshot_metadata(sample, metadata)
-    sample.save()
+    # Parse and check the number of frames of metadata
+    metadata_frames: list[Frame] = MetadataParser.parse(metadata)
+
+    if len(metadata_frames) == 0:
+        _logger.info("The snapshot's metadata is empty")
+    elif len(metadata_frames) > 1:
+        raise ValueError("The snapshot's metadata contains more then one frame data.")
+    voxel_loader = VoxelSnapshotMetadataLoader(sample)  # pylint: disable=no-value-for-parameter
+    voxel_loader.load(metadata_frames[0])
 
 
 def update_sample(data_set, sample_info):

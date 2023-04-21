@@ -4,10 +4,6 @@ from typing import Optional, Union
 from abc import ABC, abstractmethod
 
 
-def to_relative_coord(abs_val: int, max_val: int) -> float:
-    return abs_val / max_val
-
-
 @dataclass
 class KeyPoint():
     x: int
@@ -28,7 +24,7 @@ class BoundingBox():
     y: int
     width: int
     height: int
-    confidence: Optional[float] = None
+    confidence: float
     name: Optional[str] = None
 
 
@@ -49,35 +45,10 @@ class Frame():
     utc_timestamp: Optional[datetime] = None
 
 
-class FrameMetadataParser(ABC):
-    @abstractmethod
-    def parse(self) -> list[Frame]:
-        raise NotImplementedError
-
-
 class DataLoader(ABC):
+    """
+    An interface to be implemented by any object that needs to load frame data.
+    """
     @abstractmethod
-    def load(self, frame: list[Frame]):
+    def load(self, frame: Frame):
         raise NotImplementedError
-
-    # A map to specify the position of each keypoint
-KEYPOINTS_SORTED = {
-    "LeftAnkle": 0,
-    "LeftEar": 1,
-    "LeftElbow": 2,
-    "LeftEye": 3,
-    "LeftHip": 4,
-    "LeftKnee": 5,
-    "LeftShoulder": 6,
-    "LeftWrist": 7,
-    "Neck": 8,
-    "Nose": 9,
-    "RightAnkle": 10,
-    "RightEar": 11,
-    "RightElbow": 12,
-    "RightEye": 13,
-    "RightHip": 14,
-    "RightKnee": 15,
-    "RightShoulder": 16,
-    "RightWrist": 17
-}

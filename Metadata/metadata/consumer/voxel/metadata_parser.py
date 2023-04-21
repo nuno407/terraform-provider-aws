@@ -1,4 +1,3 @@
-import fiftyone as fo
 from metadata.consumer.voxel.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
 
 
