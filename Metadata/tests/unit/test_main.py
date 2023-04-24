@@ -653,9 +653,11 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.main.create_recording_item")
     @patch("metadata.consumer.main.upsert_mdf_signals_data")
     @patch("metadata.consumer.main.update_voxel_media")
+    @patch("metadata.consumer.main.add_voxel_snapshot_metadata")
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     def test_upsert_data_to_db_sdr_mdf(  # pylint: disable=too-many-arguments
             self,
+            add_voxel_snapshot_metadata_mock: Mock,
             mock_update_voxel_media: Mock,
             mock_upsert_mdf_data: Mock,
             mock_create_recording_item: Mock,
@@ -681,8 +683,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "processed_imu"])
         related_metadata_service_mock = Mock()
 
-        bootstrap_di()
-
         # THEN
         upsert_data_to_db(
             db_mock,
@@ -697,6 +697,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 input_message_body,
                 collection_recordings_mock,
                 related_metadata_service_mock)
+            if input_message_body["s3_path"].endswith(".jpeg") and return_upserts:
+                add_voxel_snapshot_metadata_mock.assert_called_once_with(
+                    input_message_body["_id"], input_message_body["s3_path"], input_message_body["metadata_path"])
+
         else:
             mock_upsert_mdf_data.assert_called_once_with(
                 input_message_body, ANY)
@@ -751,10 +755,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             input_message_body,
             collection_pipeline_exec_mock,
             source)
-
-        if input_message_body["s3_path"].endswith(".jpeg"):
-            add_voxel_snapshot_metadata_mock.assert_called_once_with(
-                input_message_body["_id"], input_message_body["s3_path"], input_message_body["metadata_path"])
 
         if "output" in input_message_body:
             mock_process_outputs.assert_called_once_with(

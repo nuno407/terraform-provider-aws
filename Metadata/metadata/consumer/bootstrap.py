@@ -6,6 +6,7 @@ import boto3
 from kink import di
 from metadata.consumer.config import DatasetMappingConfig, MetadataConfig
 from mypy_boto3_s3 import S3Client
+from metadata.consumer.voxel.metadata_parser import MetadataParser
 from metadata.consumer.voxel.constants import POSE_LABEL, BBOX_LABEL, CLASSIFICATION_LABEL, KEYPOINTS_SORTED
 
 
@@ -24,4 +25,5 @@ def bootstrap_di() -> None:
 
     di[MetadataConfig] = config
     di[DatasetMappingConfig] = config.dataset_mapping
+    di[MetadataParser] = MetadataParser()
     di[S3Client] = boto3.client("s3", aws_region)

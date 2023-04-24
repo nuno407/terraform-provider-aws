@@ -11,6 +11,7 @@ class MetadataParser:
     def parse(metadata_json: dict) -> list[Frame]:
         """
         Parses the entire metadatafull file.
+        TODO: Add timestamps to the Frame if exists
 
         Args:
             frame_data (dict): The frame data, this should be just one frame that is contained inside the metadata "frame" array.
@@ -26,7 +27,7 @@ class MetadataParser:
         return frame_list
 
     @staticmethod
-    def parse_person_details(person_details: dict) -> Person:
+    def parse_person_details(person_details: dict, person_id: int) -> Person:
         """
         Parses the person details and stores the processed person pose keypoints in a Person object.
         The person details is a dictionary with a field called "KeyPoint" which contains a list of dicts with the following fields:
@@ -36,6 +37,8 @@ class MetadataParser:
         - Valid
         - X
         - Y
+
+        Keypoints with a confidence of 0 or that are not valid or outside of frame will be skipped.
 
         Args:
             person_details (dict[str, Any]): Part of the metadata data that is contained inside "personDetail".
@@ -54,10 +57,10 @@ class MetadataParser:
             keypoint_valid = bool(int(keypoint["Valid"]))
 
             if confidence > 0.01 and not keypoint_out_frame and keypoint_valid:
-                kp = KeyPoint(keypoint_x, keypoint_y, confidence, keypoint_name)
+                kp = KeyPoint(x=keypoint_x, y=keypoint_y, confidence=confidence, name=keypoint_name)
                 tmp_keypoints.append(kp)
 
-        return Person(tmp_keypoints)
+        return Person(keypoints=tmp_keypoints, name=f"Person {person_id}")
 
     @staticmethod
     def parse_detection_box(obj: dict) -> BoundingBox:
@@ -82,17 +85,26 @@ class MetadataParser:
         person_box_height = int(obj["box"]["height"])
         person_box_x = int(obj["box"]["x"])
         person_box_y = int(obj["box"]["y"])
+        object_id = obj["id"]
         confidence = float(obj["confidence"])
 
-        return BoundingBox(person_box_x, person_box_y, person_box_width, person_box_height, confidence)
+        return BoundingBox(
+            x=person_box_x,
+            y=person_box_y,
+            width=person_box_width,
+            height=person_box_height,
+            confidence=confidence,
+            name=object_id)
 
     @staticmethod
     def parse_float_attributes(float_list: list) -> list[Classification]:
         """
-        Parses a list of floats predictions and loads them into classification.
-        The float_list shall be a list of dictionaries with the fowlloing fields:
+        Parses a list of floats predictions.
+        The float_list shall be a list of dictionaries with the following fields:
         - name
         - value
+
+        Remark: all the fields are expected to be in string format.
 
         Args:
             float_list (list[dict]): A list of floatAttributes from the metadata file.
@@ -106,7 +118,43 @@ class MetadataParser:
         for float_dict in float_list:
             name = float_dict["name"]
             value = float(float_dict["value"])
-            tmp_list_classifications.append(Classification(name, value))
+            tmp_list_classifications.append(Classification(name=name, value=value))
+
+        return tmp_list_classifications
+
+    @staticmethod
+    def parse_bool_attributes(bool_list: list) -> list[Classification]:
+        """
+        Parses a list of boolean predictions and converts them to a float, either 1.0 or 0.0.
+        The float_list shall be a list of dictionaries with the fowlloing fields:
+        - name
+        - value
+
+        Remark: All the fields are expected in string format (including the float value)
+
+        Args:
+            float_list (list[dict]): A list of floatAttributes from the metadata file.
+
+        Raises:
+            ValureError: If one of the attributes is neither false nor true.
+
+        Return:
+            list[Classification]: A list of Classifications with absolute coordinates.
+        """
+
+        tmp_list_classifications = []
+
+        for bool_dict in bool_list:
+            name = bool_dict["name"]
+            value_str_low: str = bool_dict["value"].lower()
+
+            if "true" == value_str_low:
+                tmp_list_classifications.append(Classification(name=name, value=1.0))
+            elif "false" == value_str_low:
+                tmp_list_classifications.append(Classification(name=name, value=0.0))
+            else:
+                raise ValueError(
+                    f"Attribute {name} with value ({value_str_low}) cannot be converted to boolean")
 
         return tmp_list_classifications
 
@@ -121,7 +169,7 @@ class MetadataParser:
             height (int): Height of the frame.
 
         Returns:
-            Frame: A frame bject with absolute coordinates.
+            Frame: A frame object with absolute coordinates.
         """
         detection_boxes: list[BoundingBox] = []
         persons: list[Person] = []
@@ -129,12 +177,22 @@ class MetadataParser:
 
         for obj in frame.get("objectlist", {}):
             if "box" in obj:
-                detection_boxes.append(MetadataParser.parse_detection_box(obj))
+                box = MetadataParser.parse_detection_box(obj)
+                if box.confidence > 0.01:
+                    detection_boxes.append(box)
 
             if "personDetail" in obj:
-                persons.append(MetadataParser.parse_person_details(obj["personDetail"]))
+                persons.append(MetadataParser.parse_person_details(obj["personDetail"], len(persons)))
 
-            if "floatingAttributes" in obj:
+            if "floatAttributes" in obj:
                 classifications.extend(MetadataParser.parse_float_attributes(obj["floatAttributes"]))
 
-        return Frame(persons, detection_boxes, classifications, width, height)
+            if "boolAttributes" in obj:
+                classifications.extend(MetadataParser.parse_bool_attributes(obj["boolAttributes"]))
+
+        return Frame(
+            persons=persons,
+            bboxes=detection_boxes,
+            classifications=classifications,
+            width=width,
+            height=height)

@@ -150,7 +150,8 @@ class TestMain:
                                      "ridecare_companion_gridwise",
                                      "RC-ridecare_companion_gridwise")
                              ])
-    def test_snapshot_video_correlation(self, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
+    @patch("metadata.consumer.main.add_voxel_snapshot_metadata")
+    def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset,
                                         voxel_mock: tuple[Mock, Mock]):

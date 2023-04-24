@@ -1,0 +1,14 @@
+{
+    "PRED_device_classifications": {
+        "classifications": [
+            {
+                "label": "CameraViewShifted",
+                "confidence": 1.0
+            },
+            {
+                "label": "CameraViewBlocked",
+                "confidence": 0.914
+            }
+        ]
+    }
+}

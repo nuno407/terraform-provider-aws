@@ -52,6 +52,33 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         except ClientError as err:
             _logger.exception(err)
             return False
+    def download_file(self, s3_bucket: str, path: str) -> bytes:
+        """Retrieves a given file from the selected s3 bucket
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            s3_bucket {string} -- [name of the source s3 bucket]
+            path {string} -- [string containg the path + file name of
+                                   the target file to be downloaded
+                                   from the source s3 bucket
+                                   (e.g. "uber/test_file_s3.txt")]
+        Returns:
+            object_file {bytes} -- [downloaded file in bytes format]
+        """
+        full_path = s3_bucket + "/" + path
+        _logger.debug("Downloading [%s]..", full_path)
+        response = self.__s3_client.get_object(
+            Bucket=s3_bucket,
+            Key=path
+        )
+
+        # Read all bytes from http response body
+        # (botocore.response.StreamingBody)
+        object_file = response["Body"].read()
+
+        _logger.debug("Downloaded [%s]", full_path)
+
+        return object_file
 
     def check_s3_file_exists(self, bucket: str, path: str) -> bool:
         """Check if S3 file exists in given bucket and path

@@ -1,41 +1,53 @@
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional
 from abc import ABC, abstractmethod
+from pydantic import BaseModel
 
 
-@dataclass
-class KeyPoint():
+class KeyPoint(BaseModel):
+    """
+    Stores a key point using absolute coordinates.
+    """
     x: int
     y: int
     confidence: float
     name: str
 
 
-@dataclass
-class Person():
+class Person(BaseModel):
+    """
+    Stores a person with their keypoints.
+    """
     keypoints: list[KeyPoint]
-    name: Optional[str] = None
+    name: str
 
 
-@dataclass
-class BoundingBox():
+class BoundingBox(BaseModel):
+    """
+    Stores a detection bounding box with absolute coordinates and dimensions.
+    """
     x: int
     y: int
     width: int
     height: int
     confidence: float
-    name: Optional[str] = None
-
-
-@dataclass
-class Classification():
     name: str
-    value: Union[float, int]
 
 
-@dataclass
-class Frame():
+class Classification(BaseModel):
+    """
+    Stores a classifcation, this can be any metric that can be represented as a float.
+    """
+    name: str
+    value: float
+
+
+class Frame(BaseModel):
+    """
+    Stores a Frame's metadata.
+    It's important that every coordinate and dimension is stored as absolute values,
+    in order for the loaders be able to process.
+    """
     persons: list[Person]
     bboxes: list[BoundingBox]
     classifications: list[Classification]

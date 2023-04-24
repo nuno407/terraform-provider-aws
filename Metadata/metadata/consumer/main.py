@@ -712,8 +712,10 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections, serv
         update_voxel_media(recording)
         if file_format in IMAGE_FORMATS:
             _logger.debug("message sent2 [%s]", str(message))
-            add_voxel_snapshot_metadata(message["_id"], message["s3_path"], message["metadata_path"]
-                                        )    # pylint: disable=no-value-for-parameter
+            add_voxel_snapshot_metadata(
+                message["_id"],
+                message["s3_path"],
+                message["metadata_path"])    # pylint: disable=no-value-for-parameter
     else:
         _logger.warning(
             "Unexpected file format %s from SDRetriever.", file_format)

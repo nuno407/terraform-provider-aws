@@ -1,12 +1,8 @@
 import fiftyone as fo
-import logging
-from Metadata.metadata.consumer.voxel.metadata_parser import MetadataParser
-from Metadata.metadata.consumer.voxel.metadata_artifacts import Frame, DataLoader
+from metadata.consumer.voxel.metadata_artifacts import Frame, DataLoader
 from metadata.consumer.voxel.constants import VOXEL_KEYPOINTS_LABELS
 from typing import Callable, Optional
 from kink import inject
-
-_logger = logging.getLogger(__name__)
 
 
 def to_relative_coord(abs_val: int, max_val: int) -> float:
@@ -27,13 +23,13 @@ def to_relative_coord(abs_val: int, max_val: int) -> float:
 class VoxelSnapshotMetadataLoader(DataLoader):
     """
     Class responsible for uploading Frame data to voxel.
-    The object shall be created with the correct sample to be updated, and then
-    the method "load" can be called to load all the metadata of a single frame.
-    Once this object is destroyed the sample is saved to the database.
+    Before using attempting to load any data, the function "set_sample" needs to be called in order
+    set a sample to be updated.
+
+    TODO: Do value range checks (eg: if bounding box is out of frame)
     """
 
     def __init__(self,
-                 sample: fo.Sample,
                  kp_mapper: Callable[[str],
                                      int],
                  classification_label: str,
@@ -43,7 +39,7 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         Create a snapshot loader.
 
         Args:
-            sample (fo.Sample): The voxel sample to be updated.
+            sample (fo.Sample): The voxel sample to be updated. The caller is responsible for saving.
             kp_mapper (Callable[[str], int]): A callback function that is responsible for returning
                 the position of a keypoint given it's name. Which is used to map the correct keypoints
                 with the pose.
@@ -52,17 +48,21 @@ class VoxelSnapshotMetadataLoader(DataLoader):
             pose_label (str): The label for the pose keypoints.
             bbox_label (str): The label for the Bounding boxes.
         """
-        self.__sample = sample
+        self.__sample: Optional[fo.Sample]
         self.__kp_mapper = kp_mapper
         self.__classification_label = classification_label
         self.__pose_label = pose_label
         self.__bbox_label = bbox_label
 
-    def __del__(self):
+    def set_sample(self, sample: fo.Sample):
         """
-        Saves the sample when the object goes out of scope.
+        Sets a sample to be updated.
+
+        IMPORTANT REMARK: The caller is responsible for saving the sample!
+        Args:
+            frame (fo.Sample): The sample to be updated.
         """
-        self.__sample.save()
+        self.__sample = sample
 
     def load(self, frame: Frame):
         """
@@ -85,6 +85,12 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         Args:
             frame (Frame): The frame from where to load the keypoints.
         """
+        if self.__sample is None:
+            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+
+        if not len(frame.persons):
+            return
+
         tmp_keypoints_voxel: list[fo.Keypoint] = []
 
         for person in frame.persons:
@@ -101,11 +107,11 @@ class VoxelSnapshotMetadataLoader(DataLoader):
                 tmp_confidence[keypoint_index] = keypoint.confidence
 
             voxel_keypoint = fo.Keypoint(
-                label=f"Person {len(tmp_keypoints_voxel)}",
+                label=person.name,
                 points=tmp_keypoints,
                 confidence=tmp_confidence
             )
-        tmp_keypoints_voxel.append(voxel_keypoint)
+            tmp_keypoints_voxel.append(voxel_keypoint)
         self.__sample[self.__pose_label] = fo.Keypoints(keypoints=tmp_keypoints_voxel)
 
     def load_classifications(self, frame: Frame):
@@ -115,6 +121,12 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         Args:
             frame (Frame): The frame from where to load the classifications.
         """
+        if self.__sample is None:
+            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+
+        if not len(frame.classifications):
+            return
+
         tmp_classifications: list[fo.Classification] = []
         for classification in frame.classifications:
             tmp_classifications.append(fo.Classification(label=classification.name, confidence=classification.value))
@@ -128,6 +140,11 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         Args:
             frame (Frame): The frame from where to load the Bounding Boxes.
         """
+        if self.__sample is None:
+            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+
+        if not len(frame.bboxes):
+            return
 
         tmp_bbox: list[fo.Detection] = []
         for bbox in frame.bboxes:
@@ -137,7 +154,8 @@ class VoxelSnapshotMetadataLoader(DataLoader):
                     to_relative_coord(bbox.height, frame.height),
                     to_relative_coord(bbox.width, frame.width),
                     to_relative_coord(bbox.height, frame.height)],
-                confidence=bbox.confidence)
+                confidence=bbox.confidence,
+                label=bbox.name)
 
             tmp_bbox.append(voxel_detection)
 
