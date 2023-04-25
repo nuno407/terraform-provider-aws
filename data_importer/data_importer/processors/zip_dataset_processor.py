@@ -1,9 +1,11 @@
 """Metadata Processor module"""
 import json
+import logging
+import os
 import tempfile
 import zipfile
-from os import listdir, path
-from os.path import dirname, isdir, isfile, join
+from os import path
+from os.path import dirname, isdir
 from pathlib import Path
 from typing import Any
 
@@ -44,18 +46,19 @@ class ZipDatasetProcessor(Processor):
             s3_client: Any,
             container_services: Any,
             **_kwargs) -> Any:
-        _logger.debug("full path: %s", message.full_path)
-        img_dir = ""
-        dataset_name = ""
+        _logger.info("Zip upload detected, going to import it")
+        _logger.debug("Message full path: %s", message.full_path)
         try:
             # DOWNLOAD AND EXTRACT ZIP FILE TO DISK
             temp_dir = tempfile.TemporaryDirectory()
             zip_filename = f"{temp_dir.name}/zip_file.zip"
             container_services.download_file_to_disk(  # type: ignore
                 s3_client, message.bucket_name, message.file_path, zip_filename)
+            _logger.info("Downloaded zip to %s", zip_filename)
 
             with zipfile.ZipFile(zip_filename, "r") as zip_ref:
                 zip_ref.extractall(temp_dir.name)
+            _logger.info("Unzipped successfully")
 
             # GET SUBFOLDER NAME (temp_dir with either dataset name or "export")
             subfolder = path.dirname(sorted(Path(temp_dir.name).glob("**/metadata.json"))[0])
@@ -69,15 +72,22 @@ class ZipDatasetProcessor(Processor):
             # CHECK IF DATASET ALREADY EXISTS
             full_dataset_name = f"{message.data_owner}-{dataset_name}"
             if fiftyone_importer.check_if_dataset_exists(full_dataset_name):
-                raise DatasetAlreadyExists(f"Dataset {full_dataset_name} already exists")
+                log_message = f"Dataset {full_dataset_name} already exists"
+                _logger.warning(log_message)
+                raise DatasetAlreadyExists(log_message)
 
             # SAVE IMAGES TO S3
-            if isdir(f"{subfolder}/data"):  # ignore if no data is provided
-                data_files = [f for f in listdir(f"{subfolder}/data") if isfile(join(subfolder, "data", f))]
-                for data_file in data_files:
-                    with open(f"{subfolder}/data/{data_file}", "rb") as payload:
-                        container_services.upload_file(
-                            s3_client, payload, message.bucket_name, f"{img_dir}data/{data_file}")
+            _logger.info("Uploading footage to S3")
+            footage_dir = f"{subfolder}/data/"
+            if isdir(footage_dir):  # ignore if no data is provided
+                for subdir, _dirs, files in os.walk(footage_dir):
+                    for file in files:
+                        data_file = os.path.join(subdir, file)
+                        with open(data_file, "rb") as payload:
+                            relative_footage_path = ZipDatasetProcessor.__remove_prefix(data_file, footage_dir)
+                            container_services.upload_file(s3_client, payload, message.bucket_name,
+                                                           f"{img_dir}data/{relative_footage_path}",
+                                                           log_level=logging.DEBUG)
             else:
                 container_services.upload_file(s3_client, "", message.bucket_name,
                                                f"{img_dir}")  # Create folder to upload data
@@ -101,3 +111,15 @@ class ZipDatasetProcessor(Processor):
         finally:
             temp_dir.cleanup()
         return dataset
+
+    @classmethod
+    def __remove_prefix(cls, text: str, prefix: str) -> str:
+        """
+        Removes the prefix of a string if it exists
+        :param text: String to remove prefix from
+        :param prefix: Prefix to remove
+        :return: String without prefix or initial string if prefix was not found
+        """
+        if text.startswith(prefix):
+            return text[len(prefix):]
+        return text

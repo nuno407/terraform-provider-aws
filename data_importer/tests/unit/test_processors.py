@@ -1,5 +1,6 @@
 """Test Processors"""
 import json
+import logging
 import os
 import shutil
 import sys
@@ -211,12 +212,14 @@ class TestZipDatasetProcessor:
             s3_client,
             ANY,
             message.bucket_name,
-            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-49f1bbe8-7329-4a3d-8e2f-e1359951397e_1_1681220927210_anonymized.jpeg")  # pylint: disable=line-too-long
+            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-49f1bbe8-7329-4a3d-8e2f-e1359951397e_1_1681220927210_anonymized.jpeg",  # pylint: disable=line-too-long
+            log_level=logging.DEBUG)
         container_services.upload_file.assert_any_call(
             s3_client,
             ANY,
             message.bucket_name,
-            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot-5a8a8f3d-5f81-4efb-8c68-a504687454b0_1_1680795110813_anonymized.jpeg")  # pylint: disable=line-too-long
+            "batches/RC-datanauts_snapshots/data/datanauts_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot-5a8a8f3d-5f81-4efb-8c68-a504687454b0_1_1680795110813_anonymized.jpeg",  # pylint: disable=line-too-long
+            log_level=logging.DEBUG)
         importer.from_dir.assert_called_once_with(
             dataset_dir=ANY,
             tags=["IMS"],

@@ -506,7 +506,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         _logger.debug("Downloaded to [%s]", stored_file)
 
     @staticmethod
-    def upload_file(client, object_body, s3_bucket, key_path):
+    def upload_file(client, object_body, s3_bucket, key_path, log_level=logging.INFO):
         """Stores a given file in the selected s3 bucket
 
         Arguments:
@@ -545,7 +545,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         client.put_object(**request)
 
-        _logger.info("Uploaded [%s]", key_path)
+        _logger.log(log_level, "Uploaded [%s]", key_path)
 
     ##### Kinesis related functions ###############################################################
     def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:  # pylint: disable=too-many-arguments
