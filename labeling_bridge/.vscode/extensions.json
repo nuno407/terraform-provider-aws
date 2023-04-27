@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ms-vscode-remote.remote-wsl",
+        "njpwerner.autodocstring",
+        "ms-python.isort",
+        "ms-python.python",
+        "sonarsource.sonarlint-vscode"
+    ]
+}

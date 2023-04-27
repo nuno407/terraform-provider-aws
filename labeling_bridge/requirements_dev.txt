@@ -1,0 +1,11 @@
+autopep8
+pylint
+pylint_quotes
+mypy
+bandit
+
+pytest
+pytest-cov
+
+# install the app itself
+-e .
