@@ -5,8 +5,9 @@ from unittest.mock import Mock, MagicMock
 import sys
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
-from metadata.consumer.voxel.voxel_metadata_loader import VoxelSnapshotMetadataLoader
-from metadata.consumer.voxel.constants import KEYPOINTS_SORTED, CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
+from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
+from metadata.consumer.voxel.constants import KEYPOINTS_SORTED
+from base.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from unittest.mock import Mock, MagicMock
 from base.aws.s3 import S3Controller
 from mypy_boto3_s3 import S3Client

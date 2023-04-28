@@ -3,15 +3,16 @@ import os
 from unittest.mock import ANY, Mock, patch
 
 import pytest
-from metadata.consumer.voxel.metadata_artifacts import (BoundingBox,
-                                                        Classification, Frame,
-                                                        Person)
+from base.model.metadata_artifacts import (BoundingBox,
+                                           Classification, Frame,
+                                           Person)
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-METADATA_LOCATION = os.path.join(CURRENT_LOCATION, "test_data", "metadata_data")
+METADATA_LOCATION = os.path.join(
+    CURRENT_LOCATION, "test_data", "metadata_data")
 
 
 def load_json(file_name: str) -> dict:
@@ -184,7 +185,8 @@ class TestMetadataParser:
         """
         # WHEN
         if expected_exception is None:
-            result_classifications = MetadataParser.parse_bool_attributes(bool_attr)
+            result_classifications = MetadataParser.parse_bool_attributes(
+                bool_attr)
 
             # THEN
             assert result_classifications == expected_classifications
@@ -221,7 +223,8 @@ class TestMetadataParser:
         Test the parse_float_attributes function
         """
         # WHEN
-        result_classifications = MetadataParser.parse_float_attributes(float_attr)
+        result_classifications = MetadataParser.parse_float_attributes(
+            float_attr)
 
         # THEN
         assert result_classifications == expected_classifications
@@ -229,7 +232,8 @@ class TestMetadataParser:
     @pytest.mark.unit
     @pytest.mark.parametrize("person_details,expected_person", [
         (
-            load_json("snapshot_pose_raw.json")["frame"][0]["objectlist"][0]["personDetail"],
+            load_json("snapshot_pose_raw.json")[
+                "frame"][0]["objectlist"][0]["personDetail"],
             load_frame_pydantic("snapshot_pose_pydantic.json").persons[0]
         )
     ])
@@ -260,7 +264,8 @@ class TestMetadataParser:
                     "y": "3"
                 }
             },
-            BoundingBox(x=1, y=3, width=20, height=20, confidence=0.5, name="26")
+            BoundingBox(x=1, y=3, width=20, height=20,
+                        confidence=0.5, name="26")
         )
     ])
     def test_parse_detection_box(self, bbox_json: dict, expected_bbox: BoundingBox):

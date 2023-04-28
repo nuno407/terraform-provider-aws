@@ -3,11 +3,12 @@ from fiftyone import ViewField
 import logging
 from datetime import datetime
 from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.voxel.voxel_metadata_loader import VoxelSnapshotMetadataLoader
-from metadata.consumer.voxel.metadata_artifacts import Frame
+from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
+from base.model.metadata_artifacts import Frame
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from kink import inject
-from metadata.consumer.voxel.constants import POSE_LABEL, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS
+from base.voxel.constants import POSE_LABEL, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS
+from base.voxel.functions import create_dataset
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
 import json
@@ -168,25 +169,6 @@ def __set_dataset_skeleton_configuration(dataset: fo.Dataset) -> None:
             edges=VOXEL_SKELETON_LIMBS,
         )
     }
-
-
-def create_dataset(dataset_name, tags) -> fo.Dataset:
-    """
-    Creates a voxel dataset with the given name or loads it if it already exists.
-
-    Args:
-        dataset_name: Dataset name to load or create
-        tags: Tags to add on dataset creation
-    """
-    if fo.dataset_exists(dataset_name):
-        return fo.load_dataset(dataset_name)
-    else:
-        dataset = fo.Dataset(dataset_name, persistent=True)
-        __set_dataset_skeleton_configuration(dataset)
-        if tags is not None:
-            dataset.tags = tags
-        _logger.info("Voxel dataset [%s] created!", dataset_name)
-        return dataset
 
 
 @inject

@@ -31,6 +31,11 @@ extras_require: Dict[str, List[str]] = {
     # "monitoring": [
     #     "elastic-apm >= 6.12.0",
     # ],
+    "voxel": [
+        "kink==0.6.6",
+        "fiftyone==0.12.1",
+        "pydantic==1.10.7"
+    ],
     "testing": [],
     # for when we separate mongo from ContainerServices
     # "mongodb": [

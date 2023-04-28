@@ -35,7 +35,7 @@ def fixture_chc_synchronizer(chc_raw_file, chc_s3_info):
     bucket, key = chc_s3_info
 
     with mock_s3():
-        synchronizer = ChcSynchronizer()
+        synchronizer = ChcSynchronizer("us-east-1")
         # pylint: disable=protected-access
         synchronizer._ChcSynchronizer__s3_client.create_bucket(Bucket=bucket)
         synchronizer._ChcSynchronizer__s3_client.put_object(

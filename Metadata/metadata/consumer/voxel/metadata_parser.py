@@ -1,4 +1,4 @@
-from metadata.consumer.voxel.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
+from base.model.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
 
 
 class MetadataParser:
@@ -57,7 +57,8 @@ class MetadataParser:
             keypoint_valid = bool(int(keypoint["Valid"]))
 
             if confidence > 0.01 and not keypoint_out_frame and keypoint_valid:
-                kp = KeyPoint(x=keypoint_x, y=keypoint_y, confidence=confidence, name=keypoint_name)
+                kp = KeyPoint(x=keypoint_x, y=keypoint_y,
+                              confidence=confidence, name=keypoint_name)
                 tmp_keypoints.append(kp)
 
         return Person(keypoints=tmp_keypoints, name=f"Person {person_id}")
@@ -118,7 +119,8 @@ class MetadataParser:
         for float_dict in float_list:
             name = float_dict["name"]
             value = float(float_dict["value"])
-            tmp_list_classifications.append(Classification(name=name, value=value))
+            tmp_list_classifications.append(
+                Classification(name=name, value=value))
 
         return tmp_list_classifications
 
@@ -149,9 +151,11 @@ class MetadataParser:
             value_str_low: str = bool_dict["value"].lower()
 
             if "true" == value_str_low:
-                tmp_list_classifications.append(Classification(name=name, value=1.0))
+                tmp_list_classifications.append(
+                    Classification(name=name, value=1.0))
             elif "false" == value_str_low:
-                tmp_list_classifications.append(Classification(name=name, value=0.0))
+                tmp_list_classifications.append(
+                    Classification(name=name, value=0.0))
             else:
                 raise ValueError(
                     f"Attribute {name} with value ({value_str_low}) cannot be converted to boolean")
@@ -182,13 +186,16 @@ class MetadataParser:
                     detection_boxes.append(box)
 
             if "personDetail" in obj:
-                persons.append(MetadataParser.parse_person_details(obj["personDetail"], len(persons)))
+                persons.append(MetadataParser.parse_person_details(
+                    obj["personDetail"], len(persons)))
 
             if "floatAttributes" in obj:
-                classifications.extend(MetadataParser.parse_float_attributes(obj["floatAttributes"]))
+                classifications.extend(
+                    MetadataParser.parse_float_attributes(obj["floatAttributes"]))
 
             if "boolAttributes" in obj:
-                classifications.extend(MetadataParser.parse_bool_attributes(obj["boolAttributes"]))
+                classifications.extend(
+                    MetadataParser.parse_bool_attributes(obj["boolAttributes"]))
 
         return Frame(
             persons=persons,

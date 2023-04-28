@@ -1,15 +1,18 @@
-import pytest
-from unittest.mock import Mock, MagicMock
-from metadata.consumer.voxel.metadata_artifacts import Frame
-from metadata.consumer.voxel.voxel_metadata_loader import VoxelSnapshotMetadataLoader
-import sys
 import json
 import os
+from unittest.mock import MagicMock, Mock
+
+import pytest
+
+from base.model.metadata_artifacts import Frame
+from base.voxel.voxel_snapshot_metadata_loader import \
+    VoxelSnapshotMetadataLoader
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-METADATA_LOCATION = os.path.join(CURRENT_LOCATION, "test_data", "metadata_data")
+METADATA_LOCATION = os.path.join(
+    CURRENT_LOCATION, "test_data", "metadata_data")
 
 
 def load_json(file_name: str) -> dict:
@@ -59,8 +62,10 @@ class TestVoxelSnapshotMetadataLoader:
 
         # THEN
         voxel_snapshot_metadata_loader.load_bbox.assert_called_once_with(frame)
-        voxel_snapshot_metadata_loader.load_classifications.assert_called_once_with(frame)
-        voxel_snapshot_metadata_loader.load_pose_keypoints.assert_called_once_with(frame)
+        voxel_snapshot_metadata_loader.load_classifications.assert_called_once_with(
+            frame)
+        voxel_snapshot_metadata_loader.load_pose_keypoints.assert_called_once_with(
+            frame)
 
     @pytest.mark.unit
     @pytest.mark.parametrize("frame,expected_keypoints", [
@@ -69,7 +74,8 @@ class TestVoxelSnapshotMetadataLoader:
             load_json("snapshot_pose_voxel.json")
         ),
         (
-            Frame(persons=[], bboxes=[], classifications=[], width=1280, height=720),
+            Frame(persons=[], bboxes=[], classifications=[],
+                  width=1280, height=720),
             {}
         )
 
@@ -89,7 +95,8 @@ class TestVoxelSnapshotMetadataLoader:
 
         # THEN
 
-        json_fo_sample = json.dumps(fo_sample)  # Needed to convert tuples to lists
+        # Needed to convert tuples to lists
+        json_fo_sample = json.dumps(fo_sample)
         assert json.loads(json_fo_sample) == expected_keypoints
 
     @pytest.mark.unit
@@ -99,7 +106,8 @@ class TestVoxelSnapshotMetadataLoader:
             load_json("snapshot_classification_voxel.json")
         ),
         (
-            Frame(persons=[], bboxes=[], classifications=[], width=1280, height=720),
+            Frame(persons=[], bboxes=[], classifications=[],
+                  width=1280, height=720),
             {}
         )
 
@@ -119,7 +127,8 @@ class TestVoxelSnapshotMetadataLoader:
         voxel_snapshot_metadata_loader.load_classifications(frame)
 
         # THEN
-        json_fo_sample = json.dumps(fo_sample)  # Needed to convert tuples to lists
+        # Needed to convert tuples to lists
+        json_fo_sample = json.dumps(fo_sample)
 
         assert json.loads(json_fo_sample) == expected_classifications
 
@@ -145,5 +154,6 @@ class TestVoxelSnapshotMetadataLoader:
         voxel_snapshot_metadata_loader.load_bbox(frame)
 
         # THEN
-        json_fo_sample = json.dumps(fo_sample)  # Needed to convert tuples to lists
+        # Needed to convert tuples to lists
+        json_fo_sample = json.dumps(fo_sample)
         assert json.loads(json_fo_sample) == expected_bbox

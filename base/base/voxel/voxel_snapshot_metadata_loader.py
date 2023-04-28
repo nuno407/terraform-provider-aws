@@ -1,6 +1,6 @@
 import fiftyone as fo
-from metadata.consumer.voxel.metadata_artifacts import Frame, DataLoader
-from metadata.consumer.voxel.constants import VOXEL_KEYPOINTS_LABELS
+from base.model.metadata_artifacts import Frame, DataLoader
+from base.voxel.constants import VOXEL_KEYPOINTS_LABELS, CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from typing import Callable, Optional
 from kink import inject
 
@@ -32,9 +32,9 @@ class VoxelSnapshotMetadataLoader(DataLoader):
     def __init__(self,
                  kp_mapper: Callable[[str],
                                      int],
-                 classification_label: str,
-                 pose_label: str,
-                 bbox_label: str):
+                 classification_label: str = CLASSIFICATION_LABEL,
+                 pose_label: str = BBOX_LABEL,
+                 bbox_label: str = POSE_LABEL):
         """
         Create a snapshot loader.
 
@@ -82,11 +82,14 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         """
         Load keypoints from a Frame.
 
+        REMARKS: The oclusion is not loaded yet!
+
         Args:
             frame (Frame): The frame from where to load the keypoints.
         """
         if self.__sample is None:
-            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+            raise ValueError(
+                "Error while loading bounding boxes 'set_sample' needs to be called first")
 
         if not len(frame.persons):
             return
@@ -95,8 +98,10 @@ class VoxelSnapshotMetadataLoader(DataLoader):
 
         for person in frame.persons:
             # If there is any keypoint missing it should be filled with None
-            tmp_keypoints: list[tuple[Optional[float], Optional[float]]] = [(None, None)] * len(VOXEL_KEYPOINTS_LABELS)
-            tmp_confidence: list[Optional[float]] = [None] * len(VOXEL_KEYPOINTS_LABELS)
+            tmp_keypoints: list[tuple[Optional[float], Optional[float]]] = [
+                (None, None)] * len(VOXEL_KEYPOINTS_LABELS)
+            tmp_confidence: list[Optional[float]] = [
+                None] * len(VOXEL_KEYPOINTS_LABELS)
 
             for keypoint in person.keypoints:
                 keypoint_index: int = self.__kp_mapper(keypoint.name)
@@ -112,7 +117,8 @@ class VoxelSnapshotMetadataLoader(DataLoader):
                 confidence=tmp_confidence
             )
             tmp_keypoints_voxel.append(voxel_keypoint)
-        self.__sample[self.__pose_label] = fo.Keypoints(keypoints=tmp_keypoints_voxel)
+        self.__sample[self.__pose_label] = fo.Keypoints(
+            keypoints=tmp_keypoints_voxel)
 
     def load_classifications(self, frame: Frame):
         """
@@ -122,16 +128,19 @@ class VoxelSnapshotMetadataLoader(DataLoader):
             frame (Frame): The frame from where to load the classifications.
         """
         if self.__sample is None:
-            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+            raise ValueError(
+                "Error while loading bounding boxes 'set_sample' needs to be called first")
 
         if not len(frame.classifications):
             return
 
         tmp_classifications: list[fo.Classification] = []
         for classification in frame.classifications:
-            tmp_classifications.append(fo.Classification(label=classification.name, confidence=classification.value))
+            tmp_classifications.append(fo.Classification(
+                label=classification.name, confidence=classification.value))
 
-        self.__sample[self.__classification_label] = fo.Classifications(classifications=tmp_classifications)
+        self.__sample[self.__classification_label] = fo.Classifications(
+            classifications=tmp_classifications)
 
     def load_bbox(self, frame: Frame):
         """
@@ -141,7 +150,8 @@ class VoxelSnapshotMetadataLoader(DataLoader):
             frame (Frame): The frame from where to load the Bounding Boxes.
         """
         if self.__sample is None:
-            raise ValueError("Error while loading bounding boxes 'set_sample' needs to be called first")
+            raise ValueError(
+                "Error while loading bounding boxes 'set_sample' needs to be called first")
 
         if not len(frame.bboxes):
             return

@@ -1,0 +1,85 @@
+{
+    "persons": [
+        {
+            "keypoints": [
+                {
+                    "x": 428,
+                    "y": 161,
+                    "confidence": 0.388,
+                    "name": "LeftHip"
+                },
+                {
+                    "x": 427,
+                    "y": 204,
+                    "confidence": 0.5,
+                    "name": "Neck"
+                },
+                {
+                    "x": 426,
+                    "y": 214,
+                    "confidence": 0.424,
+                    "name": "Nose"
+                },
+                {
+                    "x": 427,
+                    "y": 161,
+                    "confidence": 0.335,
+                    "name": "RightHip"
+                }
+            ],
+            "name": "Person 0"
+        },
+        {
+            "keypoints": [
+                {
+                    "x": 427,
+                    "y": 214,
+                    "confidence": 0.468,
+                    "name": "LeftEar"
+                },
+                {
+                    "x": 429,
+                    "y": 175,
+                    "confidence": 0.346,
+                    "name": "LeftElbow"
+                },
+                {
+                    "x": 431,
+                    "y": 201,
+                    "confidence": 0.429,
+                    "name": "LeftShoulder"
+                }
+            ],
+            "name": "Person 1"
+        },
+        {
+            "keypoints": [
+                {
+                    "x": 424,
+                    "y": 214,
+                    "confidence": 0.417,
+                    "name": "RightEar"
+                },
+                {
+                    "x": 426,
+                    "y": 175,
+                    "confidence": 0.239,
+                    "name": "RightElbow"
+                },
+                {
+                    "x": 426,
+                    "y": 200,
+                    "confidence": 0.438,
+                    "name": "RightShoulder"
+                }
+            ],
+            "name": "Person 2"
+        }
+    ],
+    "bboxes": [],
+    "classifications": [],
+    "width": 1280,
+    "height": 720,
+    "frame_number": null,
+    "utc_timestamp": null
+}

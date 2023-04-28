@@ -1,0 +1,18 @@
+{
+    "persons": [],
+    "bboxes": [],
+    "classifications": [
+        {
+            "name": "CameraViewShifted",
+            "value": 1.0
+        },
+        {
+            "name": "CameraViewBlocked",
+            "value": 0.914
+        }
+    ],
+    "width": 1280,
+    "height": 720,
+    "frame_number": null,
+    "utc_timestamp": null
+}

@@ -1,9 +1,9 @@
 from base.aws.s3 import S3Controller
 from metadata.consumer.voxel.metadata_parser import MetadataParser
-from metadata.consumer.voxel.voxel_metadata_loader import VoxelSnapshotMetadataLoader
+from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_sample
 import pytest
-from unittest.mock import Mock, patch, MagicMock, call, PropertyMock
+from unittest.mock import Mock, patch, MagicMock, call
 
 
 @pytest.mark.unit

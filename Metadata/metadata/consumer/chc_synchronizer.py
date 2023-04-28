@@ -18,8 +18,8 @@ _logger = logging.getLogger(__name__)
 class ChcSynchronizer:
     """CHC Synchronizer class."""
 
-    def __init__(self) -> None:
-        self.__s3_client = boto3.client("s3", region_name="eu-central-1")
+    def __init__(self, region_name="eu-central-1") -> None:
+        self.__s3_client = boto3.client("s3", region_name)
 
     def download(self, bucket: str, key: str) -> Dict:
         """Downloads CHC results from S3 bucket.
