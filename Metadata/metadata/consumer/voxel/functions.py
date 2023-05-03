@@ -7,30 +7,29 @@ from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoade
 from base.model.metadata_artifacts import Frame
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from kink import inject
-from base.voxel.constants import POSE_LABEL, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS
 from base.voxel.functions import create_dataset
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
+from base.model.artifacts import MetadataArtifact
 import json
 from typing import Any
 _logger = logging.getLogger(__name__)
 
 
-def get_voxel_sample(img_key: str, snapshot_id: str) -> fo.Sample:
+def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
     """
     Returns a voxel sample.
     This functions expects that the sample ALWAYS exists, if the same does not
     exist in voxel, an exception will be thrown.
 
     Args:
-        img_key (str): The image key to the S3
+        tenant (str): The tenant name
         snapshot_id (str): The snapshot ID
 
     Returns:
         fo.Sample: The sample in voxel.
     """
-    dataset_name, _ = _determine_dataset_name(
-        img_key)    # pylint: disable=no-value-for-parameter
+    dataset_name, _ = _determine_dataset_name(tenant,True)    # pylint: disable=no-value-for-parameter
     _logger.info("Searching for snapshot sample with id=%s in dataset=%s",
                  snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
@@ -39,9 +38,7 @@ def get_voxel_sample(img_key: str, snapshot_id: str) -> fo.Sample:
 
 @inject
 def add_voxel_snapshot_metadata(
-        snapshot_id: str,
-        snapshot_path: str,
-        metadata_path: str,
+        metadata_artifact: MetadataArtifact,
         s3_controller: S3Controller,
         metadata_parser: MetadataParser,
         voxel_snapshot_loader: VoxelSnapshotMetadataLoader):
@@ -57,18 +54,16 @@ def add_voxel_snapshot_metadata(
     Raises:
         ValueError: If a metadata file was not found or there was some problem on the ingestion
     """
-    _logger.debug("Loading snapshot metadata from %s", metadata_path)
+    _logger.debug("Loading snapshot metadata from %s", metadata_artifact.s3_path)
     # Prepare s3 paths
     metadata_bucket, metadata_key = s3_controller.get_s3_path_parts(
-        metadata_path)
-    _, img_key = s3_controller.get_s3_path_parts(snapshot_path)
+        metadata_artifact.s3_path)
 
     # Load sample
-    sample: fo.Sample = get_voxel_sample(img_key, snapshot_id)
+    sample: fo.Sample = get_voxel_snapshot_sample(metadata_artifact.artifact_id, metadata_artifact.tenant_id)
     # Check if the metadata file exists
     if not s3_controller.check_s3_file_exists(metadata_bucket, metadata_key):
-        print("TEST")
-        raise ValueError(f"Snapshot metadata {metadata_path} does not exist")
+        raise ValueError(f"Snapshot metadata {metadata_artifact.artifact_id} does not exist")
 
     # Download and convert metadata file
     raw_snapshot_metadata = s3_controller.download_file(
@@ -161,22 +156,33 @@ def _populate_metadata(sample: fo.Sample, sample_info: dict[Any, Any]):
     else:
         _logger.info("No time")
 
-
-def __set_dataset_skeleton_configuration(dataset: fo.Dataset) -> None:
-    dataset.skeletons = {
-        POSE_LABEL: fo.KeypointSkeleton(
-            labels=VOXEL_KEYPOINTS_LABELS,
-            edges=VOXEL_SKELETON_LIMBS,
-        )
-    }
-
-
 @inject
-def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig):
+def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: DatasetMappingConfig) -> tuple[str,list[str]]:
     """
     Checks in config if tenant gets its own dataset or if it is part of the default dataset.
     Dedicated dataset names are prefixed with the tag given in the config.
     The tag is not added to the default dataset.
+
+    :param tenant: The tenant to search for the dataset
+    :param is_snapshot: A flag if the dataset is snapshot or not
+    :param mapping_config: Config with mapping information about the tenants
+    :return: the resulting dataset name and the tags which should be added on dataset creation
+    """
+    dataset_name = mapping_config.default_dataset
+    tags = [mapping_config.tag]
+
+    if tenant in mapping_config.create_dataset_for:
+        dataset_name = f"{mapping_config.tag}-{tenant}"
+
+    if is_snapshot:
+        dataset_name = dataset_name + "_snapshots"
+
+    return dataset_name, tags
+
+@inject
+def _determine_dataset_by_path(filepath: str, mapping_config: DatasetMappingConfig) -> tuple[str,list[str]]:
+    """
+    Method to mantain compatability with legacy functions that get's the tenant by spliting the path.
 
     :param filepath: S3 filepath to extract the tenant from
     :param mapping_config: Config with mapping information about the tenants
@@ -187,16 +193,10 @@ def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig)
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
 
-    dataset_name = mapping_config.default_dataset
-    tags = [mapping_config.tag]
-
-    if tenant_name in mapping_config.create_dataset_for:
-        dataset_name = f"{mapping_config.tag}-{tenant_name}"
-
     if filetype in IMAGE_FORMATS:
-        dataset_name = dataset_name + "_snapshots"
+        return _determine_dataset_name(tenant_name, True, mapping_config)
 
-    return dataset_name, tags
+    return _determine_dataset_name(tenant_name, False, mapping_config)
 
 
 def update_on_voxel(filepath: str, sample: dict):
@@ -208,7 +208,7 @@ def update_on_voxel(filepath: str, sample: dict):
     :param sample: Sample data to update. Uses `video_id` to find the sample.
     """
 
-    dataset_name, tags = _determine_dataset_name(
+    dataset_name, tags = _determine_dataset_by_path(
         filepath)  # pylint: disable=no-value-for-parameter
     _logger.debug("Updating voxel path(%s) in dataset(%s)",
                   filepath, dataset_name)

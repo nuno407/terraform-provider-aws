@@ -50,8 +50,8 @@ class S3Controller:  # pylint: disable=too-few-public-methods
 
             return True
         except ClientError as err:
-            _logger.exception(err)
             return False
+        
     def download_file(self, s3_bucket: str, path: str) -> bytes:
         """Retrieves a given file from the selected s3 bucket
 
