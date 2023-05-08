@@ -30,11 +30,10 @@ from pymongo.errors import DocumentTooLarge, PyMongoError
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
-from base.model.artifacts import (IMUArtifact, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact,
+from base.constants import IMAGE_FORMATS, VIDEO_FORMATS, SIGNALS_FORMATS
+from base.model.artifacts import (SignalsArtifact,
+                                  SnapshotArtifact, VideoArtifact, Artifact,
                                   parse_artifact)
-from base.voxel.voxel_functions import create_dataset, update_sample
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
                                        UNKNOWN_FILE_FORMAT_MESSAGE)
 from metadata.common.errors import (EmptyDocumentQueryResult,
@@ -147,7 +146,7 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
         # we have the key for snapshots named as "video_id" due to legacy reasons...
         "video_id": message["_id"],
         "_media_type": message["media_type"],
-        "filepath": message["s3_path"],
+        "filepath": "s3://" + message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -202,7 +201,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         "video_id": message["_id"],
         "MDF_available": message["MDF_available"],
         "_media_type": message["media_type"],
-        "filepath": message["s3_path"],
+        "filepath": "s3://" + message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -659,11 +658,8 @@ def __process_mdfparser(message: dict, metadata_collections: MetadataCollections
     update_voxel_media(recording)
 
 
-def __parse_sdr_message(input_message: dict) -> dict:
+def __parse_sdr_message(artifact: Artifact) -> dict:
     """Parses a message coming from SDRetriever, which is expected to be an Artifact object."""
-    # Parse message into an object
-    artifact = parse_artifact(input_message)
-
     # Fill common properties
     message: dict = {
         "_id": artifact.artifact_id,
@@ -688,6 +684,8 @@ def __parse_sdr_message(input_message: dict) -> dict:
         message["timestamp"] = artifact.timestamp.timestamp() * 1000
         message["media_type"] = "image"
 
+    elif isinstance(artifact, SignalsArtifact) and isinstance(artifact.referred_artifact, SnapshotArtifact):
+        pass
     else:
         _logger.info(
             "Artifact type %s is not supported by the current implementation.", type(artifact))
@@ -699,8 +697,10 @@ def __parse_sdr_message(input_message: dict) -> dict:
 def __process_sdr(message: dict, metadata_collections: MetadataCollections, service: RelatedMediaService):
     """Process a message coming from SDRetriever."""
 
-    parsed_message = __parse_sdr_message(message)
+    artifact = parse_artifact(message)
+    parsed_message = __parse_sdr_message(artifact)
     file_format = parsed_message.get("s3_path", "").split(".")[-1]
+
     if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
         # Call respective processing function
         recording = create_recording_item(
@@ -709,16 +709,17 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections, serv
             # something went wrong when creating the new db record
             _logger.warning("No recording item created on DB.")
             return
-        update_voxel_media(recording)
-        if file_format in IMAGE_FORMATS:
-            _logger.debug("message sent2 [%s]", str(message))
+        update_voxel_media(recording)  # pylint: disable=no-value-for-parameter
 
-            # TODO: Pass the metadata artifact to the snapshot metadata processor function
-            # This function should be ready to handle the artifacts directly (Still missing tests for the latest changes, and also not tested)
+    elif file_format in SIGNALS_FORMATS:
+        if isinstance(artifact, SignalsArtifact) and isinstance(artifact.referred_artifact, SnapshotArtifact):
             add_voxel_snapshot_metadata(
-                artifact)    # pylint: disable=no-value-for-parameter
+                artifact)  # pylint: disable=no-value-for-parameter
+        else:
+            raise Exception(
+                f"Artifact type {str(type(artifact))} is not supported by the current implementation.")
     else:
-        _logger.warning(
+        _logger.error(
             "Unexpected file format %s from SDRetriever.", file_format)
 
 

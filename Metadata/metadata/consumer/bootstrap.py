@@ -8,6 +8,7 @@ from metadata.consumer.config import DatasetMappingConfig, MetadataConfig
 from mypy_boto3_s3 import S3Client
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from base.voxel.constants import POSE_LABEL, BBOX_LABEL, CLASSIFICATION_LABEL
+from base.aws.s3 import S3Controller
 from metadata.consumer.voxel.constants import KEYPOINTS_SORTED
 
 
@@ -29,3 +30,5 @@ def bootstrap_di() -> None:
     di[DatasetMappingConfig] = config.dataset_mapping
     di[MetadataParser] = MetadataParser()
     di[S3Client] = boto3.client("s3", aws_region)
+    di[S3Controller] = S3Controller()
+    di[MetadataParser] = MetadataParser()

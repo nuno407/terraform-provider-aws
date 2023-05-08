@@ -10,7 +10,7 @@ from kink import inject
 from base.voxel.functions import create_dataset
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
-from base.model.artifacts import MetadataArtifact
+from base.model.artifacts import SignalsArtifact
 import json
 from typing import Any
 _logger = logging.getLogger(__name__)
@@ -29,7 +29,8 @@ def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
     Returns:
         fo.Sample: The sample in voxel.
     """
-    dataset_name, _ = _determine_dataset_name(tenant,True)    # pylint: disable=no-value-for-parameter
+    dataset_name, _ = _determine_dataset_name(
+        tenant, True)    # pylint: disable=no-value-for-parameter
     _logger.info("Searching for snapshot sample with id=%s in dataset=%s",
                  snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
@@ -38,32 +39,35 @@ def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
 
 @inject
 def add_voxel_snapshot_metadata(
-        metadata_artifact: MetadataArtifact,
+        metadata_artifact: SignalsArtifact,
         s3_controller: S3Controller,
         metadata_parser: MetadataParser,
-        voxel_snapshot_loader: VoxelSnapshotMetadataLoader):
+        voxel_loader: VoxelSnapshotMetadataLoader):
     """
     Downloads the metadata form S3, parses and uploads it to voxel.
 
     Args:
-        snapshot_id (str): The snapshot ID
-        snapshot_path (str): The snapshot path (with s3://)
-        metadata_path (str):  The metadata path (with s3://)
-        s3_client (S3Controller): An S3 Controler to download from S3
+        metadata_artifact (SignalsArtifact): The signals artifact
+        s3_controller (S3Controller): The S3 controller to interact with S3
+        metadata_parser (MetadataParser):  The parser for the metadata
+        voxel_loader (VoxelSnapshotMetadataLoader): The Voxel Metadata snapshot loader
 
     Raises:
         ValueError: If a metadata file was not found or there was some problem on the ingestion
     """
-    _logger.debug("Loading snapshot metadata from %s", metadata_artifact.s3_path)
+    _logger.debug("Loading snapshot metadata from %s",
+                  metadata_artifact.s3_path)
     # Prepare s3 paths
     metadata_bucket, metadata_key = s3_controller.get_s3_path_parts(
         metadata_artifact.s3_path)
 
     # Load sample
-    sample: fo.Sample = get_voxel_snapshot_sample(metadata_artifact.artifact_id, metadata_artifact.tenant_id)
+    sample: fo.Sample = get_voxel_snapshot_sample(
+        metadata_artifact.tenant_id, metadata_artifact.artifact_id)
     # Check if the metadata file exists
     if not s3_controller.check_s3_file_exists(metadata_bucket, metadata_key):
-        raise ValueError(f"Snapshot metadata {metadata_artifact.artifact_id} does not exist")
+        raise ValueError(
+            f"Snapshot metadata {metadata_artifact.artifact_id} does not exist")
 
     # Download and convert metadata file
     raw_snapshot_metadata = s3_controller.download_file(
@@ -81,8 +85,8 @@ def add_voxel_snapshot_metadata(
         raise ValueError(
             "The snapshot's metadata contains more then one frame data.")
 
-    voxel_snapshot_loader.set_sample(sample)
-    voxel_snapshot_loader.load(metadata_frames[0])
+    voxel_loader.set_sample(sample)
+    voxel_loader.load(metadata_frames[0])
 
     sample.save()
 
@@ -156,8 +160,9 @@ def _populate_metadata(sample: fo.Sample, sample_info: dict[Any, Any]):
     else:
         _logger.info("No time")
 
+
 @inject
-def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: DatasetMappingConfig) -> tuple[str,list[str]]:
+def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: DatasetMappingConfig) -> tuple[str, list[str]]:
     """
     Checks in config if tenant gets its own dataset or if it is part of the default dataset.
     Dedicated dataset names are prefixed with the tag given in the config.
@@ -179,8 +184,9 @@ def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: Data
 
     return dataset_name, tags
 
+
 @inject
-def _determine_dataset_by_path(filepath: str, mapping_config: DatasetMappingConfig) -> tuple[str,list[str]]:
+def _determine_dataset_by_path(filepath: str, mapping_config: DatasetMappingConfig) -> tuple[str, list[str]]:
     """
     Method to mantain compatability with legacy functions that get's the tenant by spliting the path.
 

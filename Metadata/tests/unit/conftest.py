@@ -11,11 +11,14 @@ from base.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from unittest.mock import Mock, MagicMock
 from base.aws.s3 import S3Controller
 from mypy_boto3_s3 import S3Client
+from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 
 
 def setup_voxel_mocks():
-    """Setup mocks for voxel"""
+    """
+    Setup mocks for voxel.    
+    """
     voxel_mock: MagicMock = sys.modules["fiftyone"]
     voxel_mock.Keypoint = Mock(side_effect=lambda **kwargs: kwargs)
     voxel_mock.Keypoints = Mock(side_effect=lambda **kwargs: kwargs)
@@ -23,10 +26,12 @@ def setup_voxel_mocks():
     voxel_mock.Classifications = Mock(side_effect=lambda **kwargs: kwargs)
     voxel_mock.Detection = Mock(side_effect=lambda **kwargs: kwargs)
     voxel_mock.Detections = Mock(side_effect=lambda **kwargs: kwargs)
+    voxel_mock.load_dataset = Mock(return_value=MagicMock())
 
 
 @pytest.fixture
 def fiftyone():
+    setup_voxel_mocks()
     return sys.modules["fiftyone"]
 
 
@@ -39,6 +44,11 @@ def fo_sample() -> dict:
         MagicMock: _description_
     """
     return {}
+
+
+@pytest.fixture
+def dataset_config() -> DatasetMappingConfig:
+    return DatasetMappingConfig(create_dataset_for="datanauts", default_dataset="Debug_Lync", tag="RC")
 
 
 @pytest.fixture
