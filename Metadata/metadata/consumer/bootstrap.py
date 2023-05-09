@@ -7,9 +7,10 @@ from kink import di
 from metadata.consumer.config import DatasetMappingConfig, MetadataConfig
 from mypy_boto3_s3 import S3Client
 from metadata.consumer.voxel.metadata_parser import MetadataParser
+from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
 from base.voxel.constants import POSE_LABEL, BBOX_LABEL, CLASSIFICATION_LABEL
+from base.voxel.models import KeyPointsMapper
 from base.aws.s3 import S3Controller
-from metadata.consumer.voxel.constants import KEYPOINTS_SORTED
 
 
 def bootstrap_di() -> None:
@@ -24,11 +25,10 @@ def bootstrap_di() -> None:
     di["pose_label"] = POSE_LABEL
     di["bbox_label"] = BBOX_LABEL
     di["classification_label"] = CLASSIFICATION_LABEL
-    di["kp_mapper"] = lambda kp: KEYPOINTS_SORTED[kp]
 
+    di[KeyPointsMapper] = VoxelKPMapper()
     di[MetadataConfig] = config
     di[DatasetMappingConfig] = config.dataset_mapping
     di[MetadataParser] = MetadataParser()
     di[S3Client] = boto3.client("s3", aws_region)
     di[S3Controller] = S3Controller()
-    di[MetadataParser] = MetadataParser()

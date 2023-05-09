@@ -124,7 +124,7 @@ class TestVoxelFunctions():
         s3_controller.get_s3_path_parts.assert_called_once_with(
             snapshot_metadata_artifact.s3_path)
         get_voxel_snapshot_sample_mock.assert_called_once_with(
-            snapshot_metadata_artifact.tenant_id, snapshot_metadata_artifact.artifact_id)
+            snapshot_metadata_artifact.tenant_id, snapshot_metadata_artifact.referred_artifact.artifact_id)
         s3_controller.check_s3_file_exists.assert_called_once_with(
             metadata_bucket, metadata_key)
         s3_controller.download_file.assert_called_once_with(

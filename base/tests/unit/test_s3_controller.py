@@ -1,3 +1,4 @@
+""" S3 controller tests"""
 import pytest
 from botocore.errorfactory import ClientError
 from base.aws.s3 import S3Controller
@@ -29,7 +30,8 @@ from mypy_boto3_s3 import S3Client
         False
     )
 ])
-def test_check_s3_file_exists(bucket: str, path: str, response: dict, expected: bool, s3_controller: S3Controller, s3_client: Mock):
+def test_check_s3_file_exists(bucket: str, path: str, response: dict,
+                              expected: bool, s3_controller: S3Controller, s3_client: Mock):
     s3_client.head_object = Mock(return_value=response)
     assert s3_controller.check_s3_file_exists(
         bucket, path) == expected
@@ -63,11 +65,12 @@ def test_check_s3_file_exists_client_error(s3_controller: S3Controller, s3_clien
         ValueError
     ),
 ])
-def test_get_s3_path_parts(input_path: str, expected: Union[Exception, tuple[str, str]], s3_controller: S3Controller):
+def test_get_s3_path_parts(
+        input_path: str, expected: Union[Exception, tuple[str, str]], s3_controller: S3Controller):
 
     if isinstance(expected, tuple):
         assert s3_controller.get_s3_path_parts(input_path) == expected
     else:
-        with pytest.raises(expected):
+        with pytest.raises(expected):  # type: ignore
             s3_controller.get_s3_path_parts(input_path)
         return

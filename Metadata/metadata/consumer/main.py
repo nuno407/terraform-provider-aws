@@ -41,7 +41,7 @@ from metadata.common.errors import (EmptyDocumentQueryResult,
 from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.exceptions import NotSupportedArtifactError
+from metadata.consumer.exceptions import NotSupportedArtifactError, SnapshotNotFound
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
 from base.aws.s3 import S3Controller
@@ -63,8 +63,8 @@ class MetadataCollections:
     processed_imu: Collection
 
 
-def _get_anonymized_s3_path(filepath):
-    filetype = filepath.split("/")[-1].split(".")[-1]
+def _get_anonymized_s3_path(file_key):
+    filetype = file_key.split("/")[-1].split(".")[-1]
 
     if filetype not in IMAGE_FORMATS and filetype not in VIDEO_FORMATS:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
@@ -82,7 +82,7 @@ def update_voxel_media(sample: dict):
     if "filepath" not in sample:
         _logger.error("Filepath field not present in the sample. %s", sample)
         return
-    _, filepath = S3Controller.get_s3_path_parts(sample["filepath"])
+    _, file_key = S3Controller.get_s3_path_parts(sample["filepath"])
 
     sample.pop("_id", None)
     sample["s3_path"] = _get_anonymized_s3_path(file_key)
@@ -146,7 +146,7 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
         # we have the key for snapshots named as "video_id" due to legacy reasons...
         "video_id": message["_id"],
         "_media_type": message["media_type"],
-        "filepath": "s3://" + message["s3_path"],
+        "filepath": message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -201,7 +201,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         "video_id": message["_id"],
         "MDF_available": message["MDF_available"],
         "_media_type": message["media_type"],
-        "filepath": "s3://" + message["s3_path"],
+        "filepath": message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -396,12 +396,13 @@ def update_pipeline_db(video_id: str, message: dict,
     _logger.info("Pipeline Exec DB item (Id: %s) updated!", video_id)
 
     # Voxel51 code
-    _, file_key = __get_s3_path_parts(message["s3_path"])
+    _, file_key = S3Controller.get_s3_path_parts(message["s3_path"])
     anonymized_path = _get_anonymized_s3_path(file_key)
 
     # with dicts either we make a copy or both variables will reference the same object
     sample = copy.deepcopy(upsert_item)
-    sample.update({"video_id": video_id, "s3_path": anonymized_path, "raw_filepath": message["s3_path"]})
+    sample.update({"video_id": video_id, "s3_path": anonymized_path,
+                  "raw_filepath": message["s3_path"]})
 
     update_on_voxel(sample["s3_path"], sample)
 
@@ -562,7 +563,7 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             "Error updating the algo output collection with item %s - %s", algo_item, err)
 
     # Voxel51 code
-    _, file_key = __get_s3_path_parts(message["s3_path"])
+    _, file_key = S3Controller.get_s3_path_parts(message["s3_path"])
     anon_video_path = _get_anonymized_s3_path(file_key)
 
     sample = copy.deepcopy(algo_item)
@@ -685,7 +686,8 @@ def __parse_sdr_message(artifact: Artifact) -> dict:
         message["media_type"] = "image"
 
     elif isinstance(artifact, SignalsArtifact) and isinstance(artifact.referred_artifact, SnapshotArtifact):
-        pass
+        message["_id"] = artifact.referred_artifact.artifact_id
+
     else:
         _logger.info(
             "Artifact type %s is not supported by the current implementation.", type(artifact))
@@ -716,7 +718,7 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections, serv
             add_voxel_snapshot_metadata(
                 artifact)  # pylint: disable=no-value-for-parameter
         else:
-            raise Exception(
+            raise NotSupportedArtifactError(
                 f"Artifact type {str(type(artifact))} is not supported by the current implementation.")
     else:
         _logger.error(
@@ -880,9 +882,14 @@ def main():
             # Processing step
             relay_list = read_message(container_services, message["Body"])
             # Insert/update data in db
-            upsert_data_to_db(db_client, container_services,
-                              api_service, relay_list, message["MessageAttributes"])
 
+            try:
+                upsert_data_to_db(db_client, container_services,
+                                  api_service, relay_list, message["MessageAttributes"])
+            except SnapshotNotFound:
+                _logger.warning(
+                    "The referred snapshot was not found, it will be reingested later")
+                continue
             # Delete message after processing
             container_services.delete_message(
                 sqs_client, message["ReceiptHandle"])

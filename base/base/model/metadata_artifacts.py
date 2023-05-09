@@ -1,3 +1,4 @@
+"""Metadata artifacts"""
 from datetime import datetime
 from typing import Optional
 from abc import ABC, abstractmethod
@@ -58,10 +59,19 @@ class Frame(BaseModel):
     utc_timestamp: Optional[datetime] = None
 
 
-class DataLoader(ABC):
+class DataLoader(ABC):  # pylint: disable=too-few-public-methods
     """
     An interface to be implemented by any object that needs to load frame data.
     """
     @abstractmethod
     def load(self, frame: Frame):
+        """
+        Load all the data from a frame.
+
+        Args:
+            frame (Frame): Parsed metadata frame
+
+        Raises:
+            NotImplementedError: _description_
+        """
         raise NotImplementedError

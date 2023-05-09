@@ -93,7 +93,7 @@ def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> di
         "_id": f"{recording_id}",
         "MDF_available": "No",
         "media_type": "video",
-        "s3_path": "s3://dev-rcd-raw-video-files/Debug_Lync/" +
+        "s3_path": "dev-rcd-raw-video-files/Debug_Lync/" +
         f"{recording_id}.mp4",
         "footagefrom": 1669376595000,
         "footageto": 1669376695538,
@@ -109,7 +109,8 @@ def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> di
     if imu_path is not None:
         result["imu_path"] = imu_path
 
-    return read_message(Mock(), str(result))  # read_message function fix some issues on message structure
+    # read_message function fix some issues on message structure
+    return read_message(Mock(), str(result))
 
 
 def _video_message_dict(recording_id: str, imu_path: Optional[str] = None) -> dict:
@@ -168,7 +169,7 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
 def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
     result = {
         "_id": f"{snapshot_id}",
-        "s3_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
+        "s3_path": f"dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
         "deviceid": "rc_srx_develop_cst2hi_01",
         "timestamp": 1669638188317,
         "tenant": "honeybadger",
@@ -181,7 +182,21 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
         "devcloudid": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
     }
 
-    return read_message(Mock(), str(result))  # read_message function fix some issues on message structure
+    # read_message function fix some issues on message structure
+    return read_message(Mock(), str(result))
+
+
+def _snapshot_sdr_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
+    return {
+        "_id": f"{snapshot_id}",
+        "s3_path": f"dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
+        "deviceid": "rc_srx_develop_cst2hi_01",
+        "timestamp": 1669638188317,
+        "metadata_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}_metadata.json",
+        "tenant": "honeybadger",
+        "media_type": "image",
+        "internal_message_reference_id": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
+    }
 
 
 def _mdf_imu_message_body(_id: str) -> dict:
@@ -438,11 +453,11 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                                  f"s3://anon_bucket/ridecare_companion_gridwise/c/d_anonymized.{file_format}",
                                  "RC-ridecare_companion_gridwise") for file_format in VIDEO_FORMATS]
                               ])
-    @pytest.mark.unit
-    @patch("metadata.consumer.main.update_sample")
-    @patch("metadata.consumer.main.create_dataset")
+    @patch("metadata.consumer.voxel.functions.update_sample")
+    @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+    @pytest.mark.unit
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
             mock_create_dataset_voxel: Mock,
@@ -526,12 +541,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                         "a": "b"}}},
             upsert=True)
 
+    @pytest.mark.unit
     @patch("metadata.consumer.voxel.functions.update_sample")
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
- 	@pytest.mark.unit
     def test_process_outputs(
             self,
             mock_download_and_synchronize_chc: Mock,
@@ -620,7 +635,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_download_and_synchronize_chc.assert_called_once_with(
             "id", collection_recordings, "a", "e/f.media")
         mock_create_dataset_voxel.assert_called_once_with("Debug_Lync", ["RC"])
-        mock_update_sample_voxel.assert_called_once_with("Debug_Lync", expected_voxel_output)
+        mock_update_sample_voxel.assert_called_once_with(
+            "Debug_Lync", expected_voxel_output)
 
     @pytest.mark.unit
     @pytest.mark.skip(reason="Not worth updateing the test before refactoring")
@@ -916,8 +932,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
 @pytest.mark.unit
 @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
-@patch("metadata.consumer.main.update_sample")
-@patch("metadata.consumer.main.create_dataset")
+@patch("metadata.consumer.voxel.functions.update_sample")
+@patch("metadata.consumer.voxel.functions.create_dataset")
 @patch("metadata.consumer.main.download_and_synchronize_chc")
 def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
                                                 create_dataset_mock: Mock,

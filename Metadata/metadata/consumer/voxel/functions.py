@@ -11,6 +11,7 @@ from base.voxel.functions import create_dataset
 from base.constants import IMAGE_FORMATS
 from base.aws.s3 import S3Controller
 from base.model.artifacts import SignalsArtifact
+from metadata.consumer.exceptions import SnapshotNotFound
 import json
 from typing import Any
 _logger = logging.getLogger(__name__)
@@ -34,7 +35,14 @@ def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
     _logger.info("Searching for snapshot sample with id=%s in dataset=%s",
                  snapshot_id, dataset_name)
     dataset = fo.load_dataset(dataset_name)
-    return dataset.one(ViewField("video_id") == snapshot_id)
+
+    try:
+        sample = dataset.one(ViewField("video_id") == snapshot_id)
+    except ValueError as exce:
+        raise SnapshotNotFound(
+            f"The snapshot with id={snapshot_id} was not found") from exce
+
+    return sample
 
 
 @inject
@@ -63,11 +71,11 @@ def add_voxel_snapshot_metadata(
 
     # Load sample
     sample: fo.Sample = get_voxel_snapshot_sample(
-        metadata_artifact.tenant_id, metadata_artifact.artifact_id)
+        metadata_artifact.tenant_id, metadata_artifact.referred_artifact.artifact_id)
     # Check if the metadata file exists
     if not s3_controller.check_s3_file_exists(metadata_bucket, metadata_key):
         raise ValueError(
-            f"Snapshot metadata {metadata_artifact.artifact_id} does not exist")
+            f"Snapshot metadata {metadata_artifact.referred_artifact.artifact_id} does not exist")
 
     # Download and convert metadata file
     raw_snapshot_metadata = s3_controller.download_file(
@@ -78,7 +86,7 @@ def add_voxel_snapshot_metadata(
     metadata_frames: list[Frame] = metadata_parser.parse(metadata)
 
     if len(metadata_frames) == 0:
-        _logger.warning("The snapshot's metadata is empty")
+        _logger.warning("The snapshot's metadata is empty, nothing to ingest")
         return
 
     elif len(metadata_frames) > 1:
@@ -89,6 +97,7 @@ def add_voxel_snapshot_metadata(
     voxel_loader.load(metadata_frames[0])
 
     sample.save()
+    _logger.info("Snapshot metadata has been saved to voxel")
 
 
 def update_sample(data_set, sample_info):
@@ -194,8 +203,9 @@ def _determine_dataset_by_path(filepath: str, mapping_config: DatasetMappingConf
     :param mapping_config: Config with mapping information about the tenants
     :return: the resulting dataset name and the tags which should be added on dataset creation
     """
-    s3split = filepath.split("/")
-    # The root dir on the S3 bucket always is the tenant name
+    _, file_key = S3Controller.get_s3_path_parts(filepath)
+    s3split = file_key.split("/")
+
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
 

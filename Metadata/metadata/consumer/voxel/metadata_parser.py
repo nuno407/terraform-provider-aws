@@ -1,4 +1,6 @@
 from base.model.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class MetadataParser:
@@ -18,11 +20,15 @@ class MetadataParser:
         returns:
             list[Frame]: Returns a list of frames.
         """
+
         width = int(metadata_json["resolution"]["width"])
         height = int(metadata_json["resolution"]["height"])
         frame_list: list[Frame] = []
         for obj in metadata_json.get("frame", []):
             frame_list.append(MetadataParser.parse_frame(obj, width, height))
+
+        _logger.info(
+            "Metadata has been parsed sucessfully, %d frames parsed", len(frame_list))
 
         return frame_list
 

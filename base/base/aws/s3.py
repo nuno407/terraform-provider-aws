@@ -49,9 +49,9 @@ class S3Controller:  # pylint: disable=too-few-public-methods
                 return False
 
             return True
-        except ClientError as err:
+        except ClientError:
             return False
-        
+
     def download_file(self, s3_bucket: str, path: str) -> bytes:
         """Retrieves a given file from the selected s3 bucket
 
@@ -72,8 +72,6 @@ class S3Controller:  # pylint: disable=too-few-public-methods
             Key=path
         )
 
-        # Read all bytes from http response body
-        # (botocore.response.StreamingBody)
         object_file = response["Body"].read()
 
         _logger.debug("Downloaded [%s]", full_path)
@@ -123,7 +121,8 @@ class S3Controller:  # pylint: disable=too-few-public-methods
             Bucket=bucket,
             Key=path,
             ServerSideEncryption="aws:kms",
-            ContentType=CONTENT_TYPES.get(file_extension, "application/octet-stream")
+            ContentType=CONTENT_TYPES.get(
+                file_extension, "application/octet-stream")
         )
 
         _logger.info("Uploaded [%s]", path)

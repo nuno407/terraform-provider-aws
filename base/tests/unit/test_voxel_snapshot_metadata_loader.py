@@ -1,3 +1,4 @@
+# type: ignore
 import json
 import os
 from unittest.mock import MagicMock, Mock
@@ -46,6 +47,9 @@ def load_frame_pydantic(file_name: str) -> Frame:
 
 @pytest.mark.unit
 class TestVoxelSnapshotMetadataLoader:
+    """
+    Test voxel snapshot metadata loader
+    """
 
     @pytest.mark.unit
     def test_load(self, voxel_snapshot_metadata_loader: VoxelSnapshotMetadataLoader):

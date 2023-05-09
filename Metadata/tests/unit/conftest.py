@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 import sys
+from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
@@ -17,7 +18,7 @@ from metadata.consumer.voxel.metadata_parser import MetadataParser
 
 def setup_voxel_mocks():
     """
-    Setup mocks for voxel.    
+    Setup mocks for voxel.
     """
     voxel_mock: MagicMock = sys.modules["fiftyone"]
     voxel_mock.Keypoint = Mock(side_effect=lambda **kwargs: kwargs)
@@ -75,7 +76,7 @@ def voxel_snapshot_metadata_loader() -> VoxelSnapshotMetadataLoader:
         VoxelSnapshotMetadataLoader: _description_
     """
     return VoxelSnapshotMetadataLoader(
-        lambda kp: KEYPOINTS_SORTED[kp],
+        VoxelKPMapper(),
         CLASSIFICATION_LABEL,
         POSE_LABEL,
         BBOX_LABEL)

@@ -1,8 +1,11 @@
 import fiftyone as fo
 from base.model.metadata_artifacts import Frame, DataLoader
 from base.voxel.constants import VOXEL_KEYPOINTS_LABELS, CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
-from typing import Callable, Optional
+from typing import Optional
+from base.voxel.models import KeyPointsMapper
 from kink import inject
+import logging
+_logger = logging.getLogger(__name__)
 
 
 def to_relative_coord(abs_val: int, max_val: int) -> float:
@@ -29,9 +32,10 @@ class VoxelSnapshotMetadataLoader(DataLoader):
     TODO: Do value range checks (eg: if bounding box is out of frame)
     """
 
+    SAMPLE_NOT_SET_ERROR = "Error while loading bounding boxes 'set_sample' needs to be called first"
+
     def __init__(self,
-                 kp_mapper: Callable[[str],
-                                     int],
+                 kp_mapper: KeyPointsMapper,
                  classification_label: str = CLASSIFICATION_LABEL,
                  pose_label: str = BBOX_LABEL,
                  bbox_label: str = POSE_LABEL):
@@ -40,7 +44,7 @@ class VoxelSnapshotMetadataLoader(DataLoader):
 
         Args:
             sample (fo.Sample): The voxel sample to be updated. The caller is responsible for saving.
-            kp_mapper (Callable[[str], int]): A callback function that is responsible for returning
+            kp_mapper (KeyPointsMapper): Responsible for returning
                 the position of a keypoint given it's name. Which is used to map the correct keypoints
                 with the pose.
 
@@ -78,6 +82,9 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         self.load_pose_keypoints(frame)
         self.load_classifications(frame)
 
+        _logger.info(
+            "Frame metadata has been uploaded to Voxel")
+
     def load_pose_keypoints(self, frame: Frame):
         """
         Load keypoints from a Frame.
@@ -89,7 +96,7 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         """
         if self.__sample is None:
             raise ValueError(
-                "Error while loading bounding boxes 'set_sample' needs to be called first")
+                VoxelSnapshotMetadataLoader.SAMPLE_NOT_SET_ERROR)
 
         if not len(frame.persons):
             return
@@ -101,10 +108,11 @@ class VoxelSnapshotMetadataLoader(DataLoader):
             tmp_keypoints: list[tuple[Optional[float], Optional[float]]] = [
                 (None, None)] * len(VOXEL_KEYPOINTS_LABELS)
             tmp_confidence: list[Optional[float]] = [
-                None] * len(VOXEL_KEYPOINTS_LABELS)
+                0.0] * len(VOXEL_KEYPOINTS_LABELS)
 
             for keypoint in person.keypoints:
-                keypoint_index: int = self.__kp_mapper(keypoint.name)
+                keypoint_index: int = self.__kp_mapper.get_keypoint_index(
+                    keypoint.name)
                 x = to_relative_coord(keypoint.x, frame.width)
                 y = to_relative_coord(keypoint.y, frame.height)
 
@@ -129,7 +137,7 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         """
         if self.__sample is None:
             raise ValueError(
-                "Error while loading bounding boxes 'set_sample' needs to be called first")
+                VoxelSnapshotMetadataLoader.SAMPLE_NOT_SET_ERROR)
 
         if not len(frame.classifications):
             return
@@ -151,7 +159,7 @@ class VoxelSnapshotMetadataLoader(DataLoader):
         """
         if self.__sample is None:
             raise ValueError(
-                "Error while loading bounding boxes 'set_sample' needs to be called first")
+                VoxelSnapshotMetadataLoader.SAMPLE_NOT_SET_ERROR)
 
         if not len(frame.bboxes):
             return
