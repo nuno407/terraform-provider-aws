@@ -528,6 +528,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             "txt": "text/plain",
             "webm": "video/webm",
             "jpeg": "image/jpeg",
+            "jpg": "image/jpeg",
             "csv": "text/plain",
             "pickle": "application/octet-stream",
             "png": "image/png"

@@ -1,5 +1,6 @@
 """Fiftyone Importer module"""
 from typing import Any, Optional
+import re
 
 import fiftyone as fo
 from fiftyone import ViewField as F
@@ -62,6 +63,8 @@ class FiftyoneImporter:
 
         if metadata is not None:
             self.override_metadata(sample, metadata)
+
+        self._set_raw_filepath_on_sample(sample)
         sample.save()
         return sample
 
@@ -83,6 +86,7 @@ class FiftyoneImporter:
             _logger.info("Setting key %s value %s", key, value)
             self._set_field(sample, key, value)
 
+        self._set_raw_filepath_on_sample(sample)
         sample.save()
         return sample
 
@@ -147,6 +151,52 @@ class FiftyoneImporter:
         else:
             sample.set_field(key, value, dynamic=True)
 
+    def _construct_raw_filepath_from_filepath(self, filepath: str) -> str:
+        """ Replace anonymized in bucket name with raw and remove anonymized suffix from file name """
+
+        # replace anonymized with raw in bucket name only
+        bucket_pattern = r"^(s3://.*-.*-)(anonymized)(.*)"
+        replacement = r"\g<1>raw\g<3>"
+        raw_filepath = re.sub(bucket_pattern, replacement, filepath)
+
+        # remove file suffix
+        suffix_pattern = r"(.*)_anonymized(\.\w+)$"
+        replacement = r"\g<1>\g<2>"
+        raw_filepath = re.sub(suffix_pattern, replacement, raw_filepath)
+
+        return raw_filepath
+
+    def _set_raw_filepath_on_sample(self, sample: fo.Sample):
+        """
+        Set raw_filepath on a sample based on filepath replacing 'anonymized' with 'raw'
+        """
+
+        raw_filepath = self._construct_raw_filepath_from_filepath(sample.filepath)
+
+        self._set_field(
+            sample=sample,
+            key="raw_filepath",
+            value=raw_filepath)
+
+    def set_raw_filepath_on_dataset(self, dataset: fo.Dataset) -> fo.Dataset:
+        """
+        Create and set field 'raw_filepath' to raw path based on filepath replacing 'anonymized' with 'raw'
+        """
+
+        if not dataset.has_sample_field("raw_filepath"):
+            dataset.add_sample_field("raw_filepath", ftype=fo.StringField)
+
+        for sample in dataset.select_fields("raw_filepath", "filepath"):
+            self._set_raw_filepath_on_sample(sample)
+            sample.save()
+
+        return dataset
+
     def from_dir(self, **kwargs):
         """ Imports a fiftyone dataset from a local directory. """
-        return fo.Dataset.from_dir(dataset_type=fo.types.FiftyOneDataset, **kwargs)
+
+        dataset = fo.Dataset.from_dir(dataset_type=fo.types.FiftyOneDataset, **kwargs)
+
+        # Ensure raw_filepath to facilitate use cases based on raw samples (e.g. labeling)
+        dataset = self.set_raw_filepath_on_dataset(dataset)
+        return dataset
