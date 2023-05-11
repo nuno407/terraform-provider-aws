@@ -130,20 +130,21 @@ class BaseHandler():
         api_handler = APIHandler(self.endpoint_params,
                                  self.callback_blueprint,
                                  self.endpoint_notifier)
-        api_handler.create_routes()
+        api = api_handler.create_routes()
 
-        api_process = Process(target=api_handler.run,
+        api_process = Process(target=api.run,
                               kwargs={"host": "0.0.0.0", "port": int(api_port)})  # nosec this is as intended
         _logger.info("Starting api child process")
         api_process.start()
 
-        msg_handler.wait_for_featurechain()
+        if msg_handler.wait_for_featurechain() is not None:
+            message_handler.start(self.mode, graceful_exit)
+        else:
+            _logger.exception("Could not connect to IVS container, will shut down.")
 
-        # The message handler will end on SIGTERM. After that, we need to stop the api_handler thread
-        # WARNING: possible race-condition if the processing is too fast
-        # and a new message arrives before the Flask app initializes
-        message_handler.start(self.mode, graceful_exit)
         _logger.info("Going to terminate API")
-        api_process.terminate()
-        api_process.join()
+        # Relying on terminate() is error-prone and needs a proper signal handler on the process.
+        # In our case the API doesn't do any long-running tasks worth waiting for, therefore
+        # just killing the process directly.
+        api_process.kill()
         _logger.info("Just terminated the API")

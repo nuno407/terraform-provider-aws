@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import signal
 from multiprocessing import Queue
 
 import flask
@@ -118,25 +117,6 @@ class APIHandler():  # pylint: disable=too-few-public-methods
 
         app = Flask(__name__)
         self.app = app
-
-    def run(self, **args) -> flask.Flask:
-        """
-        Starts the API Handler after setting up a signal handler
-        Args:
-            **args: Arguments for the Flask server
-
-        Returns: Flask app
-        """
-
-        # The forked process needs to set up its own signal handler otherwise the parent one will be used. In this
-        # case the parent handler uses the GracefulExit handler which doesn't help in shutting down a Flask server.
-        signal.signal(signal.SIGTERM, self.__handler)
-        self.app.run(**args)
-        return self.app
-
-    def __handler(self, signum, _frame):
-        # Flask reacts on KeyboardInterrupt exception to shut down the server
-        raise KeyboardInterrupt
 
     def create_routes(self) -> flask.Flask:
         """

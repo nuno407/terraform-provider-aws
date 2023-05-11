@@ -478,11 +478,11 @@ def on_success_handler(details):
     backoff.expo,
     requests.exceptions.RequestException,
     max_time=IVS_FC_MAX_WAIT,
-    raise_on_giveup=True,
+    raise_on_giveup=False,
     on_backoff=on_backoff_handler,
     on_success=on_success_handler
 )
-def wait_for_featurechain():
+def wait_for_featurechain() -> requests.Response:
     """ Handler for exception on IVS API. """
     _logger.info("Waiting for IVSFC API on: %s", IVS_FC_STATUS_ENDPOINT)
-    requests.get(IVS_FC_STATUS_ENDPOINT)  # pylint: disable=missing-timeout
+    return requests.get(IVS_FC_STATUS_ENDPOINT, timeout=1)
