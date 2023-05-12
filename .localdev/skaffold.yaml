@@ -9,6 +9,7 @@ manifests:
       - ../../kubernetes_config/apps/pg/selector
       - ../../kubernetes_config/apps/pg/mdfparser
       - ../../kubernetes_config/apps/pg/sdm
+      - ../../kubernetes_config/apps/pg/voxel-stack
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
