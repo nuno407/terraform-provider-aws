@@ -5,10 +5,12 @@ metadata:
 manifests:
   kustomize:
     paths:
-      # this should include all our services (only selector for now)
-      - kustomization.yml
+      # this includes all locally available services
+      - ../../kubernetes_config/apps/pg/selector
+      - ../../kubernetes_config/apps/pg/mdfparser
+      - ../../kubernetes_config/apps/pg/sdm
     buildArgs:
-      - "--load_restrictor=LoadRestrictionsNone"
+      - "--load-restrictor=LoadRestrictionsNone"
 build:
     local:
       push: false
@@ -18,18 +20,18 @@ build:
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdm
       context: ..
       docker:
-        dockerfile: sdm/Dockerfile
+        dockerfile: SDM/Dockerfile
       runtimeType: python
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/selector
       context: ..
       docker:
-        dockerfile: selector/Dockerfile
+        dockerfile: Selector/Dockerfile
       runtimeType: python
       #MDFParser
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/mdfparser
       context: ..
       docker:
-        dockerfile: mdfparser/Dockerfile
+        dockerfile: MDFParser/Dockerfile
       runtimeType: python
 deploy:
   # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
