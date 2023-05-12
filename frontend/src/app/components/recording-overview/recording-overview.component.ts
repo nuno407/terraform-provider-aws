@@ -41,11 +41,16 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - length,\n\
   - time,\n\
   - resolution,\n\
+  - gnss_coverage,\n\
   - number_chc_events,\n\
   - lengthCHC,\n\
+  - max_audio_loudness,\n\
   - max_person_count,\n\
+  - mean_audio_bias,\n\
+  - median_person_count,\n\
   - variance_person_count,\n\
-  - ride_detection_counter,\n\
+  - ride_detection_people_count_before,\n\
+  - ride_detection_people_count_after,\n\
   - sum_door_closed,\n\
   - deviceID\n\n\
   Available operands:\n\
@@ -65,11 +70,16 @@ export class RecordingOverviewComponent implements OnInit, AfterViewInit {
   - length,\n\
   - time,\n\
   - resolution,\n\
+  - gnss_coverage,\n\
   - number_chc_events,\n\
   - lengthCHC,\n\
+  - max_audio_loudness,\n\
   - max_person_count,\n\
+  - mean_audio_bias,\n\
+  - median_person_count,\n\
   - variance_person_count,\n\
-  - ride_detection_counter,\n\
+  - ride_detection_people_count_before,\n\
+  - ride_detection_people_count_after,\n\
   - sum_door_closed,\n\
   - deviceID';
 

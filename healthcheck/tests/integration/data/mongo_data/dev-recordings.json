@@ -17,7 +17,8 @@
             "chc_duration": 35.046765,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 1,
+            "ride_detection_people_count_before": 1,
+            "ride_detection_people_count_after": 0,
             "internal_message_reference_id": "00e8941219d054c6211927b66eacfddfefba2ac43572159edcb4a540c8243f0e"
         },
         "resolution": "640x360"
@@ -42,7 +43,8 @@
             "chc_duration": 52.028,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "55d8434a31eb084664739c7bc0458b0aee699c9ce5a7152ef9d0c1a6dfed2a01"
         },
         "resolution": "640x360"
@@ -65,7 +67,8 @@
             "chc_duration": 19.746,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "f0b3c07a7bd7e80b7aefc7198300f8ad8fba67480bf1077f64d018fcf3d38142"
         },
         "resolution": "640x360"
@@ -88,7 +91,8 @@
             "chc_duration": 34.028995,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "d15f5c94354e3ffddb55b411a76079bcea4ade0c0995d7ebbd6429c000ab6c68"
         },
         "resolution": "640x360"
@@ -115,7 +119,8 @@
             "chc_duration": 118.940055,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "6e39c538501e2dd380d76a68e2deb9c8bae2b27f35d73fa8a20e749ed821fcff"
         },
         "resolution": "640x360"
@@ -138,7 +143,8 @@
             "chc_duration": 34.918989,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "fcb53dcb6838ac3088282cd6ae0d3660d9820329098b37553b0a15cc3d733dd7"
         },
         "resolution": "640x360"
@@ -161,7 +167,8 @@
             "chc_duration": 34.029991,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "30f71df7359d6f17fcb417ad9f93d1e931e5f0ca28ba41e87753c0999b40b44b"
         },
         "resolution": "640x360"
@@ -184,7 +191,8 @@
             "chc_duration": 29.918997,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "2ed2eeb4c5a89b8b8684a8270d1a1cad3caa0f4d3db1b25517ceeee59166d71a"
         },
         "resolution": "640x360"
@@ -210,7 +218,8 @@
             "max_person_count": 1.0,
             "number_chc_events": 1,
             "internal_message_reference_id": "2d52deac2b35c8afdec8db71f0fd6608de6e1d240374cd91d868300f036a2f82",
-            "ride_detection_counter": 1
+            "ride_detection_people_count_before": 1,
+            "ride_detection_people_count_after": 0
         },
         "resolution": "640x360"
     },
@@ -231,7 +240,8 @@
             "chc_duration": 78.998,
             "max_person_count": 1.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 1
+            "ride_detection_people_count_before": 1,
+            "ride_detection_people_count_after": 0
         },
         "resolution": "640x360"
     },
@@ -253,7 +263,8 @@
             "chc_duration": 17.047,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "b8fe9c9b691663c7284a84ed5cfb305a5c1555915b5b9697d95e5a9933cbe3a3"
         },
         "resolution": "640x360"
@@ -276,7 +287,8 @@
             "chc_duration": 27.032996,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "b1c7adf5d9b35c58191346de95984f62129de1c0642858fcd5e92e559ab9d468"
         },
         "resolution": "640x360"
@@ -302,7 +314,8 @@
             "chc_duration": 25.866,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "d2ad90b98487113d236c43c5b4c42c2625871648fd7d1e82b7afcd3ecac11e45"
         },
         "resolution": "640x360"
@@ -506,7 +519,8 @@
             "chc_duration": 155.068967,
             "max_person_count": 1.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 1,
+            "ride_detection_people_count_before": 1,
+            "ride_detection_people_count_after": 0,
             "internal_message_reference_id": "fe9e19d58ed9b0b054a534948639fd1c6cac791374b5b764a1d94d1b29fa8b0e"
         },
         "resolution": "640x360"
@@ -591,7 +605,8 @@
             "chc_duration": 1804.575995,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 1,
+            "ride_detection_people_count_before": 1,
+            "ride_detection_people_count_after": 0,
             "internal_message_reference_id": "e250438bfade9d66d113f8da8f14fd7bec1b1b6da9544c0df475526de89662c2"
         },
         "resolution": "640x360",
@@ -707,7 +722,8 @@
             "chc_duration": 1788.96092,
             "max_person_count": 0.0,
             "number_chc_events": 1,
-            "ride_detection_counter": 0,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": -1,
             "internal_message_reference_id": "21a31f06a1331e1c42fd13d06658772b543d019c080b6fa00825b77c2bd8ee2d"
         },
         "resolution": "640x360"

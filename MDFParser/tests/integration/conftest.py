@@ -21,8 +21,13 @@ from mdfparser.metadata.uploader import MetadataUploader
 
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
+from base.gnss_coverage import GnssCoverage
+from base.max_audio_loudness import MaxAudioLoudness
 from base.max_person_count import MaxPersonCount
-from base.ride_detection_counter import RideDetectionCounter
+from base.mean_audio_bias import MeanAudioBias
+from base.median_person_count import MedianPersonCount
+from base.ride_detection_people_count_before import RideDetectionPeopleCountBefore
+from base.ride_detection_people_count_after import RideDetectionPeopleCountAfter
 from base.sum_door_closed import SumDoorClosed
 from base.variance_person_count import VariancePersonCount
 
@@ -144,9 +149,14 @@ def consumer_mocks(moto_sqs_client: SQSClient, moto_s3_client: S3Client,
 
     processor_list = [
         ChcCounter(),
+        GnssCoverage(),
+        MaxAudioLoudness(),
         MaxPersonCount(),
+        MeanAudioBias(),
+        MedianPersonCount(),
         VariancePersonCount(),
-        RideDetectionCounter(),
+        RideDetectionPeopleCountBefore(),
+        RideDetectionPeopleCountAfter(),
         SumDoorClosed()
     ]
 

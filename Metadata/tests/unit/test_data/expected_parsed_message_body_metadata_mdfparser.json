@@ -4,9 +4,14 @@
     "data_type": "metadata",
     "recording_overview": {
         "chc_duration": 26.478034,
-        "max_person_count": 1,
+        "gnss_coverage": 0.0,
+        "max_audio_loudness": -32.2027,
+        "max_person_count": 1.0,
+        "mean_audio_bias": 0.36789289230769234,
+        "median_person_count": 0.0,
         "number_chc_events": 1,
-        "ride_detection_counter": 1,
+        "ride_detection_people_count_before": -1,
+        "ride_detection_people_count_after": 0,
         "sum_door_closed": 0,
         "variance_person_count": 0.04
     }

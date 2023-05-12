@@ -19,6 +19,13 @@ RELEVANT_DEVICE_SIGNALS = {
     "PersonCount_value",
     "DrivingStatus",
     "DoorClosedConfidence",
+    "Gnss_satellites_used",
+    "Gnss_horizontal_speed",
+    "Gnss_horizontal_speed_accuracy",
+    "rms_ch0",
+    "rms_ch1",
+    "sum_ch0",
+    "sum_ch1",
     "RideInfo_people_count_before_value",
     "RideInfo_people_count_after_value",
     "Snapshots"
@@ -282,9 +289,14 @@ class ApiService:
         "resolution": "resolution",
         "number_chc_events": "recording_overview.number_chc_events",
         "lengthCHC": "recording_overview.chc_duration",
+        "gnss_coverage": "recording_overview.gnss_coverage",
+        "max_audio_loudness": "recording_overview.max_audio_loudness",
         "max_person_count": "recording_overview.max_person_count",
+        "mean_audio_bias": "recording_overview.mean_audio_bias",
+        "median_person_count": "recording_overview.median_person_count",
         "variance_person_count": "recording_overview.variance_person_count",
-        "number_of_rides": "recording_overview.ride_detection_counter",
+        "ride_detection_people_count_before": "recording_overview.ride_detection_people_count_before",
+        "ride_detection_people_count_after": "recording_overview.ride_detection_people_count_after",
         "sum_door_closed": "recording_overview.sum_door_closed",
         "deviceID": "recording_overview.deviceID",
         "tenantID": "recording_overview.tenantID"
@@ -429,12 +441,22 @@ class ApiService:
             "number_chc_events", "-")
         recording_object["lengthCHC"] = recording_overview.get(
             "chc_duration", "-")
+        recording_object["gnss_coverage"] = recording_overview.get(
+            "gnss_coverage", "-")
+        recording_object["max_audio_loudness"] = recording_overview.get(
+            "max_audio_loudness", "-")
         recording_object["max_person_count"] = recording_overview.get(
             "max_person_count", "-")
+        recording_object["mean_audio_bias"] = recording_overview.get(
+            "mean_audio_bias", "-")
+        recording_object["median_person_count"] = recording_overview.get(
+            "median_person_count", "-")
         recording_object["variance_person_count"] = recording_overview.get(
             "variance_person_count", "-")
-        recording_object["ride_detection_counter"] = recording_overview.get(
-            "ride_detection_counter", "-")
+        recording_object["ride_detection_people_count_before"] = recording_overview.get(
+            "ride_detection_people_count_before", "-")
+        recording_object["ride_detection_people_count_after"] = recording_overview.get(
+            "ride_detection_people_count_after", "-")
         recording_object["sum_door_closed"] = recording_overview.get(
             "sum_door_closed", "-")
         pipeline_execution = recording_item.get("pipeline_execution", {})

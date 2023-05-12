@@ -4,9 +4,14 @@
     {
         "number_chc_events": 1,
         "chc_duration": 2.0,
+        "gnss_coverage": 0.5,
+        "max_audio_loudness": -40,
         "max_person_count": 1,
+        "mean_audio_bias": 0.55,
+        "median_person_count" : 0.0,
         "variance_person_count": 0.22,
-        "ride_detection_counter": 1,
+        "ride_detection_people_count_before": 1,
+        "ride_detection_people_count_after": 0,
         "sum_door_closed": 1
     },
     "signals_file":

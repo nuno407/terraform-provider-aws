@@ -1,4 +1,4 @@
-""" Module that tests Person Counter Processor. """
+""" Module that tests variance Person Counter Processor. """
 from datetime import timedelta
 
 import pytest
@@ -41,26 +41,29 @@ class TestVariancePersonCounter:
 
     def test_empty_signal_max_person_count(self, variance_person_count: VariancePersonCount, empty_signal: dict):
         # WHEN
-        variance_person_count_value = variance_person_count._calculate_variance_person_count(  # type: ignore # pylint: disable=protected-access
+        variance_person_count_value = variance_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             empty_signal)
 
         # THEN
-        assert variance_person_count_value == 0
+        assert variance_person_count_value["recording_overview"]["variance_person_count"] == 0
 
     def test_pc_low_variance_max_person_count(self, variance_person_count: VariancePersonCount, pc_low_variance: dict):
         # WHEN
-        variance_person_count_value = variance_person_count._calculate_variance_person_count(  # type: ignore # pylint: disable=protected-access
+        variance_person_count_value = variance_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             pc_low_variance)
 
         # THEN
-        assert variance_person_count_value == 0
+        assert variance_person_count_value["recording_overview"]["variance_person_count"] == 0
 
     def test_pc_high_variance_max_person_count(self,
                                                variance_person_count: VariancePersonCount,
                                                pc_high_variance: dict):
         # WHEN
-        variance_person_count_value = variance_person_count._calculate_variance_person_count(  # type: ignore # pylint: disable=protected-access
+        variance_person_count_value = variance_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             pc_high_variance)
 
         # THEN
-        assert variance_person_count_value == 1.25
+        assert variance_person_count_value["recording_overview"]["variance_person_count"] == 1.25

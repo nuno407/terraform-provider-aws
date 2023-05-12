@@ -1,4 +1,4 @@
-""" Module that tests Person Counter Processor. """
+""" Module that tests max Person Counter Processor. """
 from datetime import timedelta
 
 import pytest
@@ -40,24 +40,27 @@ class TestMaxPersonCounter:
 
     def test_empty_signal_max_person_count(self, max_person_count: MaxPersonCount, empty_signal):
         # WHEN
-        max_person_count_value = max_person_count._calculate_max_person_count(  # type: ignore # pylint: disable=protected-access
+        max_person_count_value = max_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             empty_signal)
 
         # THEN
-        assert max_person_count_value == 0
+        assert max_person_count_value["recording_overview"]["max_person_count"] == 0
 
     def test_simple_signal_max_person_count(self, max_person_count: MaxPersonCount, simple_signals):
         # WHEN
-        max_person_count_value = max_person_count._calculate_max_person_count(  # type: ignore # pylint: disable=protected-access
+        max_person_count_value = max_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             simple_signals)
 
         # THEN
-        assert max_person_count_value == 2
+        assert max_person_count_value["recording_overview"]["max_person_count"] == 2
 
     def test_peak_simple_max_person_count(self, max_person_count: MaxPersonCount, simple_signals_with_peak):
         # WHEN
-        max_person_count_value = max_person_count._calculate_max_person_count(  # type: ignore # pylint: disable=protected-access
+        max_person_count_value = max_person_count.process(
+            # type: ignore # pylint: disable=protected-access
             simple_signals_with_peak)
 
         # THEN
-        assert max_person_count_value == 4
+        assert max_person_count_value["recording_overview"]["max_person_count"] == 4

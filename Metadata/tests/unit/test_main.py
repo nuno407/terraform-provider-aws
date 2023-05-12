@@ -188,7 +188,8 @@ def _mdf_metadata_message_body(_id: str) -> dict:
         "parsed_file_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{_id}_signals.json",
         "data_type": "metadata",
         "recording_overview": {"number_chc_events": 1,
-                               "ride_detection_counter": 1,
+                               "ride_detection_people_count_before": 1,
+                               "ride_detection_people_count_after": 0,
                                "sum_door_closed": 0,
                                "variance_person_count": 0.04}
     }
@@ -482,9 +483,14 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             update={
                 "$set": {
                     "recording_overview.chc_duration": 26.478034,
+                    "recording_overview.gnss_coverage": 0.0,
+                    "recording_overview.max_audio_loudness": -32.2027,
                     "recording_overview.max_person_count": 1,
+                    "recording_overview.mean_audio_bias": 0.36789289230769234,
+                    "recording_overview.median_person_count": 0.0,
                     "recording_overview.number_chc_events": 1,
-                    "recording_overview.ride_detection_counter": 1,
+                    "recording_overview.ride_detection_people_count_before": -1,
+                    "recording_overview.ride_detection_people_count_after": 0,
                     "recording_overview.sum_door_closed": 0,
                     "recording_overview.variance_person_count": 0.04}},
             upsert=True,

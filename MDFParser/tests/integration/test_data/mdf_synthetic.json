@@ -48,6 +48,27 @@
                     ]
                 },
                 {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "rms_ch0",
+                            "value": "-50"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-60"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.5"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.6"
+                        }
+                    ]
+                },
+                {
                     "id": "11",
                     "floatAttributes": [
                         {
@@ -57,6 +78,41 @@
                         {
                             "name": "PersonCount_value",
                             "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "14",
+                    "boolAttributes": [
+                        {
+                            "name": "Gnss_has_fix",
+                            "value": "true"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "Gnss_horizontal_speed",
+                            "value": "5"
+                        },
+                        {
+                            "name": "Gnss_horizontal_speed_accuracy",
+                            "value": "5"
+                        },
+                        {
+                            "name": "Gnss_location_accuracy",
+                            "value": "5"
+                        },
+                        {
+                            "name": "Gnss_satellites_used",
+                            "value": "4"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed",
+                            "value": "10"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed_accuracy",
+                            "value": "10"
                         }
                     ]
                 }
@@ -96,6 +152,27 @@
                         {
                             "name": "interior_camera_health_response_cve",
                             "value": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "rms_ch0",
+                            "value": "-40"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-70"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.4"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.7"
                         }
                     ]
                 },
@@ -199,6 +276,41 @@
                         {
                             "name": "RideInfo_status",
                             "value": "start"
+                        }
+                    ]
+                },
+                {
+                    "id": "14",
+                    "boolAttributes": [
+                        {
+                            "name": "Gnss_has_fix",
+                            "value": "true"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "Gnss_horizontal_speed",
+                            "value": "5"
+                        },
+                        {
+                            "name": "Gnss_horizontal_speed_accuracy",
+                            "value": "100"
+                        },
+                        {
+                            "name": "Gnss_location_accuracy",
+                            "value": "5"
+                        },
+                        {
+                            "name": "Gnss_satellites_used",
+                            "value": "1"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed",
+                            "value": "10"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed_accuracy",
+                            "value": "10"
                         }
                     ]
                 }

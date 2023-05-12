@@ -43,24 +43,24 @@ class TestSumDoorClosed:
                                                    sum_door_closed: SumDoorClosed,
                                                    empty_signal_sum_door_close: dict):
         # WHEN
-        sum_door_closed_value = sum_door_closed._calculate_sum_door_closed(  # type: ignore # pylint: disable=protected-access
+        sum_door_closed_value = sum_door_closed.process(  # type: ignore # pylint: disable=protected-access
             empty_signal_sum_door_close)
 
         # THEN
-        assert sum_door_closed_value == 0
+        assert sum_door_closed_value["recording_overview"]["sum_door_closed"] == 0
 
     def test_sum_of_few_close_door_events(self, sum_door_closed: SumDoorClosed, few_door_closed_events: dict):
         # WHEN
-        sum_door_closed_value = sum_door_closed._calculate_sum_door_closed(  # type: ignore # pylint: disable=protected-access
+        sum_door_closed_value = sum_door_closed.process(  # type: ignore # pylint: disable=protected-access
             few_door_closed_events)
 
         # THEN
-        assert sum_door_closed_value == 2
+        assert sum_door_closed_value["recording_overview"]["sum_door_closed"] == 2
 
     def test_sum_of_many_close_door_events(self, sum_door_closed: SumDoorClosed, many_door_closed_events: dict):
         # WHEN
-        sum_door_closed_value = sum_door_closed._calculate_sum_door_closed(  # type: ignore # pylint: disable=protected-access
+        sum_door_closed_value = sum_door_closed.process(  # type: ignore # pylint: disable=protected-access
             many_door_closed_events)
 
         # THEN
-        assert sum_door_closed_value == 4
+        assert sum_door_closed_value["recording_overview"]["sum_door_closed"] == 4
