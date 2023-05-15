@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from base.aws.model import SQSMessage, MessageAttributes
-from base.model.artifacts import RecorderType, VideoArtifact
+from base.aws.model import MessageAttributes, SQSMessage
+from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.video_parser import VideoParser
 
@@ -51,6 +51,9 @@ RECEIPT_HANDLE = "foobar"
                 stream_name="DATANAUTS_DEV_01_InteriorRecorder",
                 timestamp=from_epoch_seconds_or_milliseconds(1671118349783),
                 end_timestamp=from_epoch_seconds_or_milliseconds(1671120149783),
+                upload_timing=TimeWindow(
+                    start=1671118695636,  # type: ignore
+                    end=1671120664474),  # type: ignore
             )
         ]
     )

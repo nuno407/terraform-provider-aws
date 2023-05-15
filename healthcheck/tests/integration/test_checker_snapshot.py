@@ -1,18 +1,18 @@
 """Integration test module for interior recorder."""
-from datetime import datetime
-
 import os
-import pytest
+from datetime import datetime, timedelta
 
-from healthcheck.checker.snapshot import \
-    SnapshotArtifactChecker
-from healthcheck.s3_utils import S3Utils
+import pytest
+from pytz import UTC
+
+from base.model.artifacts import RecorderType, SnapshotArtifact, TimeWindow
+from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import (AnonymizedFileNotPresent,
-                                    RawFileNotPresent, NotYetIngestedError,
+                                    NotYetIngestedError, RawFileNotPresent,
                                     VoxelEntryNotPresent)
-from healthcheck.model import SnapshotArtifact
+from healthcheck.s3_utils import S3Utils
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -98,7 +98,11 @@ class TestSnapshotArtifactChecker:
             tenant_id=tenant_id,
             device_id=device_id,
             uuid=uuid,
-            timestamp=datetime.fromtimestamp(timestamp / 1000.0))
+            recorder=RecorderType.SNAPSHOT,
+            timestamp=datetime.fromtimestamp(timestamp / 1000.0, tz=UTC),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC) - timedelta(hours=1),
+                end=datetime.now(tz=UTC)))
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:

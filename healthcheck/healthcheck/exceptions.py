@@ -1,26 +1,25 @@
 """Exceptions module for Healtcheck component."""
-from healthcheck.model import Artifact
 
 
 class FailedHealthCheckError(Exception):
     """Base exception for all the errors that could be raised during healthcheck verifications."""
-    artifact: Artifact
+    artifact_id: str
     message: str
 
-    def __init__(self, artifact: Artifact, message: str) -> None:
-        self.artifact = artifact
+    def __init__(self, artifact_id: str, message: str) -> None:
+        self.artifact_id = artifact_id
         self.message = message
         super().__init__(self.message)
 
     def __str__(self) -> str:
-        return f"Artifact ID [{self.artifact.artifact_id}] {self.message}"
+        return f"Artifact ID [{self.artifact_id}] {self.message}"
 
 
 class FailDocumentValidation(FailedHealthCheckError):
     """Error raised when the documentin MongoDB fails to be validated."""
 
-    def __init__(self, artifact: Artifact, message: str, json_path: str = "") -> None:
-        super().__init__(artifact, message)
+    def __init__(self, artifact_id: str, message: str, json_path: str = "") -> None:
+        super().__init__(artifact_id, message)
         self.json_path = json_path
 
 
@@ -48,13 +47,5 @@ class AnonymizedFileNotPresent(NotPresentError):
     """Error raised when Anonymized file is not present."""
 
 
-class InvalidMessageError(Exception):
-    """Error raised when an invalid message is received."""
-
-
 class InvalidMessagePanic(Exception):
     """Error raised when an invalid message is received and no receipt handle is available."""
-
-
-class InvalidMessageCanSkip(Exception):
-    """Error raised when an invalid message is received."""

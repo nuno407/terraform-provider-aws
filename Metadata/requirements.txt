@@ -1,5 +1,5 @@
-mypy == 0.982
-pylint == 2.15.4
+mypy == 1.1.1
+pylint == 2.17.0
 flask == 2.2.3
 flask_cors == 3.0.10
 flask-restx == 1.1.0
@@ -13,4 +13,4 @@ kink == 0.6.6
 PyYAML == 6.0
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
--e ../base[aws,voxel]
+-e ../base[aws,voxel,model]

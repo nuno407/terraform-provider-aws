@@ -1,7 +1,6 @@
 """ Integration tests for the forwarder. """
 import json
 from datetime import datetime
-from pytz import UTC
 
 import boto3
 import pytest
@@ -9,10 +8,11 @@ from kink import di
 from moto import mock_sns, mock_sqs
 from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
+from pytz import UTC
 
 from base.aws.sns import SNSController
-from base.model.artifacts import (Artifact, RecorderType,
-                                  SnapshotArtifact, VideoArtifact, parse_artifact)
+from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
+                                  TimeWindow, VideoArtifact, parse_artifact)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 TEST_TOPIC_NAME = "test-topic"
@@ -65,6 +65,10 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
             recorder=RecorderType.SNAPSHOT,
             device_id="test-device-id00",
             tenant_id="test-tenant-id00",
+            upload_timing=TimeWindow(
+                start="2023-04-13T08:00:00+00:00",  # type: ignore
+                end="2023-04-13T08:01:00+00:00")  # type: ignore
+
         )
     ),
     (
@@ -75,6 +79,10 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
             recorder=RecorderType.INTERIOR,
             device_id="test-device-id01",
             tenant_id="test-tenant-id01",
+            upload_timing=TimeWindow(
+                start="2023-04-13T08:00:00+00:00",  # type: ignore
+                end="2023-04-13T08:01:00+00:00")  # type: ignore
+
         )
     ),
     (
@@ -85,6 +93,10 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
             recorder=RecorderType.TRAINING,
             device_id="test-device-id02",
             tenant_id="test-tenant-id02",
+            upload_timing=TimeWindow(
+                start="2023-04-13T08:00:00+00:00",  # type: ignore
+                end="2023-04-13T08:01:00+00:00")  # type: ignore
+
         )
     )
 ])

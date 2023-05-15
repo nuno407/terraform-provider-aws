@@ -5,8 +5,8 @@ from datetime import datetime
 from unittest import mock
 
 import pytest
-from selector.footage_api_token_manager import FootageApiTokenManager
-from selector.footage_api_token_manager import InvalidConfiguration
+from selector.footage_api_token_manager import (FootageApiTokenManager,
+                                                InvalidConfiguration)
 
 MOCK_ADDRESS = "http://example.local"
 

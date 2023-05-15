@@ -7,11 +7,11 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
-import yaml
 
 import boto3
+import yaml
 from botocore.errorfactory import ClientError
-from expiringdict import ExpiringDict
+from expiringdict import ExpiringDict  # type: ignore
 from mypy_boto3_kinesis_video_archived_media import \
     KinesisVideoArchivedMediaClient
 from mypy_boto3_kinesisvideo import KinesisVideoClient
@@ -775,14 +775,13 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         return results  # type: ignore
 
     @staticmethod
-    def _check_if_deviceid_exists(s3_client: S3Client, s3_params: RCCS3ObjectParams, messageid: Optional[str]) -> bool:
+    def _check_if_deviceid_exists(s3_client: S3Client, s3_params: RCCS3ObjectParams) -> bool:
         """
         Checks if device exists in S3 bucket.
 
         Args:
             s3_client (S3Client): _description_
             s3_params (RCCS3ObjectParams): _description_
-            messageid (Optional[str]): _description_
 
         Returns:
             bool: True if has permissions, False otherwise
@@ -798,22 +797,19 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             deviceid_error_message = f"""Could not access folder {s3_params.bucket}/{prefix} -
                                          Tenant {s3_params.tenant} is accessible,
                                          but could not access device {s3_params.deviceid}"""
-            _logger.error(deviceid_error_message, extra={
-                "messageid": messageid})
+            _logger.error(deviceid_error_message)
 
             return False
 
-    @staticmethod
     def check_if_tenant_and_deviceid_exists_and_log_on_error(
+            self,
             s3_client: S3Client,
-            s3_object_params: RCCS3ObjectParams,
-            messageid: Optional[str]) -> bool:
+            s3_object_params: RCCS3ObjectParams) -> bool:
         """Checks if tenant exists and also if deviceid exists to provide logging information if it doesn"t.
 
         Args:
             s3_client (S3Client): boto3 S3 client
             s3_object_params (RCCS3ObjectParams): wrapper for S3 information
-            messageid: (Optional[str]): optional message id for logging purposes
 
         Returns:
             bool: True if exists, False otherwise
@@ -826,12 +822,12 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                 prefix, s3_object_params.bucket, s3_client)
 
             return ContainerServices._check_if_deviceid_exists(
-                s3_client, s3_object_params, messageid)
+                s3_client, s3_object_params)
         except ClientError:  # pylint: disable=broad-except
             tenant_error_message = f"""Could not access {s3_object_params.bucket}/{prefix} -
                                      our AWS IAM role is likely forbidden
                                      from accessing tenant {s3_object_params.tenant}"""
-            _logger.error(tenant_error_message, extra={"messageid": messageid})
+            _logger.error(tenant_error_message)
             return False
 
     @staticmethod

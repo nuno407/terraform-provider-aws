@@ -13,7 +13,6 @@ def test_handler_run():
     prop = PropertyMock(side_effect=[True, False])
     type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
-    sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = "raw_sqs_message"
     message_parser = Mock()
 
@@ -32,6 +31,8 @@ def test_handler_run():
 
     video_artifact = Mock()
     snapshot_artifact = Mock()
+    injected_artifact = Mock()
+
     artifacts = [video_artifact, snapshot_artifact]
     artifact_parser = Mock()
     artifact_parser.parse.return_value = artifacts
@@ -39,11 +40,14 @@ def test_handler_run():
     artifact_filter.is_relevant.return_value = artifacts
     artifact_forwarder = Mock()
     artifact_forwarder.publish.return_value = None
+    artifact_injector = Mock()
+    artifact_injector.inject = Mock(side_effect=[[injected_artifact], []])
 
     artifact_controller = Mock()
     artifact_controller.parser = artifact_parser
     artifact_controller.filter = artifact_filter
     artifact_controller.forwarder = artifact_forwarder
+    artifact_controller.injector = artifact_injector
 
     sqs_controller.delete_message.return_value = None
 
@@ -53,15 +57,21 @@ def test_handler_run():
 
     handler.run(graceful_exit)
 
-    sqs_controller.get_queue_url.assert_called_once()
-    sqs_controller.get_message.assert_called_once_with("queue_url")
+    sqs_controller.get_message.assert_called_once()
     message_parser.parse.assert_called_once_with("raw_sqs_message")
     message_filter.is_relevant.assert_called_once_with(sqs_message)
     message_persistence.save.assert_called_once_with(sqs_message)
     artifact_parser.parse.assert_called_once_with(sqs_message)
-    artifact_filter.is_relevant.assert_has_calls([call(video_artifact), call(snapshot_artifact)])
-    artifact_forwarder.publish.assert_has_calls([call(video_artifact), call(snapshot_artifact)])
-    sqs_controller.delete_message.assert_called_once_with("queue_url", sqs_message)
+    artifact_filter.is_relevant.assert_has_calls([
+        call(video_artifact),
+        call(snapshot_artifact)
+    ])
+    artifact_forwarder.publish.assert_has_calls([
+        call(injected_artifact),
+        call(video_artifact),
+        call(snapshot_artifact)
+    ])
+    sqs_controller.delete_message.assert_called_once_with(sqs_message)
 
 
 @pytest.mark.unit
@@ -71,7 +81,6 @@ def test_handler_run_no_raw_message():
     prop = PropertyMock(side_effect=[True, False])
     type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
-    sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = None
     message_parser = Mock()
 
@@ -85,8 +94,7 @@ def test_handler_run_no_raw_message():
 
     handler.run(graceful_exit)
 
-    sqs_controller.get_queue_url.assert_called_once()
-    sqs_controller.get_message.assert_called_once_with("queue_url")
+    sqs_controller.get_message.assert_called_once()
     message_parser.parse.assert_not_called()
 
 
@@ -97,7 +105,6 @@ def test_handler_run_not_relevant():
     prop = PropertyMock(side_effect=[True, False])
     type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
-    sqs_controller.get_queue_url.return_value = "queue_url"
     sqs_controller.get_message.return_value = "raw_sqs_message"
     message_parser = Mock()
 
@@ -118,8 +125,7 @@ def test_handler_run_not_relevant():
 
     handler.run(graceful_exit)
 
-    sqs_controller.get_queue_url.assert_called_once()
-    sqs_controller.get_message.assert_called_once_with("queue_url")
+    sqs_controller.get_message.assert_called_once()
     message_parser.parse.assert_called_once_with("raw_sqs_message")
     message_filter.is_relevant.assert_called_once_with(sqs_message)
-    sqs_controller.delete_message.assert_called_once_with("queue_url", sqs_message)
+    sqs_controller.delete_message.assert_called_once_with(sqs_message)

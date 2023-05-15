@@ -2,10 +2,20 @@ from datetime import datetime
 from unittest.mock import Mock, call
 
 import pytest
+from pytz import UTC
 
+from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
-from healthcheck.model import VideoArtifact
+
+common_video_attributes = {
+    "recorder": RecorderType.TRAINING,
+    "timestamp": datetime.now(tz=UTC),
+    "end_timestamp": datetime.now(tz=UTC),
+    "upload_timing": TimeWindow(
+        start=datetime.now(tz=UTC),
+        end=datetime.now(tz=UTC))
+}
 
 
 @pytest.mark.unit
@@ -16,8 +26,7 @@ class TestTrainingrecorderArtifactChecker:
                 tenant_id="my_tenant1",
                 device_id="my_device1",
                 stream_name="my_stream1_TrainingRecorder",
-                footage_from=datetime.now(),
-                footage_to=datetime.now()
+                **common_video_attributes
             )
         ),
         (
@@ -25,8 +34,7 @@ class TestTrainingrecorderArtifactChecker:
                 tenant_id="my_tenant2",
                 device_id="my_device2",
                 stream_name="my_stream2_TrainingRecorder",
-                footage_from=datetime.now(),
-                footage_to=datetime.now()
+                **common_video_attributes
             )
         )
     ])

@@ -7,6 +7,7 @@ moto[s3,sqs] == 4.1.4
 
 autopep8 == 2.0.2
 pylint == 2.17.0
+pylint-pydantic == 0.1.8
 pylint-quotes == 0.2.3
 mypy == 1.1.1
 bandit == 1.7.5

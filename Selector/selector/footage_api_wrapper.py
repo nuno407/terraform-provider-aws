@@ -2,24 +2,25 @@
 import json
 import logging
 
-import urllib3  # pylint: disable=wrong-import-order
-from selector.footage_api_token_manager import \
-    FootageApiTokenManager  # pylint: disable=wrong-import-order
-from urllib3 import Retry  # pylint: disable=wrong-import-order
+import urllib3
+from kink import inject
+from urllib3 import Retry
+
+from selector.footage_api_token_manager import FootageApiTokenManager
 
 _logger = logging.getLogger(__name__)
 
 
-class FootageApiWrapper():  # pylint: disable=too-few-public-methods
+@inject
+class FootageApiWrapper:  # pylint: disable=too-few-public-methods
     """ Contains all the operations related with the RCC Footage API. """
 
-    def __init__(self, footage_api_url: str, footage_api_token_manager: FootageApiTokenManager):
-
+    def __init__(self,
+                 footage_api_url: str,
+                 footage_api_token_manager: FootageApiTokenManager):
         retries = Retry(total=3, backoff_factor=1, allowed_methods=["POST"], status_forcelist=[500])
         self.__http_client = urllib3.PoolManager(retries=retries)
-
         self.__footage_api_url = footage_api_url
-
         self.__footage_api_token_manager = footage_api_token_manager
 
     def request_recorder(self, recorder: str, device_id: str, from_timestamp: int, to_timestamp: int):

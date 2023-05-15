@@ -1,11 +1,12 @@
 """ Snapshot Parser module """
 import logging
+from datetime import timedelta
 from typing import Iterator
 
 from kink import inject
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import RecorderType, SnapshotArtifact
+from base.model.artifacts import RecorderType, SnapshotArtifact, TimeWindow
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import ArtifactException, InvalidMessageError
@@ -53,6 +54,18 @@ class SnapshotPreviewParser(IArtifactParser):  # pylint: disable=too-few-public-
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract device_id.")
 
+        # get upload finished timestamp
+        upload_finished = MessageParser.flatten_string_value(MessageParser.get_recursive_from_dict(
+            sqs_message.body,
+            "Message",
+            "timestamp",
+            default=None))
+        if upload_finished is None:
+            raise InvalidMessageError(
+                "Invalid message body. Cannot extract upload_finished timestamp.")
+        upload_timing = TimeWindow(upload_finished, upload_finished)  # type: ignore
+        upload_timing.start -= timedelta(hours=1)
+
         # get chunks
         chunks = MessageParser.get_recursive_from_dict(
             sqs_message.body,
@@ -77,6 +90,7 @@ class SnapshotPreviewParser(IArtifactParser):  # pylint: disable=too-few-public-
                                        device_id=device_id,
                                        uuid=chunk["uuid"],
                                        recorder=recorder_type,
-                                       timestamp=from_epoch_seconds_or_milliseconds(chunk["start_timestamp_ms"]))  # pylint: disable=line-too-long
+                                       timestamp=from_epoch_seconds_or_milliseconds(chunk["start_timestamp_ms"]),
+                                       upload_timing=upload_timing)  # pylint: disable=line-too-long
             except ArtifactException as err:
                 _logger.exception("Error parsing snapshot artifact: %s", err)

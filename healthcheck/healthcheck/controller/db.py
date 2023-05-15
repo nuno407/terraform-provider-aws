@@ -1,19 +1,20 @@
 # type: ignore
+# pylint: disable=line-too-long
 """database controller module."""
 from logging import Logger
 
 from jsonschema import ValidationError
 from kink import inject
 
+from base.model.artifacts import ImageBasedArtifact, SnapshotArtifact
 from healthcheck.database import DBCollection, INoSQLDBClient
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
-from healthcheck.model import Artifact, ArtifactType, DBDocument
 from healthcheck.schema.validator import DocumentValidator, Schema
 
 
 @inject
-class DatabaseController():
+class DatabaseController:
     """Healthcheck database controller."""
 
     def __init__(
@@ -26,7 +27,7 @@ class DatabaseController():
         self.__schema_validator = schema_validator
         self.__logger = logger
 
-    def __db_find_one_or_raise(self, artifact: Artifact, collection: DBCollection, query: dict) -> dict:
+    def __db_find_one_or_raise(self, artifact: ImageBasedArtifact, collection: DBCollection, query: dict) -> dict:
         """
         Executes a find query and returns the result, if only one entry was found.
         Args:
@@ -50,13 +51,13 @@ class DatabaseController():
                 artifact, f"More then one recordings document exist in collection {collection}")
         return docs[0]
 
-    def is_signals_doc_valid_or_raise(self, artifact: Artifact) -> list:
+    def is_signals_doc_valid_or_raise(self, artifact: ImageBasedArtifact) -> list:
         """
         Validate all signal documents for the specified recording.
         An exception is raised ifthe validaiton wasn't sucessfull.
 
         Args:
-            artifact (Artifact): The artifact to verify
+            artifact (ImageBasedArtifact): The artifact to verify
 
         Raises:
             FailDocumentValidation: If the validation fails or the query result was empty.
@@ -81,13 +82,13 @@ class DatabaseController():
 
         return docs
 
-    def is_recordings_doc_valid_or_raise(self, artifact: Artifact) -> dict:
+    def is_recordings_doc_valid_or_raise(self, artifact: ImageBasedArtifact) -> dict:
         """
         Validate the recording document for the specified video_id.
         An exception is raised if the validaiton wasn't sucessfull.
 
         Args:
-            artifact (Artifact): The artifact to verify
+            artifact (ImageBasedArtifact): The artifact to verify
 
         Raises:
             FailDocumentValidation: If the validation fails or the query result length is diferent then one.
@@ -99,7 +100,8 @@ class DatabaseController():
         doc = self.__db_find_one_or_raise(
             artifact, DBCollection.RECORDINGS, {"video_id": video_id})
 
-        schema = Schema.RECORDINGS_SNAPSHOT if artifact.artifact_type == ArtifactType.SNAPSHOT else Schema.RECORDINGS
+        schema = Schema.RECORDINGS_SNAPSHOT if isinstance(
+            artifact, SnapshotArtifact) else Schema.RECORDINGS
         try:
             self.__schema_validator.validate_document(doc, schema)
         except ValidationError as err:
@@ -108,19 +110,20 @@ class DatabaseController():
 
         return doc
 
-    def is_pipeline_execution_and_algorithm_output_doc_valid_or_raise(self, artifact: Artifact) -> list:
+    def is_pipeline_execution_and_algorithm_output_doc_valid_or_raise(self, artifact: ImageBasedArtifact) -> list:
         """
         Validate the pipeline_execution and algorithm_output collection for the specified video_id.
-        It will look for the processing stepsthat should be made in pipeline_execution and search for
-        the output of those in algorithm_output collection.
+        It will look for the processing stepsthat should be made in pipeline_execution
+        and search for the output of those in algorithm_output collection.
 
         An exception is raised if the validaiton wasn't sucessfull.
 
         Args:
-            artifact (Artifact): The artifact to be used on the query.
+            artifact (ImageBasedArtifact): The artifact to be used on the query.
 
         Raises:
-            FailDocumentValidation: If the validation fails or the number of documents does not macth the expected.
+            FailDocumentValidation: If the validation fails or the number of documents
+                                    does not macth the expected.
 
         Returns:
             dict: The result of the algorithm_output collection.
@@ -164,21 +167,10 @@ class DatabaseController():
 
         return docs_output
 
-    def update_artifact_timestamps(self, artifact: Artifact, document: DBDocument) -> None:
-        """Synchronize artifact timestamps with the Kinesis values extracting the new values from the document ID
-
-        Args:
-            artifact (Artifact): the current artifact being verified
-            document (DBDocument): db document retrieved with internal_message_reference_id
-        """
-        video_id = document["video_id"]
-        self.__logger.debug("kinesis sync - updating timestamps for artifact")
-        artifact.update_timestamps(video_id)
-        self.__logger.debug("kinesis sync - done")
-
-    def is_data_status_complete_or_raise(self, artifact: Artifact) -> None:
-        """checks if db entry exists in recordings collection for computed hash 'internal_message_reference_id'
-        and if associated 'data_status' in the pipeline-execution is set to complete
+    def is_data_status_complete_or_raise(self, artifact: ImageBasedArtifact) -> None:
+        """checks if db entry exists in recordings collection for computed hash
+        'devcloudid' and if associated 'data_status' in
+        the pipeline-execution is set to complete
 
         Args:
             artifact (Artifact): artifact that is being verified
@@ -188,22 +180,18 @@ class DatabaseController():
             NotPresentError: means there's an error with this artifact since recording was found but
                 pipeline-execution was not found
         """
-        internal_hash = artifact.internal_message_reference_id
+        internal_hash = artifact.devcloudid
         self.__logger.debug(
-            "Searching for 'internal_message_reference_id' HASH >>> %s", internal_hash)
+            "Searching for 'devcloudid' HASH >>> %s", internal_hash)
 
         docs = self.__db_client.find_many(DBCollection.RECORDINGS, {
-            "recording_overview.internal_message_reference_id": internal_hash
+            "recording_overview.devcloudid": internal_hash
         })
         if len(docs) == 0:
             raise NotYetIngestedError(
-                artifact, "Unable to find 'internal_message_reference_id'")
+                artifact, "Unable to find 'devcloudid'")
 
         recording_doc = docs[0]
-
-        # we must update the timestamps coming from SQS
-        # because they're changed by SDR to synchronize with Kinesis
-        self.update_artifact_timestamps(artifact, recording_doc)
 
         video_id = recording_doc["video_id"]
 

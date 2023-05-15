@@ -1,13 +1,13 @@
 """ Unit tests for the artifact parser. """
 from datetime import datetime
 from unittest.mock import Mock, call
-from pytz import UTC
 
 import pytest
+from pytz import UTC
 
 from base.aws.model import MessageAttributes, SQSMessage
 from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  VideoArtifact)
+                                  TimeWindow, VideoArtifact)
 from sanitizer.artifact.artifact_parser import ArtifactParser
 
 
@@ -25,7 +25,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                         "properties": {
                             "recorder_name": "TrainingMultiSnapshot"
                         }
-                    }
+                    },
+                    "timestamp": "2022-12-18T07:37:07.842030994Z"
                 }
             },
             timestamp="123456",
@@ -38,14 +39,20 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="datanauts",
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
-                timestamp=datetime.now(tz=UTC)
+                timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             ),
             SnapshotArtifact(
                 uuid="foo2",
                 tenant_id="datanauts",
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
-                timestamp=datetime.now(tz=UTC)
+                timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             )
         ]
     ),
@@ -74,7 +81,10 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant_id="datanauts",
                 recorder=RecorderType.INTERIOR_PREVIEW,
                 device_id="DEV01",
-                timestamp=datetime.now(tz=UTC)
+                timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             )
         ]
     ),
@@ -104,6 +114,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 recorder=RecorderType.INTERIOR,
                 timestamp=datetime.now(tz=UTC),
                 end_timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             )
         ]
     ),
@@ -133,6 +146,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 recorder=RecorderType.TRAINING,
                 timestamp=datetime.now(tz=UTC),
                 end_timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             )
         ]
     ),
@@ -162,6 +178,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 recorder=RecorderType.FRONT,
                 timestamp=datetime.now(tz=UTC),
                 end_timestamp=datetime.now(tz=UTC),
+                upload_timing=TimeWindow(
+                    start="2022-12-18T07:37:07.842030994Z",
+                    end="2022-12-18T07:37:07.842030994Z")
             )
         ]
     )

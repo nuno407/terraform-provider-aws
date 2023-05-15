@@ -6,7 +6,8 @@ from typing import Optional
 from kink import inject
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from base.aws.sqs import SQSController, SQSMessage
+from base.aws.model import SQSMessage
+from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
@@ -30,11 +31,8 @@ class Handler:  # pylint: disable=too-few-public-methods
     @inject
     def run(self, graceful_exit: GracefulExit):
         """retrieves incoming messages, parses them and forwards them to the next step"""
-        queue_url = self.aws_sqs.get_queue_url()
-        _logger.info("SQS queue url: %s", queue_url)
-
         while graceful_exit.continue_running:
-            raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs.get_message(queue_url)
+            raw_sqs_message: Optional[MessageTypeDef] = self.aws_sqs.get_message()
             _logger.debug("receveid raw message %s", raw_sqs_message)
             if raw_sqs_message is None:
                 continue
@@ -42,19 +40,19 @@ class Handler:  # pylint: disable=too-few-public-methods
             try:
                 message: SQSMessage = self.message.parser.parse(raw_sqs_message)
                 _logger.debug("parsed message %s", message)
-                self._process_message(message, queue_url)
+                self._process_message(message)
             except MessageException as err:
                 _logger.exception("SKIP: Unable to parse message -> %s", err)
                 continue
 
-    def _process_message(self, message: SQSMessage, queue_url: str):
+    def _process_message(self, message: SQSMessage):
         """processes a single message to artifacts and publishes them"""
         is_relevant = self.message.filter.is_relevant(message)
         if not is_relevant:
             _logger.info("SKIP: message is irrelevant - message_id=%s: tenant=%s",
                          message.message_id,
                          message.attributes.tenant)
-            self.aws_sqs.delete_message(queue_url, message)
+            self.aws_sqs.delete_message(message)
             return
 
         self.message.persistence.save(message)
@@ -69,6 +67,13 @@ class Handler:  # pylint: disable=too-few-public-methods
 
                     is_relevant = self.artifact.filter.is_relevant(artifact)
                     if is_relevant:
+                        # TRAINING and INTERIOR video artifacts should inject metadata artifacts
+                        # before publishing them, in the future we might want to parse RCC messages
+                        # instead of injecting those artifacts
+                        injected_artifacts = self.artifact.injector.inject(artifact)
+                        for injected in injected_artifacts:
+                            self.artifact.forwarder.publish(injected)
+
                         self.artifact.forwarder.publish(artifact)
                     else:
                         _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
@@ -78,4 +83,4 @@ class Handler:  # pylint: disable=too-few-public-methods
                     _logger.warning("SKIP: Unable to publish artifact -> %s", err)
         except ArtifactException as err:
             _logger.warning("SKIP: Unable to parse artifacts -> %s", err)
-        self.aws_sqs.delete_message(queue_url, message)
+        self.aws_sqs.delete_message(message)

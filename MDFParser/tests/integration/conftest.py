@@ -1,23 +1,23 @@
-from typing import Generator, Any
-from moto import mock_s3, mock_sqs
-import pytest
-import os
-import boto3
 import json
-from base.aws.container_services import ContainerServices
-from mypy_boto3_s3 import S3Client
-from mypy_boto3_sqs import SQSClient
+import os
+from typing import Any, Generator
 
+import boto3
+import pytest
 from mdfparser.config import MdfParserConfig
 from mdfparser.consumer import Consumer
 from mdfparser.imu.downloader import IMUDownloader
 from mdfparser.imu.handler import IMUHandler
 from mdfparser.imu.transformer import IMUTransformer
 from mdfparser.imu.uploader import IMUUploader
+from mdfparser.interfaces.artifact_adapter import ArtifactAdapter
 from mdfparser.metadata.downloader import MetadataDownloader
 from mdfparser.metadata.handler import MetadataHandler
 from mdfparser.metadata.synchronizer import Synchronizer
 from mdfparser.metadata.uploader import MetadataUploader
+from moto import mock_s3, mock_sqs
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_sqs import SQSClient
 
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
@@ -31,16 +31,14 @@ from base.ride_detection_people_count_after import RideDetectionPeopleCountAfter
 from base.sum_door_closed import SumDoorClosed
 from base.variance_person_count import VariancePersonCount
 
-from mdfparser.config import MdfParserConfig
-from mypy_boto3_s3 import S3Client
-from mypy_boto3_sqs import SQSClient
-
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 S3_DATA = os.path.join(CURRENT_LOCATION, "data", "s3_data")
 SQS_MESSAGES = os.path.join(CURRENT_LOCATION, "data", "sqs_messages")
-AWS_CONFIG_PATH = os.path.join(CURRENT_LOCATION, "data", "config", "aws_config.yaml")
-MDFP_CONFIG_PATH = os.path.join(CURRENT_LOCATION, "data", "config", "mdfp_config.yaml")
+AWS_CONFIG_PATH = os.path.join(
+    CURRENT_LOCATION, "data", "config", "aws_config.yaml")
+MDFP_CONFIG_PATH = os.path.join(
+    CURRENT_LOCATION, "data", "config", "mdfp_config.yaml")
 REGION_NAME = "us-east-1"
 
 
@@ -69,7 +67,8 @@ def dev_output_bucket() -> str:
 
 
 @pytest.fixture(scope="function")
-def moto_s3_client(dev_input_bucket: str, dev_output_bucket: str) -> Generator[S3Client, None, None]:
+def moto_s3_client(dev_input_bucket: str,
+                   dev_output_bucket: str) -> Generator[S3Client, None, None]:
     """
 
     Returns:
@@ -107,7 +106,8 @@ def moto_sqs_client() -> Generator[SQSClient, None, None]:
         Mock: mocked S3 client
     """
     with mock_sqs():
-        # moto only accepts us-east-1 https://github.com/spulec/moto/issues/3292#issuecomment-718116897
+        # moto only accepts us-east-1
+        # https://github.com/spulec/moto/issues/3292#issuecomment-718116897
         moto_client = boto3.client("sqs", region_name=REGION_NAME)
         yield moto_client
 
@@ -135,17 +135,28 @@ def mdf_parser_config() -> MdfParserConfig:
 
 
 @pytest.fixture()
-def consumer_mocks(moto_sqs_client: SQSClient, moto_s3_client: S3Client,
-                   mdf_parser_config: MdfParserConfig) -> tuple[Consumer, SQSClient, S3Client]:
+def message_adapter() -> ArtifactAdapter:
+    return ArtifactAdapter()
+
+
+@pytest.fixture()
+def consumer_mocks(moto_sqs_client: SQSClient,
+                   moto_s3_client: S3Client,
+                   mdf_parser_config: MdfParserConfig,
+                   message_adapter: ArtifactAdapter) -> tuple[Consumer,
+                                                              SQSClient,
+                                                              S3Client]:
     os.environ["REGION_NAME"] = REGION_NAME
     os.environ["AWS_CONFIG"] = AWS_CONFIG_PATH
 
-    container_services = ContainerServices(container="MDFParser", version="test_version")
+    container_services = ContainerServices(
+        container="MDFParser", version="test_version")
 
     imu_downloader = IMUDownloader(container_services, moto_s3_client)
     imu_uploader = IMUUploader(container_services, moto_s3_client)
     imu_transformer = IMUTransformer()
-    imu_handler = IMUHandler(imu_downloader, imu_uploader, imu_transformer, mdf_parser_config)
+    imu_handler = IMUHandler(imu_downloader, imu_uploader,
+                             imu_transformer, mdf_parser_config)
 
     processor_list = [
         ChcCounter(),
@@ -160,15 +171,18 @@ def consumer_mocks(moto_sqs_client: SQSClient, moto_s3_client: S3Client,
         SumDoorClosed()
     ]
 
-    metadata_downloader = MetadataDownloader(container_services, moto_s3_client)
+    metadata_downloader = MetadataDownloader(
+        container_services, moto_s3_client)
     metadata_uploader = MetadataUploader(container_services, moto_s3_client)
     metadata_sync = Synchronizer()
-    metadata_handler = MetadataHandler(metadata_downloader, metadata_uploader, metadata_sync, processor_list)
+    metadata_handler = MetadataHandler(
+        metadata_downloader, metadata_uploader, metadata_sync, processor_list)
 
     consumer = Consumer(
         container_services,
         [metadata_handler, imu_handler],
         mdf_parser_config,
+        message_adapter,
         moto_sqs_client)
 
     return consumer, moto_sqs_client, moto_s3_client

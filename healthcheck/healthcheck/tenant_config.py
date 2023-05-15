@@ -38,7 +38,8 @@ class TenantConfig():
             for attribute in fields(TenantConfig):
                 # Dynamically create objects from complex types
                 config_attribute_fields = [f.name for f in fields(attribute.type)]
-                config_params = {key: value for key, value in config.get(attribute.name, {}).items() if
+                config_params = {key: value for key, value in
+                                 config.get(attribute.name, {}).items() if
                                  key in config_attribute_fields}
                 config_objects[attribute.name] = attribute.type(**config_params)
 

@@ -1,101 +1,59 @@
 """ Selector Tests. """
-import json
-from unittest import mock
+from datetime import datetime, timedelta
+from unittest.mock import Mock, PropertyMock, call, patch
 
 import pytest
+from pytz import UTC
+
+from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
 from selector.selector import Selector
 
 
 @pytest.mark.unit
-class TestSelector():
+class TestSelector():  # pylint: disable=too-few-public-methods
     """ Tests on Selector Component. """
 
-    @mock.patch("base.aws.container_services.ContainerServices", autospec=True)
-    def test_correct_call_of_footage_api_handle_hq_queue(self, mock_container_services):
-        """ Tests handle_hq_queue message handler. """
-        # GIVEN
-        mock_footage_api_wrapper = mock.Mock()
-        mock_footage_api_wrapper.request_recorder = mock.Mock()
-        selector = Selector(None, mock_container_services, mock_footage_api_wrapper, "super_special_queue")
-        body = {
-            "deviceId": "my_device_id",
-            "footageFrom": 1234567,
-            "footageTo": 1234569
-        }
-        message = {
-            "Body": json.dumps(body).replace("\"", "'"),
-            "ReceiptHandle": "receipt_handle"
-        }
+    @patch("selector.selector.parse_artifact")
+    def test_correct_footage_api_call_success(self, parse_artifact_mock: Mock):
+        """Tests that the footage api is called correctly"""
+        footage_api_wrapper = Mock()
+        footage_api_wrapper.request_recorder = Mock()
 
-        mock_container_services.get_single_message_from_input_queue.return_value = message
-        mock_container_services.get_message_body.return_value = body
+        sqs_controller = Mock()
+        sqs_controller.get_queue_url.return_value = "queue_url"
+        sqs_controller.delete_message = Mock(return_value=None)
 
-        # WHEN
-        selector.handle_hq_queue()
+        video_artifact = VideoArtifact(
+            tenant_id="tenant1",
+            device_id="device1",
+            recorder=RecorderType.TRAINING,
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
+            stream_name="stream1",
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC) - timedelta(hours=1),
+                end=datetime.now(tz=UTC))
+        )
+        message = {"ReceiptHandle": "1234", "Body": video_artifact.stringify()}
+        sqs_controller.get_message.return_value = message
+        parse_artifact_mock.return_value = video_artifact
 
-        # THEN
-        mock_container_services.get_single_message_from_input_queue.assert_called_once()
-        mock_container_services.delete_message.assert_called_once_with(None, "receipt_handle", "super_special_queue")
-        mock_footage_api_wrapper.request_recorder.assert_has_calls([
-            mock.call("TRAINING", "my_device_id", 1234567, 1234569),
-            mock.call("TRAINING_MULTI_SNAPSHOT", "my_device_id", 1234567, 1234569)
+        graceful_exit = Mock()
+        type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
+
+        selector = Selector(
+            footage_api_wrapper,
+            sqs_controller
+        )
+
+        from_timestamp = int(video_artifact.timestamp.timestamp() * 1000)
+        to_timestamp = int(video_artifact.end_timestamp.timestamp() * 1000)
+
+        selector.run(graceful_exit)
+
+        parse_artifact_mock.assert_called_once()
+        footage_api_wrapper.request_recorder.assert_has_calls([
+            call("TRAINING", video_artifact.device_id, from_timestamp, to_timestamp),
+            call("TRAINING_MULTI_SNAPSHOT", video_artifact.device_id, from_timestamp, to_timestamp)
         ])
-
-    @mock.patch("base.aws.container_services.ContainerServices", autospec=True)
-    def test_incorrect_call_of_process_hq_message_trainingrecorder(self, mock_container_services):
-        """ Tests handle_hq_queue and __process_hq_message logic. Should not delete message when request fails """
-        # GIVEN
-        mock_footage_api_wrapper = mock.Mock()
-        mock_footage_api_wrapper.request_recorder = mock.Mock(
-            side_effect=RuntimeError)  # simulate request fail with raising runtime error
-        selector = Selector(None, mock_container_services, mock_footage_api_wrapper, "super_special_queue")
-        body = {
-            "deviceId": "my_device_id",
-            "footageFrom": 1234567,
-            "footageTo": 1234569
-        }
-        message = {
-            "Body": json.dumps(body).replace("\"", "'"),
-            "ReceiptHandle": "receipt_handle"
-        }
-
-        mock_container_services.get_single_message_from_input_queue.return_value = message
-        mock_container_services.get_message_body.return_value = body
-
-        # WHEN
-        selector.handle_hq_queue()
-        # THEN
-        mock_container_services.get_single_message_from_input_queue.assert_called_once()
-        mock_container_services.delete_message.assert_not_called()
-        mock_footage_api_wrapper.request_recorder.assert_called_with("TRAINING", "my_device_id", 1234567, 1234569)
-
-    @mock.patch("base.aws.container_services.ContainerServices", autospec=True)
-    def test_incorrect_call_of_process_hq_message_trainingmultishapshot(self, mock_container_services):
-        """ Tests handle_hq_queue and __process_hq_message logic. Should not delete message when request fails """
-        # GIVEN
-        mock_footage_api_wrapper = mock.Mock()
-        mock_footage_api_wrapper.request_recorder = mock.Mock(
-            side_effect=[200, RuntimeError])  # simulate request fail with raising runtime error
-        selector = Selector(None, mock_container_services, mock_footage_api_wrapper, "super_special_queue")
-        body = {
-            "deviceId": "my_device_id",
-            "footageFrom": 1661857124820,
-            "footageTo": 16618519856821
-        }
-        message = {
-            "Body": json.dumps(body).replace("\"", "'"),
-            "ReceiptHandle": "receipt_handle"
-        }
-
-        mock_container_services.get_single_message_from_input_queue.return_value = message
-        mock_container_services.get_message_body.return_value = body
-
-        # WHEN
-        selector.handle_hq_queue()
-        # THEN
-        mock_container_services.get_single_message_from_input_queue.assert_called_once()
-        mock_container_services.delete_message.assert_not_called()
-        mock_footage_api_wrapper.request_recorder.assert_has_calls([
-            mock.call("TRAINING", "my_device_id", 1661857124820, 16618519856821),
-            mock.call("TRAINING_MULTI_SNAPSHOT", "my_device_id", 1661857124820, 16618519856821)
-        ])
+        sqs_controller.delete_message.assert_called_once_with(message)

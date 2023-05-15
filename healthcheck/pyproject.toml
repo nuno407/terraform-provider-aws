@@ -20,12 +20,12 @@ diff = true
 recursive = true
 load-plugins = [
     "pylint_quotes",
+    "pylint_pydantic",
 ]
 
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
 ignore-patterns="(.)*_test\\.py,test_(.)*\\.py,conftest.py"
-
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
@@ -36,6 +36,8 @@ disable = """
     too-many-arguments,
     no-value-for-parameter
 """
+
+extension-pkg-whitelist = "pydantic"
 
 [tool.pylint.pylint_quotes]
 string-quote = "double"

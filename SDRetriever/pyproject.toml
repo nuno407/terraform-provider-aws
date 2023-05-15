@@ -41,10 +41,11 @@ files = [
     "sdretriever/**/*.py",
     "tests/**/*.py"
 ]
+mypy_path = [
+    "../base",
+    "sdretriever"
+]
 # mypy per-module options:
-[[tool.mypy.overrides]]
-module = "base.*"
-ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "setuptools"
 ignore_missing_imports = true

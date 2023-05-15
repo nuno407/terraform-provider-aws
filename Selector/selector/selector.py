@@ -1,40 +1,46 @@
 """ Selector component bussiness logic. """
 import logging
 
+from kink import inject
+from mypy_boto3_sqs.type_defs import MessageTypeDef
+
+from base.aws.sqs import SQSController
+from base.graceful_exit import GracefulExit
+from base.model.artifacts import parse_artifact
 from selector.footage_api_wrapper import FootageApiWrapper
 
 _logger = logging.getLogger(__name__)
 
 
-class Selector():
+@inject
+class Selector:
     """ Class responsible by containing all bussiness logic used in in the Selector component. """
 
-    def __init__(self, sqs_client, container_services, footage_api_wrapper: FootageApiWrapper, hq_queue_name: str):
-        self.__sqs_client = sqs_client
-        self.__container_services = container_services
-
-        # Define additional input SQS queues to listen to
-        # (container_services.input_queue is the default queue
-        # and doesn"t need to be declared here)
-        self.__hq_queue = hq_queue_name
-
+    def __init__(self,
+                 footage_api_wrapper: FootageApiWrapper,
+                 sqs_controller: SQSController):
+        self.__sqs_controller = sqs_controller
         self.footage_api_wrapper = footage_api_wrapper
 
-    def handle_hq_queue(self):
+    @inject
+    def run(self, graceful_exit: GracefulExit) -> None:
+        """ Function responsible for running the component (component entrypoint). """
+        _logger.info("Starting Selector..")
+
+        while graceful_exit.continue_running:
+            message = self.__sqs_controller.get_message()
+            if not message:
+                continue
+            self.handle_hq_queue(message)
+
+    def handle_hq_queue(self, message: MessageTypeDef):
         """ Function responsible for processing messages from SQS (component entrypoint). """
-        # Check input SQS queue for new messages
-        message = self.__container_services.get_single_message_from_input_queue(self.__sqs_client, self.__hq_queue)
+        _logger.info("handling message -> %s", message)
+        success = self.__process_hq_message(message)
+        if success:
+            self.__sqs_controller.delete_message(message)
 
-        if message:
-            # save some messages as examples for development
-            self.log_message(message, "selector HQ")
-            # Processing request
-            success = self.__process_hq_message(message)
-            if success:
-                # Delete message after processing
-                self.__container_services.delete_message(self.__sqs_client, message["ReceiptHandle"], self.__hq_queue)
-
-    def __process_hq_message(self, message: str) -> bool:
+    def __process_hq_message(self, message: MessageTypeDef) -> bool:
         """Logic to call the footage upload request
 
         Args:
@@ -43,32 +49,24 @@ class Selector():
         Returns:
             bool: Boolean indicating if the request succeeded.
         """
-        message_body = self.__container_services.get_message_body(message)
+        message_body = message["Body"]
         _logger.info("Processing HQ pipeline message..\n%s", message_body)
 
-        # Picking Device Id from header
-        if all(prop in message_body for prop in ("deviceId", "footageFrom", "footageTo")):
-            device_id = message_body["deviceId"]
-            from_timestamp = message_body["footageFrom"]
-            to_timestamp = message_body["footageTo"]
-            try:
-                self.footage_api_wrapper.request_recorder("TRAINING", device_id, from_timestamp, to_timestamp)
-                self.footage_api_wrapper.request_recorder(
-                    "TRAINING_MULTI_SNAPSHOT", device_id, from_timestamp, to_timestamp)
-                return True
-            except Exception as error:  # pylint: disable=broad-except
-                _logger.error("Unexpected error occured when requesting footage: %s", error)
-                return False
-        else:
-            _logger.info("Not a valid Message")
+        video_artifact = parse_artifact(message_body)
+
+        device_id = video_artifact.device_id
+        from_timestamp = int(video_artifact.timestamp.timestamp() * 1000)
+        to_timestamp = int(video_artifact.end_timestamp.timestamp() * 1000)
+        try:
+            self.footage_api_wrapper.request_recorder("TRAINING",
+                                                      device_id,
+                                                      from_timestamp,
+                                                      to_timestamp)
+            self.footage_api_wrapper.request_recorder("TRAINING_MULTI_SNAPSHOT",
+                                                      device_id,
+                                                      from_timestamp,
+                                                      to_timestamp)
+            return True
+        except Exception as error:  # pylint: disable=broad-except
+            _logger.error("Unexpected error occured when requesting footage: %s", error)
             return False
-
-    def log_message(self, message, queue="selector"):
-        """Logs messages
-
-        Args:
-            message (str): Message to be logged
-            queue (str, optional): Queue where the message came from. Defaults to "selector".
-        """
-        _logger.info("Message contents from %s:\n", queue)
-        _logger.info(message)

@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch, call
 
 import pytest
 
-from healthcheck.bootstrap import EnvironmentParams, bootstrap_di, get_environment
+from healthcheck.bootstrap import EnvironmentParams, get_environment
 
 
 @pytest.mark.unit

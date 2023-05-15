@@ -1,9 +1,11 @@
 """Integration test module for interior recorder."""
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
+from pytz import UTC
 
+from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.controller.db import DatabaseController
@@ -12,7 +14,6 @@ from healthcheck.exceptions import (AnonymizedFileNotPresent,
                                     FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError, RawFileNotPresent,
                                     VoxelEntryNotPresent)
-from healthcheck.model import VideoArtifact
 from healthcheck.s3_utils import S3Utils
 
 CURRENT_LOCATION = os.path.realpath(
@@ -137,8 +138,12 @@ class TestTrainingRecorderArtifactChecker:
             tenant_id=tenant_id,
             device_id=device_id,
             stream_name=stream_name,
-            footage_from=datetime.fromtimestamp(footage_from / 1000.0),
-            footage_to=datetime.fromtimestamp(footage_to / 1000.0))
+            recorder=RecorderType.TRAINING,
+            timestamp=datetime.fromtimestamp(footage_from / 1000.0, tz=UTC),
+            end_timestamp=datetime.fromtimestamp(footage_to / 1000.0, tz=UTC),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC) - timedelta(hours=1),
+                end=datetime.now(tz=UTC)))
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:

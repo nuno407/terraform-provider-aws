@@ -2,8 +2,8 @@
 import logging
 from datetime import datetime
 
-import fiftyone as fo
-from fiftyone import ViewField as F
+import fiftyone as fo  # type: ignore
+from fiftyone import ViewField as F  # type: ignore
 
 _logger = logging.getLogger(__name__)
 

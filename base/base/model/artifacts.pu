@@ -1,0 +1,129 @@
+@startuml artifacts
+!theme mars
+skinparam linetype curved
+skinparam nodesep 100
+skinparam ranksep 100
+set separator none
+top to bottom direction
+
+skinparam package<<Layout>> {
+  borderColor Transparent
+  backgroundColor Transparent
+}
+<style>
+.Layout {
+  fontColor Transparent
+  stereotypeFontColor Transparent
+}
+.baseStyle {
+LineThickness 2.5
+BackgroundColor #D0D0D0
+}
+</style>
+
+title Artifacts Model - Class Diagram
+
+package base.model.artifacts {
+
+class TimeWindow {
+  +start: datetime
+  +end: datetime
+}
+enum RecorderType {
+  FrontRecorder: FRONT
+  InteriorRecorder: INTERIOR
+  InteriorRecorderPreview: INTERIOR_PREVIEW
+  TrainingRecorder: TRAINING
+  SnapshotRecorder: SNAPSHOT
+}
+enum MetadataType {
+  IMU: IMU
+  metadata_full: SIGNALS
+}
+
+package core <<Layout>> {
+class Artifact <<baseStyle>> {
+  +tenant_id: str
+  +device_id: str
+  + s3_path: str?
+  --
+  +{abstract} artifact_id: str
+  +devcloudid: str
+  --
+  +stringify(): str
+}
+hide <<baseStyle>> stereotype
+note "filled by SDRetriever" as N1
+note "filled by SDRetriever" as N3
+N1 .right. Artifact::s3_path
+
+
+class ImageBasedArtifact {
+  +resolution: Resolution?
+  +recorder: RecorderType
+  +timestamp: datetime
+  +upload_timing: TimeWindow
+}
+
+N1 .. ImageBasedArtifact::resolution
+ImageBasedArtifact::upload_timing *-- TimeWindow
+ImageBasedArtifact::recorder *-- RecorderType
+
+Artifact <|-down- ImageBasedArtifact
+
+class VideoArtifact {
+  +stream_name: str
+  +end_timestamp: datetime
+  +actual_duration: float?
+  +actual_timestamp: datetime?
+  +actual_end_timestamp: datetime?
+  --
+  +duration: float
+  +artifact_id: str
+}
+N3 .right. VideoArtifact::actual_duration
+N3 .right. VideoArtifact::actual_timestamp
+N3 .right. VideoArtifact::actual_end_timestamp
+
+ImageBasedArtifact <|-- VideoArtifact
+
+
+class SnapshotArtifact {
+  +uuid: str
+  --
+  +artifact_id: str
+}
+
+ImageBasedArtifact <|-- SnapshotArtifact
+'VideoArtifact -[hidden]right- SnapshotArtifact
+
+class MetadataArtifact {
+  +referred_artifact: ImageBasedArtifact
+  +metadata_type: MetadataType
+  --
+  +artifact_id: str
+}
+
+Artifact <|-- MetadataArtifact
+
+
+MetadataArtifact *-r- MetadataType::metadata_type
+ImageBasedArtifact -[hidden]l- MetadataArtifact
+
+class SignalsArtifact
+MetadataArtifact <|-- SignalsArtifact
+class IMUArtifact
+MetadataArtifact <|-- IMUArtifact
+IMUArtifact -[hidden]r- N3
+
+}
+hide <<Layout>> stereotype
+
+
+class module << (m,orchid) >> {
+  +parse_artifact(json_data: Union[str, dict]): Artifact
+}
+VideoArtifact -[hidden]down- module
+
+}
+@enduml

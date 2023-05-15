@@ -44,7 +44,9 @@
 				"matangover.mypy",
 				"elagil.pre-commit-helper",
 				"ms-python.python",
-				"ms-python.pylint"
+				"ms-python.pylint",
+				"ms-python.isort",
+				"jebbs.plantuml"
 			]
 		}
 	}

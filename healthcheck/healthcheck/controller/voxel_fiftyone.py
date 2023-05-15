@@ -1,16 +1,17 @@
 # type: ignore
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, no-value-for-parameter, line-too-long
 """voxel 51 healthcheck controller module."""
 from kink import inject
 
+from base.model.artifacts import Artifact, RecorderType
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
-from healthcheck.model import Artifact, ArtifactType, S3Params
+from healthcheck.model import S3Params
 from healthcheck.voxel_client import VoxelEntriesGetter
 from healthcheck.tenant_config import DatasetMappingConfig
 
 
 @inject
-class VoxelFiftyOneController():
+class VoxelFiftyOneController:
     """Voxel fiftyone controller class."""
 
     def __init__(self,
@@ -32,7 +33,7 @@ class VoxelFiftyOneController():
         return f"{tenant_name}/{file_key}"
 
     @inject
-    def _determine_dataset_name(self, tenant_id: str, artifact_type: ArtifactType,
+    def _determine_dataset_name(self, tenant_id: str, recorder_type: RecorderType,
                                 mapping_config: DatasetMappingConfig):
         """
         Checks in config if tenant gets its own dataset or if it is part of the default dataset.
@@ -41,7 +42,7 @@ class VoxelFiftyOneController():
 
         Args:
             tenant_id (str): Name of the tenant
-            artifact_type (ArtifactType): Either video or snapshot
+            artifact_type (RecorderType): Either video or snapshot
             mapping_config (DatasetMappingConfig): Config with mapping information about the tenants
 
         Returns:
@@ -54,7 +55,7 @@ class VoxelFiftyOneController():
         if tenant_id in mapping_config.create_dataset_for:
             dataset_name = f"{mapping_config.tag}-{tenant_id}"
 
-        if artifact_type == ArtifactType.SNAPSHOT:
+        if recorder_type == RecorderType.SNAPSHOT:
             dataset_name += "_snapshots"
 
         return dataset_name
@@ -74,10 +75,10 @@ class VoxelFiftyOneController():
         art_id = artifact.artifact_id
 
         extension = "mp4"
-        if artifact.artifact_type == ArtifactType.SNAPSHOT:
+        if artifact.recorder == RecorderType.SNAPSHOT:
             extension = "jpeg"
 
-        dataset = self._determine_dataset_name(artifact.tenant_id, artifact.artifact_type)
+        dataset = self._determine_dataset_name(artifact.tenant_id, artifact.recorder)
 
         def get_key():
             return f"{self._full_s3_path(artifact.tenant_id, art_id)}_anonymized.{extension}"
@@ -86,9 +87,7 @@ class VoxelFiftyOneController():
 
         entries = self.__voxel_client.get_num_entries(path, dataset)
         if entries == 0:
-            raise VoxelEntryNotPresent(
-                artifact, f"Voxel entry for file path {path} does not exist in {dataset}")
+            raise VoxelEntryNotPresent(artifact, f"Voxel entry for file path {path} does not exist in {dataset}")
         if entries > 1:
             msg = f"Multiple voxel entries ({entries}) found for file path {path}"
-            raise VoxelEntryNotUnique(
-                artifact, msg)
+            raise VoxelEntryNotUnique(artifact, msg)

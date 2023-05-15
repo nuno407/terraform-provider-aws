@@ -1,4 +1,4 @@
-# pylint: disable=no-self-argument
+# pylint: disable=no-self-argument, line-too-long
 """ Artifact model. """
 import hashlib
 import json
@@ -6,9 +6,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Union
+from typing import Literal, Optional, Union
 
-from pydantic import parse_raw_as, validator
+from pydantic import Field, parse_raw_as, parse_obj_as, validator
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 
@@ -24,13 +24,42 @@ class RecorderType(Enum):
     SNAPSHOT = "TrainingMultiSnapshot"
 
 
+class MetadataType(str, Enum):
+    """ metadata type enumerator """
+    SIGNALS = "metadata_full"
+    IMU = "IMU"
+
+
+@dataclass
+class Resolution:
+    """Resolution"""
+    width: int
+    height: int
+
+
+@dataclass
+class TimeWindow:
+    """Defines a timezone aware time window in the past"""
+    start: datetime
+    end: datetime
+
+    @validator("start", "end")
+    def check_not_newer_than_now(cls, value: datetime) -> datetime:
+        """Validate timestamp"""
+        if value.tzinfo is None:
+            raise ValueError("timestamp must be timezone aware")
+        # check if timestamp is in the future
+        if value > datetime.now(tz=value.tzinfo):
+            raise ValueError("timestamp must be in the past")
+        return value
+
+
 @dataclass(config=dataclass_config)
 class Artifact(ABC):
     """Generic artifact"""
     tenant_id: str
     device_id: str
-    recorder: RecorderType
-    timestamp: datetime
+    s3_path: Optional[str] = Field(default=None)
 
     def stringify(self) -> str:
         """ stringifies the artifact. """
@@ -40,6 +69,27 @@ class Artifact(ABC):
     @abstractmethod
     def artifact_id(self) -> str:
         """Artifact ID."""
+
+    @validator("s3_path")
+    def check_s3_path(cls, value: Optional[str]) -> Optional[str]:
+        """Validates that s3_path starts with s3://"""
+        if value and not value.startswith("s3://"):
+            raise ValueError("s3_path must start with s3://")
+        return value
+
+    @property
+    def devcloudid(self) -> str:
+        """Compute hash for checking data completion"""
+        return hashlib.sha256(self.artifact_id.encode("utf-8")).hexdigest()
+
+
+@dataclass
+class ImageBasedArtifact(Artifact):
+    """Base class for image based artifacts"""
+    resolution: Optional[Resolution] = Field(default=None)
+    recorder: RecorderType = Field(default=...)
+    timestamp: datetime = Field(default=...)
+    upload_timing: TimeWindow = Field(default=...)
 
     @validator("timestamp")
     def check_timestamp(cls, value: datetime) -> datetime:
@@ -51,17 +101,16 @@ class Artifact(ABC):
             raise ValueError("timestamp must be in the past")
         return value
 
-    @property
-    def devcloudid(self) -> str:
-        """Compute hash for checking data completion"""
-        return hashlib.sha256(self.artifact_id.encode("utf-8")).hexdigest()
-
 
 @dataclass
-class VideoArtifact(Artifact):
+class VideoArtifact(ImageBasedArtifact):
     """Video artifact"""
-    stream_name: str
-    end_timestamp: datetime
+    stream_name: str = Field(default=...)
+    end_timestamp: datetime = Field(default=...)
+
+    actual_duration: Optional[float] = Field(default=None)
+    actual_timestamp: Optional[datetime] = Field(default=None)
+    actual_end_timestamp: Optional[datetime] = Field(default=None)
 
     @validator("recorder")
     def check_recorder(cls, value: RecorderType) -> RecorderType:
@@ -82,13 +131,13 @@ class VideoArtifact(Artifact):
 
     @property
     def artifact_id(self) -> str:
-        return f"{self.stream_name}_{int(self.timestamp.timestamp()*1000)}_{int(self.end_timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
+        return f"{self.stream_name}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
 
 
 @dataclass
-class SnapshotArtifact(Artifact):
+class SnapshotArtifact(ImageBasedArtifact):
     """Snapshot artifact"""
-    uuid: str
+    uuid: str = Field(default=...)
 
     @validator("recorder")
     def check_recorder(cls, value: RecorderType) -> RecorderType:
@@ -100,9 +149,37 @@ class SnapshotArtifact(Artifact):
     @property
     def artifact_id(self) -> str:
         uuid_without_ext = self.uuid.rstrip(Path(self.uuid).suffix)
-        return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{int(self.timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
+        return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{round(self.timestamp.timestamp()*1000)}"
 
 
-def parse_artifact(json_data: str) -> Artifact:
+@dataclass
+class MetadataArtifact(Artifact):
+    """ Metadata """
+    referred_artifact: Union[SnapshotArtifact, VideoArtifact] = Field(default=...)
+    metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS] = Field(default=...)
+
+    @property
+    def artifact_id(self) -> str:
+        """Artifact ID for metadata artifacts"""
+        return f"{self.referred_artifact.artifact_id}_{self.metadata_type.value}"
+
+
+@dataclass
+class IMUArtifact(MetadataArtifact):
+    """ IMU Artifact """
+    metadata_type: Literal[MetadataType.IMU] = MetadataType.IMU
+
+
+@dataclass
+class SignalsArtifact(MetadataArtifact):
+    """ Signals Artifact """
+    metadata_type: Literal[MetadataType.SIGNALS] = MetadataType.SIGNALS
+
+
+def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
-    return parse_raw_as(Union[VideoArtifact, SnapshotArtifact], json_data)  # type: ignore
+    if isinstance(json_data, dict):
+        return parse_obj_as(Union[VideoArtifact, SnapshotArtifact,
+                                  SignalsArtifact, IMUArtifact], json_data)  # type: ignore
+    return parse_raw_as(Union[VideoArtifact, SnapshotArtifact,
+                        SignalsArtifact, IMUArtifact], json_data)  # type: ignore

@@ -3,11 +3,14 @@ from unittest.mock import Mock
 
 import pytest
 from kink import di
+from pytz import UTC
 
+from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
+                                  VideoArtifact)
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
-from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
-from healthcheck.tenant_config import TenantConfig, DatasetMappingConfig
+from healthcheck.model import S3Params
+from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 
 
 @pytest.mark.unit
@@ -27,7 +30,11 @@ class TestVoxelFiftyOneController():
             tenant_id="test",
             device_id="test",
             uuid="test",
-            timestamp=datetime.now()
+            recorder=RecorderType.SNAPSHOT,
+            timestamp=datetime.now(tz=UTC),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC),
+                end=datetime.now(tz=UTC))
         )
 
     @pytest.fixture
@@ -36,8 +43,12 @@ class TestVoxelFiftyOneController():
             tenant_id="test",
             device_id="device-test",
             stream_name="stream-test",
-            footage_from=datetime.now(),
-            footage_to=datetime.now() + timedelta(seconds=100)
+            recorder=RecorderType.INTERIOR,
+            timestamp=datetime.now(tz=UTC) - timedelta(hours=1),
+            end_timestamp=datetime.now(tz=UTC) - timedelta(minutes=30),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC) - timedelta(hours=1),
+                end=datetime.now(tz=UTC) - timedelta(minutes=30))
         )
 
     @pytest.fixture(autouse=True)

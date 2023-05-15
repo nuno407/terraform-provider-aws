@@ -2,9 +2,11 @@
 import json
 import os
 from unittest.mock import Mock, PropertyMock, call, patch
+
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
+
 import metadata.consumer.main
 
 __location__ = os.path.realpath(
@@ -21,24 +23,9 @@ def _message_attributes() -> dict:
     }
 
 
-def _input_message_recording(folder) -> dict:
-    body = {
-        "_id": "ridecare_device_recording_1662080172308_1662080561893",
-        "MDF_available": "Yes",
-        "media_type": "video",
-        "s3_path": f"bucket/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
-        "footagefrom": 1662080172308,
-        "footageto": 1662080561893,
-        "tenant": "ridecare",
-        "deviceid": "device",
-        "length": "0:06:31",
-        "sync_file_ext": "_metadata_full.json",
-        "resolution": "640x360",
-        "internal_message_reference_id": "Hash_dummy"
-    }
-
+def _pack_message(body: dict) -> dict:
     message = {
-        "Body": json.dumps(body).replace("\"", "\""),
+        "Body": json.dumps(body).replace("\"", "\'"),
         "MessageAttributes": _message_attributes(),
         "ReceiptHandle": "receipt_handle"
     }
@@ -46,45 +33,48 @@ def _input_message_recording(folder) -> dict:
     return message
 
 
-def _input_message_snapshot_body_template() -> dict:
-    return {
-        "MDF_available": "Yes",
-        "media_type": "image",
-        "tenant": "ridecare",
-        "deviceid": "device",
-        "resolution": "640x360",
-        "internal_message_reference_id": "dummy_hash"
+def _input_message_recording(folder) -> dict:
+    body = {
+        "s3_path": f"s3://bucket/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
+        "timestamp": 1662080172308,
+        "end_timestamp": 1662080561893,
+        "actual_timestamp": 1662080172308,
+        "actual_end_timestamp": 1662080561893,
+        "tenant_id": "ridecare",
+        "device_id": "device",
+        "stream_name": "ridecare_device_recording",
+        "actual_duration": 391.0,
+        "recorder": "InteriorRecorder",
+        "resolution": {"width": 640, "height": 360},
+        "upload_timing": {"start": 1662080561993, "end": 1662080562093},
     }
+
+    message = _pack_message(body)
+
+    return message
+
+
+def _input_message_snapshot(folder: str, timestamp: int) -> dict:
+    body = {
+        "tenant_id": "ridecare",
+        "device_id": "device",
+        "resolution": {"width": 640, "height": 360},
+        "timestamp": timestamp,
+        "upload_timing": {"start": timestamp + 1000, "end": timestamp + 2000},
+        "recorder": "TrainingMultiSnapshot",
+        "uuid": "foo",
+        "s3_path": f"s3://bucket/{folder}/ridecare_device_foo_{timestamp}.jpeg",
+    }
+    message = _pack_message(body)
+    return message
 
 
 def _input_message_snapshot_included(folder: str):
-    body_template = _input_message_snapshot_body_template()
-    body_template["_id"] = "ridecare_device_snapshot_1662080178308"
-    body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1662080178308.jpeg"
-    body_template["timestamp"] = 1662080178308
-
-    message = {
-        "Body": json.dumps(body_template).replace("\"", "\""),
-        "MessageAttributes": _message_attributes(),
-        "ReceiptHandle": "receipt_handle"
-    }
-
-    return message
+    return _input_message_snapshot(folder, 1662080178308)
 
 
 def _input_message_snapshot_excluded(folder: str):
-    body_template = _input_message_snapshot_body_template()
-    body_template["_id"] = "ridecare_device_snapshot_1692080178308"
-    body_template["s3_path"] = f"bucket/{folder}/ridecare_snapshot_1692080178308.jpeg"
-    body_template["timestamp"] = 1692080178308
-    body_template["internal_message_reference_id"] = "dummy_hash"
-
-    message = {
-        "Body": json.dumps(body_template).replace("\"", "\""),
-        "MessageAttributes": _message_attributes(),
-        "ReceiptHandle": "receipt_handle"
-    }
-    return message
+    return _input_message_snapshot(folder, 1612080178308)
 
 
 @pytest.mark.integration
@@ -111,7 +101,8 @@ class TestMain:
 
     @pytest.fixture(autouse=True)
     def graceful_exit_mock(self, mocker: MockerFixture) -> Mock:
-        graceful_exit_mock = mocker.patch("metadata.consumer.main.GracefulExit")
+        graceful_exit_mock = mocker.patch(
+            "metadata.consumer.main.GracefulExit")
         continue_running_mock = PropertyMock(
             side_effect=[True, True, True, False])
         type(graceful_exit_mock.return_value).continue_running = continue_running_mock
@@ -134,21 +125,27 @@ class TestMain:
 
     @pytest.fixture(autouse=True)
     def voxel_mock(self, mocker: MockerFixture) -> tuple[Mock, Mock]:
-        create_dataset_mock = mocker.patch("metadata.consumer.main.create_dataset")
-        update_sample_mock = mocker.patch("metadata.consumer.main.update_sample")
+        create_dataset_mock = mocker.patch(
+            "metadata.consumer.main.create_dataset")
+        update_sample_mock = mocker.patch(
+            "metadata.consumer.main.update_sample")
         return create_dataset_mock, update_sample_mock
 
     @pytest.mark.integration
     @pytest.mark.parametrize("_input_message_recording, _input_message_snapshot_included, "
                              "_input_message_snapshot_excluded, s3_folder, expected_dataset", [
                                  (_input_message_recording("folder"),
-                                     _input_message_snapshot_included("folder"),
-                                     _input_message_snapshot_excluded("folder"),
+                                     _input_message_snapshot_included(
+                                         "folder"),
+                                     _input_message_snapshot_excluded(
+                                         "folder"),
                                      "folder",
                                      "Debug_Lync"),
                                  (_input_message_recording("ridecare_companion_gridwise"),
-                                     _input_message_snapshot_included("ridecare_companion_gridwise"),
-                                     _input_message_snapshot_excluded("ridecare_companion_gridwise"),
+                                     _input_message_snapshot_included(
+                                         "ridecare_companion_gridwise"),
+                                     _input_message_snapshot_excluded(
+                                         "ridecare_companion_gridwise"),
                                      "ridecare_companion_gridwise",
                                      "RC-ridecare_companion_gridwise")
                              ])
@@ -170,9 +167,9 @@ class TestMain:
 
         # THEN
         snapshot_included_db_entry = mongomock_fix["recordings"].find_one(
-            {"video_id": "ridecare_device_snapshot_1662080178308"})
+            {"video_id": "ridecare_device_foo_1662080178308"})
         snapshot_excluded_db_entry = mongomock_fix["recordings"].find_one(
-            {"video_id": "ridecare_device_snapshot_1692080178308"})
+            {"video_id": "ridecare_device_foo_1612080178308"})
         recording_db_entry = mongomock_fix["recordings"].find_one(
             {"video_id": "ridecare_device_recording_1662080172308_1662080561893"})
         # assertions on included snapshot
@@ -180,17 +177,20 @@ class TestMain:
                 ["source_videos"][0] == recording_db_entry["video_id"])
 
         # assert reference id is present
-        assert snapshot_included_db_entry["recording_overview"]["internal_message_reference_id"]
-        assert snapshot_excluded_db_entry["recording_overview"]["internal_message_reference_id"]
-        assert recording_db_entry["recording_overview"]["internal_message_reference_id"]
+        assert snapshot_included_db_entry["recording_overview"]["devcloudid"]
+        assert snapshot_excluded_db_entry["recording_overview"]["devcloudid"]
+        assert recording_db_entry["recording_overview"]["devcloudid"]
 
         # assertions on excluded snapshot
-        assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == []
+        assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == [
+        ]
 
         # assertions on recording
         assert recording_db_entry["recording_overview"]["#snapshots"] == 1
-        assert len(recording_db_entry["recording_overview"]["snapshots_paths"]) == 1
-        assert recording_db_entry["recording_overview"]["snapshots_paths"][0] == snapshot_included_db_entry["video_id"]  # pylint: disable=line-too-long
+        assert len(
+            recording_db_entry["recording_overview"]["snapshots_paths"]) == 1
+        assert recording_db_entry["recording_overview"]["snapshots_paths"][
+            0] == snapshot_included_db_entry["video_id"]  # pylint: disable=line-too-long
 
         # assertions for voxel code
         create_dataset, update_sample = voxel_mock
@@ -198,12 +198,14 @@ class TestMain:
             [call(expected_dataset, ["RC"]), call(expected_dataset + "_snapshots", ["RC"])], any_order=True)
 
         snapshot_excluded_db_entry.pop("_id")
-        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_snapshot_1692080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg"  # pylint: disable=line-too-long
         recording_db_entry.pop("_id")
         recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
         snapshot_included_db_entry.pop("_id")
-        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_snapshot_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
-        print(update_sample.call_count)
+        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        print(update_sample.call_args_list)
+
+        # assert_has_calls does not work yet with pytest: https://github.com/pytest-dev/pytest-mock/issues/234
         update_sample.assert_has_calls([
             call(expected_dataset + "_snapshots", snapshot_excluded_db_entry),
             call(expected_dataset, recording_db_entry),
@@ -221,7 +223,8 @@ class TestMain:
         }
 
         # WHEN
-        result = metadata.consumer.main.transform_data_to_update_query(input_data)
+        result = metadata.consumer.main.transform_data_to_update_query(
+            input_data)
 
         # THEN
         assert result == {

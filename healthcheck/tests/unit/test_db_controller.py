@@ -2,10 +2,11 @@ from datetime import datetime
 from unittest.mock import MagicMock, Mock, call
 
 import pytest
+import pytz
 
+from base.model.artifacts import RecorderType, SnapshotArtifact, VideoArtifact
 from healthcheck.controller.db import DatabaseController, DBCollection
 from healthcheck.exceptions import NotPresentError, NotYetIngestedError
-from healthcheck.model import SnapshotArtifact, VideoArtifact
 
 
 @pytest.mark.unit
@@ -18,8 +19,13 @@ class TestDatabaseController():
             tenant_id="test",
             device_id="test",
             stream_name="test_stream",
-            footage_from=datetime.fromisoformat("2022-12-21T14:22:44.806250"),
-            footage_to=datetime.fromisoformat("2022-12-21T14:35:44.806250")
+            recorder=RecorderType.INTERIOR,
+            timestamp=datetime.fromisoformat("2022-12-21T14:22:44.806+00:00"),
+            end_timestamp=datetime.fromisoformat("2022-12-21T14:35:44.806+00:00"),
+            upload_timing={
+                "start": "2022-12-21T14:22:44.806+00:00",
+                "end": "2022-12-21T14:35:44.806+00:00"
+            }
         )
 
     @pytest.fixture
@@ -28,7 +34,12 @@ class TestDatabaseController():
             tenant_id="test",
             device_id="test",
             uuid="test",
-            timestamp=datetime.fromisoformat("2022-12-21T14:21:44.806250")
+            recorder=RecorderType.SNAPSHOT,
+            timestamp=datetime.fromisoformat("2022-12-21T14:21:44.806+00:00"),
+            upload_timing={
+                "start": "2022-12-21T14:21:44.806+00:00",
+                "end": "2022-12-21T14:22:44.806+00:00"
+            }
         )
 
     def test_is_data_status_complete_or_raise_not_ingested(
@@ -44,7 +55,7 @@ class TestDatabaseController():
 
         db_client.find_many.assert_called_once_with(
             DBCollection.RECORDINGS, {
-                "recording_overview.internal_message_reference_id": snap_artifact.internal_message_reference_id
+                "recording_overview.devcloudid": snap_artifact.devcloudid
             }
         )
 
@@ -55,21 +66,21 @@ class TestDatabaseController():
             # this epoch timestamp at the end is important for parsing and updating it
             "video_id": "mocked_video_id_1654075244",
             "recording_overview": {
-                "internal_message_reference_id": snap_artifact.internal_message_reference_id
+                "devcloudid": snap_artifact.devcloudid
             }
         }
         db_client.find_many = Mock(side_effect=[[mocked_recording_doc], []])
         schema_validator = MagicMock()
         database_controller = DatabaseController(
             db_client, schema_validator, MagicMock())
-        original_internal_reference_id = snap_artifact.internal_message_reference_id
+        original_devcloud_id = snap_artifact.devcloudid
         with pytest.raises(NotPresentError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 
         db_client.find_many.assert_has_calls(
             calls=[
                 call(DBCollection.RECORDINGS, {
-                    "recording_overview.internal_message_reference_id": original_internal_reference_id
+                    "recording_overview.devcloudid": original_devcloud_id
                 }),
                 call(DBCollection.PIPELINE_EXECUTION, {
                     "_id": "mocked_video_id_1654075244"
@@ -83,7 +94,7 @@ class TestDatabaseController():
         mocked_recording_doc = {
             "video_id": "mocked_video_id_1654075244",
             "recording_overview": {
-                "internal_message_reference_id": snap_artifact.internal_message_reference_id
+                "devcloudid": snap_artifact.devcloudid
             },
         }
         mocked_pipeline_exec_doc = {
@@ -94,14 +105,14 @@ class TestDatabaseController():
         schema_validator = MagicMock()
         database_controller = DatabaseController(
             db_client, schema_validator, MagicMock())
-        original_internal_reference_id = snap_artifact.internal_message_reference_id
+        original_devcloud_id = snap_artifact.devcloudid
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(snap_artifact)
 
         db_client.find_many.assert_has_calls(
             calls=[
                 call(DBCollection.RECORDINGS, {
-                    "recording_overview.internal_message_reference_id": original_internal_reference_id
+                    "recording_overview.devcloudid": original_devcloud_id
                 }),
                 call(DBCollection.PIPELINE_EXECUTION, {
                     "_id": "mocked_video_id_1654075244"
@@ -115,7 +126,7 @@ class TestDatabaseController():
         mocked_recording_doc = {
             "video_id": "mocked_video_id_1639321140000_1639321380000",
             "recording_overview": {
-                "internal_message_reference_id": video_artifact.internal_message_reference_id
+                "devcloudid": video_artifact.devcloudid
             },
         }
         mocked_pipeline_exec_doc = {
@@ -126,7 +137,7 @@ class TestDatabaseController():
         schema_validator = MagicMock()
         database_controller = DatabaseController(
             db_client, schema_validator, MagicMock())
-        original_internal_reference_id = video_artifact.internal_message_reference_id
+        original_devcloud_id = video_artifact.devcloudid
         with pytest.raises(NotYetIngestedError):
             database_controller.is_data_status_complete_or_raise(
                 video_artifact)
@@ -134,7 +145,7 @@ class TestDatabaseController():
         db_client.find_many.assert_has_calls(
             calls=[
                 call(DBCollection.RECORDINGS, {
-                    "recording_overview.internal_message_reference_id": original_internal_reference_id
+                    "recording_overview.devcloudid": original_devcloud_id
                 }),
                 call(DBCollection.PIPELINE_EXECUTION, {
                     "_id": "mocked_video_id_1639321140000_1639321380000"

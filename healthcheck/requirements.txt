@@ -8,4 +8,4 @@ botocore == 1.29.91
 aws_error_utils == 2.7.0
 expiringdict == 1.2.2
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai
--e ../base[aws,voxel]
+-e ../base[aws,voxel,model]

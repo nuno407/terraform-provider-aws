@@ -7,6 +7,7 @@ from typing import Optional
 from urllib.parse import urlencode
 
 import urllib3
+from kink import inject
 
 _logger = logging.getLogger(__name__)
 
@@ -15,10 +16,14 @@ class InvalidConfiguration(Exception):
     """ Exception for missing credentials. """
 
 
-class FootageApiTokenManager():  # pylint: disable=too-few-public-methods,too-many-instance-attributes
+@inject
+class FootageApiTokenManager:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """ Contains all the operations related with the Token Management for the RCC Footage API. """
 
-    def __init__(self, token_endpoint: str, client_id: str, client_secret: str):
+    def __init__(self,
+                 token_endpoint: str,
+                 client_id: str,
+                 client_secret: str):
 
         if not token_endpoint:
             raise InvalidConfiguration("Footage API Token Endpoint is missing.")

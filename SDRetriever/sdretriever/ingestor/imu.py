@@ -1,30 +1,36 @@
-# type: ignore
 """ imu module. """
 import logging as log
 import re
 import sys
-from typing import Optional
 
+from kink import inject
+from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
-from sdretriever.message.video import VideoMessage
+from sdretriever.s3_finder import S3Finder
 
-IMU_FILE_EXT = '_imu.csv'
-LOGGER = log.getLogger("SDRetriever." + __name__)
+from base.aws.container_services import ContainerServices
+from base.aws.s3 import S3ClientFactory, S3Controller
+from base.model.artifacts import Artifact, IMUArtifact
+
+IMU_FILE_EXT = '.csv'
+_logger = log.getLogger("SDRetriever." + __name__)
 IMU_FILE_PATTERN = r"TrainingRecorder_TrainingRecorder.+\.mp4\._\w+?_\w+?_(\d+)_imu_raw.csv.zip"
+IMU_REGEX = re.compile(IMU_FILE_PATTERN)
 
 
-class IMUIngestor(MetacontentIngestor):
-    """_summary_
+@inject
+class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-methods
+    """ IMU ingestor """
 
-    Args:
-        MetacontentIngestor (_type_): _description_
-    """
-
-    def __init__(self, container_services, s3_client, sqs_client, sts_helper) -> None:
-        super().__init__(container_services, s3_client, sqs_client, sts_helper)
-        self.imu_regex = re.compile(IMU_FILE_PATTERN)
+    def __init__(self,
+                 container_services: ContainerServices,
+                 rcc_s3_client_factory: S3ClientFactory,
+                 s3_controller: S3Controller,
+                 s3_finder: S3Finder):
+        super().__init__(container_services, rcc_s3_client_factory,
+                         s3_controller, s3_finder)
 
     def __get_id_from_imu(self, imu_chunk: MetacontentChunk) -> int:
         """
@@ -39,14 +45,13 @@ class IMUIngestor(MetacontentIngestor):
         Returns:
             int: The ID of the chunk.
         """
-        match = self.imu_regex.search(imu_chunk.filename)
+        match = IMU_REGEX.search(imu_chunk.filename)
         if match is None:
             raise ValueError(f"The following imu path {imu_chunk.filename} does \
                              not fit the pattern of an imu path")
         return int(match.group(1))
 
-    @staticmethod
-    def concatenate_chunks(chunks: list[MetacontentChunk]) -> bytearray:
+    def _concatenate_chunks(self, chunks: list[MetacontentChunk]) -> bytearray:
         """
         Concatenate the IMU chunks into a single one.
         Since the imu chunks can by large, to avoid future performance bootlenecks:
@@ -89,38 +94,47 @@ class IMUIngestor(MetacontentIngestor):
         """
         return [".csv.zip"]
 
-    def ingest(self, video_msg: VideoMessage, video_id: str, imu_chunk_paths: set[str]) -> Optional[str]:
+    def ingest(self, artifact: Artifact) -> None:
         """
         Concatenates the IMU chunks and ingest them.
 
         Args:
-            video_msg (VideoMessage): The video messsage
-            video_id (str): The video ID
-            metadata_chunk_paths (set[str]): A set containing the
-            paths or keys to find the imu chunks
-
-        Returns:
-            path_uploaded: S3 key with the location of the concatenated IMU
+            artifact (IMUArtifact): The IMU artifact to be ingested
         """
+        # validate that we are parsing an IMUArtifact
+        if not isinstance(artifact, IMUArtifact):
+            raise ValueError("IMUIngestor can only ingest an IMUArtifact")
+
+        is_complete, chunk_paths = self._check_allparts_exist(artifact)
+        if not is_complete:
+            message = "IMU data is not complete, skipping for now"
+            _logger.info(message)
+            raise UploadNotYetCompletedError(message)
+
         # Fetch metadata chunks from RCC S3
-        chunks = self._get_metacontent_chunks(video_msg, imu_chunk_paths)
-
+        chunks: list[MetacontentChunk] = self._get_metacontent_chunks(
+            chunk_paths)
         if not chunks:
-            return None
-
+            _logger.warning(
+                "Could not find any metadata files for %s",
+                artifact.artifact_id)
         # Sorts and validates the chunks
         chunks.sort(key=self.__get_id_from_imu)
 
-        LOGGER.debug("Ingesting %d IMU chunks", len(chunks))
+        _logger.debug("Ingesting %d IMU chunks", len(chunks))
 
         # Concatenate chunks and force deletion
-        file_binary: bytearray = IMUIngestor.concatenate_chunks(chunks)
+        file_binary: bytearray = self._concatenate_chunks(chunks)
         del chunks
-        file_to_upload = MetacontentDevCloud(file_binary, video_id, self.container_svcs.raw_s3,
-                                             str(video_msg.tenant) + "/", IMU_FILE_EXT)
+        s3_bucket = self._container_svcs.raw_s3
+        s3_folder = artifact.tenant_id + "/"
+        file_to_upload = MetacontentDevCloud(
+            file_binary, artifact.artifact_id, s3_bucket,
+            s3_folder, IMU_FILE_EXT)
 
         # Upload IMU chunks and force deletion
         path_uploaded = self._upload_metacontent_to_devcloud(file_to_upload)
         del file_to_upload
 
-        return f"s3://{self.container_svcs.raw_s3}/{path_uploaded}"
+        # Update the artifact with the path to the IMU file
+        artifact.s3_path = path_uploaded

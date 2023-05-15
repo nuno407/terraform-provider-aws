@@ -36,18 +36,16 @@
 		{
 			"path": "./healthcheck"
 		},
-        {
-			"path": "./data_importer"
-		},
 		{
-			"path": "."
+			"path": "./data_importer"
 		}
 	],
 	"settings": {
         "python.languageServer": "Pylance",
-        "python.terminal.activateEnvInCurrentTerminal": false,
+		"python.terminal.activateEnvInCurrentTerminal": true,
         "python.testing.unittestEnabled": false,
         "python.testing.pytestEnabled": true,
+		"python.defaultInterpreterPath": "/venv/${workspaceFolderBasename}/bin/python",
         "python.analysis.extraPaths": [
             "../base",
             "../basehandler"
@@ -84,7 +82,14 @@
 					"Remove double slash"
 				]
 			}
-		}
+		},
+		"python.linting.mypyEnabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.linting.banditEnabled": false,
+		"python.linting.pylintPath": "/venv/{$workspaceFolderBasename}/bin/pylint",
+		"python.linting.mypyPath": "/venv/${workspaceFolderBasename}/bin/mypy",
+		"plantuml.render": "PlantUMLServer",
+		"plantuml.server": "http://plantuml:8080"
 	},
 	"extensions": {
 		"recommendations": [

@@ -5,7 +5,7 @@ from typing import Iterator, Optional
 from kink import inject
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import RecorderType, VideoArtifact
+from base.model.artifacts import RecorderType, VideoArtifact, TimeWindow
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import InvalidMessageError
@@ -56,6 +56,16 @@ class VideoParser(IArtifactParser):  # pylint: disable=too-few-public-methods
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract footageTo.")
 
+        upload_started = inner_message.get("uploadStarted")
+        if not upload_started:
+            raise InvalidMessageError(
+                "Invalid message body. Cannot extract uploadStarted.")
+
+        upload_finished = inner_message.get("uploadFinished")
+        if not upload_finished:
+            raise InvalidMessageError(
+                "Invalid message body. Cannot extract uploadFinished.")
+
         tenant = sqs_message.attributes.tenant
         if not tenant:
             raise InvalidMessageError(
@@ -72,4 +82,8 @@ class VideoParser(IArtifactParser):  # pylint: disable=too-few-public-methods
             stream_name=stream_name,
             recorder=recorder_type,
             timestamp=from_epoch_seconds_or_milliseconds(footage_from),
-            end_timestamp=from_epoch_seconds_or_milliseconds(footage_to)))
+            end_timestamp=from_epoch_seconds_or_milliseconds(footage_to),
+            upload_timing=TimeWindow(
+                start=from_epoch_seconds_or_milliseconds(upload_started),
+                end=from_epoch_seconds_or_milliseconds(upload_finished)
+            )))

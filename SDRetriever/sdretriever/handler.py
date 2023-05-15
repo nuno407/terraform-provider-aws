@@ -1,40 +1,46 @@
-# type: ignore
 """ ingestion handler module. """
 import logging as log
-from typing import Optional
+from typing import Iterator
+
+from kink import inject
+from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from base.aws.container_services import ContainerServices
+from base.aws.sqs import SQSController
+from base.model.artifacts import (Artifact, IMUArtifact,
+                                  RecorderType, SignalsArtifact,
+                                  SnapshotArtifact, VideoArtifact)
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.constants import (FRONT_RECORDER, INTERIOR_RECORDER,
-                                   INTERIOR_RECORDER_PREVIEW,
-                                   MESSAGE_VISIBILITY_EXTENSION_HOURS,
-                                   METADATA_FILE_EXT, SNAPSHOT,
-                                   TRAINING_RECORDER)
-from sdretriever.exceptions import FileAlreadyExists
+from sdretriever.constants import (CONTAINER_NAME,
+                                   MESSAGE_VISIBILITY_EXTENSION_HOURS)
+from sdretriever.exceptions import (FileAlreadyExists,
+                                    NoIngestorForArtifactError,
+                                    TemporaryIngestionError)
 from sdretriever.ingestor.imu import IMUIngestor
-from sdretriever.ingestor.metadata import MetadataIngestor
+from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.ingestor.snapshot import SnapshotIngestor
+from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
 from sdretriever.ingestor.video import VideoIngestor
-from sdretriever.message.message import Message
-from sdretriever.message.snapshot import SnapshotMessage
-from sdretriever.message.video import VideoMessage
+from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
 
-LOGGER = log.getLogger("SDRetriever")
+_logger = log.getLogger("SDRetriever")
 
 
-class IngestorHandler:  # pylint: disable=too-many-instance-attributes
+@inject
+class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few-public-methods
     """Handler logic for SDR ingestion scenarios
     """
 
     def __init__(  # pylint: disable=too-many-arguments
             self,
             imu_ing: IMUIngestor,
-            metadata_ing: MetadataIngestor,
+            metadata_ing: VideoMetadataIngestor,
             video_ing: VideoIngestor,
             snap_ing: SnapshotIngestor,
+            snap_metadata_ing: SnapshotMetadataIngestor,
             cont_services: ContainerServices,
             config: SDRetrieverConfig,
-            sqs_client):
+            sqs_controller: SQSController):
         """IngestorHandler init
 
         Args:
@@ -44,304 +50,120 @@ class IngestorHandler:  # pylint: disable=too-many-instance-attributes
             snap_ing (SnapshotIngestor): instance of SnapshotIngestor
             cont_services (ContainerServices): instance of ContainerServices
             config (SDRetrieverConfig): instance of SDRetrieverConfig
-            sqs_client (boto3 SQS): instance of boto3 SQS client
+            sqs_controller (SQSController): instance of SQS client
         """
-        self.metadata_ing = metadata_ing
+        self.video_metadata_ing = metadata_ing
         self.video_ing = video_ing
-        self.cont_services = cont_services
-        self.sqs_client = sqs_client
+        self.sqs_controller = sqs_controller
         self.config = config
         self.imu_ing = imu_ing
         self.snap_ing = snap_ing
+        self.snap_metadata_ing = snap_metadata_ing
         self.metadata_queue = cont_services.sqs_queues_list["Metadata"]
         self.hq_request_queue = cont_services.sqs_queues_list["HQ_Selector"]
         self.mdfp_queue = cont_services.sqs_queues_list["MDFParser"]
 
-    @staticmethod
-    def message_type_identifier(message: dict) -> Optional[str]:
-        """ Identify if the type of the media described in the message.
-        Only returns a type when its sure its from that type otherwise returns None.
+    def _get_ingestor(self, artifact: Artifact) -> Ingestor:
+        """ Returns the ingestor that should handle the artifact.
 
         Args:
-            message (dict): message to identify
+            artifact (Artifact): The artifact to be processed
 
         Returns:
-            result (Optional[str]): type identified, defaults to None.
+            Optional[Ingestor]: The ingestor that should handle the artifact
         """
-        _message = str(message)
+        if isinstance(artifact, VideoArtifact):
+            return self.video_ing
+        if isinstance(artifact, SnapshotArtifact):
+            return self.snap_ing
+        if isinstance(
+                artifact,
+                SignalsArtifact) and isinstance(
+                artifact.referred_artifact,
+                VideoArtifact):
+            return self.video_metadata_ing
+        if isinstance(
+                artifact,
+                SignalsArtifact) and isinstance(
+                artifact.referred_artifact,
+                SnapshotArtifact):
+            return self.snap_metadata_ing
+        if isinstance(artifact, IMUArtifact):
+            return self.imu_ing
+        raise NoIngestorForArtifactError()
 
-        if all([
-                _message.find("FrontRecorder") == -1,
-                _message.find("TrainingRecorder") == -1,
-                _message.find("TrainingMultiSnapshot") == -1,
-                _message.find("InteriorRecorderPreview") != -1
-        ]):
-            return INTERIOR_RECORDER_PREVIEW
+    def _get_forward_queues(self, artifact: Artifact) -> Iterator[str]:
+        """ Gets the queues that the artifact should be forwarded to."""
 
-        # Checks if the message contains *just* InteriorRecorder.
-        if all([
-                _message.find("InteriorRecorder") != -1,
-                _message.find("TrainingRecorder") == -1,
-                _message.find("TrainingMultiSnapshot") == -1,
-                _message.find("FrontRecorder") == -1]):
-            return INTERIOR_RECORDER
+        if isinstance(artifact, IMUArtifact):
+            yield self.mdfp_queue
 
-        # Checks if the message contains *just* TrainingRecorder.
-        if all([
-                _message.find("TrainingRecorder") != -1,
-                _message.find("InteriorRecorder") == -1,
-                _message.find("TrainingMultiSnapshot") == -1,
-                _message.find("FrontRecorder") == -1]):
-            return TRAINING_RECORDER
+        if isinstance(artifact, SignalsArtifact) and \
+                isinstance(artifact.referred_artifact, VideoArtifact):
+            yield self.mdfp_queue
 
-        # Checks if the message contains *just* TrainingMultiSnapshot.
-        if all([
-                _message.find("TrainingMultiSnapshot") != -1,
-                _message.find("TrainingRecorder") == -1,
-                _message.find("InteriorRecorder") == -1,
-                _message.find("FrontRecorder") == -1]):
-            return SNAPSHOT
+        if isinstance(artifact, SignalsArtifact) and \
+                isinstance(artifact.referred_artifact, SnapshotArtifact):
+            yield self.metadata_queue
 
-        # Checks if the message contains *just* FrontRecorder.
-        if all([
-                _message.find("FrontRecorder") != -1,
-                _message.find("TrainingRecorder") == -1,
-                _message.find("TrainingMultiSnapshot") == -1,
-                _message.find("InteriorRecorder") == -1]):
-            return FRONT_RECORDER
+        if isinstance(artifact, (VideoArtifact, SnapshotArtifact)):
+            yield self.metadata_queue
 
-        return None
+        if (isinstance(artifact, VideoArtifact) and
+            artifact.recorder == RecorderType.INTERIOR and
+                self.config.request_training_upload):
+            yield self.hq_request_queue
 
-    def message_ingestable(self, message: VideoMessage, source: str) -> bool:
-        """ Runs validation and relevancy checks for a VideoMessage.
-
-        Args:
-            message (VideoMessage): The video message to be ingested
-            source (str): The source SQS queue
-
-        Returns:
-            bool: True if it is ingestable, False otherwise
-        """
-        if not message.validate():
-            LOGGER.info("Message deemed invalid for ingestion, ignoring",
-                        extra={"messageid": message.messageid})
-            self.__delete_message(message, source)
-            return False
-
-        if message.is_irrelevant(self.config.tenant_blacklist, self.config.recorder_blacklist):
-            LOGGER.info("Message deemed irrelevant", extra={"messageid": message.messageid})
-            self.__delete_message(message, source)
-            return False
-
-        return True
-
-    def handle_interior_recorder(self, message: dict, source: str) -> None:
-        """ Forwards an INTERIOR message to a VideoIngestor if the message is ingestible.
-
-        Args:
-            message (dict): The video interior message to be ingested
-            source (str): The source SQS queue
-        """
-        video_message = VideoMessage(message)
-
-        if not self.message_ingestable(video_message, source):
-            return
-
-        # ask for the request of training data
-        self.__send_to_selector(video_message)
-
-        metadata_is_complete, metadata_chunks = self.metadata_ing.check_allparts_exist(
-            video_message)  # pylint disable=line-too-long
-        if not metadata_is_complete:
-            LOGGER.info("Metadata not available yet")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        db_record_data: Optional[dict] = self.video_ing.ingest(
-            video_message, self.config.training_whitelist, self.config.request_training_upload)
-        if not db_record_data:
-            LOGGER.error("Fail to ingest video")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        metadata_path = self.metadata_ing.ingest(
-            video_message, db_record_data["_id"], metadata_chunks)
-        if not metadata_path:
-            LOGGER.error("Some error ocurred while attempting to ingest metadata")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        if db_record_data:
-            db_record_data.update({"MDF_available": "Yes", "sync_file_ext": METADATA_FILE_EXT})
-            self.__send_to_metadata(db_record_data)
-            self.__send_to_mdfparser(db_record_data, "metadata", metadata_path, video_message.recording_type)
-            self.__delete_message(video_message, source)
-
-    def handle_training_recorder(self, message: dict, source: str) -> None:
-        """ Forwards a TRAINING message to a VideoIngestor if the message is ingestible.
-
-        Args:
-            message (dict): The video training message to be ingested
-            source (str): The source SQS queue
-        """
-        video_message = VideoMessage(message)
-
-        if not self.message_ingestable(video_message, source):
-            return
-
-        imu_is_complete, imu_chunks = self.imu_ing.check_allparts_exist(video_message)
-        if not imu_is_complete:
-            LOGGER.warning("IMU not available yet")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        db_record_data: Optional[dict] = self.video_ing.ingest(
-            video_message, self.config.training_whitelist, self.config.request_training_upload)
-        if not db_record_data:
-            LOGGER.error("Fail to ingest video")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        imu_path = self.imu_ing.ingest(video_message, db_record_data["_id"], imu_chunks)
-        if not imu_path:
-            LOGGER.error("Some error ocurred while attempting to ingest IMU data")
-            self.__increase_message_visability_timeout(video_message, source)
-            return
-
-        if db_record_data:
-            db_record_data.update({"imu_path": imu_path})
-            self.__send_to_metadata(db_record_data)
-            self.__send_to_mdfparser(db_record_data, "imu", imu_path, video_message.recording_type)
-            self.__delete_message(video_message, source)
-
-    def handle_snapshot(self, message: dict, source: str) -> None:
-        """ Forwards a TRAINING_MULTI_SNAPSHOT message to a
-        SnapshotIngestor if the message is ingestible.
-
-        Args:
-            message (dict): The video training message to be ingested
-            source (str): The source SQS queue
-        """
-        snap_msg_obj = SnapshotMessage(message)
-
-        if not snap_msg_obj.validate():
-            LOGGER.info("Message deemed invalid for ingestion, ignoring")
-            self.__delete_message(snap_msg_obj, source)
-            return
-
-        if snap_msg_obj.is_irrelevant(self.config.tenant_blacklist):
-            LOGGER.info("Message deemed irrelevant")
-            self.__delete_message(snap_msg_obj, source)
-            return
-
-        data: Optional[dict] = self.snap_ing.ingest(snap_msg_obj)
-        if not data:
-            LOGGER.warning("Some error ocurred while attempting to ingest snapshots")
-            self.__increase_message_visability_timeout(snap_msg_obj, source)
-
-    def route(self, message: dict, source: str) -> None:
+    def handle(self, artifact: Artifact, message: MessageTypeDef) -> None:
         """ Routes a message to its correct handler for processing.
 
         Args:
-            message (dict): The video training message to be ingested
-            source (str): The source SQS queue
+            artifact (Artifact): The artifact to be processed
+            message (MessageTypeDef): The message received from the SQS queue
         """
-        message_type = IngestorHandler.message_type_identifier(message)
-        LOGGER.info("Pulled a message from %s (%s) -> %s ", source, message_type, message)
+        _logger.info("Received a %s artifact: %s", type(
+            artifact).__name__, artifact.artifact_id)
 
         try:
-            if message_type == TRAINING_RECORDER:
-                self.handle_training_recorder(message, source)
-            elif message_type == INTERIOR_RECORDER:
-                self.handle_interior_recorder(message, source)
-            elif message_type == INTERIOR_RECORDER_PREVIEW:
-                LOGGER.info("Received a InteriorRecorderPreview, ignoring it")
-                self.cont_services.delete_message(
-                    self.sqs_client, message.get("ReceiptHandle"), source)
-            elif message_type == FRONT_RECORDER:
-                LOGGER.info("Received a FrontRecording, ignoring it")
-                self.cont_services.delete_message(
-                    self.sqs_client, message.get("ReceiptHandle"), source)
-                # this is to be replaced with a __delete_message()
-                # when we create a FrontIngestor and FrontMessage
-            elif message_type == SNAPSHOT:
-                self.handle_snapshot(message, source)
-            else:
-                LOGGER.error(
-                    "Could not identify message type as video nor snapshot related, ignoring")
-        except FileAlreadyExists as excpt:
-            LOGGER.info(str(excpt))
-            self.cont_services.delete_message(self.sqs_client, message.get("ReceiptHandle"), source)
+            # ingest artifact
+            ingestor = self._get_ingestor(artifact)
+            ingestor.ingest(artifact)
 
-    def __delete_message(self, message: Message, source: str) -> None:
-        """ Deletes the message from the queue.
+            # forward artifact to next queue(s)
+            queues = list(self._get_forward_queues(artifact))
+            self.__send_to_queues(artifact, queues)
+        except TemporaryIngestionError as excpt:
+            _logger.error(str(excpt))
+            self.__increase_message_visability_timeout(message)
+        except (FileAlreadyExists, NoIngestorForArtifactError) as excpt:
+            _logger.info(str(excpt))
+            self.sqs_controller.delete_message(message)
+
+    def __send_to_queues(self, artifact: Artifact, queues: list[str]) -> None:
+        """ Sends an update to the desired queues.
 
         Args:
-            message (Message): Message to be deleted.
-            source (str): The source to be deleted from.
+            artifact (Artifact): The artifact to be sent to the metadata queue
+            queues (List[str]): The queues to send the artifact to
         """
-        self.cont_services.delete_message(self.sqs_client, message.receipthandle, source)
-        LOGGER.info("Message deleted from %s", source)
+        raw_message = artifact.stringify()
+        for queue in queues:
+            self.sqs_controller.send_message(
+                raw_message, CONTAINER_NAME, queue)
+            _logger.info("Message sent to %s", queue)
 
-    def __send_to_metadata(self, data: dict) -> None:
-        """ Sends an update to the DB by using the metadata queue.
-
-        Args:
-            source (str): The source to be deleted from.
-        """
-        self.cont_services.send_message(self.sqs_client, self.metadata_queue, data)
-        LOGGER.info("Message sent to %s", self.metadata_queue)
-
-    def __send_to_selector(self, message: VideoMessage) -> None:
-        """ Notifies Selector of the arrival of a video.
-
-        Args:
-            message (VideoMessage): message of the ingested video.
-        """
-        data = {
-            "streamName": message.streamname,
-            "deviceId": message.deviceid,
-            "footageFrom": message.footagefrom,
-            "footageTo": message.footageto
-        }
-        self.cont_services.send_message(self.sqs_client, self.hq_request_queue, data)
-        LOGGER.info("Message sent to %s", self.hq_request_queue)
-
-    def __send_to_mdfparser(
-            self,
-            db_record_data: dict,
-            data_type: str,
-            metacontent_path: str,
-            video_recording_type: str) -> None:
-        """ Notifies MDFParser of the arrival of a signal file.
-
-        Args:
-            db_record_data (dict): record data of the present ingestion
-            data_type (str): type of file in question, either "metadata" or "imu"
-            metacontent_path (str): the path to the content (Needs to be the full path containing s3://bucket/key)
-            video_recording_type (str): The recording type
-        """
-        data = {
-            "id": db_record_data.get("_id"),
-            "s3_path": metacontent_path,
-            "data_type": data_type,
-            "tenant": db_record_data.get("tenant"),
-            "device_id": db_record_data.get("deviceid"),
-            "recorder": video_recording_type,
-        }
-        self.cont_services.send_message(self.sqs_client, self.mdfp_queue, data)
-        LOGGER.info("Message sent to %s: %s", self.mdfp_queue, data)
-
-    def __increase_message_visability_timeout(self, message_obj: Message, source: str) -> None:
+    def __increase_message_visability_timeout(self, message_obj: MessageTypeDef) -> None:
         """ Increases the message visibility timeout.
 
         Args:
             message (Message): Message to be deleted.
             source (str): The source to be deleted from.
         """
-        prolong_time = MESSAGE_VISIBILITY_EXTENSION_HOURS[min(
-            message_obj.receive_count, len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)] * 3600
-        LOGGER.warning("Prolonging message visibility timeout for %d seconds",
-                       prolong_time)
-        self.cont_services.update_message_visibility(self.sqs_client, message_obj.receipthandle,
-                                                     prolong_time, source)
+        factor_idx = min(int(message_obj["Attributes"]["ApproximateReceiveCount"]),
+                         len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)  # type: ignore
+        prolong_time = int(
+            MESSAGE_VISIBILITY_EXTENSION_HOURS[factor_idx] * 3600)  # type: ignore
+        _logger.warning("Prolonging message visibility timeout for %d seconds",
+                        prolong_time)
+        self.sqs_controller.try_update_message_visibility_timeout(
+            message_obj, prolong_time)

@@ -1,13 +1,11 @@
-# type: ignore
 """ sdr config module """
-from dataclasses import dataclass
-from dataclasses import fields
+from dataclasses import dataclass, fields
 
 import yaml
 
 
 @dataclass
-class SDRetrieverConfig:
+class SDRetrieverConfig:  # pylint: disable=too-many-instance-attributes
     """ SDR configuration """
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
@@ -15,6 +13,8 @@ class SDRetrieverConfig:
     training_whitelist: list[str]
     request_training_upload: bool
     discard_video_already_ingested: bool
+    ingest_from_kinesis: bool
+    input_queue: str
 
     @staticmethod
     def load_config_from_yaml_file(path) -> "SDRetrieverConfig":

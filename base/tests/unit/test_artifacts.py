@@ -1,8 +1,11 @@
-from datetime import datetime, timedelta
 import json
-from pytest import mark, raises
+from datetime import datetime, timedelta
+
 import pytz
-from base.model.artifacts import RecorderType, VideoArtifact, SnapshotArtifact, parse_artifact
+from pytest import mark, raises
+
+from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
+                                  VideoArtifact, parse_artifact)
 
 
 def json_snapshot() -> str:
@@ -12,6 +15,10 @@ def json_snapshot() -> str:
         "device_id": "bar",
         "recorder": "TrainingMultiSnapshot",
         "timestamp": "2023-04-13T07:14:15.770982Z",
+        "upload_timing": {
+            "start": "2023-04-13T08:00:00+00:00",
+            "end": "2023-04-13T08:01:00+00:00"
+        },
         "uuid": "abc"
     }
     """
@@ -23,6 +30,9 @@ def snapshot() -> SnapshotArtifact:
         device_id="bar",
         recorder=RecorderType.SNAPSHOT,
         timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
+        upload_timing=TimeWindow(
+            start="2023-04-13T08:00:00+00:00",  # type: ignore
+            end="2023-04-13T08:01:00+00:00"),  # type: ignore
         uuid="abc"
     )
 
@@ -35,6 +45,10 @@ def json_video() -> str:
         "recorder": "InteriorRecorder",
         "timestamp": "2023-04-13T07:14:15.770982Z",
         "end_timestamp": "2023-04-13T07:15:15.770982Z",
+        "upload_timing": {
+            "start": "2023-04-13T08:00:00+00:00",
+            "end": "2023-04-13T08:01:00+00:00"
+        },
         "stream_name": "my_stream"
     }
     """
@@ -47,6 +61,9 @@ def video() -> VideoArtifact:
         recorder=RecorderType.INTERIOR,
         timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
         end_timestamp=datetime.fromisoformat("2023-04-13T07:15:15.770982+00:00"),
+        upload_timing=TimeWindow(
+            start="2023-04-13T08:00:00+00:00",  # type: ignore
+            end="2023-04-13T08:01:00+00:00"),  # type: ignore
         stream_name="my_stream"
     )
 

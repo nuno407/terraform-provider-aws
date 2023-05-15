@@ -3,10 +3,13 @@ from datetime import datetime
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from pytz import UTC
 
 from base.aws.s3 import S3Controller
+from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
+                                  VideoArtifact)
 from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
-from healthcheck.model import S3Params, SnapshotArtifact, VideoArtifact
+from healthcheck.model import S3Params
 from healthcheck.s3_utils import S3Utils
 
 S3_ANON_BUCKET = "my-test-anon"
@@ -30,8 +33,13 @@ class TestS3Utils:
             tenant_id="datanauts",
             device_id="test-device",
             stream_name="test",
-            footage_from=datetime.min,
-            footage_to=datetime.min)
+            recorder=RecorderType.INTERIOR,
+            timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC),
+                end=datetime.now(tz=UTC)
+            ))
 
     @pytest.fixture
     def fix_snap(self) -> SnapshotArtifact:
@@ -39,7 +47,12 @@ class TestS3Utils:
             tenant_id="datanauts",
             device_id="test-device",
             uuid="foobar",
-            timestamp=datetime.min)
+            recorder=RecorderType.SNAPSHOT,
+            timestamp=datetime.now(tz=UTC),
+            upload_timing=TimeWindow(
+                start=datetime.now(tz=UTC),
+                end=datetime.now(tz=UTC)
+            ))
 
     def test_is_s3_anonymized_file_present_or_raise_success(self, fix_video: VideoArtifact, s3_params: S3Params):
         fix_test_client = Mock()

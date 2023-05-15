@@ -4,4 +4,4 @@ requests == 2.28.2
 datetime == 5.1
 PyYAML == 6.0
 kink == 0.6.6
--e ../base[aws]
+-e ../base[aws,model]

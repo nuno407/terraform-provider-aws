@@ -1,164 +1,133 @@
-# type: ignore
 """ ingestor module """
-import hashlib
-import json
 import logging as log
-import os
-import subprocess  # nosec
-import tempfile
-from datetime import timedelta
-from typing import Optional
+from dataclasses import dataclass
+from datetime import datetime
 
-from base.timestamps import from_epoch_seconds_or_milliseconds
-from sdretriever.exceptions import FileAlreadyExists
+from botocore.errorfactory import ClientError
+from kink import inject
+
+from base.aws.container_services import ContainerServices
+from base.aws.s3 import S3ClientFactory, S3Controller
+from base.aws.shared_functions import StsHelper
+from base.model.artifacts import Artifact, Resolution, VideoArtifact
+from sdretriever.config import SDRetrieverConfig
+from sdretriever.exceptions import (FileAlreadyExists, KinesisDownloadError,
+                                    S3UploadError)
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.message.video import VideoMessage
+from sdretriever.ingestor.post_processor import IVideoPostProcessor
+from sdretriever.s3_finder import S3Finder
 
-LOGGER = log.getLogger("SDRetriever." + __name__)
+_logger = log.getLogger("SDRetriever." + __name__)
+CLIP_EXT = ".mp4"
+STREAM_TIMESTAMP_TYPE = 'PRODUCER_TIMESTAMP'
 
 
-class VideoIngestor(Ingestor):
+@dataclass
+class Video:
+    """ Video actual timestamps """
+    content_bytes: bytes
+    actual_start: datetime
+    actual_end: datetime
+
+
+@inject
+class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
     """ Video ingestor class """
 
     def __init__(
             self,
+            container_services: ContainerServices,
+            rcc_s3_client_factory: S3ClientFactory,
+            config: SDRetrieverConfig,
+            sts_helper: StsHelper,
+            s3_controller: S3Controller,
+            post_processor: IVideoPostProcessor,
+            s3_finder: S3Finder) -> None:
+        super().__init__(
             container_services,
-            s3_client,
-            sqs_client,
-            sts_helper,
-            discard_repeated_video: bool,
-            frame_buffer=0) -> None:
-        super().__init__(container_services, s3_client, sqs_client, sts_helper)
-        LOGGER.info("Loading configuration for video ingestor discard_repeated_video=%s",
-                    str(discard_repeated_video))
-        self.clip_ext = ".mp4"
-        self.stream_timestamp_type = 'PRODUCER_TIMESTAMP'
-        self.frame_buffer = frame_buffer
-        self.discard_repeated_video = discard_repeated_video
+            rcc_s3_client_factory, s3_finder)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
+        self._config = config
+        self._sts_helper = sts_helper
+        self._s3_controller = s3_controller
+        self._post_processor = post_processor
 
-    @ staticmethod
-    def _ffmpeg_probe_video(video_bytes) -> dict:
-        # On completion of the context or destruction of the temporary directory object,
-        # the newly created temporary directory and all its
-        # contents are removed from the filesystem.
-        with tempfile.TemporaryDirectory() as auto_cleaned_up_dir:
+    def __get_video_s3(self, artifact: VideoArtifact) -> Video:
+        raise NotImplementedError(
+            "Download video from S3 is not implemented yet")
 
-            # Store bytes into current working directory as video
-            temp_video_file = os.path.join(
-                auto_cleaned_up_dir, 'input_video.mp4')
-            with open(temp_video_file, "wb") as f_p:
-                f_p.write(video_bytes)
+    def __get_video_kinesis(self, artifact: VideoArtifact) -> Video:
+        """ Get video from KinesisVideoStream """
 
-            # Execute ffprobe command to get video clip info
-            result = subprocess.run(["/usr/bin/ffprobe",  # nosec
-                                    "-v",
-                                     "error",
-                                     "-show_format",
-                                     "-show_streams",
-                                     "-print_format",
-                                     "json",
-                                     temp_video_file],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT,
-                                    check=False)
-
-            # Load ffprobe output (bytes) as JSON
-            decoded_info = (result.stdout).decode("utf-8")
-            video_info = json.loads(decoded_info)
-            return video_info
-
-    def ingest(
-            self,
-            video_msg: VideoMessage,
-            training_whitelist: list[str] = [],
-            request_training_upload=True) -> Optional[dict]:
-        """Obtain video from KinesisVideoStreams and upload it to our raw data S3"""
-        # Define the target path where to place the video
-        s3_folder = str(video_msg.tenant) + "/"
+        # Requests credentials to assume specific cross-account role
+        role_credentials = self._sts_helper.get_credentials()
 
         # Get clip from KinesisVideoStream
         try:
-            # Requests credentials to assume specific cross-account role on Kinesis
-            role_credentials = self.sts_helper.get_credentials()
-            video_from = from_epoch_seconds_or_milliseconds(
-                video_msg.footagefrom)
-            video_to = from_epoch_seconds_or_milliseconds(video_msg.footageto)
-            seed = f"{video_msg.streamname}_{int(video_from.timestamp() * 1000)}_{int(video_to.timestamp() * 1000)}"
+            _logger.info(
+                "Downloading video clip %s from KinesisVideoStream %s",
+                artifact.artifact_id,
+                artifact.stream_name)
 
-            internal_message_reference_id = hashlib.sha256(
-                seed.encode("utf-8")).hexdigest()
-            LOGGER.info("internal_message_reference_id generated hash=%s seed=%s",
-                        internal_message_reference_id, seed)
+            # toggle between download from kinesis and download from S3 based on config value
+            content_bytes, video_start_ts, video_end_ts = self._container_svcs.get_kinesis_clip(
+                role_credentials,
+                artifact.stream_name,
+                artifact.timestamp,
+                artifact.end_timestamp,
+                STREAM_TIMESTAMP_TYPE)
 
-            video_bytes, video_start_ts, video_end_ts = self.container_svcs.get_kinesis_clip(
-                role_credentials, video_msg.streamname, video_from, video_to, self.stream_timestamp_type)
-            video_start = round(video_start_ts.timestamp() * 1000)
-            video_end = round(video_end_ts.timestamp() * 1000)
-        except Exception as exception:
-            LOGGER.exception("Could not obtain Kinesis clip from stream %s between %s and %s -> %s",
-                             video_msg.streamname, repr(video_from), repr(video_to), repr(exception))
-            return None
+        except Exception as exception:  # pylint: disable=broad-except
+            _logger.exception(
+                "Could not obtain Kinesis clip for %s", artifact.artifact_id)
+            raise KinesisDownloadError() from exception
 
+        return Video(content_bytes, video_start_ts, video_end_ts)
+
+    def ingest(self, artifact: Artifact) -> None:
+        """Obtain video from KinesisVideoStreams and upload it to our raw data S3"""
+        # validate that we are parsing a VideoArtifact
+        if not isinstance(artifact, VideoArtifact):
+            raise ValueError("VideoIngestor can only ingest a VideoArtifact")
+
+        if self._config.ingest_from_kinesis:
+            video = self.__get_video_kinesis(artifact)
+        else:
+            video = self.__get_video_s3(artifact)
+
+        # S3 folder path based on the tenant_id where the video will be uploaded
+        s3_folder = artifact.tenant_id + "/"
         # Upload video clip into raw data S3 bucket
-        s3_filename = f"{video_msg.streamname}_{video_start}_{video_end}"
-        s3_path = s3_folder + s3_filename + self.clip_ext
+        s3_filename = artifact.artifact_id
+        s3_path = s3_folder + s3_filename + CLIP_EXT
 
-        if self.discard_repeated_video:
-            LOGGER.info("Checking for the existance of %s file in the %s bucket", s3_path, self.container_svcs.raw_s3)
-            exists_on_devcloud = self.container_svcs.check_s3_file_exists(
-                self.s3_client, self.container_svcs.raw_s3, s3_path)
+        if self._config.discard_video_already_ingested:
+            _logger.info("Checking for the existance of %s file in the %s bucket",
+                         s3_path,
+                         self._container_svcs.raw_s3)
+            exists_on_devcloud = self._s3_controller.check_s3_file_exists(
+                self._container_svcs.raw_s3, s3_path)
 
             if exists_on_devcloud:
-                raise FileAlreadyExists(f"Video {s3_path} already exists on DevCloud, message will be skipped")
+                raise FileAlreadyExists(
+                    f"Video {s3_path} already exists on DevCloud, message will be skipped")
 
         try:
-            self.container_svcs.upload_file(self.s3_client, video_bytes,
-                                            self.container_svcs.raw_s3, s3_path)
-            LOGGER.info("Successfully uploaded to %s", self.container_svcs.raw_s3 + "/" + s3_path)
-        except Exception as exception:
-            LOGGER.error("Could not upload file to %s -> %s", s3_path, repr(exception))
-            raise exception
+            self._s3_controller.upload_file(video.content_bytes,
+                                            self._container_svcs.raw_s3, s3_path)
+            _logger.info("Successfully uploaded to %s",
+                         self._container_svcs.raw_s3 + "/" + s3_path)
+        except ClientError as exception:
+            _logger.error("Could not upload file to %s -> %s",
+                          s3_path, repr(exception))
+            raise S3UploadError() from exception
 
         # Obtain video details via ffprobe and prepare data to be used
         # to generate the video's entry on the database
+        video_info = self._post_processor.execute(video.content_bytes)
 
-        video_info = self._ffmpeg_probe_video(video_bytes)
-
-        # Calculate video information
-        width = str(video_info["streams"][0]["width"])
-        height = str(video_info["streams"][0]["height"])
-        video_seconds = round(float(video_info["format"]["duration"]))
-
-        # Build the cedord data to be sent into DB
-        db_record_data = {
-            "_id": s3_filename,
-            "MDF_available": "No",
-            "media_type": "video",
-            "s3_path": self.container_svcs.raw_s3 + "/" + s3_path,
-            "footagefrom": video_start,
-            "footageto": video_end,
-            "tenant": video_msg.tenant,
-            "deviceid": video_msg.deviceid,
-            'length': str(timedelta(seconds=video_seconds)),
-            '#snapshots': str(0),
-            'snapshots_paths': [],
-            "sync_file_ext": "",
-            'resolution': width + "x" + height,
-            "internal_message_reference_id": internal_message_reference_id
-        }
-
-        # Generate dictionary with info to send to Selector container for training data request (high quality )
-        is_interior_recording = video_msg.video_recording_type() == 'InteriorRecorder'
-        if is_interior_recording and request_training_upload and video_msg.tenant in training_whitelist:
-            hq_request = {
-                "streamName": f"{video_msg.tenant}_{video_msg.deviceid}_InteriorRecorder",
-                "deviceId": video_msg.deviceid,
-                "footageFrom": video_msg.footagefrom - self.frame_buffer,
-                "footageTo": video_msg.footageto + self.frame_buffer
-            }
-            # Send message to secondary input queue of Selector container
-            hq_selector_queue = self.container_svcs.sqs_queues_list["HQ_Selector"]
-            self.container_svcs.send_message(
-                self.sqs_client, hq_selector_queue, hq_request)
-
-        return db_record_data
+        # Fill the optional fields in the artifact which are now known
+        artifact.actual_timestamp = video.actual_start
+        artifact.actual_end_timestamp = video.actual_end
+        artifact.actual_duration = video_info.duration
+        artifact.resolution = Resolution(video_info.width, video_info.height)
+        artifact.s3_path = f"s3://{self._container_svcs.raw_s3}/{s3_path}"

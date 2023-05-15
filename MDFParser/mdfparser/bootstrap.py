@@ -5,8 +5,11 @@ import os
 from dataclasses import dataclass
 from logging import Logger
 
-from mypy_boto3_sqs import SQSClient
+import boto3
+from kink import di
+
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_sqs import SQSClient
 
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
@@ -20,18 +23,17 @@ from base.ride_detection_people_count_after import RideDetectionPeopleCountAfter
 from base.sum_door_closed import SumDoorClosed
 from base.variance_person_count import VariancePersonCount
 
-import boto3
-from kink import di
-from mdfparser.config import MdfParserConfig
 from mdfparser.consumer import Consumer
 from mdfparser.imu.downloader import IMUDownloader
 from mdfparser.imu.handler import IMUHandler
 from mdfparser.imu.transformer import IMUTransformer
 from mdfparser.imu.uploader import IMUUploader
+from mdfparser.interfaces.artifact_adapter import ArtifactAdapter
 from mdfparser.metadata.downloader import MetadataDownloader
 from mdfparser.metadata.handler import MetadataHandler
 from mdfparser.metadata.synchronizer import Synchronizer
 from mdfparser.metadata.uploader import MetadataUploader
+from mdfparser.config import MdfParserConfig
 
 
 @dataclass
@@ -80,8 +82,10 @@ def bootstrap_di() -> None:
         RideDetectionPeopleCountAfter(),
         SumDoorClosed()
     ]
-    di[ContainerServices] = ContainerServices(container="MDFParser", version=env_params.container_version)
-    di[MdfParserConfig] = MdfParserConfig.load_config_from_yaml_file(di["config_path"])
+    di[ContainerServices] = ContainerServices(
+        container="MDFParser", version=env_params.container_version)
+    di[MdfParserConfig] = MdfParserConfig.load_config_from_yaml_file(
+        di["config_path"])
 
     di[MetadataDownloader] = MetadataDownloader()
     di[MetadataUploader] = MetadataUploader()
@@ -90,5 +94,7 @@ def bootstrap_di() -> None:
     di[IMUTransformer] = IMUTransformer()
     di[IMUDownloader] = IMUDownloader()
     di[IMUUploader] = IMUUploader()
+
+    di[ArtifactAdapter] = ArtifactAdapter()
 
     di[Consumer] = Consumer(handler_list=[IMUHandler(), MetadataHandler()])

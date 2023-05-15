@@ -2,30 +2,35 @@
 """Sensor Data Retriever - V7
 - adds ingestion of TrainingRecorder IMU data
 """
-
+import json
 import logging as log
-import os
 
-import boto3
-from base import GracefulExit
-from base.aws.container_services import ContainerServices
-from base.aws.shared_functions import StsHelper
-from sdretriever.config import SDRetrieverConfig
+from kink import inject
 
-from sdretriever.ingestor.imu import IMUIngestor
-from sdretriever.ingestor.metadata import MetadataIngestor
-from sdretriever.ingestor.snapshot import SnapshotIngestor
-from sdretriever.ingestor.video import VideoIngestor
-from sdretriever.sourcecommuter import SourceCommuter
-from sdretriever.handler import IngestorHandler
+from base.aws.sqs import SQSController
+from base.graceful_exit import GracefulExit
+from base.model.artifacts import parse_artifact
+
+from sdretriever.bootstrap import bootstrap_di
 from sdretriever.constants import CONTAINER_NAME, CONTAINER_VERSION
+from sdretriever.handler import IngestionHandler
 
 # Global log message formatting
-LOGGER = log.getLogger("SDRetriever")
-ContainerServices.configure_logging("SDRetriever")
+_logger = log.getLogger("SDRetriever")
 
 
-def main(config: SDRetrieverConfig):
+def __deserialize(raw_message: str) -> str:
+    call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
+                 ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
+    for args in call_args:
+        raw_message = raw_message.replace(args[0], args[1])
+    return raw_message
+
+
+@inject
+def main(graceful_exit: GracefulExit,
+         sqs_controller: SQSController,
+         ingestion_handler: IngestionHandler):
     """Main function of the component.
 
     Args:
@@ -33,73 +38,32 @@ def main(config: SDRetrieverConfig):
     """
 
     # Define configuration for logging messages
-    LOGGER.info("Starting Container %s %s", CONTAINER_NAME, CONTAINER_VERSION)
+    _logger.info("Starting Container %s %s", CONTAINER_NAME, CONTAINER_VERSION)
 
-    # Start necessary services
-    s3_client = boto3.client("s3", region_name="eu-central-1")
-    sqs_client = boto3.client("sqs", region_name="eu-central-1")
-    sts_client = boto3.client("sts", region_name="eu-central-1")
-    cont_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
-    cont_services.load_config_vars()
-    sts_helper = StsHelper(sts_client,
-                           role=cont_services.rcc_info.get("role"),
-                           role_session="DevCloud-SDRetriever")
-    graceful_exit = GracefulExit()
-
-    # Create file ingestors
-    metadata_ing = MetadataIngestor(
-        container_services=cont_services,
-        s3_client=s3_client,
-        sqs_client=sqs_client,
-        sts_helper=sts_helper)
-    snapshot_ing = SnapshotIngestor(
-        container_services=cont_services,
-        s3_client=s3_client,
-        sqs_client=sqs_client,
-        sts_helper=sts_helper)
-    video_ing = VideoIngestor(
-        container_services=cont_services,
-        s3_client=s3_client,
-        sqs_client=sqs_client,
-        sts_helper=sts_helper,
-        frame_buffer=config.frame_buffer,
-        discard_repeated_video=config.discard_video_already_ingested)
-    imu_ingestor = IMUIngestor(
-        container_services=cont_services,
-        s3_client=s3_client,
-        sqs_client=sqs_client,
-        sts_helper=sts_helper)
-
-    ingestion_handler = IngestorHandler(
-        imu_ingestor,
-        metadata_ing,
-        video_ing,
-        snapshot_ing,
-        cont_services,
-        config,
-        sqs_client)
-
-    # Create source commuter
-    src = SourceCommuter([
-        cont_services.sqs_queues_list["SDRetriever"],
-        cont_services.sqs_queues_list["Selector"]])
+    _logger.info("Waiting for messages...")
     while graceful_exit.continue_running:
         # Poll source (SQS queue) for a new message
-        source = src.get_source()
-        message = cont_services.get_single_message_from_input_queue(sqs_client, source)
-
+        message = sqs_controller.get_message()
         if message:
-            ingestion_handler.route(message, source)
-        else:
-            # if no message was obtained from the current source
-            src.next()
+            _logger.info("Received artifact message -> %s", message)
 
-    LOGGER.info("%s exited gracefully.", CONTAINER_NAME)
+            raw_message = __deserialize(message["Body"])
+            parsed_body = json.loads(raw_message)
+            try:
+                artifact = parse_artifact(parsed_body["Message"])
+                ingestion_handler.handle(artifact, message)
+                # the message is deleted in the handler if processed successfully
+            # because we never want to crash the container
+            except Exception:  # pylint: disable=broad-except
+                _logger.exception(
+                    "Error parsing artifact, skipping message %s",
+                    message["MessageId"])
+                continue
+
+    _logger.info("%s exited gracefully.", CONTAINER_NAME)
 
 
 if __name__ == "__main__":
-    _config = SDRetrieverConfig.load_config_from_yaml_file(
-        os.environ.get("CONFIG_FILE", "/app/config/config.yml"))
-
     # Instanciating main loop and injecting dependencies
-    main(config=_config)
+    bootstrap_di()
+    main()  # pylint: disable=no-value-for-parameter

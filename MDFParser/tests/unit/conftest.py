@@ -6,13 +6,16 @@ from mdfparser.consumer import Consumer
 from mdfparser.config import MdfParserConfig
 from mdfparser.metadata.downloader import MetadataDownloader
 from mdfparser.metadata.uploader import MetadataUploader
+from mdfparser.interfaces.artifact_adapter import ArtifactAdapter
 import os
 
 REGION_NAME = "us-east-1"
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
-SQS_RAW_MESSAGES = os.path.join(CURRENT_LOCATION, "test_assets", "sqs_messages")
-SQS_PARSED_MESSAGES = os.path.join(CURRENT_LOCATION, "test_assets", "sqs_messages", "parsed")
+SQS_RAW_MESSAGES = os.path.join(
+    CURRENT_LOCATION, "test_assets", "sqs_messages")
+SQS_PARSED_MESSAGES = os.path.join(
+    CURRENT_LOCATION, "test_assets", "sqs_messages", "parsed")
 
 
 def get_file(path: str) -> bytearray:
@@ -93,6 +96,11 @@ def config() -> MdfParserConfig:
     )
 
 
+@pytest.fixture()
+def message_adapter() -> ArtifactAdapter:
+    return ArtifactAdapter()
+
+
 @pytest.fixture
-def consumer(container_services_mock, metadata_handler, imu_handler, config, sqs_client) -> Consumer:
-    return Consumer(container_services_mock, [metadata_handler, imu_handler], config, sqs_client)
+def consumer(container_services_mock, metadata_handler, imu_handler, config, sqs_client, message_adapter) -> Consumer:
+    return Consumer(container_services_mock, [metadata_handler, imu_handler], config, message_adapter, sqs_client)

@@ -1,11 +1,21 @@
 from datetime import datetime
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
+from pytz import UTC
 
+from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
+                                  TimeWindow)
 from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
-from healthcheck.model import Artifact, SnapshotArtifact
+
+common_snapshot_attributes = {
+    "recorder": RecorderType.SNAPSHOT,
+    "timestamp": datetime.now(tz=UTC),
+    "upload_timing": TimeWindow(
+        start=datetime.now(tz=UTC),
+        end=datetime.now(tz=UTC))
+}
 
 
 @pytest.mark.unit
@@ -15,13 +25,13 @@ class TestSnapshotArtifactChecker:
             uuid="uuid1",
             tenant_id="my_tenant1",
             device_id="my_device1",
-            timestamp=datetime.now()
+            **common_snapshot_attributes
         ), True),
         (SnapshotArtifact(
             uuid="uuid2",
             tenant_id="my_tenant2",
             device_id="my_device2",
-            timestamp=datetime.now()
+            **common_snapshot_attributes
         ), False)
     ])
     def test_run_healthcheck(self, input_artifact: Artifact, is_matching_recording_ingested: bool):
@@ -57,14 +67,10 @@ class TestSnapshotArtifactChecker:
             input_artifact)
         snapshot_id = input_artifact.artifact_id
 
-        s3_controller.is_s3_raw_file_present_or_raise.assert_called_once_with(
-            f"{snapshot_id}.jpeg", input_artifact)
-        s3_controller.is_s3_anonymized_file_present_or_raise(
-            f"{snapshot_id}_anonymized.jpeg", input_artifact)
+        s3_controller.is_s3_raw_file_present_or_raise.assert_called_once_with(f"{snapshot_id}.jpeg", input_artifact)
+        s3_controller.is_s3_anonymized_file_present_or_raise(f"{snapshot_id}_anonymized.jpeg", input_artifact)
 
-        db_controller.is_recordings_doc_valid_or_raise.assert_called_once_with(
-            input_artifact)
+        db_controller.is_recordings_doc_valid_or_raise.assert_called_once_with(input_artifact)
 
         if is_matching_recording_ingested:
-            voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(
-                input_artifact)
+            voxel_fiftyone_controller.is_fiftyone_entry_present_or_raise.assert_called_once_with(input_artifact)

@@ -12,6 +12,7 @@ from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
 from base.graceful_exit import GracefulExit
+from sanitizer.artifact.artifact_injector import MetadataArtifactInjector
 from sanitizer.config import SanitizerConfig
 
 
@@ -41,3 +42,4 @@ def bootstrap_di():
 
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
     di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
+    di[MetadataArtifactInjector] = MetadataArtifactInjector()

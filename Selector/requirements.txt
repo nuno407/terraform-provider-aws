@@ -1,2 +1,4 @@
 urllib3 == 1.26.15
--e ../base[aws]
+boto3-stubs[sqs] == 1.26.91
+kink == 0.6.6
+-e ../base[aws,model]

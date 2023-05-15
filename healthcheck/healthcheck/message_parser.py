@@ -36,7 +36,7 @@ MANDATORY_FIELDS = [
 
 
 @inject
-class SQSMessageParser():
+class SQSMessageParser:
     """SQS message parser."""
 
     def __flatten_string_value(self, attribute: Union[str, dict]) -> Optional[str]:

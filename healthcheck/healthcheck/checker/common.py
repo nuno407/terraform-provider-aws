@@ -3,7 +3,7 @@
 """Artifact checker module."""
 from typing import Protocol
 
-from healthcheck.model import Artifact
+from base.model.artifacts import Artifact
 
 
 class ArtifactChecker(Protocol):

@@ -1,11 +1,12 @@
 """ Test artifact forwarder module. """
 from datetime import datetime
 from unittest.mock import Mock
-from pytz import UTC
 
 import pytest
+from pytz import UTC
 
-from base.model.artifacts import RecorderType, SnapshotArtifact, VideoArtifact
+from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
+                                  VideoArtifact)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 
@@ -19,6 +20,9 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.INTERIOR,
+            upload_timing=TimeWindow(
+                start="2022-12-18T07:37:07.842030994Z",
+                end="2022-12-18T07:37:07.842030994Z")
         )
     ),
     (
@@ -27,7 +31,10 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             tenant_id="deepsensation",
             device_id="DEV_01",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(tz=UTC)
+            timestamp=datetime.now(tz=UTC),
+            upload_timing=TimeWindow(
+                start="2022-12-18T07:37:07.842030994Z",
+                end="2022-12-18T07:37:07.842030994Z")
         )
     )
 ])

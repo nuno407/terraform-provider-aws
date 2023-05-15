@@ -13,6 +13,7 @@ from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
+from base.model.artifacts import RecorderType
 from base.graceful_exit import GracefulExit
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
@@ -22,7 +23,7 @@ from healthcheck.checker.training_recorder import \
 from healthcheck.config import HealthcheckConfig
 from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
 from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
-from healthcheck.model import ArtifactType, S3Params
+from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import DocumentValidator, JSONSchemaValidator
 from healthcheck.voxel_client import VoxelClient, VoxelEntriesGetter
@@ -104,7 +105,7 @@ def bootstrap_di() -> None:
     di[INoSQLDBClient] = MongoDBClient()
 
     di["checkers"] = {
-        ArtifactType.TRAINING_RECORDER: TrainingRecorderArtifactChecker(),
-        ArtifactType.INTERIOR_RECORDER: InteriorRecorderArtifactChecker(),
-        ArtifactType.SNAPSHOT: SnapshotArtifactChecker()
+        RecorderType.TRAINING: TrainingRecorderArtifactChecker(),
+        RecorderType.INTERIOR: InteriorRecorderArtifactChecker(),
+        RecorderType.SNAPSHOT: SnapshotArtifactChecker()
     }

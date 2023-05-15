@@ -12,15 +12,6 @@ import boto3
 import pytimeparse
 import pytz
 from kink import inject
-from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
-                                       UNKNOWN_FILE_FORMAT_MESSAGE)
-from metadata.common.errors import (EmptyDocumentQueryResult,
-                                    MalformedRecordingEntry)
-from metadata.consumer.bootstrap import bootstrap_di
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.persistence import Persistence
-from metadata.consumer.service import RelatedMediaService
 from mypy_boto3_s3 import S3Client
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
@@ -30,7 +21,20 @@ from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from base.model.artifacts import (IMUArtifact, SignalsArtifact,
+                                  SnapshotArtifact, VideoArtifact,
+                                  parse_artifact)
 from base.voxel.voxel_functions import create_dataset, update_sample
+from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
+                                       UNKNOWN_FILE_FORMAT_MESSAGE)
+from metadata.common.errors import (EmptyDocumentQueryResult,
+                                    MalformedRecordingEntry)
+from metadata.consumer.bootstrap import bootstrap_di
+from metadata.consumer.chc_synchronizer import ChcSynchronizer
+from metadata.consumer.config import DatasetMappingConfig
+from metadata.consumer.exceptions import NotSupportedArtifactError
+from metadata.consumer.persistence import Persistence
+from metadata.consumer.service import RelatedMediaService
 
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
@@ -82,7 +86,8 @@ def _update_on_voxel(filepath: str, sample: dict):
         create_dataset(dataset_name, tags)
         update_sample(dataset_name, sample)
     except Exception as err:  # pylint: disable=broad-except
-        _logger.exception("Unable to process Voxel entry [%s] with %s", dataset_name, err)
+        _logger.exception(
+            "Unable to process Voxel entry [%s] with %s", dataset_name, err)
 
 
 @inject
@@ -192,7 +197,7 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
             "source_videos": list(related_media_paths),
-            "internal_message_reference_id": message.get("internal_message_reference_id", None)
+            "devcloudid": message.get("devcloudid", None)
         }
     }
 
@@ -250,13 +255,14 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
             "time": footage_time,
-            "internal_message_reference_id": message.get("internal_message_reference_id", None)
+            "devcloudid": message.get("devcloudid", None)
         },
         "resolution": message["resolution"]
     }
 
     if "imu_path" in message:
-        recording_item["recording_overview"].update({"imu_path": message["imu_path"]})
+        recording_item["recording_overview"].update(
+            {"imu_path": message["imu_path"]})
 
     find_and_update_media_references(related_media_paths, update_query={
         "$push": {
@@ -288,15 +294,18 @@ def create_recording_item(message: dict,
     recording_item = {}
 
     if file_format in IMAGE_FORMATS:
-        recording_item = create_snapshot_recording_item(message, collection_rec, service)
+        recording_item = create_snapshot_recording_item(
+            message, collection_rec, service)
     elif file_format in VIDEO_FORMATS:
-        recording_item = create_video_recording_item(message, collection_rec, service)
+        recording_item = create_video_recording_item(
+            message, collection_rec, service)
     # Upsert item into the 'recordings' collection, if the new item was built
     if recording_item:
         try:
             update_query = transform_data_to_update_query(recording_item)
             recorder = collection_rec.find_one_and_update(filter={"video_id": message["_id"]},
-                                                          update={"$set": update_query},
+                                                          update={
+                                                              "$set": update_query},
                                                           upsert=True, return_document=ReturnDocument.AFTER)
 
             _logger.info("Upserted recording DB item for item %s",
@@ -574,7 +583,8 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             }
             # upsert signals DB item
             sig_query = {"recording": video_id, "algo_out_id": run_id}
-            metadata_collections.signals.update_one(sig_query, {"$set": signals_item}, upsert=True)
+            metadata_collections.signals.update_one(
+                sig_query, {"$set": signals_item}, upsert=True)
 
             # Create logs message
             _logger.info("Signals DB item (algo id [%s]) updated!", run_id)
@@ -596,7 +606,8 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
         # Insert previously built item
         # collection_algo_out.insert_one(algo_item,)
         query = {"_id": run_id}
-        metadata_collections.algo_output.update_one(query, {"$set": algo_item}, upsert=True)
+        metadata_collections.algo_output.update_one(
+            query, {"$set": algo_item}, upsert=True)
         _logger.info("Algo Output DB item (run_id: %s) created!", run_id)
     except DocumentTooLarge as err:
         _logger.error(DOCUMENT_TOO_LARGE_MESSAGE, err)
@@ -662,7 +673,8 @@ def insert_mdf_imu_data(imu_message: dict, metadata_collections: MetadataCollect
     object_key = parsed_path.path.strip("/")
 
     if not ContainerServices.check_s3_file_exists(s3_client, bucket_name, object_key):
-        _logger.error("The imu file (%s) is not available on the bucket (%s)", bucket_name, object_key)
+        _logger.error(
+            "The imu file (%s) is not available on the bucket (%s)", bucket_name, object_key)
         return
 
     raw_parsed_imu = ContainerServices.download_file(
@@ -673,7 +685,8 @@ def insert_mdf_imu_data(imu_message: dict, metadata_collections: MetadataCollect
     # Load parsed file into DB
     parsed_imu = json.loads(raw_parsed_imu.decode("utf-8"))
     for doc in parsed_imu:
-        doc["timestamp"] = datetime.fromtimestamp(doc["timestamp"] / 1000, tz=pytz.utc)
+        doc["timestamp"] = datetime.fromtimestamp(
+            doc["timestamp"] / 1000, tz=pytz.utc)
 
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
@@ -683,7 +696,8 @@ def insert_mdf_imu_data(imu_message: dict, metadata_collections: MetadataCollect
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
     if message["data_type"] == "imu":
-        insert_mdf_imu_data(message, metadata_collections)  # pylint: disable=no-value-for-parameter
+        insert_mdf_imu_data(
+            message, metadata_collections)  # pylint: disable=no-value-for-parameter
         return
 
     recording = upsert_mdf_signals_data(
@@ -691,18 +705,59 @@ def __process_mdfparser(message: dict, metadata_collections: MetadataCollections
 
     if not recording:
         # something went wrong when looking up the recording record
-        _logger.warning("Skip updating voxel, No recording item found on DB or IMU data.")
+        _logger.warning(
+            "Skip updating voxel, No recording item found on DB or IMU data.")
         return
     _logger.debug("Recording stored in DB: %s", str(recording))
     update_voxel_media(recording)
 
 
+def __parse_sdr_message(input_message: dict) -> dict:
+    """Parses a message coming from SDRetriever, which is expected to be an Artifact object."""
+    # Parse message into an object
+    artifact = parse_artifact(input_message)
+
+    # Fill common properties
+    message: dict = {
+        "_id": artifact.artifact_id,
+        "s3_path": artifact.s3_path.replace("s3://", ""),
+        "tenant": artifact.tenant_id,
+        "deviceid": artifact.device_id,
+        "devcloudid": artifact.devcloudid
+    }
+
+    # Fill specific properties
+    if isinstance(artifact, VideoArtifact):
+        length_td = timedelta(seconds=artifact.actual_duration)
+        message["MDF_available"] = "No"
+        message["footagefrom"] = artifact.actual_timestamp.timestamp() * 1000
+        message["footageto"] = artifact.actual_end_timestamp.timestamp() * 1000
+        message["length"] = str(length_td).split('.')[0]
+        message["snapshots_paths"] = []
+        message["media_type"] = "video"
+        message["resolution"] = f"{artifact.resolution.width}x{artifact.resolution.height}"
+
+    elif isinstance(artifact, SnapshotArtifact):
+        message["timestamp"] = artifact.timestamp.timestamp() * 1000
+        message["media_type"] = "image"
+
+    else:
+        _logger.info(
+            "Artifact type %s is not supported by the current implementation.", type(artifact))
+        raise NotSupportedArtifactError(
+            f"Artifact type {str(type(artifact))} is not supported by the current implementation.")
+    return message
+
+
 def __process_sdr(message: dict, metadata_collections: MetadataCollections, service: RelatedMediaService):
-    file_format = message.get("s3_path", "").split(".")[-1]
+    """Process a message coming from SDRetriever."""
+
+    parsed_message = __parse_sdr_message(message)
+    file_format = parsed_message.get("s3_path", "").split(".")[-1]
     if file_format in IMAGE_FORMATS or file_format in VIDEO_FORMATS:
         # Call respective processing function
         recording = create_recording_item(
-            message, metadata_collections.recordings, service)
+            parsed_message, metadata_collections.recordings, service)
         if not recording:
             # something went wrong when creating the new db record
             _logger.warning("No recording item created on DB.")
@@ -717,7 +772,8 @@ def __process_general(message: dict, metadata_collections: MetadataCollections, 
     recording_id = os.path.basename(message["s3_path"]).split(".")[0]
 
     # Call respective processing function
-    update_pipeline_db(recording_id, message, metadata_collections.pipeline_exec, source)
+    update_pipeline_db(recording_id, message,
+                       metadata_collections.pipeline_exec, source)
 
     # Create/Update item on Algorithm Output DB if message is about algo output
     if "output" in message:
@@ -763,7 +819,10 @@ def upsert_data_to_db(db: Database,
     #################### NOTE: Recording collection handling ##################
     # If the message is related to our data ingestion
     if source == "SDRetriever":
-        __process_sdr(message, metadata_collections, service)
+        try:
+            __process_sdr(message, metadata_collections, service)
+        except NotSupportedArtifactError:
+            _logger.info("Skipping not supported artifact")
     elif source == "MDFParser":
         __process_mdfparser(message, metadata_collections)
     elif source in {"SDM", "Anonymize", "CHC", "anon_ivschain", "chc_ivschain"}:
@@ -794,7 +853,7 @@ def read_message(container_services: ContainerServices, body: str) -> dict:
     new_body = body.replace("\'", "\"")
     dict_body = json.loads(new_body)
 
-    if "data_type" in body:
+    if "data_type" in body and "parsed_file_path" in dict_body:
         s3_path = dict_body["parsed_file_path"]
     else:
         s3_path = dict_body.get("s3_path", "s3://" + dict_body.get("signals_file", dict()).get(
@@ -839,7 +898,15 @@ def main():
 
     while graceful_exit.continue_running:
         # Check input SQS queue for new messages
-        message = container_services.get_single_message_from_input_queue(sqs_client)
+        message = container_services.get_single_message_from_input_queue(
+            sqs_client)
+
+        if message and "MessageAttributes" not in message:
+            _logger.error(
+                "Message received without MessageAttributes, going to delete it: %s", message)
+            container_services.delete_message(
+                sqs_client, message["ReceiptHandle"])
+            continue
 
         if message:
             _logger.info(message)
