@@ -10,7 +10,6 @@ from kink import inject
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from base.model.artifacts import parse_artifact
-
 from sdretriever.bootstrap import bootstrap_di
 from sdretriever.constants import CONTAINER_NAME, CONTAINER_VERSION
 from sdretriever.handler import IngestionHandler
@@ -48,8 +47,8 @@ def main(graceful_exit: GracefulExit,
             _logger.info("Received artifact message -> %s", message)
 
             raw_message = __deserialize(message["Body"])
-            parsed_body = json.loads(raw_message)
             try:
+                parsed_body = json.loads(raw_message)
                 artifact = parse_artifact(parsed_body["Message"])
                 ingestion_handler.handle(artifact, message)
                 # the message is deleted in the handler if processed successfully
