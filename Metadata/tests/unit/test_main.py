@@ -1,5 +1,6 @@
 """Tests for metadata.consumer.main module."""
 # pylint: disable=missing-function-docstring,missing-module-docstring
+import copy
 import hashlib
 import json
 import os
@@ -108,7 +109,7 @@ def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> di
     if imu_path is not None:
         result["imu_path"] = imu_path
 
-    return result
+    return read_message(Mock(), str(result))  # read_message function fix some issues on message structure
 
 
 def _video_message_dict(recording_id: str, imu_path: Optional[str] = None) -> dict:
@@ -164,7 +165,7 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
         "video_id": f"{recording_id}"}
 
 def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
-    return {
+    result = {
         "_id": f"{snapshot_id}",
         "s3_path": f"dev-rcd-raw-video-files/Debug_Lync/{snapshot_id}.{extension}",
         "deviceid": "rc_srx_develop_cst2hi_01",
@@ -178,6 +179,8 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
         },
         "devcloudid": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
     }
+
+    return read_message(Mock(), str(result))  # read_message function fix some issues on message structure
 
 
 def _mdf_imu_message_body(_id: str) -> dict:
@@ -312,7 +315,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             # we have the key for snapshots named as "video_id" due to legacy reasons...
             "video_id": input_message["_id"],
             "_media_type": input_message["media_type"],
-            "filepath": "s3://" + input_message["s3_path"],
+            "filepath": input_message["s3_path"],
             "recording_overview": {
                 "tenantID": input_message["tenant"],
                 "deviceID": input_message["deviceid"],
@@ -344,7 +347,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             # we have the key for snapshots named as "video_id" due to legacy reasons...
             "video_id": input_message["_id"],
             "_media_type": input_message["media_type"],
-            "filepath": "s3://" + input_message["s3_path"],
+            "filepath": input_message["s3_path"],
             "recording_overview": {
                 "tenantID": input_message["tenant"],
                 "deviceID": input_message["deviceid"],
@@ -437,7 +440,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @pytest.mark.unit
     @patch("metadata.consumer.main.update_sample")
     @patch("metadata.consumer.main.create_dataset")
-    @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
+    @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
@@ -456,6 +459,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         sample = recording_item.copy()
         sample.pop("_id")
         sample["s3_path"] = anonymized_path
+        sample["raw_filepath"] = filepath
 
         # When
         update_voxel_media(recording_item)
@@ -485,7 +489,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             algo_output=MagicMock(),
             processed_imu=MagicMock(),
         )
-        print(message)
+
         # When
         recording = upsert_mdf_signals_data(message, metadata_collections)
 
@@ -524,7 +528,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.main.update_sample")
     @patch("metadata.consumer.main.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
-    @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
+    @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     @pytest.mark.unit
     def test_process_outputs(
             self,
@@ -534,7 +538,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         # Given
         video_id = "id"
         message = {
-            "s3_path": "a/b/c.mp4",
+            "s3_path": "s3://bucket/a/b/c.mp4",
             "output": {
                 "bucket": "a",
                 "meta_path": "e/f.media"
@@ -553,24 +557,33 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             "output_paths": {
                 "metadata": "a/e/f.media"
             },
+            "results": {
+                "CHBs_sync": {
+                    "a": "b"
+                },
+                "CHC_metrics": {
+                    "c": "d"
+                }
+            }
+        }
+
+        expected_set_mongodb = copy.deepcopy(expected_out)
+
+        expected_voxel_output = {
+            **expected_out,
             "algorithms": {
                 "id_CHC": {
-                    "results": {
-                        "CHBs_sync": {
-                            "a": "b"
-                        },
-                        "CHC_metrics": {
-                            "c": "d"
-                        }
-                    },
-                    "output_paths": {
-                        "metadata": "a/e/f.media"
-                    }
+                    "output_paths": expected_out["output_paths"],
+                    "results": expected_out["results"]
                 }
             },
             "s3_path": "s3://anon_bucket/a/b/c_anonymized.mp4",
+            "raw_filepath": "s3://bucket/a/b/c.mp4",
             "video_id": "id"
         }
+
+        expected_voxel_output.pop("results")
+        expected_out.pop("output_paths")
 
         metadata_collections = MetadataCollections(
             recordings=collection_recordings,
@@ -599,13 +612,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         collection_algo_out.update_one.assert_called_once_with(
             {"_id": "id_CHC"},
             {
-                "$set": expected_out
+                "$set": expected_set_mongodb
             }, upsert=True)
         mock_download_and_synchronize_chc.assert_called_once_with(
             "id", collection_recordings, "a", "e/f.media")
         mock_create_dataset_voxel.assert_called_once_with("Debug_Lync", ["RC"])
-        mock_update_sample_voxel.assert_called_once_with(
-            "Debug_Lync", expected_out)
+        mock_update_sample_voxel.assert_called_once_with("Debug_Lync", expected_voxel_output)
 
     @pytest.mark.unit
     @pytest.mark.skip(reason="Not worth updateing the test before refactoring")
@@ -635,9 +647,9 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             False
         ),
     ])
-    @patch("metadata.consumer.main.create_recording_item")
-    @patch("metadata.consumer.main.upsert_mdf_signals_data")
-    @patch("metadata.consumer.main.update_voxel_media")
+    @ patch("metadata.consumer.main.create_recording_item")
+    @ patch("metadata.consumer.main.upsert_mdf_signals_data")
+    @ patch("metadata.consumer.main.update_voxel_media")
     def test_upsert_data_to_db_sdr_mdf(  # pylint: disable=too-many-arguments
             self,
             mock_update_voxel_media: Mock,
@@ -855,6 +867,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             return_value=mock_db_client)
         mock_container_services_object.db_tables = Mock()
         mock_container_services_object.anonymized_s3 = "anon_bucket"
+        mock_container_services_object.raw_s3 = "raw_bucket"
         mock_container_services_object.delete_message = Mock()
         mock_container_services_object.get_single_message_from_input_queue = Mock(
             return_value=input_message)
@@ -890,7 +903,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
 
 @pytest.mark.unit
-@patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
+@patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
 @patch("metadata.consumer.main.update_sample")
 @patch("metadata.consumer.main.create_dataset")
 @patch("metadata.consumer.main.download_and_synchronize_chc")
@@ -913,7 +926,7 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
             "bucket": "wow",
             "meta_path": "wow/yeah"
         },
-        "s3_path": "wow/yeah.mp4"
+        "s3_path": "s3://anon_bucket/wow/yeah.mp4"
     }
     download_and_sync.return_value = ({}, {})
 

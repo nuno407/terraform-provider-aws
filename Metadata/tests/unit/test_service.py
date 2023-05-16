@@ -129,7 +129,7 @@ def test_get_table_data(aggregation_result_path: str,
     assert expected == result
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 def test_get_single_recording():
     with open(os.path.join(
             __location__, "test_data/recording_aggregation_response.json"), "r", encoding="utf8") as json_file:
@@ -149,7 +149,7 @@ def test_get_single_recording():
     assert db.get_single_recording.call_count == 2
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 def test_update_video_description():
     # GIVEN
     video_id = "foo"

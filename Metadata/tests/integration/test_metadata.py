@@ -25,17 +25,18 @@ def _message_attributes() -> dict:
 
 def _pack_message(body: dict) -> dict:
     message = {
-        "Body": json.dumps(body).replace("\"", "\'"),
+        "Body": json.dumps(body),
         "MessageAttributes": _message_attributes(),
         "ReceiptHandle": "receipt_handle"
     }
 
-    return message
+    # read_message function fix some issues on message structure
+    return metadata.consumer.main.read_message(Mock(), json.dumps(message))
 
 
 def _input_message_recording(folder) -> dict:
     body = {
-        "s3_path": f"s3://bucket/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
+        "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
         "timestamp": 1662080172308,
         "end_timestamp": 1662080561893,
         "actual_timestamp": 1662080172308,
@@ -63,7 +64,7 @@ def _input_message_snapshot(folder: str, timestamp: int) -> dict:
         "upload_timing": {"start": timestamp + 1000, "end": timestamp + 2000},
         "recorder": "TrainingMultiSnapshot",
         "uuid": "foo",
-        "s3_path": f"s3://bucket/{folder}/ridecare_device_foo_{timestamp}.jpeg",
+        "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_foo_{timestamp}.jpeg",
     }
     message = _pack_message(body)
     return message
@@ -156,6 +157,7 @@ class TestMain:
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
+        container_services_mock.return_value.raw_s3 = "raw_bucket"
         container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [
             _input_message_snapshot_included,
             _input_message_snapshot_excluded,
@@ -199,11 +201,13 @@ class TestMain:
 
         snapshot_excluded_db_entry.pop("_id")
         snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg"  # pylint: disable=line-too-long
+        snapshot_excluded_db_entry["raw_filepath"] = snapshot_excluded_db_entry["filepath"]
         recording_db_entry.pop("_id")
         recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
+        recording_db_entry["raw_filepath"] = recording_db_entry["filepath"]
         snapshot_included_db_entry.pop("_id")
         snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
-        print(update_sample.call_args_list)
+        snapshot_included_db_entry["raw_filepath"] = snapshot_included_db_entry["filepath"]
 
         # assert_has_calls does not work yet with pytest: https://github.com/pytest-dev/pytest-mock/issues/234
         update_sample.assert_has_calls([

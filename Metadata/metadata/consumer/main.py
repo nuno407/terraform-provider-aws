@@ -1,4 +1,5 @@
 """Metadata consumer entrypoint."""
+import copy
 import json
 import os
 import re
@@ -64,13 +65,13 @@ def __get_s3_path_parts(raw_path) -> Tuple[str, str]:
     return bucket, key
 
 
-def _get_anonymized_s3_path(filepath):
-    filetype = filepath.split("/")[-1].split(".")[-1]
+def _get_anonymized_s3_path(file_key):
+    filetype = file_key.split("/")[-1].split(".")[-1]
 
     if filetype not in IMAGE_FORMATS and filetype not in VIDEO_FORMATS:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
 
-    return f"s3://{os.environ['ANON_S3']}/{filepath.rstrip(f'.{filetype}')}_anonymized.{filetype}"
+    return f"s3://{os.environ['ANON_S3']}/{file_key.rstrip(f'.{filetype}')}_anonymized.{filetype}"
 
 
 def _update_on_voxel(filepath: str, sample: dict):
@@ -101,7 +102,8 @@ def _determine_dataset_name(filepath: str, mapping_config: DatasetMappingConfig)
     :param mapping_config: Config with mapping information about the tenants
     :return: the resulting dataset name and the tags which should be added on dataset creation
     """
-    s3split = filepath.split("/")
+    _, file_key = __get_s3_path_parts(filepath)
+    s3split = file_key.split("/")
     # The root dir on the S3 bucket always is the tenant name
     tenant_name = s3split[0]
     filetype = s3split[-1].split(".")[-1]
@@ -129,12 +131,13 @@ def update_voxel_media(sample: dict):
         _logger.error("Filepath field not present in the sample. %s", sample)
         return
 
-    _, filepath = __get_s3_path_parts(sample["filepath"])
+    _, file_key = __get_s3_path_parts(sample["filepath"])
 
     sample.pop("_id", None)
-    sample["s3_path"] = _get_anonymized_s3_path(filepath)
+    sample["s3_path"] = _get_anonymized_s3_path(file_key)
+    sample["raw_filepath"] = sample["filepath"]
 
-    _update_on_voxel(filepath, sample)
+    _update_on_voxel(sample["s3_path"], sample)
 
 
 def find_and_update_media_references(
@@ -192,7 +195,7 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
         # we have the key for snapshots named as "video_id" due to legacy reasons...
         "video_id": message["_id"],
         "_media_type": message["media_type"],
-        "filepath": "s3://" + message["s3_path"],
+        "filepath": message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -247,7 +250,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         "video_id": message["_id"],
         "MDF_available": message["MDF_available"],
         "_media_type": message["media_type"],
-        "filepath": "s3://" + message["s3_path"],
+        "filepath": message["s3_path"],
         "recording_overview": {
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
@@ -449,14 +452,14 @@ def update_pipeline_db(video_id: str, message: dict,
             "Unable to create or replace pipeline executions item for id [%s] :: %s", video_id, err)
 
     # Voxel51 code
-    filepath = message["s3_path"]
-    anonymized_path = _get_anonymized_s3_path(filepath)
+    _, file_key = __get_s3_path_parts(message["s3_path"])
+    anonymized_path = _get_anonymized_s3_path(file_key)
 
     # with dicts either we make a copy or both variables will reference the same object
-    sample = upsert_item.copy()
-    sample.update({"video_id": video_id, "s3_path": anonymized_path})
+    sample = copy.deepcopy(upsert_item)
+    sample.update({"video_id": video_id, "s3_path": anonymized_path, "raw_filepath": message["s3_path"]})
 
-    _update_on_voxel(filepath, sample)
+    _update_on_voxel(sample["s3_path"], sample)
 
     return upsert_item
 
@@ -617,10 +620,10 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
             "Error updating the algo output collection with item %s - %s", algo_item, err)
 
     # Voxel51 code
-    filepath = message["s3_path"]
-    anon_video_path = _get_anonymized_s3_path(filepath)
+    _, file_key = __get_s3_path_parts(message["s3_path"])
+    anon_video_path = _get_anonymized_s3_path(file_key)
 
-    sample = algo_item
+    sample = copy.deepcopy(algo_item)
 
     sample["algorithms"] = {}
 
@@ -635,9 +638,10 @@ def process_outputs(video_id: str, message: dict, metadata_collections: Metadata
         sample.pop("results")
 
     sample["s3_path"] = anon_video_path
+    sample["raw_filepath"] = message["s3_path"]
     sample["video_id"] = algo_item["pipeline_id"]
 
-    _update_on_voxel(filepath, sample)
+    _update_on_voxel(sample["s3_path"], sample)
 
 
 def set_error_status(metadata_collections: MetadataCollections, video_id: str) -> None:
@@ -720,7 +724,7 @@ def __parse_sdr_message(input_message: dict) -> dict:
     # Fill common properties
     message: dict = {
         "_id": artifact.artifact_id,
-        "s3_path": artifact.s3_path.replace("s3://", ""),
+        "s3_path": artifact.s3_path,
         "tenant": artifact.tenant_id,
         "deviceid": artifact.device_id,
         "devcloudid": artifact.devcloudid
@@ -860,6 +864,17 @@ def read_message(container_services: ContainerServices, body: str) -> dict:
             "bucket", "") + "/" + dict_body.get("signals_file", dict()).get("key", ""))
     container_services.display_processed_msg(s3_path)
 
+    # there are services that send a s3_key instead of an s3_path!
+    # There are services that send a s3_bucket/s3_key without s3://
+    # TODO: Fix services
+    if "s3_path" in dict_body:
+        s3_path = str(dict_body["s3_path"])
+        if s3_path.find("s3://") == -1:
+            if s3_path.find("raw-video-files") != -1:
+                dict_body["s3_path"] = f"s3://{s3_path}"
+            else:
+                dict_body["s3_path"] = f"s3://{os.environ['RAW_S3']}{s3_path if s3_path[0] == '/' else '/' + s3_path }"
+        dict_body["filepath"] = dict_body["s3_path"]
     return dict_body
 
 
@@ -883,6 +898,7 @@ def main():
     container_services.load_config_vars()
     container_services.load_mongodb_config_vars()
     os.environ["ANON_S3"] = container_services.anonymized_s3
+    os.environ["RAW_S3"] = container_services.raw_s3
 
     # initialize DB client
     db_client = container_services.create_db_client()

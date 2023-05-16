@@ -6,7 +6,7 @@ import pytest
 from metadata.consumer.service import RelatedMediaService
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 def test_related_media_service():
     # GIVEN
     db = Mock()

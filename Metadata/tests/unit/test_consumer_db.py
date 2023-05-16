@@ -30,7 +30,7 @@ def fixture_recordings_persistence() -> Persistence:
     return Persistence(db_tables, client)
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 def test_related_media_service_image(recordings_persistence):
     # GIVEN
     device = "rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed"
@@ -56,7 +56,7 @@ def test_related_media_service_image(recordings_persistence):
     assert result == videos_paths
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 def test_related_media_service_video(recordings_persistence):
     # GIVEN
     device = "rc_srx_prod_8f8b793d1b290e4045d0c478f74960acd91cceed"
