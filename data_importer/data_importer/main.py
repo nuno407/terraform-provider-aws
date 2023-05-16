@@ -13,6 +13,7 @@ from data_importer.sqs_message import SQSMessage
 CONTAINER_NAME = "DataImporter"  # Name of the current container
 CONTAINER_VERSION = "v1.0"  # Version of the current container
 DATA_IMPORTER_QUEUE = os.environ.get("DATA_IMPORTER_QUEUE")
+AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
 
 
 _logger = ContainerServices.configure_logging(__name__)
@@ -68,8 +69,8 @@ def main(stop_condition=lambda: True):
     _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
-    sqs_client = boto3.client("sqs", region_name="eu-central-1")
-    s3_client = boto3.client("s3", region_name="eu-central-1")
+    sqs_client = boto3.client("sqs", region_name="eu-central-1", endpoint_url=AWS_ENDPOINT)
+    s3_client = boto3.client("s3", region_name="eu-central-1", endpoint_url=AWS_ENDPOINT)
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)

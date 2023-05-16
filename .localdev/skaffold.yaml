@@ -10,6 +10,7 @@ manifests:
       - ../../kubernetes_config/apps/pg/mdfparser
       - ../../kubernetes_config/apps/pg/sdm
       - ../../kubernetes_config/apps/pg/voxel-stack
+      - ../../kubernetes_config/apps/pg/data_importer
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
@@ -34,6 +35,14 @@ build:
       docker:
         dockerfile: MDFParser/Dockerfile
       runtimeType: python
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/data_importer
+      context: ..
+      docker:
+        dockerfile: data_importer/Dockerfile
+        secrets:
+          - id: voxel51token
+            env: TOKEN
+      runtimeType: python
 deploy:
   # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
   kubeContext: kind-kind
@@ -42,3 +51,15 @@ profiles:
 - name: local
   activation:
     - kubeContext: kind-kind
+
+portForward:
+  - resourceType: Service
+    resourceName: voxel
+    namespace: data-ingestion
+    port: 5151
+    localPort: 5151
+  - resourceType: Service
+    resourceName: mongodb
+    namespace: data-ingestion
+    port: 27017
+    localPort: 27017

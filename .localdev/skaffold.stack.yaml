@@ -6,10 +6,10 @@ manifests:
   kustomize:
     paths:
       # creates base infrastructure stuff. Namespace, ingress, etc
-      - ../../kubernetes_config/apps/dev/data-ingestion
+      - ../../kubernetes_config/apps/pg/data-ingestion
   rawYaml:
-    # Job used to apply infrastruture to localstack
-    - ../../tf_infrastructure/job.yml
+    # Job used to apply infrastructure to localstack
+    - ../../kubernetes_config/apps/pg/localstack/job.yml
 
 build:
     local:
@@ -35,7 +35,7 @@ deploy:
         setValues:
           service:
             type: ClusterIP
-          # We want to have persistance on the stack
+          # We want to have persistence on the stack
           persistence:
             enabled: true
 
