@@ -1,4 +1,4 @@
 boto3 == 1.26.91
-flask == 2.2.3
+flask == 2.2.5
 -e ../base[aws]
 -e ../basehandler
