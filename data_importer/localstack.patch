@@ -1,0 +1,11 @@
++++ /usr/local/lib/python3.9/site-packages/eta/core/storage.py	2023-05-16 12:53:37
+     def add_metadata(self, cloud_path, metadata):
+         """Adds custom metadata key-value pairs to the given object.
+@@ -1360,6 +1360,7 @@
+                 credentials,
+                 alias="s3",
+                 max_pool_connections=max_pool_connections,
++                endpoint_url="http://localstack:4566",
+                 **kwargs,
+             )
+         except _BotoCredentialsError:

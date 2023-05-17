@@ -23,5 +23,8 @@ COPY --chown=1000:3000 ./data_importer/setup.py /app/data_importer/setup.py
 WORKDIR /app/data_importer
 RUN pip install -e .
 
+COPY --chown=1000:3000 ./data_importer/localstack.patch /app/data_importer/localstack.patch
+RUN patch ~/.local/lib/python3.9/site-packages/eta/core/storage.py < /app/data_importer/localstack.patch
+
 # Run DataImporter python script
 ENTRYPOINT [ "python", "-m", "data_importer.main"]
