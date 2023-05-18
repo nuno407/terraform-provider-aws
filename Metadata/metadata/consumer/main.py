@@ -27,6 +27,7 @@ from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import DocumentTooLarge, PyMongoError
 
+from base.aws.auto_message_visibility_increaser import AutoMessageVisibilityIncreaser
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from base.chc_counter import ChcCounter
@@ -287,7 +288,8 @@ def transform_data_to_update_query(data: dict) -> dict:
     return update_query
 
 
-def upsert_mdf_signals_data(message: dict, metadata_collections: MetadataCollections) -> Optional[dict]:
+def upsert_mdf_signals_data(
+        message: dict, metadata_collections: MetadataCollections) -> Optional[dict]:
     """Upserts recording data and signals to respective collections.
 
     Args:
@@ -431,7 +433,8 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     assert recording_entry_result is not None
     recording_entry = recording_entry_result
 
-    if not ("recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
+    if not (
+            "recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
         raise MalformedRecordingEntry(
             f"Recording entry for video_id {video_id} does not have a length information.")
     video_length = timedelta(seconds=pytimeparse.parse(
@@ -451,7 +454,8 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     return chc_sync_parsed, chc_metrics["recording_overview"]
 
 
-def process_outputs(video_id: str, message: dict, metadata_collections: MetadataCollections, source: str):
+def process_outputs(video_id: str, message: dict,
+                    metadata_collections: MetadataCollections, source: str):
     """Inserts a new item on the algorithm output collection and, if
     there is a CHC file available for that item, processes
     that info and adds it to the item (plus updates the respective
@@ -599,7 +603,8 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
 
 
 @inject
-def insert_mdf_imu_data(imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client) -> None:
+def insert_mdf_imu_data(
+        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client) -> None:
     """ Receives a message from the MDF IMU queue, downloads IMU file from a S3 bucket
     and inserts into the timeseries database.
 
@@ -696,7 +701,8 @@ def __parse_sdr_message(artifact: Artifact) -> dict:
     return message
 
 
-def __process_sdr(message: dict, metadata_collections: MetadataCollections, service: RelatedMediaService):
+def __process_sdr(message: dict, metadata_collections: MetadataCollections,
+                  service: RelatedMediaService):
     """Process a message coming from SDRetriever."""
 
     artifact = parse_artifact(message)
@@ -714,7 +720,8 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections, serv
         update_voxel_media(recording)  # pylint: disable=no-value-for-parameter
 
     elif file_format in SIGNALS_FORMATS:
-        if isinstance(artifact, SignalsArtifact) and isinstance(artifact.referred_artifact, SnapshotArtifact):
+        if isinstance(artifact, SignalsArtifact) and isinstance(
+                artifact.referred_artifact, SnapshotArtifact):
             add_voxel_snapshot_metadata(
                 artifact)  # pylint: disable=no-value-for-parameter
         else:
@@ -884,8 +891,9 @@ def main():
             # Insert/update data in db
 
             try:
-                upsert_data_to_db(db_client, container_services,
-                                  api_service, relay_list, message["MessageAttributes"])
+                with AutoMessageVisibilityIncreaser(sqs_client, message["ReceiptHandle"], container_services, 60, container_services.input_queue):
+                    upsert_data_to_db(db_client, container_services,
+                                      api_service, relay_list, message["MessageAttributes"])
             except SnapshotNotFound:
                 _logger.warning(
                     "The referred snapshot was not found, it will be reingested later")
