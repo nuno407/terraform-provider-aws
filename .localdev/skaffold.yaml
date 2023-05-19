@@ -39,6 +39,16 @@ build:
       context: ..
       docker:
         dockerfile: data_importer/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "false"
+        secrets:
+          - id: voxel51token
+            env: TOKEN
+      runtimeType: python
+    - image: voxel-local
+      context: ../../kubernetes_config/apps/pg/voxel-stack/image
+      docker:
+        dockerfile: Dockerfile
         secrets:
           - id: voxel51token
             env: TOKEN

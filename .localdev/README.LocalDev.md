@@ -6,6 +6,12 @@
 kind create cluster
 ```
 
+Note: Please ensure that, for the following commands you are selecting the correct context, for example:
+
+```
+kubectl config use-context kind-kind
+```
+
 ## Deploy LocalStack
 
 ```
