@@ -36,6 +36,12 @@
 		{
 			"path": "./healthcheck"
 		},
+        {
+			"path": "./data_importer"
+		},
+        {
+			"path": "./labeling_bridge"
+		},
 		{
 			"path": "./data_importer"
 		}

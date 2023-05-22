@@ -4,9 +4,11 @@ Labeling Bridge API
 import logging
 
 import flask
-from flask import make_response
+from flask import make_response, request
 from flask_cors import CORS
 from flask_restx import Api, Resource, fields
+
+from labeling_bridge.service import ApiService
 
 _logger = logging.getLogger("labeling_bridge." + __name__)
 
@@ -45,7 +47,7 @@ def generate_exception_logs(err: Exception):
         "The following exception occured during execution: %s", err)
 
 
-def init_controller() -> flask.Flask:  # pylint: disable=too-many-locals,too-many-statements
+def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-many-locals,too-many-statements
     """Initialize Flask application defined in the controller module.
 
     Args:
@@ -91,7 +93,7 @@ def init_controller() -> flask.Flask:  # pylint: disable=too-many-locals,too-man
     })
 
     @api.route("/alive")
-    class Alive(Resource):  # pylint: disable=too-few-public-methods,unused-variable
+    class Alive(Resource):  # pylint: disable=unused-variable
         """Class for /alive endpoint response"""
         @api.response(200, "Success", alive_200_model)
         def get(self):
@@ -107,7 +109,7 @@ def init_controller() -> flask.Flask:  # pylint: disable=too-many-locals,too-man
     })
 
     @api.route("/ready")
-    class Ready(Resource):  # pylint: disable=too-few-public-methods,unused-variable
+    class Ready(Resource):  # pylint: disable=unused-variable
         """Class for /ready endpoint response"""
         @api.response(200, "Success", ready_200_model)
         def get(self):
@@ -115,5 +117,34 @@ def init_controller() -> flask.Flask:  # pylint: disable=too-many-locals,too-man
             Checks if API is ready
             """
             return flask.jsonify(message="Ready", statusCode="200")
+
+    kognic_export_200_model = api.model("Kognic_export_200", {
+        "message": fields.String(example="Success"),
+        "statusCode": fields.String(example="200")
+    })
+
+    @api.route("/kognicExport", methods=["POST"])
+    class KognicExport(Resource):  # pylint: disable=unused-variable
+        """Class for /kognicExport endpoint responses"""
+        @api.response(200, "Success", kognic_export_200_model)
+        @api.response(400, ERROR_400_MSG, error_400_model)
+        @api.response(500, ERROR_500_MSG, error_500_model)
+        def post(self):
+            """Process labeling request from frontend."""
+            request_data = {}
+            try:
+                if request.json:
+                    request_data = request.json
+                service.kognic_export(request_data)
+                export_response = flask.jsonify(message="Data exported to Kognic!", statusCode="200")
+
+            except (ValueError) as err:
+                generate_exception_logs(err)
+                api.abort(400, message=ERROR_400_MSG, statusCode="400")
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
+                api.abort(500, message=ERROR_500_MSG, statusCode="500")
+
+            return export_response
 
     return app
