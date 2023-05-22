@@ -29,7 +29,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
         """
         bucket, key = self._get_s3_path(imu_path)
         binary_data = self._container_services.download_file(self._s3_client, bucket, key)
-        return self.parse_imu_data(binary_data)
+        return self.convert_imu_data(binary_data)
 
     def __get_batch_timestamp(self, line: str) -> datetime:
         """
@@ -69,15 +69,20 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
         tokens = line.strip().split(IMU_DELIMITER)
 
         if tokens[0] != expected_label:
-            raise FailToParseIMU(f"Failed to parse IMU chunk labels, expected: {expected_label} and got: {tokens[0]}")
+            raise FailToParseIMU(
+                f"Failed to parse IMU chunk labels, expected: {expected_label} and got: {tokens[0]}")
 
         return np.array(tokens[1:], dtype=np.float32)
 
-    def parse_imu_data(self, data_bytes: bytes) -> pd.DataFrame:
+    def convert_imu_data(self, data_bytes: bytes) -> pd.DataFrame:
         """
         Given a raw IMU csv parse and converts it to a DataFrame.
         The result dataframe will have one sample per row, and the timestamp of that sample will
         be calculated by constantly incrementing DELTA miliseconds.
+
+        IMPORTANT REMARK:
+        In order to reduce memory consumption, the data_bytes will be DELETED after the function returns.
+        Thus remaining inaccessible after the call.
 
         Args:
             data_bytes (bytes): The raw csv file in memory.
@@ -91,9 +96,11 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
         # Convert byte data to string
         data: str = data_bytes.decode("utf-8")
+        del data_bytes
 
         # Split the data into lines
         lines = data.rstrip().split("\n")
+        del data
 
         # Data to be returned
         result_dfs: list[pd.DataFrame] = []
@@ -118,7 +125,12 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
                 # Create a series of timestamps separated by DELTA
                 # Waiting on feedback from goaldiggers to align the right way to calculate this
                 utc_timestamps = utc_timestamp + \
-                    pd.to_timedelta(np.arange(0, num_samples) * IMU_SAMPLE_DELTA, unit="us")  # type: ignore
+                    pd.to_timedelta(
+                        np.arange(
+                            0,
+                            num_samples) *
+                        IMU_SAMPLE_DELTA,
+                        unit="us")  # type: ignore
                 batch_data["timestamp"] = utc_timestamps
                 result_dfs.append(pd.DataFrame(batch_data))
 

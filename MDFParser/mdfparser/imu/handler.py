@@ -54,6 +54,9 @@ class IMUHandler(Handler):
         # Apply necessary transformations
         processed_imu: pd.DataFrame = self.transformer.apply_transformation(imu_data)
 
+        # Free memory
+        del imu_data
+
         # Apply source information to every field
         self.__apply_source_info(processed_imu, message)
 
@@ -61,7 +64,8 @@ class IMUHandler(Handler):
         tmp_file_key = f"{message.id}{IMU_TMP_SUFFIX}"
         self.uploader.upload(processed_imu, self.config.temporary_bucket, tmp_file_key)
 
-        return OutputMessage(message.id, f"s3://{self.config.temporary_bucket}/{tmp_file_key}", DataType.IMU, {})
+        return OutputMessage(
+            message.id, f"s3://{self.config.temporary_bucket}/{tmp_file_key}", DataType.IMU, {})
 
     def handler_type(self) -> DataType:
         """
