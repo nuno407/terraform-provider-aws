@@ -17,7 +17,7 @@ class SecretMissingError(Exception):
 def bootstrap_di():
     """ Bootstrap the dependency injection container. """
     # Create the necessary clients for AWS services access
-    di[SQSClient] = boto3.client("sqs", region_name="eu-central-1")
+    di[SQSClient] = boto3.client("sqs", region_name="eu-central-1", endpoint_url=os.getenv("AWS_ENDPOINT", None))
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)

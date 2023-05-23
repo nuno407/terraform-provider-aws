@@ -43,6 +43,7 @@ class EnvironmentParams:
     config_path: str
     container_name: str
     region_name: str
+    endpoint_url: Optional[str]
 
 
 def get_environment() -> EnvironmentParams:
@@ -51,12 +52,14 @@ def get_environment() -> EnvironmentParams:
     config_path = os.getenv("CONFIG_PATH", "/app/config/config.yml")
     container_name = os.getenv("CONTAINER_NAME", "MDFParser")
     region_name = os.getenv("REGION_NAME", "eu-central-1")
+    endpoint_url = os.getenv("AWS_ENDPOINT", None)
 
     return EnvironmentParams(
         container_version=container_version,
         config_path=config_path,
         container_name=container_name,
         region_name=region_name
+        endpoint_url=endpoint_url
     )
 
 
@@ -65,8 +68,8 @@ def bootstrap_di() -> None:
     env_params = get_environment()
     di[Logger] = ContainerServices.configure_logging("mdfparser")
 
-    di[SQSClient] = boto3.client("sqs", region_name=env_params.region_name)
-    di[S3Client] = boto3.client("s3", region_name=env_params.region_name)
+    di[SQSClient] = boto3.client("sqs", region_name=env_params.region_name, endpoint_url=env_params)
+    di[S3Client] = boto3.client("s3", region_name=env_params.region_name, env_params.endpoint_url)
     di["container_version"] = env_params.container_version
     di["container_name"] = env_params.container_name
     di["config_path"] = env_params.config_path
