@@ -25,7 +25,8 @@ extras_require: Dict[str, List[str]] = {
         "boto3-stubs[kinesis-video-archived-media]==1.26.91"
     ],
     "model": [
-        "pydantic==1.10.7"
+        "pydantic==1.10.7",
+        "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
     # we should use it in the future
     # "monitoring": [
@@ -34,7 +35,8 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "kink==0.6.6",
         "fiftyone==0.12.1",
-        "pydantic==1.10.7"
+        "pydantic==1.10.7",
+        "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
     "testing": [],
     # for when we separate mongo from ContainerServices

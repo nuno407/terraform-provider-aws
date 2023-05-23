@@ -43,7 +43,7 @@
 			"path": "./labeling_bridge"
 		},
 		{
-			"path": "./data_importer"
+			"path": "."
 		}
 	],
 	"settings": {
