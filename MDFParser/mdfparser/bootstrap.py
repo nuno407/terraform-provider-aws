@@ -4,6 +4,7 @@
 import os
 from dataclasses import dataclass
 from logging import Logger
+from typing import Optional
 
 import boto3
 from kink import di
@@ -58,7 +59,7 @@ def get_environment() -> EnvironmentParams:
         container_version=container_version,
         config_path=config_path,
         container_name=container_name,
-        region_name=region_name
+        region_name=region_name,
         endpoint_url=endpoint_url
     )
 
@@ -68,8 +69,8 @@ def bootstrap_di() -> None:
     env_params = get_environment()
     di[Logger] = ContainerServices.configure_logging("mdfparser")
 
-    di[SQSClient] = boto3.client("sqs", region_name=env_params.region_name, endpoint_url=env_params)
-    di[S3Client] = boto3.client("s3", region_name=env_params.region_name, env_params.endpoint_url)
+    di[SQSClient] = boto3.client("sqs", region_name=env_params.region_name, endpoint_url=env_params.endpoint_url)
+    di[S3Client] = boto3.client("s3", region_name=env_params.region_name, endpoint_url=env_params.endpoint_url)
     di["container_version"] = env_params.container_version
     di["container_name"] = env_params.container_name
     di["config_path"] = env_params.config_path
