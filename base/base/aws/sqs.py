@@ -76,6 +76,7 @@ class SQSController:
             message = response["Messages"][0]
             self.__message_receive_times[message["ReceiptHandle"]] = datetime.now(
             )
+        _logger.info("receiving message -> %s", message)
         return message
 
     def __delete_message(self, receipt_handle: str) -> None:
