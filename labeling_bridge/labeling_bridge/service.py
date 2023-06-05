@@ -83,9 +83,14 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                         temp_file.name)
 
     def kognic_import(self, request_data: Dict):
+        """
+        Import label metadata from Kognic into Voxel
+        Args:
+            request_data: Dict with data about what to import from Kognic
+
+        """
         self._parse_request(request_data)
         _logger.debug("Importing labeling job from Kognic into Voxel.")
-
 
     def _get_s3_path_parts(self, raw_path) -> Tuple[str, str]:
 

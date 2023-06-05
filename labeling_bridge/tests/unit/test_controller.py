@@ -8,7 +8,11 @@ from labeling_bridge.controller import (ERROR_400_MSG, ERROR_500_MSG,
                                         init_controller)
 
 
-# pylint: disable=missing-function-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
+
+KOGNIC_EXPORT_URL = "/kognicExport"
+KOGNIC_IMPORT_URL = "/kognicImport"
+
 
 @pytest.fixture(name="mock_flask_client")
 def flask_client():
@@ -17,30 +21,6 @@ def flask_client():
     app.testing = True
     with app.test_client() as test_client:
         return test_client, service
-
-
-@pytest.mark.unit
-def test_alive(mock_flask_client):
-    test_client = mock_flask_client[0]
-
-    resp = test_client.get("/alive")
-
-    assert resp.status_code == 200
-    data = json.loads(resp.data)
-    assert data["message"] == "Ok"
-    assert data["statusCode"] == "200"
-
-
-@pytest.mark.unit
-def test_ready(mock_flask_client):
-    test_client = mock_flask_client[0]
-
-    resp = test_client.get("/ready")
-
-    assert resp.status_code == 200
-    data = json.loads(resp.data)
-    assert data["message"] == "Ready"
-    assert data["statusCode"] == "200"
 
 
 def assert_returns_400(test_client, url):
@@ -61,68 +41,146 @@ def assert_returns_500(test_client, url):
     assert data["statusCode"] == "500"
 
 
-KOGNIC_EXPORT_URL = "/kognicExport"
+class TestStatusChecks:
+    @pytest.mark.unit
+    def test_alive(self, mock_flask_client):
+        test_client = mock_flask_client[0]
+
+        resp = test_client.get("/alive")
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["message"] == "Ok"
+        assert data["statusCode"] == "200"
+
+    @pytest.mark.unit
+    def test_ready(self, mock_flask_client):
+        test_client = mock_flask_client[0]
+
+        resp = test_client.get("/ready")
+
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["message"] == "Ready"
+        assert data["statusCode"] == "200"
 
 
-@pytest.mark.unit
-def test_post_kognic_export_200(mock_flask_client):
-    # GIVEN
-    test_client = mock_flask_client[0]
-    service = mock_flask_client[1]
-    service.kognic_export = Mock()
-    request_data = {"dataset": "dummy_dataset",
-                    "kognicProjectId": "dummy_project",
-                    "labellingType": ["Splines"],
-                    "labellingJobName": "dummy_batch",
-                    "labellingGuidelines": "instruction_1",
-                    "voxelExportMethod": "tag",
-                    "voxelTagToExport": "this_tag",
-                    "clientId": "abc",
-                    "clientSecret": "123",
-                    "filters": {},
-                    "stages": []}
+class TestKognicExport:
 
-    # WHEN
-    resp = test_client.post(KOGNIC_EXPORT_URL, json=request_data)
+    @pytest.mark.unit
+    def test_post_kognic_export_200(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_export = Mock()
+        request_data = {"dataset": "dummy_dataset",
+                        "kognicProjectId": "dummy_project",
+                        "labellingType": ["Splines"],
+                        "labellingJobName": "dummy_batch",
+                        "labellingGuidelines": "instruction_1",
+                        "voxelExportMethod": "tag",
+                        "voxelTagToExport": "this_tag",
+                        "clientId": "abc",
+                        "clientSecret": "123",
+                        "filters": {},
+                        "stages": []}
 
-    # THEN
-    assert resp.status_code == 200
-    data = json.loads(resp.data)
-    assert data["statusCode"] == "200"
-    assert data["message"] == "Data exported to Kognic!"
-    service.kognic_export.assert_called_once_with(request_data)
+        # WHEN
+        resp = test_client.post(KOGNIC_EXPORT_URL, json=request_data)
+
+        # THEN
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "200"
+        assert data["message"] == "Data exported to Kognic!"
+        service.kognic_export.assert_called_once_with(request_data)
+
+    @pytest.mark.unit
+    def test_post_kognic_export_500(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_export = Mock(side_effect=Exception("Bad issue"))
+
+        # WHEN
+        resp = test_client.post(KOGNIC_EXPORT_URL, json={})
+
+        # THEN
+        assert resp.status_code == 500
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "500"
+        assert data["message"] == "Internal Server Error"
+
+    @pytest.mark.unit
+    def test_post_kognic_export_400(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_export = Mock(
+            side_effect=ValueError("injected"))
+        request_data = ""
+        # WHEN
+        resp = test_client.post(KOGNIC_EXPORT_URL, json=request_data)
+
+        # THEN
+        assert resp.status_code == 400
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "400"
+        assert data["message"] == "Invalid or missing argument(s)"
 
 
-@pytest.mark.unit
-def test_post_kognic_export_500(mock_flask_client):
-    # GIVEN
-    test_client = mock_flask_client[0]
-    service = mock_flask_client[1]
-    service.kognic_export = Mock()
+class TestKognicImport:
 
-    # WHEN
-    resp = test_client.post(KOGNIC_EXPORT_URL)
+    @pytest.mark.unit
+    def test_post_kognic_import_200(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_import = Mock()
+        request_data = {"kognicProjectId": "dummy_project",
+                        "clientId": "abc",
+                        "clientSecret": "123"
+                        }
 
-    # THEN
-    assert resp.status_code == 500
-    data = json.loads(resp.data)
-    assert data["statusCode"] == "500"
-    assert data["message"] == "Internal Server Error"
+        # WHEN
+        resp = test_client.post(KOGNIC_IMPORT_URL, json=request_data)
 
+        # THEN
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "200"
+        assert data["message"] == "Data imported to Voxel!"
+        service.kognic_import.assert_called_once_with(request_data)
 
-@pytest.mark.unit
-def test_post_kognic_export_400(mock_flask_client):
-    # GIVEN
-    test_client = mock_flask_client[0]
-    service = mock_flask_client[1]
-    service.kognic_export = Mock(
-        side_effect=ValueError("injected"))
-    request_data = ""
-    # WHEN
-    resp = test_client.post(KOGNIC_EXPORT_URL, json=request_data)
+    @pytest.mark.unit
+    def test_post_kognic_import_500(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_import = Mock(side_effect=Exception("Bad issue"))
 
-    # THEN
-    assert resp.status_code == 400
-    data = json.loads(resp.data)
-    assert data["statusCode"] == "400"
-    assert data["message"] == "Invalid or missing argument(s)"
+        # WHEN
+        resp = test_client.post(KOGNIC_IMPORT_URL, json={})
+
+        # THEN
+        assert resp.status_code == 500
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "500"
+        assert data["message"] == "Internal Server Error"
+
+    @pytest.mark.unit
+    def test_post_kognic_import_400(self, mock_flask_client):
+        # GIVEN
+        test_client = mock_flask_client[0]
+        service = mock_flask_client[1]
+        service.kognic_import = Mock(
+            side_effect=ValueError("injected"))
+        request_data = ""
+        # WHEN
+        resp = test_client.post(KOGNIC_IMPORT_URL, json=request_data)
+
+        # THEN
+        assert resp.status_code == 400
+        data = json.loads(resp.data)
+        assert data["statusCode"] == "400"
+        assert data["message"] == "Invalid or missing argument(s)"

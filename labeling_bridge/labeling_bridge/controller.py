@@ -131,13 +131,14 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         @api.response(500, ERROR_500_MSG, error_500_model)
         def post(self):
             """Process labeling request from frontend."""
-            request_data = {}
+
+            if not request.is_json:
+                api.abort(400, message=ERROR_400_MSG, statusCode="400")
+
             try:
-                if request.is_json:
-                    request_data = request.json
+                request_data = request.json
                 service.kognic_export(request_data)
                 export_response = flask.jsonify(message="Data exported to Kognic!", statusCode="200")
-                return export_response
             except ValueError as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
@@ -145,22 +146,29 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
+            return export_response
+
+    kognic_import_200_model = api.model("Kognic_import_200", {
+        "message": fields.String(example="Success"),
+        "statusCode": fields.String(example="200")
+    })
 
     @api.route("/kognicImport", methods=["POST"])
     class KognicImport(Resource):  # pylint: disable=unused-variable
         """Class for /kognicImport endpoint responses"""
-        @api.response(200, "Success", kognic_export_200_model)
+        @api.response(200, "Success", kognic_import_200_model)
         @api.response(400, ERROR_400_MSG, error_400_model)
         @api.response(500, ERROR_500_MSG, error_500_model)
         def post(self):
             """Process labeling request from frontend."""
-            request_data = {}
+
+            if not request.is_json:
+                api.abort(400, message=ERROR_400_MSG, statusCode="400")
+
             try:
-                if request.is_json:
-                    request_data = request.json
+                request_data = request.json
                 service.kognic_import(request_data)
                 export_response = flask.jsonify(message="Data imported to Voxel!", statusCode="200")
-                return export_response
 
             except ValueError as err:
                 generate_exception_logs(err)
@@ -168,5 +176,7 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
+
+            return export_response
 
     return app
