@@ -26,7 +26,7 @@ def main():
 
     # Start API process
     if os.getenv("LOCAL_DEBUG"):
-        app.run("127.0.0.1", port=7777, use_reloader=True)
+        app.run("127.0.0.1", port=5000, use_reloader=True)
     else:
         from waitress import serve  # pylint: disable=import-outside-toplevel
         serve(app, listen="*:5000", url_scheme="https")

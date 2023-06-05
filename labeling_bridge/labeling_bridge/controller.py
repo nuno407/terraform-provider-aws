@@ -133,18 +133,40 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
             """Process labeling request from frontend."""
             request_data = {}
             try:
-                if request.json:
+                if request.is_json:
                     request_data = request.json
                 service.kognic_export(request_data)
                 export_response = flask.jsonify(message="Data exported to Kognic!", statusCode="200")
-
-            except (ValueError) as err:
+                return export_response
+            except ValueError as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
-            return export_response
+
+    @api.route("/kognicImport", methods=["POST"])
+    class KognicImport(Resource):  # pylint: disable=unused-variable
+        """Class for /kognicImport endpoint responses"""
+        @api.response(200, "Success", kognic_export_200_model)
+        @api.response(400, ERROR_400_MSG, error_400_model)
+        @api.response(500, ERROR_500_MSG, error_500_model)
+        def post(self):
+            """Process labeling request from frontend."""
+            request_data = {}
+            try:
+                if request.is_json:
+                    request_data = request.json
+                service.kognic_import(request_data)
+                export_response = flask.jsonify(message="Data imported to Voxel!", statusCode="200")
+                return export_response
+
+            except ValueError as err:
+                generate_exception_logs(err)
+                api.abort(400, message=ERROR_400_MSG, statusCode="400")
+            except Exception as err:  # pylint: disable=broad-except
+                generate_exception_logs(err)
+                api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
     return app

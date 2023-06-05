@@ -82,6 +82,11 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                         file_path,
                         temp_file.name)
 
+    def kognic_import(self, request_data: Dict):
+        self._parse_request(request_data)
+        _logger.debug("Importing labeling job from Kognic into Voxel.")
+
+
     def _get_s3_path_parts(self, raw_path) -> Tuple[str, str]:
 
         match = re.match(r"^s3://([^/]+)/(.*)$", raw_path)
