@@ -31,7 +31,6 @@ def container_services() -> Mock:
         "API_CHC": "dev-terraform-queue-api-chc",
         "SDRetriever": "dev-terraform-queue-download",
         "Selector": "dev-terraform-queue-selector",
-        "HQ_Selector": "dev-terraform-queue-hq-request",
         "Metadata": "dev-terraform-queue-metadata",
         "Output": "dev-terraform-queue-output"
     }

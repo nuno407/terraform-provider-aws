@@ -1,8 +1,13 @@
 """ FootageApiWrapper Tests. """
 import json
+from datetime import datetime, timedelta
+from pytz import UTC
 from unittest import mock
 import pytest
 from selector.footage_api_wrapper import FootageApiWrapper
+from base.model.artifacts import RecorderType
+
+dummy_date = datetime(year=2023, month=1, day=10, hour=1, tzinfo=UTC)
 
 
 @pytest.mark.unit
@@ -23,11 +28,18 @@ class TestFootageApiWrapper():  # pylint: disable=too-few-public-methods
 
         mock_http_client.return_value.request.return_value.status = 200
 
+        start_date = dummy_date
+        end_date = dummy_date + timedelta(minutes=2)
+
         # WHEN
-        footage_api_wrapper.request_recorder("TRAINING", "test_device", 123, 1234)
+        footage_api_wrapper.request_recorder(
+            RecorderType.TRAINING,
+            "test_device",
+            start_date,
+            end_date)
 
         # THEN
-        body = json.dumps({"from": "123", "to": "1234", "recorder": "TRAINING"})
+        body = json.dumps({"from": "1673312400000", "to": "1673312520000", "recorder": "TRAINING"})
         request_headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer this_is_a_super_token"

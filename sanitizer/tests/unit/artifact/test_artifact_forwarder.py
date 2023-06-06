@@ -1,5 +1,5 @@
 """ Test artifact forwarder module. """
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import Mock
 
 import pytest
@@ -9,6 +9,14 @@ from base.model.artifacts import (RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
+timings = {
+    "timestamp": datetime.now(tz=UTC) - timedelta(minutes=2),
+    "end_timestamp": datetime.now(tz=UTC) - timedelta(minutes=1),
+    "upload_timing": TimeWindow(
+        start=datetime.now(tz=UTC) - timedelta(seconds=10),
+        end=datetime.now(tz=UTC) - timedelta(seconds=5)
+    )
+}
 
 @pytest.mark.unit
 @pytest.mark.parametrize("artifact", [
@@ -18,12 +26,8 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="123456",
             device_id="12345",
-            timestamp=datetime.now(tz=UTC),
-            end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.INTERIOR,
-            upload_timing=TimeWindow(
-                start="2022-12-18T07:37:07.842030994Z",
-                end="2022-12-18T07:37:07.842030994Z")
+            **timings
         )
     ),
     (
@@ -32,10 +36,7 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
             tenant_id="deepsensation",
             device_id="DEV_01",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start="2022-12-18T07:37:07.842030994Z",
-                end="2022-12-18T07:37:07.842030994Z")
+            **timings
         )
     )
 ])

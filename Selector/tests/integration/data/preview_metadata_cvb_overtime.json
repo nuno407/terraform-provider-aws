@@ -1,0 +1,1124 @@
+{
+    "resolution": {
+        "width": "640",
+        "height": "360"
+    },
+    "metaData version": "0.6.4-SNAPSHOT",
+    "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+    "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+    "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+    "chunkPts": {
+        "pts_start": "527502",
+        "pts_end": "557523"
+    },
+    "chunkUtc": {
+        "utc_start": "1688373479467",
+        "utc_end": "1688373529461"
+    },
+    "frame": [
+        {
+            "number": "499",
+            "timestamp": "528519",
+            "timestamp64": "528519",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.993",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "500",
+            "timestamp": "529537",
+            "timestamp64": "529537",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "501",
+            "timestamp": "530491",
+            "timestamp64": "530491",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.992",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "502",
+            "timestamp": "531509",
+            "timestamp64": "531509",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.993",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "503",
+            "timestamp": "532526",
+            "timestamp64": "532526",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.994",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "504",
+            "timestamp": "533544",
+            "timestamp64": "533544",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.996",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "505",
+            "timestamp": "534498",
+            "timestamp64": "534498",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.994",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "506",
+            "timestamp": "535516",
+            "timestamp64": "535516",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.992",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "507",
+            "timestamp": "536534",
+            "timestamp64": "536534",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.985",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "508",
+            "timestamp": "537551",
+            "timestamp64": "537551",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "509",
+            "timestamp": "538505",
+            "timestamp64": "538505",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "510",
+            "timestamp": "539523",
+            "timestamp64": "539523",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.991",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "511",
+            "timestamp": "540541",
+            "timestamp64": "540541",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "512",
+            "timestamp": "541495",
+            "timestamp64": "541495",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "513",
+            "timestamp": "542512",
+            "timestamp64": "542512",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.997",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "514",
+            "timestamp": "543530",
+            "timestamp64": "543530",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.997",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "515",
+            "timestamp": "544548",
+            "timestamp64": "544548",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.996",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "516",
+            "timestamp": "545502",
+            "timestamp64": "545502",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "517",
+            "timestamp": "546520",
+            "timestamp64": "546520",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.992",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "518",
+            "timestamp": "547537",
+            "timestamp64": "547537",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.994",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "519",
+            "timestamp": "548491",
+            "timestamp64": "548491",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "520",
+            "timestamp": "549509",
+            "timestamp64": "549509",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.992",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "521",
+            "timestamp": "550527",
+            "timestamp64": "550527",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "522",
+            "timestamp": "551544",
+            "timestamp64": "551544",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "523",
+            "timestamp": "552498",
+            "timestamp64": "552498",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.998",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "524",
+            "timestamp": "553516",
+            "timestamp64": "553516",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.994",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "525",
+            "timestamp": "554534",
+            "timestamp64": "554534",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.992",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "526",
+            "timestamp": "555551",
+            "timestamp64": "555551",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "527",
+            "timestamp": "556506",
+            "timestamp64": "556506",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.994",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "number": "528",
+            "timestamp": "557523",
+            "timestamp64": "557523",
+            "hasPoseList": "true",
+            "objectlist": [
+                {
+                    "floatAttributes": [
+                        {
+                            "CameraVerticalShifted": "1",
+                            "CameraViewBlocked": "0.995",
+                            "DriverCount_confidence": "1",
+                            "DrivingStatus": "0",
+                            "Gnss_horizontal_speed": "0",
+                            "Gnss_horizontal_speed_accuracy": "0",
+                            "Gnss_location_accuracy": "0",
+                            "Gnss_time_ms": "0",
+                            "Gnss_vertical_speed": "0",
+                            "Gnss_vertical_speed_accuracy": "0"
+                        }
+                    ]
+                },
+                {
+                    "integerAttributes": [
+                        {
+                            "DriverCount_value": "0",
+                            "Gnss_satellites_used": "0",
+                            "PersonCount_value": "0",
+                            "interior_camera_health_response_audio_blocked": "0",
+                            "interior_camera_health_response_audio_distorted": "0",
+                            "interior_camera_health_response_audio_signal": "0",
+                            "interior_camera_health_response_cvb": "2",
+                            "interior_camera_health_response_cve": "0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

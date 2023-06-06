@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Callable
 from unittest.mock import ANY, Mock, call, patch
-
+import re
 import pytest
 import pytz
 
@@ -15,50 +15,18 @@ from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentIngestor)
 from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
 
-RCC_BUCKET = "test-rcc-bucket"
-
-
-@pytest.fixture
-def container_services() -> ContainerServices:
-    container_services = Mock()
-    type(container_services).rcc_info = {
-        "s3_bucket": RCC_BUCKET,
-    }
-    return container_services
-
-
-@pytest.fixture
-def s3_client_factory_fix():
-    s3_client = Mock()
-
-    def s3_client_factory():
-        return s3_client
-    return s3_client_factory
-
-
-@pytest.fixture
-def s3_controller():
-    s3_controller = Mock()
-    s3_controller.upload_file = Mock()
-    return s3_controller
-
-
-@pytest.fixture
-def s3_finder():
-    s3_finder = Mock()
-    return s3_finder
-
 
 @pytest.fixture
 def metacontent_ingestor(container_services: Mock,
-                         s3_client_factory_fix: Callable,
+                         s3_client_factory: Callable,
                          s3_controller: Mock,
                          s3_finder: Mock) -> MetacontentIngestor:
-    return VideoMetadataIngestor(
+    return MetacontentIngestor(
         container_services=container_services,
-        rcc_s3_client_factory=s3_client_factory_fix,
+        rcc_s3_client_factory=s3_client_factory,
         s3_controller=s3_controller,
-        s3_finder=s3_finder
+        s3_finder=s3_finder,
+        recorder_regx=re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
     )
 
 
@@ -66,7 +34,7 @@ def metacontent_ingestor(container_services: Mock,
 @pytest.mark.parametrize("input_size,expected,total", [
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1
@@ -75,8 +43,8 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
-            MetacontentChunk(data=b"2", filename="test-chunk2.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
         ],
         [
             512,
@@ -86,9 +54,9 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
-            MetacontentChunk(data=b"2", filename="test-chunk2.json"),
-            MetacontentChunk(data=b"3", filename="test-chunk3.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
+            MetacontentChunk(data=b"3", s3_key="test-chunk3.json"),
         ],
         [
             512,
@@ -99,8 +67,8 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
-            MetacontentChunk(data=b"2", filename="test-chunk2.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
         ],
         [
             1_048_576,
@@ -110,7 +78,7 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1_073_741_824
@@ -119,7 +87,7 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1_099_511_627_776
@@ -128,9 +96,9 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", filename="test-chunk1.json"),
-            MetacontentChunk(data=b"2", filename="test-chunk2.json"),
-            MetacontentChunk(data=b"3", filename="test-chunk3.json"),
+            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
+            MetacontentChunk(data=b"3", s3_key="test-chunk3.json"),
         ],
         [
             1_099_511_627_776,
@@ -158,7 +126,7 @@ def test_get_readable_size_object(sizeof_patch: Mock,
             bucket="test-bucket",
             data=b"test-data",
             extension=".json",
-            msp="test-msp/",
+            msp="test-msp",
             video_id="test-video-id",
         )
     ),
@@ -176,7 +144,7 @@ def test_upload_metacontent_to_devcloud(metacontent_ingestor: MetacontentIngesto
                                         file: MetacontentDevCloud,
                                         s3_controller: Mock):
     result = metacontent_ingestor._upload_metacontent_to_devcloud(file)
-    s3_path = file.msp + file.video_id + file.extension
+    s3_path = file.msp + "/" + file.video_id + file.extension
     s3_controller.upload_file.assert_called_once_with(file.data, file.bucket, s3_path)
     assert result == f"s3://{file.bucket}/{s3_path}"
 
@@ -299,10 +267,11 @@ def test_get_metacontent_chunks(gzip_mock: Mock,
                                 filepaths: list[str],
                                 contents: list[bytes],
                                 metacontent_ingestor: MetacontentIngestor,
-                                container_services: Mock):
+                                container_services: Mock,
+                                rcc_bucket: str):
     container_services.download_file.side_effect = contents
     chunks = metacontent_ingestor._get_metacontent_chunks(filepaths)
-    container_services.download_file.assert_has_calls([call(ANY, RCC_BUCKET, file) for file in filepaths])
+    container_services.download_file.assert_has_calls([call(ANY, rcc_bucket, file) for file in filepaths])
     gzip_mock.assert_has_calls([call(ANY) for file in filepaths if file.endswith(".zip")])
     assert len(chunks) == len(filepaths)
 

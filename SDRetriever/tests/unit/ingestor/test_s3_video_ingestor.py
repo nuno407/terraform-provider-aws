@@ -37,18 +37,20 @@ RAW_S3 = "raw-s3"
 
 class TestVideoIngestor():
     """Unit tests for the VideoIngestor class."""
-    @fixture()
-    def config(self) -> SDRetrieverConfig:
-        """Config for testing."""
-        return SDRetrieverConfig(
-            tenant_blacklist=[],
-            recorder_blacklist=[],
-            frame_buffer=0,
-            training_whitelist=[],
-            request_training_upload=True,
-            discard_video_already_ingested=True,
-            input_queue=QUEUE_NAME
-        )
+    # @fixture()
+    # def config(self) -> SDRetrieverConfig:
+    #     """Config for testing."""
+    #     return SDRetrieverConfig(
+    #         tenant_blacklist=[],
+    #         recorder_blacklist=[],
+    #         frame_buffer=0,
+    #         training_whitelist=[],
+    #         request_training_upload=True,
+    #         discard_video_already_ingested=True,
+    #         input_queue=QUEUE_NAME,
+    #         ingest_from_kinesis=False,
+    #         temporary_bucket=""
+    #     )
 
     @fixture()
     def container_services(self) -> ContainerServices:

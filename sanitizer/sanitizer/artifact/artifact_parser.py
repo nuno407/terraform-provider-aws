@@ -7,9 +7,9 @@ from base.aws.model import SQSMessage
 from base.model.artifacts import Artifact, RecorderType
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.artifact.parsers.kinesis_video_parser import KinesisVideoParser
+from sanitizer.artifact.parsers.multi_snapshot_parser import \
+    MultiSnapshotParser
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
-from sanitizer.artifact.parsers.snapshot_preview_parser import \
-    SnapshotPreviewParser
 from sanitizer.artifact.recorder_type_parser import RecorderTypeParser
 from sanitizer.exceptions import ArtifactException
 
@@ -31,10 +31,10 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
     def __init__(self,
                  kinesis_video_parser: KinesisVideoParser,
                  s3_video_parser: S3VideoParser,
-                 snapshot_parser: SnapshotPreviewParser) -> None:
+                 multi_snapshot_parser: MultiSnapshotParser) -> None:
         self._kinesis_video_parser = kinesis_video_parser
         self._s3_video_parser = s3_video_parser
-        self._snapshot_parser = snapshot_parser
+        self._multi_snapshot_parser = multi_snapshot_parser
 
     def __get_parser_for_recorder(self, recorder_type: RecorderType, sqs_message: SQSMessage) -> IArtifactParser:
         if recorder_type in {RecorderType.FRONT, RecorderType.INTERIOR, RecorderType.TRAINING}:
@@ -43,7 +43,7 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
             return self._kinesis_video_parser
 
         if recorder_type in {RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW}:
-            return self._snapshot_parser
+            return self._multi_snapshot_parser
 
         raise ArtifactException(f"Recorder type not supported: {recorder_type}")
 

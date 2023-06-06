@@ -20,6 +20,14 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         tenant_blacklist=tenant_blacklist
     )
 
+timings = {
+    "timestamp": datetime.now(tz=UTC) - timedelta(minutes=2),
+    "end_timestamp": datetime.now(tz=UTC) - timedelta(minutes=1),
+    "upload_timing": TimeWindow(
+        start=datetime.now(tz=UTC) - timedelta(seconds=10),
+        end=datetime.now(tz=UTC) - timedelta(seconds=5)
+    )
+}
 
 @pytest.mark.unit
 @pytest.mark.parametrize("artifact,config,expected", [
@@ -30,10 +38,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="datanauts",
             device_id="DEV01",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=[],
@@ -48,10 +53,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="datanauts",
             device_id="DEV02",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
@@ -66,10 +68,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="",
             device_id="DEV03",
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=[],
@@ -85,11 +84,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.FRONT,
-            timestamp=datetime.now(tz=UTC),
-            end_timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
@@ -105,11 +100,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.INTERIOR,
-            timestamp=datetime.now(tz=UTC),
-            end_timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
@@ -125,11 +116,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
             tenant_id="deepsensation",
             device_id="DEV05",
             recorder=RecorderType.TRAINING,
-            timestamp=datetime.now(tz=UTC),
-            end_timestamp=datetime.now(tz=UTC),
-            upload_timing=TimeWindow(
-                start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+            **timings
         ),
         _sanitizer_config(
             tenant_blacklist=["deepsensation"],

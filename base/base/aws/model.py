@@ -3,6 +3,23 @@ import json
 from dataclasses import dataclass
 from typing import Optional
 
+from pydantic import BaseModel
+from datetime import datetime
+
+
+class S3ObjectInfo(BaseModel):
+    """Info about an S3 object used to retrun information about list_objects_v2"""
+    key: str
+    date_modified: datetime
+    size: int
+
+    def get_file_name(self) -> str:
+        """Parse filename from the key"""
+        return self.key.split("/")[-1]
+
+    class Config:
+        frozen = True
+
 
 @dataclass
 class MessageAttributes:

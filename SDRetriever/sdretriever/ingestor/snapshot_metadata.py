@@ -1,19 +1,17 @@
 """metacontent module"""
-import gzip
 import logging as log
 from datetime import datetime
 
-from botocore.errorfactory import ClientError
 from kink import inject
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.constants import FileExt
-from sdretriever.exceptions import FileAlreadyExists, S3UploadError
+from sdretriever.constants import SNAPSHOT_CHUNK_REGX, FileExt
+from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.metacontent import MetacontentIngestor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -27,9 +25,9 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
                  rcc_s3_client_factory: S3ClientFactory,
                  s3_controller: S3Controller,
                  config: SDRetrieverConfig,
-                 s3_finder: S3Finder):
+                 s3_finder: S3FinderRCC):
         super().__init__(container_services, rcc_s3_client_factory,
-                         s3_controller, s3_finder)
+                         s3_controller, s3_finder, SNAPSHOT_CHUNK_REGX)
         self.__config = config
 
     def _get_file_extension(self) -> list[str]:

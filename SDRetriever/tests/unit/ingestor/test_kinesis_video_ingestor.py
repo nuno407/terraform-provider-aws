@@ -16,7 +16,6 @@ from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.kinesis_video import KinesisVideoIngestor
 from sdretriever.ingestor.post_processor import IVideoPostProcessor, VideoInfo
 
-QUEUE_NAME = "foo-queue"
 VIDEO_START = datetime.now(tz=UTC) - timedelta(hours=4)
 VIDEO_END = datetime.now(tz=UTC) - timedelta(hours=3)
 ACTUAL_START = VIDEO_START + timedelta(minutes=1)
@@ -36,18 +35,6 @@ RAW_S3 = "raw-s3"
 
 class TestVideoIngestor():
     """Unit tests for the VideoIngestor class."""
-    @fixture()
-    def config(self) -> SDRetrieverConfig:
-        """Config for testing."""
-        return SDRetrieverConfig(
-            tenant_blacklist=[],
-            recorder_blacklist=[],
-            frame_buffer=0,
-            training_whitelist=[],
-            request_training_upload=True,
-            discard_video_already_ingested=True,
-            input_queue=QUEUE_NAME
-        )
 
     @fixture()
     def container_services(self) -> ContainerServices:
@@ -58,23 +45,11 @@ class TestVideoIngestor():
         return container_services
 
     @fixture()
-    def rcc_s3_client_factory(self) -> S3ClientFactory:
-        """S3ClientFactory for testing."""
-        return Mock()
-
-    @fixture()
     def sts_helper(self) -> StsHelper:
         """StsHelper for testing."""
         sts_helper = Mock()
         sts_helper.get_credentials.return_value = CREDENTIALS
         return sts_helper
-
-    @fixture()
-    def s3_controller(self) -> S3Controller:
-        """S3Controller for testing."""
-        s3_controller = Mock()
-        s3_controller.upload_file = Mock()
-        return s3_controller
 
     @fixture()
     def post_processor(self) -> IVideoPostProcessor:
@@ -89,14 +64,14 @@ class TestVideoIngestor():
             self,
             config: SDRetrieverConfig,
             container_services: ContainerServices,
-            rcc_s3_client_factory: S3ClientFactory,
+            rcc_client_factory: S3ClientFactory,
             sts_helper: StsHelper,
             s3_controller: S3Controller,
             post_processor: IVideoPostProcessor) -> KinesisVideoIngestor:
         """VideoIngestor under test."""
         return KinesisVideoIngestor(
             container_services,
-            rcc_s3_client_factory,
+            rcc_client_factory,
             config,
             sts_helper,
             s3_controller,
@@ -132,7 +107,8 @@ class TestVideoIngestor():
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            uuid="baz"
+            uuid="baz",
+            end_timestamp=VIDEO_START
         )
 
     @mark.unit()

@@ -1,4 +1,5 @@
 urllib3 == 1.26.15
 boto3-stubs[sqs] == 1.26.91
 kink == 0.6.6
+pyfunctional == 1.4.3
 -e ../base[aws,model]

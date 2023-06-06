@@ -1,9 +1,8 @@
 """ Setup. """
-from setuptools import setup
-
+from setuptools import setup, find_packages
 
 setup(name="selector",
-      version="1.0",
+      version="2.0",
       # list folders, not files
-      packages=["selector"]
+      packages=find_packages()
       )

@@ -1,0 +1,3 @@
+invariants:
+  max_GB_per_device_per_month: 2
+  total_GB_per_month: 100

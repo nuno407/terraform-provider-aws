@@ -1,3 +1,4 @@
+import re
 import json
 from datetime import datetime, timedelta
 from unittest.mock import Mock, PropertyMock
@@ -12,15 +13,15 @@ from base.model.artifacts import (RecorderType, SignalsArtifact,
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.metacontent import MetacontentChunk
 from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.metadata_merger import MetadataMerger
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
-RAW_S3 = "raw-s3"
 CHUNK_PATHS = [
     "file1.json",
     "file2.json",
 ]
 CHUNKS = [
-    MetacontentChunk(filename=CHUNK_PATHS[0], data=b"""
+    MetacontentChunk(s3_key=CHUNK_PATHS[0], data=b"""
     {
         "chunk": {
             "pts_start": 0,
@@ -42,7 +43,7 @@ CHUNKS = [
             }
         ]
     }"""),
-    MetacontentChunk(filename=CHUNK_PATHS[1], data=b"""
+    MetacontentChunk(s3_key=CHUNK_PATHS[1], data=b"""
     {
         "chunk": {
             "pts_start": 1000,
@@ -72,23 +73,6 @@ ART_ID = f"{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_met
 
 
 class TestMetadataIngestor:
-    @fixture()
-    def container_services(self) -> ContainerServices:
-        container_services = Mock()
-        type(container_services).raw_s3 = PropertyMock(return_value=RAW_S3)
-        return container_services
-
-    @fixture()
-    def rcc_client_factory(self) -> S3ClientFactory:
-        return Mock()
-
-    @fixture()
-    def s3_controller(self) -> S3Controller:
-        return Mock()
-
-    @fixture()
-    def s3_finder(self) -> S3Finder:
-        return Mock()
 
     @fixture()
     def metadata_ingestor(
@@ -96,12 +80,14 @@ class TestMetadataIngestor:
             container_services: ContainerServices,
             rcc_client_factory: S3ClientFactory,
             s3_controller: S3Controller,
-            s3_finder: S3Finder) -> VideoMetadataIngestor:
+            s3_finder: S3FinderRCC,
+            metadata_merger: MetadataMerger) -> VideoMetadataIngestor:
         return VideoMetadataIngestor(
             container_services,
             rcc_client_factory,
             s3_controller,
-            s3_finder
+            s3_finder,
+            metadata_merger
         )
 
     @fixture()
@@ -115,7 +101,8 @@ class TestMetadataIngestor:
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            timestamp=SNAP_TIME
+            timestamp=SNAP_TIME,
+            end_timestamp=SNAP_TIME
         )
 
     @fixture()
@@ -144,12 +131,16 @@ class TestMetadataIngestor:
             metadata_ingestor.ingest(metadata_artifact)
 
     @mark.unit()
-    def test_successful_ingestion(self, metadata_artifact: SignalsArtifact, metadata_ingestor: VideoMetadataIngestor):
+    def test_successful_ingestion(
+            self,
+            metadata_artifact: SignalsArtifact,
+            metadata_ingestor: VideoMetadataIngestor,
+            raw_s3: str):
         # GIVEN
         metadata_ingestor._check_allparts_exist = Mock(return_value=(True, CHUNK_PATHS))  # type: ignore[method-assign]
         metadata_ingestor._get_metacontent_chunks = Mock(return_value=CHUNKS)  # type: ignore[method-assign]
         metadata_ingestor._upload_metacontent_to_devcloud = Mock(  # type: ignore[method-assign]
-            return_value=f"s3://{RAW_S3}/{metadata_artifact.tenant_id}/{metadata_artifact.artifact_id}.json")
+            return_value=f"s3://{raw_s3}/{metadata_artifact.tenant_id}/{metadata_artifact.artifact_id}.json")
 
         # WHEN
         metadata_ingestor.ingest(metadata_artifact)
@@ -167,4 +158,4 @@ class TestMetadataIngestor:
         assert [1, 2, 3, 4] == [frame["number"] for frame in uploaded["frame"]]
         assert ["bar", "baz", "baz", "bar"] == [frame["foo"] for frame in uploaded["frame"]]
 
-        assert metadata_artifact.s3_path == f"s3://{RAW_S3}/{TENANT_ID}/{ART_ID}.json"
+        assert metadata_artifact.s3_path == f"s3://{raw_s3}/{TENANT_ID}/{ART_ID}.json"

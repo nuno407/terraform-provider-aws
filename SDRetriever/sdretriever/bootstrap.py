@@ -1,7 +1,7 @@
 """bootstrap dependency injection autowiring"""
 import os
-
 import boto3
+
 from kink import di
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
@@ -13,7 +13,7 @@ from base.aws.shared_functions import StsHelper
 from base.graceful_exit import GracefulExit
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import CONTAINER_NAME, CONTAINER_VERSION
-from sdretriever.s3_finder import S3Finder
+from sdretriever.metadata_merger import MetadataMerger
 
 
 def __create_rcc_s3_boto3_client(sts_helper: StsHelper) -> S3ClientFactory:
@@ -50,12 +50,16 @@ def bootstrap_di():
     di[STSClient] = boto3.client("sts", region_name="eu-central-1")
 
     # base aws services
-    di[ContainerServices] = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
+    container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
+    di[ContainerServices] = container_services
     di[ContainerServices].load_config_vars()
+    di[ContainerServices].configure_logging("SDRetriever")
     di[StsHelper] = StsHelper(
         di[STSClient],
-        role=di[ContainerServices].rcc_info.get("role"),
+        role=container_services.rcc_info.get("role"),
         role_session="DevCloud-SDRetriever")
+
+    di["rcc_bucket"] = container_services.rcc_info["s3_bucket"]
 
     # rcc boto3 clients
     di[S3ClientFactory] = __create_rcc_s3_boto3_client(di[StsHelper])
@@ -63,7 +67,4 @@ def bootstrap_di():
 
     # graceful exit
     di[GracefulExit] = GracefulExit()
-    di[S3Finder] = S3Finder()
-
-    # configure logging
-    di[ContainerServices].configure_logging("SDRetriever")
+    di[MetadataMerger] = MetadataMerger()

@@ -8,6 +8,6 @@ pylint-quotes == 0.2.3
 mypy == 1.1.1
 types-urllib3 == 1.26.25.8
 bandit == 1.7.5
-
+moto == 4.1.4
 # install the app itself
 -e .

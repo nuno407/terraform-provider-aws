@@ -8,8 +8,8 @@ from base.aws.model import MessageAttributes, SQSMessage
 from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
                                   TimeWindow)
 from base.timestamps import from_epoch_seconds_or_milliseconds
-from sanitizer.artifact.parsers.snapshot_preview_parser import \
-    SnapshotPreviewParser
+from sanitizer.artifact.parsers.snapshot_parser import \
+    SnapshotParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -51,6 +51,7 @@ RECEIPT_HANDLE = "foobar"
                 device_id="rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b",
                 tenant_id="ridecare_companion_trial",
                 timestamp=from_epoch_seconds_or_milliseconds(1671346291000),
+                end_timestamp=from_epoch_seconds_or_milliseconds(1671346292000),
                 recorder=RecorderType.SNAPSHOT,
                 upload_timing=TimeWindow(
                     start="2022-12-18T06:37:07.842030994Z",
@@ -61,6 +62,7 @@ RECEIPT_HANDLE = "foobar"
                 device_id="rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b",
                 tenant_id="ridecare_companion_trial",
                 timestamp=from_epoch_seconds_or_milliseconds(1671347823000),
+                end_timestamp=from_epoch_seconds_or_milliseconds(1671347824000),
                 recorder=RecorderType.SNAPSHOT,
                 upload_timing=TimeWindow(
                     start="2022-12-18T06:37:07.842030994Z",
@@ -74,6 +76,6 @@ def test_snapshot_parser(test_case: str,
                          expected: list[Artifact]):
     """ Test for parsing snapshot artifact. """
     print(f"test case: {test_case}")
-    got_artifact = list(SnapshotPreviewParser().parse(input_message, RecorderType.SNAPSHOT))
+    got_artifact = list(SnapshotParser().parse(input_message, RecorderType.SNAPSHOT))
     got_artifact.sort(key=lambda a: a.uuid)
     assert got_artifact == expected

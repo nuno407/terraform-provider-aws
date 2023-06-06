@@ -1,13 +1,14 @@
 """ tests for artifact injector """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
-import pytz
+from pytz import UTC
 
 from base.model.artifacts import (Artifact, IMUArtifact, MetadataArtifact,
-                                  RecorderType, S3VideoArtifact,
-                                  SignalsArtifact, SnapshotArtifact,
-                                  TimeWindow)
+                                  MultiSnapshotArtifact,
+                                  PreviewSignalsArtifact, RecorderType,
+                                  S3VideoArtifact, SignalsArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_injector import MetadataArtifactInjector
 
 
@@ -17,14 +18,20 @@ def artifact_injector():
     return MetadataArtifactInjector()
 
 
+device_and_tenant_and_timings = {
+    "device_id": "device_id",
+    "tenant_id": "tenant_id",
+    "timestamp": datetime.now(tz=UTC) - timedelta(minutes=2),
+    "end_timestamp": datetime.now(tz=UTC) - timedelta(minutes=1),
+    "upload_timing": TimeWindow(
+        start=datetime.now(tz=UTC) - timedelta(seconds=10),
+        end=datetime.now(tz=UTC) - timedelta(seconds=5)
+    )
+}
+
 fixture_snapshot = SnapshotArtifact(
-    device_id="device_id",
-    tenant_id="tenant_id",
+    **device_and_tenant_and_timings,
     recorder=RecorderType.SNAPSHOT,
-    timestamp=datetime.now(tz=pytz.UTC),
-    upload_timing=TimeWindow(
-        start="2022-12-18T07:37:07.842030994Z",
-        end="2022-12-18T07:37:07.842030994Z"),
     uuid="TrainingMultiSnapshot_TrainingMultiSnapshot-e542440d-a6a2-4733-a98b-94a55884b805_1.jpeg"
 )
 
@@ -34,8 +41,8 @@ fixture_interior = S3VideoArtifact(
     device_id="device_id",
     tenant_id="tenant_id",
     recorder=RecorderType.INTERIOR,
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC),
+    timestamp=datetime.now(tz=UTC),
+    end_timestamp=datetime.now(tz=UTC),
     upload_timing=TimeWindow(
         start="2022-12-18T07:37:07.842030994Z",
         end="2022-12-18T07:37:07.842030994Z")
@@ -47,11 +54,23 @@ fixture_training = S3VideoArtifact(
     device_id="device_id",
     tenant_id="tenant_id",
     recorder=RecorderType.TRAINING,
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC),
+    timestamp=datetime.now(tz=UTC),
+    end_timestamp=datetime.now(tz=UTC),
     upload_timing=TimeWindow(
         start="2022-12-18T07:37:07.842030994Z",
         end="2022-12-18T07:37:07.842030994Z")
+)
+fixture_preview = SnapshotArtifact(
+    **device_and_tenant_and_timings,
+    recorder=RecorderType.INTERIOR_PREVIEW,
+    uuid="some-uuid.jpeg"
+)
+
+fixture_multi_preview = MultiSnapshotArtifact(
+    **device_and_tenant_and_timings,
+    recorder=RecorderType.INTERIOR_PREVIEW,
+    chunks=[fixture_preview],
+    recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
 )
 
 
@@ -61,8 +80,7 @@ fixture_training = S3VideoArtifact(
         fixture_snapshot,
         [
             SignalsArtifact(
-                device_id="device_id",
-                tenant_id="tenant_id",
+                **device_and_tenant_and_timings,
                 referred_artifact=fixture_snapshot
             )
         ]
@@ -72,8 +90,7 @@ fixture_training = S3VideoArtifact(
         fixture_interior,
         [
             SignalsArtifact(
-                device_id="device_id",
-                tenant_id="tenant_id",
+                **device_and_tenant_and_timings,
                 referred_artifact=fixture_interior
             )
         ]
@@ -83,14 +100,22 @@ fixture_training = S3VideoArtifact(
         fixture_training,
         [
             SignalsArtifact(
-                device_id="device_id",
-                tenant_id="tenant_id",
+                **device_and_tenant_and_timings,
                 referred_artifact=fixture_training
             ),
             IMUArtifact(
-                device_id="device_id",
-                tenant_id="tenant_id",
+                **device_and_tenant_and_timings,
                 referred_artifact=fixture_training
+            )
+        ]
+    ),
+    # inject preview signals artifact for interior preview recorder
+    (
+        fixture_multi_preview,
+        [
+            PreviewSignalsArtifact(
+                **device_and_tenant_and_timings,
+                referred_artifact=fixture_multi_preview
             )
         ]
     )

@@ -16,6 +16,7 @@ def test_config():
     discard_video_already_ingested: true
     ingest_from_kinesis: true
     input_queue: test-queue
+    temporary_bucket: tmp
     """
     with open("/tmp/config1", "w", encoding="utf-8") as file_handler:
         file_handler.write(raw_config)
@@ -27,6 +28,7 @@ def test_config():
     assert config.request_training_upload
     assert config.discard_video_already_ingested
     assert config.input_queue == "test-queue"
+    assert config.temporary_bucket == "tmp"
 
 
 @pytest.mark.unit

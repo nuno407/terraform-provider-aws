@@ -3,7 +3,6 @@ import logging as log
 from dataclasses import dataclass
 from datetime import datetime
 
-from botocore.errorfactory import ClientError
 from kink import inject
 
 from base.aws.container_services import ContainerServices
@@ -12,11 +11,10 @@ from base.aws.shared_functions import StsHelper
 from base.model.artifacts import Artifact, KinesisVideoArtifact, Resolution
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import FileExt
-from sdretriever.exceptions import (FileAlreadyExists, KinesisDownloadError,
-                                    S3UploadError)
+from sdretriever.exceptions import FileAlreadyExists, KinesisDownloadError
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.ingestor.post_processor import IVideoPostProcessor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 _logger = log.getLogger("SDRetriever." + __name__)
 STREAM_TIMESTAMP_TYPE = 'PRODUCER_TIMESTAMP'
@@ -42,9 +40,10 @@ class KinesisVideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             sts_helper: StsHelper,
             s3_controller: S3Controller,
             post_processor: IVideoPostProcessor,
-            s3_finder: S3Finder) -> None:
-        super().__init__(container_services, rcc_s3_client_factory, s3_finder,
-                         s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
+            s3_finder: S3FinderRCC) -> None:
+        super().__init__(
+            container_services,
+            rcc_s3_client_factory, s3_finder, s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
         self._config = config
         self._sts_helper = sts_helper
         self._s3_controller = s3_controller

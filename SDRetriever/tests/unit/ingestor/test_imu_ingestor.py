@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
-from unittest.mock import Mock, PropertyMock
+from unittest.mock import Mock
 
+import re
 from pytest import fixture, mark, raises
 from pytz import UTC
 
@@ -11,7 +12,7 @@ from base.model.artifacts import (IMUArtifact, RecorderType, SnapshotArtifact,
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.imu import IMUIngestor
 from sdretriever.ingestor.metacontent import MetacontentChunk
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 RAW_S3 = "raw-s3"
 CHUNK_PATHS = [
@@ -19,8 +20,8 @@ CHUNK_PATHS = [
     "TrainingRecorder_TrainingRecorder1.mp4._a_b_5678_imu_raw.csv.zip",
 ]
 CHUNKS = [
-    MetacontentChunk(filename=CHUNK_PATHS[0], data=b"1"),
-    MetacontentChunk(filename=CHUNK_PATHS[1], data=b"2")
+    MetacontentChunk(s3_key=CHUNK_PATHS[0], data=b"1"),
+    MetacontentChunk(s3_key=CHUNK_PATHS[1], data=b"2")
 ]
 SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
 UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
@@ -32,23 +33,6 @@ ART_ID = f"{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_IMU
 
 
 class TestImuIngestor:
-    @fixture()
-    def container_services(self) -> ContainerServices:
-        container_services = Mock()
-        type(container_services).raw_s3 = PropertyMock(return_value=RAW_S3)
-        return container_services
-
-    @fixture()
-    def rcc_client_factory(self) -> S3ClientFactory:
-        return Mock()
-
-    @fixture()
-    def s3_controller(self) -> S3Controller:
-        return Mock()
-
-    @fixture()
-    def s3_finder(self) -> S3Finder:
-        return Mock()
 
     @fixture()
     def imu_ingestor(
@@ -56,7 +40,7 @@ class TestImuIngestor:
             container_services: ContainerServices,
             rcc_client_factory: S3ClientFactory,
             s3_controller: S3Controller,
-            s3_finder: S3Finder) -> IMUIngestor:
+            s3_finder: S3FinderRCC) -> IMUIngestor:
         return IMUIngestor(
             container_services,
             rcc_client_factory,
@@ -75,7 +59,8 @@ class TestImuIngestor:
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            timestamp=SNAP_TIME
+            timestamp=SNAP_TIME,
+            end_timestamp=SNAP_TIME
         )
 
     @fixture()

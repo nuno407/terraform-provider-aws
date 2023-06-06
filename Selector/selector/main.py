@@ -7,6 +7,7 @@ from selector.bootstrap import bootstrap_di
 from selector.constants import CONTAINER_NAME, CONTAINER_VERSION
 from selector.selector import Selector
 
+_logger = ContainerServices.configure_logging("selector")
 
 @inject
 def main(selector: Selector):
@@ -18,6 +19,5 @@ def main(selector: Selector):
 
 
 if __name__ == "__main__":
-    _logger = ContainerServices.configure_logging("selector")
     bootstrap_di()
     main()  # type: ignore

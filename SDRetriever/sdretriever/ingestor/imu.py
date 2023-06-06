@@ -8,8 +8,8 @@ from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
-from sdretriever.s3_finder import S3Finder
-
+from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.constants import VIDEO_CHUNK_REGX
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, IMUArtifact
@@ -28,9 +28,9 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
                  container_services: ContainerServices,
                  rcc_s3_client_factory: S3ClientFactory,
                  s3_controller: S3Controller,
-                 s3_finder: S3Finder):
+                 s3_finder: S3FinderRCC):
         super().__init__(container_services, rcc_s3_client_factory,
-                         s3_controller, s3_finder)
+                         s3_controller, s3_finder, VIDEO_CHUNK_REGX)
 
     def __get_id_from_imu(self, imu_chunk: MetacontentChunk) -> int:
         """
@@ -45,9 +45,9 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
         Returns:
             int: The ID of the chunk.
         """
-        match = IMU_REGEX.search(imu_chunk.filename)
+        match = IMU_REGEX.search(imu_chunk.s3_key)
         if match is None:
-            raise ValueError(f"The following imu path {imu_chunk.filename} does \
+            raise ValueError(f"The following imu path {imu_chunk.s3_key} does \
                              not fit the pattern of an imu path")
         return int(match.group(1))
 
@@ -126,11 +126,12 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
         # Concatenate chunks and force deletion
         file_binary: bytearray = self._concatenate_chunks(chunks)
         del chunks
+
         s3_bucket = self._container_svcs.raw_s3
-        s3_folder = artifact.tenant_id + "/"
+        msp = artifact.tenant_id
         file_to_upload = MetacontentDevCloud(
             file_binary, artifact.artifact_id, s3_bucket,
-            s3_folder, IMU_FILE_EXT)
+            msp, IMU_FILE_EXT)
 
         # Upload IMU chunks and force deletion
         path_uploaded = self._upload_metacontent_to_devcloud(file_to_upload)

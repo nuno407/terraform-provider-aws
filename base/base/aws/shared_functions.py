@@ -20,7 +20,7 @@ class StsHelper:  # pylint: disable=too-few-public-methods
         self.__last_renew = datetime.now()
 
     def get_credentials(self) -> dict:
-        """Obtaisn the AWS credentials. Renew of the credentials is done automatically.
+        """Obtain the AWS credentials. Renew of the credentials is done automatically.
 
         Returns:
             dict: _description_

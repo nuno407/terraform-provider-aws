@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from mypy_boto3_s3 import S3Client
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 
 @pytest.fixture
@@ -36,7 +36,6 @@ def list_s3_objects() -> Callable[[str, str, S3Client, Optional[str]], Any]:
 
 
 @pytest.mark.unit
-@patch("sdretriever.s3_finder.ContainerServices")
 @pytest.mark.parametrize("paths_reference,wanted_result,start_datetime_reference,end_datetime_reference", [
     # Success
     (
@@ -109,24 +108,25 @@ def list_s3_objects() -> Callable[[str, str, S3Client, Optional[str]], Any]:
     )
 ])
 def test_discover_s3_subfolders(
-        mock_container_services,
         list_s3_objects,
         paths_reference,
         wanted_result,
         start_datetime_reference,
-        end_datetime_reference):
-    s3_finder = S3Finder()
+        end_datetime_reference,
+        container_services,
+        s3_finder,
+        s3_client):
 
     list_s3_objects_func, path_list = list_s3_objects
     path_list.extend(paths_reference)
-    mock_container_services.list_s3_objects.side_effect = list_s3_objects_func
+    container_services.list_s3_objects.side_effect = list_s3_objects_func
 
     folder_reference = "TEST_TENANT/TEST_DEVICE_ID/"
     bucket_reference = "UNUSED"
 
-    s3_client = Mock()
+    s3_finder = S3FinderRCC(bucket_reference, s3_client, container_services)
 
-    paths = s3_finder.discover_s3_subfolders(folder_reference, bucket_reference, s3_client,
+    paths = s3_finder.discover_s3_subfolders(folder_reference,
                                              start_time=start_datetime_reference, end_time=end_datetime_reference)
 
     assert set(paths) == set(wanted_result)

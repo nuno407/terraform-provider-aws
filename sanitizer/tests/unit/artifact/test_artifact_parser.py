@@ -6,8 +6,10 @@ import pytest
 from pytz import UTC
 
 from base.aws.model import MessageAttributes, SQSMessage
-from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
+                                  RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
+from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.artifact_parser import ArtifactParser
 
 
@@ -40,6 +42,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
                 timestamp=datetime.now(tz=UTC),
+                end_timestamp=datetime.now(tz=UTC),
                 upload_timing=TimeWindow(
                     start="2022-12-18T07:37:07.842030994Z",
                     end="2022-12-18T07:37:07.842030994Z")
@@ -50,6 +53,7 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 recorder=RecorderType.SNAPSHOT,
                 device_id="DEV01",
                 timestamp=datetime.now(tz=UTC),
+                end_timestamp=datetime.now(tz=UTC),
                 upload_timing=TimeWindow(
                     start="2022-12-18T07:37:07.842030994Z",
                     end="2022-12-18T07:37:07.842030994Z")
@@ -76,16 +80,37 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant="datanauts",
                 device_id="DEV01")),
         [
-            SnapshotArtifact(
-                uuid="foo1",
-                tenant_id="datanauts",
-                recorder=RecorderType.INTERIOR_PREVIEW,
-                device_id="DEV01",
-                timestamp=datetime.now(tz=UTC),
+            MultiSnapshotArtifact(
+                tenant_id="ridecare_companion_fut",
+                device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
+                end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
+                recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
                 upload_timing=TimeWindow(
-                    start="2022-12-18T07:37:07.842030994Z",
-                    end="2022-12-18T07:37:07.842030994Z")
-            )
+                    start="2023-05-31T14:03:51.613360+00:00",
+                    end="2023-05-31T15:03:51.613360+00:00"),
+                recorder=RecorderType.INTERIOR_PREVIEW,
+                chunks=[
+                    SnapshotArtifact(
+                        uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
+                        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                        tenant_id="ridecare_companion_fut",
+                        timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
+                        end_timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
+                        recorder=RecorderType.INTERIOR_PREVIEW,
+                        upload_timing=TimeWindow(
+                             start="2023-05-31T14:03:51.613360+00:00",
+                             end="2023-05-31T15:03:51.613360+00:00")),
+                    SnapshotArtifact(
+                        uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
+                        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                        tenant_id="ridecare_companion_fut",
+                        timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
+                        end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
+                        recorder=RecorderType.INTERIOR_PREVIEW,
+                        upload_timing=TimeWindow(
+                             start="2023-05-31T14:03:51.613360+00:00",
+                             end="2023-05-31T15:03:51.613360+00:00"))])
         ]
     ),
     # interior recorder
@@ -195,14 +220,13 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     kinesis_video_parser.parse = Mock(return_value=expected_artifacts)
     s3_video_parser = Mock()
     s3_video_parser.parse = Mock(return_value=expected_artifacts)
-
+    multisnapshot_parser = Mock()
+    multisnapshot_parser.parse = Mock(return_value=expected_artifacts)
     artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, snapshot_parser)
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
-    if expected_artifacts[0].recorder == RecorderType.SNAPSHOT:
-        snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.SNAPSHOT)
-    elif expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
-        snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.INTERIOR_PREVIEW)
+    if expected_artifacts[0].recorder == RecorderType.SNAPSHOT or expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
+        multisnapshot_parser.parse.assert_called_once_with(sqs_message, expected_artifacts[0].recorder)
     else:
         kinesis_video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
 

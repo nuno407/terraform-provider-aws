@@ -1,0 +1,7 @@
+db_metadata_tables:
+  pipeline_exec: dev-pipeline-execution
+  algo_output: dev-algorithm-output
+  recording: dev-recording
+  recordings: dev-recordings
+  signals: dev-signals
+  processed_imu: dev-processed-imu

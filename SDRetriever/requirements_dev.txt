@@ -9,7 +9,7 @@ pylint-quotes == 0.2.3
 types-pytz == 2022.7.1.2
 mypy == 1.1.1
 bandit == 1.7.5
-moto == 4.1.4
+moto == 4.1.12
 
 # install the app itself
 -e .

@@ -1,0 +1,19 @@
+{
+    "resolution": {
+        "width": "640",
+        "height": "360"
+    },
+    "metaData version": "0.6.4-SNAPSHOT",
+    "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+    "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+    "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+    "chunkPts": {
+        "pts_start": "2712844",
+        "pts_end": "2712844"
+    },
+    "chunkUtc": {
+        "utc_start": "1688372866333",
+        "utc_end": "1688372866333"
+    },
+    "frame": []
+}

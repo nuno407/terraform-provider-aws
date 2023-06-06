@@ -12,7 +12,8 @@ from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact
 from sdretriever.exceptions import S3FileNotFoundError, S3UploadError
-from sdretriever.s3_finder import S3Finder
+from sdretriever.exceptions import S3FileNotFoundError
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -25,7 +26,7 @@ class Ingestor:
         self,
         container_services: ContainerServices,
         rcc_s3_client_factory: S3ClientFactory,
-        s3_finder: S3Finder,
+        s3_finder: S3FinderRCC,
         s3_controller: S3Controller
     ) -> None:
         """_summary_
@@ -123,7 +124,7 @@ class Ingestor:
         if extensions is None:
             extensions = []
         subfolders: Iterator[str] = self._s3_finder.discover_s3_subfolders(
-            f'{tenant}/{device_id}/', bucket, self._rcc_s3_client, start_time, end_time)
+            f'{tenant}/{device_id}/', start_time, end_time)
 
         for subfolder in subfolders:
             path = subfolder + prefix

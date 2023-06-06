@@ -18,7 +18,16 @@ from sdretriever.handler import IngestionHandler
 _logger = log.getLogger("SDRetriever")
 
 
-def __deserialize(raw_message: str) -> str:
+def deserialize(raw_message: str) -> str:
+    """
+    Deserialize a json message gather from SQS
+
+    Args:
+        raw_message (str): Th message
+
+    Returns:
+        str: The message desirialized
+    """
     call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
                  ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
     for args in call_args:
@@ -46,7 +55,7 @@ def main(graceful_exit: GracefulExit,
         if message:
             _logger.info("Received artifact message -> %s", message)
 
-            raw_message = __deserialize(message["Body"])
+            raw_message = deserialize(message["Body"])
             try:
                 parsed_body = json.loads(raw_message)
                 artifact = parse_artifact(parsed_body["Message"])
@@ -55,7 +64,7 @@ def main(graceful_exit: GracefulExit,
             # because we never want to crash the container
             except Exception:  # pylint: disable=broad-except
                 _logger.exception(
-                    "Error parsing artifact, skipping message %s",
+                    "Error processing artifact, skipping message %s",
                     message["MessageId"])
                 continue
 

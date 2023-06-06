@@ -1,0 +1,32 @@
+[
+    {
+        "date_modified": "2023-06-01T14:48:33.752000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg.interior_20230609_070257_901_metadata.json",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "tenant": "ridecare_companion_fut"
+    },
+    {
+        "date_modified": "2023-06-01T14:48:33.752000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "tenant": "ridecare_companion_fut"
+    },
+    {
+        "date_modified": "2023-06-01T14:48:33.752000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "tenant": "ridecare_companion_fut"
+    },
+    {
+        "date_modified": "2023-06-01T14:48:33.752000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "tenant": "ridecare_companion_fut"
+    },
+    {
+        "date_modified": "2023-06-01T14:48:33.752000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "tenant": "ridecare_companion_fut"
+    }
+]

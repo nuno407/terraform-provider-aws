@@ -12,7 +12,7 @@ from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import FileExt
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -29,7 +29,7 @@ class SnapshotIngestor(Ingestor):
             rcc_s3_client_factory: S3ClientFactory,
             s3_controller: S3Controller,
             config: SDRetrieverConfig,
-            s3_finder: S3Finder) -> None:
+            s3_finder: S3FinderRCC) -> None:
         super().__init__(container_services, rcc_s3_client_factory, s3_finder, s3_controller)
         self._s3_controller = s3_controller
         self._config = config

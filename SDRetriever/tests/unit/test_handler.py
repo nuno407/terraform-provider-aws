@@ -8,6 +8,8 @@ from base.model.artifacts import (IMUArtifact, KinesisVideoArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   TimeWindow)
+from base.model.artifacts import (IMUArtifact, RecorderType, SignalsArtifact, MultiSnapshotArtifact,
+                                  SnapshotArtifact, TimeWindow, PreviewSignalsArtifact)
 from sdretriever.constants import CONTAINER_NAME
 from sdretriever.handler import IngestionHandler
 
@@ -29,6 +31,12 @@ def video_metadata_ing():
 @pytest.fixture
 def kinesis_video_ing():
     """KinesisVideoIngestor fixture
+    """
+    return Mock()
+
+@pytest.fixture
+def preview_metadata_ing():
+    """MetadataIngestor fixture
     """
     return Mock()
 
@@ -54,7 +62,7 @@ def cont_services():
     cont_services = Mock()
     cont_services.sqs_queues_list = {
         "Metadata": "metadata_queue",
-        "HQ_Selector": "hq_request_queue",
+        "Selector": "selector_queue",
         "MDFParser": "mdfp_queue"
     }
     yield cont_services
@@ -87,6 +95,7 @@ def ingestion_handler(imu_ing,
                       s3_video_ing,
                       snap_ing,
                       snap_metadata_ing,
+                      preview_metadata_ing,
                       cont_services,
                       config,
                       sqs_controller):
@@ -98,6 +107,7 @@ def ingestion_handler(imu_ing,
                             s3_video_ing,
                             snap_ing,
                             snap_metadata_ing,
+                            preview_metadata_ing,
                             cont_services,
                             config,
                             sqs_controller)
@@ -141,7 +151,7 @@ def test_ingestion_handler_handle_kinesis_video(ingestion_handler: IngestionHand
     kinesis_video_ing.ingest.assert_called_once_with(kinesis_video_artifact)
     sqs_controller.send_message.assert_has_calls([
         call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
-        call(serialized_video_artifact, CONTAINER_NAME, "hq_request_queue"),
+        call(serialized_video_artifact, CONTAINER_NAME, "selector_queue"),
     ])
 
 
@@ -159,7 +169,7 @@ def test_ingestion_handler_handle_s3_video(ingestion_handler: IngestionHandler,
     s3_video_ing.ingest.assert_called_once_with(s3_video_artifact)
     sqs_controller.send_message.assert_has_calls([
         call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
-        call(serialized_video_artifact, CONTAINER_NAME, "hq_request_queue"),
+        call(serialized_video_artifact, CONTAINER_NAME, "selector_queue"),
     ])
     sqs_controller.delete_message.assert_called_once_with(message)
 
@@ -168,6 +178,7 @@ snapshot_artifact = SnapshotArtifact(
     recorder=RecorderType.SNAPSHOT,
     upload_timing=TimeWindow(start=datetime.now(
         tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
+    end_timestamp=datetime.now(),
     tenant_id="tenant_id",
     device_id="device_id",
     timestamp=datetime.now(tz=pytz.UTC),
@@ -268,3 +279,42 @@ def test_ingestion_handler_handle_signals_snapshot(
     ])
 
     sqs_controller.delete_message.assert_called_once_with(message)
+
+
+multisnapshot_artifact = MultiSnapshotArtifact(
+    tenant_id="tenant_id",
+    device_id="device_id",
+    timestamp=datetime.now(tz=pytz.UTC),
+    end_timestamp=datetime.now(tz=pytz.UTC),
+    recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
+    upload_timing=TimeWindow(start=datetime.now(
+        tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
+    recorder=RecorderType.INTERIOR_PREVIEW,
+    chunks=[snapshot_artifact])
+
+
+preview_signals_artifact = PreviewSignalsArtifact(
+    tenant_id="tenant_id",
+    device_id="device_id",
+    referred_artifact=multisnapshot_artifact,
+    timestamp=datetime.now(tz=pytz.UTC),
+    end_timestamp=datetime.now(tz=pytz.UTC)
+)
+
+
+@pytest.mark.unit
+def test_ingestion_handler_handle_signals_preview(
+        ingestion_handler: IngestionHandler,
+        preview_metadata_ing: Mock,
+        sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+
+    ingestion_handler.handle(preview_signals_artifact, message)
+    preview_metadata_ing.ingest.assert_called_once_with(preview_signals_artifact)
+
+    sqs_controller.send_message.assert_has_calls([
+        call(preview_signals_artifact.stringify(),
+             CONTAINER_NAME, "selector_queue")
+    ])

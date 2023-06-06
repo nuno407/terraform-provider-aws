@@ -11,8 +11,10 @@ from mypy_boto3_sqs import SQSClient
 from pytz import UTC
 
 from base.aws.sns import SNSController
-from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
+                                  RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow, parse_artifact)
+from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 TEST_TOPIC_NAME = "test-topic"
@@ -62,6 +64,7 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
         SnapshotArtifact(
             uuid="test-uuid00",
             timestamp=datetime.now(tz=UTC),
+            end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.SNAPSHOT,
             device_id="test-device-id00",
             tenant_id="test-tenant-id00",
@@ -100,6 +103,38 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
                 end="2023-04-13T08:01:00+00:00")  # type: ignore
 
         )
+    ), (
+        MultiSnapshotArtifact(
+            tenant_id="ridecare_companion_fut",
+            device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+            timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
+            end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
+            recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
+            upload_timing=TimeWindow(
+                start="2023-05-31T14:03:51.613360+00:00",
+                end="2023-05-31T15:03:51.613360+00:00"),
+            recorder=RecorderType.INTERIOR_PREVIEW,
+            chunks=[
+                SnapshotArtifact(
+                    uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
+                    device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                    tenant_id="ridecare_companion_fut",
+                    timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
+                    end_timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
+                    recorder=RecorderType.INTERIOR_PREVIEW,
+                    upload_timing=TimeWindow(
+                        start="2023-05-31T14:03:51.613360+00:00",
+                        end="2023-05-31T15:03:51.613360+00:00")),
+                SnapshotArtifact(
+                    uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
+                    device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                    tenant_id="ridecare_companion_fut",
+                    timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
+                    end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
+                    recorder=RecorderType.INTERIOR_PREVIEW,
+                    upload_timing=TimeWindow(
+                        start="2023-05-31T14:03:51.613360+00:00",
+                        end="2023-05-31T15:03:51.613360+00:00"))])
     )
 ])
 def test_forwarder_publish_to_sns_topic(artifact: Artifact,

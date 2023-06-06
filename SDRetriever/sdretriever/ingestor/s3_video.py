@@ -7,11 +7,10 @@ from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, Resolution, S3VideoArtifact
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import FileExt
-from sdretriever.exceptions import (FileAlreadyExists, S3DownloadError,
-                                    S3UploadError)
+from sdretriever.exceptions import (FileAlreadyExists, S3DownloadError)
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.ingestor.post_processor import IVideoPostProcessor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 
 @inject
@@ -23,7 +22,7 @@ class S3VideoIngestor(Ingestor):
                  config: SDRetrieverConfig,
                  s3_controller: S3Controller,
                  post_processor: IVideoPostProcessor,
-                 s3_finder: S3Finder):
+                 s3_finder: S3FinderRCC):
         super().__init__(container_services, rcc_s3_client_factory, s3_finder,
                          s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
         self._config = config

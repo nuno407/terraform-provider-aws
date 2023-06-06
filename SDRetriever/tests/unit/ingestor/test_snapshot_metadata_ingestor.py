@@ -1,7 +1,8 @@
 # mypy: disable-error-code=attr-defined
 """Unit tests for the SnapshotIngestor class."""
+import re
 from datetime import datetime, timedelta
-from unittest.mock import ANY, MagicMock, Mock, PropertyMock, patch
+from unittest.mock import ANY, Mock
 
 from pytest import fixture, mark, raises
 from pytest_lazyfixture import lazy_fixture
@@ -15,9 +16,7 @@ from base.model.artifacts import (Artifact, MetadataType, RecorderType,
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
-from sdretriever.s3_finder import S3Finder
 
-QUEUE_NAME = "foo-queue"
 SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
 UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
 UPLOAD_END = datetime.now(tz=UTC) - timedelta(hours=1)
@@ -28,58 +27,25 @@ UID = "baz"
 WIDTH = 1920
 HEIGHT = 1080
 EXPECTED_FILE_NAME = f"{TENANT_ID}/{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_metadata_full.json"
-RAW_S3 = "raw-s3"
 
 
 class TestMetadataSnapshotIngestor():
     """Unit tests for the SnapshotIngestor class."""
-    @fixture()
-    def config(self) -> SDRetrieverConfig:
-        """Config for testing."""
-        return SDRetrieverConfig(
-            tenant_blacklist=[],
-            recorder_blacklist=[],
-            frame_buffer=0,
-            training_whitelist=[],
-            request_training_upload=True,
-            discard_video_already_ingested=True,
-            input_queue=QUEUE_NAME
-        )
-
-    @fixture()
-    def container_services(self) -> ContainerServices:
-        """ContainerServices for testing."""
-        container_services = Mock()
-        type(container_services).raw_s3 = PropertyMock(return_value=RAW_S3)
-        type(container_services).rcc_info = PropertyMock(return_value={"s3_bucket": "rcc"})
-        return container_services
-
-    @fixture()
-    def rcc_s3_client_factory(self) -> S3ClientFactory:
-        """S3ClientFactory for testing."""
-        return Mock()
-
-    @fixture()
-    def s3_controller(self) -> S3Controller:
-        """S3Controller for testing."""
-        s3_controller = Mock()
-        s3_controller.upload_file = Mock()
-        return s3_controller
 
     @fixture()
     def snap_metadata_ingestor(
             self,
             config: SDRetrieverConfig,
             container_services: ContainerServices,
-            rcc_s3_client_factory: S3ClientFactory,
+            rcc_client_factory: S3ClientFactory,
             s3_controller: S3Controller) -> SnapshotMetadataIngestor:
         """SnapshotIngestor under test."""
         return SnapshotMetadataIngestor(
             container_services,
-            rcc_s3_client_factory,
+            rcc_client_factory,
             s3_controller,
             config,
-            Mock(),
+            Mock()
         )
 
     @fixture()
@@ -94,7 +60,8 @@ class TestMetadataSnapshotIngestor():
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            uuid=UID
+            uuid=UID,
+            end_timestamp=SNAP_TIME
         )
 
     @fixture()
@@ -138,7 +105,8 @@ class TestMetadataSnapshotIngestor():
     @mark.unit()
     def test_snap_metadata_already_exists(self, snap_metadata_ingestor: SnapshotMetadataIngestor,
                                           snapshot_metadata_artifact: SignalsArtifact,
-                                          s3_controller: S3Controller) -> None:
+                                          s3_controller: S3Controller,
+                                          raw_s3: str) -> None:
         """Snapshots that already exist should raise an exception."""
         # GIVEN
         s3_controller.check_s3_file_exists = Mock(return_value=True)  # type: ignore[method-assign]
@@ -149,7 +117,7 @@ class TestMetadataSnapshotIngestor():
 
         # THEN
         s3_controller.check_s3_file_exists.assert_called_once_with(
-            RAW_S3,
+            raw_s3,
             EXPECTED_FILE_NAME
         )
 
@@ -157,7 +125,9 @@ class TestMetadataSnapshotIngestor():
     def test_successful_ingestion(self,
                                   snap_metadata_ingestor: SnapshotMetadataIngestor,
                                   snapshot_metadata_artifact: SignalsArtifact,
-                                  s3_controller: S3Controller) -> None:
+                                  s3_controller: S3Controller,
+                                  raw_s3: str,
+                                  rcc_bucket: str) -> None:
         """Successful ingestion should upload the snapshot."""
         # GIVEN
         s3_controller.check_s3_file_exists = Mock(return_value=False)  # type: ignore[method-assign]
@@ -168,11 +138,11 @@ class TestMetadataSnapshotIngestor():
 
         # THEN
         s3_controller.check_s3_file_exists.assert_called_once_with(
-            RAW_S3,
+            raw_s3,
             EXPECTED_FILE_NAME
         )
         snap_metadata_ingestor.get_file_in_rcc.assert_called_once_with(
-            'rcc',
+            rcc_bucket,
             TENANT_ID,
             DEVICE_ID,
             UID,
@@ -182,6 +152,6 @@ class TestMetadataSnapshotIngestor():
         )
         s3_controller.upload_file.assert_called_once_with(
             b'decompressed_mock',
-            RAW_S3,
+            raw_s3,
             EXPECTED_FILE_NAME
         )

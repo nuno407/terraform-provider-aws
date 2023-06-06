@@ -64,11 +64,12 @@ def test_handler_run():
     artifact_parser.parse.assert_called_once_with(sqs_message)
     artifact_filter.is_relevant.assert_has_calls([
         call(video_artifact),
-        call(snapshot_artifact)
+        call(injected_artifact),
+        call(snapshot_artifact),
     ])
     artifact_forwarder.publish.assert_has_calls([
-        call(injected_artifact),
         call(video_artifact),
+        call(injected_artifact),
         call(snapshot_artifact)
     ])
     sqs_controller.delete_message.assert_called_once_with(sqs_message)

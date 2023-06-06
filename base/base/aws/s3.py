@@ -1,12 +1,14 @@
 """Blob storage controller."""
 
 import logging
-from typing import Callable
 import re
+from typing import Callable, Iterator, Optional
 
+from base.aws.model import S3ObjectInfo
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from botocore.errorfactory import ClientError
 from kink import inject
-from mypy_boto3_s3 import S3Client
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -126,6 +128,64 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         )
 
         _logger.info("Uploaded [%s]", path)
+
+    def list_directory_objects(self, path: str, bucket: str,
+                               max_iterations: int = 9999999) -> Iterator[S3ObjectInfo]:
+        """
+        List S3 files in a particular folder and bypasses the 1000 object limitation by making multiple requests.
+        The number of maximum objects returned is equal to max_iterations*1000.
+        REMARKS: Only objects will be listed. Folders will be skipped.
+        Args:
+            path (str): path to search (does not include s3:// nor the bucket)
+            bucket (str): bucket name
+            max_iterations: number of maximum requests to make to list_objects_v2
+        """
+        if max_iterations < 1:
+            raise ValueError("List_s3_objects needs do at least one iteration")
+
+        continuation_token = "" # nosec
+
+        for i in range(0, max_iterations):
+
+            response: Optional[ListObjectsV2OutputTypeDef] = None
+
+            if i == 0:
+                # First API call
+                response = self.__s3_client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=path
+                )
+
+            else:
+                response = self.__s3_client.list_objects_v2(
+                    Bucket=bucket,
+                    ContinuationToken=continuation_token,
+                    Prefix=path
+                )
+
+            # Make sure that the dictionary has a list for objects
+            if "Contents" not in response:
+                response["Contents"] = []
+
+            objects = [
+                S3ObjectInfo(
+                    key=file["Key"],
+                    date_modified=file["LastModified"],
+                    size=file["Size"]) for file in response["Contents"]]
+
+            for obj in objects:
+                yield obj
+
+            # If all objects have been returned for the specific key/path, break
+            if not response.get("IsTruncated", False):
+                break
+
+            # Set continuation token for next loop
+            if "NextContinuationToken" not in response:
+                break
+
+            # Set continuation token and delete it from repsonse_list
+            continuation_token = response["NextContinuationToken"]
 
     @staticmethod
     def get_s3_path_parts(raw_path: str) -> tuple[str, str]:

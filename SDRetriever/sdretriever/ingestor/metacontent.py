@@ -9,26 +9,22 @@ from datetime import datetime, timedelta
 from typing import Iterator, Optional
 
 import pytz
-from botocore.exceptions import ClientError
 from kink import inject
 
 from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (ImageBasedArtifact, MetadataArtifact,
-                                  VideoArtifact)
-from sdretriever.exceptions import S3UploadError
+from base.model.artifacts import ImageBasedArtifact, MetadataArtifact
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_finder import S3Finder
+from sdretriever.s3_finder_rcc import S3FinderRCC
 
 _logger = log.getLogger("SDRetriever." + __name__)
-REXP_MP4 = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
 
 
 @dataclass
 class MetacontentChunk:
     """Represents the data inside a normal chunk or an IMU chunk"""
     data: bytes
-    filename: str
+    s3_key: str
 
 
 @dataclass
@@ -45,27 +41,26 @@ class MetacontentDevCloud:
 class MetacontentIngestor(Ingestor):
     """ Metacontent ingestor """
 
-    def __init__(self, container_services: ContainerServices,
-                 rcc_s3_client_factory: S3ClientFactory, s3_controller: S3Controller, s3_finder: S3Finder):
+    def __init__(
+            self,
+            container_services: ContainerServices,
+            rcc_s3_client_factory: S3ClientFactory,
+            s3_controller: S3Controller,
+            s3_finder: S3FinderRCC,
+            recorder_regx: re.Pattern):
+        """
+        Initializes a MetacontentIngestor.
+
+        Args:
+            container_services (ContainerServices): The container services.
+            rcc_s3_client_factory (S3ClientFactory): A function that produces an S3 client.
+            s3_controller (S3Controller): An S3Controller.
+            s3_finder (S3Finder): An S3 Finder.
+            recorder_regx (re.Pattern): A pattern to match the specified recorder files in S3.
+        """
         super().__init__(container_services, rcc_s3_client_factory, s3_finder, s3_controller)
         self._s3_controller = s3_controller
-
-    @ staticmethod
-    def _json_raise_on_duplicates(ordered_pairs):
-        """Convert duplicate keys to JSON array or if JSON objects, merges them."""
-        result = {}
-        for (key, value) in ordered_pairs:
-            if key in result:
-                if isinstance(result[key], dict) and isinstance(value, dict):
-                    for (sub_k, sub_v) in value.items():
-                        result[key][sub_k] = sub_v
-                elif isinstance(result[key], list):
-                    result[key].append(value)
-                else:
-                    result[key] = [result[key], value]
-            else:
-                result[key] = value
-        return result
+        self.__recorder_rgex = recorder_regx
 
     @staticmethod
     def _get_readable_size_object(_object: list[MetacontentChunk]) -> str:
@@ -102,7 +97,7 @@ class MetacontentIngestor(Ingestor):
         Returns:
             str: The path to where it got uploaded
         """
-        s3_path = f"{file.msp}{file.video_id}{file.extension}"
+        s3_path = f"{file.msp}/{file.video_id}{file.extension}"
 
         return self._upload_file(s3_path, file.data, file.bucket)
 
@@ -140,13 +135,8 @@ class MetacontentIngestor(Ingestor):
 
         paths = self._s3_finder.discover_s3_subfolders(
             path,
-            self._container_svcs.rcc_info["s3_bucket"],
-            self._rcc_s3_client,
             start_time,
             end_time)
-
-        if not isinstance(artifact.referred_artifact, VideoArtifact):
-            raise ValueError("Invalid referred_artifact, only VideoArtifact, accepted")
 
         for s3_path in paths:
             yield s3_path + f'{artifact.referred_artifact.recorder.value}_{artifact.referred_artifact.recorder.value}'
@@ -179,7 +169,7 @@ class MetacontentIngestor(Ingestor):
             if file_name.endswith('.zip'):
                 metadata_bytes_casted = gzip.decompress(metadata_bytes_casted)
 
-            chunks.append(MetacontentChunk(data=metadata_bytes_casted, filename=file_name))
+            chunks.append(MetacontentChunk(data=metadata_bytes_casted, s3_key=file_name))
 
         _logger.debug(
             "All the chunks download have %s in memory",
@@ -237,7 +227,7 @@ class MetacontentIngestor(Ingestor):
                     recorder_type)
                 continue
 
-            if REXP_MP4.search(file_path):
+            if self.__recorder_rgex.search(file_path):
 
                 if modified_date < start_time:
                     _logger.debug(
@@ -301,7 +291,7 @@ class MetacontentIngestor(Ingestor):
 
             # Ensure that only metadata belonging to the video are checked and return
             for chunk in tmp_metadata_chunks:
-                mp4_key = self._apply_recording_regex(chunk)
+                mp4_key = self._apply_chunk_regex(chunk)
                 if mp4_key and mp4_key in mp4_chunks_left:
                     tmp_metadata_chunks_filtered.add(chunk)
                     tmp_metadata_striped.add(mp4_key)
@@ -321,21 +311,24 @@ class MetacontentIngestor(Ingestor):
             "Fail to validate metadata for the following video chunks: %s", str(mp4_chunks_left))
         return False, metadata_chunks
 
-    def _apply_recording_regex(self, chunk: str) -> Optional[str]:
+    def _apply_chunk_regex(self, chunk: str) -> Optional[str]:
         """
         Apply the recording regex to a chunk path.
+        This should return the chunk name, if the chunk has multiple names within it, return only the first.
+        Eg:
+        "/hour=07/InteriorRecorder_InteriorRecorder-15cb7a35-621c-4cb9-hour=07/b9ec-226ae16148e1_99.mp4._stream2_20230525072300_98_metadata.json.zip"
+        This should return only "InteriorRecorder_InteriorRecorder-15cb7a35-621c-4cb9-hour=07/b9ec-226ae16148e1_99.mp4"
         Args:
             chunk (str): The chunk path.
 
         Returns:
             str: The chunk id.
         """
-        recording_regex = re.compile(r"/hour=\d{2}/(.+\.mp4).*")
-        search_result = recording_regex.search(chunk)
-        if not search_result:
+        recording_regex = re.compile(r"hour=\d{2}\/(.+?\.\w+)").search(chunk)
+        if not recording_regex:
             _logger.error("Failed to apply recording regex to chunk (%s)", chunk)
             return None
-        return search_result.group(1)
+        return recording_regex.group(1)
 
     def _check_allparts_exist(self, artifact: MetadataArtifact) -> tuple[bool, set[str]]:
         """
@@ -396,7 +389,7 @@ class MetacontentIngestor(Ingestor):
                 end_time=artifact.referred_artifact.upload_timing.end)
 
             # Store only the recording name to ignore the folders before
-            tmp_mp4_chunks_lst = [self._apply_recording_regex(chunk) for chunk in tmp_mp4_chunks]
+            tmp_mp4_chunks_lst = [self._apply_chunk_regex(chunk) for chunk in tmp_mp4_chunks]
             # remove the chunks where the regex failed
             tmp_mp4_chunks = set(filter(None, tmp_mp4_chunks_lst))
 
@@ -416,7 +409,7 @@ class MetacontentIngestor(Ingestor):
         for chunk in metadata_chunks:
 
             # Strips the video from the metadata name
-            mp4_key = self._apply_recording_regex(chunk)
+            mp4_key = self._apply_chunk_regex(chunk)
 
             if mp4_key in mp4_chunks_left:
                 tmp_metadata_filtered.add(chunk)

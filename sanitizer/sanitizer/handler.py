@@ -9,6 +9,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.aws.model import SQSMessage
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
+from base.model.artifacts import Artifact
 from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_controller import MessageController
@@ -45,6 +46,17 @@ class Handler:  # pylint: disable=too-few-public-methods
                 _logger.exception("SKIP: Unable to parse message -> %s", err)
                 continue
 
+    def _inject_and_publish_additional_artifacts(self, artifact: Artifact):
+        """injects and publishes additional artifacts if they are relevant
+        INTERIOR_PREVIEW artifacts should inject preview signals artifacts,
+        TRAINING and INTERIOR video artifacts should inject metadata artifacts
+        before publishing them, in the future we might want to parse RCC messages
+        instead of injecting those artifacts"""
+        injected_artifacts = self.artifact.injector.inject(artifact)
+        for injected in injected_artifacts:
+            if self.artifact.filter.is_relevant(injected):
+                self.artifact.forwarder.publish(injected)
+
     def _process_message(self, message: SQSMessage):
         """processes a single message to artifacts and publishes them"""
         is_relevant = self.message.filter.is_relevant(message)
@@ -67,18 +79,12 @@ class Handler:  # pylint: disable=too-few-public-methods
 
                     is_relevant = self.artifact.filter.is_relevant(artifact)
                     if is_relevant:
-                        # TRAINING and INTERIOR video artifacts should inject metadata artifacts
-                        # before publishing them, in the future we might want to parse RCC messages
-                        # instead of injecting those artifacts
-                        injected_artifacts = self.artifact.injector.inject(artifact)
-                        for injected in injected_artifacts:
-                            self.artifact.forwarder.publish(injected)
-
                         self.artifact.forwarder.publish(artifact)
                     else:
                         _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
                                      artifact.device_id,
                                      artifact.tenant_id)
+                    self._inject_and_publish_additional_artifacts(artifact)
                 except ArtifactException as err:
                     _logger.warning("SKIP: Unable to publish artifact -> %s", err)
         except ArtifactException as err:

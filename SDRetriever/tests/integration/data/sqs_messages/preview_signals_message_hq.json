@@ -1,0 +1,80 @@
+{
+    "tenant_id": "ridecare_companion_fut",
+    "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+    "s3_path": "s3://tmp_bucket/ridecare_companion_fut/ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview.json",
+    "referred_artifact": {
+        "tenant_id": "ridecare_companion_fut",
+        "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        "s3_path": null,
+        "resolution": null,
+        "recorder": "InteriorRecorderPreview",
+        "timestamp": "2023-05-31T14:48:33.752000+00:00",
+        "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
+        "upload_timing": {
+            "start": "2023-05-31T14:03:51.613360+00:00",
+            "end": "2023-05-31T15:03:51.613360+00:00"
+        },
+        "chunks": [
+            {
+                "tenant_id": "ridecare_companion_fut",
+                "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-05-31T14:48:33.752000+00:00",
+                "end_timestamp": "2023-05-31T14:49:03.757000+00:00",
+                "upload_timing": {
+                    "start": "2023-05-31T14:03:51.613360+00:00",
+                    "end": "2023-05-31T15:03:51.613360+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg"
+            },
+            {
+                "tenant_id": "ridecare_companion_fut",
+                "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-05-31T14:49:03.757000+00:00",
+                "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
+                "upload_timing": {
+                    "start": "2023-05-31T14:03:51.613360+00:00",
+                    "end": "2023-05-31T15:03:51.613360+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg"
+            },
+            {
+                "tenant_id": "ridecare_companion_fut",
+                "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-05-31T14:49:03.757000+00:00",
+                "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
+                "upload_timing": {
+                    "start": "2023-05-31T14:03:51.613360+00:00",
+                    "end": "2023-05-31T15:03:51.613360+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg"
+            },
+            {
+                "tenant_id": "ridecare_companion_fut",
+                "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-05-31T14:49:03.757000+00:00",
+                "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
+                "upload_timing": {
+                    "start": "2023-05-31T14:03:51.613360+00:00",
+                    "end": "2023-05-31T15:03:51.613360+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg"
+            }
+        ],
+        "recording_id": "InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8"
+    },
+    "metadata_type": "metadata_preview",
+    "timestamp": "2023-05-31T14:49:03.757000+00:00",
+    "end_timestamp": "2023-05-31T14:49:03.758000+00:00"
+}

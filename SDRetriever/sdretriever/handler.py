@@ -11,6 +11,9 @@ from base.model.artifacts import (Artifact, IMUArtifact, KinesisVideoArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   VideoArtifact)
+from base.model.artifacts import (Artifact, IMUArtifact,
+                                  RecorderType, SignalsArtifact,
+                                  SnapshotArtifact, VideoArtifact, PreviewSignalsArtifact)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import (CONTAINER_NAME,
                                    MESSAGE_VISIBILITY_EXTENSION_HOURS)
@@ -23,6 +26,7 @@ from sdretriever.ingestor.kinesis_video import KinesisVideoIngestor
 from sdretriever.ingestor.s3_video import S3VideoIngestor
 from sdretriever.ingestor.snapshot import SnapshotIngestor
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
+from sdretriever.ingestor.preview_metadata import PreviewMetadataIngestor
 from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
 
 _logger = log.getLogger("SDRetriever")
@@ -41,6 +45,7 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             s3_video_ing: S3VideoIngestor,
             snap_ing: SnapshotIngestor,
             snap_metadata_ing: SnapshotMetadataIngestor,
+            preview_metadata_ing: PreviewMetadataIngestor,
             cont_services: ContainerServices,
             config: SDRetrieverConfig,
             sqs_controller: SQSController):
@@ -62,10 +67,12 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         self.__config = config
         self.__imu_ing = imu_ing
         self.__snap_ing = snap_ing
+        self.__preview_metadata_ing = preview_metadata_ing
         self.__snap_metadata_ing = snap_metadata_ing
         self.__metadata_queue = cont_services.sqs_queues_list["Metadata"]
-        self.__hq_request_queue = cont_services.sqs_queues_list["HQ_Selector"]
+        self.__selector_queue = cont_services.sqs_queues_list["Selector"]
         self.__mdfp_queue = cont_services.sqs_queues_list["MDFParser"]
+
 
     def _get_ingestor(self, artifact: Artifact) -> Ingestor:
         """ Returns the ingestor that should handle the artifact.
@@ -96,6 +103,10 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             return self.__snap_metadata_ing
         if isinstance(artifact, IMUArtifact):
             return self.__imu_ing
+
+        if isinstance(artifact, PreviewSignalsArtifact):
+            return self.__preview_metadata_ing
+
         raise NoIngestorForArtifactError()
 
     def _get_forward_queues(self, artifact: Artifact) -> Iterator[str]:
@@ -115,10 +126,13 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         if isinstance(artifact, (VideoArtifact, SnapshotArtifact)):
             yield self.__metadata_queue
 
+        if isinstance(artifact, PreviewSignalsArtifact):
+            yield self.__selector_queue
+
         if (isinstance(artifact, VideoArtifact) and
             artifact.recorder == RecorderType.INTERIOR and
                 self.__config.request_training_upload):
-            yield self.__hq_request_queue
+            yield self.__selector_queue
 
     def handle(self, artifact: Artifact, message: MessageTypeDef) -> None:
         """ Routes a message to its correct handler for processing.
@@ -167,8 +181,9 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             message (Message): Message to be deleted.
             source (str): The source to be deleted from.
         """
-        factor_idx = min(int(message_obj["Attributes"]["ApproximateReceiveCount"]),
-                         len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)  # type: ignore
+        factor_idx = int(message_obj["Attributes"]["ApproximateReceiveCount"])-1
+        factor_idx = min(factor_idx,len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)
+        factor_idx = max(factor_idx,0)
         prolong_time = int(
             MESSAGE_VISIBILITY_EXTENSION_HOURS[factor_idx] * 3600)  # type: ignore
         _logger.warning("Prolonging message visibility timeout for %d seconds",

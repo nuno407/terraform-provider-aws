@@ -1,0 +1,209 @@
+{
+  "resolution": {
+    "width": "640",
+    "height": "360"
+  },
+  "metaData version": "0.6.4-SNAPSHOT",
+  "PoseNetwork version": "20220901-184337_20ks_mobilenet_v2_coco_ridecare",
+  "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+  "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+  "chunkPts": {
+    "pts_start": "163155",
+    "pts_end": "253156"
+  },
+  "chunkUtc": {
+    "utc_start": "1685544504000",
+    "utc_end": "1685544604000"
+  },
+  "frame": [
+    {
+      "number": "85",
+      "timestamp": "163218",
+      "timestamp64": "163218",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.706",
+              "CameraViewBlocked": "0.853",
+              "DoorClosedConfidence": "0.256",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0.004",
+              "RideInfo_confidence": "0",
+              "RideInfo_people_count_before_confidence": "1",
+              "RideInfo_people_count_during_confidence": "1",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        },
+        {
+          "stringAttributes": [
+            {
+              "RideInfo_ride_id": "7NBRHCX1KM",
+              "RideInfo_status": "start"
+            }
+          ]
+        },
+        {
+          "integerAttributes": [
+            {
+              "RideInfo_local_endtime_ms": "0",
+              "RideInfo_local_startime_ms": "158218",
+              "RideInfo_people_count_before_value": "1",
+              "RideInfo_people_count_during_value": "1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "86",
+      "timestamp": "164109",
+      "timestamp64": "164109",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.7",
+              "CameraViewBlocked": "0.848",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0.004",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "87",
+      "timestamp": "165127",
+      "timestamp64": "165127",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.697",
+              "CameraViewBlocked": "0.848",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0.004",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "88",
+      "timestamp": "166144",
+      "timestamp64": "166144",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.7",
+              "CameraViewBlocked": "0.85",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0.004",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "89",
+      "timestamp": "167098",
+      "timestamp64": "167098",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.703",
+              "CameraViewBlocked": "0.848",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "90",
+      "timestamp": "168116",
+      "timestamp64": "168116",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.697",
+              "CameraViewBlocked": "0.841",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0.004",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": "91",
+      "timestamp": "169134",
+      "timestamp64": "169134",
+      "objectlist": [
+        {
+          "floatAttributes": [
+            {
+              "CameraVerticalShifted": "0.697",
+              "CameraViewBlocked": "0.853",
+              "DriverCount_confidence": "1",
+              "DriverCount_value": "0",
+              "DrivingStatus": "0",
+              "interior_camera_health_response_audio_blocked": "0",
+              "interior_camera_health_response_audio_distorted": "0",
+              "interior_camera_health_response_audio_signal": "0",
+              "interior_camera_health_response_cvb": "0",
+              "interior_camera_health_response_cve": "0"
+            }
+          ]
+        },
+        {
+          "boolAttributes": [
+            {
+              "artificial_field": "1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

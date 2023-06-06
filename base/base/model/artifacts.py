@@ -27,6 +27,7 @@ class RecorderType(Enum):
 class MetadataType(str, Enum):
     """ metadata type enumerator """
     SIGNALS = "metadata_full"
+    PREVIEW = "metadata_preview"
     IMU = "IMU"
 
 
@@ -89,6 +90,7 @@ class ImageBasedArtifact(Artifact):
     resolution: Optional[Resolution] = Field(default=None)
     recorder: RecorderType = Field(default=...)
     timestamp: datetime = Field(default=...)
+    end_timestamp: datetime = Field(default=...)
     upload_timing: TimeWindow = Field(default=...)
 
     @validator("timestamp")
@@ -176,10 +178,28 @@ class SnapshotArtifact(ImageBasedArtifact):
 
 
 @dataclass
+class MultiSnapshotArtifact(ImageBasedArtifact):
+    """An artifact that continas multiple snapshots"""
+    chunks: list[SnapshotArtifact] = Field(default=...)
+    recording_id: str = Field(default=...)
+
+    @validator("chunks")
+    def check_sorted_chunks(cls, chunks: list[SnapshotArtifact]) -> list[SnapshotArtifact]:
+        """Ensure snapshot chunks are sorted"""
+        chunks.sort(key=lambda x: x.timestamp)
+        return chunks
+
+    @property
+    def artifact_id(self) -> str:
+        """Artifact ID for the multiple snapshots artifacts"""
+        return f"{self.tenant_id}_{self.device_id}_{self.recording_id}_{round(self.timestamp.timestamp()*1000)}"
+
+
+@dataclass
 class MetadataArtifact(Artifact):
     """ Metadata """
-    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact, S3VideoArtifact] = Field(default=...)
-    metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS] = Field(default=...)
+    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact, S3VideoArtifact, VideoArtifact, MultiSnapshotArtifact] = Field(default=...)
+    metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS, MetadataType.PREVIEW] = Field(default=...)
 
     @property
     def artifact_id(self) -> str:
@@ -199,10 +219,17 @@ class SignalsArtifact(MetadataArtifact):
     metadata_type: Literal[MetadataType.SIGNALS] = MetadataType.SIGNALS
 
 
+@dataclass
+class PreviewSignalsArtifact(MetadataArtifact):
+    """ Preview Signals Artifact, that contains compacted signals data """
+    timestamp: datetime = Field(default=...)
+    end_timestamp: datetime = Field(default=...)
+    referred_artifact: MultiSnapshotArtifact = Field(default=...)
+    metadata_type: Literal[MetadataType.PREVIEW] = MetadataType.PREVIEW
+
+
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(Union[KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact,
-                                  SignalsArtifact, IMUArtifact], json_data)  # type: ignore
-    return parse_raw_as(Union[KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact,
-                        SignalsArtifact, IMUArtifact], json_data)  # type: ignore
+        return parse_obj_as(Union[VideoArtifact, KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact, SignalsArtifact, IMUArtifact, MultiSnapshotArtifact, PreviewSignalsArtifact], json_data)  # type: ignore
+    return parse_raw_as(Union[VideoArtifact, KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact, SignalsArtifact, IMUArtifact, MultiSnapshotArtifact, PreviewSignalsArtifact], json_data)  # type: ignore
