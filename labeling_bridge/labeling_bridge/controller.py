@@ -168,7 +168,7 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
             try:
                 request_data = request.json
                 service.kognic_import(request_data)
-                export_response = flask.jsonify(message="Data imported to Voxel!", statusCode="200")
+                import_response = flask.jsonify(message="Data imported to Voxel!", statusCode="200")
 
             except ValueError as err:
                 generate_exception_logs(err)
@@ -177,6 +177,6 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
                 generate_exception_logs(err)
                 api.abort(500, message=ERROR_500_MSG, statusCode="500")
 
-            return export_response
+            return import_response
 
     return app
