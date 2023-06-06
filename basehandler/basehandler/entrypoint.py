@@ -29,7 +29,7 @@ class CallbackBlueprintCreator(Protocol):  # pylint: disable=too-few-public-meth
         Function responsible for creating the BluePrint for the endpoint
 
         Args:
-            route_endpoint (str): Route endpoint e.g : "/cameracheck"
+            route_endpoint (str): Route endpoint e.g : "/processingSuccess"
             notifier (OutputEndpointNotifier): And instance of OutputEndpointNotifier to
                                                upload and send data to the MessageHandler
 

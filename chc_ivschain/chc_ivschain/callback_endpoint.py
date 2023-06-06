@@ -17,7 +17,7 @@ class CHCCallbackEndpointCreator(CallbackBlueprintCreator):  # pylint: disable=t
     def create(route_endpoint: str, notifier: OutputEndpointNotifier) -> Blueprint:
         """
         Args:
-            route_endpoint (str): endpoint route to create the blueprint e.g: /cameracheck
+            route_endpoint (str): endpoint route to create the blueprint e.g: /processingSuccess
             notifier (OutputEndpointNotifier): notifier to start the upload video thread
 
         Returns:

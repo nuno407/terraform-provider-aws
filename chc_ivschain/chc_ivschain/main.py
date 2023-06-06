@@ -19,7 +19,7 @@ AWS_REGION = os.getenv("AWS_REGION", "eu-central-1")
 API_PORT = os.getenv("API_PORT", "5000")
 AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
 START_DELAY_SECONDS = os.getenv("START_DELAY_SECONDS", "0")
-CALLBACK_ENDPOINT = "/cameracheck"
+CALLBACK_ENDPOINT = "/processingSuccess"
 
 MODE = "chc"
 

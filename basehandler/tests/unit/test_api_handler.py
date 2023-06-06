@@ -87,7 +87,7 @@ class TestApiHandler():  # pylint: disable=missing-function-docstring,missing-cl
         output_api = client_api_handler.create_routes()
 
         with output_api.test_client() as test_client:
-            response = test_client.post("/processingerror")
+            response = test_client.post("/processingError")
 
             # THEN
             assert response.status_code == 200

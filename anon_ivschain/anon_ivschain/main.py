@@ -22,7 +22,7 @@ AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
 START_DELAY_SECONDS = os.getenv("START_DELAY_SECONDS", "0")
 MOCK_POST_PROCESSOR = bool(os.environ.get("MOCK_POST_PROCESSOR", False))
 
-CALLBACK_ENDPOINT = "/anonymized"
+CALLBACK_ENDPOINT = "/processingSuccess"
 
 MODE = "anonymize"
 

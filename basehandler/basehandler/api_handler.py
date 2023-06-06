@@ -133,7 +133,7 @@ class APIHandler():  # pylint: disable=too-few-public-methods
         def handle_alive():
             return flask.Response(status=200, response="Ok")
 
-        @app.route("/processingerror", methods=["POST"])
+        @app.route("/processingError", methods=["POST"])
         def handle_processing_error():
             self.endpoint_notifier.notify_error()
             return flask.Response(status=200, response="Ok")
