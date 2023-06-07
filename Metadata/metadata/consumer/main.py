@@ -5,6 +5,7 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from json import JSONDecodeError
 from logging import Logger
 from typing import Optional, Tuple
 from urllib.parse import urlparse
@@ -898,6 +899,10 @@ def main():
                 _logger.warning(
                     "The referred snapshot was not found, it will be reingested later")
                 continue
+            except JSONDecodeError as err:
+                _logger.error("Malformed json file received %s", err)
+                continue
+
             # Delete message after processing
             container_services.delete_message(
                 sqs_client, message["ReceiptHandle"])
