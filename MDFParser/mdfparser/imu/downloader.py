@@ -15,7 +15,13 @@ _logger = logging.getLogger("mdfparser." + __name__)
 
 
 class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
-    """ S3 Downloader class. """
+    """ S3 Downloader class.
+        Repsonsible for downloading and parsing the IMU data.
+
+        REMARKS:
+        The parse of the first version of the IMU should be deprecated whenever the new IMU strcture has been
+        rolled out to all devices.
+    """
 
     def download(self, imu_path: str) -> pd.DataFrame:
         """
@@ -29,11 +35,13 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
         """
         bucket, key = self._get_s3_path(imu_path)
         binary_data = self._container_services.download_file(self._s3_client, bucket, key)
-        return self.convert_imu_data(binary_data)
+        return self.__convert_imu_data(binary_data)
 
-    def __get_batch_timestamp(self, line: str) -> datetime:
+    def __get_batch_timestamps(self, line: str) -> list[datetime]:
         """
         Parses the line header of one batch of the IMU data.
+        This function just returns the start of each chunk in case of the first IMU version.
+        If this is the second version of the IMU, it will return a list of timestamps for each sample.
 
         Args:
             line (str): The complete line of the IMU.
@@ -50,7 +58,11 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             raise FailToParseIMU(
                 f"Failed to parse IMU chunk headers, expected: {IMU_BATCH_START_HEADER} and got {tokens[0]}")
 
-        return datetime.fromtimestamp(int(tokens[1]) / 1000, tz=pytz.utc)
+        # Handle version 2 of the IMU
+        if len(tokens) > 5 and tokens[4] == "timestamps":
+            return [datetime.fromtimestamp(int(token) / 1000, tz=pytz.utc) for token in tokens[5:]]
+
+        return [datetime.fromtimestamp(int(tokens[1]) / 1000, tz=pytz.utc)]
 
     def __get_batch_data(self, line: str, expected_label: str) -> Any:
         """
@@ -74,7 +86,90 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
         return np.array(tokens[1:], dtype=np.float32)
 
-    def convert_imu_data(self, data_bytes: bytes) -> pd.DataFrame:
+    def __convert_imu_v1(self, csv_data: list[str]) -> pd.DataFrame:
+        """
+        Converts the IMU data from the version 1 (Only have timestamps for the start of the chunk)
+        This will be deprecated in the future.
+
+        Args:
+            json_data (list[str]): A list of lines for the raw IMU
+
+        Returns:
+            pd.DataFrame: A DataFrame with the columns specified in CHUNK_DATA + "timestamp".
+        """
+        i: int = 0
+        result_dfs: list[pd.DataFrame] = []
+        while i < len(csv_data):
+            # Set Header
+            utc_timestamps = self.__get_batch_timestamps(csv_data[i])
+
+            if len(utc_timestamps) != 1:
+                raise FailToParseIMU(f"Unexpected number of timestamps in IMU version 1")
+
+            utc_timestamp = utc_timestamps[0]
+
+            i += 1
+            batch_data: dict[str, Any] = {}
+
+            # Load the imu data
+            for header in IMU_BATCH_FIELDS:
+                batch_data[header] = self.__get_batch_data(csv_data[i], header)
+                i += 1
+
+            # Number of samples in this chunk
+            num_samples = len(list(batch_data.values())[0])
+
+            # Create a series of timestamps separated by DELTA
+            utc_timestamps = utc_timestamp + \
+                pd.to_timedelta(
+                    np.arange(
+                        0,
+                        num_samples) *
+                    IMU_SAMPLE_DELTA,
+                    unit="us")  # type: ignore
+            batch_data["timestamp"] = utc_timestamps
+            result_dfs.append(pd.DataFrame(batch_data))
+
+        return result_dfs
+
+    def __convert_imu_v2(self, csv_data: list[str]) -> pd.DataFrame:
+        """
+        Converts the IMU data from the version 2 (With timestamps for each sample)
+
+        Args:
+            json_data (list[str]): A list of lines for the raw IMU
+
+        Returns:
+            pd.DataFrame: A DataFrame with the columns specified in CHUNK_DATA + "timestamp".
+        """
+        # Data to be returned
+        result_dfs: list[pd.DataFrame] = []
+
+        i: int = 0
+        while i < len(csv_data):
+            # Set Header
+            utc_timestamps = self.__get_batch_timestamps(csv_data[i])
+            i += 1
+
+            batch_data: dict[str, Any] = {}
+
+            # Load the imu data
+            for header in IMU_BATCH_FIELDS:
+                batch_data[header] = self.__get_batch_data(csv_data[i], header)
+                i += 1
+
+            # Number of samples in this chunk
+            num_samples = len(list(batch_data.values())[0])
+
+            if num_samples != len(utc_timestamps):
+                raise FailToParseIMU(
+                    f"Number of utc timestamps {len(utc_timestamps)} is different then the number of samples {num_samples}")
+
+            batch_data["timestamp"] = utc_timestamps
+            result_dfs.append(pd.DataFrame(batch_data))
+        return result_dfs
+
+    def __convert_imu_data(self, data_bytes: bytes) -> pd.DataFrame:
         """
         Given a raw IMU csv parse and converts it to a DataFrame.
         The result dataframe will have one sample per row, and the timestamp of that sample will
@@ -102,41 +197,14 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
         lines = data.rstrip().split("\n")
         del data
 
-        # Data to be returned
-        result_dfs: list[pd.DataFrame] = []
+        utc_timestamps = self.__get_batch_timestamps(lines[0])
 
-        i: int = 0
-        try:
-            while i < len(lines):
-                # Set Header
-                utc_timestamp = self.__get_batch_timestamp(lines[i])
-                i += 1
-
-                batch_data: dict[str, Any] = {}
-
-                # Load the imu data
-                for header in IMU_BATCH_FIELDS:
-                    batch_data[header] = self.__get_batch_data(lines[i], header)
-                    i += 1
-
-                # Number of samples in this chunk
-                num_samples = len(list(batch_data.values())[0])
-
-                # Create a series of timestamps separated by DELTA
-                # Waiting on feedback from goaldiggers to align the right way to calculate this
-                utc_timestamps = utc_timestamp + \
-                    pd.to_timedelta(
-                        np.arange(
-                            0,
-                            num_samples) *
-                        IMU_SAMPLE_DELTA,
-                        unit="us")  # type: ignore
-                batch_data["timestamp"] = utc_timestamps
-                result_dfs.append(pd.DataFrame(batch_data))
-
-        except FailToParseIMU as excpt:
-            raise FailToParseIMU(f"{str(excpt)} at line: {i+1}") from excpt
-        except Exception as excpt:
-            raise FailToParseIMU(f"Failed to parse IMU data at line: {i+1}") from excpt
+        if len(utc_timestamps) == 1:
+            result_dfs = self.__convert_imu_v1(lines)
+        elif len(utc_timestamps) > 1:
+            result_dfs = self.__convert_imu_v2(lines)
+        else:
+            raise FailToParseIMU(
+                f"Could't detect IMU version, number of timestamps is {len(utc_timestamps)}")
 
         return pd.concat(result_dfs)

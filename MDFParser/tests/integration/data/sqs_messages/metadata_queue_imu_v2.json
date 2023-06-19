@@ -1,0 +1,6 @@
+{
+    "_id": "datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613",
+    "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json",
+    "data_type": "imu",
+    "recording_overview": {}
+}

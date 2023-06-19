@@ -1,0 +1,23 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "ARTIFICAL_DATA_V2",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv",
+    "referred_artifact": {
+        "tenant_id": "datanauts",
+        "device_id": "ARTIFICAL_DATA_V2",
+        "s3_path": null,
+        "resolution": null,
+        "recorder": "TrainingRecorder",
+        "timestamp": "2023-04-03T17:08:49.312000+00:00",
+        "upload_timing": {
+            "start": "2023-05-04T13:11:35.315000+00:00",
+            "end": "2023-05-04T13:14:43.266000+00:00"
+        },
+        "stream_name": "datanauts_ARTIFICAL_DATA_V2_TrainingRecorder",
+        "end_timestamp": "2023-04-03T17:09:05.613000+00:00",
+        "actual_duration": null,
+        "actual_timestamp": null,
+        "actual_end_timestamp": null
+    },
+    "metadata_type": "IMU"
+}

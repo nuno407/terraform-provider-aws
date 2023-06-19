@@ -58,20 +58,28 @@ def helper_to_json(file: bytes) -> dict[Any, Any]:
 class TestMDFParser:
     @ pytest.mark.integration
     @ pytest.mark.parametrize("input_sqs_message, output_sqs_metadata, expected_output_file, input_file", [
-        # Success
+        # Test Metadata
         (
             local_sqs_message("mdf_queue_metadata.json"),
             local_sqs_message("metadata_queue_metadata.json"),
             local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json"),
             local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json"),
         ),
+        # Test IMU
         (
             local_sqs_message("mdf_queue_imu.json"),
             local_sqs_message("metadata_queue_imu.json"),
             local_file("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_processed_imu.json"),
             local_file("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_imu.csv")
+        ),
+        # Test IMU V2
+        (
+            local_sqs_message("mdf_queue_imu_v2.json"),
+            local_sqs_message("metadata_queue_imu_v2.json"),
+            local_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json"),
+            local_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv")
         )
-    ], ids=["metadata_integration_test_1", "imu_integration_test_1"])
+    ], ids=["metadata_integration_test_1", "imu_integration_test_v1", "imu_integration_test_v2"])
     def test_mdfparser_success(self,
                                input_sqs_message: dict[Any,
                                                        Any],
@@ -84,7 +92,6 @@ class TestMDFParser:
                                dev_output_queue_url: str):
         """
         This test function mocks the SQS and S3 and tests the component end2end.
-        TODO: The check for the message deletion should be replaced by intercepting the call to the container services.
 
         Args:
             input_sqs_message (dict[Any, Any]): _description_

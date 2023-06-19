@@ -36,10 +36,10 @@
 		{
 			"path": "./healthcheck"
 		},
-        {
+		{
 			"path": "./data_importer"
 		},
-        {
+		{
 			"path": "./labeling_bridge"
 		},
 		{
@@ -47,15 +47,15 @@
 		}
 	],
 	"settings": {
-        "python.languageServer": "Pylance",
+		"python.languageServer": "Pylance",
 		"python.terminal.activateEnvInCurrentTerminal": true,
-        "python.testing.unittestEnabled": false,
-        "python.testing.pytestEnabled": true,
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true,
 		"python.defaultInterpreterPath": "/venv/${workspaceFolderBasename}/bin/python",
-        "python.analysis.extraPaths": [
-            "../base",
-            "../basehandler"
-        ],
+		"python.analysis.extraPaths": [
+			"../base",
+			"../basehandler"
+		],
 		"replacerules.rules": {
 			"Remove new line": {
 				"find": "\\\\n",
@@ -100,7 +100,7 @@
 	"extensions": {
 		"recommendations": [
 			"yzhang.markdown-all-in-one",
-            "ms-python.vscode-pylance",
+			"ms-python.vscode-pylance",
 			"bhughes339.replacerules"
 		]
 	}
