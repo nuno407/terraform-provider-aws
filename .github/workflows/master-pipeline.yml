@@ -116,17 +116,6 @@ jobs:
     runs-on: ubuntu-latest
     if: success() || failure() # making lint optional for now
     needs: [determine-changed-services]
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        env:
-          SERVICES: sqs,sns,s3
-          DEFAULT_REGION: eu-west-1
-          AWS_ACCESS_KEY_ID: localkey
-          AWS_SECRET_ACCESS_KEY: localsecret
-        ports:
-          - 4566:4566
-          - 4571:4571
     strategy:
       fail-fast: false
       matrix:
