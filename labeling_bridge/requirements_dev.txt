@@ -3,7 +3,7 @@ pylint
 pylint_quotes
 mypy
 bandit
-
+types-waitress
 pytest
 pytest-cov
 
