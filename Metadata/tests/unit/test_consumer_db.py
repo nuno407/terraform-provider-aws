@@ -21,11 +21,11 @@ def fixture_recordings_persistence() -> Persistence:
 
     with open(os.path.join(__location__, "test_data/recording_image_db.json"), "r") as f:
         data = loads(f.read())
-        recordings.insert(data)
+        recordings.insert_many(data)
 
     with open(os.path.join(__location__, "test_data/recording_video_db.json"), "r") as f:
         data = loads(f.read())
-        recordings.insert(data)
+        recordings.insert_many(data)
 
     return Persistence(db_tables, client)
 

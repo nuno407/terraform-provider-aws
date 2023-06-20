@@ -7,9 +7,9 @@ extras_require: Dict[str, List[str]] = {
     # we should extract pymongo dependency to mongodb package base.mongodb.
     # Also we should put ContainerServices in base package
     "aws": [
-        "pymongo==3.12",
-        "pymongo[srv]==3.12",
-        "pymongo[aws]==3.12",
+        "pymongo==4.3.3",
+        "pymongo[srv]==4.3.3",
+        "pymongo[aws]==4.3.3",
         "boto3==1.26.91",
         "pytz==2022.6",
         "pyyaml==6.0",

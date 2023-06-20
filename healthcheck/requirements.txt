@@ -1,6 +1,6 @@
 PyYAML == 6.0
 jsonschema == 4.17.3
-pymongo == 3.12
+pymongo == 4.3.3
 kink == 0.6.6
 boto3 == 1.26.91
 boto3-stubs[s3,sqs] == 1.26.91
