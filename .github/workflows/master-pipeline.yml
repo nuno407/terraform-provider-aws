@@ -9,6 +9,22 @@ on:
       services:
         description: Services to build separated by comma, leave empty for all
         required: false
+      test:
+        type: boolean
+        description: Run tests
+        default: false
+      lint:
+        type: boolean
+        description: Run linting
+        default: false
+      sast:
+        type: boolean
+        description: Run sast
+        default: false
+      build-image:
+        type: boolean
+        description: Build image
+        default: true
 
 env:
   AWS_DEFAULT_REGION: eu-central-1
@@ -34,6 +50,7 @@ jobs:
   lint-python-projects:
     name: Lint Python
     runs-on: ubuntu-latest
+    if: github.ref_name == 'master' || inputs.lint
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -54,6 +71,7 @@ jobs:
   lint-javascript-projects:
     name: Lint Javascript
     runs-on: ubuntu-latest
+    if: github.ref_name == 'master' || inputs.lint
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -74,7 +92,7 @@ jobs:
   run-python-sast:
     name: SAST Python
     runs-on: ubuntu-latest
-    if: success() || failure() # making SAST optional for now
+    if: github.ref_name == 'master' || inputs.sast
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -93,7 +111,7 @@ jobs:
   run-python-tests:
     name: Unit tests
     runs-on: ubuntu-latest
-    if: success() || failure() # making lint optional for now
+    if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -114,7 +132,7 @@ jobs:
   run-python-integration-tests:
     name: Integration tests
     runs-on: ubuntu-latest
-    if: success() || failure() # making lint optional for now
+    if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -137,7 +155,7 @@ jobs:
   run-javascript-tests:
     name: Javascript tests
     runs-on: ubuntu-latest
-    if: success() || failure() # making lint optional for now
+    if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -160,7 +178,7 @@ jobs:
     name: Sonarqube scan on code
     runs-on: ubuntu-latest
     needs: [run-python-tests, run-javascript-tests, run-python-sast]
-    if: success() || failure()
+    if: github.ref_name == 'master' || inputs.test
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
@@ -237,7 +255,7 @@ jobs:
     needs: [determine-changed-services]
     name: Build image for
     runs-on: ubuntu-latest
-    if: needs.determine-changed-services.outputs.services != '[]'
+    if: needs.determine-changed-services.outputs.services != '[]' && (github.ref_name == 'master' || inputs.build-image)
     strategy:
       fail-fast: false
       matrix:
