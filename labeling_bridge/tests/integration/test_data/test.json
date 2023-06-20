@@ -1,0 +1,1011 @@
+{
+    "openlabel": {
+        "actions": {},
+        "contexts": {},
+        "coordinate_systems": {},
+        "events": {},
+        "frame_intervals": [
+            {
+                "frame_end": 0,
+                "frame_start": 0
+            }
+        ],
+        "frames": {
+            "0": {
+                "frame_properties": {
+                    "external_id": "__location__/test.png",
+                    "streams": {
+                        "Voxel_export": {
+                            "uri": "tmp3k82no6e.jpeg"
+                        }
+                    },
+                    "timestamp": 0
+                },
+                "objects": {
+                    "1cc23c7b-e789-4c56-bde3-3638619d47b8": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 1.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-60c81b42",
+                                    "val": [
+                                        458.32053,
+                                        66.58907,
+                                        503.01788,
+                                        189.70749,
+                                        364.91113,
+                                        183.28392,
+                                        458.32053,
+                                        66.58907
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "1e165dc4-9270-451c-b124-1f29bda44334": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 5.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-4720a023",
+                                    "val": [
+                                        338.9492,
+                                        202.82228,
+                                        383.11124,
+                                        236.54602,
+                                        292.1107,
+                                        275.89038,
+                                        338.9492,
+                                        202.82228
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "39cb98ca-0157-4e26-9d5d-de6eedbbf24b": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 11.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-d0439ea2",
+                                    "val": [
+                                        249.82217,
+                                        196.39871,
+                                        319.41086,
+                                        201.48404,
+                                        241.79271,
+                                        225.57242,
+                                        249.82217,
+                                        196.39871
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "602ccd19-a1a2-4abf-8919-fcbf06ca8da1": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 7.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-c5581495",
+                                    "val": [
+                                        384.18182,
+                                        33.40063,
+                                        359.2905,
+                                        71.40675,
+                                        397.02896,
+                                        63.64494,
+                                        384.18182,
+                                        33.40063
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "650f0f8c-bf66-4563-aa34-eccfc2eb6069": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 16.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-a82bc938",
+                                    "val": [
+                                        138.37453,
+                                        201.34506,
+                                        116.96261,
+                                        230.5188,
+                                        180.39542,
+                                        228.10995,
+                                        138.37453,
+                                        201.34506
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "743f48dd-1846-44b9-98d6-fba52a365339": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 9.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-82a706a9",
+                                    "val": [
+                                        561.3653,
+                                        199.87814,
+                                        540.22107,
+                                        233.86952,
+                                        554.9417,
+                                        233.60188,
+                                        561.3653,
+                                        199.87814
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "8664e5cb-b516-4a14-bb6d-2c6e5b9e1da9": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 4.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-e9e03634",
+                                    "val": [
+                                        417.37027,
+                                        256.61966,
+                                        447.07928,
+                                        291.414,
+                                        500.60904,
+                                        237.61661,
+                                        417.37027,
+                                        256.61966
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "9fe071cf-5635-416c-b240-70232621e2db": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 12.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-063346dd",
+                                    "val": [
+                                        118.94195,
+                                        148.22194,
+                                        238.31328,
+                                        157.32199,
+                                        146.24211,
+                                        111.01876,
+                                        118.94195,
+                                        148.22194
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "b6691cce-f3dd-47b6-afa6-a111b0d332bd": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 14.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-b0abf6da",
+                                    "val": [
+                                        540.22107,
+                                        163.74556,
+                                        521.21796,
+                                        188.90454,
+                                        556.27997,
+                                        179.00154,
+                                        540.22107,
+                                        163.74556
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "b6ac5ed5-a10f-48ff-b418-0e4f456c3484": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 10.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-5f96c9fe",
+                                    "val": [
+                                        546.37695,
+                                        25.906467,
+                                        535.93866,
+                                        56.95372,
+                                        562.70355,
+                                        55.615475,
+                                        546.37695,
+                                        25.906467
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "bdc2241f-3850-4ae9-82cb-2c297ed0b22a": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 15.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-e4946229",
+                                    "val": [
+                                        314.05786,
+                                        15.468167,
+                                        328.5109,
+                                        69.265564,
+                                        342.96393,
+                                        33.66828,
+                                        314.05786,
+                                        15.468167
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "cd257993-094c-4eb2-b0a0-c394be41f722": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 6.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-d5b7fb4b",
+                                    "val": [
+                                        179.16292,
+                                        63.37729,
+                                        181.8394,
+                                        89.07156,
+                                        270.69876,
+                                        54.81253,
+                                        179.16292,
+                                        63.37729
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "ce434336-f8b6-4dde-8bae-8f84105192d9": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 13.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-cb79c4c7",
+                                    "val": [
+                                        407.73492,
+                                        43.303635,
+                                        416.56732,
+                                        61.503746,
+                                        419.7791,
+                                        43.035984,
+                                        407.73492,
+                                        43.303635
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "d1095d1b-5ada-4e75-964d-feb37092ec4b": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 0.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-0da41183",
+                                    "val": [
+                                        576.0,
+                                        0.0,
+                                        576.0,
+                                        320.0,
+                                        0.0,
+                                        320.0,
+                                        0.0,
+                                        0.0,
+                                        576.0,
+                                        0.0
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "e1f0205f-0e92-42fe-bfce-16a17ccf6169": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 8.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-22e81219",
+                                    "val": [
+                                        557.0829,
+                                        112.089355,
+                                        541.82697,
+                                        141.26306,
+                                        558.42114,
+                                        142.86896,
+                                        557.0829,
+                                        112.089355
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "ef0e0549-b2b8-4053-aaf4-014ca3b6fd5a": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 3.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-69d03df2",
+                                    "val": [
+                                        467.68823,
+                                        29.118252,
+                                        512.1179,
+                                        96.29808,
+                                        505.69437,
+                                        26.441765,
+                                        467.68823,
+                                        29.118252
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "f2474ea2-4b91-4bf4-b1e4-a5f2e222096e": {
+                        "object_data": {
+                            "poly2d": [
+                                {
+                                    "attributes": {
+                                        "boolean": [
+                                            {
+                                                "name": "is_hole",
+                                                "val": false
+                                            },
+                                            {
+                                                "name": "interpolated",
+                                                "val": false
+                                            }
+                                        ],
+                                        "num": [
+                                            {
+                                                "name": "order",
+                                                "val": 2.0
+                                            }
+                                        ],
+                                        "text": [
+                                            {
+                                                "name": "stream",
+                                                "val": "Voxel_export"
+                                            }
+                                        ]
+                                    },
+                                    "closed": true,
+                                    "mode": "MODE_POLY2D_ABSOLUTE",
+                                    "name": "poly2d-1e6af3e9",
+                                    "val": [
+                                        325.03146,
+                                        94.69219,
+                                        255.17516,
+                                        165.61911,
+                                        368.6582,
+                                        146.34839,
+                                        325.03146,
+                                        94.69219
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "metadata": {
+            "annotation_id": 4935414,
+            "annotation_instruction": "2023-04-21-001",
+            "annotation_type": "2D_semseg",
+            "batch": "marian-test",
+            "input_external_id": "__location__/test.png",
+            "input_uuid": "cfa6339a-47b4-4b12-8c44-fd3646ba2908",
+            "project": "Orion-RC-Dev",
+            "schema_version": "1.0.0",
+            "uri": "app.kognic.com/view/assignment/65c4ccf9-06b5-4c9e-80f8-fb0c69cdefc0",
+            "uuid": "1d42fe7b-099c-4650-bb17-5695ffff4a24"
+        },
+        "objects": {
+            "1cc23c7b-e789-4c56-bde3-3638619d47b8": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "1cc23c7b-e789-4c56-bde3-3638619d47b8",
+                "object_data": {},
+                "type": "back_seatbase"
+            },
+            "1e165dc4-9270-451c-b124-1f29bda44334": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "1e165dc4-9270-451c-b124-1f29bda44334",
+                "object_data": {},
+                "type": "front_seatbase"
+            },
+            "39cb98ca-0157-4e26-9d5d-de6eedbbf24b": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "39cb98ca-0157-4e26-9d5d-de6eedbbf24b",
+                "object_data": {},
+                "type": "door"
+            },
+            "602ccd19-a1a2-4abf-8919-fcbf06ca8da1": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "602ccd19-a1a2-4abf-8919-fcbf06ca8da1",
+                "object_data": {},
+                "type": "headrest"
+            },
+            "650f0f8c-bf66-4563-aa34-eccfc2eb6069": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "650f0f8c-bf66-4563-aa34-eccfc2eb6069",
+                "object_data": {},
+                "type": "person"
+            },
+            "743f48dd-1846-44b9-98d6-fba52a365339": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "743f48dd-1846-44b9-98d6-fba52a365339",
+                "object_data": {},
+                "type": "central_console"
+            },
+            "8664e5cb-b516-4a14-bb6d-2c6e5b9e1da9": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "8664e5cb-b516-4a14-bb6d-2c6e5b9e1da9",
+                "object_data": {},
+                "type": "back_middle_backrest"
+            },
+            "9fe071cf-5635-416c-b240-70232621e2db": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "9fe071cf-5635-416c-b240-70232621e2db",
+                "object_data": {},
+                "type": "outdoor"
+            },
+            "b6691cce-f3dd-47b6-afa6-a111b0d332bd": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "b6691cce-f3dd-47b6-afa6-a111b0d332bd",
+                "object_data": {},
+                "type": "steering_wheel"
+            },
+            "b6ac5ed5-a10f-48ff-b418-0e4f456c3484": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "b6ac5ed5-a10f-48ff-b418-0e4f456c3484",
+                "object_data": {},
+                "type": "steering_wheel"
+            },
+            "bdc2241f-3850-4ae9-82cb-2c297ed0b22a": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "bdc2241f-3850-4ae9-82cb-2c297ed0b22a",
+                "object_data": {},
+                "type": "back_middle_backrest"
+            },
+            "cd257993-094c-4eb2-b0a0-c394be41f722": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "cd257993-094c-4eb2-b0a0-c394be41f722",
+                "object_data": {},
+                "type": "front_backrest"
+            },
+            "ce434336-f8b6-4dde-8bae-8f84105192d9": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "ce434336-f8b6-4dde-8bae-8f84105192d9",
+                "object_data": {},
+                "type": "seatbelt"
+            },
+            "d1095d1b-5ada-4e75-964d-feb37092ec4b": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "d1095d1b-5ada-4e75-964d-feb37092ec4b",
+                "object_data": {},
+                "type": "background"
+            },
+            "e1f0205f-0e92-42fe-bfce-16a17ccf6169": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "e1f0205f-0e92-42fe-bfce-16a17ccf6169",
+                "object_data": {},
+                "type": "floor"
+            },
+            "ef0e0549-b2b8-4053-aaf4-014ca3b6fd5a": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "ef0e0549-b2b8-4053-aaf4-014ca3b6fd5a",
+                "object_data": {},
+                "type": "back_middle_seatbase"
+            },
+            "f2474ea2-4b91-4bf4-b1e4-a5f2e222096e": {
+                "frame_intervals": [
+                    {
+                        "frame_end": 0,
+                        "frame_start": 0
+                    }
+                ],
+                "name": "f2474ea2-4b91-4bf4-b1e4-a5f2e222096e",
+                "object_data": {},
+                "type": "back_backrest"
+            }
+        },
+        "ontologies": {},
+        "relations": {},
+        "resources": {},
+        "streams": {
+            "Voxel_export": {
+                "description": "",
+                "stream_properties": {
+                    "height": 320,
+                    "width": 576
+                },
+                "type": "camera"
+            }
+        },
+        "tags": {}
+    }
+}
