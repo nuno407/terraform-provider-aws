@@ -120,6 +120,7 @@ def test_ingestion_handler_handle_video(ingestion_handler: IngestionHandler,
         call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
         call(serialized_video_artifact, CONTAINER_NAME, "hq_request_queue"),
     ])
+    sqs_controller.delete_message.assert_called_once_with(message)
 
 
 snapshot_artifact = SnapshotArtifact(
@@ -147,6 +148,8 @@ def test_ingestion_handler_handle_snapshot(ingestion_handler: IngestionHandler,
     sqs_controller.send_message.assert_called_once_with(
         snapshot_artifact.stringify(), CONTAINER_NAME, "metadata_queue")
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
 
 imu_artifact = IMUArtifact(
     tenant_id="tenant_id",
@@ -169,6 +172,8 @@ def test_ingestion_handler_handle_imu(ingestion_handler: IngestionHandler,
     sqs_controller.send_message.assert_has_calls([
         call(imu_artifact.stringify(), CONTAINER_NAME, "mdfp_queue"),
     ])
+
+    sqs_controller.delete_message.assert_called_once_with(message)
 
 
 signals_artifact = SignalsArtifact(
@@ -194,6 +199,8 @@ def test_ingestion_handler_handle_signals(
         call(signals_artifact.stringify(), CONTAINER_NAME, "mdfp_queue"),
     ])
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
 
 snapshot_signals_artifact = SignalsArtifact(
     tenant_id="tenant_id",
@@ -218,3 +225,5 @@ def test_ingestion_handler_handle_signals_snapshot(
         call(snapshot_signals_artifact.stringify(),
              CONTAINER_NAME, "metadata_queue")
     ])
+
+    sqs_controller.delete_message.assert_called_once_with(message)

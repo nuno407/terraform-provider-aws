@@ -132,6 +132,8 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             # forward artifact to next queue(s)
             queues = list(self._get_forward_queues(artifact))
             self.__send_to_queues(artifact, queues)
+            self.sqs_controller.delete_message(message)
+
         except TemporaryIngestionError as excpt:
             _logger.error(str(excpt))
             self.__increase_message_visability_timeout(message)
