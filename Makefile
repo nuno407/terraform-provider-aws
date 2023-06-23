@@ -33,3 +33,4 @@ remove-all-python-virtual-envs:
 	for python_service_dir in $(PYTHON_SERVICES_DIRS); do \
 		pyenv virtualenv-delete $$python_service_dir; \
 	done
+	pyenv uninstall $(PYTHON_VERSION)
