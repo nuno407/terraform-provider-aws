@@ -39,8 +39,6 @@ class MetadataParser:
         The person details is a dictionary with a field called "KeyPoint" which contains a list of dicts with the following fields:
         - Conf
         - Name
-        - OutOfFrame
-        - Valid
         - X
         - Y
 
@@ -59,10 +57,8 @@ class MetadataParser:
             keypoint_x = int(keypoint["X"])
             keypoint_y = int(keypoint["Y"])
             keypoint_name = keypoint["Name"]
-            keypoint_out_frame = bool(int(keypoint["OutOfFrame"]))
-            keypoint_valid = bool(int(keypoint["Valid"]))
 
-            if confidence > 0.01 and not keypoint_out_frame and keypoint_valid:
+            if confidence > 0.01:
                 kp = KeyPoint(x=keypoint_x, y=keypoint_y,
                               confidence=confidence, name=keypoint_name)
                 tmp_keypoints.append(kp)

@@ -235,6 +235,11 @@ class TestMetadataParser:
             load_json("snapshot_pose_raw.json")[
                 "frame"][0]["objectlist"][0]["personDetail"],
             load_frame_pydantic("snapshot_pose_pydantic.json").persons[0]
+        ),
+        (
+            load_json("snapshot_pose_raw_v2.json")[
+                "frame"][0]["objectlist"][0]["personDetail"],
+            load_frame_pydantic("snapshot_pose_pydantic.json").persons[0]
         )
     ])
     def test_parse_person_details(self, person_details: list, expected_person: Person):
