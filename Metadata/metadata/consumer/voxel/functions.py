@@ -121,6 +121,12 @@ def update_sample(data_set, sample_info):
         dataset.add_sample(sample)
         _logger.debug("Voxel sample [%s] created!", sample_info["s3_path"])
 
+    #Compute Voxel metadata fields for a sample
+    try:
+        sample.compute_metadata()
+    except Exception:
+        _logger.debug("Failed to compute_metadata")
+
     _logger.debug("sample_info: %s !", sample_info)
 
     for (key, value) in sample_info.items():
