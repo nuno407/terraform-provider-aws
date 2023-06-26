@@ -1,4 +1,6 @@
 """IMU Handler"""
+import logging
+
 import pandas as pd
 from kink import inject
 from mdfparser.config import MdfParserConfig
@@ -9,7 +11,7 @@ from mdfparser.imu.uploader import IMUUploader
 from mdfparser.interfaces.handler import Handler
 from mdfparser.interfaces.input_message import DataType, InputMessage
 from mdfparser.interfaces.output_message import OutputMessage
-import logging
+
 _logger = logging.getLogger("mdfparser." + __name__)
 
 
@@ -40,7 +42,7 @@ class IMUHandler(Handler):
         self.config = config
 
     @staticmethod
-    def get_megabyte_memory_usage(df: pd.DataFrame) -> float:
+    def get_megabyte_memory_usage(dataframe: pd.DataFrame) -> float:
         """
         Retrieves the memory used by a dataframe in megabytes
 
@@ -50,7 +52,7 @@ class IMUHandler(Handler):
         Returns:
             float: Megabytes
         """
-        return df.memory_usage(index=True).sum() / (1024 * 1024)
+        return dataframe.memory_usage(index=True).sum() / (1024 * 1024)
 
     def ingest(self, message: InputMessage) -> OutputMessage:
         """

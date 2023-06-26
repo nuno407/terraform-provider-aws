@@ -60,7 +60,17 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
         # Handle version 2 of the IMU
         if len(tokens) > 5 and tokens[4] == "timestamps":
-            return [datetime.fromtimestamp(int(token) / 1000, tz=pytz.utc) for token in tokens[5:]]
+            start_chunk_utc_ts = int(tokens[1])
+            reference_ts = int(tokens[-1])
+
+            utc_timestamps: list[datetime] = []
+
+            for token in tokens[5:]:
+                ts_delta_ms = float((int(token) - reference_ts) / 1_000_000)
+                utc_timestamp = ts_delta_ms + start_chunk_utc_ts
+
+                utc_timestamps.append(datetime.fromtimestamp(utc_timestamp / 1000, tz=pytz.utc))
+            return utc_timestamps
 
         return [datetime.fromtimestamp(int(tokens[1]) / 1000, tz=pytz.utc)]
 
@@ -86,7 +96,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
         return np.array(tokens[1:], dtype=np.float32)
 
-    def __convert_imu_v1(self, csv_data: list[str]) -> pd.DataFrame:
+    def __convert_imu_v1(self, csv_data: list[str]) -> list[pd.DataFrame]:
         """
         Converts the IMU data from the version 1 (Only have timestamps for the start of the chunk)
         This will be deprecated in the future.
@@ -95,7 +105,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             json_data (list[str]): A list of lines for the raw IMU
 
         Returns:
-            pd.DataFrame: A DataFrame with the columns specified in CHUNK_DATA + "timestamp".
+            list[pd.DataFrame]: A list of DataFrames with the columns specified in CHUNK_DATA + "timestamp".
         """
         i: int = 0
         result_dfs: list[pd.DataFrame] = []
@@ -104,7 +114,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             utc_timestamps = self.__get_batch_timestamps(csv_data[i])
 
             if len(utc_timestamps) != 1:
-                raise FailToParseIMU(f"Unexpected number of timestamps in IMU version 1")
+                raise FailToParseIMU("Unexpected number of timestamps in IMU version 1")
 
             utc_timestamp = utc_timestamps[0]
 
@@ -132,7 +142,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
         return result_dfs
 
-    def __convert_imu_v2(self, csv_data: list[str]) -> pd.DataFrame:
+    def __convert_imu_v2(self, csv_data: list[str]) -> list[pd.DataFrame]:
         """
         Converts the IMU data from the version 2 (With timestamps for each sample)
 
@@ -140,7 +150,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             json_data (list[str]): A list of lines for the raw IMU
 
         Returns:
-            pd.DataFrame: A DataFrame with the columns specified in CHUNK_DATA + "timestamp".
+            list[pd.DataFrame]: A list of DataFrames with the columns specified in CHUNK_DATA + "timestamp".
         """
         # Data to be returned
         result_dfs: list[pd.DataFrame] = []
@@ -163,7 +173,8 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
 
             if num_samples != len(utc_timestamps):
                 raise FailToParseIMU(
-                    f"Number of utc timestamps {len(utc_timestamps)} is different then the number of samples {num_samples}")
+                    f"Number of utc timestamps {len(utc_timestamps)} is different then \
+                    the number of samples {num_samples}")
 
             batch_data["timestamp"] = utc_timestamps
             result_dfs.append(pd.DataFrame(batch_data))

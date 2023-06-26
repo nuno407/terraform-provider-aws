@@ -76,8 +76,8 @@ class TestMDFParser:
         (
             local_sqs_message("mdf_queue_imu_v2.json"),
             local_sqs_message("metadata_queue_imu_v2.json"),
-            local_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json"),
-            local_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv")
+            local_file("datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json"),
+            local_file("datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv")
         )
     ], ids=["metadata_integration_test_1", "imu_integration_test_v1", "imu_integration_test_v2"])
     def test_mdfparser_success(self,
