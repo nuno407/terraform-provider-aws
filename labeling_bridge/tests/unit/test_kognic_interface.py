@@ -48,7 +48,7 @@ def test_upload_image(kognic_interface: KognicInterface):
     # GIVEN
     project_id = "dummy_project_id"
     batch_name = "dummy_batch_name"
-    labelling_type = "Splines"
+    labelling_types = ["Splines"]
     file_path = "~/some/local/temp/file.jpg"
     file_name = "~/some/file.jpg"
     cameras = CamerasModel.Cameras(
@@ -58,7 +58,7 @@ def test_upload_image(kognic_interface: KognicInterface):
         )
     )
     # WHEN
-    kognic_interface.upload_image(project_id, batch_name, labelling_type, file_path, file_name)
+    kognic_interface.upload_image(project_id, batch_name, labelling_types, file_path, file_name)
     # THEN
     kognic_interface.kognic_client.cameras.create.assert_called_once_with(
-        cameras, project=project_id, batch=batch_name, annotation_types=labelling_type, dryrun=ANY)
+        cameras, project=project_id, batch=batch_name, annotation_types=labelling_types, dryrun=ANY)

@@ -4,6 +4,7 @@ import os
 
 import boto3
 import flask
+from mongoengine import connect
 
 from base.aws.container_services import ContainerServices
 from labeling_bridge.service import ApiService
@@ -17,6 +18,9 @@ AWS_REGION = os.environ.get("AWS_REGION", default="eu-central-1")
 def main():
     """Main"""
     ContainerServices.configure_logging("labeling_bridge")
+
+    # Connect to mongo instance. We use the same url as Fiftyone
+    connect(host=os.environ["FIFTYONE_DATABASE_URI"], db="DataPrivacy", alias="DataPrivacyDB")
 
     s3_client = boto3.client("s3", region_name=AWS_REGION)
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)

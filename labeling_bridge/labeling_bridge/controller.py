@@ -7,8 +7,10 @@ import flask
 from flask import make_response, request
 from flask_cors import CORS
 from flask_restx import Api, Resource, fields
+from pydantic import ValidationError
 
 from labeling_bridge.service import ApiService
+from labeling_bridge.models.api import RequestExportJobDTO, RequestImportJobDTO
 
 _logger = logging.getLogger("labeling_bridge." + __name__)
 
@@ -132,14 +134,14 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         def post(self):
             """Process labeling request from frontend."""
 
-            if not request.is_json:
+            if not request.is_json or not request.json:
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
 
             try:
-                request_data = request.json
-                service.kognic_export(request_data)
+                dto_object = RequestExportJobDTO(**request.json)
+                service.kognic_export(dto_object)
                 export_response = flask.jsonify(message="Data exported to Kognic!", statusCode="200")
-            except ValueError as err:
+            except ValidationError as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except
@@ -162,15 +164,15 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         def post(self):
             """Process labeling request from frontend."""
 
-            if not request.is_json:
+            if not request.is_json or not request.json:
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
 
             try:
-                request_data = request.json
-                service.kognic_import(request_data)
+                dto_object = RequestImportJobDTO(**request.json)
+                service.kognic_import(dto_object)
                 import_response = flask.jsonify(message="Data imported to Voxel!", statusCode="200")
 
-            except ValueError as err:
+            except ValidationError as err:
                 generate_exception_logs(err)
                 api.abort(400, message=ERROR_400_MSG, statusCode="400")
             except Exception as err:  # pylint: disable=broad-except

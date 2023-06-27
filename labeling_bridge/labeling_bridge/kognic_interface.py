@@ -1,10 +1,13 @@
 """Kognic Interface Module"""
 
 import logging
+from typing import Optional
 
 import kognic.io.model.input as InputModel
 import kognic.io.model.input.cameras as CamerasModel
 from kognic.io.client import KognicIOClient
+
+from labeling_bridge.models.api import KognicLabelingTypeDTO
 
 _logger = logging.getLogger("labeling_bridge." + __name__)
 
@@ -14,8 +17,17 @@ class KognicInterface:
 
     def __init__(self, client_id: str, client_secret: str) -> None:
         self.kognic_client = KognicIOClient(auth=(client_id, client_secret))
+        self._user_email = None
 
-    def get_annotation_types(self, kognic_project_id: str, batch: str) -> list:
+    @property
+    def user_email(self) -> Optional[str]:
+        """Gets current user email"""
+        if self._user_email is None:
+            self._user_email = self.kognic_client._client.get(  # pylint: disable=protected-access
+                "https://user.app.kognic.com/v1/account/me")["user"]["email"]
+        return self._user_email
+
+    def get_annotation_types(self, kognic_project_id: str, batch: str) -> list[KognicLabelingTypeDTO]:
         """Gets annotation types for a given batch name
         Args:
             kognic_project_id : Kognic Project Id
@@ -23,9 +35,10 @@ class KognicInterface:
         Returns:
             list : Kognic annotation types
         """
-        return self.kognic_client.project.get_annotation_types(project=kognic_project_id, batch=batch)
+        return [KognicLabelingTypeDTO(val)
+                for val in self.kognic_client.project.get_annotation_types(project=kognic_project_id, batch=batch)]
 
-    def get_project_annotations(self, kognic_project_id: str, batch: str, annotation_type: str):
+    def get_project_annotations(self, kognic_project_id: str, batch: str, annotation_type: KognicLabelingTypeDTO):
         """Gets annotations for a given project, batch name, and annotation type
         Args:
             kognic_project_id : Kognic Project Id
@@ -37,7 +50,7 @@ class KognicInterface:
         """
         annotations = self.kognic_client.annotation.get_project_annotations(project=kognic_project_id,
                                                                             batch=batch,
-                                                                            annotation_type=annotation_type)
+                                                                            annotation_type=annotation_type.value)
         return annotations
 
     def verify_batch(self, kognic_project_id, batch_name):
@@ -62,7 +75,7 @@ class KognicInterface:
         """
         self.kognic_client.project.create_batch(kognic_project_id, batch_name)
 
-    def upload_image(self, kognic_project_id, batch_name, labelling_type, file_path, file_name):  # pylint: disable=too-many-arguments
+    def upload_image(self, kognic_project_id, batch_name, labelling_types, file_path, file_name):  # pylint: disable=too-many-arguments
         """Uploads Image to Kognic Batch in the Kognic Project
 
         Args:
@@ -84,7 +97,7 @@ class KognicInterface:
                 cameras,
                 project=kognic_project_id,
                 batch=batch_name,
-                annotation_types=labelling_type,
+                annotation_types=labelling_types,
                 dryrun=False)
         except Exception as e:  # pylint: disable=broad-exception-caught, invalid-name
             _logger.exception("Upload file failed: %s", str(e))

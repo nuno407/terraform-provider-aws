@@ -33,6 +33,9 @@ string-quote = "double"
 triple-quote = "double"
 docstring-quote = "double"
 
+[tool.pylint.'MESSAGES CONTROL']
+extension-pkg-whitelist = "pydantic"
+
 [tool.mypy]
 files = [
     "labeling_bridge/**/*.py",

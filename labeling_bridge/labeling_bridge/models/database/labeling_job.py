@@ -1,11 +1,12 @@
-from enum import Enum
-from mongoengine import Document, StringField, DateTimeField, EmailField, ListField, ReferenceField, DictField, EmbeddedDocumentField
+""" Database model """
 import datetime
+from mongoengine import Document, StringField, DateTimeField, EmailField, DictField, EmbeddedDocumentField
 
 from labeling_bridge.models.database.enums import StatusDocument
 
 
 class LabelingJob(Document):
+    """ LabelingJob """
     created_by = EmailField(required=True)
     created_at = DateTimeField(default=datetime.datetime.utcnow, required=True)
     voxel_dataset = StringField(max_length=200, required=True)
@@ -13,4 +14,5 @@ class LabelingJob(Document):
     kognic_project_id = StringField(max_length=200, required=True)
     kognic_labeling_job_name = StringField(max_length=200, required=True)
     import_export_status = EmbeddedDocumentField(StatusDocument, default=StatusDocument(), required=True)
-    labeling_job_tasks = ListField(ReferenceField("LabelingJobTask"))
+
+    meta = {"db_alias": "DataPrivacyDB"}
