@@ -22,4 +22,4 @@ class LabelingJobTask(Document):
     kognic_labeling_type = EnumField(KognicLabelingType, required=True)
     kognic_task_id = StringField(max_length=200)
 
-    meta = {"db_alias": "DataPrivacyDB"}
+    meta = {"db_alias": "DataPrivacyDB", "collection": "labeling-job-task"}

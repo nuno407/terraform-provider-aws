@@ -15,4 +15,4 @@ class LabelingJob(Document):
     kognic_labeling_job_name = StringField(max_length=200, required=True)
     import_export_status = EmbeddedDocumentField(StatusDocument, default=StatusDocument(), required=True)
 
-    meta = {"db_alias": "DataPrivacyDB"}
+    meta = {"db_alias": "DataPrivacyDB", "collection": "labeling-job"}
