@@ -17,6 +17,14 @@ from typing import Any
 _logger = logging.getLogger(__name__)
 
 
+def _calculate_sample_tenant(filepath: str) -> str:
+    """ Obtain tenant by filepath """
+    _, file_key = S3Controller.get_s3_path_parts(filepath)
+    s3split = file_key.split("/")
+
+    tenant_name = s3split[0]
+    return tenant_name
+
 def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
     """
     Returns a voxel sample.
@@ -43,6 +51,16 @@ def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
             f"The snapshot with id={snapshot_id} was not found") from exce
 
     return sample
+
+@inject
+def get_voxel_sample_data_privacy_document_id(sample: fo.Sample, mapping_config: DatasetMappingConfig) -> str:
+    """
+    Checks in config the associated data privacy document for the tenant
+    """
+    tenant = _calculate_sample_tenant(sample.filepath)
+    if tenant in mapping_config.policy_document_per_tenant:
+        return mapping_config.policy_document_per_tenant[tenant]
+    return mapping_config.default_policy_document
 
 
 @inject
@@ -118,6 +136,7 @@ def update_sample(data_set, sample_info):
         sample = dataset.one(ViewField("video_id") == sample_info["video_id"])
     except ValueError:
         sample = fo.Sample(filepath=sample_info["s3_path"])
+        sample["data_privacy_document_id"] = get_voxel_sample_data_privacy_document_id(sample)
         dataset.add_sample(sample)
         _logger.debug("Voxel sample [%s] created!", sample_info["s3_path"])
 

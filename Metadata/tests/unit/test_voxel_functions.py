@@ -2,7 +2,7 @@ from base.aws.s3 import S3Controller
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample
+from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample, get_voxel_sample_data_privacy_document_id
 import pytest
 from base.model.artifacts import SignalsArtifact, SnapshotArtifact, MetadataType, RecorderType, TimeWindow
 from unittest.mock import Mock, patch, MagicMock, call
@@ -151,7 +151,13 @@ class TestVoxelFunctions():
             "Debug_Lync_snapshots"
         ),
     ])
-    def test_get_voxel_snapshot_sample(self, dataset_config: DatasetMappingConfig, fiftyone: MagicMock, tenant: str, snap_id: str, expected_dataset_name: str):
+    def test_get_voxel_snapshot_sample(
+            self,
+            dataset_config: DatasetMappingConfig,
+            fiftyone: MagicMock,
+            tenant: str,
+            snap_id: str,
+            expected_dataset_name: str):
 
         # GIVEN
         dataset = Mock()
@@ -166,3 +172,23 @@ class TestVoxelFunctions():
         # THEN
         fiftyone.load_dataset.assert_called_once_with(expected_dataset_name)
         assert result_data == return_mock
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("s3_path,expected_policy",
+                             [("s3://dev-rcd-video-raw/datanauts/datanauts_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot.jpeg",
+                               "default-policy"),
+                              ("s3://dev-rcd-video-raw/test-tenant/test_tenant_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot.jpeg",
+                               "test-policy"),
+                              ])
+    def test_get_voxel_sample_data_privacy_document_id(
+            self,
+            dataset_config: DatasetMappingConfig,
+            s3_path: str,
+            expected_policy: str):
+        # GIVEN
+        sample_mock = Mock()
+        sample_mock.filepath = s3_path
+        di[DatasetMappingConfig] = dataset_config
+        # WHEN
+        policy = get_voxel_sample_data_privacy_document_id(sample_mock)
+        assert policy == expected_policy

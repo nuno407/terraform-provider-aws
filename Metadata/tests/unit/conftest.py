@@ -49,7 +49,13 @@ def fo_sample() -> dict:
 
 @pytest.fixture
 def dataset_config() -> DatasetMappingConfig:
-    return DatasetMappingConfig(create_dataset_for="datanauts", default_dataset="Debug_Lync", tag="RC")
+    return DatasetMappingConfig(
+        create_dataset_for="datanauts",
+        default_dataset="Debug_Lync",
+        tag="RC",
+        default_policy_document="default-policy",
+        policy_document_per_tenant={
+            "test-tenant": "test-policy"})
 
 
 @pytest.fixture

@@ -7,11 +7,13 @@ import yaml
 @dataclass
 class DatasetMappingConfig():
     """
-    Config holding information about the tenant to dataset mapping
+    Config holding information about the tenant to dataset mapping and specific tenant config
     """
     create_dataset_for: set[str] = field(default_factory=set)
     default_dataset: str = ""
     tag: str = ""
+    default_policy_document: str = ""
+    policy_document_per_tenant: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
