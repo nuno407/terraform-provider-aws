@@ -3,10 +3,12 @@ import json
 import os
 
 import boto3
+from kink import di
 
 from base import GracefulExit
 from base.aws.container_services import ContainerServices
 from data_importer.fiftyone_importer import FiftyoneImporter
+from data_importer.models.config import DatasetMappingConfig, TenantConfig
 from data_importer.processor_repository import ProcessorRepository
 from data_importer.sqs_message import SQSMessage
 
@@ -14,6 +16,7 @@ CONTAINER_NAME = "DataImporter"  # Name of the current container
 CONTAINER_VERSION = "v1.0"  # Version of the current container
 DATA_IMPORTER_QUEUE = os.environ.get("DATA_IMPORTER_QUEUE")
 AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
+TENANT_MAPPING_CONFIG_PATH = os.getenv("TENANT_MAPPING_CONFIG_PATH")
 
 
 _logger = ContainerServices.configure_logging(__name__)
@@ -71,6 +74,10 @@ def main(stop_condition=lambda: True):
     # Create the necessary clients for AWS services access
     sqs_client = boto3.client("sqs", region_name="eu-central-1", endpoint_url=AWS_ENDPOINT)
     s3_client = boto3.client("s3", region_name="eu-central-1", endpoint_url=AWS_ENDPOINT)
+
+    if DatasetMappingConfig not in di:
+        tenant_config = TenantConfig.load_config_from_yaml_file(TENANT_MAPPING_CONFIG_PATH)
+        di[DatasetMappingConfig] = tenant_config.dataset_mapping
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)

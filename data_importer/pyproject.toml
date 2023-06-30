@@ -33,6 +33,11 @@ string-quote = "double"
 triple-quote = "double"
 docstring-quote = "double"
 
+[tool.pylint."MESSAGES CONTROL"]
+disable = """
+    no-value-for-parameter
+"""
+
 [tool.mypy]
 files = [
     "data_importer/**/*.py",

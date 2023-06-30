@@ -5,11 +5,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from base.aws.container_services import ContainerServices
+from data_importer.constants import TENANT
 
 _logger = ContainerServices.configure_logging(__name__)
 
 ROOT_FOLDER = "samples"
-DATA_OWNER = "IMS"
 
 
 @dataclass
@@ -24,7 +24,7 @@ class SQSMessage():
     file_extension: str
     dataset: str
     full_path: str = field(init=False)
-    data_owner: str = DATA_OWNER
+    data_owner: str = TENANT.upper()
 
     def __post_init__(self):
         self.full_path = f"s3://{self.bucket_name}/{self.file_path}"

@@ -1,6 +1,6 @@
 """Test Fiftyone importer"""
 import sys
-from unittest.mock import Mock, call, MagicMock
+from unittest.mock import Mock, call, MagicMock, patch
 
 import pytest
 import fiftyone as fo
@@ -58,6 +58,7 @@ def test_load_existing_dataset(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
+@patch("data_importer.fiftyone_importer.TENANT", "test-tenant")
 def test_replace_existing_sample(importer: FiftyoneImporter):
     # GIVEN
     sample = Mock()
@@ -73,10 +74,14 @@ def test_replace_existing_sample(importer: FiftyoneImporter):
     dataset.add_sample.assert_not_called()
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_called_once_with(sample, {"tst": "label"})
-    sample.set_field.assert_called_with(
+    sample.set_field.assert_has_calls([call(
         "raw_filepath",
         "s3://dev-proj-raw/samples/dataset/test.png",
-        dynamic=True)
+        dynamic=True),
+        call(
+        "data_privacy_document_id",
+        "test-policy",
+        dynamic=True)])
     sample.save.assert_called_once()
 
 
@@ -99,10 +104,14 @@ def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_called_once_with(sample, {})
-    sample.set_field.assert_called_with(
+    sample.set_field.assert_has_calls([call(
         "raw_filepath",
         "s3://dev-proj-raw/samples/dataset/test.png",
-        dynamic=True)
+        dynamic=True),
+        call(
+        "data_privacy_document_id",
+        "default-policy",
+        dynamic=True)])
     sample.save.assert_called_once()
 
 
@@ -124,13 +133,14 @@ def test_update_existing_sample(importer: FiftyoneImporter):
 
     importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
-    sample.set_field.assert_has_calls([call("tst", "label", dynamic=True), call(
-        "tst2", "label2", dynamic=True)])
-    importer.override_metadata.assert_not_called()
-    sample.set_field.assert_called_with(
+    sample.set_field.assert_has_calls([call(
         "raw_filepath",
         "s3://dev-proj-raw/samples/dataset/test.png",
-        dynamic=True)
+        dynamic=True),
+        call(
+        "data_privacy_document_id",
+        "default-policy",
+        dynamic=True)])
     sample.save.assert_called_once()
 
 
@@ -155,10 +165,14 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
     importer.override_metadata.assert_not_called()
     sample.set_field.assert_has_calls([call("tst", "label", dynamic=True), call("tst2", "label2", dynamic=True)])
     importer.override_metadata.assert_not_called()
-    sample.set_field.assert_called_with(
+    sample.set_field.assert_has_calls([call(
         "raw_filepath",
         "s3://dev-proj-raw/samples/dataset/test.png",
-        dynamic=True)
+        dynamic=True),
+        call(
+        "data_privacy_document_id",
+        "default-policy",
+        dynamic=True)])
     sample.save.assert_called_once()
 
 

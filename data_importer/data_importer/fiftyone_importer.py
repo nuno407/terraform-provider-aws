@@ -4,8 +4,11 @@ import re
 
 import fiftyone as fo
 from fiftyone import ViewField as F
+from kink import inject
 
 from base.aws.container_services import ContainerServices
+from data_importer.models.config import DatasetMappingConfig
+from data_importer.constants import TENANT
 
 _logger = ContainerServices.configure_logging(__name__)
 
@@ -64,7 +67,7 @@ class FiftyoneImporter:
         if metadata is not None:
             self.override_metadata(sample, metadata)
 
-        self._set_raw_filepath_on_sample(sample)
+        self._set_mandatory_fields_on_sample(sample)
         sample.save()
         return sample
 
@@ -86,7 +89,7 @@ class FiftyoneImporter:
             _logger.info("Setting key %s value %s", key, value)
             self._set_field(sample, key, value)
 
-        self._set_raw_filepath_on_sample(sample)
+        self._set_mandatory_fields_on_sample(sample)
         sample.save()
         return sample
 
@@ -165,6 +168,28 @@ class FiftyoneImporter:
         raw_filepath = re.sub(suffix_pattern, replacement, raw_filepath)
 
         return raw_filepath
+
+    def _set_mandatory_fields_on_sample(self, sample: fo.Sample):
+        """
+        Set mandatory fields on the specified sample
+        """
+        self._set_raw_filepath_on_sample(sample)
+        self._set_policy_document_id(sample)
+
+    @inject
+    def _set_policy_document_id(self, sample: fo.Sample, config: DatasetMappingConfig):
+        """
+        Set data_privacy_document_id on a sample
+        """
+
+        value = config.default_policy_document
+        if TENANT in config.policy_document_per_tenant:
+            value = config.policy_document_per_tenant[TENANT]
+
+        self._set_field(
+            sample=sample,
+            key="data_privacy_document_id",
+            value=value)
 
     def _set_raw_filepath_on_sample(self, sample: fo.Sample):
         """
