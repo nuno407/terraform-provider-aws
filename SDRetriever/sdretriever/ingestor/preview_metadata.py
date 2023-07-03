@@ -67,7 +67,7 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
             artifact.artifact_id,
             self.__config.temporary_bucket,
             s3_folder,
-            FileExt.METADATA)
+            FileExt.METADATA.value)
 
         return self._upload_metacontent_to_devcloud(upload_file)
 

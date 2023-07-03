@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from pytest import fixture, mark
@@ -9,7 +8,7 @@ from base.model.artifacts import (MultiSnapshotArtifact,
                                   TimeWindow)
 from selector.context import Context
 from selector.model import PreviewMetadataV063
-from selector.model.preview_metadata import FloatObject
+from selector.model.preview_metadata import IntegerObject
 from selector.rule import Rule
 from selector.rules import CameraAlwaysBlockedRule
 
@@ -55,8 +54,8 @@ class TestRuleCameraAlwaysBlocked:
         for frame in minimal_preview_metadata.frames:
             for object in frame.objectlist:
                 if isinstance(
-                        object, FloatObject) and self._attribute_name in object.float_attributes[0]:
-                    object.float_attributes[0][self._attribute_name] = 1.0
+                        object, IntegerObject) and self._attribute_name in object.integer_attributes[0]:
+                    object.integer_attributes[0][self._attribute_name] = 1
         ctx = Context(minimal_preview_metadata, artifact)
 
         # WHEN
@@ -72,8 +71,8 @@ class TestRuleCameraAlwaysBlocked:
         # GIVEN
         for i, frame in enumerate(minimal_preview_metadata.frames):
             for object in frame.objectlist:
-                if isinstance(object, FloatObject):
-                    object.float_attributes[0][self._attribute_name] = i > 2
+                if isinstance(object, IntegerObject):
+                    object.integer_attributes[0][self._attribute_name] = i > 2
         ctx = Context(minimal_preview_metadata, artifact)
 
         # WHEN

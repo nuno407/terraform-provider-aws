@@ -126,7 +126,8 @@ class TestVideoIngestor():
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            uuid="baz"
+            uuid="baz",
+            end_timestamp=VIDEO_END,
         )
 
     @mark.unit()

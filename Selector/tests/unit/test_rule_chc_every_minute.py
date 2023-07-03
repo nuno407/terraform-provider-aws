@@ -7,7 +7,7 @@ from base.model.artifacts import (MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   TimeWindow,)
 from selector.context import Context
-from selector.model.preview_metadata import FloatObject
+from selector.model.preview_metadata import IntegerObject
 from selector.model.preview_metadata_63 import PreviewMetadataV063
 from selector.rule import Rule
 from selector.rules import CHCEveryMinute
@@ -35,16 +35,16 @@ class TestChcEveryMinute:
 
     @fixture
     def data_chc_true(self, data_builder: DataTestBuilder) -> PreviewMetadataV063:
-        return data_builder.with_float_attribute("interior_camera_health_response_cve", 1.1).build()
+        return data_builder.with_integer_attribute("interior_camera_health_response_cve", 2).build()
 
     @fixture
     def data_chc_false(self, data_builder: DataTestBuilder) -> PreviewMetadataV063:
-        return data_builder.with_float_attribute("interior_camera_health_response_cve", 0.4).build()
+        return data_builder.with_integer_attribute("interior_camera_health_response_cve", 0).build()
 
     @fixture
     def too_short_data(self, data_builder: DataTestBuilder) -> PreviewMetadataV063:
         return data_builder.with_length(
-            5 * 60).with_float_attribute("interior_camera_health_response_cve", 0.4).build()
+            5 * 60).with_integer_attribute("interior_camera_health_response_cve", 0).build()
 
     @fixture
     def artifact(self) -> PreviewSignalsArtifact:
@@ -99,8 +99,8 @@ class TestChcEveryMinute:
         for frame in data_chc_false.frames:
             ts = data_chc_false.get_frame_utc_timestamp(frame)
             for object in frame.objectlist:
-                if isinstance(object, FloatObject) and ts < last_ts:
-                    object.float_attributes[0]["interior_camera_health_response_cve"] = 1.1
+                if isinstance(object, IntegerObject) and ts < last_ts:
+                    object.integer_attributes[0]["interior_camera_health_response_cve"] = 1
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))
@@ -119,8 +119,8 @@ class TestChcEveryMinute:
         for frame in data_chc_false.frames:
             for object in frame.objectlist:
                 ts = data_chc_false.get_frame_utc_timestamp(frame)
-                if isinstance(object, FloatObject) and ts < last_ts:
-                    object.float_attributes[0]["interior_camera_health_response_cvb"] = 1.0
+                if isinstance(object, IntegerObject) and ts < last_ts:
+                    object.integer_attributes[0]["interior_camera_health_response_cvb"] = 1
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))

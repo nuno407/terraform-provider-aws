@@ -10,12 +10,6 @@ TEST_DATA_LOCATION = os.path.join(CURRENT_LOCATION, "test_data")
 
 
 @fixture
-def real_preview_metadata_str() -> str:
-    with open(os.path.join(TEST_DATA_LOCATION, "real_preview_metadata.json")) as f:
-        return f.read()
-
-
-@fixture
 def minimal_preview_metadata_str() -> str:
     with open(os.path.join(TEST_DATA_LOCATION, "minimal_preview_metadata.json")) as f:
         return f.read()

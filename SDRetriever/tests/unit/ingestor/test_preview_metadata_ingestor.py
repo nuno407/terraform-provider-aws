@@ -10,7 +10,7 @@ from pytz import UTC
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (RecorderType, PreviewSignalsArtifact, MultiSnapshotArtifact, VideoArtifact,
+from base.model.artifacts import (RecorderType, PreviewSignalsArtifact, MultiSnapshotArtifact, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
 from sdretriever.exceptions import UploadNotYetCompletedError, S3FileNotFoundError
 from sdretriever.ingestor.preview_metadata import PreviewMetadataIngestor
@@ -81,9 +81,9 @@ class TestPreviewMetadataIngestor:
         )
 
     @fixture()
-    def video_artifact(self) -> VideoArtifact:
+    def video_artifact(self) -> S3VideoArtifact:
         """VideoArtifact for testing."""
-        return VideoArtifact(
+        return S3VideoArtifact(
             tenant_id=TENANT_ID,
             device_id=DEVICE_ID,
             recorder=RecorderType.INTERIOR,
@@ -92,7 +92,8 @@ class TestPreviewMetadataIngestor:
                 start=DUMMY_UPLOAD_START,
                 end=DUMMY_UPLOAD_END
             ),
-            stream_name="baz",
+            footage_id="my_footage_id",
+            rcc_s3_path="s3://bucket/key",
             end_timestamp=CONST_TIME
         )
 
@@ -224,7 +225,7 @@ class TestPreviewMetadataIngestor:
         assert preview_metadata_ingestor.metadata_chunk_match(chunk) == expected
 
     @ mark.unit()
-    @patch("datetime.now")
+    @patch("sdretriever.ingestor.preview_metadata.datetime")
     def test_successful_ingestion(
             self,
             mock_dt: Mock,
@@ -234,8 +235,9 @@ class TestPreviewMetadataIngestor:
             s3_crawler: S3CrawlerRCC,
             metadata_merger: MetadataMerger):
         # GIVEN
+
         dt = Mock()
-        mock_dt.return_value = dt
+        mock_dt.now.return_value = dt
         multi_snapshot_artifact = preview_metadata_artifact.referred_artifact
         snapshot_names = {
             snapshot_artifact.uuid for snapshot_artifact in preview_metadata_artifact.referred_artifact.chunks}
