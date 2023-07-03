@@ -77,80 +77,15 @@ class ApiService:
         """
         signals = {}
 
-        if "Training" in video_id:
-            # training data needs to share mdf from the interior recorder
-            # (may change in the future if algo teams decide to use training recorder's metadata)
-            # these changes are meant to support both instances
+        recording_item = self.__db.get_signals(video_id)
 
-            # Obtain training recording (High Quality (HQ) video)
-            training_recording = self.__db.get_single_recording(recording_id=video_id)
-            # Obtain Interior recording (Low Quality Video) that overlaps with the HQ video
-            # We assume that interior is contained in training recording
-            #                                                       Timeline
-            # TrainingRecording: Start---------------------------------------------------------------------------End
-            # InteriorRecording:                               Start----------------End
-            # Difference          <---Up to 2min (120000MS)---->                        <---Up to 2min (120000MS)--->
-            splitted_video_name = video_id.split("_")
-            training_recording_start_at = int(splitted_video_name[-2])
-            training_recording_end_at = int(splitted_video_name[-1])
-
-            additional_query = {"$and": [
-                {"recording_overview.deviceID": training_recording["recording_overview"]["deviceID"]},
-                {"recording_overview.tenantID": training_recording["recording_overview"]["tenantID"]},
-                {"video_id": {"$regex": "^((?!TrainingRecorder).)*$"}},
-                {"$and": [{"start_at": {"$gte": training_recording_start_at}}, {
-                    "start_at": {"$lte": training_recording_start_at + 130_000}}]},
-                {"$and": [{"end_at": {"$lte": training_recording_end_at}}, {
-                    "end_at": {"$gte": training_recording_end_at - 130_000}}]},
-            ]
-            }
-            query_result, number_of_recordings, _ = self.__db.get_recording_list(
-                page_size=10,
-                page=1,
-                additional_query=additional_query,
-                order=None,
-                aggregation_pipeline_prefix=MONGODB_PIPELINE_PREFIX_ADD_START_AT_END_AT)
-
-            if number_of_recordings != 1:
-                result_str = f"[{','.join([result['video_id'] for result in query_result])}]"
-                raise LookupError(
-                    f"""Unable to get LQ video from HQ video_id: {video_id}.
-                        Multiple results were found. Query results: {result_str}. Regex:""",
-                )
-
-            _logger.debug("Using signals of Interior Recording %s on Training Recorder %s",
-                          query_result[0]["video_id"], training_recording)
-
-            # query_result[0]["video_id"] contains the video that is contained in training recorder
-            recording_item_lq = self.__db.get_signals(query_result[0]["video_id"])
-            recording_item_hq = self.__db.get_signals(video_id)
-
-            # We should get all the signals from LQ and put them in HQ signals
-            # In order to align LQ signals to HQ signals we should add an offset
-            for signal_group in recording_item_lq["signals"]:
-                if signal_group["source"] in {"MDF", "MDFParser"}:
-                    # LQ video
-                    interior_recording_start_at = int(recording_item_lq["video_id"].split("_")[-2])
-                    signals[signal_group["source"]] = self.__create_video_signals_object(
-                        signal_group, time_offset=timedelta(milliseconds=(
-                            interior_recording_start_at - training_recording_start_at))
-                    )
-
-            for signal_group in recording_item_hq["signals"]:
-                # HQ Video
+        for signal_group in recording_item["signals"]:
+            if (signal_group["source"] in {"MDF", "MDFParser"}):
+                signals[signal_group["source"]
+                        ] = self.__create_video_signals_object(signal_group)
+            else:
                 signals[signal_group["algo_out_id"].split(
                     "_")[-1]] = self.__create_video_signals_object(signal_group)
-
-        elif "Interior" in video_id:
-            recording_item = self.__db.get_signals(video_id)
-
-            for signal_group in recording_item["signals"]:
-                if (signal_group["source"] in {"MDF", "MDFParser"}):
-                    signals[signal_group["source"]
-                            ] = self.__create_video_signals_object(signal_group)
-                else:
-                    signals[signal_group["algo_out_id"].split(
-                        "_")[-1]] = self.__create_video_signals_object(signal_group)
         _logger.info("%s got signal fields %s", video_id, signals.keys())
         return signals
 
