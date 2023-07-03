@@ -5,14 +5,15 @@ from datetime import datetime
 
 from botocore.errorfactory import ClientError
 from kink import inject
-from sdretriever.config import SDRetrieverConfig
-from sdretriever.exceptions import FileAlreadyExists, S3UploadError
-from sdretriever.ingestor.metacontent import MetacontentIngestor
-from sdretriever.s3_finder import S3Finder
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
+from sdretriever.config import SDRetrieverConfig
+from sdretriever.constants import FileExt
+from sdretriever.exceptions import FileAlreadyExists, S3UploadError
+from sdretriever.ingestor.metacontent import MetacontentIngestor
+from sdretriever.s3_finder import S3Finder
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -38,7 +39,7 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
         Returns:
             list[str]: _description_
         """
-        return [".json"]
+        return [FileExt.METADATA.value]
 
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """
@@ -49,7 +50,7 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
             raise ValueError("SnapshotIngeArtifact can only ingest snapshot related metadata")
 
         # Initialize file name and path
-        metadata_snap_name = f"{artifact.artifact_id}.json"
+        metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
         metadata_snap_path = f"{artifact.tenant_id}/{metadata_snap_name}"
 
         # Checks if exists in devcloud
@@ -72,17 +73,8 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
                                              self._get_file_extension())
 
         # Upload files to DevCloud
-        try:
-            self._s3_controller.upload_file(
-                jpeg_metadata,
-                self._container_svcs.raw_s3,
-                metadata_snap_path)
-        except ClientError as err:
-            _logger.exception(
-                "Error uploading file %s to %s", metadata_snap_path, self._container_svcs.raw_s3)
-            raise S3UploadError() from err
+        snap_full_path = self._upload_file(metadata_snap_path, jpeg_metadata)
 
         # update artifact with s3 path
-        snap_full_path = f"s3://{self._container_svcs.raw_s3}/{metadata_snap_path}"
         _logger.info("Successfully uploaded to %s", snap_full_path)
         artifact.s3_path = snap_full_path

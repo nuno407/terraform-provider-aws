@@ -45,10 +45,10 @@ class DatabaseController:
 
         if num_docs == 0:
             raise FailDocumentValidation(
-                artifact, f"Collection {collection} document not found")
+                artifact.artifact_id, f"Collection {collection} document not found")
         if num_docs > 1:
             raise FailDocumentValidation(
-                artifact, f"More then one recordings document exist in collection {collection}")
+                artifact.artifact_id, f"More then one recordings document exist in collection {collection}")
         return docs[0]
 
     def is_signals_doc_valid_or_raise(self, artifact: ImageBasedArtifact) -> list:
@@ -72,13 +72,13 @@ class DatabaseController:
 
         if num_docs == 0:
             raise FailDocumentValidation(
-                artifact, "Signals document not found")
+                artifact.artifact_id, "Signals document not found")
         for doc in docs:
             try:
                 self.__schema_validator.validate_document(doc, Schema.SIGNALS)
             except ValidationError as err:
                 raise FailDocumentValidation(
-                    artifact, message=err.message, json_path=err.json_path) from err
+                    artifact.artifact_id, message=err.message, json_path=err.json_path) from err
 
         return docs
 
@@ -106,7 +106,7 @@ class DatabaseController:
             self.__schema_validator.validate_document(doc, schema)
         except ValidationError as err:
             raise FailDocumentValidation(
-                artifact, message=err.message, json_path=err.json_path) from err
+                artifact.artifact_id, message=err.message, json_path=err.json_path) from err
 
         return doc
 
@@ -138,7 +138,7 @@ class DatabaseController:
                 doc_execution, Schema.PIPELINE_EXECUTION)
         except ValidationError as err:
             raise FailDocumentValidation(
-                artifact, message=err.message, json_path=err.json_path) from err
+                video_id, message=err.message, json_path=err.json_path) from err
 
         # Validate algorithm output for all pipeline execution
         for process in doc_execution["processing_list"]:
@@ -150,7 +150,7 @@ class DatabaseController:
                     doc_output, Schema.ALGORITHM_OUTPUT)
             except ValidationError as err:
                 raise FailDocumentValidation(
-                    artifact, message=err.message, json_path=err.json_path) from err
+                    video_id, message=err.message, json_path=err.json_path) from err
 
         # Make sure it doesn't have different number of documents associated with the same ID
         docs_output = self.__db_client.find_many(
@@ -160,7 +160,7 @@ class DatabaseController:
 
         if num_docs_output != num_process_steps:
             raise FailDocumentValidation(
-                artifact,
+                video_id,
                 f"The number of documents ({num_docs_output}) in {DBCollection.ALGORITHM_OUTPUT} " +
                 f"is not the same as the number of processings steps ({num_process_steps})" +
                 f"in {DBCollection.PIPELINE_EXECUTION}")
@@ -189,7 +189,7 @@ class DatabaseController:
         })
         if len(docs) == 0:
             raise NotYetIngestedError(
-                artifact, "Unable to find 'devcloudid'")
+                artifact.artifact_id, "Unable to find 'devcloudid'")
 
         recording_doc = docs[0]
 
@@ -199,11 +199,11 @@ class DatabaseController:
             DBCollection.PIPELINE_EXECUTION, {"_id": video_id})
         if len(docs) == 0:
             raise NotPresentError(
-                artifact, f"Unable to find pipeline-execution entry with video_id {video_id}")
+                artifact.artifact_id, f"Unable to find pipeline-execution entry with video_id {video_id}")
 
         pipeline_exec_doc = docs[0]
         data_status = pipeline_exec_doc["data_status"]
 
         if data_status != "complete":
             raise NotYetIngestedError(
-                artifact, "Ingestion of the artifact is not yet complete")
+                artifact.artifact_id, "Ingestion of the artifact is not yet complete")

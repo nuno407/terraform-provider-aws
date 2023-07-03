@@ -7,3 +7,5 @@ tenant_blacklist:
 - TEST_TENANT
 recorder_blacklist:
 - FrontRecorder
+type_blacklist:
+- S3VideoArtifact

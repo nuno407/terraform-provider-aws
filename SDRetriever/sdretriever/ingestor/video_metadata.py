@@ -4,16 +4,16 @@ import logging as log
 from operator import itemgetter
 
 from kink import inject
-from sdretriever.constants import METADATA_FILE_EXT
+
+from base.aws.container_services import ContainerServices
+from base.aws.s3 import S3ClientFactory, S3Controller
+from base.model.artifacts import Artifact, SignalsArtifact
+from sdretriever.constants import FileExt
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
 from sdretriever.s3_finder import S3Finder
-
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import Artifact, SignalsArtifact
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -122,7 +122,7 @@ class VideoMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-pub
             artifact.artifact_id,
             self._container_svcs.raw_s3,
             s3_folder,
-            METADATA_FILE_EXT)
+            FileExt.METADATA.value)
 
         return self._upload_metacontent_to_devcloud(upload_file)
 

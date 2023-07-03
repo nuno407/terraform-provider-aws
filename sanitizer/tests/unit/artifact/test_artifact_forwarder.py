@@ -5,16 +5,17 @@ from unittest.mock import Mock
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact)
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize("artifact", [
     (
-        VideoArtifact(
-            stream_name="mystream01",
+        S3VideoArtifact(
+            footage_id="bd94818c-b992-50fa-8556-ed7732aed924",
+            rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="123456",
             device_id="12345",
             timestamp=datetime.now(tz=UTC),

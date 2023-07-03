@@ -9,8 +9,8 @@ from pytz import UTC
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.aws.shared_functions import StsHelper
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact)
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.post_processor import IVideoPostProcessor, VideoInfo
@@ -42,7 +42,6 @@ class TestSnapshotIngestor():
             training_whitelist=[],
             request_training_upload=True,
             discard_video_already_ingested=True,
-            ingest_from_kinesis=True,
             input_queue=QUEUE_NAME
         )
 
@@ -83,9 +82,9 @@ class TestSnapshotIngestor():
         )
 
     @fixture()
-    def video_artifact(self) -> VideoArtifact:
-        """VideoArtifact for testing."""
-        return VideoArtifact(
+    def video_artifact(self) -> S3VideoArtifact:
+        """S3VideoArtifact for testing."""
+        return S3VideoArtifact(
             tenant_id=TENANT_ID,
             device_id=DEVICE_ID,
             recorder=RecorderType.INTERIOR,
@@ -94,7 +93,8 @@ class TestSnapshotIngestor():
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            stream_name="baz",
+            footage_id="babe76af-6dd8-533c-9ac3-2295f5fd779d",
+            rcc_s3_path="s3://rcc-bucket/key",
             end_timestamp=SNAP_TIME
         )
 
@@ -115,7 +115,7 @@ class TestSnapshotIngestor():
 
     @mark.unit()
     def test_non_snap_raises_exception(self, snap_ingestor: SnapshotIngestor,
-                                       video_artifact: VideoArtifact) -> None:
+                                       video_artifact: S3VideoArtifact) -> None:
         """Non-video artifacts should raise an exception."""
         with raises(ValueError):
             snap_ingestor.ingest(video_artifact)

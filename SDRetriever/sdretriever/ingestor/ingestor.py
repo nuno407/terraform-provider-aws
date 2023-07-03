@@ -5,12 +5,13 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Iterator, Optional, Tuple
 
+from botocore.exceptions import ClientError
 from kink import inject
 
 from base.aws.container_services import ContainerServices, RCCS3ObjectParams
-from base.aws.s3 import S3ClientFactory
+from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact
-from sdretriever.exceptions import S3FileNotFoundError
+from sdretriever.exceptions import S3FileNotFoundError, S3UploadError
 from sdretriever.s3_finder import S3Finder
 
 _logger = log.getLogger("SDRetriever." + __name__)
@@ -24,7 +25,8 @@ class Ingestor:
         self,
         container_services: ContainerServices,
         rcc_s3_client_factory: S3ClientFactory,
-        s3_finder: S3Finder
+        s3_finder: S3Finder,
+        s3_controller: S3Controller
     ) -> None:
         """_summary_
 
@@ -36,6 +38,7 @@ class Ingestor:
         self._container_svcs = container_services
         self._rcc_s3_client_factory = rcc_s3_client_factory
         self._s3_finder = s3_finder
+        self._s3_controller = s3_controller
 
     @abstractmethod
     def ingest(self, artifact: Artifact):
@@ -174,6 +177,21 @@ class Ingestor:
         # Regex to match metadata
         # e.g for metadata r".+\.mp4.*(\.json|\.zip)$"
         return re.compile(rf".+\_(\d+).mp4.+({extension_regex})$")
+
+    def _upload_file(self, upload_path: str, video_bytes: bytes, bucket: Optional[str] = None):
+        """Uploads a file to DevCloud S3"""
+        if bucket is None:
+            bucket = self._container_svcs.raw_s3
+        try:
+            self._s3_controller.upload_file(video_bytes,
+                                            bucket, upload_path)
+        except ClientError as exception:
+            if self._s3_controller.check_s3_file_exists(bucket, upload_path):
+                _logger.info("File %s already exists in %s", upload_path, bucket)
+            else:
+                _logger.exception("File %s could not be uploaded to DevCloud S3 into %s", upload_path, bucket)
+                raise S3UploadError from exception
+        return f"s3://{bucket}/{upload_path}"
 
     @property
     def _rcc_s3_client(self):

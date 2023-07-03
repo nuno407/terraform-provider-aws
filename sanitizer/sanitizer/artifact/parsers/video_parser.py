@@ -1,89 +1,31 @@
-""" VideoParser class """
+"""Base module for video based artifact parsers"""
 import json
-from typing import Iterator, Optional
-
-from kink import inject
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import RecorderType, VideoArtifact, TimeWindow
-from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.iparser import IArtifactParser
-from sanitizer.exceptions import InvalidMessageError
 
 
-@inject
 class VideoParser(IArtifactParser):  # pylint: disable=too-few-public-methods
-    """VideoParser class"""
+    """Base class for video based artifact parsers"""
 
-    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[VideoArtifact]:
-        """Extract recording artifact from SQS message
+    def _get_inner_message(self, sqs_message: SQSMessage) -> dict:
+        self._check_attribute_not_none(sqs_message.body, "message body")
 
-        Args:
-            message (SQSMessage): incoming SQS message
-
-        Raises:
-            InvalidMessageError: error parsing the incoming message
-
-        Returns:
-            Artifact: Recording artifact
-        """
-        if not sqs_message.body:
-            raise InvalidMessageError("Invalid message, empty body.")
-
-        inner_message: Optional[dict] = sqs_message.body.get("Message")
-        if not inner_message:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract message contents.")
+        inner_message: dict = sqs_message.body.get("Message")
+        self._check_attribute_not_none(inner_message, "inner message")
 
         if isinstance(inner_message, str):
             inner_message = json.loads(inner_message)
-            if not inner_message:
-                raise InvalidMessageError(
-                    "Invalid message body. Cannot extract message contents.")
+            self._check_attribute_not_none(inner_message, "JSON parsed inner message")
 
-        stream_name = inner_message.get("streamName")
-        if not stream_name:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract stream name.")
+        return inner_message
 
-        footage_from = inner_message.get("footageFrom")
-        if not footage_from:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract footageFrom.")
-
-        footage_to = inner_message.get("footageTo")
-        if not footage_to:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract footageTo.")
-
-        upload_started = inner_message.get("uploadStarted")
-        if not upload_started:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract uploadStarted.")
-
-        upload_finished = inner_message.get("uploadFinished")
-        if not upload_finished:
-            raise InvalidMessageError(
-                "Invalid message body. Cannot extract uploadFinished.")
-
+    def _get_tenant_id(self, sqs_message: SQSMessage) -> str:
         tenant = sqs_message.attributes.tenant
-        if not tenant:
-            raise InvalidMessageError(
-                "Invalid message attribute. Cannot extract tenant.")
+        self._check_attribute_not_none(tenant, "tenant ID")
+        return tenant
 
+    def _get_device_id(self, sqs_message: SQSMessage) -> str:
         device = sqs_message.attributes.device_id
-        if not device:
-            raise InvalidMessageError(
-                "Invalid message attribute. Cannot extract deviceId.")
-
-        yield (VideoArtifact(
-            tenant_id=tenant,
-            device_id=device,
-            stream_name=stream_name,
-            recorder=recorder_type,
-            timestamp=from_epoch_seconds_or_milliseconds(footage_from),
-            end_timestamp=from_epoch_seconds_or_milliseconds(footage_to),
-            upload_timing=TimeWindow(
-                start=from_epoch_seconds_or_milliseconds(upload_started),
-                end=from_epoch_seconds_or_milliseconds(upload_finished)
-            )))
+        self._check_attribute_not_none(device, "device ID")
+        return device

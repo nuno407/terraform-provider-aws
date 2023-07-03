@@ -1,7 +1,7 @@
 # mypy: disable-error-code=attr-defined
 """Unit tests for the SnapshotIngestor class."""
 from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock, PropertyMock, patch, MagicMock
+from unittest.mock import ANY, MagicMock, Mock, PropertyMock, patch
 
 from pytest import fixture, mark, raises
 from pytest_lazyfixture import lazy_fixture
@@ -9,12 +9,13 @@ from pytz import UTC
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact, SignalsArtifact, MetadataType, Artifact)
+from base.model.artifacts import (Artifact, MetadataType, RecorderType,
+                                  S3VideoArtifact, SignalsArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
-from sdretriever.s3_finder import S3Finder
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
+from sdretriever.s3_finder import S3Finder
 
 QUEUE_NAME = "foo-queue"
 SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
@@ -42,7 +43,6 @@ class TestMetadataSnapshotIngestor():
             training_whitelist=[],
             request_training_upload=True,
             discard_video_already_ingested=True,
-            ingest_from_kinesis=True,
             input_queue=QUEUE_NAME
         )
 
@@ -108,9 +108,9 @@ class TestMetadataSnapshotIngestor():
         )
 
     @fixture()
-    def video_artifact(self) -> VideoArtifact:
-        """VideoArtifact for testing."""
-        return VideoArtifact(
+    def video_artifact(self) -> S3VideoArtifact:
+        """S3VideoArtifact for testing."""
+        return S3VideoArtifact(
             tenant_id=TENANT_ID,
             device_id=DEVICE_ID,
             recorder=RecorderType.INTERIOR,
@@ -119,7 +119,8 @@ class TestMetadataSnapshotIngestor():
                 start=UPLOAD_START,
                 end=UPLOAD_END
             ),
-            stream_name="baz",
+            footage_id="1741741b-162a-50ef-a1cd-fbc3caabb3f1",
+            rcc_s3_path="s3://rcc-bucket/key",
             end_timestamp=SNAP_TIME
         )
 

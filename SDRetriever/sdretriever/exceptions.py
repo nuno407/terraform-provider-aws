@@ -25,6 +25,10 @@ class S3FileNotFoundError(TemporaryIngestionError):
     """Error raised when file is not found"""
 
 
+class S3DownloadError(TemporaryIngestionError):
+    """Error raised when there is an error during S3 download"""
+
+
 class UploadNotYetCompletedError(TemporaryIngestionError):
     """Error raised when upload is not yet completed"""
 

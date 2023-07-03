@@ -5,7 +5,7 @@ from unittest.mock import Mock, PropertyMock, call, patch
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
+from base.model.artifacts import RecorderType, S3VideoArtifact, TimeWindow
 from selector.selector import Selector
 
 
@@ -23,13 +23,14 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         sqs_controller.get_queue_url.return_value = "queue_url"
         sqs_controller.delete_message = Mock(return_value=None)
 
-        video_artifact = VideoArtifact(
+        video_artifact = S3VideoArtifact(
             tenant_id="tenant1",
             device_id="device1",
             recorder=RecorderType.TRAINING,
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
-            stream_name="stream1",
+            rcc_s3_path="s3://bucket/key",
+            footage_id="foo_id",
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC) - timedelta(hours=1),
                 end=datetime.now(tz=UTC))

@@ -44,7 +44,7 @@ class S3Utils:
         bucket = self.__s3_params.s3_bucket_anon
         path = S3Utils.full_s3_path(artifact.tenant_id, file_name)
         if not self.__s3_controller.check_s3_file_exists(bucket, path):
-            raise AnonymizedFileNotPresent(artifact, f"Anonymized file {file_name} not found")
+            raise AnonymizedFileNotPresent(artifact.artifact_id, f"Anonymized file {file_name} not found")
 
     def is_s3_raw_file_present_or_raise(self, file_name: str, artifact: Artifact) -> None:
         """
@@ -60,4 +60,4 @@ class S3Utils:
         bucket = self.__s3_params.s3_bucket_raw
         path = S3Utils.full_s3_path(artifact.tenant_id, file_name)
         if not self.__s3_controller.check_s3_file_exists(bucket, path):
-            raise RawFileNotPresent(artifact, f"Raw file {file_name} not found")
+            raise RawFileNotPresent(artifact.artifact_id, f"Raw file {file_name} not found")

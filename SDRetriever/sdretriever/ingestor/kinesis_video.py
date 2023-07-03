@@ -9,8 +9,9 @@ from kink import inject
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.aws.shared_functions import StsHelper
-from base.model.artifacts import Artifact, Resolution, VideoArtifact
+from base.model.artifacts import Artifact, KinesisVideoArtifact, Resolution
 from sdretriever.config import SDRetrieverConfig
+from sdretriever.constants import FileExt
 from sdretriever.exceptions import (FileAlreadyExists, KinesisDownloadError,
                                     S3UploadError)
 from sdretriever.ingestor.ingestor import Ingestor
@@ -18,7 +19,6 @@ from sdretriever.ingestor.post_processor import IVideoPostProcessor
 from sdretriever.s3_finder import S3Finder
 
 _logger = log.getLogger("SDRetriever." + __name__)
-CLIP_EXT = ".mp4"
 STREAM_TIMESTAMP_TYPE = 'PRODUCER_TIMESTAMP'
 
 
@@ -31,7 +31,7 @@ class Video:
 
 
 @inject
-class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
+class KinesisVideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
     """ Video ingestor class """
 
     def __init__(
@@ -43,19 +43,14 @@ class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             s3_controller: S3Controller,
             post_processor: IVideoPostProcessor,
             s3_finder: S3Finder) -> None:
-        super().__init__(
-            container_services,
-            rcc_s3_client_factory, s3_finder)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
+        super().__init__(container_services, rcc_s3_client_factory, s3_finder,
+                         s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
         self._config = config
         self._sts_helper = sts_helper
         self._s3_controller = s3_controller
         self._post_processor = post_processor
 
-    def __get_video_s3(self, artifact: VideoArtifact) -> Video:
-        raise NotImplementedError(
-            "Download video from S3 is not implemented yet")
-
-    def __get_video_kinesis(self, artifact: VideoArtifact) -> Video:
+    def __get_video_kinesis(self, artifact: KinesisVideoArtifact) -> Video:
         """ Get video from KinesisVideoStream """
 
         # Requests credentials to assume specific cross-account role
@@ -86,19 +81,16 @@ class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
     def ingest(self, artifact: Artifact) -> None:
         """Obtain video from KinesisVideoStreams and upload it to our raw data S3"""
         # validate that we are parsing a VideoArtifact
-        if not isinstance(artifact, VideoArtifact):
-            raise ValueError("VideoIngestor can only ingest a VideoArtifact")
+        if not isinstance(artifact, KinesisVideoArtifact):
+            raise ValueError("KinesisVideoIngestor can only ingest a KinesisVideoArtifact")
 
-        if self._config.ingest_from_kinesis:
-            video = self.__get_video_kinesis(artifact)
-        else:
-            video = self.__get_video_s3(artifact)
+        video = self.__get_video_kinesis(artifact)
 
         # S3 folder path based on the tenant_id where the video will be uploaded
         s3_folder = artifact.tenant_id + "/"
         # Upload video clip into raw data S3 bucket
         s3_filename = artifact.artifact_id
-        s3_path = s3_folder + s3_filename + CLIP_EXT
+        s3_path = s3_folder + s3_filename + FileExt.VIDEO.value
 
         if self._config.discard_video_already_ingested:
             _logger.info("Checking for the existance of %s file in the %s bucket",
@@ -111,15 +103,7 @@ class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
                 raise FileAlreadyExists(
                     f"Video {s3_path} already exists on DevCloud, message will be skipped")
 
-        try:
-            self._s3_controller.upload_file(video.content_bytes,
-                                            self._container_svcs.raw_s3, s3_path)
-            _logger.info("Successfully uploaded to %s",
-                         self._container_svcs.raw_s3 + "/" + s3_path)
-        except ClientError as exception:
-            _logger.error("Could not upload file to %s -> %s",
-                          s3_path, repr(exception))
-            raise S3UploadError() from exception
+        uploaded_path = self._upload_file(s3_path, video.content_bytes)
 
         # Obtain video details via ffprobe and prepare data to be used
         # to generate the video's entry on the database
@@ -130,4 +114,4 @@ class VideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
         artifact.actual_end_timestamp = video.actual_end
         artifact.actual_duration = video_info.duration
         artifact.resolution = Resolution(video_info.width, video_info.height)
-        artifact.s3_path = f"s3://{self._container_svcs.raw_s3}/{s3_path}"
+        artifact.s3_path = uploaded_path

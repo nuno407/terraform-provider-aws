@@ -11,8 +11,8 @@ from mypy_boto3_sqs import SQSClient
 from pytz import UTC
 
 from base.aws.sns import SNSController
-from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  TimeWindow, VideoArtifact, parse_artifact)
+from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow, parse_artifact)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 TEST_TOPIC_NAME = "test-topic"
@@ -72,8 +72,9 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
         )
     ),
     (
-        VideoArtifact(
-            stream_name="test-stream-name01",
+        S3VideoArtifact(
+            footage_id="da234f8b-cfed-513a-8bbd-993aced80c93",
+            rcc_s3_path="s3://rcc-bucket/key",
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.INTERIOR,
@@ -86,8 +87,9 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
         )
     ),
     (
-        VideoArtifact(
-            stream_name="test-training-stream-name02",
+        S3VideoArtifact(
+            footage_id="f5cd9ef6-2232-5502-ac75-8fc1531f8aee",
+            rcc_s3_path="s3://rcc-bucket/key",
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.TRAINING,

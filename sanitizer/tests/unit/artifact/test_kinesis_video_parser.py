@@ -4,9 +4,9 @@ import os
 import pytest
 
 from base.aws.model import MessageAttributes, SQSMessage
-from base.model.artifacts import RecorderType, TimeWindow, VideoArtifact
+from base.model.artifacts import KinesisVideoArtifact, RecorderType, TimeWindow
 from base.timestamps import from_epoch_seconds_or_milliseconds
-from sanitizer.artifact.parsers.video_parser import VideoParser
+from sanitizer.artifact.parsers.kinesis_video_parser import KinesisVideoParser
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -44,7 +44,7 @@ RECEIPT_HANDLE = "foobar"
             )
         ),
         [
-            VideoArtifact(
+            KinesisVideoArtifact(
                 tenant_id="ridecare_companion_trial",
                 device_id="rc_srx_prod_5c88ed5d1a39500838867f5fd03f8017d295250b",
                 recorder=RecorderType.INTERIOR,
@@ -60,7 +60,7 @@ RECEIPT_HANDLE = "foobar"
 ])
 def test_video_parser(test_case: str,
                       input_message: SQSMessage,
-                      expected: list[VideoArtifact]):
+                      expected: list[KinesisVideoArtifact]):
     print("test_case: ", test_case)
-    got_video = VideoParser().parse(input_message, expected[0].recorder)
+    got_video = KinesisVideoParser().parse(input_message, expected[0].recorder)
     assert list(got_video) == expected

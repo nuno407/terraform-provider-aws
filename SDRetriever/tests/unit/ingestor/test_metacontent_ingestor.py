@@ -9,7 +9,7 @@ import pytz
 
 from base.aws.container_services import ContainerServices
 from base.model.artifacts import (MetadataArtifact, MetadataType, RecorderType,
-                                  SignalsArtifact, TimeWindow, VideoArtifact)
+                                  S3VideoArtifact, SignalsArtifact, TimeWindow)
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
@@ -181,8 +181,8 @@ def test_upload_metacontent_to_devcloud(metacontent_ingestor: MetacontentIngesto
     assert result == f"s3://{file.bucket}/{s3_path}"
 
 
-STREAM1 = "InteriorRecorder-6433c789-08ee-421d-b2b3-7fb99ee0e947"
-STREAM2 = "TrainingRecorder-553a2554-b0d4-4c08-85c6-a9dc1d013e41"
+ID1 = "6433c789-08ee-421d-b2b3-7fb99ee0e947"
+ID2 = "553a2554-b0d4-4c08-85c6-a9dc1d013e41"
 MONTH = 5
 DAY = 7
 YEAR = 2023
@@ -191,20 +191,22 @@ HOUR = 12
 TENANT = "tenant1"
 DEVICE = "device1"
 
-video_artifact1 = VideoArtifact(
-    stream_name=STREAM1,
+video_artifact1 = S3VideoArtifact(
+    footage_id=ID1,
     device_id=DEVICE,
     tenant_id=TENANT,
+    rcc_s3_path=f"s3://bucket/folder/{ID1}.mp4",
     recorder=RecorderType.INTERIOR,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),
     upload_timing=TimeWindow(datetime.now(tz=pytz.UTC), datetime.now(tz=pytz.UTC))
 )
 
-video_artifact2 = VideoArtifact(
-    stream_name=STREAM2,
+video_artifact2 = S3VideoArtifact(
+    footage_id=ID2,
     device_id=DEVICE,
     tenant_id=TENANT,
+    rcc_s3_path=f"s3://bucket/folder/{ID2}.mp4",
     recorder=RecorderType.TRAINING,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),

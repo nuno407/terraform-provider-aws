@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 import pytz
 from pytest import mark, raises
 
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact, parse_artifact)
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow, parse_artifact)
 
 
 def json_snapshot() -> str:
@@ -49,13 +49,14 @@ def json_video() -> str:
             "start": "2023-04-13T08:00:00+00:00",
             "end": "2023-04-13T08:01:00+00:00"
         },
-        "stream_name": "my_stream"
+        "footage_id": "my_footage_id",
+        "rcc_s3_path": "s3://bucket/key"
     }
     """
 
 
-def video() -> VideoArtifact:
-    return VideoArtifact(
+def video() -> S3VideoArtifact:
+    return S3VideoArtifact(
         tenant_id="foo",
         device_id="bar",
         recorder=RecorderType.INTERIOR,
@@ -64,7 +65,8 @@ def video() -> VideoArtifact:
         upload_timing=TimeWindow(
             start="2023-04-13T08:00:00+00:00",  # type: ignore
             end="2023-04-13T08:01:00+00:00"),  # type: ignore
-        stream_name="my_stream"
+        footage_id="my_footage_id",
+        rcc_s3_path="s3://bucket/key"
     )
 
 
@@ -73,7 +75,7 @@ class TestArtifacts:
     @mark.parametrize(
         "json_artifact, expected_type, expected_artifact",
         [
-            (json_video(), VideoArtifact, video()),
+            (json_video(), S3VideoArtifact, video()),
             (json_snapshot(), SnapshotArtifact, snapshot())
         ]
     )

@@ -1,6 +1,7 @@
 """ Unit tests for the config module. """
 import pytest
 
+from base.model.artifacts import IMUArtifact
 from sanitizer.config import SanitizerConfig
 
 
@@ -16,6 +17,8 @@ def test_load_yaml_config():
     - onetenant
     recorder_blacklist:
     - FrontRecorder
+    type_blacklist:
+    - IMUArtifact
     """
     # write to a temporary file
     with open("/tmp/config1", "w", encoding="utf-8") as file_handler:
@@ -27,6 +30,7 @@ def test_load_yaml_config():
     assert config.recorder_blacklist == ["FrontRecorder"]
     assert config.tenant_blacklist == ["onetenant"]
     assert config.message_collection == "test-incoming-messages"
+    assert config.type_blacklist == {IMUArtifact}
 
 
 @pytest.mark.unit

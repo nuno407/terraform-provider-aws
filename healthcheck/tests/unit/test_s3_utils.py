@@ -6,8 +6,8 @@ import pytest
 from pytz import UTC
 
 from base.aws.s3 import S3Controller
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact)
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
 from healthcheck.model import S3Params
 from healthcheck.s3_utils import S3Utils
@@ -28,11 +28,12 @@ class TestS3Utils:
         )
 
     @pytest.fixture
-    def fix_video(self) -> VideoArtifact:
-        return VideoArtifact(
+    def fix_video(self) -> S3VideoArtifact:
+        return S3VideoArtifact(
             tenant_id="datanauts",
             device_id="test-device",
-            stream_name="test",
+            footage_id="test",
+            rcc_s3_path="s3://bucket/key",
             recorder=RecorderType.INTERIOR,
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
@@ -54,7 +55,7 @@ class TestS3Utils:
                 end=datetime.now(tz=UTC)
             ))
 
-    def test_is_s3_anonymized_file_present_or_raise_success(self, fix_video: VideoArtifact, s3_params: S3Params):
+    def test_is_s3_anonymized_file_present_or_raise_success(self, fix_video: S3VideoArtifact, s3_params: S3Params):
         fix_test_client = Mock()
         fix_test_client.head_object = Mock(
             return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
@@ -65,7 +66,7 @@ class TestS3Utils:
         fix_test_client.head_object.assert_called_once_with(
             Bucket=S3_ANON_BUCKET, Key=f"{fix_video.tenant_id}/mock-anon.mp4")
 
-    def test_is_s3_anonymized_file_present_or_raise_fail(self, fix_video: VideoArtifact, s3_params: S3Params):
+    def test_is_s3_anonymized_file_present_or_raise_fail(self, fix_video: S3VideoArtifact, s3_params: S3Params):
         fix_test_client = MagicMock()
         fix_test_client.head_object = Mock(
             side_effect=AnonymizedFileNotPresent(fix_video, "test"))

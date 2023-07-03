@@ -4,8 +4,8 @@ from unittest.mock import Mock, call
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, RecorderType, TimeWindow,
-                                  VideoArtifact)
+from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+                                  TimeWindow)
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 
@@ -15,23 +15,24 @@ common_video_attributes = {
     "end_timestamp": datetime.now(tz=UTC),
     "upload_timing": TimeWindow(
         start=datetime.now(tz=UTC),
-        end=datetime.now(tz=UTC))
+        end=datetime.now(tz=UTC)),
+    "rcc_s3_path": "s3://bucket/key"
 }
 
 
 @pytest.mark.unit
 class TestInteriorRecorderArtifactChecker:
     @pytest.mark.parametrize("input_artifact", [
-        (VideoArtifact(
+        (S3VideoArtifact(
             tenant_id="my_tenant1",
             device_id="my_device1",
-            stream_name="my_stream1_InteriorRecorder",
+            footage_id="footage_1",
             **common_video_attributes
         )),
-        (VideoArtifact(
+        (S3VideoArtifact(
             tenant_id="my_tenant2",
             device_id="my_device2",
-            stream_name="my_stream2_InteriorRecorder",
+            footage_id="footage_2",
             **common_video_attributes
         ))
     ])

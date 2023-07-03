@@ -11,14 +11,14 @@ from typing import Iterator, Optional
 import pytz
 from botocore.exceptions import ClientError
 from kink import inject
-from sdretriever.exceptions import S3UploadError
-from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_finder import S3Finder
 
 from base.aws.container_services import ContainerServices, RCCS3ObjectParams
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import (ImageBasedArtifact, MetadataArtifact,
                                   VideoArtifact)
+from sdretriever.exceptions import S3UploadError
+from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.s3_finder import S3Finder
 
 _logger = log.getLogger("SDRetriever." + __name__)
 REXP_MP4 = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
@@ -47,7 +47,7 @@ class MetacontentIngestor(Ingestor):
 
     def __init__(self, container_services: ContainerServices,
                  rcc_s3_client_factory: S3ClientFactory, s3_controller: S3Controller, s3_finder: S3Finder):
-        super().__init__(container_services, rcc_s3_client_factory, s3_finder)
+        super().__init__(container_services, rcc_s3_client_factory, s3_finder, s3_controller)
         self._s3_controller = s3_controller
 
     @ staticmethod
@@ -104,17 +104,7 @@ class MetacontentIngestor(Ingestor):
         """
         s3_path = f"{file.msp}{file.video_id}{file.extension}"
 
-        try:
-            self._s3_controller.upload_file(file.data, file.bucket, s3_path)
-            _logger.info("Successfully uploaded to %s", f"{file.bucket}/{s3_path}")
-        except ClientError as exception:
-            if self._s3_controller.check_s3_file_exists(file.bucket, s3_path):
-                _logger.info("File %s already exists in %s", s3_path, file.bucket)
-            else:
-                _logger.exception("File %s could not be uploaded into %s", s3_path, file.bucket)
-                raise S3UploadError from exception
-
-        return f"s3://{file.bucket}/{s3_path}"
+        return self._upload_file(s3_path, file.data, file.bucket)
 
     def _get_chunks_lookup_paths(
             self,

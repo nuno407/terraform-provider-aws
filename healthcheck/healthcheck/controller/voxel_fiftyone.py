@@ -6,8 +6,8 @@ from kink import inject
 from base.model.artifacts import Artifact, RecorderType
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params
-from healthcheck.voxel_client import VoxelEntriesGetter
 from healthcheck.tenant_config import DatasetMappingConfig
+from healthcheck.voxel_client import VoxelEntriesGetter
 
 
 @inject
@@ -87,7 +87,6 @@ class VoxelFiftyOneController:
 
         entries = self.__voxel_client.get_num_entries(path, dataset)
         if entries == 0:
-            raise VoxelEntryNotPresent(artifact, f"Voxel entry for file path {path} does not exist in {dataset}")
+            raise VoxelEntryNotPresent(art_id, f"Voxel entry for file path {path} does not exist in {dataset}")
         if entries > 1:
-            msg = f"Multiple voxel entries ({entries}) found for file path {path}"
-            raise VoxelEntryNotUnique(artifact, msg)
+            raise VoxelEntryNotUnique(art_id, f"Multiple voxel entries ({entries}) found for file path {path}")

@@ -3,15 +3,14 @@ import logging as log
 from datetime import datetime
 from typing import TypeVar
 
-from botocore.errorfactory import ClientError
-
 from kink import inject
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, SnapshotArtifact
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.exceptions import FileAlreadyExists, S3UploadError
+from sdretriever.constants import FileExt
+from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.s3_finder import S3Finder
 
@@ -31,7 +30,7 @@ class SnapshotIngestor(Ingestor):
             s3_controller: S3Controller,
             config: SDRetrieverConfig,
             s3_finder: S3Finder) -> None:
-        super().__init__(container_services, rcc_s3_client_factory, s3_finder)
+        super().__init__(container_services, rcc_s3_client_factory, s3_finder, s3_controller)
         self._s3_controller = s3_controller
         self._config = config
 
@@ -42,7 +41,7 @@ class SnapshotIngestor(Ingestor):
             raise ValueError("SnapshotIngestor can only ingest a SnapshotArtifact")
 
         # Initialize file name and path
-        snap_name = f"{artifact.artifact_id}.jpeg"
+        snap_name = f"{artifact.artifact_id}{FileExt.SNAPSHOT.value}"
         snap_path = f"{artifact.tenant_id}/{snap_name}"
 
         # Checks if exists in devcloud
@@ -66,14 +65,8 @@ class SnapshotIngestor(Ingestor):
                                           ".png"])
 
         # Upload files to DevCloud
-        try:
-            self._s3_controller.upload_file(jpeg_data, self._container_svcs.raw_s3, snap_path)
-        except ClientError as err:
-            _logger.exception(
-                "Error uploading file %s to %s", snap_path, self._container_svcs.raw_s3)
-            raise S3UploadError() from err
+        snap_full_path = self._upload_file(snap_path, jpeg_data)
 
         # update artifact with s3 path
-        snap_full_path = f"s3://{self._container_svcs.raw_s3}/{snap_path}"
         _logger.info("Successfully uploaded to %s", snap_full_path)
         artifact.s3_path = snap_full_path

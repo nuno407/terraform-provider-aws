@@ -6,8 +6,8 @@ import pytest
 from pytz import UTC
 
 from base.aws.model import MessageAttributes, SQSMessage
-from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  TimeWindow, VideoArtifact)
+from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_parser import ArtifactParser
 
 
@@ -107,8 +107,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant="deepsensation",
                 device_id="DEV02")),
         [
-            VideoArtifact(
-                stream_name="baz",
+            S3VideoArtifact(
+                footage_id="88625bd7-6d6f-551c-a7ae-2ed13fbaa2bf",
+                rcc_s3_path="s3://rcc-bucket/key",
                 tenant_id="deepsensation",
                 device_id="DEV02",
                 recorder=RecorderType.INTERIOR,
@@ -139,8 +140,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant="goaldiggers",
                 device_id="DEV03")),
         [
-            VideoArtifact(
-                stream_name="baz",
+            S3VideoArtifact(
+                footage_id="c2dd5a8d-6b23-5908-99de-483efef5cf28",
+                rcc_s3_path="s3://rcc-bucket/key",
                 tenant_id="deepsensation",
                 device_id="DEV02",
                 recorder=RecorderType.TRAINING,
@@ -171,8 +173,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 tenant="goaldiggers",
                 device_id="DEV04")),
         [
-            VideoArtifact(
-                stream_name="baz",
+            S3VideoArtifact(
+                footage_id="2a59bb30-4c74-557f-8de9-0ce1a031d910",
+                rcc_s3_path="s3://rcc-bucket/key",
                 tenant_id="deepsensation",
                 device_id="DEV04",
                 recorder=RecorderType.FRONT,
@@ -188,10 +191,12 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
 def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artifact]):
     snapshot_parser = Mock()
     snapshot_parser.parse = Mock(return_value=expected_artifacts)
-    video_parser = Mock()
-    video_parser.parse = Mock(return_value=expected_artifacts)
+    kinesis_video_parser = Mock()
+    kinesis_video_parser.parse = Mock(return_value=expected_artifacts)
+    s3_video_parser = Mock()
+    s3_video_parser.parse = Mock(return_value=expected_artifacts)
 
-    artifact_parser = ArtifactParser(video_parser, snapshot_parser)
+    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, snapshot_parser)
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT:
@@ -199,7 +204,7 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     elif expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
         snapshot_parser.parse.assert_called_once_with(sqs_message, RecorderType.INTERIOR_PREVIEW)
     else:
-        video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
+        kinesis_video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
 
 
 def test_artifact_parser_unknown_recorder():

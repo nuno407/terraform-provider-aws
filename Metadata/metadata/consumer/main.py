@@ -14,27 +14,21 @@ import boto3
 import pytimeparse
 import pytz
 from kink import inject
-from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
-                                       UNKNOWN_FILE_FORMAT_MESSAGE)
-from metadata.common.errors import (EmptyDocumentQueryResult,
-                                    MalformedRecordingEntry)
-from metadata.consumer.bootstrap import bootstrap_di
-from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.persistence import Persistence
-from metadata.consumer.service import RelatedMediaService
-from metadata.consumer.voxel.functions import update_on_voxel, add_voxel_snapshot_metadata
 from mypy_boto3_s3 import S3Client
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import DocumentTooLarge, PyMongoError
 
-from base.aws.auto_message_visibility_increaser import AutoMessageVisibilityIncreaser
 from base import GracefulExit
+from base.aws.auto_message_visibility_increaser import \
+    AutoMessageVisibilityIncreaser
 from base.aws.container_services import ContainerServices
+from base.aws.s3 import S3Controller
 from base.chc_counter import ChcCounter
-from base.constants import IMAGE_FORMATS, VIDEO_FORMATS, SIGNALS_FORMATS
-from base.model.artifacts import (SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact, Artifact,
+from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
+from base.model.artifacts import (Artifact, KinesisVideoArtifact,
+                                  S3VideoArtifact, SignalsArtifact,
+                                  SnapshotArtifact, VideoArtifact,
                                   parse_artifact)
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
                                        UNKNOWN_FILE_FORMAT_MESSAGE)
@@ -43,10 +37,12 @@ from metadata.common.errors import (EmptyDocumentQueryResult,
 from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.config import DatasetMappingConfig
-from metadata.consumer.exceptions import NotSupportedArtifactError, SnapshotNotFound
+from metadata.consumer.exceptions import (NotSupportedArtifactError,
+                                          SnapshotNotFound)
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
-from base.aws.s3 import S3Controller
+from metadata.consumer.voxel.functions import (add_voxel_snapshot_metadata,
+                                               update_on_voxel)
 
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
@@ -680,12 +676,17 @@ def __parse_sdr_message(artifact: Artifact) -> dict:
     if isinstance(artifact, VideoArtifact):
         length_td = timedelta(seconds=artifact.actual_duration)
         message["MDF_available"] = "No"
-        message["footagefrom"] = artifact.actual_timestamp.timestamp() * 1000
-        message["footageto"] = artifact.actual_end_timestamp.timestamp() * 1000
         message["length"] = str(length_td).split('.')[0]
         message["snapshots_paths"] = []
         message["media_type"] = "video"
         message["resolution"] = f"{artifact.resolution.width}x{artifact.resolution.height}"
+
+        if isinstance(artifact, KinesisVideoArtifact):
+            message["footagefrom"] = artifact.actual_timestamp.timestamp() * 1000
+            message["footageto"] = artifact.actual_end_timestamp.timestamp() * 1000
+        elif isinstance(artifact, S3VideoArtifact):
+            message["footagefrom"] = artifact.timestamp.timestamp() * 1000
+            message["footageto"] = artifact.end_timestamp.timestamp() * 1000
 
     elif isinstance(artifact, SnapshotArtifact):
         message["timestamp"] = artifact.timestamp.timestamp() * 1000

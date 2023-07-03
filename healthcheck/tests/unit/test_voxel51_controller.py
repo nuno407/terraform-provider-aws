@@ -5,8 +5,8 @@ import pytest
 from kink import di
 from pytz import UTC
 
-from base.model.artifacts import (RecorderType, SnapshotArtifact, TimeWindow,
-                                  VideoArtifact)
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params
@@ -38,11 +38,12 @@ class TestVoxelFiftyOneController():
         )
 
     @pytest.fixture
-    def video_artifact(self) -> VideoArtifact:
-        return VideoArtifact(
+    def video_artifact(self) -> S3VideoArtifact:
+        return S3VideoArtifact(
             tenant_id="test",
             device_id="device-test",
-            stream_name="stream-test",
+            footage_id="footage-test",
+            rcc_s3_path="s3://test/test",
             recorder=RecorderType.INTERIOR,
             timestamp=datetime.now(tz=UTC) - timedelta(hours=1),
             end_timestamp=datetime.now(tz=UTC) - timedelta(minutes=30),
@@ -82,7 +83,7 @@ class TestVoxelFiftyOneController():
             expected_dataset)
 
     @pytest.mark.parametrize("tenant,expected_dataset", [("test", "Debug_Lync"), ("datanauts", "RC-datanauts")])
-    def test_is_fiftyone_video_present(self, video_artifact: VideoArtifact, tenant: str,
+    def test_is_fiftyone_video_present(self, video_artifact: S3VideoArtifact, tenant: str,
                                        expected_dataset: str, s3_params: S3Params):
         # GIVEN
         video_artifact.tenant_id = tenant

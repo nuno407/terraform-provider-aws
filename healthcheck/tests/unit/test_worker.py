@@ -6,15 +6,15 @@ import pytest
 from pydantic import parse_obj_as
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  TimeWindow, VideoArtifact)
+from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from healthcheck.config import HealthcheckConfig
 from healthcheck.exceptions import NotPresentError, NotYetIngestedError
 from healthcheck.worker import HealthCheckWorker
 
 
 def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", device_id: str = "device1",
-                         **kwargs: dict) -> Union[VideoArtifact, SnapshotArtifact]:
+                         **kwargs: dict) -> Union[S3VideoArtifact, SnapshotArtifact]:
     obj = {
         "tenant_id": tenant_id,
         "device_id": device_id,
@@ -28,12 +28,13 @@ def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", dev
     if recorder in [RecorderType.INTERIOR, RecorderType.TRAINING, RecorderType.FRONT]:
         # video required fields
         obj["end_timestamp"] = datetime.now(tz=UTC)
-        obj["stream_name"] = "stream1"
+        obj["rcc_s3_path"] = "s3://bucket/key"
+        obj["footage_id"] = "footage_id1"
     else:
         # snapshot required fields
         obj["uuid"] = "uuid1"
 
-    return parse_obj_as(Union[VideoArtifact, SnapshotArtifact], obj)
+    return parse_obj_as(Union[S3VideoArtifact, SnapshotArtifact], obj)
 
 
 @pytest.mark.unit
@@ -70,7 +71,6 @@ class TestWorker:
         ),
         (
             image_based_artifact(
-                stream_name="stream2_TrainingRecorder",
                 device_id="device2",
                 tenant_id="tenant2",
                 recorder=RecorderType.TRAINING
@@ -85,7 +85,6 @@ class TestWorker:
         ),
         (
             image_based_artifact(
-                stream_name="stream4_InteriorRecorder",
                 tenant_id="test-whitelist-tenant",
                 recorder=RecorderType.INTERIOR
             ),
@@ -132,7 +131,6 @@ class TestWorker:
                 "Body": "{ \"Message\": { \"attribute\": \"value\" } }"
             },
             image_based_artifact(
-                stream_name="stream2_InteriorRecorder",
                 device_id="device2",
                 tenant_id="tenant2",
                 recorder=RecorderType.INTERIOR
@@ -144,7 +142,6 @@ class TestWorker:
                 "Body": "{ \"Message\": { \"attribute\": \"value\" } }"
             },
             image_based_artifact(
-                stream_name="stream2_InteriorRecorder",
                 device_id="device2",
                 tenant_id="tenant2",
                 recorder=RecorderType.INTERIOR,
@@ -157,7 +154,6 @@ class TestWorker:
                 "Body": "{ \"Message\": { \"attribute\": \"value\" } }"
             },
             image_based_artifact(
-                stream_name="stream2_InteriorRecorder",
                 device_id="device2",
                 tenant_id="tenant2",
                 recorder=RecorderType.INTERIOR,

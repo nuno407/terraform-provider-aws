@@ -8,7 +8,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-from pydantic import Field, parse_raw_as, parse_obj_as, validator
+from pydantic import Field, parse_obj_as, parse_raw_as, validator
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 
@@ -105,12 +105,8 @@ class ImageBasedArtifact(Artifact):
 @dataclass
 class VideoArtifact(ImageBasedArtifact):
     """Video artifact"""
-    stream_name: str = Field(default=...)
     end_timestamp: datetime = Field(default=...)
-
     actual_duration: Optional[float] = Field(default=None)
-    actual_timestamp: Optional[datetime] = Field(default=None)
-    actual_end_timestamp: Optional[datetime] = Field(default=None)
 
     @validator("recorder")
     def check_recorder(cls, value: RecorderType) -> RecorderType:
@@ -129,9 +125,36 @@ class VideoArtifact(ImageBasedArtifact):
         """ duration of the video in seconds. """
         return (self.end_timestamp - self.timestamp).total_seconds()
 
+
+@dataclass
+class KinesisVideoArtifact(VideoArtifact):
+    """Represents a video artifact that was recorded to Kinesis Video Streams"""
+    stream_name: str = Field(default=...)
+
+    actual_timestamp: Optional[datetime] = Field(default=None)
+    actual_end_timestamp: Optional[datetime] = Field(default=None)
+
     @property
     def artifact_id(self) -> str:
         return f"{self.stream_name}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
+
+
+@dataclass
+class S3VideoArtifact(VideoArtifact):
+    """Represents a video artifact that has been concatenated by RCC and uploaded to S3"""
+    rcc_s3_path: str = Field(default=...)
+    footage_id: str = Field(default=...)
+
+    @property
+    def artifact_id(self) -> str:
+        return f"{self.device_id}_{self.recorder.value}_{self.footage_id}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
+
+    @validator("rcc_s3_path")
+    def check_rcc_s3_path(cls, value: str) -> str:
+        """Validates that s3_path starts with s3://"""
+        if not value.startswith("s3://"):
+            raise ValueError("rcc_s3_path must start with s3://")
+        return value
 
 
 @dataclass
@@ -155,7 +178,7 @@ class SnapshotArtifact(ImageBasedArtifact):
 @dataclass
 class MetadataArtifact(Artifact):
     """ Metadata """
-    referred_artifact: Union[SnapshotArtifact, VideoArtifact] = Field(default=...)
+    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact, S3VideoArtifact] = Field(default=...)
     metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS] = Field(default=...)
 
     @property
@@ -179,7 +202,7 @@ class SignalsArtifact(MetadataArtifact):
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(Union[VideoArtifact, SnapshotArtifact,
+        return parse_obj_as(Union[KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact,
                                   SignalsArtifact, IMUArtifact], json_data)  # type: ignore
-    return parse_raw_as(Union[VideoArtifact, SnapshotArtifact,
+    return parse_raw_as(Union[KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact,
                         SignalsArtifact, IMUArtifact], json_data)  # type: ignore

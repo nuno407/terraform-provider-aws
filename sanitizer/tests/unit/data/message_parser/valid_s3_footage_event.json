@@ -1,0 +1,29 @@
+{
+    "Type": "Notification",
+    "MessageId": "a6d48dfa-76a4-56d3-ab48-d0f027d4cd41",
+    "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events",
+    "Message": "{\"uploadInfos\":[{\"chunks\":[1,2,3,4,5,6,7,8,9],\"recordingId\":\"InteriorRecorder-512555a5-b04d-4228-9477-3c74c29bc9de\",\"uploadStarted\":1687179039085,\"uploadFinished\":1687179043530}],\"footageFrom\":1687178909310,\"footageTo\":1687179011058,\"footageId\":\"303bd782-e19f-4373-ac72-f909d62f84ce\",\"downloadLink\":\"s3://dev-rcc-video-repo/rubber_duck/7c8c1377-38fb-4d00-af6e-b35e32b99c8a/INTERIOR/Footage_303bd782-e19f-4373-ac72-f909d62f84ce_watermark.mp4\"}",
+    "Timestamp": "2023-06-19T12:50:56.734Z",
+    "SignatureVersion": "1",
+    "Signature": "UXWo3vgpKDyw7yoos2ni/SiaDB5TNbcCqNYMRN5oaD0BlvG9wZb5Ustri2db5tV4v6wpQt1mwo5L+JxZ4JzjVh4/fAJcPhm2smAxJ2NIq/DNRjZWFbO94ypWF9+NfR0xuZOw5LjxS7Q9c0XasAsCAH4dkFGPS4/lxcxAPkhTLpiYHK8DjOBFzuWiUw80LgjoS6J79PB9Ik4nu9wwu0ZXs+2PWqhiuRjjbymbg79/Et4f1v0iiFBrwK0APtMG0P5V08UzRK1Rsrc+SndE+lj2k/PNXPMryBIVNSg47GpT0RVxiIp2Voip+OMadydc0ab78JpdJFiz/BF5SI6S58H0EA==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events:067a1a89-e383-4741-bf98-0e4f6e39dfa3",
+    "MessageAttributes": {
+        "recorder": {
+            "Type": "String",
+            "Value": "INTERIOR"
+        },
+        "type": {
+            "Type": "String",
+            "Value": "FootageCompleteDevCloudEvent"
+        },
+        "deviceId": {
+            "Type": "String",
+            "Value": "srx_herbie_dev_hw_01"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "rubber_duck"
+        }
+    }
+}

@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, Mock, call
 import pytest
 import pytz
 
-from base.model.artifacts import RecorderType, SnapshotArtifact, VideoArtifact
+from base.model.artifacts import (RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact)
 from healthcheck.controller.db import DatabaseController, DBCollection
 from healthcheck.exceptions import NotPresentError, NotYetIngestedError
 
@@ -14,11 +15,12 @@ class TestDatabaseController():
     """unit tests for database controller."""
 
     @pytest.fixture
-    def video_artifact(self) -> VideoArtifact:
-        return VideoArtifact(
+    def video_artifact(self) -> S3VideoArtifact:
+        return S3VideoArtifact(
             tenant_id="test",
             device_id="test",
-            stream_name="test_stream",
+            footage_id="test_stream",
+            rcc_s3_path="s3://bucket/key",
             recorder=RecorderType.INTERIOR,
             timestamp=datetime.fromisoformat("2022-12-21T14:22:44.806+00:00"),
             end_timestamp=datetime.fromisoformat("2022-12-21T14:35:44.806+00:00"),
@@ -121,7 +123,7 @@ class TestDatabaseController():
         )
 
     def test_is_data_status_complete_or_raise_not_ingested_not_complete_video_artifact(
-            self, video_artifact: VideoArtifact):
+            self, video_artifact: S3VideoArtifact):
         db_client = Mock()
         mocked_recording_doc = {
             "video_id": "mocked_video_id_1639321140000_1639321380000",

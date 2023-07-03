@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  TimeWindow, VideoArtifact)
+from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_filter import ArtifactFilter
 from sanitizer.config import SanitizerConfig
 
@@ -79,8 +79,9 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
     ),
     # blacklisted recorder
     (
-        VideoArtifact(
-            stream_name="foobar4",
+        S3VideoArtifact(
+            footage_id="8d98a113-2a74-50e8-a706-6ae854d59923",
+            rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.FRONT,
@@ -98,8 +99,9 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
     ),
     # multiple blacklisted recorder
     (
-        VideoArtifact(
-            stream_name="foobar4",
+        S3VideoArtifact(
+            footage_id="233df466-34d9-5c56-8d5d-e3095f855bd9",
+            rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.INTERIOR,
@@ -117,8 +119,9 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
     ),
     # blacklisted tenant and recorder
     (
-        VideoArtifact(
-            stream_name="foobar5",
+        S3VideoArtifact(
+            footage_id="071a9460-ec26-5a12-b978-163a27952eae",
+            rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",
             device_id="DEV05",
             recorder=RecorderType.TRAINING,
