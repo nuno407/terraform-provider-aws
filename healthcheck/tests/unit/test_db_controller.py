@@ -41,7 +41,8 @@ class TestDatabaseController():
             upload_timing={
                 "start": "2022-12-21T14:21:44.806+00:00",
                 "end": "2022-12-21T14:22:44.806+00:00"
-            }
+            },
+            end_timestamp=datetime.fromisoformat("2022-12-21T14:21:44.806+00:00")
         )
 
     def test_is_data_status_complete_or_raise_not_ingested(

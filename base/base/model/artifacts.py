@@ -198,7 +198,8 @@ class MultiSnapshotArtifact(ImageBasedArtifact):
 @dataclass
 class MetadataArtifact(Artifact):
     """ Metadata """
-    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact, S3VideoArtifact, VideoArtifact, MultiSnapshotArtifact] = Field(default=...)
+    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact,
+                             S3VideoArtifact, VideoArtifact, MultiSnapshotArtifact] = Field(default=...)
     metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS, MetadataType.PREVIEW] = Field(default=...)
 
     @property
@@ -231,5 +232,19 @@ class PreviewSignalsArtifact(MetadataArtifact):
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(Union[VideoArtifact, KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact, SignalsArtifact, IMUArtifact, MultiSnapshotArtifact, PreviewSignalsArtifact], json_data)  # type: ignore
-    return parse_raw_as(Union[VideoArtifact, KinesisVideoArtifact, S3VideoArtifact, SnapshotArtifact, SignalsArtifact, IMUArtifact, MultiSnapshotArtifact, PreviewSignalsArtifact], json_data)  # type: ignore
+        return parse_obj_as(Union[KinesisVideoArtifact,
+                                  S3VideoArtifact,
+                                  SnapshotArtifact,
+                                  SignalsArtifact,
+                                  IMUArtifact,
+                                  MultiSnapshotArtifact,
+                                  PreviewSignalsArtifact],
+                            json_data)  # type: ignore
+    return parse_raw_as(Union[KinesisVideoArtifact,
+                              S3VideoArtifact,
+                              SnapshotArtifact,
+                              SignalsArtifact,
+                              IMUArtifact,
+                              MultiSnapshotArtifact,
+                              PreviewSignalsArtifact],
+                        json_data)  # type: ignore

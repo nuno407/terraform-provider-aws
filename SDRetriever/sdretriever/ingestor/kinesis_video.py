@@ -41,9 +41,8 @@ class KinesisVideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             s3_controller: S3Controller,
             post_processor: IVideoPostProcessor,
             s3_finder: S3FinderRCC) -> None:
-        super().__init__(
-            container_services,
-            rcc_s3_client_factory, s3_finder, s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
+        super().__init__(container_services, rcc_s3_client_factory, s3_finder,
+                         s3_controller)  # pylint: disable=no-value-for-parameter, missing-positional-arguments
         self._config = config
         self._sts_helper = sts_helper
         self._s3_controller = s3_controller

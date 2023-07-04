@@ -110,7 +110,8 @@ class S3CrawlerRCC():
         load_counter = 0
 
         common_prefix = os.path.commonprefix(list(files))
-        object_keys: Iterator[S3ObjectInfo] = self.list_all_objects(rcc_s3_params, common_prefix)
+        object_keys: Iterator[S3ObjectInfo] = self.list_all_objects(
+            rcc_s3_params, common_prefix)
 
         files_stack = files.copy()
         result: dict[str, S3ObjectInfo] = {}

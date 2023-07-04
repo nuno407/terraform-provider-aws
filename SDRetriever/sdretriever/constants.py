@@ -18,6 +18,9 @@ class FileExt(Enum):
     SNAPSHOT = ".jpeg"
     VIDEO = ".mp4"
 
+
 VIDEO_CHUNK_REGX = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")
-SNAPSHOT_CHUNK_REGX = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.jpeg$")
-METADATA_CHUNK_REGX = re.compile(r"([^\W_]+_[^\W_]+-[a-z0-9\-]+_\d+\.jpeg).+\.json$")
+SNAPSHOT_CHUNK_REGX = re.compile(
+    r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.jpeg$")
+METADATA_CHUNK_REGX = re.compile(
+    r"([^\W_]+_[^\W_]+-[a-z0-9\-]+_\d+\.jpeg).+\.json$")

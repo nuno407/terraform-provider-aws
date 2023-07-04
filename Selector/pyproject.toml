@@ -23,6 +23,7 @@ load-plugins = [
 ]
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
+ignore-patterns="(.)*_test\\.py,test_(.)*\\.py,conftest.py"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
@@ -33,11 +34,12 @@ string-quote = "double"
 triple-quote = "double"
 docstring-quote = "double"
 
-
 [tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
 files = [
-    "selector/**/*.py",
-    "tests/**/*.py"
+    "selector/**/*.py"
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]

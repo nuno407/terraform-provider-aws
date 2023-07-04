@@ -10,10 +10,7 @@ from base.aws.sqs import SQSController
 from base.model.artifacts import (Artifact, IMUArtifact, KinesisVideoArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
-                                  VideoArtifact)
-from base.model.artifacts import (Artifact, IMUArtifact,
-                                  RecorderType, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact, PreviewSignalsArtifact)
+                                  VideoArtifact, PreviewSignalsArtifact)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import (CONTAINER_NAME,
                                    MESSAGE_VISIBILITY_EXTENSION_HOURS)
@@ -73,8 +70,7 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         self.__selector_queue = cont_services.sqs_queues_list["Selector"]
         self.__mdfp_queue = cont_services.sqs_queues_list["MDFParser"]
 
-
-    def _get_ingestor(self, artifact: Artifact) -> Ingestor:
+    def _get_ingestor(self, artifact: Artifact) -> Ingestor:  # pylint: disable=too-many-return-statements
         """ Returns the ingestor that should handle the artifact.
 
         Args:
@@ -181,9 +177,11 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             message (Message): Message to be deleted.
             source (str): The source to be deleted from.
         """
-        factor_idx = int(message_obj["Attributes"]["ApproximateReceiveCount"])-1
-        factor_idx = min(factor_idx,len(MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)
-        factor_idx = max(factor_idx,0)
+        factor_idx = int(message_obj["Attributes"]
+                         ["ApproximateReceiveCount"]) - 1
+        factor_idx = min(factor_idx, len(
+            MESSAGE_VISIBILITY_EXTENSION_HOURS) - 1)
+        factor_idx = max(factor_idx, 0)
         prolong_time = int(
             MESSAGE_VISIBILITY_EXTENSION_HOURS[factor_idx] * 3600)  # type: ignore
         _logger.warning("Prolonging message visibility timeout for %d seconds",

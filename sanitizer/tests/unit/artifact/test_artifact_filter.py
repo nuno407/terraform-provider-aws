@@ -20,6 +20,7 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         tenant_blacklist=tenant_blacklist
     )
 
+
 timings = {
     "timestamp": datetime.now(tz=UTC) - timedelta(minutes=2),
     "end_timestamp": datetime.now(tz=UTC) - timedelta(minutes=1),
@@ -28,6 +29,7 @@ timings = {
         end=datetime.now(tz=UTC) - timedelta(seconds=5)
     )
 }
+
 
 @pytest.mark.unit
 @pytest.mark.parametrize("artifact,config,expected", [

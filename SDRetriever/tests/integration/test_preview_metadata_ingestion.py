@@ -5,7 +5,7 @@ import time
 from base.aws.sqs import SQSController
 from base.aws.s3 import S3Controller
 from base.model.artifacts import parse_artifact, Artifact
-from mock_utils import load_files_rcc, S3File, get_s3_cloud_state, load_sqs_message, get_sqs_message, get_s3_file_content
+from .mock_utils import load_files_rcc, S3File, get_s3_cloud_state, load_sqs_message, get_sqs_message, get_s3_file_content
 from typing import Callable
 from mypy_boto3_s3 import S3Client
 from sdretriever.main import deserialize

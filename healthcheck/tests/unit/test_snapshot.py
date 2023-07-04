@@ -8,13 +8,15 @@ from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
                                   TimeWindow)
 from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
+mock_date = datetime(year=2023, month=4, day=2, hour=2, tzinfo=UTC)
 
 common_snapshot_attributes = {
     "recorder": RecorderType.SNAPSHOT,
-    "timestamp": datetime.now(tz=UTC),
+    "timestamp": mock_date,
     "upload_timing": TimeWindow(
-        start=datetime.now(tz=UTC),
-        end=datetime.now(tz=UTC))
+        start=mock_date,
+        end=mock_date),
+    "end_timestamp": mock_date
 }
 
 

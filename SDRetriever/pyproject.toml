@@ -4,8 +4,7 @@ timid = true
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
-#addopts = "-m unit -v --cov-config=.coveragerc --cov=sdretriever --cov-report=xml"
-addopts = "-m integration"
+addopts = "-m unit -v --cov-config=.coveragerc --cov=sdretriever --cov-report=xml"
 markers = [
     "unit",
     "integration"
@@ -40,6 +39,10 @@ docstring-quote = "double"
 [tool.mypy]
 files = [
     "sdretriever/**/*.py"
+]
+exclude = [
+    "^test.*\\.py$",
+    "conftest.py",
 ]
 mypy_path = [
     "../base",

@@ -34,7 +34,8 @@ class TestVoxelFiftyOneController():
             timestamp=datetime.now(tz=UTC),
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC),
-                end=datetime.now(tz=UTC))
+                end=datetime.now(tz=UTC)),
+            end_timestamp=datetime.now(tz=UTC)
         )
 
     @pytest.fixture

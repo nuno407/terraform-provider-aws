@@ -53,7 +53,8 @@ class TestS3Utils:
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC),
                 end=datetime.now(tz=UTC)
-            ))
+            ),
+            end_timestamp=datetime.fromisoformat("2022-12-21T14:21:44.806+00:00"))
 
     def test_is_s3_anonymized_file_present_or_raise_success(self, fix_video: S3VideoArtifact, s3_params: S3Params):
         fix_test_client = Mock()

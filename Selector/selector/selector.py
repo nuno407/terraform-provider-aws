@@ -126,7 +126,7 @@ class Selector:  # pylint: disable=too-few-public-methods
             except Exception as error:  # pylint: disable=broad-except
                 _logger.error("Unexpected error occured when requesting footage: %s", error)
                 return False
-            
+
         if len(decisions) == 0:
             _logger.info("Ride was not selected for training upload by any wule")
         return True

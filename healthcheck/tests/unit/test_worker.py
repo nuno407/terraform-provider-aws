@@ -23,6 +23,7 @@ def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", dev
         "upload_timing": TimeWindow(
             start=datetime.now(tz=UTC),
             end=datetime.now(tz=UTC)),
+        "end_timestamp": datetime.now(tz=UTC),
         **kwargs
     }
     if recorder in [RecorderType.INTERIOR, RecorderType.TRAINING, RecorderType.FRONT]:

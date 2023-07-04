@@ -4,11 +4,12 @@ import logging
 import re
 from typing import Callable, Iterator, Optional
 
-from base.aws.model import S3ObjectInfo
-from mypy_boto3_s3 import S3Client
-from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from botocore.errorfactory import ClientError
 from kink import inject
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
+
+from base.aws.model import S3ObjectInfo
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         if max_iterations < 1:
             raise ValueError("List_s3_objects needs do at least one iteration")
 
-        continuation_token = "" # nosec
+        continuation_token = ""  # nosec
 
         for i in range(0, max_iterations):
 

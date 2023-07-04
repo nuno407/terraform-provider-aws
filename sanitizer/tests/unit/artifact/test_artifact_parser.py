@@ -222,7 +222,7 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     s3_video_parser.parse = Mock(return_value=expected_artifacts)
     multisnapshot_parser = Mock()
     multisnapshot_parser.parse = Mock(return_value=expected_artifacts)
-    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, snapshot_parser)
+    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, multisnapshot_parser)
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT or expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:

@@ -31,7 +31,7 @@ class SanitizerConfig(BaseModel):
     }
 
     @validator("type_blacklist", pre=True, each_item=True)
-    def _validate_type_blacklist(cls, value: str) -> type[Artifact]:
+    def _validate_type_blacklist(cls, value: str) -> type[Artifact]:  # pylint: disable=no-self-argument
         if isinstance(value, str):
             return SanitizerConfig._artifact_types[value]
         return value

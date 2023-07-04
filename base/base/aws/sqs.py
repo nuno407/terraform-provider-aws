@@ -52,7 +52,7 @@ class SQSController:
             raise InitializationError("Invalid get queue url reponse")
         return response["QueueUrl"]
 
-    def get_message(self, wait_time : int = 20) -> Optional[MessageTypeDef]:
+    def get_message(self, wait_time: int = 20) -> Optional[MessageTypeDef]:
         """Get SQS queue message
 
         Returns:

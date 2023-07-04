@@ -155,7 +155,8 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
             _logger.debug(
                 "The following chunks were not found in RCC: %s",
                 snapshot_names.difference(found_metadata_filenames))
-            raise UploadNotYetCompletedError(f"Not all metadata chunks were found {len(metadata_chunks_found)}/{len(snapshot_names)}")
+            raise UploadNotYetCompletedError(
+                f"Not all metadata chunks were found {len(metadata_chunks_found)}/{len(snapshot_names)}")
 
         # Fetch metadata chunks from RCC S3
         downloaded_chunks = self.__download_chunks(list(metadata_chunks_found.values()))

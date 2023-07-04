@@ -108,8 +108,9 @@ class TestPreviewMetadataIngestor:
             end_timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
             recorder=RecorderType.INTERIOR_PREVIEW,
             upload_timing=TimeWindow(
-                start="2023-05-31T14:03:51.613360+00:00",
-                end="2023-05-31T15:03:51.613360+00:00"))
+                start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+                end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))
+            )
 
     @fixture()
     def snapshot_2(self) -> SnapshotArtifact:
@@ -122,8 +123,9 @@ class TestPreviewMetadataIngestor:
             end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
             recorder=RecorderType.INTERIOR_PREVIEW,
             upload_timing=TimeWindow(
-                start="2023-05-31T14:03:51.613360+00:00",
-                end="2023-05-31T15:03:51.613360+00:00"))
+                start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+                end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))
+            )
 
     @ fixture()
     def multi_snapshot_artifact(
@@ -137,8 +139,8 @@ class TestPreviewMetadataIngestor:
             end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
             recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
             upload_timing=TimeWindow(
-                start="2023-05-31T14:03:51.613360+00:00",
-                end="2023-05-31T15:03:51.613360+00:00"),
+                start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+                end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00")),
             recorder=RecorderType.INTERIOR_PREVIEW,
             chunks=[
                 snapshot_1,

@@ -1,10 +1,10 @@
 """ aws models module. """
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
-from datetime import datetime
 
 
 class S3ObjectInfo(BaseModel):
@@ -18,6 +18,7 @@ class S3ObjectInfo(BaseModel):
         return self.key.split("/")[-1]
 
     class Config:
+        """Convifg for object info"""
         frozen = True
 
 

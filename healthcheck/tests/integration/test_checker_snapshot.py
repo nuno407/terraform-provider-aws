@@ -102,7 +102,9 @@ class TestSnapshotArtifactChecker:
             timestamp=datetime.fromtimestamp(timestamp / 1000.0, tz=UTC),
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC) - timedelta(hours=1),
-                end=datetime.now(tz=UTC)))
+                end=datetime.now(tz=UTC)),
+            end_timestamp=datetime.fromtimestamp(timestamp / 1000.0, tz=UTC)
+        )
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:

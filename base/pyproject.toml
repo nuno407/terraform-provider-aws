@@ -44,6 +44,9 @@ files = [
     "base/**/*.py",
     "tests/**/*.py"
 ]
+exclude = [
+    "conftest.py",
+]
 plugins = [
     "pydantic.mypy"
 ]

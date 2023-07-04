@@ -61,6 +61,7 @@ def _input_message_snapshot(folder: str, timestamp: int) -> dict:
         "device_id": "device",
         "resolution": {"width": 640, "height": 360},
         "timestamp": timestamp,
+        "end_timestamp": timestamp,
         "upload_timing": {"start": timestamp + 1000, "end": timestamp + 2000},
         "recorder": "TrainingMultiSnapshot",
         "uuid": "foo",

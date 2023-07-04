@@ -31,5 +31,6 @@ class SDRetrieverConfig:  # pylint: disable=too-many-instance-attributes
             # We should ignore extra fields
             field_names = set(f.name for f in fields(SDRetrieverConfig))
             return SDRetrieverConfig(**{key: value for key,
-                                        value in yaml.safe_load(configfile).items()
+                                        value in yaml.safe_load(
+                                            configfile).items()
                                         if key in field_names})

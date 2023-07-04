@@ -40,6 +40,8 @@ class TestVoxelFunctions():
                 end=datetime(year=2023, month=1, day=1, hour=1,
                              minute=2, tzinfo=pytz.utc),
             ),
+            end_timestamp=datetime(year=2022, month=12, day=12,
+                                   hour=1, minute=1, tzinfo=pytz.utc),
             uuid="SOME_ID"
         )
 

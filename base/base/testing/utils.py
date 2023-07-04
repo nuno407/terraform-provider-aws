@@ -14,7 +14,8 @@ def get_abs_path(caller_file: str, file_path: str) -> str:
     Returns:
         str: THe absolute path to the file
     """
-    return os.path.join(os.path.dirname(os.path.abspath(caller_file)),file_path)
+    return os.path.join(os.path.dirname(os.path.abspath(caller_file)), file_path)
+
 
 def load_relative_raw_file(caller_file: str, file_path: str) -> bytes:
     """
@@ -30,7 +31,8 @@ def load_relative_raw_file(caller_file: str, file_path: str) -> bytes:
     with open(path_to_file, "rb") as file:
         return file.read()
 
-def load_relative_str_file(caller_file: str, file_path: str) -> bytes:
+
+def load_relative_str_file(caller_file: str, file_path: str) -> str:
     """
 
     Args:
@@ -38,7 +40,7 @@ def load_relative_str_file(caller_file: str, file_path: str) -> bytes:
         filename (str): The file path to load
 
     Returns:
-        bytes: _description_
+        str: _description_
     """
     data = load_relative_raw_file(caller_file, file_path)
     return data.decode("utf-8")

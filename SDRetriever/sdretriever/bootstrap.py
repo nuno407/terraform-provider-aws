@@ -50,7 +50,8 @@ def bootstrap_di():
     di[STSClient] = boto3.client("sts", region_name="eu-central-1")
 
     # base aws services
-    container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
+    container_services = ContainerServices(
+        container=CONTAINER_NAME, version=CONTAINER_VERSION)
     di[ContainerServices] = container_services
     di[ContainerServices].load_config_vars()
     di[ContainerServices].configure_logging("SDRetriever")

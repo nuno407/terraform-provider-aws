@@ -162,7 +162,7 @@ class TestArtifacts:
 
     @mark.parametrize("artifact,expected_id",
                       [[video(),
-                        "my_stream_1681370055771_1681370115771"],
+                        "bar_InteriorRecorder_my_footage_id_1681370055771_1681370115771"],
                        [snapshot(),
                         "foo_bar_abc_1681370055771"],
                           [multi_snapshot(),

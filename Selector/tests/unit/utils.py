@@ -18,7 +18,8 @@ class DataTestBuilder:
         self._pose_network_version = "pose_network"
         self._cve_reference_file = "refernce_file"
         self._chunkPTS = PtsTimeWindow(pts_start=0, pts_end=23040)
-        self._chunkUTC = UtcTimeWindow(utc_start=1687275042000, utc_end=1687275342000)
+        self._chunkUTC = UtcTimeWindow(
+            utc_start=1687275042000, utc_end=1687275342000)
         self._metadata_version = "0.6.3"
         self._bool_attributes: dict[str, bool] = {}
         self._float_attributes: dict[str, float] = {}
@@ -33,7 +34,7 @@ class DataTestBuilder:
         return self
 
     def with_frame_count(self, frame_count: int) -> "DataTestBuilder":
-        self._length = frame_count / self._framerate
+        self._length = frame_count / self._frame_sec
         return self
 
     def with_metadata_version(self, metadata_version: str) -> "DataTestBuilder":
@@ -55,13 +56,17 @@ class DataTestBuilder:
     def build(self) -> PreviewMetadataV063:
         framecount = int(self._length * self._frame_sec)
         frames = []
-        self._chunkUTC.start = self._chunkUTC.end - self._length * self._frame_sec * 1000
-        self._chunkPTS.end = self._length * self._frame_sec * 1000
+        self._chunkUTC.start = int(
+            self._chunkUTC.end - self._length * self._frame_sec * 1000)
+        self._chunkPTS.end = int(self._length * self._frame_sec * 1000)
 
         objectlist: list[Union[FloatObject, BoolObject, IntegerObject]] = [
+            # type: ignore
             BoolObject(bool_attributes=[self._bool_attributes]),
+            # type: ignore
             FloatObject(float_attributes=[self._float_attributes]),
-            IntegerObject(integer_attributes=[self._integer_attributes])
+            IntegerObject(integer_attributes=[
+                          self._integer_attributes])  # type: ignore
         ]
         for i in range(framecount):
             frame = Frame(

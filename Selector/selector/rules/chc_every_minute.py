@@ -92,7 +92,7 @@ class CHCEveryMinute(Rule):
             .map(lambda x: (x[0].utc_time, self.__get_any_blocked(x[0], x[1]))) \
             .sorted(key=lambda x: x[0]) \
             .to_list()
-        
+
         # Skip if metadata doesn't have frames
         if len(sorted_chc) == 0:
             return []

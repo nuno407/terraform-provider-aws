@@ -55,10 +55,14 @@ class MetadataMerger():
 
         # Calculate the bounds for partial timestamps
         # the start of the earliest and the end of the latest
-        starting_chunk_time_pts = min(int(chunk[pts_key]["pts_start"]) for chunk in chunks)
-        starting_chunk_time_utc = min(int(chunk[utc_key]["utc_start"]) for chunk in chunks)
-        ending_chunk_time_pts = max(int(chunk[pts_key]["pts_end"]) for chunk in chunks)
-        ending_chunk_time_utc = max(int(chunk[utc_key]["utc_end"]) for chunk in chunks)
+        starting_chunk_time_pts = min(
+            int(chunk[pts_key]["pts_start"]) for chunk in chunks)
+        starting_chunk_time_utc = min(
+            int(chunk[utc_key]["utc_start"]) for chunk in chunks)
+        ending_chunk_time_pts = max(
+            int(chunk[pts_key]["pts_end"]) for chunk in chunks)
+        ending_chunk_time_utc = max(
+            int(chunk[utc_key]["utc_end"]) for chunk in chunks)
         pts = {
             "pts_start": starting_chunk_time_pts,
             "pts_end": ending_chunk_time_pts,
@@ -120,8 +124,10 @@ class MetadataMerger():
             list[dict]: The metadata merged
         """
 
-        json_chunks: list[dict] = MetadataMerger.convert_metachunk_to_mdf(metachunks)
-        resolution, pts, mdf_data = MetadataMerger.process_chunks_into_mdf(json_chunks)
+        json_chunks: list[dict] = MetadataMerger.convert_metachunk_to_mdf(
+            metachunks)
+        resolution, pts, mdf_data = MetadataMerger.process_chunks_into_mdf(
+            json_chunks)
 
         if len(json_chunks) == 0:
             return {}

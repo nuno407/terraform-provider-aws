@@ -156,7 +156,8 @@ class S3FinderRCC:  # pylint: disable=too-few-public-methods
             Iterator[str]: A list containing all paths from root to the last folder (hour folder).
         """
 
-        _logger.debug("Discovering folders while searching on %s - %s", start_time, end_time)
+        _logger.debug(
+            "Discovering folders while searching on %s - %s", start_time, end_time)
 
         # Reset minutes
         start_time_zero = start_time.replace(minute=0)
