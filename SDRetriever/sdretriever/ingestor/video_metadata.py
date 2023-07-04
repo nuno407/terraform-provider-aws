@@ -91,7 +91,8 @@ class VideoMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-pub
         for chunk in chunks:
             if chunk.get('frame'):
                 for frame in chunk["frame"]:
-                    frames.append(frame)
+                    if isinstance(frame, dict) and "number" in frame:
+                        frames.append(frame)
             else:
                 _logger.warning("No frames in metadata chunk -> %s", chunk)
 
