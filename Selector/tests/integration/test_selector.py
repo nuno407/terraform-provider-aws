@@ -15,8 +15,6 @@ from base.aws.s3 import S3Controller
 from selector.footage_api_wrapper import FootageApiWrapper
 from base.model.artifacts import RecorderType
 from selector.decision import Decision
-from typing import cast
-from kink import di
 import os
 import json
 
@@ -129,7 +127,7 @@ class TestSelector:
         moto_sqs_client.send_message(
             QueueUrl=queue_answer["QueueUrl"],
             MessageBody=json.dumps(sqs_message))
-        footage_api.request_recorder = Mock()
+        footage_api.request_recorder = Mock()  # type: ignore
 
         expected_calls = [
             call(

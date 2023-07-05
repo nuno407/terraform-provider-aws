@@ -72,8 +72,8 @@ def video() -> S3VideoArtifact:
         timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
         end_timestamp=datetime.fromisoformat("2023-04-13T07:15:15.770982+00:00"),
         upload_timing=TimeWindow(
-            start="2023-04-13T08:00:00+00:00",  # type: ignore
-            end="2023-04-13T08:01:00+00:00"),  # type: ignore
+            start=datetime.fromisoformat("2023-04-13T08:00:00+00:00"),
+            end=datetime.fromisoformat("2023-04-13T08:01:00+00:00")),
         footage_id="my_footage_id",
         rcc_s3_path="s3://bucket/key"
     )
@@ -87,8 +87,8 @@ def multi_snapshot() -> MultiSnapshotArtifact:
         end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
         recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
         upload_timing=TimeWindow(
-            start="2023-05-31T14:03:51.613360+00:00",
-            end="2023-05-31T15:03:51.613360+00:00"),
+            start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+            end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00")),
         recorder=RecorderType.INTERIOR_PREVIEW,
         chunks=[
             SnapshotArtifact(
@@ -99,8 +99,8 @@ def multi_snapshot() -> MultiSnapshotArtifact:
                 end_timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
                 recorder=RecorderType.INTERIOR_PREVIEW,
                 upload_timing=TimeWindow(
-                    start="2023-05-31T14:03:51.613360+00:00",
-                    end="2023-05-31T15:03:51.613360+00:00")),
+                    start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+                    end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))),
             SnapshotArtifact(
                 uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
                 device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
@@ -109,8 +109,8 @@ def multi_snapshot() -> MultiSnapshotArtifact:
                 end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
                 recorder=RecorderType.INTERIOR_PREVIEW,
                 upload_timing=TimeWindow(
-                    start="2023-05-31T14:03:51.613360+00:00",
-                    end="2023-05-31T15:03:51.613360+00:00"))])
+                    start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
+                    end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00")))])
 
 
 def preview_signals() -> PreviewSignalsArtifact:
@@ -119,10 +119,6 @@ def preview_signals() -> PreviewSignalsArtifact:
         device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
         timestamp=static_date() - timedelta(minutes=2),
         end_timestamp=static_date() - timedelta(minutes=1),
-        upload_timing=TimeWindow(
-            start=static_date() - timedelta(seconds=10),
-            end=static_date() - timedelta(seconds=5)
-        ),
         referred_artifact=multi_snapshot()
     )
 

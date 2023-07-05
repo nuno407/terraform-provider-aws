@@ -55,7 +55,7 @@ class TestRuleCameraAlwaysBlocked:
             for object in frame.objectlist:
                 if isinstance(
                         object, IntegerObject) and self._attribute_name in object.integer_attributes[0]:
-                    object.integer_attributes[0][self._attribute_name] = 1
+                    object.integer_attributes[0][self._attribute_name] = "1"
         ctx = Context(minimal_preview_metadata, artifact)
 
         # WHEN
@@ -72,7 +72,7 @@ class TestRuleCameraAlwaysBlocked:
         for i, frame in enumerate(minimal_preview_metadata.frames):
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject):
-                    object.integer_attributes[0][self._attribute_name] = i > 2
+                    object.integer_attributes[0][self._attribute_name] = "1" if i > 2 else "0"
         ctx = Context(minimal_preview_metadata, artifact)
 
         # WHEN

@@ -9,6 +9,7 @@ from selector.selector import Selector
 
 _logger = ContainerServices.configure_logging("selector")
 
+
 @inject
 def main(selector: Selector):
     """Main function"""

@@ -29,29 +29,40 @@ class TestMetadataMerger:
     @pytest.mark.parametrize("chunks,expected_merge", [
         (
             [
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
             ],
             helper_load_merged_metadata("preview_recorder_merged.json")
         ),
         # Test file without frames
         (
             [
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg.interior_20230609_070257_901_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg.interior_20230609_070257_901_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
             ],
             helper_load_merged_metadata("preview_recorder_merged.json")
         ),
         # Test file with empty frames
         (
             [
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg.interior_20230609_070257_903_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
-                helper_load_raw_metadata("InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1.jpeg.interior_20230609_070257_903_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_2.jpeg.interior_20230609_070327_902_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_3.jpeg.interior_20230609_070357_901_metadata.json"),
+                helper_load_raw_metadata(
+                    "InteriorRecorderPreview_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_4.jpeg.interior_20230609_070427_901_metadata.json")
             ],
             helper_load_merged_metadata("preview_recorder_merged.json")
         )

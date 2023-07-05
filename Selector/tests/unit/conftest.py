@@ -1,7 +1,7 @@
 import os
 
 from pytest import fixture
-
+from typing import cast
 from selector.model import PreviewMetadataV063, parse
 
 CURRENT_LOCATION = os.path.realpath(
@@ -17,9 +17,9 @@ def minimal_preview_metadata_str() -> str:
 
 @fixture
 def real_preview_metadata(real_preview_metadata_str: str) -> PreviewMetadataV063:
-    return parse(real_preview_metadata_str)
+    return cast(PreviewMetadataV063, parse(real_preview_metadata_str))
 
 
 @fixture
 def minimal_preview_metadata(minimal_preview_metadata_str: str) -> PreviewMetadataV063:
-    return parse(minimal_preview_metadata_str)
+    return cast(PreviewMetadataV063, parse(minimal_preview_metadata_str))

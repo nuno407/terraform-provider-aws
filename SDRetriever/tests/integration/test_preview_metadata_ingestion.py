@@ -61,7 +61,7 @@ class TestPreviewMetadataIngestion:
         parsed_expected_metadata = json.loads(expected_metadata.decode())
 
         # THEN
-        assert download_sqs_controller.get_message(0) == None
+        assert download_sqs_controller.get_message(0) is None
         assert parsed_expected_metadata == parsed_devcloud_metadata
         assert hq_parsed_message == json.loads(output_sqs_message)
         assert result_bucket == devcloud_temporary_bucket

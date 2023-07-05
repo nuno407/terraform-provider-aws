@@ -110,7 +110,7 @@ class TestPreviewMetadataIngestor:
             upload_timing=TimeWindow(
                 start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
                 end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))
-            )
+        )
 
     @fixture()
     def snapshot_2(self) -> SnapshotArtifact:
@@ -125,7 +125,7 @@ class TestPreviewMetadataIngestor:
             upload_timing=TimeWindow(
                 start=datetime.fromisoformat("2023-05-31T14:03:51.613360+00:00"),
                 end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))
-            )
+        )
 
     @ fixture()
     def multi_snapshot_artifact(

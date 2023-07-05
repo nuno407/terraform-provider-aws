@@ -100,7 +100,7 @@ class TestChcEveryMinute:
             ts = data_chc_false.get_frame_utc_timestamp(frame)
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject) and ts < last_ts:
-                    object.integer_attributes[0]["interior_camera_health_response_cve"] = 1
+                    object.integer_attributes[0]["interior_camera_health_response_cve"] = "1"
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))
@@ -120,7 +120,7 @@ class TestChcEveryMinute:
             for object in frame.objectlist:
                 ts = data_chc_false.get_frame_utc_timestamp(frame)
                 if isinstance(object, IntegerObject) and ts < last_ts:
-                    object.integer_attributes[0]["interior_camera_health_response_cvb"] = 1
+                    object.integer_attributes[0]["interior_camera_health_response_cvb"] = "1"
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))

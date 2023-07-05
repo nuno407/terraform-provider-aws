@@ -4,7 +4,7 @@ from mypy_boto3_sqs.client import SQSClient
 from mypy_boto3_s3 import S3Client
 from pytz import UTC
 import os
-import moto # type: ignore
+import moto  # type: ignore
 import json
 import random
 from typing import Any, cast
@@ -49,7 +49,8 @@ def get_s3_cloud_state(filename: str) -> list[S3File]:
     Returns:
         list[S3File]: A list of files to be mocked.
     """
-    data: list[dict[Any, Any]] = cast(list[dict[Any, Any]], load_relative_json_file(__file__, os.path.join("data", "cloud_s3_state", filename)))
+    data: list[dict[Any, Any]] = cast(list[dict[Any, Any]], load_relative_json_file(
+        __file__, os.path.join("data", "cloud_s3_state", filename)))
     result: list[S3File] = []
     for s3_file_dict in data:
         if "data" in s3_file_dict:

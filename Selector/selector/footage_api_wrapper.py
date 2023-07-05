@@ -50,7 +50,7 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
         Raises:
             RuntimeError: _description_
         """
-        _logger.info("Requesting %s footage between %s and %s", recorder_type.value, str(from_datetime), \
+        _logger.info("Requesting %s footage between %s and %s", recorder_type.value, str(from_datetime),
                      str(to_datetime))
 
         recorder = self.__convert_input_recorder_type(recorder_type)

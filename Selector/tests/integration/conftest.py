@@ -1,6 +1,5 @@
-import json
 import os
-from typing import Any, Generator, Callable
+from typing import Generator, Callable
 import boto3
 from kink import di
 from mypy_boto3_sqs import SQSClient
@@ -9,8 +8,7 @@ from base.aws.s3 import S3Controller
 from base.testing.utils import get_abs_path
 import pytest
 from unittest.mock import Mock, PropertyMock
-from selector.selector import Selector
-from moto import mock_s3, mock_sqs
+from moto import mock_s3, mock_sqs  # type: ignore
 from base.aws.container_services import ContainerServices
 from base.graceful_exit import GracefulExit
 from selector.rules.ruleset import ruleset
@@ -113,8 +111,16 @@ def footage_api(footage_api_url, footage_manager) -> FootageApiWrapper:
 
 
 @pytest.fixture()
-def run_bootstrap(moto_s3_client: S3Client, moto_sqs_client: SQSClient, container_services: ContainerServices,
-                  one_time_gracefull_exit: GracefulExit, client_id, client_secret, footage_api_url: str, footage_manager: FootageApiTokenManager, footage_api: FootageApiWrapper):
+def run_bootstrap(
+        moto_s3_client: S3Client,
+        moto_sqs_client: SQSClient,
+        container_services: ContainerServices,
+        one_time_gracefull_exit: GracefulExit,
+        client_id,
+        client_secret,
+        footage_api_url: str,
+        footage_manager: FootageApiTokenManager,
+        footage_api: FootageApiWrapper):
 
     di.clear_cache()
     di[FootageApiWrapper] = footage_api

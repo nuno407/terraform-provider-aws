@@ -8,7 +8,7 @@ from base.model.artifacts import RecorderType
 from selector.decision import Decision
 from selector.evaluator import Evaluator
 
-dummy_date = datetime(year=2023,month=1,day=10,hour=1,tzinfo=UTC)
+dummy_date = datetime(year=2023, month=1, day=10, hour=1, tzinfo=UTC)
 
 from_ts = dummy_date - timedelta(minutes=5)
 to_ts = dummy_date

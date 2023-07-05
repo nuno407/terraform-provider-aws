@@ -34,6 +34,7 @@ def kinesis_video_ing():
     """
     return Mock()
 
+
 @pytest.fixture
 def preview_metadata_ing():
     """MetadataIngestor fixture
