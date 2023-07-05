@@ -34,7 +34,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
         Returns:
             permitted_decisions (set(Decision)): all valid outcomes of the evaluation
         """
-
+        logger.info("Evaluating %d rules", len(self.__ruleset))
         context = Context(preview_metadata, artifact)
         decisions: list[Decision] = self.__call_rules(context)
         valid_and_permitted_decisions = (seq(decisions)
@@ -55,6 +55,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
         """
         rule_results = list(map(lambda r: r.evaluate(context), self.__ruleset))
         decisions = list(chain.from_iterable(rule_results))
+        logger.debug("A total of %d decisions were returned", len(decisions))
         return decisions
 
     def __validate_decision(self, context: Context, decision: Decision) -> bool:

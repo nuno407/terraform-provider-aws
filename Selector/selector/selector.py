@@ -128,5 +128,5 @@ class Selector:  # pylint: disable=too-few-public-methods
                 return False
 
         if len(decisions) == 0:
-            _logger.info("Ride was not selected for training upload by any wule")
+            _logger.info("Ride was not selected for training upload by any rule")
         return True

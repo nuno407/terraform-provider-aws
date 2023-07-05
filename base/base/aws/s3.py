@@ -77,7 +77,7 @@ class S3Controller:  # pylint: disable=too-few-public-methods
 
         object_file = response["Body"].read()
 
-        _logger.debug("Downloaded [%s]", full_path)
+        _logger.info("Downloaded [%s]", full_path)
 
         return object_file
 

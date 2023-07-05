@@ -1,8 +1,9 @@
 """Rule for chc every minute"""
+
+import logging
 from datetime import datetime, timedelta
 from math import ceil
 from typing import cast
-
 from functional import seq  # type: ignore
 
 from base.model.artifacts import RecorderType
@@ -11,6 +12,8 @@ from selector.decision import Decision
 from selector.model import PreviewMetadata
 from selector.model.preview_metadata import FrameSignal
 from selector.rule import Rule
+
+logger = logging.getLogger(__name__)
 
 
 class CHCEveryMinute(Rule):
@@ -44,6 +47,7 @@ class CHCEveryMinute(Rule):
         Returns:
             Decision: Request training recorders if the condition matches.
         """
+        logger.debug("Evaluating '%s' rule", self.rule_name)
         # do not request anything when Metadata version is not supported
         chc_per_window: list[int] = self.__get_chc_per_window(context.preview_metadata)
 
@@ -54,6 +58,11 @@ class CHCEveryMinute(Rule):
             all_chc = all(map(lambda x: x >= self._min_hits_per_window,
                           chc_per_window[window_start:window_end]))
             if all_chc:
+                logger.info(
+                    "The %s has issued a training upload from %s to %s",
+                    self.rule_name,
+                    context.metadata_artifact.timestamp,
+                    context.metadata_artifact.end_timestamp)
                 return [Decision(recorder=RecorderType.TRAINING,
                                  footage_from=context.metadata_artifact.timestamp,
                                  footage_to=context.metadata_artifact.end_timestamp)]

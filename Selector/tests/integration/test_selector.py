@@ -33,7 +33,7 @@ class TestSelector:
 
     @ pytest.mark.integration
     @ pytest.mark.parametrize("sqs_message, s3_file, decision_list", [
-        # Test camera view blocked and out of ride boundaries
+        # Test camera view blocked
         (
             get_sqs_message("sqs_message_preview_real_cvb.json"),
             get_s3_file("preview_metadata_real_cvb.json"),
@@ -42,6 +42,18 @@ class TestSelector:
                     RecorderType.TRAINING,
                     datetime(2023, 7, 3, 8, 37, 59, 467000, tzinfo=timezone.utc),
                     datetime(2023, 7, 3, 8, 38, 29, 461000, tzinfo=timezone.utc)
+                )
+            ]
+        ),
+        # Test camera view blocked
+        (
+            get_sqs_message("sqs_message_preview_cvb_2.json"),
+            get_s3_file("preview_metadata_cvb_2.json"),
+            [
+                Decision(
+                    RecorderType.TRAINING,
+                    datetime(2023, 7, 5, 14, 8, 54, 177000, tzinfo=timezone.utc),
+                    datetime(2023, 7, 5, 14, 9, 24, 123000, tzinfo=timezone.utc)
                 )
             ]
         ),
@@ -84,7 +96,7 @@ class TestSelector:
             ]
         )
 
-    ], ids=["selector_integration_test_1", "selector_integration_test_2", "selector_integration_test_3", "selector_integration_test_4", "selector_integration_test_5"], scope="function")
+    ], ids=["selector_integration_test_1", "selector_integration_test_2", "selector_integration_test_3", "selector_integration_test_4", "selector_integration_test_5", "selector_integration_test_6"], scope="function")
     def test_selector(self,
                       sqs_message: dict[Any,
                                         Any],
@@ -100,8 +112,7 @@ class TestSelector:
         """
         This test function mocks the SQS and S3 and tests the component end2end.
 
-        Remarks: The API is mocked directly from the FootageAPIWrapper, in the future
-        this could improved by connecting to a mocked server to improve test coverage.
+        Remarks: The API is mocked directly in the FootageAPIWrapper
 
 
         Args:

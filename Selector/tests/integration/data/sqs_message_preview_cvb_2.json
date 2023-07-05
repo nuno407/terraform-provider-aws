@@ -1,0 +1,52 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_01",
+    "s3_path": "s3://dev-rcd-temporary-metadata-files/datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorderPreview-2769d416-defa-4f81-ac0f-e41c6ceabdc2_1688566134177_metadata_preview.json",
+    "referred_artifact": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "s3_path": null,
+        "resolution": null,
+        "recorder": "InteriorRecorderPreview",
+        "timestamp": "2023-07-05T14:08:54.177000+00:00",
+        "end_timestamp": "2023-07-05T14:09:24.123000+00:00",
+        "upload_timing": {
+            "start": "2023-07-05T13:09:41.149213+00:00",
+            "end": "2023-07-05T14:09:41.149213+00:00"
+        },
+        "chunks": [
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_01",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-07-05T14:08:54.177000+00:00",
+                "end_timestamp": "2023-07-05T14:08:54.177000+00:00",
+                "upload_timing": {
+                    "start": "2023-07-05T13:09:41.149213+00:00",
+                    "end": "2023-07-05T14:09:41.149213+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-2769d416-defa-4f81-ac0f-e41c6ceabdc2_1.jpeg"
+            },
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_01",
+                "s3_path": null,
+                "resolution": null,
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-07-05T14:08:54.177000+00:00",
+                "end_timestamp": "2023-07-05T14:09:24.123000+00:00",
+                "upload_timing": {
+                    "start": "2023-07-05T13:09:41.149213+00:00",
+                    "end": "2023-07-05T14:09:41.149213+00:00"
+                },
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-2769d416-defa-4f81-ac0f-e41c6ceabdc2_2.jpeg"
+            }
+        ],
+        "recording_id": "InteriorRecorderPreview-2769d416-defa-4f81-ac0f-e41c6ceabdc2"
+    },
+    "metadata_type": "metadata_preview",
+    "timestamp": "2023-07-05T14:08:54.177000+00:00",
+    "end_timestamp": "2023-07-05T14:09:24.123000+00:00"
+}
