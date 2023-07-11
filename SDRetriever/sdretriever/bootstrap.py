@@ -61,6 +61,7 @@ def bootstrap_di():
         role_session="DevCloud-SDRetriever")
 
     di["rcc_bucket"] = container_services.rcc_info["s3_bucket"]
+    di["devcloud_raw_bucket"] = container_services.raw_s3
 
     # rcc boto3 clients
     di[S3ClientFactory] = __create_rcc_s3_boto3_client(di[StsHelper])

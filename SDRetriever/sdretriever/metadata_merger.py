@@ -5,7 +5,7 @@ import logging
 from operator import itemgetter
 from typing import Any
 
-from sdretriever.ingestor.metacontent import MetacontentChunk
+from sdretriever.ingestor.metacontent import S3Object
 _logger = logging.getLogger("SDRetriever." + __name__)
 
 
@@ -88,7 +88,7 @@ class MetadataMerger():
         return resolution, pts, mdf_data
 
     @staticmethod
-    def convert_metachunk_to_mdf(metachunks: list[MetacontentChunk]) -> list[dict]:
+    def convert_metachunk_to_mdf(metachunks: list[S3Object]) -> list[dict]:
         """
         Convert the metachunk into an object that can be read by _process_chunks_into_mdf.
 
@@ -113,7 +113,7 @@ class MetadataMerger():
         return formated_chunks
 
     @staticmethod
-    def merge_metadata_chunks(metachunks: list[MetacontentChunk]) -> dict[str, Any]:
+    def merge_metadata_chunks(metachunks: list[S3Object]) -> dict[str, Any]:
         """
         Merge the metadata chunks and returns the original format but with multiple frames.
 
