@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, validator
 from base.model.artifacts import (Artifact, ImageBasedArtifact, IMUArtifact,
                                   KinesisVideoArtifact, MetadataArtifact,
                                   S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact)
+                                  SnapshotArtifact, VideoArtifact, PreviewSignalsArtifact)
 
 
 class SanitizerConfig(BaseModel):
@@ -27,7 +27,8 @@ class SanitizerConfig(BaseModel):
         "SnapshotArtifact": SnapshotArtifact,
         "MetadataArtifact": MetadataArtifact,
         "IMUArtifact": IMUArtifact,
-        "SignalsArtifact": SignalsArtifact
+        "SignalsArtifact": SignalsArtifact,
+        "PreviewSignalsArtifact": PreviewSignalsArtifact,
     }
 
     @validator("type_blacklist", pre=True, each_item=True)
