@@ -1,8 +1,6 @@
 """ Module for auto MessageVisibility Increaser. """
 import multiprocessing
 import time
-import signal
-import sys
 from base.aws.container_services import ContainerServices
 
 _logger = ContainerServices.configure_logging(__name__)
@@ -19,14 +17,7 @@ class AutoMessageVisibilityIncreaser:
 
     """
 
-    def _handler(self, _signum, _frame):
-        _logger.info("Stop extending visibility timeout.")
-        sys.exit()
-
     def _increase_visibility_timeout(self):
-        # We may need to override the parent handlers to correctly exit the process
-        signal.signal(signal.SIGTERM, self._handler)
-
         while True:
             time.sleep(self.interval)
             _logger.info("Increasing visibility timeout.")
@@ -50,4 +41,6 @@ class AutoMessageVisibilityIncreaser:
         self.visibility_process.start()
 
     def __exit__(self, _type, _value, _traceback):
-        self.visibility_process.terminate()
+        self.visibility_process.kill()
+        self.visibility_process.join()
+        _logger.info("AutoMessageVisibilityIncreaser process killed")

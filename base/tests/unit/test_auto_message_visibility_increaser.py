@@ -14,14 +14,16 @@ class TestAutoMessageVisibilityIncreaser():
         sqs_client_mock = Mock()
         container_services_mock = Mock()
         multiprocessing_process_mock.return_value.start = Mock()
-        multiprocessing_process_mock.return_value.terminate = Mock()
+        multiprocessing_process_mock.return_value.kill = Mock()
+        multiprocessing_process_mock.return_value.join = Mock()
 
         with AutoMessageVisibilityIncreaser(sqs_client_mock, "Receipt_handle", container_services_mock, 0, "input_queue"):
             pass
 
         multiprocessing_process_mock.assert_called_once()
         multiprocessing_process_mock.return_value.start.assert_called_once()
-        multiprocessing_process_mock.return_value.terminate.assert_called_once()
+        multiprocessing_process_mock.return_value.kill.assert_called_once()
+        multiprocessing_process_mock.return_value.join.assert_called_once()
 
     @patch("base.aws.auto_message_visibility_increaser.time.sleep")
     @patch("base.aws.auto_message_visibility_increaser.multiprocessing.Process")
@@ -29,7 +31,8 @@ class TestAutoMessageVisibilityIncreaser():
         sqs_client_mock = Mock()
         container_services_mock = Mock()
         multiprocessing_process_mock.return_value.start = Mock()
-        multiprocessing_process_mock.return_value.terminate = Mock()
+        multiprocessing_process_mock.return_value.kill = Mock()
+        multiprocessing_process_mock.return_value.join = Mock()
 
         try:
             with AutoMessageVisibilityIncreaser(sqs_client_mock, "Receipt_handle", container_services_mock, 0, "input_queue"):
@@ -39,4 +42,4 @@ class TestAutoMessageVisibilityIncreaser():
 
         multiprocessing_process_mock.assert_called_once()
         multiprocessing_process_mock.return_value.start.assert_called_once()
-        multiprocessing_process_mock.return_value.terminate.assert_called_once()
+        multiprocessing_process_mock.return_value.join.assert_called_once()
