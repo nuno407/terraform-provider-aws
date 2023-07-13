@@ -4,15 +4,14 @@ from datetime import datetime
 from typing import TypeVar
 
 from kink import inject
+import pytz
 
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, SnapshotArtifact
-from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import FileExt
-from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.models import S3ObjectDevcloud, RCCS3SearchParams
+from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.s3_downloader_uploader import S3DownloaderUploader
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -25,14 +24,8 @@ class SnapshotIngestor(Ingestor):
 
     def __init__(
             self,
-            container_services: ContainerServices,
-            rcc_s3_client_factory: S3ClientFactory,
-            s3_controller: S3Controller,
-            config: SDRetrieverConfig,
-            s3_finder: S3FinderRCC) -> None:
-        super().__init__(container_services, rcc_s3_client_factory, s3_finder, s3_controller)
-        self._s3_controller = s3_controller
-        self._config = config
+            s3_interface: S3DownloaderUploader) -> None:
+        self.__s3_interface = s3_interface
 
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """
@@ -42,31 +35,26 @@ class SnapshotIngestor(Ingestor):
 
         # Initialize file name and path
         snap_name = f"{artifact.artifact_id}{FileExt.SNAPSHOT.value}"
-        snap_path = f"{artifact.tenant_id}/{snap_name}"
 
-        # Checks if exists in devcloud
-        exists_on_devcloud = self._s3_controller.check_s3_file_exists(
-            self._container_svcs.raw_s3, snap_path)
+        # Download data
+        params = RCCS3SearchParams(
+            device_id=artifact.device_id,
+            tenant=artifact.tenant_id,
+            start_search=artifact.timestamp,
+            stop_search=datetime.now(
+                tz=pytz.UTC))
 
-        if exists_on_devcloud and self._config.discard_video_already_ingested:
-            message = f"File {snap_path} already exists on {self._container_svcs.raw_s3}"
-            _logger.info(message)
-            raise FileAlreadyExists(message)
-
-        rcc_s3_bucket = self._container_svcs.rcc_info.get('s3_bucket')
-        # download the file from RCC - an exception is raised if the file is not found
-        jpeg_data = self.get_file_in_rcc(rcc_s3_bucket,
-                                         artifact.tenant_id,
-                                         artifact.device_id,
-                                         artifact.uuid,
-                                         artifact.timestamp,
-                                         datetime.now(),
-                                         [".jpeg",
-                                          ".png"])
+        downloaded_object = self.__s3_interface.search_and_download_from_rcc(
+            file_name=artifact.uuid, search_params=params)
 
         # Upload files to DevCloud
-        snap_full_path = self._upload_file(snap_path, jpeg_data)
+        devcloud_object = S3ObjectDevcloud(
+            data=downloaded_object.data,
+            filename=snap_name,
+            tenant=artifact.tenant_id)
+
+        path_uploaded = self.__s3_interface.upload_to_devcloud_raw(devcloud_object)
 
         # update artifact with s3 path
-        _logger.info("Successfully uploaded to %s", snap_full_path)
-        artifact.s3_path = snap_full_path
+        _logger.info("Successfully uploaded to %s", path_uploaded)
+        artifact.s3_path = path_uploaded
