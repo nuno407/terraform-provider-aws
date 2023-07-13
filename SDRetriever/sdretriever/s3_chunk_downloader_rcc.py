@@ -11,7 +11,7 @@ _logger = logging.getLogger(__file__)
 
 
 @inject
-class ChunkDownloader:
+class RCCChunkDownloader:
     """
     Class responsible for downloading the chunks from RCC
     based on the FootageCompleteDevCloudEvent message.

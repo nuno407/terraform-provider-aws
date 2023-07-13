@@ -16,19 +16,19 @@ class RCCS3SearchParams:
 
 
 @dataclass
-class S3ObjectRCC:
-    """Data from an S3 bucket"""
-    data: bytes
-    s3_key: str
-    bucket: str
-
-
-@dataclass
 class S3ObjectDevcloud:
     """Data from an S3 bucket"""
     data: bytes
     filename: str
     tenant: str
+
+
+@dataclass
+class S3ObjectRCC:
+    """Data from an S3 bucket"""
+    data: bytes
+    s3_key: str
+    bucket: str
 
 
 @dataclass
