@@ -18,7 +18,7 @@ from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.s3_finder_rcc import S3FinderRCC
 from sdretriever.s3_crawler_rcc import S3CrawlerRCC
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.ingestor.metacontent import (MetacontentChunk, MetacontentDevCloud)
+from sdretriever.ingestor.metacontent import (S3Object, MetacontentDevCloud)
 from sdretriever.models import RCCS3SearchParams
 from base.aws.model import S3ObjectInfo
 
@@ -192,7 +192,7 @@ class TestPreviewMetadataIngestor:
             return_value={
                 "mock1": MagicMock(),
                 "mock2": MagicMock()})  # type: ignore[method-assign]
-        preview_metadata_ingestor._get_metacontent_chunks = Mock(return_value=[Mock()])
+        preview_metadata_ingestor._download_from_rcc = Mock(return_value=[Mock()])
 
         # WHEN
         with raises(S3FileNotFoundError):
@@ -246,7 +246,7 @@ class TestPreviewMetadataIngestor:
             snapshot_artifact.uuid for snapshot_artifact in preview_metadata_artifact.referred_artifact.chunks}
         devcloud_path_uploaded = "s3://some/path"
         downloaded_metachunks = [
-            MetacontentChunk(
+            S3Object(
                 b"MOCK",
                 "mock_path") for _ in multi_snapshot_artifact.chunks]
         metadata_chunks_found = rcc_crawler_search_result(multi_snapshot_artifact)
@@ -267,7 +267,7 @@ class TestPreviewMetadataIngestor:
             ".json")
 
         s3_crawler.search_files = Mock(return_value=metadata_chunks_found)
-        preview_metadata_ingestor._get_metacontent_chunks = Mock(return_value=downloaded_metachunks)
+        preview_metadata_ingestor._download_from_rcc = Mock(return_value=downloaded_metachunks)
         preview_metadata_ingestor._upload_metacontent_to_devcloud = Mock(
             return_value=devcloud_path_uploaded)
         metadata_merger.merge_metadata_chunks = Mock(return_value=merged_chunks)
@@ -280,7 +280,7 @@ class TestPreviewMetadataIngestor:
             snapshot_names,
             rcc_s3_params,
             match_to_file=preview_metadata_ingestor.metadata_chunk_match)
-        preview_metadata_ingestor._get_metacontent_chunks.assert_called_once_with(
+        preview_metadata_ingestor._download_from_rcc.assert_called_once_with(
             metadata_chunks_keys)
         metadata_merger.merge_metadata_chunks.assert_called_once_with(downloaded_metachunks)
         preview_metadata_ingestor._upload_metacontent_to_devcloud.assert_called_once_with(

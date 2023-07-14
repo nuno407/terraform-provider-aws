@@ -17,14 +17,14 @@ class RCCChunkDownloader:
     based on the FootageCompleteDevCloudEvent message.
     """
 
-    def __init__(self, s3_crawler: S3CrawlerRCC, s3_downloader: S3DownloaderUploader, suffix: str):
+    def __init__(self, s3_crawler: S3CrawlerRCC, s3_downloader: S3DownloaderUploader):
         self.__s3_crawler = s3_crawler
-        self.__suffix = suffix
+        self.__suffix: Optional[str] = None
         self.__s3_downloader = s3_downloader
 
         # to be used by the callback function
         self.__match_pattern = re.compile(
-            rf"([^\W_]+_[^\W_]+-[a-z0-9\-]+_\d+)\.[^\W_]+.+{suffix}$")
+            r"^([^\W_]+_[^\W_]+-[a-z0-9\-]+_\d+)\..*$")
 
     def __file_match(self, file_path: str) -> Optional[str]:
         """
@@ -48,6 +48,9 @@ class RCCChunkDownloader:
         Returns:
             Optional[str]: Return the file ID or None if cannot be extrapolated.
         """
+        if self.__suffix is None:
+            raise ValueError("Suffix cannot be null while searching for chunks in RCC")
+
         if not file_path.endswith(self.__suffix):
             return None
 
@@ -60,6 +63,7 @@ class RCCChunkDownloader:
     def download_files(self, params: ChunkDownloadParams) -> list[S3ObjectRCC]:
         """
         Download files from RCC based on the FootageCompleteDevCloudEvent message.
+        Files that end wihth the .zip extension will also be extracted.
         This will search all the chunks in RCC based on the params and the suffix provided in the constructor.
 
         Will download the chunks that matches the following conditions:
@@ -76,6 +80,7 @@ class RCCChunkDownloader:
         Returns:
             list[S3ObjectRCC]: A list with all the files downloaded.
         """
+        self.__suffix = params.suffix
         list_prefix_files_download = set(params.get_chunks_prefix())
 
         _logger.info("Searching with prefix=%s and suffix=%s",

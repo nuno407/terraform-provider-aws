@@ -65,7 +65,8 @@ class VideoMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             device_id=artifact.device_id,
             tenant=artifact.tenant_id,
             start_search=artifact.referred_artifact.timestamp,
-            stop_search=datetime.now(tz=pytz.UTC))
+            stop_search=datetime.now(tz=pytz.UTC),
+            suffix=".json.zip")
 
         downloaded_chunks = self.__s3_chunk_ingestor.download_files(params)
         mdf_chunks = self.__metadata_merger.merge_metadata_chunks(downloaded_chunks)

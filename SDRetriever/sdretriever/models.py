@@ -41,6 +41,7 @@ class ChunkDownloadParams:
     tenant: str
     start_search: datetime
     stop_search: datetime
+    suffix: str
 
     def get_chunks_prefix(self) -> Generator[str, None, None]:
         for chunk_id in self.chunk_ids:

@@ -2,17 +2,16 @@
 import logging as log
 import re
 import sys
+import pytz
 
+from datetime import datetime
 from kink import inject
-from sdretriever.exceptions import UploadNotYetCompletedError
-from sdretriever.ingestor.metacontent import (MetacontentChunk,
-                                              MetacontentDevCloud,
-                                              MetacontentIngestor)
-from sdretriever.s3_finder_rcc import S3FinderRCC
-from sdretriever.constants import VIDEO_CHUNK_REGX
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
+
 from base.model.artifacts import Artifact, IMUArtifact
+from sdretriever.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.models import ChunkDownloadParams, S3ObjectDevcloud, S3ObjectRCC
+from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.s3_downloader_uploader import S3DownloaderUploader
 
 IMU_FILE_EXT = '.csv'
 _logger = log.getLogger("SDRetriever." + __name__)
@@ -21,37 +20,16 @@ IMU_REGEX = re.compile(IMU_FILE_PATTERN)
 
 
 @inject
-class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-methods
+class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
     """ IMU ingestor """
 
     def __init__(self,
-                 container_services: ContainerServices,
-                 rcc_s3_client_factory: S3ClientFactory,
-                 s3_controller: S3Controller,
-                 s3_finder: S3FinderRCC):
-        super().__init__(container_services, rcc_s3_client_factory,
-                         s3_controller, s3_finder, VIDEO_CHUNK_REGX)
+                 s3_chunk_ingestor: RCCChunkDownloader,
+                 s3_interface: S3DownloaderUploader):
+        self.__s3_chunk_ingestor = s3_chunk_ingestor
+        self.__s3_interface = s3_interface
 
-    def __get_id_from_imu(self, imu_chunk: MetacontentChunk) -> int:
-        """
-        Parses the ID of an IMU chunk path.
-
-        Args:
-            imu_chunk (MetacontentChunk): The IMU in RCC
-
-        Raises:
-            ValueError: When the IMU path does not match a valid path.
-
-        Returns:
-            int: The ID of the chunk.
-        """
-        match = IMU_REGEX.search(imu_chunk.s3_key)
-        if match is None:
-            raise ValueError(f"The following imu path {imu_chunk.s3_key} does \
-                             not fit the pattern of an imu path")
-        return int(match.group(1))
-
-    def _concatenate_chunks(self, chunks: list[MetacontentChunk]) -> bytearray:
+    def __concatenate_chunks(self, chunks: list[S3ObjectRCC]) -> bytearray:
         """
         Concatenate the IMU chunks into a single one.
         Since the imu chunks can by large, to avoid future performance bootlenecks:
@@ -62,7 +40,7 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
         This avoids multiple allocations, preventing memory issues and speeding up the process.
 
         Args:
-            chunks (list[MetacontentChunk]): List of chunks to be merged
+            chunks (list[S3ObjectRCC]): List of chunks to be merged
             video_id (str): The video ID
 
         Returns:
@@ -85,15 +63,6 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
 
         return data_buffer
 
-    def _get_file_extension(self) -> list[str]:
-        """
-        Return the file extension of the metadata
-
-        Returns:
-            list[str]: _description_
-        """
-        return [".csv.zip"]
-
     def ingest(self, artifact: Artifact) -> None:
         """
         Concatenates the IMU chunks and ingest them.
@@ -105,37 +74,30 @@ class IMUIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-method
         if not isinstance(artifact, IMUArtifact):
             raise ValueError("IMUIngestor can only ingest an IMUArtifact")
 
-        is_complete, chunk_paths = self._check_allparts_exist(artifact)
-        if not is_complete:
-            message = "IMU data is not complete, skipping for now"
-            _logger.info(message)
-            raise UploadNotYetCompletedError(message)
+        params = ChunkDownloadParams(
+            recorder=artifact.referred_artifact.recorder,
+            recording_id=artifact.referred_artifact.recording_id,
+            chunk_ids=artifact.referred_artifact.chunk_ids,
+            device_id=artifact.device_id,
+            tenant=artifact.tenant_id,
+            start_search=artifact.referred_artifact.timestamp,
+            stop_search=datetime.now(tz=pytz.UTC),
+            suffix="_imu_raw.csv.zip")
 
-        # Fetch metadata chunks from RCC S3
-        chunks: list[MetacontentChunk] = self._get_metacontent_chunks(
-            chunk_paths)
-        if not chunks:
-            _logger.warning(
-                "Could not find any metadata files for %s",
-                artifact.artifact_id)
-        # Sorts and validates the chunks
-        chunks.sort(key=self.__get_id_from_imu)
-
-        _logger.debug("Ingesting %d IMU chunks", len(chunks))
+        downloaded_chunks = self.__s3_chunk_ingestor.download_files(params)
 
         # Concatenate chunks and force deletion
-        file_binary: bytearray = self._concatenate_chunks(chunks)
-        del chunks
+        file_binary: bytearray = self.__concatenate_chunks(downloaded_chunks)
+        del downloaded_chunks
 
-        s3_bucket = self._container_svcs.raw_s3
-        msp = artifact.tenant_id
-        file_to_upload = MetacontentDevCloud(
-            file_binary, artifact.artifact_id, s3_bucket,
-            msp, IMU_FILE_EXT)
+        devcloud_object = S3ObjectDevcloud(
+            data=file_binary,
+            filename=f"{artifact.artifact_id}/{IMU_FILE_EXT}",
+            tenant=artifact.tenant_id)
 
         # Upload IMU chunks and force deletion
-        path_uploaded = self._upload_metacontent_to_devcloud(file_to_upload)
-        del file_to_upload
+        path_uploaded = self.__s3_interface.upload_to_devcloud_raw(devcloud_object)
+        del devcloud_object
 
         # Update the artifact with the path to the IMU file
         artifact.s3_path = path_uploaded

@@ -6,7 +6,7 @@ from datetime import datetime
 from pytz import UTC
 
 from kink import inject
-from sdretriever.ingestor.metacontent import (MetacontentChunk,
+from sdretriever.ingestor.metacontent import (S3Object,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
 from sdretriever.s3_finder_rcc import S3FinderRCC
@@ -71,7 +71,7 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
 
         return self._upload_metacontent_to_devcloud(upload_file)
 
-    def __download_chunks(self, chunks: list[S3ObjectInfo]) -> list[MetacontentChunk]:
+    def __download_chunks(self, chunks: list[S3ObjectInfo]) -> list[S3Object]:
         """
         Download ALL chunks from RCC and unzip them if necessary.
 
@@ -85,7 +85,7 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
             list[MetacontentChunk]: A list of chunks downloaded from RCC.
         """
         metadata_chunks_keys = set(map(lambda x: x.key, chunks))
-        downloaded_chunks: list[MetacontentChunk] = self._get_metacontent_chunks(
+        downloaded_chunks: list[S3Object] = self._download_from_rcc(
             metadata_chunks_keys)
         if len(downloaded_chunks) != len(chunks):
             raise S3FileNotFoundError("Not all metadata chunks were downloaded from RCC %d/%d",

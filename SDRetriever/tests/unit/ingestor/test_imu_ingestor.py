@@ -11,7 +11,7 @@ from base.model.artifacts import (IMUArtifact, RecorderType, SnapshotArtifact,
                                   TimeWindow)
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.ingestor.imu import IMUIngestor
-from sdretriever.ingestor.metacontent import MetacontentChunk
+from sdretriever.ingestor.metacontent import S3Object
 from sdretriever.s3_finder_rcc import S3FinderRCC
 
 RAW_S3 = "raw-s3"
@@ -20,8 +20,8 @@ CHUNK_PATHS = [
     "TrainingRecorder_TrainingRecorder1.mp4._a_b_5678_imu_raw.csv.zip",
 ]
 CHUNKS = [
-    MetacontentChunk(s3_key=CHUNK_PATHS[0], data=b"1"),
-    MetacontentChunk(s3_key=CHUNK_PATHS[1], data=b"2")
+    S3Object(s3_key=CHUNK_PATHS[0], data=b"1"),
+    S3Object(s3_key=CHUNK_PATHS[1], data=b"2")
 ]
 SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
 UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
@@ -77,9 +77,11 @@ class TestImuIngestor:
             imu_ingestor.ingest(snapshot_artifact)
 
     @mark.unit()
-    def test_raise_if_not_all_parts_exist(self, imu_artifact: IMUArtifact, imu_ingestor: IMUIngestor):
+    def test_raise_if_not_all_parts_exist(
+            self, imu_artifact: IMUArtifact, imu_ingestor: IMUIngestor):
         # GIVEN
-        imu_ingestor._check_allparts_exist = Mock(return_value=(False, []))  # type: ignore[method-assign]
+        imu_ingestor._check_allparts_exist = Mock(
+            return_value=(False, []))  # type: ignore[method-assign]
 
         # WHEN
         with raises(UploadNotYetCompletedError):
@@ -88,8 +90,10 @@ class TestImuIngestor:
     @mark.unit()
     def test_successful_ingestion(self, imu_artifact: IMUArtifact, imu_ingestor: IMUIngestor):
         # GIVEN
-        imu_ingestor._check_allparts_exist = Mock(return_value=(True, CHUNK_PATHS))  # type: ignore[method-assign]
-        imu_ingestor._get_metacontent_chunks = Mock(return_value=CHUNKS)  # type: ignore[method-assign]
+        imu_ingestor._check_allparts_exist = Mock(return_value=(
+            True, CHUNK_PATHS))  # type: ignore[method-assign]
+        imu_ingestor._download_from_rcc = Mock(
+            return_value=CHUNKS)  # type: ignore[method-assign]
         imu_ingestor._upload_metacontent_to_devcloud = Mock(  # type: ignore[method-assign]
             return_value=f"s3://{RAW_S3}/{imu_artifact.tenant_id}/{imu_artifact.artifact_id}.csv")
 
@@ -98,7 +102,7 @@ class TestImuIngestor:
 
         # THEN
         imu_ingestor._check_allparts_exist.assert_called_once_with(imu_artifact)
-        imu_ingestor._get_metacontent_chunks.assert_called_once_with(CHUNK_PATHS)
+        imu_ingestor._download_from_rcc.assert_called_once_with(CHUNK_PATHS)
         upload_params = imu_ingestor._upload_metacontent_to_devcloud.call_args.args
         assert upload_params[0].data == b"12"
         assert imu_artifact.s3_path == f"s3://{RAW_S3}/{TENANT_ID}/{ART_ID}.csv"

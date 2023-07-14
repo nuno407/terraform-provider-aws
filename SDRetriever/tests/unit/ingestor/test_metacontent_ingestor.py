@@ -1,18 +1,16 @@
 # type: ignore
 """ metacontent ingestor tests """
-import re
 from datetime import datetime
 from typing import Callable
 from unittest.mock import ANY, Mock, call, patch
-
+import re
 import pytest
 import pytz
 
 from base.aws.container_services import ContainerServices
 from base.model.artifacts import (MetadataArtifact, MetadataType, RecorderType,
-                                  Recording, S3VideoArtifact, SignalsArtifact,
-                                  TimeWindow)
-from sdretriever.ingestor.metacontent import (MetacontentChunk,
+                                  S3VideoArtifact, SignalsArtifact, TimeWindow)
+from sdretriever.ingestor.metacontent import (S3Object,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
 from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
@@ -36,7 +34,7 @@ def metacontent_ingestor(container_services: Mock,
 @pytest.mark.parametrize("input_size,expected,total", [
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1
@@ -45,8 +43,8 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
-            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"2", s3_key="test-chunk2.json"),
         ],
         [
             512,
@@ -56,9 +54,9 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
-            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
-            MetacontentChunk(data=b"3", s3_key="test-chunk3.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"2", s3_key="test-chunk2.json"),
+            S3Object(data=b"3", s3_key="test-chunk3.json"),
         ],
         [
             512,
@@ -69,8 +67,8 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
-            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"2", s3_key="test-chunk2.json"),
         ],
         [
             1_048_576,
@@ -80,7 +78,7 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1_073_741_824
@@ -89,7 +87,7 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
         ],
         [
             1_099_511_627_776
@@ -98,9 +96,9 @@ def metacontent_ingestor(container_services: Mock,
     ),
     (
         [
-            MetacontentChunk(data=b"1", s3_key="test-chunk1.json"),
-            MetacontentChunk(data=b"2", s3_key="test-chunk2.json"),
-            MetacontentChunk(data=b"3", s3_key="test-chunk3.json"),
+            S3Object(data=b"1", s3_key="test-chunk1.json"),
+            S3Object(data=b"2", s3_key="test-chunk2.json"),
+            S3Object(data=b"3", s3_key="test-chunk3.json"),
         ],
         [
             1_099_511_627_776,
@@ -113,7 +111,7 @@ def metacontent_ingestor(container_services: Mock,
 @patch("sdretriever.ingestor.metacontent.sys.getsizeof")
 def test_get_readable_size_object(sizeof_patch: Mock,
                                   metacontent_ingestor: MetacontentIngestor,
-                                  input_size: list[MetacontentChunk],
+                                  input_size: list[S3Object],
                                   expected: list[int],
                                   total: str):
     sizeof_patch.side_effect = expected
@@ -169,8 +167,7 @@ video_artifact1 = S3VideoArtifact(
     recorder=RecorderType.INTERIOR,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),
-    upload_timing=TimeWindow(start=datetime.now(tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
-    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
+    upload_timing=TimeWindow(datetime.now(tz=pytz.UTC), datetime.now(tz=pytz.UTC))
 )
 
 video_artifact2 = S3VideoArtifact(
@@ -181,8 +178,7 @@ video_artifact2 = S3VideoArtifact(
     recorder=RecorderType.TRAINING,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),
-    upload_timing=TimeWindow(start=datetime.now(tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
-    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
+    upload_timing=TimeWindow(datetime.now(tz=pytz.UTC), datetime.now(tz=pytz.UTC))
 )
 
 signals_artifact1 = SignalsArtifact(
@@ -274,8 +270,9 @@ def test_get_metacontent_chunks(gzip_mock: Mock,
                                 container_services: Mock,
                                 rcc_bucket: str):
     container_services.download_file.side_effect = contents
-    chunks = metacontent_ingestor._get_metacontent_chunks(filepaths)
-    container_services.download_file.assert_has_calls([call(ANY, rcc_bucket, file) for file in filepaths])
+    chunks = metacontent_ingestor._download_from_rcc(filepaths)
+    container_services.download_file.assert_has_calls(
+        [call(ANY, rcc_bucket, file) for file in filepaths])
     gzip_mock.assert_has_calls([call(ANY) for file in filepaths if file.endswith(".zip")])
     assert len(chunks) == len(filepaths)
 
@@ -420,10 +417,12 @@ def test_check_allparts_exist_successful(
         metacontent_ingestor: MetacontentIngestor,
         container_services: ContainerServices):
     # GIVEN
-    metacontent_ingestor._get_file_extension = Mock(return_value=".json")  # type: ignore[method-assign]
+    metacontent_ingestor._get_file_extension = Mock(
+        return_value=".json")  # type: ignore[method-assign]
     container_services.check_if_tenant_and_deviceid_exists_and_log_on_error = Mock(  # type: ignore[method-assign]
         return_value=True)
-    metacontent_ingestor._get_chunks_lookup_paths = Mock(return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
+    metacontent_ingestor._get_chunks_lookup_paths = Mock(
+        return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
     metacontent_ingestor._search_chunks_in_s3_path = Mock(  # type: ignore[method-assign]
         side_effect=[(MDF_CHUNKS_1, MP4_CHUNKS_1), (MDF_CHUNKS_2, MP4_CHUNKS_2)])
 
@@ -441,10 +440,12 @@ def test_check_allparts_exist_failed_no_video_chunks(
         metacontent_ingestor: MetacontentIngestor,
         container_services: ContainerServices):
     # GIVEN
-    metacontent_ingestor._get_file_extension = Mock(return_value=".json")  # type: ignore[method-assign]
+    metacontent_ingestor._get_file_extension = Mock(
+        return_value=".json")  # type: ignore[method-assign]
     container_services.check_if_tenant_and_deviceid_exists_and_log_on_error = Mock(  # type: ignore[method-assign]
         return_value=True)
-    metacontent_ingestor._get_chunks_lookup_paths = Mock(return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
+    metacontent_ingestor._get_chunks_lookup_paths = Mock(
+        return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
     metacontent_ingestor._search_chunks_in_s3_path = Mock(  # type: ignore[method-assign]
         side_effect=[(MDF_CHUNKS_1, []), (MDF_CHUNKS_2, [])])
 
@@ -461,10 +462,12 @@ def test_check_allparts_exist_queries_until_today_if_neccessary(
         metacontent_ingestor: MetacontentIngestor,
         container_services: ContainerServices):
     # GIVEN
-    metacontent_ingestor._get_file_extension = Mock(return_value=".json")  # type: ignore[method-assign]
+    metacontent_ingestor._get_file_extension = Mock(
+        return_value=".json")  # type: ignore[method-assign]
     container_services.check_if_tenant_and_deviceid_exists_and_log_on_error = Mock(  # type: ignore[method-assign]
         return_value=True)
-    metacontent_ingestor._get_chunks_lookup_paths = Mock(return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
+    metacontent_ingestor._get_chunks_lookup_paths = Mock(
+        return_value=CHUNK_LOOKUP_PATHS)  # type: ignore[method-assign]
     metacontent_ingestor._search_chunks_in_s3_path = Mock(  # type: ignore[method-assign]
         side_effect=[(MDF_CHUNKS_1, MP4_CHUNKS_1), ([], MP4_CHUNKS_2), (MDF_CHUNKS_2, MP4_CHUNKS_2)])
 

@@ -8,27 +8,24 @@ from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
 from sdretriever.config import SDRetrieverConfig
+from sdretriever.models import RCCS3SearchParams
 from sdretriever.constants import SNAPSHOT_CHUNK_REGX, FileExt
 from sdretriever.exceptions import FileAlreadyExists
-from sdretriever.ingestor.metacontent import MetacontentIngestor
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+import pytz
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
 
 @inject
-class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-methods
+class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
     """ snapshot's metadata ingestor """
 
     def __init__(self,
-                 container_services: ContainerServices,
-                 rcc_s3_client_factory: S3ClientFactory,
-                 s3_controller: S3Controller,
-                 config: SDRetrieverConfig,
-                 s3_finder: S3FinderRCC):
-        super().__init__(container_services, rcc_s3_client_factory,
-                         s3_controller, s3_finder, SNAPSHOT_CHUNK_REGX)
+                 s3_interface: S3DownloaderUploader,
+                 config: SDRetrieverConfig):
         self.__config = config
+        self.__s3_interface = s3_interface
 
     def _get_file_extension(self) -> list[str]:
         """
@@ -51,17 +48,16 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
         metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
         metadata_snap_path = f"{artifact.tenant_id}/{metadata_snap_name}"
 
-        # Checks if exists in devcloud
-        exists_on_devcloud = self._s3_controller.check_s3_file_exists(
-            self._container_svcs.raw_s3, metadata_snap_path)
-
-        if exists_on_devcloud and self.__config.discard_video_already_ingested:
-            message = f"File {metadata_snap_path} already exists on {self._container_svcs.raw_s3}"
-            _logger.info(message)
-            raise FileAlreadyExists(message)
-
         rcc_s3_bucket = self._container_svcs.rcc_info.get('s3_bucket')
         # download the file from RCC - an exception is raised if the file is not found
+
+        params = RCCS3SearchParams(
+            device_id=artifact.device_id,
+            tenant=artifact.tenant_id,
+            start_search=artifact.referred_artifact.timestamp,
+            stop_search=datetime.now(tz=pytz.UTC))
+
+        self.__s3_interface.search_and_download_from_rcc(params)
         jpeg_metadata = self.get_file_in_rcc(rcc_s3_bucket,
                                              artifact.tenant_id,
                                              artifact.device_id,
