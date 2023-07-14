@@ -37,7 +37,7 @@ class SnapshotMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-
         Returns:
             list[str]: _description_
         """
-        return [FileExt.METADATA.value]
+        return [FileExt.METADATA.value, FileExt.ZIPPED_METADATA.value]
 
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """

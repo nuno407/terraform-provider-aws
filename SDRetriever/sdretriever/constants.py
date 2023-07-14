@@ -15,6 +15,7 @@ INTERIOR_RECORDER_PREVIEW = "InteriorRecorderPreview"
 class FileExt(Enum):
     """ File extensions """
     METADATA = ".json"
+    ZIPPED_METADATA = ".json.zip"
     SNAPSHOT = ".jpeg"
     VIDEO = ".mp4"
 

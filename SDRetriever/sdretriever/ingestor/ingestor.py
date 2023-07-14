@@ -1,6 +1,7 @@
 """ ingestor module. """
 import logging as log
 import re
+import gzip
 from abc import abstractmethod
 from datetime import datetime
 from typing import Iterator, Optional, Tuple
@@ -143,10 +144,15 @@ class Ingestor:
                     f"Found more then one file for {path}, files found: {str(files)}")
 
             if len(files) == 1:
-                snapshot_bytes = bytes(self._container_svcs.download_file(
-                    self._rcc_s3_client, bucket, files[0]['Key']))
-                _logger.debug("File found at %s", path)
-                return snapshot_bytes
+                file_path = files[0]['Key']
+                data = bytes(self._container_svcs.download_file(
+                    self._rcc_s3_client, bucket, file_path))
+
+                if file_path.endswith(".zip"):
+                    data = gzip.decompress(data)
+
+                _logger.debug("File found at %s", file_path)
+                return data
 
         raise S3FileNotFoundError(
             f"File {prefix} not found in RCC for extensions {str(extensions)}")
@@ -190,7 +196,10 @@ class Ingestor:
             if self._s3_controller.check_s3_file_exists(bucket, upload_path):
                 _logger.info("File %s already exists in %s", upload_path, bucket)
             else:
-                _logger.exception("File %s could not be uploaded to DevCloud S3 into %s", upload_path, bucket)
+                _logger.exception(
+                    "File %s could not be uploaded to DevCloud S3 into %s",
+                    upload_path,
+                    bucket)
                 raise S3UploadError from exception
         return f"s3://{bucket}/{upload_path}"
 

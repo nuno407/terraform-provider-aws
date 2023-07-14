@@ -131,7 +131,8 @@ class TestMetadataSnapshotIngestor():
         """Successful ingestion should upload the snapshot."""
         # GIVEN
         s3_controller.check_s3_file_exists = Mock(return_value=False)  # type: ignore[method-assign]
-        snap_metadata_ingestor.get_file_in_rcc = Mock(return_value=b'decompressed_mock')  # type: ignore[method-assign]
+        snap_metadata_ingestor.get_file_in_rcc = Mock(
+            return_value=b'decompressed_mock')  # type: ignore[method-assign]
 
         # WHEN
         snap_metadata_ingestor.ingest(snapshot_metadata_artifact)
@@ -148,7 +149,7 @@ class TestMetadataSnapshotIngestor():
             UID,
             SNAP_TIME,
             ANY,
-            [".json"]
+            [".json", ".json.zip"]
         )
         s3_controller.upload_file.assert_called_once_with(
             b'decompressed_mock',
