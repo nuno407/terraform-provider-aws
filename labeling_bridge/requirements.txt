@@ -1,5 +1,5 @@
 boto3 == 1.26.91
-flask == 2.2.3
+flask == 2.2.5
 flask_cors == 3.0.10
 flask-restx == 1.1.0
 pytimeparse == 1.1.8
