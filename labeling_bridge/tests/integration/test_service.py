@@ -2,6 +2,7 @@
 import json
 import os
 import unittest
+from datetime import datetime
 from unittest.mock import Mock, patch, ANY
 import uuid
 import pytest
@@ -22,8 +23,19 @@ __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
+def import_message(labeling_job_name=str(uuid.uuid4())):
+    return RequestImportJobDTO(**{
+        "kognicProjectId": "dummy_project",
+        "labellingJobName": labeling_job_name,
+        "clientId": "11111",
+        "clientSecret": "aaaaa",
+        "dataset": "dummy_dataset"
+    })
+
+
 def create_sample(dataset, filename, tags=None):
     path = f"{__location__}/test_data/{filename}"
+    print(path)
     sample = fo.Sample(filepath=path, tags=tags, raw_filepath=path)
     dataset.add_sample(sample, expand_schema=True)
     return sample
@@ -45,19 +57,8 @@ def export_message(method, labeling_job_name, labeling_type, tag=None, filters=N
     })
 
 
-def import_message(labeling_job_name=str(uuid.uuid4())):
-    return RequestImportJobDTO(**{
-        "kognicProjectId": "dummy_project",
-        "labellingJobName": labeling_job_name,
-        "clientId": "11111",
-        "clientSecret": "aaaaa",
-        "dataset": "dummy_dataset"
-    })
-
-
 @pytest.mark.integration
 class TestService:
-
     @pytest.fixture
     def sample_dataset(self):
         fo.delete_non_persistent_datasets()
@@ -73,8 +74,9 @@ class TestService:
     def semseg_test_data(self):
         with (open(os.path.join(__location__, "test_data/test.json"), "r")) as file:
             data_string = file.read()
-            data_string.replace("__location__", __location__)
+            data_string = data_string.replace("__location__", __location__)
             data = json.loads(data_string)
+            print(data)
         return data
 
     @pytest.fixture
@@ -101,11 +103,18 @@ class TestService:
             request_export_job_dto=export_msg)
 
         # WHEN
+        print(len(sample_dataset))
         api_service.kognic_import(request_import_job_dto=import_msg)
 
         # THEN
-        assert sample_with_labeling_data.segmentations is not None
-        assert untouched_sample.segmentations is None
+        assert sample_with_labeling_data.GT_semseg is not None
+
+        today = datetime.combine(datetime.today(), datetime.min.time())
+        for detection in sample_with_labeling_data.GT_semseg.detections:
+            assert detection.date == today
+            assert detection.labeling_job == import_msg.labelling_job_name
+
+        assert untouched_sample.GT_semseg is None
         labeling_job = LabelingJob.objects(kognic_labeling_job_name=export_msg.labelling_job_name).get()
         assert labeling_job.import_export_status.status == Status.DONE
         assert len(LabelingJobTask.objects(kognic_labeling_job=labeling_job)) == 2

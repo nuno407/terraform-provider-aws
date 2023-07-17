@@ -13,7 +13,7 @@
         "frames": {
             "0": {
                 "frame_properties": {
-                    "external_id": "__location__/test.png",
+                    "external_id": "__location__/test_data/test.png",
                     "streams": {
                         "Voxel_export": {
                             "uri": "tmp3k82no6e.jpeg"
@@ -797,7 +797,7 @@
             "annotation_instruction": "2023-04-21-001",
             "annotation_type": "2D_semseg",
             "batch": "marian-test",
-            "input_external_id": "__location__/test.png",
+            "input_external_id": "__location__/test_data/test.png",
             "input_uuid": "cfa6339a-47b4-4b12-8c44-fd3646ba2908",
             "project": "Orion-RC-Dev",
             "schema_version": "1.0.0",
