@@ -25,6 +25,10 @@ on:
         type: boolean
         description: Build image
         default: true
+      update-images:
+        type: boolean
+        default: true
+        description: Create k8s-config branch with updated images
 
 env:
   AWS_DEFAULT_REGION: eu-central-1
@@ -245,6 +249,9 @@ jobs:
           git push origin $TAG -f
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+          echo "## New image tag" >> $GITHUB_STEP_SUMMARY
+          echo "$TAG" >> $GITHUB_STEP_SUMMARY
+
       - name: Add summary
         if: steps.changed-services.outputs.services == '[]'
         run: |
@@ -311,7 +318,7 @@ jobs:
 
   update-image-tag:
     name: Update image tags in dev K8s manifests
-    if: github.ref_name == 'master'
+    if: github.ref_name == 'master' || inputs.update-images
     needs: [build-image, determine-changed-services]
     runs-on: ubuntu-latest
     env:
@@ -346,7 +353,33 @@ jobs:
             popd > /dev/null
           done
 
+      - name: Output branch information
+        if: github.ref_name != 'master'
+        run: |
+          echo "## Testing on Dev" >> $GITHUB_STEP_SUMMARY
+          echo 'Test branch created here: https://github.com/bosch-rc-dev/kubernetes_config/compare/master...${{ github.ref_name }}' >> $GITHUB_STEP_SUMMARY
+          echo 'Name: `${{ github.ref_name }}`' >> $GITHUB_STEP_SUMMARY
+          echo 'Note that a new image build will override all changes on this branch!' >> $GITHUB_STEP_SUMMARY
+          echo 'To test on dev, you still need to change the branch on GitRepository flux-system' >> $GITHUB_STEP_SUMMARY
+          echo 'Make sure to switch Flux back to master after testing and [delete your branch](https://github.com/bosch-rc-dev/kubernetes_config/branches/yours)' >> $GITHUB_STEP_SUMMARY
+
+          # Update Flux branch
+          sed -i 's@master@${{ github.ref_name }}@' clusters/dev/flux-system/gotk-sync.yaml
+
+      - name: Commit image tags to branch
+        if: github.ref_name != 'master'
+        uses: EndBug/add-and-commit@v9
+        with:
+          new_branch: ${{ github.ref_name }}
+          committer_email: ${GITHUB_ACTIONS_EMAIL}
+          committer_name: ${GITHUB_ACTIONS_USER}
+          default_author: github_actions
+          push: origin ${{ github.ref_name }} --set-upstream --force
+          message: "[Image test] Test branch images on dev"
+
+
       - name: Commit new image tags
+        if: github.ref_name == 'master'
         run: |
           git config --local user.email ${GITHUB_ACTIONS_EMAIL}
           git config --local user.name ${GITHUB_ACTIONS_USER}
