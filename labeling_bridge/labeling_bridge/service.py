@@ -83,7 +83,6 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                 request_export_job_dto.dataset_name,
                 stages=request_export_job_dto.stages,
                 filters=request_export_job_dto.filters,
-                count_label_tags=True,
             )
         else:
             raise NotImplementedError(f"Unknown export method: {request_export_job_dto.voxel_export_method}")
