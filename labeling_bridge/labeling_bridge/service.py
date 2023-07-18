@@ -17,8 +17,7 @@ from labeling_bridge.kognic_interface import KognicInterface
 from labeling_bridge.models.api import (
     RequestExportJobDTO,
     RequestExportMethodDTO,
-    RequestImportJobDTO,
-    KognicLabelingTypeDTO
+    RequestImportJobDTO
 )
 from labeling_bridge.models.database import StatusDocument, Status
 from labeling_bridge.repository import Repository
@@ -172,8 +171,6 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                         request_import_job_dto.labelling_job_name,
                         annotation_type)
                     for annotation in all_batch_annotations:
-                        if annotation_type == KognicLabelingTypeDTO.BODYPOSE:
-                            raise NotImplementedError()
                         external_id = annotation.content["openlabel"]["frames"]["0"]["frame_properties"]["external_id"]
 
                         # checks if labels from the labeling job already exists on the sample
