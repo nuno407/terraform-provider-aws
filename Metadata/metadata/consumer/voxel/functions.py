@@ -81,23 +81,18 @@ def add_voxel_snapshot_metadata(
     Raises:
         ValueError: If a metadata file was not found or there was some problem on the ingestion
     """
-    _logger.debug("Loading snapshot metadata from %s",
-                  metadata_artifact.s3_path)
+    _logger.debug("Loading snapshot metadata from %s",metadata_artifact.s3_path)
     # Prepare s3 paths
-    metadata_bucket, metadata_key = s3_controller.get_s3_path_parts(
-        metadata_artifact.s3_path)
+    metadata_bucket, metadata_key = s3_controller.get_s3_path_parts(metadata_artifact.s3_path)
 
     # Load sample
-    sample: fo.Sample = get_voxel_snapshot_sample(
-        metadata_artifact.tenant_id, metadata_artifact.referred_artifact.artifact_id)
+    sample: fo.Sample = get_voxel_snapshot_sample(metadata_artifact.tenant_id, metadata_artifact.referred_artifact.artifact_id)
     # Check if the metadata file exists
     if not s3_controller.check_s3_file_exists(metadata_bucket, metadata_key):
-        raise ValueError(
-            f"Snapshot metadata {metadata_artifact.referred_artifact.artifact_id} does not exist")
+        raise ValueError(f"Snapshot metadata {metadata_artifact.referred_artifact.artifact_id} does not exist")
 
     # Download and convert metadata file
-    raw_snapshot_metadata = s3_controller.download_file(
-        metadata_bucket, metadata_key)
+    raw_snapshot_metadata = s3_controller.download_file(metadata_bucket, metadata_key)
     metadata = json.loads(raw_snapshot_metadata.decode("UTF-8"))
 
     # Parse and check the number of frames of metadata
@@ -108,8 +103,7 @@ def add_voxel_snapshot_metadata(
         return
 
     elif len(metadata_frames) > 1:
-        raise ValueError(
-            "The snapshot's metadata contains more then one frame data.")
+        raise ValueError("The snapshot's metadata contains more then one frame data.")
 
     voxel_loader.set_sample(sample)
     voxel_loader.load(metadata_frames[0])
@@ -118,81 +112,69 @@ def add_voxel_snapshot_metadata(
     _logger.info("Snapshot metadata has been saved to voxel")
 
 
-def update_sample(data_set, sample_info):
+def update_sample(dataset_name, sample_info:dict):
     """
     Creates a voxel sample (entry inside the provided dataset).
 
     Args:
-        data_set: Dataset to add the sample to; needs to exist but is automatically loaded
-        sample_info: Metadata to add to the sample
+        dataset_name: Dataset to add the sample to; needs to exist but is automatically loaded
+        sample_info: Information to add to the Voxel sample
     """
-    dataset = fo.load_dataset(data_set)
+    _logger.debug("sample_info: %s", sample_info)
+    dataset = fo.load_dataset(dataset_name)
+    sample_info.pop("filepath", None)
+    to_add = dict()
 
-    # If the sample already exists, update its information, otherwise create a new one
-    if "filepath" in sample_info:
-        sample_info.pop("filepath")
-
+    # get the sample, or create one if it doesn't exist
     try:
         sample = dataset.one(ViewField("video_id") == sample_info["video_id"])
     except ValueError:
         sample = fo.Sample(filepath=sample_info["s3_path"])
         sample["data_privacy_document_id"] = get_voxel_sample_data_privacy_document_id(sample)
         dataset.add_sample(sample)
-        _logger.debug("Voxel sample [%s] created!", sample_info["s3_path"])
+        _logger.debug("Voxel sample %s created", sample_info["s3_path"])
 
-    #Compute Voxel metadata fields for a sample
-    try:
-        sample.compute_metadata()
-    except Exception:
-        _logger.debug("Failed to compute_metadata")
-
-    _logger.debug("sample_info: %s !", sample_info)
-
-    for (key, value) in sample_info.items():
+    # for fields at the root of sample_info
+    for (key, val) in sample_info.items():
         if key == "algorithms":
             continue
-        if key.startswith("_") or key.startswith("filepath"):
-            key = "ivs" + key
-        sample[key] = value
+        elif key.startswith("_") or key.startswith("filepath"):
+            key = f"ivs{key}"
+        to_add.update({key:val})
 
-    _populate_metadata(sample, sample_info)
+    # for fields nested inside recording_overview
+    if recording_overview := sample_info.get("recording_overview", dict()):
+        # put all of recording_overview as primitives
+        for (key, val) in recording_overview.items():
+            key = key if not key.startswith("_") else f"ivs{key}"
+            sample.update_fields(fields_dict={key:val}, expand_schema=True)
+
+        # unfold 'time' to simpler fields for querying as primitives
+        if "time" in recording_overview:
+            time_as_datetime = datetime.strptime(sample_info["recording_overview"]["time"], "%Y-%m-%d %H:%M:%S")
+            to_add.update({
+                "recording_time": time_as_datetime,
+                "Hour" : time_as_datetime.strftime("%H"),
+                "Day" : time_as_datetime.strftime("%d"),
+                "Month" : time_as_datetime.strftime("%b"),
+                "Year" : time_as_datetime.strftime("%Y"),
+            })
+    else:
+        _logger.info("No items in recording overview: %s", sample_info.get("recording_overview"))
+
+    sample.update_fields(fields_dict=to_add, expand_schema=True)
+
+    # compute Voxel metadata fields for a sample
+    try:
+        sample.compute_metadata()
+    except Exception as e:
+        _logger.debug("Call to compute_metadata() raised an exception: %s", e)
+
+    _logger.debug("Voxel sample to be saved as: %s", sample.to_dict())
 
     # Store sample on database
     sample.save()
     _logger.info("Voxel sample has been saved correctly")
-
-
-def _populate_metadata(sample: fo.Sample, sample_info: dict[Any, Any]):
-    """
-    Populates metadata on the voxel smaple.
-    The caller is responsible for saving the sample.
-
-    Args:
-        sample (fo.Sample): The sample to update the metadata.
-        sample_info (dict): _description_
-    """
-    if "recording_overview" not in sample_info:
-        _logger.info("No items in recording overview")
-        _logger.info(sample_info.get("recording_overview"))
-        return
-
-    for (key, value) in sample_info.get("recording_overview").items():
-        if key.startswith("_"):
-            key = "ivs" + key
-            _logger.debug(
-                "Adding (key: value) '%s': '%s' to voxel sample", str(key), value)
-            sample[str(key)] = value
-
-    if "time" in sample["recording_overview"]:
-        time = sample["recording_overview"]["time"]
-        sample["recording_time"] = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-        sample["Hour"] = sample["recording_time"].strftime("%H")
-        sample["Day"] = sample["recording_time"].strftime("%d")
-        sample["Month"] = sample["recording_time"].strftime("%b")
-        sample["Year"] = sample["recording_time"].strftime("%Y")
-        _logger.info(sample["recording_time"])
-    else:
-        _logger.info("No time")
 
 
 @inject
@@ -249,9 +231,7 @@ def update_on_voxel(filepath: str, sample: dict):
     :param sample: Sample data to update. Uses `video_id` to find the sample.
     """
 
-    dataset_name, tags = _determine_dataset_by_path(
-        filepath)  # pylint: disable=no-value-for-parameter
-    _logger.debug("Updating voxel path(%s) in dataset(%s)",
-                  filepath, dataset_name)
+    dataset_name, tags = _determine_dataset_by_path(filepath)  # pylint: disable=no-value-for-parameter
+    _logger.debug("Updating voxel sample %s in dataset %s", filepath, dataset_name)
     create_dataset(dataset_name, tags)
     update_sample(dataset_name, sample)
