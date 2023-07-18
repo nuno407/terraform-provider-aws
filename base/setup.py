@@ -12,7 +12,7 @@ extras_require: Dict[str, List[str]] = {
         "pymongo[aws]==4.3.3",
         "boto3==1.26.91",
         "pytz==2022.6",
-        "pyyaml==6.0",
+        "pyyaml==6.0.1",
         "expiringdict==1.2.2",
         "aws-error-utils==2.7.0",
         "kink==0.6.6",

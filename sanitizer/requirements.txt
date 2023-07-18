@@ -1,4 +1,4 @@
-PyYAML == 6.0
+PyYAML == 6.0.1
 pymongo == 4.3.3
 kink == 0.6.6
 boto3 == 1.26.91
