@@ -52,8 +52,8 @@ def json_video() -> str:
         "tenant_id": "foo",
         "device_id": "bar",
         "recorder": "InteriorRecorder",
-        "timestamp": "2023-04-13T07:14:15.770982Z",
-        "end_timestamp": "2023-04-13T07:15:15.770982Z",
+        "timestamp": "2023-04-13T07:14:15.774082Z",
+        "end_timestamp": "2023-04-13T07:15:15.774082Z",
         "upload_timing": {
             "start": "2023-04-13T08:00:00+00:00",
             "end": "2023-04-13T08:01:00+00:00"
@@ -69,8 +69,8 @@ def video() -> S3VideoArtifact:
         tenant_id="foo",
         device_id="bar",
         recorder=RecorderType.INTERIOR,
-        timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
-        end_timestamp=datetime.fromisoformat("2023-04-13T07:15:15.770982+00:00"),
+        timestamp=datetime.fromisoformat("2023-04-13T07:14:15.774082+00:00"),
+        end_timestamp=datetime.fromisoformat("2023-04-13T07:15:15.774082+00:00"),
         upload_timing=TimeWindow(
             start=datetime.fromisoformat("2023-04-13T08:00:00+00:00"),
             end=datetime.fromisoformat("2023-04-13T08:01:00+00:00")),
@@ -158,7 +158,7 @@ class TestArtifacts:
 
     @mark.parametrize("artifact,expected_id",
                       [[video(),
-                        "bar_InteriorRecorder_my_footage_id_1681370055771_1681370115771"],
+                        "bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774"],
                        [snapshot(),
                         "foo_bar_abc_1681370055771"],
                           [multi_snapshot(),

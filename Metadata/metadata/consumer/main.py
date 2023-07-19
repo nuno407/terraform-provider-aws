@@ -61,13 +61,13 @@ class MetadataCollections:
     processed_imu: Collection
 
 
-def _get_anonymized_s3_path(file_key):
+def _get_anonymized_s3_path(file_key: str) -> str:
     filetype = file_key.split("/")[-1].split(".")[-1]
 
     if filetype not in IMAGE_FORMATS and filetype not in VIDEO_FORMATS:
         raise ValueError(UNKNOWN_FILE_FORMAT_MESSAGE % filetype)
 
-    return f"s3://{os.environ['ANON_S3']}/{file_key.rstrip(f'.{filetype}')}_anonymized.{filetype}"
+    return f"s3://{os.environ['ANON_S3']}/{file_key.removesuffix(f'.{filetype}')}_anonymized.{filetype}"
 
 
 def update_voxel_media(sample: dict):

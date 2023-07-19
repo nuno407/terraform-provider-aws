@@ -437,8 +437,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
-                                 f"s3://a/b/c/d.{file_format}",
-                                 f"s3://anon_bucket/b/c/d_anonymized.{file_format}",
+                                 f"s3://a/b/c/dmp4.{file_format}",
+                                 f"s3://anon_bucket/b/c/dmp4_anonymized.{file_format}",
                                  "Debug_Lync_snapshots") for file_format in IMAGE_FORMATS],
                               *[(file_format,
                                  f"s3://a/b/c/d.{file_format}",

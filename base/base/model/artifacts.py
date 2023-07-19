@@ -173,7 +173,7 @@ class SnapshotArtifact(ImageBasedArtifact):
 
     @property
     def artifact_id(self) -> str:
-        uuid_without_ext = self.uuid.rstrip(Path(self.uuid).suffix)
+        uuid_without_ext = self.uuid.removesuffix(Path(self.uuid).suffix)
         return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{round(self.timestamp.timestamp()*1000)}"
 
 
