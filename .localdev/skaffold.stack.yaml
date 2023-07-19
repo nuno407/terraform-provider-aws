@@ -15,7 +15,7 @@ build:
     local:
       push: false
     artifacts:
-      - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/localstack-apply
+      - image: localstack-apply
         context: ../../tf_infrastructure
         docker:
           dockerfile: Dockerfile

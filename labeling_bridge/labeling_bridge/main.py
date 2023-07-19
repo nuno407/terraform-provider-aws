@@ -13,6 +13,7 @@ from labeling_bridge.controller import init_controller
 CONTAINER_NAME = "LabelingBridge"
 CONTAINER_VERSION = "v1.0"  # Version of the current container
 AWS_REGION = os.environ.get("AWS_REGION", default="eu-central-1")
+AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
 
 
 def main():
@@ -22,10 +23,9 @@ def main():
     # Connect to mongo instance. We use the same url as Fiftyone
     connect(host=os.environ["FIFTYONE_DATABASE_URI"], db="DataPrivacy", alias="DataPrivacyDB")
 
-    s3_client = boto3.client("s3", region_name=AWS_REGION)
+    s3_client = boto3.client("s3", region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT)
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
     service: ApiService = ApiService(s3_client, container_services)
-
     app: flask.Flask = init_controller(service)
 
     # Start API process
