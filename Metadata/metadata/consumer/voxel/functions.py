@@ -174,6 +174,8 @@ def update_sample(dataset_name, sample_info:dict):
 
     # Store sample on database
     sample.save()
+    # Update dataset level schema
+    dataset.add_dynamic_sample_fields(fields=to_add.keys())
     _logger.info("Voxel sample has been saved correctly")
 
 
