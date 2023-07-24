@@ -1,6 +1,7 @@
 """Integration test module for interior recorder."""
 from pytest_lazyfixture import lazy_fixture
 import pytest
+import pandas as pd
 from typing import Any, Optional
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
@@ -9,6 +10,7 @@ from unittest.mock import Mock
 from base.aws.container_services import ContainerServices
 import json
 import re
+from io import StringIO
 from mdfparser.bootstrap import bootstrap_di
 import os
 CURRENT_LOCATION = os.path.realpath(
@@ -58,13 +60,6 @@ def helper_to_json(file: bytes) -> dict[Any, Any]:
 class TestMDFParser:
     @ pytest.mark.integration
     @ pytest.mark.parametrize("input_sqs_message, output_sqs_metadata, expected_output_file, input_file", [
-        # Test Metadata
-        (
-            local_sqs_message("mdf_queue_metadata.json"),
-            local_sqs_message("metadata_queue_metadata.json"),
-            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json"),
-            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json"),
-        ),
         # Test IMU
         (
             local_sqs_message("mdf_queue_imu.json"),
@@ -79,17 +74,85 @@ class TestMDFParser:
             local_file("datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json"),
             local_file("datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv")
         )
-    ], ids=["metadata_integration_test_1", "imu_integration_test_v1", "imu_integration_test_v2"])
-    def test_mdfparser_success(self,
-                               input_sqs_message: dict[Any,
-                                                       Any],
-                               output_sqs_metadata: Optional[dict[Any,
-                                                                  Any]],
-                               expected_output_file: bytes,
-                               input_file: bytes,
-                               consumer_mocks: tuple[Consumer, SQSClient, S3Client],
-                               dev_input_queue_url: str,
-                               dev_output_queue_url: str):
+    ], ids=["imu_integration_test_v1", "imu_integration_test_v2"])
+    def test_imu_success(self,
+                         input_sqs_message: dict[Any,
+                                                 Any],
+                         output_sqs_metadata: Optional[dict[Any,
+                                                            Any]],
+                         expected_output_file: bytes,
+                         input_file: bytes,
+                         consumer_mocks: tuple[Consumer, SQSClient, S3Client],
+                         dev_input_queue_url: str,
+                         dev_output_queue_url: str):
+        """
+        This test function mocks the SQS and S3 and tests the component end2end.
+
+        Args:
+            input_sqs_message (dict[Any, Any]): _description_
+            output_sqs_metadata (Optional[dict[Any, Any]]): _description_
+            expected_output_file (bytes): _description_
+            input_file (bytes): _description_
+            consumer_mocks (tuple[Consumer, SQSClient, S3Client]): _description_
+            dev_input_queue_url (str): _description_
+            dev_output_queue_url (str): _description_
+        """
+
+        consumer, moto_sqs_client, moto_s3_client = consumer_mocks
+
+        # Load sqs messages to memory
+        input_file_path = input_sqs_message["s3_path"]
+        output_file = output_sqs_metadata["parsed_file_path"]
+        json_input_message = json.dumps(input_sqs_message)
+
+        # Creates a bucket and uploads the file based on the message
+        input_bucket, input_key, _ = helper_split_s3_path(input_file_path)
+        moto_s3_client.put_object(Key=input_key, Bucket=input_bucket, Body=input_file)
+
+        # Insert message
+        moto_sqs_client.send_message(QueueUrl=dev_input_queue_url, MessageBody=json_input_message)
+
+        # Run
+        consumer.run(Mock(side_effect=[True, False]))
+
+        metadata_msg = moto_sqs_client.receive_message(QueueUrl=dev_output_queue_url, WaitTimeSeconds=2)
+        mdfparser_msg = moto_sqs_client.receive_message(QueueUrl=dev_input_queue_url, WaitTimeSeconds=2)
+        output_file_data = helper_download_file_from_bucket(moto_s3_client, output_file)
+
+        # Assert
+        json_metadata_msg = helper_msg_parser(metadata_msg["Messages"][0]["Body"])
+        expected_output_file_df = pd.read_json(StringIO(expected_output_file.decode("utf-8")))
+        output_file_data_df = pd.read_json(StringIO(output_file_data.decode("utf-8")))
+
+        assert json_metadata_msg == output_sqs_metadata
+        pd.testing.assert_frame_equal(
+            expected_output_file_df.reset_index(drop=True),
+            output_file_data_df.reset_index(drop=True),
+            check_dtype=False,
+            check_exact=False,
+            atol=0.005)
+        assert "Messages" not in mdfparser_msg
+
+    @ pytest.mark.integration
+    @ pytest.mark.parametrize("input_sqs_message, output_sqs_metadata, expected_output_file, input_file", [
+        # Test Metadata
+        (
+            local_sqs_message("mdf_queue_metadata.json"),
+            local_sqs_message("metadata_queue_metadata.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json"),
+            local_file("datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json"),
+        )
+    ], ids=["metadata_integration_test_1"])
+    def test_metadata_success(self,
+                              input_sqs_message: dict[Any,
+                                                      Any],
+                              output_sqs_metadata: Optional[dict[Any,
+                                                                 Any]],
+                              expected_output_file: bytes,
+                              input_file: bytes,
+                              consumer_mocks: tuple[Consumer, SQSClient, S3Client],
+                              dev_input_queue_url: str,
+                              dev_output_queue_url: str):
         """
         This test function mocks the SQS and S3 and tests the component end2end.
 

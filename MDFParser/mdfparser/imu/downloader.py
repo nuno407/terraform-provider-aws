@@ -94,7 +94,7 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             raise FailToParseIMU(
                 f"Failed to parse IMU chunk labels, expected: {expected_label} and got: {tokens[0]}")
 
-        return np.array(tokens[1:], dtype=np.float32)
+        return np.array(tokens[1:], dtype=np.float16)
 
     def __convert_imu_v1(self, csv_data: list[str]) -> list[pd.DataFrame]:
         """

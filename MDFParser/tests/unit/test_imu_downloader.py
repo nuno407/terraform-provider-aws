@@ -53,8 +53,10 @@ class TestIMUDownloader:
 
         # THEN
         container_services_mock.download_file.assert_called_once_with(ANY, "bucket", "tenant/mock_file.csv")
+        assert result_df["acc_x"].dtype == np.float16
         pd.testing.assert_frame_equal(
             expected_df.reset_index(drop=True),
             result_df.reset_index(drop=True),
             check_dtype=False,
-            check_exact=False)
+            check_exact=False,
+            atol=0.005)
