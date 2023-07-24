@@ -1,0 +1,71 @@
+name: Update base image
+
+on:
+  workflow_dispatch:
+    inputs:
+      new-image:
+        description: Image to fetch (e.g. python:3.9.17-alpine3.18)
+        required: true
+      replace-image:
+        description: Image tag to replace (e.g. python3.9.12-alpine3.15)
+        required: true
+
+env:
+  AWS_DEFAULT_REGION: eu-central-1
+  AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
+  ECR_REPO: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  fetch-image:
+    name: Pull and push image to ECR
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.6.2
+
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Get image and push to ECR
+        id: get-image
+        shell: bash
+        run: |
+          # Remove colon to adhere to our naming scheme: "python:3.9.17-alpine3.18" ->  "python3.9.17-alpine3.18"
+          new_tag=$(echo '${{ inputs.new-image }}' | sed 's/://')
+          echo "new-tag=$new_tag" >> $GITHUB_OUTPUT
+          docker pull '${{ inputs.new-image }}'
+          docker tag '${{ inputs.new-image }}' '${{ env.ECR_REPO }}':"$new_tag"
+          docker push '${{ env.ECR_REPO }}':"$new_tag"
+
+      - name: Update base image on Dockerfile
+        shell: bash
+        run: |
+          echo '${{ inputs.replace-image }}|${{ steps.get-image.outputs.new-tag }}'
+          find . -type f -name "Dockerfile" -exec sed -i 's|${{ inputs.replace-image }}|${{ steps.get-image.outputs.new-tag }}|g' {} +
+          git add */Dockerfile
+          git status
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: 'feature/update-base-images-${{ steps.get-image.outputs.new-tag }}'
+          commit-message: Update base images from ${{ inputs.replace-image }} to ${{ steps.get-image.outputs.new-tag }}
+          title: NO-TICKET Update base images from ${{ inputs.replace-image }} to ${{ steps.get-image.outputs.new-tag }}
+          body: |
+            This pull request has been created by the base image update workflow.
+            It will update base images from `${{ inputs.replace-image }}` to `${{ steps.get-image.outputs.new-tag }}`.
+            Please review, test the images and then merge this PR.
