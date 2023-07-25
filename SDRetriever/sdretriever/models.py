@@ -6,17 +6,14 @@ from base.model.artifacts import RecorderType
 from typing import Generator
 
 
-@dataclass
-class RCCS3SearchParams:
-    """Parameters for RCC S3 search functions"""
-    device_id: str
-    tenant: str
-    start_search: datetime
-    stop_search: datetime
-
 
 @dataclass
-class S3ObjectDevcloud:
+class S3Object:
+    """Data from an S3 bucket"""
+    data: bytes
+
+@dataclass
+class S3ObjectDevcloud(S3Object):
     """Data from an S3 bucket"""
     data: bytes
     filename: str
@@ -24,12 +21,20 @@ class S3ObjectDevcloud:
 
 
 @dataclass
-class S3ObjectRCC:
+class S3ObjectRCC(S3Object):
     """Data from an S3 bucket"""
     data: bytes
     s3_key: str
     bucket: str
 
+
+@dataclass
+class RCCS3SearchParams:
+    """Parameters for RCC S3 search functions"""
+    device_id: str
+    tenant: str
+    start_search: datetime
+    stop_search: datetime
 
 @dataclass
 class ChunkDownloadParams:
@@ -41,7 +46,7 @@ class ChunkDownloadParams:
     tenant: str
     start_search: datetime
     stop_search: datetime
-    suffix: str
+    suffixes: list[str]
 
     def get_chunks_prefix(self) -> Generator[str, None, None]:
         for chunk_id in self.chunk_ids:

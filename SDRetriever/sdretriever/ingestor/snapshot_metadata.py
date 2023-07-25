@@ -53,7 +53,7 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
         params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.artifact_id, chunk_ids={chunk_id},device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
             stop_search=datetime.now(
                 tz=pytz.UTC),
-                suffix=".json.zip")
+                suffixes=[".json.zip",".json"])
 
 
         downloaded_object = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)

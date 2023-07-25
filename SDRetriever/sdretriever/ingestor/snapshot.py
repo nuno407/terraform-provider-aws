@@ -1,7 +1,6 @@
 """ snapshot module """
 import logging as log
 from datetime import datetime
-from typing import TypeVar
 
 from kink import inject
 import pytz
@@ -11,12 +10,9 @@ from sdretriever.constants import FileExt
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.models import S3ObjectDevcloud, RCCS3SearchParams
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
 _logger = log.getLogger("SDRetriever." + __name__)
-
-ST = TypeVar('ST', datetime, str, int)  # SnapshotTimestamp type
-
 
 @inject
 class SnapshotIngestor(Ingestor):

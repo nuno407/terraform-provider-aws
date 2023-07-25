@@ -49,9 +49,7 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
         source_data_as_bytes = bytes(json.dumps(
             source_data, ensure_ascii=False).encode('UTF-8'))
 
-        obj = S3ObjectDevcloud(data=source_data_as_bytes, filename=artifact.artifact_id + "_metadata_full.json", tenant=artifact.tenant_id)
-        self.__s3_interface.upload_to_devcloud_tmp(obj)
-
+        obj = S3ObjectDevcloud(data=source_data_as_bytes, filename=artifact.artifact_id+".json", tenant=artifact.tenant_id)
         return self.__s3_interface.upload_to_devcloud_tmp(obj)
 
     def __get_chunk_ids(self, object_info: PreviewSignalsArtifact) -> Generator[int,None,None]:
@@ -71,7 +69,7 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
         for snapshot_artifact in object_info.referred_artifact.chunks:
             match = re.match(self.__chunk_id_pattern, snapshot_artifact.uuid)
             if not match:
-                raise ValueError(f"The chunk cannot ({snapshot_artifact.uuid}) be interpreted")
+                raise ValueError(f"The chunk ({snapshot_artifact.uuid}) cannot be interpreted")
 
             yield int(match.group(1))
 
@@ -92,12 +90,13 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
 
         preview_artifact = cast(PreviewSignalsArtifact, artifact)
         chunk_ids = set(self.__get_chunk_ids(preview_artifact))
+        _logger.info("Found %d chunks in message",len(chunk_ids))
 
         # Download data
         params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.recording_id, chunk_ids=chunk_ids,device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
             stop_search=datetime.now(
                 tz=pytz.UTC),
-                suffix=".json.zip")
+                suffixes=[".json.zip",".json"])
 
 
         downloaded_objects = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)

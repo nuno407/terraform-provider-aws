@@ -1,14 +1,16 @@
 from base.aws.s3 import S3Controller, S3ControllerFactory
+from base.aws.model import S3ObjectInfo
 from sdretriever.models import S3ObjectRCC, S3ObjectDevcloud
 from sdretriever.exceptions import S3UploadError
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.s3_crawler_rcc import S3CrawlerRCC
+from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
 from sdretriever.models import RCCS3SearchParams
 from kink import inject
 from sdretriever.exceptions import S3FileNotFoundError
+from typing import Optional
 import logging
 import gzip
-from typing import Iterable
+from typing import Iterable, Union
 
 _logger = logging.getLogger(__file__)
 
@@ -26,22 +28,25 @@ class S3DownloaderUploader:
         self.__tmp_bucket = sdr_config.temporary_bucket
         self.__rcc_crawler = rcc_crawler
 
-    def download_from_rcc(self, metadata_chunk_paths: Iterable[str]) -> list[S3ObjectRCC]:
+    def download_from_rcc(self, s3_keys: Iterable[str], bucket: Optional[str]=None) -> list[S3ObjectRCC]:
         """
-        Download files from RCC S3 device-data.
+        Download files from RCC S3.
         If the the filename ends with .zip extension it will also decompress it and return the content within.
 
         Args:
             metadata_chunk_paths (Iterable[str]): An Iterable containing all the meta chunks
+            bucket (Optional[str]): A bucket to download from, if none is provided, will download from the rcd-device-data.
 
         Returns:
             chunks (list[S3Object]): List with all raw chunks.
         """
+        if bucket == None:
+            bucket = self.__rcc_bucket
 
         chunks: list[S3ObjectRCC] = []
 
-        for file_path in metadata_chunk_paths:
-            downloaded_data = self.__rcc_s3_controller_factory().download_file(self.__rcc_bucket, file_path)
+        for file_path in s3_keys:
+            downloaded_data = self.__rcc_s3_controller_factory().download_file(bucket, file_path)
 
             if file_path.endswith('.zip'):
                 downloaded_data = gzip.decompress(downloaded_data)
@@ -50,7 +55,7 @@ class S3DownloaderUploader:
                 S3ObjectRCC(
                     data=downloaded_data,
                     s3_key=file_path,
-                    bucket=self.__rcc_bucket))
+                    bucket=bucket))
 
         return chunks
 
@@ -69,15 +74,19 @@ class S3DownloaderUploader:
         Returns:
             S3ObjectRCC: The object downloaded
         """
-
         search_result = self.__rcc_crawler.search_files({file_name}, search_params)
+
         if len(search_result) == 0:
             raise S3FileNotFoundError(f"File {file_name} not found in RCC")
 
-        object_info = search_result.values()[0]
+        if len(search_result) > 1:
+            raise ValueError(f"InternalError: RCCCrawler returned too many files {len(search_result)}")
+
+
+        object_info = search_result.pop(file_name)
         return self.download_from_rcc([object_info.key])[0]
 
-    def __upload_to_devcloud(self, bucket: str, s3_key: str, data: bytes):
+    def __upload_to_devcloud(self, bucket: str, s3_key: str, data: bytes) -> str:
         """
         Uploads files to the devcloud
 
@@ -88,12 +97,18 @@ class S3DownloaderUploader:
 
         Raises:
             S3UploadError: If the file already exists
+
+        Returns:
+            s3_path (str): The path to where it got uploaded.
         """
-        if self.__s3_controller.check_s3_file_exists(self.__raw_bucket, data.filename):
-            _logger.error("File %s already exists in %s", data.filename, self.__raw_bucket)
+
+        if self.__s3_controller.check_s3_file_exists(bucket, s3_key):
+            _logger.error("File %s already exists in %s", s3_key, bucket)
             raise S3UploadError
 
         self.__s3_controller.upload_file(data, bucket, s3_key)
+
+        return f"s3://{bucket}/{s3_key}"
 
     def upload_to_devcloud_raw(self, data: S3ObjectDevcloud) -> str:
         """
@@ -104,10 +119,10 @@ class S3DownloaderUploader:
             metadata_chunk_paths (Iterable[str]): An Iterable containing all the meta chunks
 
         Returns:
-            s3_key (str): The path to where it got uploaded.
+            s3_path (str): The path to where it got uploaded.
         """
         s3_key = f"{data.tenant}/{data.filename}"
-        self.__upload_to_devcloud(self.__raw_bucket, s3_key, data.data)
+        return self.__upload_to_devcloud(self.__raw_bucket, s3_key, data.data)
 
     def upload_to_devcloud_tmp(self, data: S3ObjectDevcloud) -> str:
         """
@@ -118,7 +133,7 @@ class S3DownloaderUploader:
             metadata_chunk_paths (Iterable[str]): An Iterable containing all the meta chunks
 
         Returns:
-            s3_key (str): The path to where it got uploaded.
+            s3_path (str): The path to where it got uploaded.
         """
         s3_key = f"{data.tenant}/{data.filename}"
-        self.__upload_to_devcloud(self.__tmp_bucket, s3_key, data.data)
+        return self.__upload_to_devcloud(self.__tmp_bucket, s3_key, data.data)

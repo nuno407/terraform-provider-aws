@@ -7,7 +7,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from base.aws.container_services import ContainerServices
 from base.aws.sqs import SQSController
-from base.model.artifacts import (Artifact, IMUArtifact, KinesisVideoArtifact,
+from base.model.artifacts import (Artifact, IMUArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   VideoArtifact, PreviewSignalsArtifact)
@@ -19,7 +19,6 @@ from sdretriever.exceptions import (FileAlreadyExists,
                                     TemporaryIngestionError)
 from sdretriever.ingestor.imu import IMUIngestor
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.ingestor.kinesis_video import KinesisVideoIngestor
 from sdretriever.ingestor.s3_video import S3VideoIngestor
 from sdretriever.ingestor.snapshot import SnapshotIngestor
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
@@ -38,7 +37,6 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             self,
             imu_ing: IMUIngestor,
             metadata_ing: VideoMetadataIngestor,
-            kinesis_video_ing: KinesisVideoIngestor,
             s3_video_ing: S3VideoIngestor,
             snap_ing: SnapshotIngestor,
             snap_metadata_ing: SnapshotMetadataIngestor,
@@ -51,14 +49,12 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         Args:
             imu_ing (IMUIngestor): instance of IMUIngestor
             metadata_ing (MetadataIngestor): instance of MetadataIngestor
-            video_ing (KinesisVideoIngestor): instance of KinesisVideoIngestor
             snap_ing (SnapshotIngestor): instance of SnapshotIngestor
             cont_services (ContainerServices): instance of ContainerServices
             config (SDRetrieverConfig): instance of SDRetrieverConfig
             sqs_controller (SQSController): instance of SQS client
         """
         self.__video_metadata_ing = metadata_ing
-        self.__kinesis_video_ing = kinesis_video_ing
         self.__s3_video_ing = s3_video_ing
         self.__sqs_controller = sqs_controller
         self.__config = config
@@ -79,8 +75,6 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         Returns:
             Optional[Ingestor]: The ingestor that should handle the artifact
         """
-        if isinstance(artifact, KinesisVideoArtifact):
-            return self.__kinesis_video_ing
         if isinstance(artifact, S3VideoArtifact):
             return self.__s3_video_ing
         if isinstance(artifact, SnapshotArtifact):

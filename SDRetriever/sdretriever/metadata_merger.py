@@ -5,7 +5,7 @@ import logging
 from operator import itemgetter
 from typing import Any
 
-from sdretriever.ingestor.metacontent import S3Object
+from sdretriever.models import S3Object
 _logger = logging.getLogger("SDRetriever." + __name__)
 
 

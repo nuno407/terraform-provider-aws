@@ -1,13 +1,14 @@
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.models import ChunkDownloadParams, S3ObjectRCC
-from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 from kink import inject
-from sdretriever.s3_crawler_rcc import S3CrawlerRCC
+from base.aws.model import S3ObjectInfo
+from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
 from typing import Optional
 import re
 import logging
 
-_logger = logging.getLogger(__file__)
+_logger = logging.getLogger("SDRetriever." + __name__)
 
 
 @inject
@@ -19,14 +20,14 @@ class RCCChunkDownloader:
 
     def __init__(self, s3_crawler: S3CrawlerRCC, s3_downloader: S3DownloaderUploader):
         self.__s3_crawler = s3_crawler
-        self.__suffix: Optional[str] = None
+        self.__suffixes: list[str] = []
         self.__s3_downloader = s3_downloader
 
         # to be used by the callback function
         self.__match_pattern = re.compile(
             r"^([^\W_]+_[^\W_]+-[a-z0-9\-]+_\d+)\..*$")
 
-    def __file_match(self, file_path: str) -> Optional[str]:
+    def __file_match(self, obj_info: S3ObjectInfo) -> Optional[str]:
         """
         Callback function to be used on the S3Crawler, it will return
         the file IDs if the suffix match.
@@ -48,19 +49,20 @@ class RCCChunkDownloader:
         Returns:
             Optional[str]: Return the file ID or None if cannot be extrapolated.
         """
-        if self.__suffix is None:
-            raise ValueError("Suffix cannot be null while searching for chunks in RCC")
+        file_name = obj_info.get_file_name()
+        _logger.info(file_name)
 
-        if not file_path.endswith(self.__suffix):
+        contains_suffix = any(map(lambda suffix: file_name.endswith(suffix), self.__suffixes))
+        if not contains_suffix:
             return None
 
-        match = re.match(self.__match_pattern, file_path)
+        match = re.match(self.__match_pattern, file_name)
         if not match:
             return None
 
         return match.group(1)
 
-    def download_files(self, params: ChunkDownloadParams) -> list[S3ObjectRCC]:
+    def download_by_chunk_id(self, params: ChunkDownloadParams) -> list[S3ObjectRCC]:
         """
         Download files from RCC based on the FootageCompleteDevCloudEvent message.
         Files that end wihth the .zip extension will also be extracted.
@@ -80,11 +82,10 @@ class RCCChunkDownloader:
         Returns:
             list[S3ObjectRCC]: A list with all the files downloaded.
         """
-        self.__suffix = params.suffix
+        self.__suffixes = params.suffixes
         list_prefix_files_download = set(params.get_chunks_prefix())
 
-        _logger.info("Searching with prefix=%s and suffix=%s",
-                     params.get_chunks_prefix(), self.__suffix)
+        _logger.info("Searching with suffixes=%s",str(self.__suffixes))
         search_results = self.__s3_crawler.search_files(
             list_prefix_files_download,
             params.get_search_parameters(),
