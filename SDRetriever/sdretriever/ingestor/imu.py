@@ -1,6 +1,5 @@
 """ imu module. """
 import logging as log
-import re
 import sys
 import pytz
 
@@ -8,15 +7,13 @@ from datetime import datetime
 from kink import inject
 
 from base.model.artifacts import Artifact, IMUArtifact
-from sdretriever.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import ChunkDownloadParams, S3ObjectDevcloud, S3ObjectRCC
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
 IMU_FILE_EXT = '.csv'
 _logger = log.getLogger("SDRetriever." + __name__)
-IMU_FILE_PATTERN = r"TrainingRecorder_TrainingRecorder.+\.mp4\._\w+?_\w+?_(\d+)_imu_raw.csv.zip"
-IMU_REGEX = re.compile(IMU_FILE_PATTERN)
 
 
 @inject
@@ -84,7 +81,7 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             stop_search=datetime.now(tz=pytz.UTC),
             suffix="_imu_raw.csv.zip")
 
-        downloaded_chunks = self.__s3_chunk_ingestor.download_files(params)
+        downloaded_chunks = self.__s3_chunk_ingestor.download_by_chunk_id(params)
 
         # Concatenate chunks and force deletion
         file_binary: bytearray = self.__concatenate_chunks(downloaded_chunks)
@@ -92,7 +89,7 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
 
         devcloud_object = S3ObjectDevcloud(
             data=file_binary,
-            filename=f"{artifact.artifact_id}/{IMU_FILE_EXT}",
+            filename=f"{artifact.artifact_id}{IMU_FILE_EXT}",
             tenant=artifact.tenant_id)
 
         # Upload IMU chunks and force deletion

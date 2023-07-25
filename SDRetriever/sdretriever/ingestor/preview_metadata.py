@@ -3,46 +3,33 @@ import json
 import re
 import logging as log
 from datetime import datetime
-from pytz import UTC
-
 from kink import inject
-from sdretriever.ingestor.metacontent import (S3Object,
-                                              MetacontentDevCloud,
-                                              MetacontentIngestor)
-from sdretriever.s3_finder_rcc import S3FinderRCC
-from sdretriever.constants import FileExt
-from sdretriever.s3_crawler_rcc import S3CrawlerRCC
-from sdretriever.exceptions import UploadNotYetCompletedError, S3FileNotFoundError
+
 from sdretriever.metadata_merger import MetadataMerger
-from sdretriever.models import RCCS3SearchParams
-
-from sdretriever.config import SDRetrieverConfig
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParams
 from base.model.artifacts import Artifact, PreviewSignalsArtifact
-from base.aws.model import S3ObjectInfo
+import pytz
 
-from typing import cast, Optional
+from typing import cast, Generator
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
 
 @inject
-class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-public-methods
+class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
     """Preview metadata ingestor"""
 
     def __init__(self,
-                 container_services: ContainerServices,
-                 rcc_s3_client_factory: S3ClientFactory,
-                 s3_controller: S3Controller,
-                 s3_crawler: S3CrawlerRCC,
-                 s3_finder: S3FinderRCC,
-                 sdr_config: SDRetrieverConfig,
+                 s3_chunk_ingestor: RCCChunkDownloader,
+                 s3_interface: S3DownloaderUploader,
                  metadata_merger: MetadataMerger):
-        super().__init__(container_services, rcc_s3_client_factory,
-                         s3_controller, s3_finder, re.compile(".*"))
-        self.__config = sdr_config
-        self.__rcc_s3_crawler = s3_crawler
+        self.__chunk_id_pattern = re.compile(
+            r"^[^\W_]+_[^\W_]+-[a-z0-9\-]+_(\d+)\..*$")
+        self.__s3_interface = s3_interface
+        self.__s3_chunk_ingestor = s3_chunk_ingestor
         self.__metadata_merger = metadata_merger
 
     def __upload_preview_metadata(self, source_data: dict, artifact: Artifact) -> str:
@@ -59,65 +46,34 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
             s3_upload_path (str): Path where file got stored. Returns None if upload fails.
         """
 
-        s3_folder = artifact.tenant_id
         source_data_as_bytes = bytes(json.dumps(
             source_data, ensure_ascii=False).encode('UTF-8'))
-        upload_file = MetacontentDevCloud(
-            source_data_as_bytes,
-            artifact.artifact_id,
-            self.__config.temporary_bucket,
-            s3_folder,
-            FileExt.METADATA.value)
 
-        return self._upload_metacontent_to_devcloud(upload_file)
+        obj = S3ObjectDevcloud(data=source_data_as_bytes, filename=artifact.artifact_id + "_metadata_full.json", tenant=artifact.tenant_id)
+        self.__s3_interface.upload_to_devcloud_tmp(obj)
 
-    def __download_chunks(self, chunks: list[S3ObjectInfo]) -> list[S3Object]:
+        return self.__s3_interface.upload_to_devcloud_tmp(obj)
+
+    def __get_chunk_ids(self, object_info: PreviewSignalsArtifact) -> Generator[int,None,None]:
         """
-        Download ALL chunks from RCC and unzip them if necessary.
+        Strips the ids from each chunk name.
 
         Args:
-            chunks (list[S3ObjectInfo]): Chunks to be downloaded.
+            object_info (PreviewSignalsArtifact): The artifact to check the data
 
         Raises:
-            S3FileNotFoundError: If not all chunks were downloaded.
+            ValueError: If one of the chunk names do not match the regex expression
 
-        Returns:
-            list[MetacontentChunk]: A list of chunks downloaded from RCC.
+        Yields:
+            Generator[int,None,None]: The ID of each chunk
         """
-        metadata_chunks_keys = set(map(lambda x: x.key, chunks))
-        downloaded_chunks: list[S3Object] = self._download_from_rcc(
-            metadata_chunks_keys)
-        if len(downloaded_chunks) != len(chunks):
-            raise S3FileNotFoundError("Not all metadata chunks were downloaded from RCC %d/%d",
-                                      len(downloaded_chunks), len(metadata_chunks_keys))
 
-        return downloaded_chunks
+        for snapshot_artifact in object_info.referred_artifact.chunks:
+            match = re.match(self.__chunk_id_pattern, snapshot_artifact.uuid)
+            if not match:
+                raise ValueError(f"The chunk cannot ({snapshot_artifact.uuid}) be interpreted")
 
-    def _get_file_extension(self) -> list[str]:
-        """
-        Return the file extension of the metadata
-
-        Returns:
-            list[str]: _description_
-        """
-        return [".json.zip"]
-
-    def metadata_chunk_match(self, object_info: S3ObjectInfo) -> Optional[str]:
-        """
-        Function used to match a chunk id in RCC, it is passed to the RCC Crawler.
-        If the S3 object has a metadata extension returns it's ID to be matched.
-
-        Args:
-            object_info (S3ObjectInfo): The object info passed by S3Crawler.
-
-        Returns:
-            Optional[str]: The chunk ID or None.
-        """
-        file_key = object_info.key
-        if not (file_key.endswith(".json") or file_key.endswith(".zip")):
-            return None
-
-        return self._apply_chunk_regex(object_info.key)
+            yield int(match.group(1))
 
     def ingest(self, artifact: Artifact) -> None:
         """
@@ -135,38 +91,19 @@ class PreviewMetadataIngestor(MetacontentIngestor):  # pylint: disable=too-few-p
             raise ValueError("PreviewMetadataIngestor can only ingest a PreviewSignalsArtifact")
 
         preview_artifact = cast(PreviewSignalsArtifact, artifact)
-        snapshot_names = {
-            snapshot_artifact.uuid for snapshot_artifact in preview_artifact.referred_artifact.chunks}
+        chunk_ids = set(self.__get_chunk_ids(preview_artifact))
 
-        rcc_s3_params = RCCS3SearchParams(
-            device_id=preview_artifact.device_id,
-            tenant=preview_artifact.tenant_id,
-            start_search=preview_artifact.timestamp,
-            stop_search=datetime.now(tz=UTC))
+        # Download data
+        params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.recording_id, chunk_ids=chunk_ids,device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
+            stop_search=datetime.now(
+                tz=pytz.UTC),
+                suffix=".json.zip")
 
-        metadata_chunks_found: dict[str, S3ObjectInfo] = self.__rcc_s3_crawler.search_files(
-            snapshot_names,
-            rcc_s3_params,
-            match_to_file=self.metadata_chunk_match)
 
-        # Check if not all chunks were found
-        if len(metadata_chunks_found) != len(snapshot_names):
-            found_metadata_filenames = set(metadata_chunks_found.keys())
-            _logger.debug(
-                "The following chunks were not found in RCC: %s",
-                snapshot_names.difference(found_metadata_filenames))
-            raise UploadNotYetCompletedError(
-                f"Not all metadata chunks were found {len(metadata_chunks_found)}/{len(snapshot_names)}")
-
-        # Fetch metadata chunks from RCC S3
-        downloaded_chunks = self.__download_chunks(list(metadata_chunks_found.values()))
+        downloaded_objects = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)
 
         # Merge the chunks
-        metadata = self.__metadata_merger.merge_metadata_chunks(downloaded_chunks)
+        metadata = self.__metadata_merger.merge_metadata_chunks(downloaded_objects)
 
         # Upload the chunks
-        mdf_s3_path = self.__upload_preview_metadata(
-            metadata, artifact)
-
-        # Store the MDF path in the artifact
-        artifact.s3_path = mdf_s3_path
+        artifact.s3_path = self.__upload_preview_metadata(metadata, artifact)

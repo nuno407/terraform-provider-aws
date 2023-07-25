@@ -10,10 +10,10 @@ from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, SignalsArtifact
 from sdretriever.constants import FileExt
 from sdretriever.metadata_merger import MetadataMerger
-from sdretriever.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import ChunkDownloadParams, S3ObjectDevcloud
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -68,7 +68,7 @@ class VideoMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             stop_search=datetime.now(tz=pytz.UTC),
             suffix=".json.zip")
 
-        downloaded_chunks = self.__s3_chunk_ingestor.download_files(params)
+        downloaded_chunks = self.__s3_chunk_ingestor.download_by_chunk_id(params)
         mdf_chunks = self.__metadata_merger.merge_metadata_chunks(downloaded_chunks)
         mdf_s3_path = self.__upload_metadata(mdf_chunks, artifact)
 

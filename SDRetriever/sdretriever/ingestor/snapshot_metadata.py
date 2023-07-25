@@ -4,15 +4,14 @@ from datetime import datetime
 
 from kink import inject
 
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
+from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParams
 from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
-from sdretriever.config import SDRetrieverConfig
-from sdretriever.models import RCCS3SearchParams
-from sdretriever.constants import SNAPSHOT_CHUNK_REGX, FileExt
-from sdretriever.exceptions import FileAlreadyExists
-from sdretriever.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.constants import FileExt
+from sdretriever.exceptions import S3FileNotFoundError
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 import pytz
+import re
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -22,19 +21,21 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
     """ snapshot's metadata ingestor """
 
     def __init__(self,
+                 s3_chunk_ingestor: RCCChunkDownloader,
                  s3_interface: S3DownloaderUploader,
-                 config: SDRetrieverConfig):
-        self.__config = config
+                 ):
         self.__s3_interface = s3_interface
+        self.__s3_chunk_ingestor = s3_chunk_ingestor
+        self.__chunk_id_pattern = re.compile(
+            r"^[^\W_]+_[^\W_]+-[a-z0-9\-]+_(\d+)\..*$")
 
-    def _get_file_extension(self) -> list[str]:
-        """
-        Return the file extension of the metadata
+    def __get_chunk_id(self, chunk_artifact: SnapshotArtifact) -> int:
+        match = re.match(self.__chunk_id_pattern, chunk_artifact.uuid)
+        if not match:
+            raise ValueError(f"The chunk cannot ({chunk_artifact.uuid}) be interpreted")
 
-        Returns:
-            list[str]: _description_
-        """
-        return [FileExt.METADATA.value, FileExt.ZIPPED_METADATA.value]
+        return int(match.group(1))
+
 
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """
@@ -46,29 +47,29 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
 
         # Initialize file name and path
         metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
-        metadata_snap_path = f"{artifact.tenant_id}/{metadata_snap_name}"
+        chunk_id = self.__get_chunk_id()
 
-        rcc_s3_bucket = self._container_svcs.rcc_info.get('s3_bucket')
-        # download the file from RCC - an exception is raised if the file is not found
+        # Download data
+        params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.artifact_id, chunk_ids={chunk_id},device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
+            stop_search=datetime.now(
+                tz=pytz.UTC),
+                suffix=".json.zip")
 
-        params = RCCS3SearchParams(
-            device_id=artifact.device_id,
-            tenant=artifact.tenant_id,
-            start_search=artifact.referred_artifact.timestamp,
-            stop_search=datetime.now(tz=pytz.UTC))
 
-        self.__s3_interface.search_and_download_from_rcc(params)
-        jpeg_metadata = self.get_file_in_rcc(rcc_s3_bucket,
-                                             artifact.tenant_id,
-                                             artifact.device_id,
-                                             artifact.referred_artifact.uuid,
-                                             artifact.referred_artifact.timestamp,
-                                             datetime.now(),
-                                             self._get_file_extension())
+        downloaded_object = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)
+
+        if len(downloaded_object) > 1 or len(downloaded_object) == 0:
+            raise S3FileNotFoundError(f"A total of {len(downloaded_object)} files were found instead of 1")
 
         # Upload files to DevCloud
-        snap_full_path = self._upload_file(metadata_snap_path, jpeg_metadata)
+        devcloud_object = S3ObjectDevcloud(
+            data=downloaded_object[0].data,
+            filename=metadata_snap_name,
+            tenant=artifact.tenant_id)
+
+        path_uploaded = self.__s3_interface.upload_to_devcloud_raw(devcloud_object)
 
         # update artifact with s3 path
-        _logger.info("Successfully uploaded to %s", snap_full_path)
-        artifact.s3_path = snap_full_path
+        _logger.info("Successfully uploaded to %s", path_uploaded)
+        artifact.s3_path = path_uploaded
+
