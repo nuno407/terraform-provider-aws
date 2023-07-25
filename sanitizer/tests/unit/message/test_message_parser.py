@@ -69,12 +69,9 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                 SQSMessage(
                  MESSAGE_ID,
                  RECEIPT_HANDLE,
-                 "2022-12-15T16:16:32.723Z",
-                 _read_and_parse_msg_body_from_fixture(
-                     "valid_footage_event.json"),
-                 MessageAttributes(
-                     "datanauts",
-                     "DATANAUTS_DEV_01")),
+                 timestamp="2022-12-15T16:16:32.723Z",
+                 body=_read_and_parse_msg_body_from_fixture("valid_footage_event.json"),
+                 attributes=MessageAttributes("datanauts", "DATANAUTS_DEV_01")),
                 False),
             ("error_footage_event_missing_timestamp",
              _valid_input_message("footage_event_missing_timestamp.json"),
@@ -86,11 +83,8 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                  MESSAGE_ID,
                  RECEIPT_HANDLE,
                  timestamp='2022-12-18T07:37:07.917Z',
-                 body=_read_and_parse_msg_body_from_fixture(
-                     "valid_snapshot_event.json"),
-                 attributes=MessageAttributes(
-                     tenant='ridecare_companion_trial',
-                     device_id=None)),
+                 body=_read_and_parse_msg_body_from_fixture("valid_snapshot_event.json"),
+                 attributes=MessageAttributes(tenant='ridecare_companion_trial', device_id=None)),
              False),
             ("missing_receipt_footage_event",
              _missing_receipt_handle_message("valid_snapshot_event.json"),
@@ -98,6 +92,10 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
              True),
             ("missing_body_footage_event",
              _missing_body_message("valid_snapshot_event.json"),
+             {},
+             True),
+            ("invalid_body_footage_event",
+             _valid_input_message("broken_footage_event.json"),
              {},
              True)
         ])

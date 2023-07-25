@@ -3,6 +3,7 @@
 import json
 import logging
 from enum import Enum
+from json import JSONDecodeError
 from typing import Dict, Optional, Union
 from kink import inject
 
@@ -126,7 +127,12 @@ class MessageParser:
                 raise InvalidMessagePanic(f"Missing Field {field_enum.value}")
 
         raw_body: str = raw_message[MessageFields.BODY.value]
-        body = json.loads(self.__deserialize(raw_body))
+
+        try:
+            body = json.loads(self.__deserialize(raw_body))
+        except JSONDecodeError as exc:
+            raise InvalidMessagePanic("Invalid message body.") from exc
+
         if not body:
             raise InvalidMessagePanic("Empty message body.")
 
