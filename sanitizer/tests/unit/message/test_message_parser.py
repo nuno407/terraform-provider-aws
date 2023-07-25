@@ -22,11 +22,10 @@ def _events_message_body(fixture_file_id: str) -> str:
 
 def _read_and_parse_msg_body_from_fixture(fixture_file_id: str) -> dict:
     raw_body = _events_message_body(fixture_file_id)
-    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""),
-                 ("\\", ""), ('"{', "{"), ('}"', "}")]
-    for args in call_args:
-        raw_body = raw_body.replace(args[0], args[1])
-    return json.loads(raw_body)
+    json_body = json.loads(raw_body)
+    if "Message" in json_body and isinstance(json_body["Message"], str):
+        json_body["Message"] = json.loads(json_body["Message"])
+    return json_body
 
 
 MESSAGE_ID = "barfoo"
@@ -86,6 +85,16 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                  body=_read_and_parse_msg_body_from_fixture("valid_snapshot_event.json"),
                  attributes=MessageAttributes(tenant='ridecare_companion_trial', device_id=None)),
              False),
+            ("valid_event_containing_apostrophe",
+             _valid_input_message("valid_special_event.json"),
+             SQSMessage(
+                 MESSAGE_ID,
+                 RECEIPT_HANDLE,
+                 timestamp='2023-07-25T08:12:22.523Z',
+                 body=_read_and_parse_msg_body_from_fixture("valid_special_event.json"),
+                 attributes=MessageAttributes(tenant='herbie', device_id=None)),
+             False
+             ),
             ("missing_receipt_footage_event",
              _missing_receipt_handle_message("valid_snapshot_event.json"),
              {},

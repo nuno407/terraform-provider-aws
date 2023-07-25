@@ -19,6 +19,7 @@ class MessageFields(Enum):
     """Message fields."""
     BODY_TYPE = "Type"
     MESSAGE_ID = "MessageId"
+    MESSAGE = "Message"
     BODY = "Body"
     TIMESTAMP = "Timestamp"
     ATTRIBUTES = "Attributes"
@@ -104,13 +105,6 @@ class MessageParser:
 
         return MessageAttributes(tenant, device_id)
 
-    def __deserialize(self, raw_message: str) -> str:
-        call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""),
-                     ("\\", ""), ('"{', "{"), ('}"', "}")]
-        for args in call_args:
-            raw_message = raw_message.replace(args[0], args[1])
-        return raw_message
-
     def parse(self, raw_message: MessageTypeDef) -> SQSMessage:
         """Parses SQS messages into data object.
 
@@ -129,7 +123,9 @@ class MessageParser:
         raw_body: str = raw_message[MessageFields.BODY.value]
 
         try:
-            body = json.loads(self.__deserialize(raw_body))
+            body = json.loads(raw_body)
+            if MessageFields.MESSAGE.value in body and isinstance(body[MessageFields.MESSAGE.value], str):
+                body[MessageFields.MESSAGE.value] = json.loads(body[MessageFields.MESSAGE.value])
         except JSONDecodeError as exc:
             raise InvalidMessagePanic("Invalid message body.") from exc
 

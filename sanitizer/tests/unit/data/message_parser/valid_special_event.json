@@ -1,0 +1,37 @@
+{
+    "Type": "Notification",
+    "MessageId": "4ca08912-0abc-59a5-b0de-d42b8c9a1835",
+    "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform",
+    "Message": "{\"topic\":\"com.bosch.rcc.dev/srx_herbie_dev_hw_02/things/twin/events/modified\",\"headers\":{\"kafka.topic\":\"hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub\",\"orig_address\":\"telemetry\",\"traceparent\":\"00-affbdb506e91cb0f83112ab36e2901eb-dd4a0a693987de15-00\",\"qos\":\"1\",\"kafka.timestamp\":\"1690272742204\",\"creation-time\":\"1690272742204\",\"device_id\":\"com.bosch.rcc.dev:srx_herbie_dev_hw_02\",\"kafka.key\":\"com.bosch.rcc.dev:srx_herbie_dev_hw_02\",\"orig_adapter\":\"hono-mqtt\",\"ditto-originator\":\"integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub\",\"response-required\":false,\"version\":2,\"requested-acks\":[],\"content-type\":\"application/json\",\"correlation-id\":\"cf1784e5-5a7a-4b41-b1f5-15010b37ff96\"},\"path\":\"/features/com.bosch.ivs.DeviceInfoEvent\",\"value\":{\"properties\":{\"header\":{\"message_type\":\"com.bosch.ivs.DeviceInfoEvent\",\"timestamp_ms\":1690272741993,\"message_id\":\"1529380e-21cc-46bd-8bca-119b476c604b\",\"device_id\":\"srx_herbie_dev_hw_02\",\"boot_id\":\"3c1f8209-0aff-4a37-abce-cef9953d4395\"},\"system_report\":\"Git Commit ID: 5f1c98976 | Git Branch Name:  | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 773275648 | hailysharey\",\"software_versions\":[{\"software_name\":\"BSP\",\"version\":\"3.7.0-rc4\"},{\"software_name\":\"Board\",\"version\":\"SRX_P0_1596_16BIT_DDR4\"},{\"software_name\":\"BoardBuild\",\"version\":\"prod\"},{\"software_name\":\"Bootloader\",\"version\":\"8\"},{\"software_name\":\"HDLC\",\"version\":\"5\"},{\"software_name\":\"Hardware\",\"version\":\"3\"},{\"software_name\":\"MCU\",\"version\":\"3.7.0\"},{\"software_name\":\"Modem\",\"version\":\"EG95AUXGAR08A04M1G\"},{\"software_name\":\"carapplication\",\"version\":\"0.0.1\"},{\"software_name\":\"ivs_car\",\"version\":\"1.7.0\"},{\"software_name\":\"ivs_feature_chain\",\"version\":\"0.6.4-rc2\"}],\"device_type\":\"hailysharey\",\"last_shutdown_reason\":{\"shutdown_reason\":\"SHUTDOWN_REASON__POSSIBLE_CRASH\",\"shutdown_reason_description\":\"System has possibly crashed, since shutdown reason wasn't written to file.\",\"timestamp_ms\":1690272681815}}},\"extra\":{\"attributes\":{\"vin\":\"unknown\",\"tenant\":\"herbie\",\"vehicleType\":\"CARMODEL__FIAT_500_312\",\"subjectId\":\"cce9b2b5-3f30-40db-9fe9-590e693f9fd7\",\"operationMode\":\"PRIVATE\",\"deviceType\":\"hailysharey\"}},\"revision\":89518,\"timestamp\":\"2023-07-25T08:12:22.214632809Z\"}",
+    "Timestamp": "2023-07-25T08:12:22.523Z",
+    "SignatureVersion": "1",
+    "Signature": "NqaYaI4LtDTTYxbL7svBUqWAO4lvFtZ8qm0AynkHea06xLcx8LvSzcRzBX52i+cgaH4N+ZZiJWVVbWXpN1Fy8hd1WbGfZ1s5wHl+9JsHSqv71smzz3yRwH8e5B4eFwrAl20tbWpwQSMHy/o2WYT2TCtNsRt3geyL35E120IBI0tGxLZrYzbzEOjQ/lVWuJxhkLPBxqX0/1Tlo7e0K6bu1MyE4ol4256K/51FmZRH2TnRg1GT19CXmLDPI9s1lNi/Mgu2qidGJjnNd7PxVZSwtJc1c0r8VGXwf3ZHjnXSdpCwQhlV5REfyetPaFSrb/9THzk8G001mCX4HSDadIFa3g==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform:6b3c21ec-20fa-4434-b40d-ca265433f9d4",
+    "MessageAttributes": {
+        "deviceType": {
+            "Type": "String",
+            "Value": "hailysharey"
+        },
+        "modifiedThingCategory": {
+            "Type": "String",
+            "Value": "features"
+        },
+        "operationMode": {
+            "Type": "String",
+            "Value": "PRIVATE"
+        },
+        "eventType": {
+            "Type": "String",
+            "Value": "com.bosch.ivs.DeviceInfoEvent"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "herbie"
+        },
+        "subjectId": {
+            "Type": "String",
+            "Value": "cce9b2b5-3f30-40db-9fe9-590e693f9fd7"
+        }
+    }
+}
