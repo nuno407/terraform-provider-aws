@@ -7,7 +7,7 @@ from pytz import UTC
 from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   S3VideoArtifact, SnapshotArtifact,
-                                  TimeWindow, parse_artifact)
+                                  TimeWindow, parse_artifact, Recording)
 from base.timestamps import from_epoch_seconds_or_milliseconds
 
 
@@ -59,7 +59,11 @@ def json_video() -> str:
             "end": "2023-04-13T08:01:00+00:00"
         },
         "footage_id": "my_footage_id",
-        "rcc_s3_path": "s3://bucket/key"
+        "rcc_s3_path": "s3://bucket/key",
+        "recordings": [{
+            "chunk_ids":[1,2,3],
+            "recording_id": "TrainingRecorder-abc"
+        }]
     }
     """
 
@@ -75,7 +79,8 @@ def video() -> S3VideoArtifact:
             start=datetime.fromisoformat("2023-04-13T08:00:00+00:00"),
             end=datetime.fromisoformat("2023-04-13T08:01:00+00:00")),
         footage_id="my_footage_id",
-        rcc_s3_path="s3://bucket/key"
+        rcc_s3_path="s3://bucket/key",
+        recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
     )
 
 

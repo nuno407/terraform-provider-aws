@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Optional, Union
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
@@ -7,7 +8,7 @@ from pydantic import parse_obj_as
 from pytz import UTC
 
 from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from healthcheck.config import HealthcheckConfig
 from healthcheck.exceptions import NotPresentError, NotYetIngestedError
 from healthcheck.worker import HealthCheckWorker
@@ -31,6 +32,7 @@ def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", dev
         obj["end_timestamp"] = datetime.now(tz=UTC)
         obj["rcc_s3_path"] = "s3://bucket/key"
         obj["footage_id"] = "footage_id1"
+        obj["recordings"] = [Recording(chunk_ids=[1, 2, 3], recording_id="recording-id1")]
     else:
         # snapshot required fields
         obj["uuid"] = "uuid1"

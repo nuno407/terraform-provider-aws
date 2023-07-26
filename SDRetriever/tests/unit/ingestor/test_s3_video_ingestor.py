@@ -10,7 +10,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.aws.shared_functions import StsHelper
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.post_processor import IVideoPostProcessor, VideoInfo
@@ -111,7 +111,8 @@ class TestVideoIngestor():
             ),
             footage_id=FOOTAGE_ID,
             rcc_s3_path=f"s3://{RCC_BUCKET}/{RCC_KEY}",
-            end_timestamp=VIDEO_END
+            end_timestamp=VIDEO_END,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
 
     @fixture()

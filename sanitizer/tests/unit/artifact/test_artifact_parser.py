@@ -7,7 +7,7 @@ from pytz import UTC
 
 from base.aws.model import MessageAttributes, SQSMessage
 from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
-                                  RecorderType, S3VideoArtifact,
+                                  Recording, RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.artifact_parser import ArtifactParser
@@ -142,7 +142,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 end_timestamp=datetime.now(tz=UTC),
                 upload_timing=TimeWindow(
                     start="2022-12-18T07:37:07.842030994Z",
-                    end="2022-12-18T07:37:07.842030994Z")
+                    end="2022-12-18T07:37:07.842030994Z"),
+                recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
             )
         ]
     ),
@@ -175,7 +176,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 end_timestamp=datetime.now(tz=UTC),
                 upload_timing=TimeWindow(
                     start="2022-12-18T07:37:07.842030994Z",
-                    end="2022-12-18T07:37:07.842030994Z")
+                    end="2022-12-18T07:37:07.842030994Z"),
+                recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
             )
         ]
     ),
@@ -208,7 +210,8 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 end_timestamp=datetime.now(tz=UTC),
                 upload_timing=TimeWindow(
                     start="2022-12-18T07:37:07.842030994Z",
-                    end="2022-12-18T07:37:07.842030994Z")
+                    end="2022-12-18T07:37:07.842030994Z"),
+                recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
             )
         ]
     )

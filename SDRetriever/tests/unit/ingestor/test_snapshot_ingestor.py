@@ -9,7 +9,7 @@ from pytz import UTC
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.snapshot import SnapshotIngestor
@@ -60,7 +60,8 @@ class TestSnapshotIngestor():
             ),
             footage_id="babe76af-6dd8-533c-9ac3-2295f5fd779d",
             rcc_s3_path="s3://rcc-bucket/key",
-            end_timestamp=SNAP_TIME
+            end_timestamp=SNAP_TIME,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
 
     @fixture()

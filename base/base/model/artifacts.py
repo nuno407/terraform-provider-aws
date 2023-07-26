@@ -142,10 +142,18 @@ class KinesisVideoArtifact(VideoArtifact):
 
 
 @dataclass
+class Recording:
+    """Represents a recording represented by a recording id and the corresponding chunk ids"""
+    recording_id: str = Field(default=...)
+    chunk_ids: list[int] = Field(default=...)
+
+
+@dataclass
 class S3VideoArtifact(VideoArtifact):
     """Represents a video artifact that has been concatenated by RCC and uploaded to S3"""
     rcc_s3_path: str = Field(default=...)
     footage_id: str = Field(default=...)
+    recordings: list[Recording] = Field(default=...)
 
     @property
     def artifact_id(self) -> str:

@@ -11,7 +11,7 @@ from base.timestamps import from_epoch_seconds_or_milliseconds
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import (RecorderType, PreviewSignalsArtifact, MultiSnapshotArtifact, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from sdretriever.exceptions import UploadNotYetCompletedError, S3FileNotFoundError
 from sdretriever.ingestor.preview_metadata import PreviewMetadataIngestor
 from sdretriever.metadata_merger import MetadataMerger
@@ -94,7 +94,8 @@ class TestPreviewMetadataIngestor:
             ),
             footage_id="my_footage_id",
             rcc_s3_path="s3://bucket/key",
-            end_timestamp=CONST_TIME
+            end_timestamp=CONST_TIME,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
 
     @fixture()

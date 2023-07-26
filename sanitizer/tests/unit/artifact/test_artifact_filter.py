@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Artifact, Recording, RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_filter import ArtifactFilter
 from sanitizer.config import SanitizerConfig
@@ -86,6 +86,7 @@ timings = {
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.FRONT,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **timings
         ),
         _sanitizer_config(
@@ -102,6 +103,7 @@ timings = {
             tenant_id="deepsensation",
             device_id="DEV04",
             recorder=RecorderType.INTERIOR,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **timings
         ),
         _sanitizer_config(
@@ -118,6 +120,7 @@ timings = {
             tenant_id="deepsensation",
             device_id="DEV05",
             recorder=RecorderType.TRAINING,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **timings
         ),
         _sanitizer_config(

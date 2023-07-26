@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import RecorderType, S3VideoArtifact, TimeWindow
+from base.model.artifacts import RecorderType, S3VideoArtifact, TimeWindow, Recording
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 from healthcheck.controller.db import DatabaseController
@@ -183,7 +183,9 @@ class TestInteriorRecorderArtifactChecker:
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC) - timedelta(hours=1),
                 end=datetime.now(tz=UTC)),
-            rcc_s3_path=f"s3://bucket/{tenant_id}/{device_id}/{footage_id}.mp4")
+            rcc_s3_path=f"s3://bucket/{tenant_id}/{device_id}/{footage_id}.mp4",
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
+        )
 
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:

@@ -6,7 +6,7 @@ from pytz import UTC
 
 from base.model.artifacts import (Artifact, IMUArtifact, MetadataArtifact,
                                   MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact, RecorderType,
+                                  PreviewSignalsArtifact, Recording, RecorderType,
                                   S3VideoArtifact, SignalsArtifact,
                                   SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_injector import MetadataArtifactInjector
@@ -45,7 +45,8 @@ fixture_interior = S3VideoArtifact(
     end_timestamp=datetime.now(tz=UTC),
     upload_timing=TimeWindow(
         start="2022-12-18T07:37:07.842030994Z",
-        end="2022-12-18T07:37:07.842030994Z")
+        end="2022-12-18T07:37:07.842030994Z"),
+    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 
 fixture_training = S3VideoArtifact(
@@ -58,7 +59,8 @@ fixture_training = S3VideoArtifact(
     end_timestamp=datetime.now(tz=UTC),
     upload_timing=TimeWindow(
         start="2022-12-18T07:37:07.842030994Z",
-        end="2022-12-18T07:37:07.842030994Z")
+        end="2022-12-18T07:37:07.842030994Z"),
+    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 fixture_preview = SnapshotArtifact(
     **device_and_tenant_and_timings,

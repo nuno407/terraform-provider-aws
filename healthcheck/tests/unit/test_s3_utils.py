@@ -7,7 +7,7 @@ from pytz import UTC
 
 from base.aws.s3 import S3Controller
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from healthcheck.exceptions import AnonymizedFileNotPresent, RawFileNotPresent
 from healthcheck.model import S3Params
 from healthcheck.s3_utils import S3Utils
@@ -40,7 +40,9 @@ class TestS3Utils:
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC),
                 end=datetime.now(tz=UTC)
-            ))
+            ),
+            recordings=[Recording(recording_id="TrainingRecorder-def", chunk_ids=[1, 2, 3])]
+        )
 
     @pytest.fixture
     def fix_snap(self) -> SnapshotArtifact:

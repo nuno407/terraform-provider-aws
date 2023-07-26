@@ -12,7 +12,7 @@ from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import (Artifact, MetadataType, RecorderType,
                                   S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.exceptions import FileAlreadyExists
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
@@ -88,7 +88,8 @@ class TestMetadataSnapshotIngestor():
             ),
             footage_id="1741741b-162a-50ef-a1cd-fbc3caabb3f1",
             rcc_s3_path="s3://rcc-bucket/key",
-            end_timestamp=SNAP_TIME
+            end_timestamp=SNAP_TIME,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
 
     @mark.unit()

@@ -56,7 +56,7 @@ class TestJSONSchemaValidation:
                                    "last_updated": "2022-01-27T17:08:17.355328Z",
                                    "processing_list": ["Anonymize",
                                                        "CHC"],
-                                      "s3_path":"Debug_Lync/srxfut2internal23_rc_srx_qa_eur_fut2_009_InteriorRecorder_123.mp4"},
+                                      "s3_path": "Debug_Lync/srxfut2internal23_rc_srx_qa_eur_fut2_009_InteriorRecorder_123.mp4"},
                                   Schema.PIPELINE_EXECUTION,
                                   False),
                                  ("error_pipeline_exec_missing_processing_list",

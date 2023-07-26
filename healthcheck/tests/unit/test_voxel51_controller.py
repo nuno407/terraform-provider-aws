@@ -6,7 +6,7 @@ from kink import di
 from pytz import UTC
 
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+                                  SnapshotArtifact, TimeWindow, Recording)
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params
@@ -50,7 +50,8 @@ class TestVoxelFiftyOneController():
             end_timestamp=datetime.now(tz=UTC) - timedelta(minutes=30),
             upload_timing=TimeWindow(
                 start=datetime.now(tz=UTC) - timedelta(hours=1),
-                end=datetime.now(tz=UTC) - timedelta(minutes=30))
+                end=datetime.now(tz=UTC) - timedelta(minutes=30)),
+            recordings=[Recording(recording_id="TrainingRecorder-def", chunk_ids=[1, 2, 3])]
         )
 
     @pytest.fixture(autouse=True)

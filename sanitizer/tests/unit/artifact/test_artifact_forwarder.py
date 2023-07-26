@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Recording, RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow)
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
@@ -28,6 +28,7 @@ timings = {
             tenant_id="123456",
             device_id="12345",
             recorder=RecorderType.INTERIOR,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **timings
         )
     ),
@@ -37,6 +38,7 @@ timings = {
             tenant_id="deepsensation",
             device_id="DEV_01",
             recorder=RecorderType.SNAPSHOT,
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **timings
         )
     )

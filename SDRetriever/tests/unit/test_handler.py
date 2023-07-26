@@ -7,7 +7,7 @@ import pytz
 from base.model.artifacts import (IMUArtifact, KinesisVideoArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
-                                  TimeWindow)
+                                  TimeWindow, Recording)
 from base.model.artifacts import (IMUArtifact, RecorderType, SignalsArtifact, MultiSnapshotArtifact,
                                   SnapshotArtifact, TimeWindow, PreviewSignalsArtifact)
 from sdretriever.constants import CONTAINER_NAME
@@ -134,7 +134,8 @@ s3_video_artifact = S3VideoArtifact(
     footage_id="footage_id",
     rcc_s3_path="s3://bucket/key",
     timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC)
+    end_timestamp=datetime.now(tz=pytz.UTC),
+    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 
 

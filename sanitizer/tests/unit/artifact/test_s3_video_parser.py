@@ -4,7 +4,7 @@ import os
 import pytest
 
 from base.aws.model import MessageAttributes, SQSMessage
-from base.model.artifacts import RecorderType, S3VideoArtifact, TimeWindow
+from base.model.artifacts import Recording, RecorderType, S3VideoArtifact, TimeWindow
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
 
 CURRENT_LOCATION = os.path.realpath(
@@ -53,7 +53,20 @@ RECEIPT_HANDLE = "foobar"
                     start=1687179039085,  # type: ignore
                     end=1687179043530),  # type: ignore
                 footage_id="303bd782-e19f-4373-ac72-f909d62f84ce",
-                rcc_s3_path="s3://dev-rcc-video-repo/rubber_duck/7c8c1377-38fb-4d00-af6e-b35e32b99c8a/INTERIOR/Footage_303bd782-e19f-4373-ac72-f909d62f84ce.mp4"
+                rcc_s3_path="s3://dev-rcc-video-repo/rubber_duck/7c8c1377-38fb-4d00-af6e-b35e32b99c8a/INTERIOR/Footage_303bd782-e19f-4373-ac72-f909d62f84ce.mp4",
+                recordings=[
+                    Recording(
+                        recording_id="InteriorRecorder-512555a5-b04d-4228-9477-3c74c29bc9de",
+                        chunk_ids=[
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9])]
             )
         ]
     )

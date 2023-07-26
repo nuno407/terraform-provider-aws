@@ -12,7 +12,7 @@ from pytz import UTC
 
 from base.aws.sns import SNSController
 from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
-                                  RecorderType, S3VideoArtifact,
+                                  Recording, RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow, parse_artifact)
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
@@ -85,8 +85,8 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
             tenant_id="test-tenant-id01",
             upload_timing=TimeWindow(
                 start="2023-04-13T08:00:00+00:00",  # type: ignore
-                end="2023-04-13T08:01:00+00:00")  # type: ignore
-
+                end="2023-04-13T08:01:00+00:00"),  # type: ignore
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
     ),
     (
@@ -100,8 +100,8 @@ def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
             tenant_id="test-tenant-id02",
             upload_timing=TimeWindow(
                 start="2023-04-13T08:00:00+00:00",  # type: ignore
-                end="2023-04-13T08:01:00+00:00")  # type: ignore
-
+                end="2023-04-13T08:01:00+00:00"),  # type: ignore
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
     ), (
         MultiSnapshotArtifact(

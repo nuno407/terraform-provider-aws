@@ -4,7 +4,7 @@ from datetime import datetime
 from pytest import mark
 
 from base.model.artifacts import (IMUArtifact, MetadataArtifact, MetadataType,
-                                  RecorderType, S3VideoArtifact,
+                                  Recording, RecorderType, S3VideoArtifact,
                                   SignalsArtifact, TimeWindow)
 from mdfparser.interfaces.artifact_adapter import ArtifactAdapter
 from mdfparser.interfaces.input_message import DataType, InputMessage
@@ -23,7 +23,8 @@ def interior_video() -> S3VideoArtifact:
             start="2023-04-13T08:00:00+00:00",  # type: ignore
             end="2023-04-13T08:01:00+00:00"),  # type: ignore
         footage_id="c9e5b11d-e77a-5306-8e0b-68aa609e49db",
-        rcc_s3_path=f"s3://rcc-bucket/key"
+        rcc_s3_path=f"s3://rcc-bucket/key",
+        recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
     )
 
 
@@ -40,7 +41,8 @@ def training_video() -> S3VideoArtifact:
             start="2023-04-13T08:00:00+00:00",  # type: ignore
             end="2023-04-13T08:01:00+00:00"),  # type: ignore
         footage_id="64594ea7-b817-54db-bdf3-dba7e2bfb186",
-        rcc_s3_path=f"s3://rcc-bucket/key"
+        rcc_s3_path=f"s3://rcc-bucket/key",
+        recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
     )
 
 

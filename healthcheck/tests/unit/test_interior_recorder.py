@@ -4,7 +4,7 @@ from unittest.mock import Mock, call
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Artifact, Recording, RecorderType, S3VideoArtifact,
                                   TimeWindow)
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
@@ -27,12 +27,14 @@ class TestInteriorRecorderArtifactChecker:
             tenant_id="my_tenant1",
             device_id="my_device1",
             footage_id="footage_1",
+            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
             **common_video_attributes
         )),
         (S3VideoArtifact(
             tenant_id="my_tenant2",
             device_id="my_device2",
             footage_id="footage_2",
+            recordings=[Recording(recording_id="TrainingRecorder-def", chunk_ids=[1, 2, 3])],
             **common_video_attributes
         ))
     ])
