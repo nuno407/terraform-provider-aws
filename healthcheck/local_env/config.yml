@@ -1,3 +1,4 @@
+# example config for local env
 anonymized_s3_bucket: dev-rcd-anonymized-video-files
 raw_s3_bucket: dev-rcd-raw-video-files
 input_queue: dev-terraform-queue-healthcheck

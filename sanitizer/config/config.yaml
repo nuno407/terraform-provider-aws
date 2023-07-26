@@ -1,4 +1,6 @@
 # example config
+# this config is not used on the cluster. If you are looking for the current version check:
+# QA: https://github.com/bosch-rc-dev/kubernetes_config/blob/master/apps/qa/sanitizer/config.yml
 input_queue: "local-sanitize-input"
 topic_arn: "arn:aws:sns:us-east-1:000000000000:local-sanitize-output"
 message_collection: "local-incoming-messages"
