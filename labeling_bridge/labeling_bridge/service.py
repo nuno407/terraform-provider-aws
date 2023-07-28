@@ -258,7 +258,7 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                             status=Status.DONE))
                 except Exception as err:  # pylint: disable=broad-except
                     msg = f"Unable to load label files of type {annotation_type.value} from: {tmp_dir_name}"
-                    _logger.exception(msg, "\nException: %s", str(err))
+                    _logger.exception("Error merging labels: %s\nException: %s", msg, str(err))
                     Repository.update_status_of_tasks(
                         labeling_jobs=labeling_jobs,
                         kognic_labeling_types=[KognicLabelingType[annotation_type.name]],
