@@ -6,9 +6,9 @@ from mypy_boto3_s3 import S3Client
 from sdretriever.config import SDRetrieverConfig
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.s3.s3_finder_rcc import S3FinderRCC
 from sdretriever.metadata_merger import MetadataMerger
-from sdretriever.s3_crawler_rcc import S3CrawlerRCC
+from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
 from sdretriever.metadata_merger import MetadataMerger
 
 

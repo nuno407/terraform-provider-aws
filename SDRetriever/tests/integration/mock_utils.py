@@ -2,14 +2,18 @@ from datetime import datetime
 from pydantic import BaseModel
 from mypy_boto3_sqs.client import SQSClient
 from mypy_boto3_s3 import S3Client
+from base.aws.s3 import S3Controller
 from pytz import UTC
 import os
 import moto  # type: ignore
 import json
 import random
-from typing import Any, cast
+from base.aws.sqs import SQSController
+from base.model.artifacts import Artifact, parse_artifact
+from typing import Any, cast, Optional
+from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.testing.utils import load_relative_raw_file, load_relative_json_file, get_abs_path, load_relative_str_file
-
+from sdretriever.main import deserialize
 
 class S3File(BaseModel):
     data: bytes = b"MOCK"
@@ -30,7 +34,6 @@ def get_s3_file_content(filename: str) -> bytes:
         bytes: The content of the file
     """
     return load_relative_raw_file(__file__, os.path.join("data", "cloud_s3_state", "files_content", filename))
-
 
 def get_s3_cloud_state(filename: str) -> list[S3File]:
     """
@@ -86,8 +89,36 @@ def get_sqs_message(filename: str) -> str:
     data: str = load_relative_str_file(__file__, os.path.join("data", "sqs_messages", filename))
     return data
 
+def get_local_content_from_s3_path(path: str) -> bytes:
+    """
+    Loads a file from the directory data/cloud_s3_state/files_content
 
-def load_files_rcc(files_to_load: list[S3File], rcc_s3_client: S3Client, rcc_bucket: str):
+    Args:
+        path (str): The name S3 path
+
+    Returns:
+        bytes: The content of the file
+    """
+    file_name = path.split("/")[-1]
+    return get_s3_file_content(file_name)
+
+def get_sqs_message_artifact(sqs_controller:  SQSController, timeout: int) -> Optional[Artifact]:
+    """
+    Get's a message from an SQS queue and returns it's artifact if available
+
+    Args:
+        sqs_controller (SQSController): The Controller
+
+    Returns:
+        Optional[Artifact]
+    """
+    sqs_message = sqs_controller.get_message(timeout)
+    if sqs_message:
+        metadata_message = json.loads(deserialize(sqs_message["Body"]))
+        return parse_artifact(metadata_message)
+    return None
+
+def load_files_rcc_chunks(files_to_load: list[S3File], rcc_s3_client: S3Client, rcc_bucket: str):
     """
     Load a list of S3Files to a mocked S3Client to the specified bucket.
     This will mimick the file structure of the RCC, so the path will be set based on the modified date.
@@ -109,6 +140,21 @@ def load_files_rcc(files_to_load: list[S3File], rcc_s3_client: S3Client, rcc_buc
         key.last_modified = file_to_load.date_modified
 
 
+def load_files(file_s3_path: list[str], s3_client: S3Client):
+    """
+    Load a list of S3 paths to a mocked S3Client to the specified bucket.
+    The files will be grabbed from "files_content" folder.
+
+    Args:
+        file_s3_path (list[str]): The files to be loaded to S3
+        s3_client (S3Client): The mocked S3 client.
+    """
+    for file_path in file_s3_path:
+        bucket ,file_key = S3Controller.get_s3_path_parts(file_path)
+        content = get_local_content_from_s3_path(file_path)
+        s3_client.put_object(Bucket=bucket, Key=file_key, Body=content)
+
+
 def load_files_devcloud(files_to_load: list[S3File], devcloud_s3_client: S3Client, devcloud_bucket: str):
     """
     Load a list of S3Files to a mocked S3Client to the specified bucket.
@@ -126,7 +172,7 @@ def load_files_devcloud(files_to_load: list[S3File], devcloud_s3_client: S3Clien
         key.last_modified = file_to_load.date_modified
 
 
-def load_sqs_message(data: str, sqs_client: SQSClient, sqs_name: str):
+def load_sqs_message(data: str, sqs_client: SQSController):
     """
     Loads an sqs message into a queue.
 
@@ -136,5 +182,4 @@ def load_sqs_message(data: str, sqs_client: SQSClient, sqs_name: str):
         sqs_name (str): The SQS name.
     """
     message_wrapper = {"Message": data}
-    queue_answer = sqs_client.get_queue_url(QueueName=sqs_name)
-    sqs_client.send_message(QueueUrl=queue_answer["QueueUrl"], MessageBody=json.dumps(message_wrapper))
+    sqs_client.send_message(json.dumps(message_wrapper),"SDRetriever")

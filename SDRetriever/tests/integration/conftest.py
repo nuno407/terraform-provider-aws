@@ -12,11 +12,12 @@ from mypy_boto3_sqs import SQSClient
 from unittest.mock import Mock, PropertyMock
 from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.s3.s3_finder_rcc import S3FinderRCC
 from sdretriever.main import main
 from base.testing.utils import get_abs_path
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller, S3ControllerFactory
+from base.aws.sqs import SQSController
 from base.aws.shared_functions import StsHelper
 from base.graceful_exit import GracefulExit
 from base.testing.utils import get_abs_path
@@ -32,6 +33,9 @@ def region_name() -> str:
 def rcc_bucket() -> str:
     return "rcc-dev-device-data"
 
+@pytest.fixture
+def rcc_merged_bucket() -> str:
+    return "dev-rcc-video-repo"
 
 @pytest.fixture
 def devcloud_temporary_bucket() -> str:
@@ -39,7 +43,7 @@ def devcloud_temporary_bucket() -> str:
 
 
 @pytest.fixture
-def devcloud_bucket() -> str:
+def devcloud_raw_bucket() -> str:
     return "dev-rcd-raw-video-files"
 
 
@@ -52,9 +56,12 @@ def download_queue() -> str:
 def selector_queue() -> str:
     return "dev-terraform-queue-selector"
 
+@pytest.fixture
+def metadata_queue() -> str:
+    return "dev-terraform-queue-metadata"
 
 @pytest.fixture
-def all_queues(download_queue: str, selector_queue: str) -> list[str]:
+def all_queues(download_queue: str, selector_queue: str, metadata_queue: str) -> list[str]:
     queues = [
         "dev-terraform-queue-s3-sdm",
         "dev-terraform-queue-anonymize",
@@ -63,7 +70,7 @@ def all_queues(download_queue: str, selector_queue: str) -> list[str]:
         "dev-terraform-queue-api-chc",
         download_queue,
         selector_queue,
-        "dev-terraform-queue-metadata",
+        metadata_queue,
         "dev-terraform-queue-output",
         "dev-terraform-queue-mdf-parser"
     ]
@@ -87,7 +94,7 @@ def config(devcloud_temporary_bucket: str) -> SDRetrieverConfig:
 
 
 @pytest.fixture
-def moto_s3_client(region_name: str, rcc_bucket: str, devcloud_bucket: str,
+def moto_s3_client(region_name: str, rcc_bucket: str, devcloud_raw_bucket: str, rcc_merged_bucket: str,
                    config: SDRetrieverConfig) -> Generator[S3Client, None, None]:
     """
 
@@ -97,7 +104,8 @@ def moto_s3_client(region_name: str, rcc_bucket: str, devcloud_bucket: str,
     with mock_s3():
         moto_client = boto3.client("s3", region_name=region_name)
         moto_client.create_bucket(Bucket=rcc_bucket)
-        moto_client.create_bucket(Bucket=devcloud_bucket)
+        moto_client.create_bucket(Bucket=rcc_merged_bucket)
+        moto_client.create_bucket(Bucket=devcloud_raw_bucket)
         moto_client.create_bucket(Bucket=config.temporary_bucket)
         yield moto_client
 
@@ -126,6 +134,19 @@ def moto_sts_client(region_name: str) -> Generator[STSClient, None, None]:
     with mock_sts():
         moto_client = boto3.client("sts", region_name=region_name)
         yield moto_client
+
+@pytest.fixture
+def download_queue_controller(download_queue: str, moto_sqs_client: SQSClient) -> SQSController:
+    return SQSController(download_queue, moto_sqs_client)
+
+
+@pytest.fixture
+def selector_queue_controller(selector_queue: str, moto_sqs_client: SQSClient) -> SQSController:
+    return SQSController(selector_queue, moto_sqs_client)
+
+@pytest.fixture
+def metadata_queue_controller(metadata_queue: str, moto_sqs_client: SQSClient) -> SQSController:
+    return SQSController(metadata_queue, moto_sqs_client)
 
 
 @pytest.fixture
@@ -187,7 +208,12 @@ def run_bootstrap(
         moto_sts_client: STSClient,
         rcc_bucket: str,
         one_time_gracefull_exit: GracefulExit,
-        download_queue: str):
+        download_queue: str,
+        devcloud_raw_bucket: str):
+
+    os.environ["LOGLEVEL"] = "DEBUG"
+    os.environ["ROOT_LOGLEVEL"] = "DEBUG"
+
     di[SDRetrieverConfig] = config  # Config loading will not be tested
 
     # string constants
@@ -209,6 +235,7 @@ def run_bootstrap(
     #    role_session="DevCloud-SDRetriever")
 
     # di["rcc_bucket"] = di[ContainerServices].rcc_info["s3_bucket"]
+    di["devcloud_raw_bucket"] = devcloud_raw_bucket
     di["rcc_bucket"] = rcc_bucket
     di["default_sqs_queue_name"] = download_queue
 

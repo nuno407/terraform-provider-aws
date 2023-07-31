@@ -53,6 +53,6 @@ class S3VideoIngestor(Ingestor):
 
         # post process video
         video_info = self._post_processor.execute(video_object.data)
-        artifact.resolution = Resolution(video_info.width, video_info.height)
+        artifact.resolution = Resolution(width=video_info.width, height=video_info.height)
         artifact.actual_duration = video_info.duration
         artifact.s3_path = upload_path
