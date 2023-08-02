@@ -76,12 +76,7 @@ class MessageBodyMessage(ConfiguredBaseModel):
 
 
 class MessageBodyAttributes(ConfiguredBaseModel):
-    device_type: StrOrWrappedString = Field(alias="deviceType")
-    modified_thing_category: StrOrWrappedString = Field(alias="modifiedThingCategory")
-    operation_mode: StrOrWrappedString = Field(alias="operationMode")
-    event_type: StrOrWrappedString = Field(alias="eventType")
     tenant_id: StrOrWrappedString = Field(alias="tenant")
-    subject_id: StrOrWrappedString = Field(alias="subjectId")
 
 
 class MessageBody(ConfiguredBaseModel):
