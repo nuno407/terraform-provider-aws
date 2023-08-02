@@ -257,7 +257,7 @@ class EventArtifact(Artifact):
 class IncidentEventArtifact(EventArtifact):
     """Represents an incident event from RCC"""
     event_name: Literal[EventType.INCIDENT] = Field(default=...)
-    location: Location = Field(default=...)
+    location: Optional[Location] = Field(default=None)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
     bundle_id: Optional[str] = Field(default=None)
 
@@ -269,7 +269,7 @@ class DeviceInfoEventArtifact(EventArtifact):
     system_report: Optional[str] = Field(default=None)
     software_versions: list[dict[str, str]] = Field(default_factory=list)
     device_type: Optional[str] = Field(default=None)
-    last_shutdown: Shutdown = Field(default=...)
+    last_shutdown: Optional[Shutdown] = Field(default=None)
 
 
 @dataclass
