@@ -1,5 +1,5 @@
 """ VideoParser class """
-from typing import Iterator
+from typing import Iterator, Optional
 
 from kink import inject
 
@@ -13,7 +13,7 @@ from sanitizer.artifact.parsers.video_parser import VideoParser
 class KinesisVideoParser(VideoParser):  # pylint: disable=too-few-public-methods
     """VideoParser class"""
 
-    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[KinesisVideoArtifact]:
+    def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[KinesisVideoArtifact]:
         """Extract recording artifact stored on Kinesis from SQS message
 
         Args:
@@ -26,6 +26,8 @@ class KinesisVideoParser(VideoParser):  # pylint: disable=too-few-public-methods
             Artifact: Recording artifact
         """
         inner_message: dict = self._get_inner_message(sqs_message)
+
+        self._check_recorder_not_none(recorder_type)
 
         stream_name = inner_message.get("streamName")
         self._check_attribute_not_none(stream_name, "stream name")

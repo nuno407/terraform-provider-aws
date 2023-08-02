@@ -25,6 +25,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 "Message": {
                     "value": {
                         "properties": {
+                            "header": {
+                                "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent"
+                            },
                             "recorder_name": "TrainingMultiSnapshot"
                         }
                     },
@@ -70,6 +73,9 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                 "Message": {
                     "value": {
                         "properties": {
+                            "header": {
+                                "message_type": "com.bosch.ivs.videorecorder.UploadRecordingEvent"
+                            },
                             "recorder_name": "InteriorRecorderPreview"
                         }
                     }
@@ -125,6 +131,12 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                         "Type": "String",
                         "Value": "INTERIOR"
                     }
+                },
+                "Message": {
+                    "uploadInfos": {
+                        "bucket": "bucket",
+                        "key": "key"
+                    }
                 }
             },
             timestamp="123456",
@@ -158,6 +170,12 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                     "recorder": {
                         "Type": "String",
                         "Value": "TRAINING"
+                    }
+                },
+                "Message": {
+                    "uploadInfos": {
+                        "bucket": "bucket",
+                        "key": "key"
                     }
                 }
             },
@@ -193,6 +211,12 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
                         "Type": "String",
                         "Value": "FRONT"
                     }
+                },
+                "Message": {
+                    "uploadInfos": {
+                        "bucket": "bucket",
+                        "key": "key"
+                    }
                 }
             },
             timestamp="123456789",
@@ -217,21 +241,22 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
     )
 ])
 def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artifact]):
-    snapshot_parser = Mock()
-    snapshot_parser.parse = Mock(return_value=expected_artifacts)
     kinesis_video_parser = Mock()
     kinesis_video_parser.parse = Mock(return_value=expected_artifacts)
     s3_video_parser = Mock()
     s3_video_parser.parse = Mock(return_value=expected_artifacts)
     multisnapshot_parser = Mock()
     multisnapshot_parser.parse = Mock(return_value=expected_artifacts)
-    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, multisnapshot_parser)
+    event_parser = Mock()
+    event_parser.parse = Mock(return_value=expected_artifacts)
+
+    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, multisnapshot_parser, event_parser)
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT or expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
         multisnapshot_parser.parse.assert_called_once_with(sqs_message, expected_artifacts[0].recorder)
     else:
-        kinesis_video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
+        s3_video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
 
 
 def test_artifact_parser_unknown_recorder():

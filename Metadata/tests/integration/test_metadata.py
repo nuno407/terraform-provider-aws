@@ -31,7 +31,7 @@ def _pack_message(body: dict) -> dict:
     }
 
     # read_message function fix some issues on message structure
-    return metadata.consumer.main.read_message(Mock(), json.dumps(message))
+    return metadata.consumer.main.fix_message(Mock(), json.dumps(message), message)
 
 
 def _input_message_recording(folder) -> dict:

@@ -4,6 +4,8 @@ import copy
 import hashlib
 import json
 import os
+from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from unittest.mock import ANY, MagicMock, Mock, PropertyMock, call, patch
@@ -15,14 +17,16 @@ from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
 
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
+from base.model.event_types import Location
 from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     create_recording_item,
                                     create_snapshot_recording_item,
                                     create_video_recording_item,
                                     find_and_update_media_references,
-                                    insert_mdf_imu_data, main, process_outputs,
-                                    read_message,
+                                    fix_message, insert_mdf_imu_data, main,
+                                    parse_message_to_dict, process_outputs,
+                                    process_sanitizer,
                                     transform_data_to_update_query,
                                     update_voxel_media, upsert_data_to_db,
                                     upsert_mdf_signals_data)
@@ -110,7 +114,7 @@ def _video_message_body(recording_id: str, imu_path: Optional[str] = None) -> di
         result["imu_path"] = imu_path
 
     # read_message function fix some issues on message structure
-    return read_message(Mock(), str(result))
+    return fix_message(Mock(), str(result), result)
 
 
 def _video_message_dict(recording_id: str, imu_path: Optional[str] = None) -> dict:
@@ -183,7 +187,7 @@ def _snapshot_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
     }
 
     # read_message function fix some issues on message structure
-    return read_message(Mock(), str(result))
+    return fix_message(Mock(), str(result), result)
 
 
 def _snapshot_sdr_message_body(snapshot_id: str, extension: str = "jpeg") -> dict:
@@ -434,6 +438,51 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             update={"$set": transform_data_to_update_query(obtained_outcome)},
             upsert=True, return_document=ReturnDocument.AFTER
         )
+
+    @pytest.mark.unit
+    def test_create_event(self):
+        # GIVEN
+        device_id = "test_device_id"
+        tenant_id = "test_tenant_id"
+        timestamp = datetime.now()
+        location = asdict(Location())
+        location["status"] = location["status"].value
+
+        artifact_body = {
+            'device_id': device_id,
+            'tenant_id': tenant_id,
+            'timestamp': timestamp,
+            'event_name': "com.bosch.ivs.incident.IncidentEvent",
+            'location': location,
+            'incident_type': "INCIDENT_TYPE__ACCIDENT_AUTOMATIC"
+        }
+
+        message_attributes = {
+            'SourceContainer': {
+                'StringValue': 'Sanitizer'
+            }
+        }
+
+        collection_imu_mock = Mock()
+        metadata_collections = Mock()
+        metadata_collections.processed_imu = collection_imu_mock
+
+        # WHEN
+        process_sanitizer(artifact_body, metadata_collections)
+
+        # THEN
+        expected_db_item = {
+            'source': {
+                'device_id': device_id,
+                'tenant': tenant_id,
+                'event': "com.bosch.ivs.incident.IncidentEvent"
+            },
+            'location': location,
+            'incident_type': "INCIDENT_TYPE__ACCIDENT_AUTOMATIC",
+            'timestamp': timestamp
+        }
+
+        collection_imu_mock.insert_one.assert_called_once_with(expected_db_item)
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
@@ -806,7 +855,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         """
         container_services_mock = Mock()
         container_services_mock.display_processed_msg = Mock()
-        got_relay_data = read_message(container_services_mock, raw_message)
+        parsed_message = parse_message_to_dict(raw_message)
+        got_relay_data = fix_message(container_services_mock, raw_message, parsed_message)
 
         assert got_relay_data == expected_message
         container_services_mock.display_processed_msg.assert_called_once()
@@ -836,10 +886,15 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         """Mock GracefulExit class."""
         return mocker.patch("metadata.consumer.main.GracefulExit")
 
-    @pytest.fixture(name="mock_read_message")
-    def fixture_read_message(self, mocker: MockerFixture) -> Mock:
-        """Mock read_message function."""
-        return mocker.patch("metadata.consumer.main.read_message")
+    @pytest.fixture(name="mock_parse_message")
+    def fixture_parse_message(self, mocker: MockerFixture) -> Mock:
+        """Mock parse_message function."""
+        return mocker.patch("metadata.consumer.main.parse_message_to_dict")
+
+    @pytest.fixture(name="mock_fix_message")
+    def fixture_fix_message(self, mocker: MockerFixture) -> Mock:
+        """Mock fix_message function."""
+        return mocker.patch("metadata.consumer.main.fix_message")
 
     @pytest.fixture(name="mock_upsert_data_to_db")
     def fixture_upsert_data_to_db(self, mocker: MockerFixture) -> Mock:
@@ -865,7 +920,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_boto3_client: Mock,
             mock_persistence: Mock,
             mock_related_media_service: Mock,
-            mock_read_message: Mock,
+            mock_parse_message: Mock,
+            mock_fix_message: Mock,
             mock_upsert_data_to_db: Mock,
             mock_continue_running: Mock):
         """Test metadata.consumer.main
@@ -875,7 +931,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_boto3_client (Mock): mocked boto3 client
             mock_persistence (Mock): mocked persistence object
             mock_related_media_service (Mock): mocked media service object
-            mock_read_message (Mock): mocked read_message function
+            mock_fix_message (Mock): mocked read_message function
             mock_upsert_data_to_db (Mock): mocked upser_data_to_db function
             mock_continue_running (Mock): mocked continue_running property from GracefulExit
         """
@@ -885,15 +941,20 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         sqs_client_mock = Mock()
         s3_client_mock = Mock()
         mock_boto3_client.side_effect = [s3_client_mock, sqs_client_mock]
-        mock_container_services_object = Mock()
+        mock_container_services_object = MagicMock()
         mock_container_services.return_value = mock_container_services_object
         mock_container_services_object.load_config_vars = Mock()
         mock_container_services_object.load_mongodb_config_vars = Mock()
-        mock_db_client = Mock()
+        mock_db_client = MagicMock()
+        mock_db_client.__getitem__.side_effect = [
+            Mock(), Mock(), Mock(), Mock(), Mock()
+        ]
         mock_db_client.client = Mock()
         mock_container_services_object.create_db_client = Mock(
             return_value=mock_db_client)
-        mock_container_services_object.db_tables = Mock()
+        mock_container_services_object.db_tables.__getitem__.side_effect = [
+            Mock(), Mock(), Mock(), Mock(), Mock()
+        ]
         mock_container_services_object.anonymized_s3 = "anon_bucket"
         mock_container_services_object.raw_s3 = "raw_bucket"
         mock_container_services_object.delete_message = Mock()
@@ -904,7 +965,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_api_service = Mock()
         mock_related_media_service.return_value = mock_api_service
         mock_relay_list = Mock()
-        mock_read_message.return_value = mock_relay_list
+        mocked_parsed_message = Mock()
+        mocked_parsed_message.copy = Mock()
+        mock_parse_message.return_value = mocked_parsed_message
+        mock_fix_message.return_value = mock_relay_list
 
         main()
 
@@ -918,14 +982,14 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_persistence_object)
         mock_container_services_object.get_single_message_from_input_queue.assert_called_once_with(
             sqs_client_mock)
-        mock_read_message.assert_called_once_with(
-            mock_container_services_object, input_message["Body"])
+        mock_parse_message.assert_called_once_with(input_message["Body"])
+        mock_fix_message.assert_called_once_with(
+            mock_container_services_object, input_message["Body"], mocked_parsed_message.copy.return_value)
         mock_upsert_data_to_db.assert_called_once_with(
-            mock_db_client,
-            mock_container_services_object,
             mock_api_service,
             mock_relay_list,
-            input_message["MessageAttributes"])
+            input_message["MessageAttributes"],
+            ANY)
         mock_container_services_object.delete_message.assert_called_once_with(
             sqs_client_mock, input_message["ReceiptHandle"])
 

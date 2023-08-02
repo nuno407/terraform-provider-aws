@@ -1,0 +1,94 @@
+{
+    "MessageId": "d5efcdb0-dde6-434d-86f0-04f29aaf5670",
+    "ReceiptHandle": "AQEBtRt2cOA8kHEl4azewBJnr9l1K3Hve4GgWXzVDNulBuQrzzSNLFvMWy7w7cZ95xSiPQBLh1wiufj5EAJwgR2bw738aWh31anB1HdN+68sEUmFX05bQZal7mHr/nTwRE89USwjGXZulJm0Lu8YVihGwcAHzJKJNuNjRKxzKNo6vMkqsAfQ0COaH1yE6UN0DIyP5d2I9VR1oVF1lOdytaeU+PfuwMxJHTTNy1VFTSRKY8I6Jns69zULzYt8EKIIsG30r46w4L+sTv0YTm2BWLn3iKwyp9RmXqfpx/gmnYPVNqFvMYqmS6UfP1YeyDbSQOP5x00cGvcaXMVF0+cqIi/lMJxSE52YNsIE+worYq3Zhq6t7zyJ7s75rOlzrRoyZy4xVPKVchxaa1znu/AfygQV8FpATtwLSg8MIXzw8l87mgs=",
+    "MD5OfBody": "a19e573642dedd07f38fb0e6a98191fa",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "dfaf7f3c-1cd7-5b33-a096-2200029971fe",
+        "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform",
+        "Message": {
+            "topic": "com.bosch.rcc.dev/ivs_srx_develop_min1sf_01/things/twin/events/modified",
+            "headers": {
+                "kafka.timestamp": "1690442766668",
+                "creation-time": "1690442766668",
+                "device_id": "com.bosch.rcc.dev:ivs_srx_develop_min1sf_01",
+                "kafka.key": "com.bosch.rcc.dev:ivs_srx_develop_min1sf_01",
+                "orig_adapter": "hono-mqtt",
+                "kafka.topic": "hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub",
+                "orig_address": "telemetry",
+                "traceparent": "00-4af542ca344a8326a906de6686eaf52d-302c157d341578dd-00",
+                "qos": "1",
+                "ditto-originator": "integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub",
+                "response-required": false,
+                "version": 2,
+                "requested-acks": [],
+                "content-type": "application/json",
+                "correlation-id": "114c007a-d524-4716-9472-70144bab9341"
+            },
+            "path": "/features/com.bosch.ivs.camera.CameraServiceEvent",
+            "value": {
+                "properties": {
+                    "header": {
+                        "message_type": "com.bosch.ivs.camera.CameraServiceEvent",
+                        "timestamp_ms": 1690442766559,
+                        "message_id": "4cb9a6d6-a97c-43e8-9275-50a271d3832a",
+                        "device_id": "ivs_srx_develop_min1sf_01",
+                        "boot_id": "7c182e5b-da20-4e8d-bc91-63d34429c4ec"
+                    },
+                    "camera_name": "InteriorCamera",
+                    "service_status": "SERVICE_STATUS__AVAILABLE",
+                    "camera_service_description": [
+                        "CAMERA_SERVICE_DESCRIPTION__CAMERA_READY"
+                    ]
+                }
+            },
+            "extra": {
+                "attributes": {
+                    "vin": "unknown",
+                    "tenant": "jackalope",
+                    "vehicleType": "CARMODEL__FIAT_500_312",
+                    "subjectId": "1474b5cc-f1e7-43e8-993f-cd8a2b8a06d4",
+                    "operationMode": "SILENT_ALARM",
+                    "deviceType": "hailysharey"
+                }
+            },
+            "revision": 425176,
+            "timestamp": "2023-07-27T07:26:06.726056793Z"
+        },
+        "Timestamp": "2023-07-27T07:26:06.997Z",
+        "SignatureVersion": "1",
+        "Signature": "ZuwhK8c5e2QPifo406/RC0vSTYJ8FHt0wGi/KIz9dpMKTbRAibJOeDlfY4bzjCrsrxWS42Gqze1oTowDh1J3GWNbblQ5OXK8oDrF8zz+McaXqlvF2nmvwybKOI/sL+HtLHSsiDDJBS5yRn6UpXG4/P5IJhI+pnEJEjOSk0aTOFwfqLpbS+Zn0EaqgmDndxSKZZuNTge4+vel+qOWmHFwB0TJcVrbPlLUCSq7lH62s1u51TaD4IXdtEEgcFj4+A3Wk0h3st6t1j24WMFVSywO5JaeF6B7EmDsxp2r5GYmxp3yhdT+NAvVFC/yr3ZeGKKUA7qKyx6uW3gSYBZQtMmhYw==",
+        "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform:6b3c21ec-20fa-4434-b40d-ca265433f9d4",
+        "MessageAttributes": {
+            "deviceType": {
+                "Type": "String",
+                "Value": "hailysharey"
+            },
+            "modifiedThingCategory": {
+                "Type": "String",
+                "Value": "features"
+            },
+            "operationMode": {
+                "Type": "String",
+                "Value": "SILENT_ALARM"
+            },
+            "eventType": {
+                "Type": "String",
+                "Value": "com.bosch.ivs.camera.CameraServiceEvent"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "jackalope"
+            },
+            "subjectId": {
+                "Type": "String",
+                "Value": "1474b5cc-f1e7-43e8-993f-cd8a2b8a06d4"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1690442767051",
+        "ApproximateReceiveCount": "1"
+    }
+}

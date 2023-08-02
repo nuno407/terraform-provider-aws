@@ -13,6 +13,9 @@ from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 
 from base.model.config import dataclass_config
+from base.model.event_types import (CameraServiceState, EventType,
+                                    GeneralServiceState, IncidentType,
+                                    Location, Shutdown)
 
 
 class RecorderType(Enum):
@@ -237,6 +240,47 @@ class PreviewSignalsArtifact(MetadataArtifact):
     metadata_type: Literal[MetadataType.PREVIEW] = MetadataType.PREVIEW
 
 
+@dataclass
+class EventArtifact(Artifact):
+    """Base class for all event artifacts"""
+    timestamp: datetime = Field(default=...)
+    event_name: Literal[EventType.INCIDENT, EventType.DEVICE_INFO, EventType.CAMERA_SERVICE] = Field(default=...)
+
+    @property
+    def artifact_id(self) -> str:
+        """Artifact ID for event artifacts"""
+        event_name = self.event_name.value.split(".")[-1]
+        return f"{self.tenant_id}_{self.device_id}_{event_name}_{round(self.timestamp.timestamp()*1000)}"
+
+
+@dataclass
+class IncidentEventArtifact(EventArtifact):
+    """Represents an incident event from RCC"""
+    event_name: Literal[EventType.INCIDENT] = Field(default=...)
+    location: Location = Field(default=...)
+    incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
+    bundle_id: Optional[str] = Field(default=None)
+
+
+@dataclass
+class DeviceInfoEventArtifact(EventArtifact):
+    """Represents a device info event from RCC"""
+    event_name: Literal[EventType.DEVICE_INFO] = Field(default=...)
+    system_report: Optional[str] = Field(default=None)
+    software_versions: list[dict[str, str]] = Field(default_factory=list)
+    device_type: Optional[str] = Field(default=None)
+    last_shutdown: Shutdown = Field(default=...)
+
+
+@dataclass
+class CameraServiceEventArtifact(EventArtifact):
+    """Represents a camera service event from RCC"""
+    event_name: Literal[EventType.CAMERA_SERVICE] = Field(default=...)
+    service_state: GeneralServiceState = Field(default=GeneralServiceState.UNKNOWN)
+    camera_name: Optional[str] = Field(default=None)
+    camera_state: list[CameraServiceState] = Field(default_factory=list)
+
+
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
@@ -246,7 +290,10 @@ def parse_artifact(json_data: Union[str, dict]) -> Artifact:
                                   SignalsArtifact,
                                   IMUArtifact,
                                   MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact],
+                                  PreviewSignalsArtifact,
+                                  IncidentEventArtifact,
+                                  CameraServiceEventArtifact,
+                                  DeviceInfoEventArtifact],
                             json_data)  # type: ignore
     return parse_raw_as(Union[KinesisVideoArtifact,  # type: ignore
                               S3VideoArtifact,
@@ -254,5 +301,8 @@ def parse_artifact(json_data: Union[str, dict]) -> Artifact:
                               SignalsArtifact,
                               IMUArtifact,
                               MultiSnapshotArtifact,
-                              PreviewSignalsArtifact],
+                              PreviewSignalsArtifact,
+                              IncidentEventArtifact,
+                              CameraServiceEventArtifact,
+                              DeviceInfoEventArtifact],
                         json_data)  # type: ignore

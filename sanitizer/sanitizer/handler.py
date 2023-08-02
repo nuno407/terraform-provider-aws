@@ -9,7 +9,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.aws.model import SQSMessage
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from base.model.artifacts import Artifact
+from base.model.artifacts import Artifact, ImageBasedArtifact, EventArtifact
 from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_controller import MessageController
@@ -22,9 +22,11 @@ class Handler:  # pylint: disable=too-few-public-methods
     """ message handler """
 
     def __init__(self,
+                 metadata_sqs_controller: SQSController,
                  aws_sqs_controller: SQSController,
                  message: MessageController,
                  artifact: ArtifactController) -> None:
+        self.metadata_sqs_controller = metadata_sqs_controller
         self.aws_sqs = aws_sqs_controller
         self.message = message
         self.artifact = artifact
@@ -52,6 +54,8 @@ class Handler:  # pylint: disable=too-few-public-methods
         TRAINING and INTERIOR video artifacts should inject metadata artifacts
         before publishing them, in the future we might want to parse RCC messages
         instead of injecting those artifacts"""
+        if not isinstance(artifact, ImageBasedArtifact):
+            return
         injected_artifacts = self.artifact.injector.inject(artifact)
         for injected in injected_artifacts:
             if self.artifact.filter.is_relevant(injected):
@@ -72,8 +76,12 @@ class Handler:  # pylint: disable=too-few-public-methods
             artifacts = self.artifact.parser.parse(message)
             for artifact in artifacts:
                 try:
+                    if isinstance(artifact, EventArtifact):
+                        self.metadata_sqs_controller.send_message(artifact.stringify())
+                        continue
+                    recorder = artifact.recorder.value if isinstance(artifact, ImageBasedArtifact) else None
                     _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
-                                 artifact.recorder.value,
+                                 recorder,
                                  artifact.device_id,
                                  artifact.tenant_id)
 

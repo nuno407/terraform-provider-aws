@@ -1,10 +1,11 @@
 """ Persistence integration tests module. """
 
-import pytest
-from mongomock import MongoClient
 from datetime import datetime
 
-from base.aws.model import SQSMessage, MessageAttributes
+import pytest
+from mongomock import MongoClient
+
+from base.aws.model import MessageAttributes, SQSMessage
 from sanitizer.config import SanitizerConfig
 from sanitizer.message.message_persistence import MessagePersistence
 
@@ -53,6 +54,7 @@ def test_integration_persistence(sqs_message: SQSMessage):
     message_collection = "message-collection"
     config = SanitizerConfig(
         input_queue="foo",
+        metadata_queue="mdq",
         topic_arn="bar",
         db_name=db_name,
         message_collection=message_collection,

@@ -30,7 +30,7 @@ class _S3VideoInnerMessage(BaseModel):
 class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
     """Class to parse videos that RCC has concatenated and uploaded to their S3."""
 
-    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[S3VideoArtifact]:
+    def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[S3VideoArtifact]:
         """Extract recording artifact stored on S3 from SQS message
 
         Args:
@@ -43,6 +43,7 @@ class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
         Returns:
             Artifact: Recording artifact
         """
+        self._check_recorder_not_none(recorder_type)
         inner_message: dict = self._get_inner_message(sqs_message)
         try:
             parsed_message = _S3VideoInnerMessage.parse_obj(inner_message)

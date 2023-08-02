@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 import pytest
 from pytz import UTC
 
-from base.model.artifacts import (Artifact, Recording, RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow)
+from base.model.artifacts import (Artifact, RecorderType, Recording,
+                                  S3VideoArtifact, SnapshotArtifact,
+                                  TimeWindow)
 from sanitizer.artifact.artifact_filter import ArtifactFilter
 from sanitizer.config import SanitizerConfig
 
@@ -13,6 +14,7 @@ from sanitizer.config import SanitizerConfig
 def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]) -> SanitizerConfig:
     return SanitizerConfig(
         input_queue="foo",
+        metadata_queue="md_q",
         topic_arn="bar",
         db_name="db-foo",
         message_collection="foobar-collection",

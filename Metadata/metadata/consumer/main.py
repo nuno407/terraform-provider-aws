@@ -3,7 +3,7 @@ import copy
 import json
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from logging import Logger
@@ -26,10 +26,10 @@ from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3Controller
 from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
-from base.model.artifacts import (Artifact, KinesisVideoArtifact,
-                                  S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact,
-                                  parse_artifact)
+from base.model.artifacts import (Artifact, EventArtifact,
+                                  KinesisVideoArtifact, S3VideoArtifact,
+                                  SignalsArtifact, SnapshotArtifact,
+                                  VideoArtifact, parse_artifact)
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
                                        UNKNOWN_FILE_FORMAT_MESSAGE)
 from metadata.common.errors import (EmptyDocumentQueryResult,
@@ -734,6 +734,31 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections,
             "Unexpected file format %s from SDRetriever.", file_format)
 
 
+def __convert_event_to_db_item(event: EventArtifact) -> dict:
+    item = {
+        "source": {
+            "tenant": event.tenant_id,
+            "device_id": event.device_id,
+            "event": event.event_name.value
+        }
+    }
+    event_data = asdict(event)
+    event_data.pop("tenant_id", None)
+    event_data.pop("device_id", None)
+    event_data.pop("event_name", None)
+    item.update(event_data)
+    return {k: v for (k, v) in item.items() if v is not None}
+
+
+def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
+    """Process a message coming from Sanitizer."""
+    artifact = parse_artifact(message)
+    if isinstance(artifact, EventArtifact):
+        imu_collection = metadata_collections.processed_imu
+        db_item = __convert_event_to_db_item(artifact)
+        imu_collection.insert_one(db_item)
+
+
 def __process_general(message: dict, metadata_collections: MetadataCollections, source: str):
     recording_id = os.path.basename(message["s3_path"]).split(".")[0]
 
@@ -746,11 +771,10 @@ def __process_general(message: dict, metadata_collections: MetadataCollections, 
         process_outputs(recording_id, message, metadata_collections, source)
 
 
-def upsert_data_to_db(db: Database,
-                      container_services: ContainerServices,
-                      service: RelatedMediaService,
+def upsert_data_to_db(service: RelatedMediaService,
                       message: dict,
-                      message_attributes: dict):
+                      message_attributes: dict,
+                      metadata_collections: MetadataCollections):
     """Main DB access function that processes the info received
     from a sqs message and calls the corresponding functions
     necessary to create/update DB items
@@ -771,14 +795,6 @@ def upsert_data_to_db(db: Database,
             message_attributes)
         return
 
-    metadata_collections = MetadataCollections(
-        signals=db[container_services.db_tables["signals"]],
-        recordings=db[container_services.db_tables["recordings"]],
-        pipeline_exec=db[container_services.db_tables["pipeline_exec"]],
-        algo_output=db[container_services.db_tables["algo_output"]],
-        processed_imu=db[container_services.db_tables["processed_imu"]],
-    )
-
     # Get source container name
     source = message_attributes["SourceContainer"]["StringValue"]
 
@@ -798,7 +814,17 @@ def upsert_data_to_db(db: Database,
                      source, message, message_attributes)
 
 
-def read_message(container_services: ContainerServices, body: str) -> dict:
+def parse_message_to_dict(body: str) -> dict:
+    """Parses the message from string to dict"""
+    _logger.info("Processing pipeline message..")
+
+    # Converts message body from string to dict
+    # (in order to perform index access)
+    new_body = body.replace("\'", "\"")
+    return json.loads(new_body)
+
+
+def fix_message(container_services: ContainerServices, body: str, dict_body: dict) -> dict:
     """Copies info received from other containers and
     converts it from string into a dictionary
 
@@ -811,13 +837,6 @@ def read_message(container_services: ContainerServices, body: str) -> dict:
         relay_data {dict} -- [dict with the updated info for the file received
                             and to be sent via message to the output queue]
     """
-
-    _logger.info("Processing pipeline message..")
-
-    # Converts message body from string to dict
-    # (in order to perform index access)
-    new_body = body.replace("\'", "\"")
-    dict_body = json.loads(new_body)
 
     if "data_type" in body and "parsed_file_path" in dict_body:
         s3_path = dict_body["parsed_file_path"]
@@ -888,14 +907,33 @@ def main():
 
         if message:
             _logger.info(message)
-            # Processing step
-            relay_list = read_message(container_services, message["Body"])
+            # Convert message from string to dict
+            message_dict = parse_message_to_dict(message["Body"])
+            # Processing step to be compatible with whatever is done later
+            fixed_message_dict = fix_message(container_services, message["Body"], message_dict.copy())
+            # Get source container name
+            source = message.get("MessageAttributes", {}).get("SourceContainer", {}).get("StringValue", None)
+
+            # Get metadata collection names
+            metadata_collections = MetadataCollections(
+                signals=db_client[container_services.db_tables["signals"]],
+                recordings=db_client[container_services.db_tables["recordings"]],
+                pipeline_exec=db_client[container_services.db_tables["pipeline_exec"]],
+                algo_output=db_client[container_services.db_tables["algo_output"]],
+                processed_imu=db_client[container_services.db_tables["processed_imu"]],
+            )
+
             # Insert/update data in db
 
             try:
                 with AutoMessageVisibilityIncreaser(sqs_client, message["ReceiptHandle"], container_services, 60, container_services.input_queue):
-                    upsert_data_to_db(db_client, container_services,
-                                      api_service, relay_list, message["MessageAttributes"])
+                    if source == "Sanitizer":
+                        process_sanitizer(message_dict, metadata_collections)
+                    else:
+                        upsert_data_to_db(api_service,
+                            fixed_message_dict,
+                            message["MessageAttributes"],
+                            metadata_collections)
             except SnapshotNotFound:
                 _logger.warning(
                     "The referred snapshot was not found, it will be reingested later")

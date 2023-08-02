@@ -1,6 +1,6 @@
 """ Snapshot Parser module """
 import logging
-from typing import Iterator
+from typing import Iterator, Optional, Union
 
 from kink import inject
 
@@ -22,7 +22,8 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
     def __init__(self, snapshot_parser: SnapshotParser):
         self.__snapshot_parser = snapshot_parser
 
-    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[SnapshotArtifact]:
+    def parse(self, sqs_message: SQSMessage,
+              recorder_type: Optional[RecorderType]) -> Iterator[Union[SnapshotArtifact, MultiSnapshotArtifact]]:
         """Generator method for extracting a list of snapshot of previews artifacts
 
         Args:
@@ -34,6 +35,8 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
         Yields:
             Iterator[Artifact]: iterator of snapshot or preview artifacts
         """
+        self._check_recorder_not_none(recorder_type)
+
         snapshots = sorted(self.__snapshot_parser.parse(sqs_message, recorder_type), key=lambda x: x.timestamp)
         for snapshot in snapshots:
             yield snapshot

@@ -31,6 +31,7 @@ class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
         Yields:
             Iterator[Artifact]: iterator of snapshot or preview artifacts
         """
+        self._check_recorder_not_none(recorder_type)
         # get tenant information
         tenant = MessageParser.flatten_string_value(MessageParser.get_recursive_from_dict(
             sqs_message.body,

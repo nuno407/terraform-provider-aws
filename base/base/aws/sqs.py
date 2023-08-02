@@ -6,7 +6,7 @@ from typing import Optional, Union
 import botocore.exceptions
 from aws_error_utils import errors as aws_errors
 from expiringdict import ExpiringDict  # type: ignore
-from kink import inject
+from kink import di, inject
 from mypy_boto3_sqs import SQSClient
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
@@ -21,6 +21,10 @@ _logger: logging.Logger = logging.getLogger(__name__)
 
 class InitializationError(Exception):
     """Error raised during initialization."""
+
+
+class ConfigurationError(Exception):
+    """Error raised due to wrong configuration."""
 
 
 @inject
@@ -51,6 +55,13 @@ class SQSController:
         if not response or ("QueueUrl" not in response):
             raise InitializationError("Invalid get queue url reponse")
         return response["QueueUrl"]
+
+    def __get_container_name(self, container_name_param: Optional[str]) -> str:
+        if container_name_param:
+            return container_name_param
+        if "container_name" in di and isinstance(di["container_name"], str):
+            return di["container_name"]
+        raise ConfigurationError("Container name neither found in DI config, nor passed as parameter.")
 
     def get_message(self, wait_time: int = 20) -> Optional[MessageTypeDef]:
         """Get SQS queue message
@@ -152,7 +163,7 @@ class SQSController:
 
     def send_message(self,
                      message: str,
-                     source_container: str,
+                     source_container: Optional[str] = None,
                      queue_name: Optional[str] = None) -> None:
         """Send message to SQS queue
 
@@ -165,6 +176,8 @@ class SQSController:
             queue_url = self.__get_queue_url(queue_name)
         else:
             queue_url = self.__queue_url
+
+        source_container = self.__get_container_name(source_container)
 
         self.__sqs_client.send_message(
             QueueUrl=queue_url,

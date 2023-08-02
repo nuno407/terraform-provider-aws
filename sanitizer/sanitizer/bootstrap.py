@@ -11,8 +11,8 @@ from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
+from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from sanitizer.artifact.artifact_injector import MetadataArtifactInjector
 from sanitizer.config import SanitizerConfig
 
 
@@ -29,6 +29,7 @@ def bootstrap_di():
     # useful for local testing
     di["start_delay"] = int(os.getenv("START_DELAY_SECONDS", "0"))
     di["config_path"] = os.getenv("CONFIG_PATH", "/app/config/config.yml")
+    di["container_name"] = os.getenv("CONTAINER_NAME", "Sanitizer")
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
@@ -42,4 +43,5 @@ def bootstrap_di():
 
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
     di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
-    di[MetadataArtifactInjector] = MetadataArtifactInjector()
+
+    di["metadata_sqs_controller"] = SQSController(config.metadata_queue)

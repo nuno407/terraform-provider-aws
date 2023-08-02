@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call
 
 import pytest
 
+from base.model.artifacts import IMUArtifact, SnapshotArtifact, VideoArtifact
 from sanitizer.handler import Handler
 
 
@@ -29,9 +30,13 @@ def test_handler_run():
     message_controller.filter = message_filter
     message_controller.persistence = message_persistence
 
-    video_artifact = Mock()
-    snapshot_artifact = Mock()
-    injected_artifact = Mock()
+    video_artifact = Mock(spec=VideoArtifact)
+    video_artifact.device_id = None
+    video_artifact.tenant_id = None
+    snapshot_artifact = Mock(spec=SnapshotArtifact)
+    snapshot_artifact.device_id = None
+    snapshot_artifact.tenant_id = None
+    injected_artifact = Mock(spec=IMUArtifact)
 
     artifacts = [video_artifact, snapshot_artifact]
     artifact_parser = Mock()
@@ -51,7 +56,10 @@ def test_handler_run():
 
     sqs_controller.delete_message.return_value = None
 
-    handler = Handler(sqs_controller,
+    metadata_sqs_controller = Mock()
+
+    handler = Handler(metadata_sqs_controller,
+                      sqs_controller,
                       message_controller,
                       artifact_controller)
 
@@ -83,13 +91,15 @@ def test_handler_run_no_raw_message():
     type(graceful_exit).continue_running = prop
     sqs_controller = Mock()
     sqs_controller.get_message.return_value = None
+    metadata_sqs_controller = Mock()
     message_parser = Mock()
 
     message_parser.parse.return_value = None
     message_controller = Mock()
     message_controller.parser = message_parser
 
-    handler = Handler(sqs_controller,
+    handler = Handler(metadata_sqs_controller,
+                      sqs_controller,
                       message_controller,
                       Mock())
 
@@ -108,6 +118,7 @@ def test_handler_run_not_relevant():
     sqs_controller = Mock()
     sqs_controller.get_message.return_value = "raw_sqs_message"
     message_parser = Mock()
+    metadata_sqs_controller = Mock()
 
     sqs_message = Mock()
 
@@ -120,7 +131,8 @@ def test_handler_run_not_relevant():
     message_controller.parser = message_parser
     message_controller.filter = message_filter
 
-    handler = Handler(sqs_controller,
+    handler = Handler(metadata_sqs_controller,
+                      sqs_controller,
                       message_controller,
                       Mock())
 

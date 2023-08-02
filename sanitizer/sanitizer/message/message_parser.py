@@ -5,11 +5,11 @@ import logging
 from enum import Enum
 from json import JSONDecodeError
 from typing import Dict, Optional, Union
-from kink import inject
 
+from kink import inject
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from base.aws.model import SQSMessage, MessageAttributes
+from base.aws.model import MessageAttributes, SQSMessage
 from sanitizer.exceptions import InvalidMessagePanic
 
 _logger: logging.Logger = logging.getLogger(__name__)
@@ -24,9 +24,13 @@ class MessageFields(Enum):
     TIMESTAMP = "Timestamp"
     ATTRIBUTES = "Attributes"
     BODY_ATTRIBUTES = "MessageAttributes"
+    VALUE = "value"
     RECEIPT_HANDLE = "ReceiptHandle"
     TENANT = "tenant"
     DEVICE_ID = "deviceId"
+    ALTERNATIVE_DEVICE_ID = "device_id"
+    PROPERTIES = "properties"
+    HEADER = "header"
 
 
 MANDATORY_FIELDS = [
@@ -102,6 +106,16 @@ class MessageParser:
         if MessageFields.DEVICE_ID.value in message_attrs:
             device_id = MessageParser.flatten_string_value(
                 message_attrs[MessageFields.DEVICE_ID.value])
+
+        if device_id is None:
+            value = MessageParser.get_recursive_from_dict(
+                body,
+                MessageFields.MESSAGE.value,
+                MessageFields.VALUE.value,
+                MessageFields.PROPERTIES.value,
+                MessageFields.HEADER.value,
+                MessageFields.ALTERNATIVE_DEVICE_ID.value)
+            device_id = MessageParser.flatten_string_value(value)
 
         return MessageAttributes(tenant, device_id)
 

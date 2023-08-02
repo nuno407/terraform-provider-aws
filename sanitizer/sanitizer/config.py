@@ -2,15 +2,19 @@
 import yaml
 from pydantic import BaseModel, Field, validator
 
-from base.model.artifacts import (Artifact, ImageBasedArtifact, IMUArtifact,
-                                  KinesisVideoArtifact, MetadataArtifact,
+from base.model.artifacts import (Artifact, CameraServiceEventArtifact,
+                                  DeviceInfoEventArtifact, EventArtifact,
+                                  ImageBasedArtifact, IMUArtifact,
+                                  IncidentEventArtifact, KinesisVideoArtifact,
+                                  MetadataArtifact, PreviewSignalsArtifact,
                                   S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact, PreviewSignalsArtifact)
+                                  SnapshotArtifact, VideoArtifact)
 
 
 class SanitizerConfig(BaseModel):
     """Sanitizer Configuration."""
     input_queue: str
+    metadata_queue: str
     topic_arn: str
     message_collection: str
     db_name: str
@@ -29,6 +33,10 @@ class SanitizerConfig(BaseModel):
         "IMUArtifact": IMUArtifact,
         "SignalsArtifact": SignalsArtifact,
         "PreviewSignalsArtifact": PreviewSignalsArtifact,
+        "EventArtifact": EventArtifact,
+        "IncidentEventArtifact": IncidentEventArtifact,
+        "DeviceInfoEventArtifact": DeviceInfoEventArtifact,
+        "CameraServiceEventArtifact": CameraServiceEventArtifact
     }
 
     @validator("type_blacklist", pre=True, each_item=True)

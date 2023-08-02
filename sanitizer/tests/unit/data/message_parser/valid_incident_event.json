@@ -1,0 +1,106 @@
+{
+    "MessageId": "a966e459-40ba-4298-93b6-16d5bae4b529",
+    "ReceiptHandle": "AQEBumalnVUDvaN4MA+rTOZUYp/83k/UFdB7NJNSssBLxduYEwa6EFCWUCqPerJKfdvfKzjXH5Cs2qc8XE504R6o+Zdv7VKZj2mcs4OCEl+kvC5fYf1YnBbu9ESLemD69Def1J4R21THGJQBZ7h6/EO+2F3kTjhRDP8HUVjdLunqgukCMUXjKdo5HUviWwoBAeLVM5pPBxQqxwgTJODiw6RlXAsehuVScQAjHdZy7AgIBvri5WDi9+hzga9m9DDDCWhv7v3+vhOOIeZdRxMvdeC/S5eCr5iQDpMDM4mJ2hpTS04fRAP6aR+BGP2xNKxbigHkXgHiiQBSvJYCrFAznVVp5Vbkr3+1E2Xru8VuO6SCqt0MEjlTE4+4/sAPXfgy/SxNt7SeKXsl+Kwu+XqK7A3hmRLNqEemqLBiQmT5W44jkYI=",
+    "MD5OfBody": "b5540cd30c15764439dbf4780f6f03d9",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "4602f233-ab5d-5266-b1a2-af0b2f6ec9cf",
+        "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform",
+        "Message": {
+            "topic": "com.bosch.rcc.dev/DATANAUTS_DEV_01/things/twin/events/modified",
+            "headers": {
+                "kafka.timestamp": "1690206707694",
+                "creation-time": "1690206707694",
+                "device_id": "com.bosch.rcc.dev:DATANAUTS_DEV_01",
+                "kafka.key": "com.bosch.rcc.dev:DATANAUTS_DEV_01",
+                "orig_adapter": "hono-mqtt",
+                "kafka.topic": "hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub",
+                "orig_address": "telemetry",
+                "traceparent": "00-9cd815dfb0fe9f79c52ba72a7ae9f730-e366be432eef93ec-01",
+                "qos": "1",
+                "ditto-originator": "integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub",
+                "response-required": false,
+                "version": 2,
+                "requested-acks": [],
+                "content-type": "application/json",
+                "correlation-id": "e6e2b773-9d43-44b8-bf13-d53707a66970"
+            },
+            "path": "/features/com.bosch.ivs.incident.IncidentEvent",
+            "value": {
+                "properties": {
+                    "header": {
+                        "message_type": "com.bosch.ivs.incident.IncidentEvent",
+                        "timestamp_ms": 1690206707606,
+                        "message_id": "825ee7f5-0efd-42bd-bba8-f64f4be02a9a",
+                        "device_id": "DATANAUTS_DEV_01",
+                        "boot_id": "effce111-d9f2-4533-8329-1fb3b0bd462f"
+                    },
+                    "incident_type": "INCIDENT_TYPE__ACCIDENT_AUTOMATIC",
+                    "location": {
+                        "timestamp_ms": 1690206706866,
+                        "status": "LOCATION_DATA_STATUS__NO_FIX",
+                        "latitude": null,
+                        "longitude": null,
+                        "location_accuracy": null,
+                        "horizontal_speed": {
+                            "speed": null,
+                            "speed_accuracy": null
+                        },
+                        "heading": {
+                            "heading": null,
+                            "heading_accuracy": null
+                        }
+                    },
+                    "bundle_id": "547854021984"
+                }
+            },
+            "extra": {
+                "attributes": {
+                    "vin": "unknown",
+                    "tenant": "datanauts",
+                    "vehicleType": "CARMODEL__FIAT_500_312",
+                    "subjectId": "d76b5b32-f543-47cf-a350-7d3bcb7144f0",
+                    "operationMode": "SRX",
+                    "deviceType": "hailysharey"
+                }
+            },
+            "revision": 262376,
+            "timestamp": "2023-07-24T13:51:47.758442440Z"
+        },
+        "Timestamp": "2023-07 - 24T13: 51: 47.829Z",
+        "SignatureVersion": "1",
+        "Signature": "b3 / Rvm8WRshnoLWk4IpEstzwaX6KgcuZ0GU1nxqT28WN9gW0 / bKhtjohpwN4LFlW4qtBcjnoQiS0phJ27p + y0OJ3vlv7Eu8bwK4CRdkVjqeUt39b8 + h0gQUTIs4VDDPCs8DEhhnPK2FDIXboQQqFEWT9P / ePYGxpzgADKX48Hqax / zCO1KWOPCzIcMrZCM9AykH5HY2hiv2x4pWPF7HtTWmAvZ0MCJaAvyok8o + OBMnQIxRUTfVABEsikCf430c6Ajp1OSZ8skj7AJbOYlb5Jn35fZHvqGRMkKbn1G9gixboXQ0RuXOpQmbzgunt3uPEk2BwKZU6tL6kFUlQ8FjPhQ == ",
+        "SigningCertURL": "https: //sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform:6b3c21ec-20fa-4434-b40d-ca265433f9d4",
+        "MessageAttributes": {
+            "deviceType": {
+                "Type": "String",
+                "Value": "hailysharey"
+            },
+            "modifiedThingCategory": {
+                "Type": "String",
+                "Value": "features"
+            },
+            "operationMode": {
+                "Type": "String",
+                "Value": "SRX"
+            },
+            "eventType": {
+                "Type": "String",
+                "Value": "com.bosch.ivs.incident.IncidentEvent"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "datanauts"
+            },
+            "subjectId": {
+                "Type": "String",
+                "Value": "d76b5b32-f543-47cf-a350-7d3bcb7144f0"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1690206707865",
+        "ApproximateReceiveCount": "1"
+    }
+}

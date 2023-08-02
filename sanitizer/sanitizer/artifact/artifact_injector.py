@@ -1,10 +1,12 @@
 """ Artifact injector """
 import logging
-from typing import List
 
-from base.model.artifacts import (Artifact, IMUArtifact,
+import kink
+
+from base.model.artifacts import (Artifact, ImageBasedArtifact, IMUArtifact,
+                                  MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
-                                  SignalsArtifact, MultiSnapshotArtifact)
+                                  SignalsArtifact)
 
 _logger = logging.getLogger(__name__)
 
@@ -16,10 +18,14 @@ INJECTION_MAP = {
 }
 
 
+@kink.inject
 class MetadataArtifactInjector:  # pylint: disable=too-few-public-methods
     """ Metadata Artifact Injector for Video Artifacts """
 
-    def inject(self, artifact: Artifact) -> List[Artifact]:
+    def __init__(self) -> None:
+        pass
+
+    def inject(self, artifact: ImageBasedArtifact) -> list[Artifact]:
         """ Inject Metadata Artifact after Video Artifacts """
         injected_artifacts = []
 

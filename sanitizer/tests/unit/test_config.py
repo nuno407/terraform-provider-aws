@@ -10,6 +10,7 @@ def test_load_yaml_config():
     """ Test load_yaml_config method. """
     raw_config = """
     input_queue: test-queue
+    metadata_queue: mdq
     topic_arn: test-topic
     db_name: test-db
     message_collection: test-incoming-messages
@@ -26,6 +27,7 @@ def test_load_yaml_config():
     config = SanitizerConfig.load_yaml_config("/tmp/config1")
     assert config.db_name == "test-db"
     assert config.input_queue == "test-queue"
+    assert config.metadata_queue == "mdq"
     assert config.topic_arn == "test-topic"
     assert config.recorder_blacklist == ["FrontRecorder"]
     assert config.tenant_blacklist == ["onetenant"]
