@@ -57,7 +57,7 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
                                                                    .get("recorder_name", {}))
                 if recorder_name not in RECORDER_TYPE_MAP:
                     if recorder_name in [e.value for e in RecorderType]:
-                        return (artifact_type, [e for e in RecorderType if e.value == recorder_name][0])
+                        return (MultiSnapshotArtifact, [e for e in RecorderType if e.value == recorder_name][0])
                     raise MessageException(f"Cannot extract recorder type from message: {sqs_message}")
                 return MultiSnapshotArtifact, RECORDER_TYPE_MAP[recorder_name]
 
