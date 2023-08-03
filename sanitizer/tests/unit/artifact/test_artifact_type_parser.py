@@ -7,8 +7,9 @@ from base.aws.model import SQSMessage
 from base.model.artifacts import (EventArtifact, KinesisVideoArtifact,
                                   MultiSnapshotArtifact, RecorderType,
                                   S3VideoArtifact)
-from sanitizer.artifact.artifact_type_parser import ArtifactTypeParser
-from sanitizer.exceptions import MessageException
+from sanitizer.artifact.artifact_type_parser import (ALLOWED_RECORDERS,
+                                                     ArtifactTypeParser)
+from sanitizer.exceptions import ArtifactException, MessageException
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -35,7 +36,7 @@ RECORDERS = {
 
 
 class TestArtifactTypeParser:
-    def prepare_sqs_message(self, test_file: str, recorder_to_set: str):
+    def prepare_sqs_message(self, test_file: str, recorder_to_set: str) -> tuple[SQSMessage, bool]:
         # 1. prepare test data
         with open(os.path.join(TEST_DATA, test_file)) as f:
             message_body = json.loads(f.read())
@@ -45,12 +46,15 @@ class TestArtifactTypeParser:
         if isinstance(message_body, str):
             message_body["Message"] = json.loads(message_body["Message"])
         # 2. replace recorder attribute with the one from our test, only if present
+        recorder_replaced = False
         if "MessageAttributes" in message_body and "recorder" in message_body["MessageAttributes"]:
             message_body["MessageAttributes"]["recorder"] = recorder_to_set
+            recorder_replaced = True
         elif "value" in message_body["Message"] and "properties" in message_body["Message"]["value"] and "recorder_name" in message_body["Message"]["value"]["properties"]:
             message_body["Message"]["value"]["properties"]["recorder_name"] = recorder_to_set
+            recorder_replaced = True
         # 3. prepare SQSMessage object
-        return SQSMessage(None, None, None, message_body, None)
+        return SQSMessage(None, None, None, message_body, None), recorder_replaced
 
     @pytest.mark.unit
     @pytest.mark.parametrize("test_file,expected_type", TEST_FILES_AND_TYPES)
@@ -61,14 +65,21 @@ class TestArtifactTypeParser:
                                   expected_type: type,
                                   expected_recorder: RecorderType):
         # GIVEN
-        sqs_message = self.prepare_sqs_message(test_file, recorder_attribute_value)
+        sqs_message, recorder_replaced = self.prepare_sqs_message(test_file, recorder_attribute_value)
 
         # WHEN
-        art_type, recorder = ArtifactTypeParser.get_artifact_type_from_msg(sqs_message)
+        if not recorder_replaced:
+            expected_recorder = None
+        if expected_recorder in ALLOWED_RECORDERS[expected_type]:
+            art_type, recorder = ArtifactTypeParser.get_artifact_type_from_msg(sqs_message)
 
-        # THEN
-        assert art_type == expected_type
-        assert recorder == (expected_recorder if expected_type != EventArtifact else None)
+            # THEN
+            assert art_type == expected_type
+            assert recorder == expected_recorder
+
+        else:
+            with pytest.raises(ArtifactException):
+                ArtifactTypeParser.get_artifact_type_from_msg(sqs_message)
 
     @pytest.mark.unit
     @pytest.mark.parametrize("test_file,expected_type", TEST_FILES_AND_TYPES)
@@ -76,13 +87,9 @@ class TestArtifactTypeParser:
                                                  test_file: str,
                                                  expected_type: type):
         # GIVEN
-        sqs_message = self.prepare_sqs_message(test_file, "foo_recorder")
+        sqs_message, recorder_replaced = self.prepare_sqs_message(test_file, "foo_recorder")
 
         # WHEN - THEN
-        if expected_type == EventArtifact:
-            art_type, recorder = ArtifactTypeParser.get_artifact_type_from_msg(sqs_message)
-            assert art_type == EventArtifact
-            assert recorder is None
-        else:
+        if recorder_replaced:
             with pytest.raises(MessageException):
                 ArtifactTypeParser.get_artifact_type_from_msg(sqs_message)

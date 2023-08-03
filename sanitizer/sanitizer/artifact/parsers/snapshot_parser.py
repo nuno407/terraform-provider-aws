@@ -1,7 +1,7 @@
 """ Snapshot Parser module """
 import logging
 from datetime import timedelta
-from typing import Iterator
+from typing import Iterator, Optional
 
 from kink import inject
 
@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
     """SnapshotParser class"""
 
-    def parse(self, sqs_message: SQSMessage, recorder_type: RecorderType) -> Iterator[SnapshotArtifact]:
+    def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[SnapshotArtifact]:
         """Generator method for extracting a list of snapshot or previews artifacts
 
         Args:
