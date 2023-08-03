@@ -21,9 +21,22 @@ RECORDER_TYPE_MAP = {
 class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
     """ RecorderTypeParser class. """
     @staticmethod
+    def _parse_recorder_value(recorder_value: Optional[str]) -> Optional[RecorderType]:
+        if recorder_value is None:
+            return None
+        if recorder_value in RECORDER_TYPE_MAP:
+            return RECORDER_TYPE_MAP[recorder_value]
+        if recorder_value in [e.value for e in RecorderType]:
+            return [e for e in RecorderType if e.value == recorder_value][0]
+        raise MessageException(f"Cannot extract recorder type from value: {recorder_value}")
+
+    @staticmethod
     def get_artifact_type_from_msg(sqs_message: SQSMessage) -> Tuple[type, Optional[RecorderType]]:
         """ Get recorder type from SQS message. """
         topic_arn = sqs_message.body.get("TopicArn", "MISSINGTOPIC")
+        artifact_type = None
+        recorder_name = None
+        recorder = None
 
         if topic_arn.endswith("video-footage-events"):
             if "uploadInfos" in sqs_message.body.get("Message", {}):
@@ -34,13 +47,7 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
             recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                                .get("MessageAttributes", {})
                                                                .get("recorder", {}))
-            if recorder_name not in RECORDER_TYPE_MAP:
-                if recorder_name in [e.value for e in RecorderType]:
-                    return (artifact_type, [e for e in RecorderType if e.value == recorder_name][0])
-                raise MessageException(f"Cannot extract recorder type from message: {sqs_message}")
-            return artifact_type, RECORDER_TYPE_MAP[recorder_name]
-
-        if topic_arn.endswith("inputEventsTerraform"):
+        elif topic_arn.endswith("inputEventsTerraform"):
             rcc_event_name = MessageParser.get_recursive_from_dict(sqs_message.body,
                                                                    "Message",
                                                                    "value",
@@ -50,17 +57,16 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
             rcc_event_name = MessageParser.flatten_string_value(rcc_event_name)
 
             if rcc_event_name == "com.bosch.ivs.videorecorder.UploadRecordingEvent":
+                artifact_type = MultiSnapshotArtifact
                 recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                                    .get("Message", {})
                                                                    .get("value", {})
                                                                    .get("properties", {})
                                                                    .get("recorder_name", {}))
-                if recorder_name not in RECORDER_TYPE_MAP:
-                    if recorder_name in [e.value for e in RecorderType]:
-                        return (MultiSnapshotArtifact, [e for e in RecorderType if e.value == recorder_name][0])
-                    raise MessageException(f"Cannot extract recorder type from message: {sqs_message}")
-                return MultiSnapshotArtifact, RECORDER_TYPE_MAP[recorder_name]
+            else:
+                artifact_type = EventArtifact
 
-            return EventArtifact, None
-
-        raise MessageException(f"Cannot extract artifact type from message: {sqs_message}")
+        if artifact_type is None:
+            raise MessageException(f"Cannot extract artifact type from message: {sqs_message}")
+        recorder = ArtifactTypeParser._parse_recorder_value(recorder_name)
+        return artifact_type, recorder
