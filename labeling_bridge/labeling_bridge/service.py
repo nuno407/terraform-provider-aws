@@ -290,7 +290,7 @@ def label_from_job_exists(filepath: str, labeling_job: str, annotation_type: str
         if label_type.has_field(label_fields_split[1]) and \
                 (labels := label_type.get_field(label_fields_split[1])) is not None:
             for label in labels:
-                if label.has_field("labeling_job") and label.get_field("labeling_job") == labeling_job:
+                if label.has_attribute("labeling_job") and label.get_attribute_value("labeling_job") == labeling_job:
                     return True
 
     return False
