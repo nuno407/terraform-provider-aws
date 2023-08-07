@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra, Field, validator
 
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
@@ -42,24 +42,46 @@ class EventHeader(ConfiguredBaseModel):
 class BaseEventContent(ConfiguredBaseModel):
     header: EventHeader = Field()
 
+    @classmethod
+    def _check_event_type(cls, header: EventHeader, expected_event_type: EventType):
+        if not isinstance(header, EventHeader):
+            raise ValueError("Header must be of type EventHeader")
+        if not header.message_type == expected_event_type:
+            raise ValueError("Event type in header does not match the parsed event.")
+
 
 class IncidentEventContent(BaseEventContent):
-    incident_type: IncidentType = Field()
-    location: Location = Field()
-    bundle_id: str = Field()
+    incident_type: Optional[IncidentType] = Field(default=None)
+    location: Optional[Location] = Field(default=None)
+    bundle_id: Optional[str] = Field(default=None)
+
+    @validator("header")
+    def _validate_header(cls, value: EventHeader):
+        BaseEventContent._check_event_type(value, EventType.INCIDENT)
+        return value
 
 
 class CameraServiceEventContent(BaseEventContent):
     camera_name: str = Field()
-    service_status: GeneralServiceState = Field()
+    service_status: Optional[GeneralServiceState] = Field(default=None)
     camera_service_description: list[CameraServiceState] = Field(default_factory=list)
+
+    @validator("header")
+    def _validate_header(cls, value: EventHeader):
+        BaseEventContent._check_event_type(value, EventType.CAMERA_SERVICE)
+        return value
 
 
 class DeviceInfoEventContent(BaseEventContent):
     system_report: Optional[str] = Field(default=None)
     software_versions: list[dict[str, Any]] = Field(default_factory=list)
-    device_type: str = Field()
-    last_shutdown: Optional[Shutdown] = Field(alias="last_shutdown_reason")
+    device_type: Optional[str] = Field(default=None)
+    last_shutdown: Optional[Shutdown] = Field(alias="last_shutdown_reason", default=None)
+
+    @validator("header")
+    def _validate_header(cls, value: EventHeader):
+        BaseEventContent._check_event_type(value, EventType.DEVICE_INFO)
+        return value
 
 
 class MessageBodyMessageValue(ConfiguredBaseModel):
