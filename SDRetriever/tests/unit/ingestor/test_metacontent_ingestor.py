@@ -1,15 +1,17 @@
 # type: ignore
 """ metacontent ingestor tests """
+import re
 from datetime import datetime
 from typing import Callable
 from unittest.mock import ANY, Mock, call, patch
-import re
+
 import pytest
 import pytz
 
 from base.aws.container_services import ContainerServices
 from base.model.artifacts import (MetadataArtifact, MetadataType, RecorderType,
-                                  S3VideoArtifact, SignalsArtifact, TimeWindow, Recording)
+                                  Recording, S3VideoArtifact, SignalsArtifact,
+                                  TimeWindow)
 from sdretriever.ingestor.metacontent import (MetacontentChunk,
                                               MetacontentDevCloud,
                                               MetacontentIngestor)
@@ -167,7 +169,7 @@ video_artifact1 = S3VideoArtifact(
     recorder=RecorderType.INTERIOR,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),
-    upload_timing=TimeWindow(datetime.now(tz=pytz.UTC), datetime.now(tz=pytz.UTC)),
+    upload_timing=TimeWindow(start=datetime.now(tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
     recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 
@@ -179,7 +181,7 @@ video_artifact2 = S3VideoArtifact(
     recorder=RecorderType.TRAINING,
     timestamp=datetime.now(tz=pytz.UTC),
     end_timestamp=datetime.now(tz=pytz.UTC),
-    upload_timing=TimeWindow(datetime.now(tz=pytz.UTC), datetime.now(tz=pytz.UTC)),
+    upload_timing=TimeWindow(start=datetime.now(tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
     recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 

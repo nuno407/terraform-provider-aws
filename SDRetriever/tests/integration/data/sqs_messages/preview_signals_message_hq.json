@@ -5,8 +5,6 @@
     "referred_artifact": {
         "tenant_id": "ridecare_companion_fut",
         "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
-        "s3_path": null,
-        "resolution": null,
         "recorder": "InteriorRecorderPreview",
         "timestamp": "2023-05-31T14:48:33.752000+00:00",
         "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
@@ -18,8 +16,6 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
-                "s3_path": null,
-                "resolution": null,
                 "recorder": "InteriorRecorderPreview",
                 "timestamp": "2023-05-31T14:48:33.752000+00:00",
                 "end_timestamp": "2023-05-31T14:49:03.757000+00:00",
@@ -32,8 +28,6 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
-                "s3_path": null,
-                "resolution": null,
                 "recorder": "InteriorRecorderPreview",
                 "timestamp": "2023-05-31T14:49:03.757000+00:00",
                 "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
@@ -46,8 +40,6 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
-                "s3_path": null,
-                "resolution": null,
                 "recorder": "InteriorRecorderPreview",
                 "timestamp": "2023-05-31T14:49:03.757000+00:00",
                 "end_timestamp": "2023-05-31T14:49:33.758000+00:00",
@@ -60,8 +52,6 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
-                "s3_path": null,
-                "resolution": null,
                 "recorder": "InteriorRecorderPreview",
                 "timestamp": "2023-05-31T14:49:03.757000+00:00",
                 "end_timestamp": "2023-05-31T14:49:33.758000+00:00",

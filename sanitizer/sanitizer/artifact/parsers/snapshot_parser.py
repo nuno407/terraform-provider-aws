@@ -64,7 +64,7 @@ class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
         if upload_finished is None:
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract upload_finished timestamp.")
-        upload_timing = TimeWindow(upload_finished, upload_finished)  # type: ignore
+        upload_timing = TimeWindow(start=upload_finished, end=upload_finished)  # type: ignore
         upload_timing.start -= timedelta(hours=1)
 
         # get chunks

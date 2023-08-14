@@ -4,7 +4,8 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import Field
-from pydantic.dataclasses import dataclass
+
+from base.model.config import ConfiguredBaseModel
 
 
 class EventType(str, Enum):
@@ -24,22 +25,19 @@ class LocationStatus(str, Enum):
     FEATURE_FAILED = "LOCATION_DATA_STATUS__FEATURE_FAILED"
 
 
-@dataclass
-class Speed:
+class Speed(ConfiguredBaseModel):
     """Represents a speed from RCC Location"""
     speed: Optional[float] = Field(default=None)
     speed_accuracy: Optional[float] = Field(default=None)
 
 
-@dataclass
-class Heading:
+class Heading(ConfiguredBaseModel):
     """Represents a heading from RCC Location"""
     heading: Optional[float] = Field(default=None)
     heading_accuracy: Optional[float] = Field(default=None)
 
 
-@dataclass
-class Location:
+class Location(ConfiguredBaseModel):
     """Represents a location from RCC"""
     status: LocationStatus = Field(default=LocationStatus.UNKNOWN)
     latitude: Optional[float] = Field(default=None)
@@ -74,12 +72,11 @@ class ShutdownReason(str, Enum):
     EMERGENCY_REBOOT = "SHUTDOWN_REASON__EMERGENCY_REBOOT"
 
 
-@dataclass
-class Shutdown:
+class Shutdown(ConfiguredBaseModel):
     """Details about the last shutdown"""
     reason: ShutdownReason = Field(default=ShutdownReason.UNKNOWN, alias="shutdown_reason")
-    reason_description: Optional[str] = Field(default=None, alias="shutdown_reason_description")
-    timestamp: Optional[datetime] = Field(default=None, alias="timestamp_ms")
+    reason_description: Optional[str] = Field(default=..., alias="shutdown_reason_description")
+    timestamp: Optional[datetime] = Field(default=..., alias="timestamp_ms")
 
 
 class GeneralServiceState(str, Enum):

@@ -24,7 +24,7 @@ class EventParser(IArtifactParser):  # pylint: disable=too-few-public-methods
 
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[EventArtifact]:
         try:
-            event_message_body = EventMessageBody(**sqs_message.body)
+            event_message_body = EventMessageBody.parse_obj(sqs_message.body)
         except ValidationError as ex:
             raise InvalidMessageError("Unable to parse event message into pydantic model.") from ex
 

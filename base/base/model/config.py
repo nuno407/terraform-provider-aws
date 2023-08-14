@@ -1,8 +1,10 @@
 """ pydantic model config """
-from pydantic import ConfigDict
+from pydantic import BaseModel
 
-dataclass_config = ConfigDict(
-    validate_assignment=True,
-    use_enum_values=True,
-    allow_population_by_field_name=True
-)
+
+class ConfiguredBaseModel(BaseModel):
+    """Pydantic BaseModel with config options for DevCloud usage"""
+    class Config:
+        """Config options for BaseModel"""
+        validate_assignment = True
+        allow_population_by_field_name = True

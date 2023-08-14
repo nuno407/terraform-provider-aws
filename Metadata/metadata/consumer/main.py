@@ -742,7 +742,7 @@ def __convert_event_to_db_item(event: EventArtifact) -> dict:
             "event": event.event_name.value
         }
     }
-    event_data = asdict(event)
+    event_data = event.dict()
     event_data.pop("tenant_id", None)
     event_data.pop("device_id", None)
     event_data.pop("event_name", None)

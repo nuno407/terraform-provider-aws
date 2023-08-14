@@ -1,24 +1,21 @@
 # pylint: disable=no-self-argument, line-too-long
 """ Artifact model. """
 import hashlib
-import json
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Literal, Optional, Union
 
 from pydantic import Field, parse_obj_as, parse_raw_as, validator
-from pydantic.dataclasses import dataclass
-from pydantic.json import pydantic_encoder
 
-from base.model.config import dataclass_config
+from base.model.config import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
 
 
-class RecorderType(Enum):
+class RecorderType(str, Enum):
     """ artifact type enumerator. """
     FRONT = "FrontRecorder"
     INTERIOR = "InteriorRecorder"
@@ -34,18 +31,16 @@ class MetadataType(str, Enum):
     IMU = "IMU"
 
 
-@dataclass
-class Resolution:
+class Resolution(ConfiguredBaseModel):
     """Resolution"""
     width: int
     height: int
 
 
-@dataclass
-class TimeWindow:
+class TimeWindow(ConfiguredBaseModel):
     """Defines a timezone aware time window in the past"""
-    start: datetime
-    end: datetime
+    start: datetime = Field(default=...)
+    end: datetime = Field(default=...)
 
     @validator("start", "end")
     def check_not_newer_than_now(cls, value: datetime) -> datetime:
@@ -58,8 +53,7 @@ class TimeWindow:
         return value
 
 
-@dataclass(config=dataclass_config)
-class Artifact(ABC):
+class Artifact(ConfiguredBaseModel):
     """Generic artifact"""
     tenant_id: str
     device_id: str
@@ -67,7 +61,7 @@ class Artifact(ABC):
 
     def stringify(self) -> str:
         """ stringifies the artifact. """
-        return json.dumps(self, default=pydantic_encoder)
+        return self.json(by_alias=True, exclude_unset=False, exclude_none=True)
 
     @property
     @abstractmethod
@@ -87,9 +81,9 @@ class Artifact(ABC):
         return hashlib.sha256(self.artifact_id.encode("utf-8")).hexdigest()
 
 
-@dataclass
 class ImageBasedArtifact(Artifact):
     """Base class for image based artifacts"""
+    # pylint: disable=abstract-method
     resolution: Optional[Resolution] = Field(default=None)
     recorder: RecorderType = Field(default=...)
     timestamp: datetime = Field(default=...)
@@ -107,18 +101,12 @@ class ImageBasedArtifact(Artifact):
         return value
 
 
-@dataclass
 class VideoArtifact(ImageBasedArtifact):
     """Video artifact"""
+    # pylint: disable=abstract-method
     end_timestamp: datetime = Field(default=...)
     actual_duration: Optional[float] = Field(default=None)
-
-    @validator("recorder")
-    def check_recorder(cls, value: RecorderType) -> RecorderType:
-        """Validate recorder type"""
-        if value not in [RecorderType.INTERIOR, RecorderType.FRONT, RecorderType.TRAINING]:
-            raise ValueError("Invalid recorder type")
-        return value
+    recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT, RecorderType.TRAINING] = Field(default=...)
 
     @validator("end_timestamp")
     def check_end_timestamp(cls, value: datetime) -> datetime:
@@ -131,7 +119,6 @@ class VideoArtifact(ImageBasedArtifact):
         return (self.end_timestamp - self.timestamp).total_seconds()
 
 
-@dataclass
 class KinesisVideoArtifact(VideoArtifact):
     """Represents a video artifact that was recorded to Kinesis Video Streams"""
     stream_name: str = Field(default=...)
@@ -144,14 +131,12 @@ class KinesisVideoArtifact(VideoArtifact):
         return f"{self.stream_name}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
 
 
-@dataclass
-class Recording:
+class Recording(ConfiguredBaseModel):
     """Represents a recording represented by a recording id and the corresponding chunk ids"""
     recording_id: str = Field(default=...)
     chunk_ids: list[int] = Field(default=...)
 
 
-@dataclass
 class S3VideoArtifact(VideoArtifact):
     """Represents a video artifact that has been concatenated by RCC and uploaded to S3"""
     rcc_s3_path: str = Field(default=...)
@@ -170,17 +155,10 @@ class S3VideoArtifact(VideoArtifact):
         return value
 
 
-@dataclass
 class SnapshotArtifact(ImageBasedArtifact):
     """Snapshot artifact"""
     uuid: str = Field(default=...)
-
-    @validator("recorder")
-    def check_recorder(cls, value: RecorderType) -> RecorderType:
-        """Validate recorder type"""
-        if value not in [RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW]:
-            raise ValueError("Invalid recorder type")
-        return value
+    recorder: Literal[RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW] = Field(default=...)
 
     @property
     def artifact_id(self) -> str:
@@ -188,7 +166,6 @@ class SnapshotArtifact(ImageBasedArtifact):
         return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{round(self.timestamp.timestamp()*1000)}"
 
 
-@dataclass
 class MultiSnapshotArtifact(ImageBasedArtifact):
     """An artifact that continas multiple snapshots"""
     chunks: list[SnapshotArtifact] = Field(default=...)
@@ -206,7 +183,6 @@ class MultiSnapshotArtifact(ImageBasedArtifact):
         return f"{self.tenant_id}_{self.device_id}_{self.recording_id}_{round(self.timestamp.timestamp()*1000)}"
 
 
-@dataclass
 class MetadataArtifact(Artifact):
     """ Metadata """
     referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact,
@@ -219,19 +195,16 @@ class MetadataArtifact(Artifact):
         return f"{self.referred_artifact.artifact_id}_{self.metadata_type.value}"
 
 
-@dataclass
 class IMUArtifact(MetadataArtifact):
     """ IMU Artifact """
     metadata_type: Literal[MetadataType.IMU] = MetadataType.IMU
 
 
-@dataclass
 class SignalsArtifact(MetadataArtifact):
     """ Signals Artifact """
     metadata_type: Literal[MetadataType.SIGNALS] = MetadataType.SIGNALS
 
 
-@dataclass
 class PreviewSignalsArtifact(MetadataArtifact):
     """ Preview Signals Artifact, that contains compacted signals data """
     timestamp: datetime = Field(default=...)
@@ -240,7 +213,6 @@ class PreviewSignalsArtifact(MetadataArtifact):
     metadata_type: Literal[MetadataType.PREVIEW] = MetadataType.PREVIEW
 
 
-@dataclass
 class EventArtifact(Artifact):
     """Base class for all event artifacts"""
     timestamp: datetime = Field(default=...)
@@ -253,7 +225,6 @@ class EventArtifact(Artifact):
         return f"{self.tenant_id}_{self.device_id}_{event_name}_{round(self.timestamp.timestamp()*1000)}"
 
 
-@dataclass
 class IncidentEventArtifact(EventArtifact):
     """Represents an incident event from RCC"""
     event_name: Literal[EventType.INCIDENT] = Field(default=...)
@@ -262,7 +233,6 @@ class IncidentEventArtifact(EventArtifact):
     bundle_id: Optional[str] = Field(default=None)
 
 
-@dataclass
 class DeviceInfoEventArtifact(EventArtifact):
     """Represents a device info event from RCC"""
     event_name: Literal[EventType.DEVICE_INFO] = Field(default=...)
@@ -272,7 +242,6 @@ class DeviceInfoEventArtifact(EventArtifact):
     last_shutdown: Optional[Shutdown] = Field(default=None)
 
 
-@dataclass
 class CameraServiceEventArtifact(EventArtifact):
     """Represents a camera service event from RCC"""
     event_name: Literal[EventType.CAMERA_SERVICE] = Field(default=...)

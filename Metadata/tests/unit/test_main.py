@@ -445,7 +445,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         device_id = "test_device_id"
         tenant_id = "test_tenant_id"
         timestamp = datetime.now()
-        location = asdict(Location())
+        location = Location().dict()
         location["status"] = location["status"].value
 
         artifact_body = {

@@ -6,7 +6,8 @@ from kink import inject
 from pydantic import BaseModel, Field, ValidationError
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import Recording, RecorderType, S3VideoArtifact, TimeWindow
+from base.model.artifacts import (RecorderType, Recording, S3VideoArtifact,
+                                  TimeWindow)
 from sanitizer.artifact.parsers.video_parser import VideoParser
 from sanitizer.exceptions import InvalidMessageError
 
@@ -58,8 +59,8 @@ class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
         upload_start = min(upload_info.upload_started for upload_info in parsed_message.upload_infos)
         upload_end = max(upload_info.upload_finished for upload_info in parsed_message.upload_infos)
 
-        recordings = [Recording(upload_info.recording_id, upload_info.chunks) for upload_info in
-                      parsed_message.upload_infos]
+        recordings = [Recording(recording_id=upload_info.recording_id, chunk_ids=upload_info.chunks) for upload_info in
+                      parsed_message.upload_infos if upload_info.recording_id]
 
         tenant = self._get_tenant_id(sqs_message)
         device = self._get_device_id(sqs_message)

@@ -111,5 +111,5 @@ class KinesisVideoIngestor(Ingestor):  # pylint: disable=too-few-public-methods
         artifact.actual_timestamp = video.actual_start
         artifact.actual_end_timestamp = video.actual_end
         artifact.actual_duration = video_info.duration
-        artifact.resolution = Resolution(video_info.width, video_info.height)
+        artifact.resolution = Resolution(width=video_info.width, height=video_info.height)
         artifact.s3_path = uploaded_path

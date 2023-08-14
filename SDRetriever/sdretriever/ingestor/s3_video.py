@@ -7,7 +7,7 @@ from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import Artifact, Resolution, S3VideoArtifact
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import FileExt
-from sdretriever.exceptions import (FileAlreadyExists, S3DownloadError)
+from sdretriever.exceptions import FileAlreadyExists, S3DownloadError
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.ingestor.post_processor import IVideoPostProcessor
 from sdretriever.s3_finder_rcc import S3FinderRCC
@@ -65,6 +65,6 @@ class S3VideoIngestor(Ingestor):
 
         # post process video
         video_info = self._post_processor.execute(video_bytes)
-        artifact.resolution = Resolution(video_info.width, video_info.height)
+        artifact.resolution = Resolution(width=video_info.width, height=video_info.height)
         artifact.actual_duration = video_info.duration
         artifact.s3_path = upload_path

@@ -3,7 +3,8 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call
 
 import pytest
 
-from base.model.artifacts import IMUArtifact, SnapshotArtifact, VideoArtifact
+from base.model.artifacts import (IMUArtifact, RecorderType, SnapshotArtifact,
+                                  VideoArtifact)
 from sanitizer.handler import Handler
 
 
@@ -33,9 +34,11 @@ def test_handler_run():
     video_artifact = Mock(spec=VideoArtifact)
     video_artifact.device_id = None
     video_artifact.tenant_id = None
+    video_artifact.recorder = RecorderType.INTERIOR
     snapshot_artifact = Mock(spec=SnapshotArtifact)
     snapshot_artifact.device_id = None
     snapshot_artifact.tenant_id = None
+    snapshot_artifact.recorder = RecorderType.SNAPSHOT
     injected_artifact = Mock(spec=IMUArtifact)
 
     artifacts = [video_artifact, snapshot_artifact]

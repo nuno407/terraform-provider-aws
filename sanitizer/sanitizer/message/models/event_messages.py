@@ -85,7 +85,8 @@ class DeviceInfoEventContent(BaseEventContent):
 
 
 class MessageBodyMessageValue(ConfiguredBaseModel):
-    properties: Union[IncidentEventContent, CameraServiceEventContent, DeviceInfoEventContent] = Field()
+    properties: Union[IncidentEventContent, CameraServiceEventContent,
+                      DeviceInfoEventContent] = Field()
 
 
 class MessageBodyMessage(ConfiguredBaseModel):

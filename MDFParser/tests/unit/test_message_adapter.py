@@ -4,7 +4,7 @@ from datetime import datetime
 from pytest import mark
 
 from base.model.artifacts import (IMUArtifact, MetadataArtifact, MetadataType,
-                                  Recording, RecorderType, S3VideoArtifact,
+                                  RecorderType, Recording, S3VideoArtifact,
                                   SignalsArtifact, TimeWindow)
 from mdfparser.interfaces.artifact_adapter import ArtifactAdapter
 from mdfparser.interfaces.input_message import DataType, InputMessage
@@ -48,13 +48,21 @@ def training_video() -> S3VideoArtifact:
 
 def imu_artifact() -> IMUArtifact:
     """IMU artifact"""
-    return IMUArtifact("tid", "devid", "s3://some_path", training_video(), MetadataType.IMU)
+    return IMUArtifact(
+        tenant_id="tid",
+        device_id="devid",
+        s3_path="s3://some_path",
+        referred_artifact=training_video(),
+        metadata_type=MetadataType.IMU)
 
 
 def metadata_artifact() -> SignalsArtifact:
     """Metadata Artifact"""
-    return SignalsArtifact("tid", "devid", "s3://some_path",
-                           interior_video(), MetadataType.SIGNALS)
+    return SignalsArtifact(tenant_id="tid",
+                           device_id="devid",
+                           s3_path="s3://some_path",
+                           referred_artifact=interior_video(),
+                           metadata_type=MetadataType.SIGNALS)
 
 
 @mark.unit
