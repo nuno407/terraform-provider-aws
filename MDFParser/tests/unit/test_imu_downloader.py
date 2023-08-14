@@ -34,11 +34,19 @@ class TestIMUDownloader:
                              [(helper_load_imu_file("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_imu.csv"),
                                helper_df_imu_df("datanauts_DATANAUTS_DEV_02_TrainingRecorder_1680541729312_1680541745612_imu_parsed.csv"),
                                ),
-                                 (helper_load_imu_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv"),
-                                  helper_df_imu_df("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu_parsed.csv"),
-                                  )],
+                              (helper_load_imu_file("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv"),
+                               helper_df_imu_df("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu_parsed.csv"),
+                               ),
+                              (helper_load_imu_file("datanauts_ARTIFICAL_DATA_V2_too_many_timestamps_imu.csv"),
+                               helper_df_imu_df("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu_parsed.csv"),
+                               ),
+                              (helper_load_imu_file("datanauts_ARTIFICAL_DATA_V2_too_many_samples_imu.csv"),
+                               helper_df_imu_df("datanauts_ARTIFICAL_DATA_V2_TrainingRecorder_1680541729312_1680541745613_imu_parsed.csv"),
+                               )],
                              ids=["test_imu_v1",
-                                  "test_imu_v2"])
+                                  "test_imu_v2",
+                                  "test_imu_v2_too_many_timestamps",
+                                  "test_imu_too_many_samples"])
     def test_download(
             container_services_mock: ContainerServices,
             imu_bytes: bytes,

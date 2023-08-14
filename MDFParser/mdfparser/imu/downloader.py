@@ -171,10 +171,22 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             # Number of samples in this chunk
             num_samples = len(list(batch_data.values())[0])
 
-            if num_samples != len(utc_timestamps):
-                raise FailToParseIMU(
-                    f"Number of utc timestamps {len(utc_timestamps)} is different then \
-                    the number of samples {num_samples}")
+            num_timestamps = len(utc_timestamps)
+
+            # Sometimes IMU contains more timestamps than samples, we'll just ignore the additional ones
+            if num_samples < num_timestamps:
+                _logger.info(
+                    "Received more timestamps (%s) than actual samples (%s), will remove excess timestamps",
+                    num_timestamps, num_samples)
+                utc_timestamps = utc_timestamps[0:num_samples]
+
+            # This has not happened yet, however better ingest almost all IMU instead of none at all
+            elif num_samples > num_timestamps:
+                _logger.info(
+                    "Received more samples (%s) than timestamps (%s), will remove excess samples",
+                    num_samples, num_timestamps)
+                for header in IMU_BATCH_FIELDS:
+                    batch_data[header] = batch_data[header][0:num_timestamps]
 
             batch_data["timestamp"] = utc_timestamps
             result_dfs.append(pd.DataFrame(batch_data))
@@ -216,6 +228,6 @@ class IMUDownloader(S3Interaction):  # pylint: disable=too-few-public-methods
             result_dfs = self.__convert_imu_v2(lines)
         else:
             raise FailToParseIMU(
-                f"Could't detect IMU version, number of timestamps is {len(utc_timestamps)}")
+                f"Couldn't detect IMU version, number of timestamps is {len(utc_timestamps)}")
 
         return pd.concat(result_dfs)
