@@ -818,10 +818,7 @@ def parse_message_to_dict(body: str) -> dict:
     """Parses the message from string to dict"""
     _logger.info("Processing pipeline message..")
 
-    # Converts message body from string to dict
-    # (in order to perform index access)
-    new_body = body.replace("\'", "\"")
-    return json.loads(new_body)
+    return json.loads(body)
 
 
 def fix_message(container_services: ContainerServices, body: str, dict_body: dict) -> dict:
