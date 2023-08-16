@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import re
+from collections import namedtuple
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
@@ -59,6 +60,7 @@ class MetadataCollections:
     pipeline_exec: Collection
     algo_output: Collection
     processed_imu: Collection
+    events: Collection
 
 
 def _get_anonymized_s3_path(file_key: str) -> str:
@@ -599,11 +601,14 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
     )
 
 
+TimeRange = namedtuple("TimeRange", ["min", "max"])
+
 @inject
 def insert_mdf_imu_data(
-        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client) -> None:
+        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client) -> Optional[TimeRange]:
     """ Receives a message from the MDF IMU queue, downloads IMU file from a S3 bucket
-    and inserts into the timeseries database.
+    and inserts into the timeseries database. Finally returns the start and end
+    timestamp of that IMU data.
 
     The incoming message has the following format:
     {
@@ -624,7 +629,7 @@ def insert_mdf_imu_data(
     if not ContainerServices.check_s3_file_exists(s3_client, bucket_name, object_key):
         _logger.error(
             "The imu file (%s) is not available on the bucket (%s)", bucket_name, object_key)
-        return
+        return None
 
     raw_parsed_imu = ContainerServices.download_file(
         s3_client,
@@ -637,20 +642,56 @@ def insert_mdf_imu_data(
         doc["timestamp"] = datetime.fromtimestamp(
             doc["timestamp"] / 1000, tz=pytz.utc)
 
+    min_timestamp = min([doc["timestamp"] for doc in parsed_imu])
+    max_timestamp = max([doc["timestamp"] for doc in parsed_imu])
+
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
     s3_client.delete_object(Bucket=bucket_name, Key=object_key)
     _logger.info("IMU file deleted sucessfully (%s)", object_key)
 
+    return TimeRange(min_timestamp, max_timestamp)
+
+
+def __update_events(imu_range: TimeRange, data_type: str,
+                    metadata_collections: MetadataCollections) -> None:
+    filter_query_events = {"$and": [
+        {"last_shutdown.timestamp": {"$exists": False}},
+        {"timestamp": {"$gte": imu_range.min}},
+        {"timestamp": {"$lte": imu_range.max}},
+    ]}
+
+    filter_query_shutdowns = {"$and": [
+        {"last_shutdown.timestamp": {"$exists": True}},
+        {"last_shutdown.timestamp": {"$ne": None}},
+        {"last_shutdown.timestamp": {"$gte": imu_range.min}},
+        {"last_shutdown.timestamp": {"$lte": imu_range.max}},
+    ]}
+
+    update_query_events = {
+        "$set": {
+            data_type + "_available": True
+        }
+    }
+    update_query_shutdowns = {
+        "$set": {
+            "last_shutdown." + data_type + "_available": True
+        }
+    }
+    metadata_collections.events.update_many(filter=filter_query_events, update=update_query_events)
+    metadata_collections.events.update_many(filter=filter_query_shutdowns, update=update_query_shutdowns)
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
     if message["data_type"] == "imu":
-        insert_mdf_imu_data(
+        imu_range = insert_mdf_imu_data(
             message, metadata_collections)  # pylint: disable=no-value-for-parameter
+        if imu_range:
+            __update_events(imu_range, "imu", metadata_collections)
         return
 
     recording = upsert_mdf_signals_data(
         message, metadata_collections)
+    # ToDo: When refactoring signals to time series, update events as done with imu
 
     if not recording:
         # something went wrong when looking up the recording record
@@ -735,28 +776,17 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections,
 
 
 def __convert_event_to_db_item(event: EventArtifact) -> dict:
-    item = {
-        "source": {
-            "tenant": event.tenant_id,
-            "device_id": event.device_id,
-            "event": event.event_name.value
-        }
-    }
     event_data = event.dict()
-    event_data.pop("tenant_id", None)
-    event_data.pop("device_id", None)
-    event_data.pop("event_name", None)
-    item.update(event_data)
-    return {k: v for (k, v) in item.items() if v is not None}
+    return {k: v for (k, v) in event_data.items() if v is not None}
 
 
 def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
     """Process a message coming from Sanitizer."""
     artifact = parse_artifact(message)
     if isinstance(artifact, EventArtifact):
-        imu_collection = metadata_collections.processed_imu
+        event_collection = metadata_collections.events
         db_item = __convert_event_to_db_item(artifact)
-        imu_collection.insert_one(db_item)
+        event_collection.insert_one(db_item)
 
 
 def __process_general(message: dict, metadata_collections: MetadataCollections, source: str):
@@ -918,6 +948,7 @@ def main():
                 pipeline_exec=db_client[container_services.db_tables["pipeline_exec"]],
                 algo_output=db_client[container_services.db_tables["algo_output"]],
                 processed_imu=db_client[container_services.db_tables["processed_imu"]],
+                events=db_client[container_services.db_tables["events"]]
             )
 
             # Insert/update data in db

@@ -12,10 +12,13 @@ from unittest.mock import ANY, MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 from botocore.errorfactory import ClientError
+from kink import di
 from pymongo.collection import ReturnDocument
 from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
+from pytz import UTC
 
+import metadata.consumer.main as main
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from base.model.event_types import Location
 from metadata.consumer.bootstrap import bootstrap_di
@@ -24,7 +27,7 @@ from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     create_snapshot_recording_item,
                                     create_video_recording_item,
                                     find_and_update_media_references,
-                                    fix_message, insert_mdf_imu_data, main,
+                                    fix_message, insert_mdf_imu_data,
                                     parse_message_to_dict, process_outputs,
                                     process_sanitizer,
                                     transform_data_to_update_query,
@@ -463,26 +466,15 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             }
         }
 
-        collection_imu_mock = Mock()
+        collection_events_mock = Mock()
         metadata_collections = Mock()
-        metadata_collections.processed_imu = collection_imu_mock
+        metadata_collections.events = collection_events_mock
 
         # WHEN
         process_sanitizer(artifact_body, metadata_collections)
 
         # THEN
-        expected_db_item = {
-            'source': {
-                'device_id': device_id,
-                'tenant': tenant_id,
-                'event': "com.bosch.ivs.incident.IncidentEvent"
-            },
-            'location': location,
-            'incident_type': "INCIDENT_TYPE__ACCIDENT_AUTOMATIC",
-            'timestamp': timestamp
-        }
-
-        collection_imu_mock.insert_one.assert_called_once_with(expected_db_item)
+        collection_events_mock.insert_one.assert_called_once_with(artifact_body)
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
@@ -553,6 +545,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             pipeline_exec=MagicMock(),
             algo_output=MagicMock(),
             processed_imu=MagicMock(),
+            events=MagicMock()
         )
 
         # When
@@ -658,6 +651,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             algo_output=collection_algo_out,
             pipeline_exec=MagicMock(),
             processed_imu=MagicMock(),
+            events=MagicMock()
         )
 
         # When
@@ -947,13 +941,13 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_container_services_object.load_mongodb_config_vars = Mock()
         mock_db_client = MagicMock()
         mock_db_client.__getitem__.side_effect = [
-            Mock(), Mock(), Mock(), Mock(), Mock()
+            Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
         ]
         mock_db_client.client = Mock()
         mock_container_services_object.create_db_client = Mock(
             return_value=mock_db_client)
         mock_container_services_object.db_tables.__getitem__.side_effect = [
-            Mock(), Mock(), Mock(), Mock(), Mock()
+            Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
         ]
         mock_container_services_object.anonymized_s3 = "anon_bucket"
         mock_container_services_object.raw_s3 = "raw_bucket"
@@ -970,7 +964,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_parse_message.return_value = mocked_parsed_message
         mock_fix_message.return_value = mock_relay_list
 
-        main()
+        main.main()
 
         mock_boto3_client.assert_any_call("sqs", region_name=AWS_REGION)
         mock_container_services_object.load_config_vars.assert_called_once_with()
@@ -1011,7 +1005,8 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
         pipeline_exec=pipeline_exec_collection,
         signals=signals_collection,
         algo_output=algo_out_collection,
-        processed_imu=MagicMock()
+        processed_imu=MagicMock(),
+        events=MagicMock()
     )
     mock_message = {
         "output": {
@@ -1035,16 +1030,20 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
     update_sample_mock.assert_called_once()
 
 
-@patch("metadata.consumer.main.json.loads")
 @pytest.mark.parametrize("file_exists", [
     (True),
     (False)
 ])
 @pytest.mark.unit
-def test_insert_mdf_imu_data(mock_json_loads: Mock, file_exists: bool):
+def test_insert_mdf_imu_data(file_exists: bool):
     """ tests insert_mdf_imu_data """
     s3_client = Mock()
-    s3_client.get_object = Mock(return_value=MagicMock())
+    stream_body_mock = Mock()
+    stream_body_mock.read = Mock(return_value=bytes("""[
+        {"timestamp": 1692000444123},
+        {"timestamp": 1692086844123}
+        ]""", "utf-8"))
+    s3_client.get_object = Mock(return_value={"Body": stream_body_mock})
     s3_client.delete_object = Mock()
 
     if not file_exists:
@@ -1064,16 +1063,21 @@ def test_insert_mdf_imu_data(mock_json_loads: Mock, file_exists: bool):
 
     mock_imu_col = Mock()
     mock_imu_col.insert_many = Mock()
+    mock_events_col = Mock()
+    mock_events_col.update_many = Mock()
 
     metadata_collections = MetadataCollections(
         signals=MagicMock(),
         recordings=MagicMock(),
         algo_output=MagicMock(),
         pipeline_exec=MagicMock(),
-        processed_imu=mock_imu_col
+        processed_imu=mock_imu_col,
+        events=mock_events_col
     )
 
-    insert_mdf_imu_data(imu_message, metadata_collections, s3_client)
+    di["s3_client"] = s3_client
+    main.__process_mdfparser(imu_message, metadata_collections)
+    di.clear_cache()
 
     s3_client.head_object.assert_called_once_with(
         Bucket="bucket", Key="dir/parsed_imu.json")
@@ -1082,9 +1086,33 @@ def test_insert_mdf_imu_data(mock_json_loads: Mock, file_exists: bool):
         s3_client.get_object.assert_called_once_with(
             Bucket="bucket", Key="dir/parsed_imu.json")
         mock_imu_col.insert_many.assert_called_once()
+        from_ts = datetime.fromtimestamp(1692000444.123, tz=UTC)
+        to_ts = datetime.fromtimestamp(1692086844.123, tz=UTC)
+        mock_events_col.update_many.assert_has_calls([
+            call(filter={"$and": [
+                {"last_shutdown.timestamp": {"$exists": False}},
+                {"timestamp": {"$gte": from_ts}},
+                {"timestamp": {"$lte": to_ts}},
+            ]},
+                update={
+                    "$set": {"imu_available": True}
+            }),
+            call(
+                filter={"$and": [
+                    {"last_shutdown.timestamp": {"$exists": True}},
+                    {"last_shutdown.timestamp": {"$ne": None}},
+                    {"last_shutdown.timestamp": {"$gte": from_ts}},
+                    {"last_shutdown.timestamp": {"$lte": to_ts}},
+                ]},
+            update={
+                "$set": {"last_shutdown.imu_available": True}
+            })
+        ]
+        )
         s3_client.delete_object.assert_called_once_with(
             Bucket="bucket", Key="dir/parsed_imu.json")
     else:
         s3_client.get_object.assert_not_called()
         mock_imu_col.insert_many.assert_not_called()
+        mock_events_col.update_many.assert_not_called()
         s3_client.delete_object.assert_not_called()

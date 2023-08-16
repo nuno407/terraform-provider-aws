@@ -96,7 +96,8 @@ class TestMain:
             "signals": "signals",
             "pipeline_exec": "pipeline_exec",
             "algo_output": "algo_output",
-            "processed_imu": "processed_imu"
+            "processed_imu": "processed_imu",
+            "events": "events"
         })
         type(container_services_mock.return_value).db_tables = db_tables_mock
         return container_services_mock
