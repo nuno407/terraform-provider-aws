@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import re
+from ast import literal_eval
 from collections import namedtuple
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
@@ -848,7 +849,15 @@ def parse_message_to_dict(body: str) -> dict:
     """Parses the message from string to dict"""
     _logger.info("Processing pipeline message..")
 
-    return json.loads(body)
+    try:
+        data = json.loads(body)
+    except JSONDecodeError as json_exc:
+        try:
+            data = literal_eval(body)
+        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as eval_exc:
+            raise ValueError("Unable to parse message content from JSON or python object", [json_exc, eval_exc])
+
+    return data
 
 
 def fix_message(container_services: ContainerServices, body: str, dict_body: dict) -> dict:
