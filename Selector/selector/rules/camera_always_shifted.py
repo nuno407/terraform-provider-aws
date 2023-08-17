@@ -9,5 +9,5 @@ class CameraAlwaysShiftedRule(CameraAlwaysBlockedRule):
         return "Camera completely shifted"
 
     @property
-    def _attribute_name(self) -> str:
+    def attribute_name(self) -> str:
         return "interior_camera_health_response_cve"

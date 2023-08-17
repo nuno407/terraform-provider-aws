@@ -8,10 +8,10 @@ from base.model.artifacts import (MultiSnapshotArtifact,
                                   TimeWindow)
 from selector.context import Context
 from selector.model import PreviewMetadataV063
-from selector.model.preview_metadata import IntegerObject
+
 from selector.rule import Rule
-from selector.rules import CameraAlwaysBlockedRule
-from selector.rules.basic_rule import BaseRule
+from selector.rules import BDDEvent
+from unittest import mock
 
 tenant_device_and_timing = {
     "tenant_id": "tenant_id",
@@ -23,11 +23,10 @@ tenant_device_and_timing = {
 
 
 @mark.unit()
-class TestRuleCameraAlwaysBlocked:
-
+class TestBDDEventRule:
     @fixture
     def rule(self):
-        return CameraAlwaysBlockedRule()
+        return BDDEvent()
 
     @fixture
     def artifact(self):
@@ -41,41 +40,51 @@ class TestRuleCameraAlwaysBlocked:
             )
         )
 
-    def test_rule_name(self, rule: Rule):
-        assert rule.rule_name == "Camera completely blocked"
+    @mark.parametrize("event_name", ["Big Damage Detected"])
+    def test_rule_name(self, rule: Rule, event_name):
+        assert rule.rule_name == event_name
 
     def test_positive_evaluation(self,
                                  minimal_preview_metadata: PreviewMetadataV063,
-                                 rule: BaseRule,
+                                 rule: BDDEvent,
                                  artifact: PreviewSignalsArtifact):
         # GIVEN
-        for frame in minimal_preview_metadata.frames:
-            for object in frame.objectlist:
-                if isinstance(
-                        object, IntegerObject) and rule.attribute_name in object.integer_attributes[0]:
-                    object.integer_attributes[0][rule.attribute_name] = "1"
-        ctx = Context(minimal_preview_metadata, artifact)
+        context = Context(minimal_preview_metadata, artifact)
 
         # WHEN
-        decisions = rule.evaluate(ctx)
+        decisions = rule.evaluate(context)
         # THEN
         recorders = set(map(lambda d: d.recorder, decisions))
         assert recorders == {RecorderType.TRAINING}
 
     def test_negative_evaluation(self,
                                  minimal_preview_metadata: PreviewMetadataV063,
-                                 rule: BaseRule,
+                                 rule: BDDEvent,
                                  artifact: PreviewSignalsArtifact):
         # GIVEN
-        for i, frame in enumerate(minimal_preview_metadata.frames):
-            for object in frame.objectlist:
-                if isinstance(object, IntegerObject):
-                    object.integer_attributes[0][rule.attribute_name] = "1" if i > 2 else "0"
-        ctx = Context(minimal_preview_metadata, artifact)
+        # Mock check_bdd_in_metadata to return a metadata_preview without bdd
+        with mock.patch.object(rule, "check_bdd_in_metadata", return_value=False) as check_bdd_in_metadata:
+            context = Context(minimal_preview_metadata, artifact)
 
-        # WHEN
-        decisions = rule.evaluate(ctx)
+            # WHEN
+            decisions = rule.evaluate(context)
+
+        # assert mocked fucntion was called with input data
+        check_bdd_in_metadata.assert_called_once_with(context.preview_metadata)
 
         # THEN
-        recorders = set(map(lambda d: d.recorder, decisions))
+        recorders = set(map(lambda decision: decision.recorder, decisions))
         assert recorders == set()
+
+    def test_check_bdd_in_metadata(self,
+                                   minimal_preview_metadata: PreviewMetadataV063,
+                                   rule: BDDEvent,
+                                   artifact: PreviewSignalsArtifact):
+        # GIVEN
+        context = Context(minimal_preview_metadata, artifact)
+
+        # WHEN
+        bdd_presence = rule.check_bdd_in_metadata(context.preview_metadata)
+
+        # assert bdd_presence
+        assert bdd_presence, "Check BDD presence failed"

@@ -11,6 +11,7 @@ from selector.model.preview_metadata import IntegerObject
 from selector.model.preview_metadata_63 import PreviewMetadataV063
 from selector.rule import Rule
 from selector.rules import CHCEveryMinute
+from selector.rules.basic_rule import BaseRule
 
 from .utils import DataTestBuilder
 
@@ -90,7 +91,7 @@ class TestChcEveryMinute:
 
     def test_some_chc_but_too_short_does_not_select_ride(
             self,
-            rule: Rule,
+            rule: BaseRule,
             data_chc_false: PreviewMetadataV063,
             artifact: PreviewSignalsArtifact):
         # GIVEN
@@ -100,7 +101,7 @@ class TestChcEveryMinute:
             ts = data_chc_false.get_frame_utc_timestamp(frame)
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject) and ts < last_ts:
-                    object.integer_attributes[0]["interior_camera_health_response_cve"] = "1"
+                    object.integer_attributes[0][rule.attribute_name] = "1"
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))
@@ -109,7 +110,7 @@ class TestChcEveryMinute:
 
     def test_some_chc_long_enough_does_select_ride(
             self,
-            rule: Rule,
+            rule: BaseRule,
             data_chc_false: PreviewMetadataV063,
             artifact: PreviewSignalsArtifact):
 
@@ -120,7 +121,7 @@ class TestChcEveryMinute:
             for object in frame.objectlist:
                 ts = data_chc_false.get_frame_utc_timestamp(frame)
                 if isinstance(object, IntegerObject) and ts < last_ts:
-                    object.integer_attributes[0]["interior_camera_health_response_cvb"] = "1"
+                    object.integer_attributes[0][rule.attribute_name] = "1"
 
         # WHEN / THEN
         result = rule.evaluate(Context(data_chc_false, artifact))

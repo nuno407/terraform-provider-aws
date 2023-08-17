@@ -229,7 +229,8 @@
         {
           "boolAttributes": [
             {
-              "artificial_field": "1"
+              "artificial_field": "1",
+              "BigDamage_detected": "1"
             }
           ]
         }
