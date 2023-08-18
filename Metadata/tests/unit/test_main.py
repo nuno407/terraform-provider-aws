@@ -1041,7 +1041,7 @@ def test_insert_mdf_imu_data(file_exists: bool):
     stream_body_mock = Mock()
     stream_body_mock.read = Mock(return_value=bytes("""[
         {"timestamp": 1692000444123},
-        {"timestamp": 1692086844123}
+        {"timestamp": 1692000444523}
         ]""", "utf-8"))
     s3_client.get_object = Mock(return_value={"Body": stream_body_mock})
     s3_client.delete_object = Mock()
@@ -1087,7 +1087,7 @@ def test_insert_mdf_imu_data(file_exists: bool):
             Bucket="bucket", Key="dir/parsed_imu.json")
         mock_imu_col.insert_many.assert_called_once()
         from_ts = datetime.fromtimestamp(1692000444.123, tz=UTC)
-        to_ts = datetime.fromtimestamp(1692086844.123, tz=UTC)
+        to_ts = datetime.fromtimestamp(1692000444.523, tz=UTC)
         mock_events_col.update_many.assert_has_calls([
             call(filter={"$and": [
                 {"last_shutdown.timestamp": {"$exists": False}},

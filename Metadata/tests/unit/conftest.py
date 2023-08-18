@@ -14,6 +14,7 @@ from base.aws.s3 import S3Controller
 from mypy_boto3_s3 import S3Client
 from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
+from metadata.consumer.imu_gap_finder import IMUGapFinder
 
 
 def setup_voxel_mocks():
@@ -71,6 +72,10 @@ def s3_controller(s3_client: S3Client) -> S3Controller:
 @pytest.fixture
 def metadata_parser() -> MetadataParser:
     return MetadataParser()
+
+@pytest.fixture
+def imu_gap_finder() -> IMUGapFinder:
+    return IMUGapFinder()
 
 
 @pytest.fixture

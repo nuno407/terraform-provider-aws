@@ -45,7 +45,7 @@ from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
 from metadata.consumer.voxel.functions import (add_voxel_snapshot_metadata,
                                                update_on_voxel)
-
+from metadata.consumer.imu_gap_finder import IMUGapFinder, TimeRange
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
 DOCUMENT_TOO_LARGE_MESSAGE = "Document too large %s"
@@ -601,12 +601,9 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
         update={"$set": {"data_status": "error"}}
     )
 
-
-TimeRange = namedtuple("TimeRange", ["min", "max"])
-
 @inject
 def insert_mdf_imu_data(
-        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client) -> Optional[TimeRange]:
+        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> list[TimeRange]:
     """ Receives a message from the MDF IMU queue, downloads IMU file from a S3 bucket
     and inserts into the timeseries database. Finally returns the start and end
     timestamp of that IMU data.
@@ -630,7 +627,7 @@ def insert_mdf_imu_data(
     if not ContainerServices.check_s3_file_exists(s3_client, bucket_name, object_key):
         _logger.error(
             "The imu file (%s) is not available on the bucket (%s)", bucket_name, object_key)
-        return None
+        return []
 
     raw_parsed_imu = ContainerServices.download_file(
         s3_client,
@@ -643,15 +640,12 @@ def insert_mdf_imu_data(
         doc["timestamp"] = datetime.fromtimestamp(
             doc["timestamp"] / 1000, tz=pytz.utc)
 
-    min_timestamp = min([doc["timestamp"] for doc in parsed_imu])
-    max_timestamp = max([doc["timestamp"] for doc in parsed_imu])
-
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
     s3_client.delete_object(Bucket=bucket_name, Key=object_key)
     _logger.info("IMU file deleted sucessfully (%s)", object_key)
 
-    return TimeRange(min_timestamp, max_timestamp)
+    return imu_gap_finder.get_valid_imu_time_ranges(parsed_imu)
 
 
 def __update_events(imu_range: TimeRange, data_type: str,
@@ -684,9 +678,9 @@ def __update_events(imu_range: TimeRange, data_type: str,
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
     if message["data_type"] == "imu":
-        imu_range = insert_mdf_imu_data(
+        imu_ranges = insert_mdf_imu_data(
             message, metadata_collections)  # pylint: disable=no-value-for-parameter
-        if imu_range:
+        for imu_range in imu_ranges:
             __update_events(imu_range, "imu", metadata_collections)
         return
 
