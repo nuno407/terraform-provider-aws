@@ -55,7 +55,8 @@
               "RideInfo_people_count_before_value": "1",
               "RideInfo_people_count_during_value": "1",
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         }
@@ -84,7 +85,8 @@
           "integerAttributes": [
             {
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         }
@@ -136,7 +138,8 @@
           "integerAttributes": [
             {
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         }
@@ -164,7 +167,8 @@
           "integerAttributes": [
             {
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         }
@@ -193,7 +197,8 @@
           "integerAttributes": [
             {
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         }
@@ -222,7 +227,8 @@
           "integerAttributes": [
             {
               "interior_camera_health_response_cvb": "0",
-              "interior_camera_health_response_cve": "0"
+              "interior_camera_health_response_cve": "0",
+              "PersonCount_value": "0"
             }
           ]
         },
