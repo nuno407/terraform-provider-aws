@@ -642,8 +642,6 @@ def insert_mdf_imu_data(
 
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
-    s3_client.delete_object(Bucket=bucket_name, Key=object_key)
-    _logger.info("IMU file deleted sucessfully (%s)", object_key)
 
     return imu_gap_finder.get_valid_imu_time_ranges(parsed_imu)
 
@@ -673,6 +671,9 @@ def __update_events(imu_range: TimeRange, data_type: str,
             "last_shutdown." + data_type + "_available": True
         }
     }
+    _logger.debug("Updating metadata events with filter=(%s) and update=(%s)",str(filter_query_events),str(update_query_events))
+    _logger.debug("Updating metadata shutdowns with filter=(%s) and update=(%s)",str(filter_query_shutdowns),str(update_query_shutdowns))
+
     metadata_collections.events.update_many(filter=filter_query_events, update=update_query_events)
     metadata_collections.events.update_many(filter=filter_query_shutdowns, update=update_query_shutdowns)
 

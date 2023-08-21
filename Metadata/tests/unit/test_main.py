@@ -1109,10 +1109,7 @@ def test_insert_mdf_imu_data(file_exists: bool):
             })
         ]
         )
-        s3_client.delete_object.assert_called_once_with(
-            Bucket="bucket", Key="dir/parsed_imu.json")
     else:
         s3_client.get_object.assert_not_called()
         mock_imu_col.insert_many.assert_not_called()
         mock_events_col.update_many.assert_not_called()
-        s3_client.delete_object.assert_not_called()
