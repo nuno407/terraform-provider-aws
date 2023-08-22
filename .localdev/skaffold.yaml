@@ -71,9 +71,9 @@ build:
             env: VOXEL_REGISTRY_TOKEN
       runtimeType: python
     - image: voxel-ui-plugins-image
-      context: ../../voxel51_plugins/local-development/ui-plugins
+      context: ../../voxel51_plugins/ui-plugins
       docker:
-        dockerfile: Dockerfile.BuildPlugins
+        dockerfile: ../utils/ui-plugins/Dockerfile.BuildPlugins
     # Local jupyter server
     - image: jupyter-server-local
       context: ../../kubernetes_config/apps/pg/jupyter-server/image
