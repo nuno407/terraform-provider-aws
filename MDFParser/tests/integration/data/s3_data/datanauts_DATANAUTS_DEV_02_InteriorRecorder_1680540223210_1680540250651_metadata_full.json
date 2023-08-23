@@ -1,24 +1,19 @@
 {
-    "messageid": "bc105f27-d6c9-41bd-8b21-9906606af615",
-    "message": {
-        "MessageId": "bc105f27-d6c9-41bd-8b21-9906606af615",
-        "ReceiptHandle": "AQEBfEXi8HJcpfVx4VZLSF9UsQ+p1PNELY48bO+mCx2Cpxjm2R1V5v2TTw/XomRbbjGaIiXIoXdpOGNkSC3grW/q6j2/mtMHPRyPOnS4NCbM+cE0ujJH9oChYJp+r8AlzVHLmxSXVk4CEB2OKQELB2HRrXIIYdv8J4ZoE+R05F6XWPT8QurwPe8Ad7F4wk6yy1fcQsFxw4E0oTEL+mFAkoYSuHggy82SPE3sp7iq8yaE4T1sflI9rRXdwLT9m25INevqgz+6Pgv6j1KEbdVPBOkL8L54nPHIp1+UxBMgr3KjPof6CvDJS+6ui50RYgjYA4IVNJrn3heDDRgf/Q7h0C5nftmwa9vJsPfEy7QXQmW670rq0GtfN2Nxz3F5aDf2OxTbDuZws2JlUkDCSrQNcsgx2Q+wFDcZSMwieQLcivfVKHQ=",
-        "MD5OfBody": "1f16c3c06ebcdae1ee9416ff40808bef",
-        "Body": "{\n  \"Type\" : \"Notification\",\n  \"MessageId\" : \"d780706f-8d13-560d-bdc4-2cca89d06ac0\",\n  \"TopicArn\" : \"arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events\",\n  \"Message\" : \"{\\\"streamName\\\":\\\"datanauts_DATANAUTS_DEV_02_InteriorRecorder\\\",\\\"footageFrom\\\":1680540222286,\\\"footageTo\\\":1680540248401,\\\"uploadStarted\\\":1680540277464,\\\"uploadFinished\\\":1680540291012}\",\n  \"Timestamp\" : \"2023-04-03T16:44:51.178Z\",\n  \"SignatureVersion\" : \"1\",\n  \"Signature\" : \"HXATToln4xobhFnWiK6dDCk1QsaeEdb/gCCN/eGFsE9CIuE7xS+iHdL9T1tVQEOsYgkvaEH/oW37EEk7nyUzSmcNjdknD4nk+2i/6/d/X3ny5pHkfFTVzH8qE/mQ3k42BocRtAKfzLF1mwQFJo6QhPnCtwfIt8YsdgKcnUMFMVNQ/QRkbQE0rXj7caRchlFDAeyVjVebnLFiPrJdKcKaw8rWn5eQFedqCzrCSUxUthxdKFb9Ohjh+lx7topAKhHvAIPP6L155DmSSPpEonl5T6TQ/tAf53DU1q2TUYonLFiF3rkL8xj0Wldz8BnCXUpjpIEpBYzwLnSrJl4AyilYCQ==\",\n  \"SigningCertURL\" : \"https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem\",\n  \"UnsubscribeURL\" : \"https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-video-footage-events:b6122843-190d-4780-9d85-39be6c255bf6\",\n  \"MessageAttributes\" : {\n    \"recorder\" : {\"Type\":\"String\",\"Value\":\"INTERIOR\"},\n    \"type\" : {\"Type\":\"String\",\"Value\":\"FootageUploadCompleteEvent\"},\n    \"recordingId\" : {\"Type\":\"String\",\"Value\":\"InteriorRecorder-7424db85-ba9f-4e6e-8b2a-321218792571\"},\n    \"deviceId\" : {\"Type\":\"String\",\"Value\":\"DATANAUTS_DEV_02\"},\n    \"tenant\" : {\"Type\":\"String\",\"Value\":\"datanauts\"},\n    \"footageId\" : {\"Type\":\"String\",\"Value\":\"2c85fda3-f4f0-4ad4-a58b-6215d2d63a1f\"}\n  }\n}",
-        "Attributes": {
-            "SentTimestamp": "1680540291226",
-            "ApproximateReceiveCount": "1"
-        }
+    "metaData version": "0.6.5-rc3",
+    "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+    "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+    "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+    "chunkPts": {
+        "pts_start": "412913",
+        "pts_end": "440327"
+    },
+    "chunkUtc": {
+        "utc_start": "1680540223210",
+        "utc_end": "1680540250623"
     },
     "resolution": {
         "width": "1920",
         "height": "1080"
-    },
-    "chunk": {
-        "pts_start": 412913,
-        "pts_end": 440327,
-        "utc_start": 1680540223210,
-        "utc_end": 1680540250623
     },
     "frame": [
         {

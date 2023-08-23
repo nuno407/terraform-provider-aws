@@ -21,11 +21,13 @@ class TestMetadataDownloader():
         data = {
             "foo": "bar",
             "test": "hello",
-            "chunk": {
-                "pts_start": 1,
-                "pts_end": 2,
+            "chunkUtc": {
                 "utc_start": 3,
                 "utc_end": 4
+            },
+            "chunkPts": {
+                "pts_start": 1,
+                "pts_end": 2
             }
         }
         data_binary = json.dumps(data).encode("utf-8")
@@ -44,7 +46,7 @@ class TestMetadataDownloader():
                                                     container_services_mock: Mock):
         """ Tests the download method with the recreation of timestamps. """
         # GIVEN
-        data = {"foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4}}
+        data = {"foo": "bar", "test": "hello", "chunkPts": {"pts_start": 1, "pts_end": 4}}
         data_binary = json.dumps(data).encode("utf-8")
         compact_data = {
             "partial_timestamps": {
@@ -72,14 +74,14 @@ class TestMetadataDownloader():
         second_call = container_services_mock.download_file.call_args_list[1]
         assert second_call.args[1] == "bucket"
         assert second_call.args[2] == "key_compact_mdf.json"
-        assert result["chunk"]["utc_start"] == 100
-        assert result["chunk"]["utc_end"] == 400
+        assert result["chunkUtc"]["utc_start"] == 100
+        assert result["chunkUtc"]["utc_end"] == 400
 
     def test_invalid_compact_mdf(self, caplog: LogCaptureFixture, metadata_downloader: MetadataDownloader,
                                  container_services_mock: Mock):
         """ Tests the download method with an invalid compact MDF. """
         # GIVEN
-        data = {"foo": "bar", "test": "hello", "chunk": {"pts_start": 1, "pts_end": 4}}
+        data = {"foo": "bar", "test": "hello", "chunkPts": {"pts_start": 1, "pts_end": 4}}
         data_binary = json.dumps(data).encode("utf-8")
         compact_data = {"foo": "bar"}
         compact_data_binary = json.dumps(compact_data).encode("utf-8")

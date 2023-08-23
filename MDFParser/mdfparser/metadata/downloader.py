@@ -33,13 +33,14 @@ class MetadataDownloader(S3Interaction):  # pylint: disable=too-few-public-metho
         mdf = json.loads(json_string)
 
         # check if epoch timestamps are in the mdf or recreates them if possible
-        if (not ("chunk" in mdf and "utc_start" in mdf["chunk"] and "utc_end" in mdf["chunk"]) and
-                "chunk" in mdf and "pts_start" in mdf["chunk"] and "pts_end" in mdf["chunk"]):
+        if (not ("chunkUtc" in mdf and "utc_start" in mdf["chunkUtc"] and "utc_end" in mdf["chunkUtc"]) and
+                "chunkPts" in mdf and "pts_start" in mdf["chunkPts"] and "pts_end" in mdf["chunkPts"]):
             try:
                 utc_start, utc_end = self.__recreate_epoch_timestamps(
-                    bucket, key, mdf["chunk"]["pts_start"], mdf["chunk"]["pts_end"])
-                mdf["chunk"]["utc_start"] = utc_start
-                mdf["chunk"]["utc_end"] = utc_end
+                    bucket, key, mdf["chunkPts"]["pts_start"], mdf["chunkPts"]["pts_end"])
+                mdf["chunkUtc"] = {}
+                mdf["chunkUtc"]["utc_start"] = utc_start
+                mdf["chunkUtc"]["utc_end"] = utc_end
             except InvalidCompactMdfException as err:
                 _logger.exception("Error recreating epoch timestamps from compact MDF: %s", err)
             except Exception as err:  # pylint: disable=broad-except
@@ -48,11 +49,11 @@ class MetadataDownloader(S3Interaction):  # pylint: disable=too-few-public-metho
             # check for pts_end swapped with utc_start:
             # unfortunately some many MDF files have been generated with this bug
             # (https://github.com/bosch-rc-dev/container_scripts/commit/aba854b68862eb186db17507ceeb50d4d56445c0) # pylint: disable=line-too-long
-            pts_end = mdf["chunk"]["pts_end"]
-            utc_start = mdf["chunk"]["utc_start"]
+            pts_end = mdf["chunkPts"]["pts_end"]
+            utc_start = mdf["chunkUtc"]["utc_start"]
             if (len(str(pts_end)) == 13 and str(pts_end).startswith("16")):
-                mdf["chunk"]["pts_end"] = utc_start
-                mdf["chunk"]["utc_start"] = pts_end
+                mdf["chunkPts"]["pts_end"] = utc_start
+                mdf["chunkUtc"]["utc_start"] = pts_end
                 _logger.warning(
                     "Auto-correcting swapped pts_end and utc_start in MDF file %s", mdf_path)
         _logger.debug("Finished metadata download from %s", mdf_path)

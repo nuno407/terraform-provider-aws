@@ -17,14 +17,19 @@ class Synchronizer:  # pylint: disable=too-few-public-methods
         _logger.debug("Synchronizing MDF from %s to %s", recording_epoch_from, recording_epoch_to)
 
         # check MDF format
-        if not ("chunk" in mdf and all(k in mdf["chunk"] for k in ("pts_start", "pts_end", "utc_start", "utc_end"))  # pylint: disable=line-too-long
-                and "frame" in mdf):
-            raise InvalidMdfException("Not all required keys exist in the passed MDF.")
+        if "chunkUtc" not in mdf or "chunkPts" not in mdf or "frame" not in mdf:
+            raise InvalidMdfException("Missing either chunkPts, chunkUtc or frame fields.")
 
-        pts_start = int(mdf["chunk"]["pts_start"])
-        pts_end = int(mdf["chunk"]["pts_end"])
-        epoch_start = int(mdf["chunk"]["utc_start"])
-        epoch_end = int(mdf["chunk"]["utc_end"])
+        if "utc_start" not in mdf["chunkUtc"] or "utc_end" not in mdf["chunkUtc"]:
+            raise InvalidMdfException("Missing either utc_start or utc_end in chunkUtc")
+
+        if "pts_start" not in mdf["chunkPts"] or "pts_end" not in mdf["chunkPts"]:
+            raise InvalidMdfException("Missing either pts_start or pts_end in chunkPts")
+
+        pts_start = int(mdf["chunkPts"]["pts_start"])
+        pts_end = int(mdf["chunkPts"]["pts_end"])
+        epoch_start = int(mdf["chunkUtc"]["utc_start"])
+        epoch_end = int(mdf["chunkUtc"]["utc_end"])
         recording_start = from_epoch_seconds_or_milliseconds(recording_epoch_from)
         recording_end = from_epoch_seconds_or_milliseconds(recording_epoch_to)
 
