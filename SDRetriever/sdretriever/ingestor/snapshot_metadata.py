@@ -63,4 +63,3 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
         # update artifact with s3 path
         _logger.info("Successfully uploaded to %s", path_uploaded)
         artifact.s3_path = path_uploaded
-

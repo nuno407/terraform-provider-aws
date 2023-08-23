@@ -8,7 +8,7 @@ from kink import inject
 
 from base.model.artifacts import Artifact, IMUArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
-from sdretriever.models import ChunkDownloadParams, S3ObjectDevcloud, S3ObjectRCC
+from sdretriever.models import ChunkDownloadParamsByID, S3ObjectDevcloud, S3ObjectRCC
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
@@ -60,6 +60,34 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
 
         return data_buffer
 
+    def __download_all_chunks(self, artifact: IMUArtifact) -> list[S3ObjectRCC]:
+        """
+        Download all chunks from RCC
+
+        Args:
+            artifact (SignalsArtifact): The signals artifact
+
+        Returns:
+            list[S3ObjectRCC]: All the chunks downloaded
+        """
+
+        downloaded_chunks : list[S3ObjectRCC] = []
+
+        for recording in artifact.referred_artifact.recordings:
+            params = ChunkDownloadParamsByID(
+                recorder=artifact.referred_artifact.recorder,
+                recording_id=recording.recording_id,
+                chunk_ids=recording.chunk_ids,
+                device_id=artifact.device_id,
+                tenant=artifact.tenant_id,
+                start_search=artifact.referred_artifact.timestamp,
+                stop_search=datetime.now(tz=pytz.UTC),
+                suffixes=["imu_raw.csv.zip"])
+
+            downloaded_chunks.extend(self.__s3_chunk_ingestor.download_by_chunk_id(params))
+
+        return downloaded_chunks
+
     def ingest(self, artifact: Artifact) -> None:
         """
         Concatenates the IMU chunks and ingest them.
@@ -71,17 +99,7 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
         if not isinstance(artifact, IMUArtifact):
             raise ValueError("IMUIngestor can only ingest an IMUArtifact")
 
-        params = ChunkDownloadParams(
-            recorder=artifact.referred_artifact.recorder,
-            recording_id=artifact.referred_artifact.recording_id,
-            chunk_ids=artifact.referred_artifact.chunk_ids,
-            device_id=artifact.device_id,
-            tenant=artifact.tenant_id,
-            start_search=artifact.referred_artifact.timestamp,
-            stop_search=datetime.now(tz=pytz.UTC),
-            suffix="_imu_raw.csv.zip")
-
-        downloaded_chunks = self.__s3_chunk_ingestor.download_by_chunk_id(params)
+        downloaded_chunks = self.__download_all_chunks(artifact)
 
         # Concatenate chunks and force deletion
         file_binary: bytearray = self.__concatenate_chunks(downloaded_chunks)
