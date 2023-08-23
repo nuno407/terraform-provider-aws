@@ -61,7 +61,11 @@ def metadata_queue() -> str:
     return "dev-terraform-queue-metadata"
 
 @pytest.fixture
-def all_queues(download_queue: str, selector_queue: str, metadata_queue: str) -> list[str]:
+def mdf_queue() -> str:
+    return "dev-terraform-queue-mdf-parser"
+
+@pytest.fixture
+def all_queues(download_queue: str, selector_queue: str, metadata_queue: str, mdf_queue: str) -> list[str]:
     queues = [
         "dev-terraform-queue-s3-sdm",
         "dev-terraform-queue-anonymize",
@@ -72,7 +76,7 @@ def all_queues(download_queue: str, selector_queue: str, metadata_queue: str) ->
         selector_queue,
         metadata_queue,
         "dev-terraform-queue-output",
-        "dev-terraform-queue-mdf-parser"
+        mdf_queue
     ]
     return queues
 
@@ -147,6 +151,10 @@ def selector_queue_controller(selector_queue: str, moto_sqs_client: SQSClient) -
 @pytest.fixture
 def metadata_queue_controller(metadata_queue: str, moto_sqs_client: SQSClient) -> SQSController:
     return SQSController(metadata_queue, moto_sqs_client)
+
+@pytest.fixture
+def mdf_queue_controller(mdf_queue: str, moto_sqs_client: SQSClient) -> SQSController:
+    return SQSController(mdf_queue, moto_sqs_client)
 
 
 @pytest.fixture

@@ -1,0 +1,140 @@
+[
+    {
+        "date_modified": "2023-08-22T14:20:18.597000+00:00",
+        "file_name": "DATANAUTS_DEV_01__2023-08-22T14.20.08__logfile_bluetoothservice.LAST_SHUTDOWN__4.txt_zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:20:18.597000+00:00",
+        "file_name": "DATANAUTS_DEV_01__2023-08-22T14.20.41__logfile_videorecorderservice__10.txt_zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:34.000000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-551a282f-9906-4d7a-9250-0cce3066ec64_1.jpeg.interior_20230822_142157_147_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:34.000000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-551a282f-9906-4d7a-9250-0cce3066ec64_2.jpeg.interior_20230822_142227_145_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:35.000000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-551a282f-9906-4d7a-9250-0cce3066ec64_1.jpeg",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:35.000000+00:00",
+        "file_name": "InteriorRecorderPreview_InteriorRecorderPreview-551a282f-9906-4d7a-9250-0cce3066ec64_2.jpeg",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:39.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_1.mp4._stream1_20230822142152_8_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:40.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_1.mp4._stream1_20230822142152_8_imu_raw.csv.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:40.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_3.mp4._stream1_20230822142152_9_imu_raw.csv.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:40.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_2.mp4._stream1_20230822142203_9_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:42.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_1.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:43.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_2.mp4._stream1_20230822142203_9_imu_raw.csv.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:43.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_3.mp4._stream1_20230822142215_10_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:44.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_2.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:44.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_4.mp4._stream1_20230822142226_11_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:45.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_4.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:22:46.000000+00:00",
+        "file_name": "TrainingRecorder_TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407_3.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:12.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_1.mp4._stream2_20230822142152_8_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:12.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_2.mp4._stream2_20230822142203_9_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:13.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_1.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:13.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_2.mp4",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:13.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_3.mp4._stream2_20230822142215_10_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-22T14:23:13.000000+00:00",
+        "file_name": "InteriorRecorder_InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a_4.mp4._stream2_20230822142226_11_metadata.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    }
+]

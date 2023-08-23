@@ -1,0 +1,30 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_01",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_01_InteriorRecorder_19f5a5c0-2f07-48fa-b966-5179dbd2e067_1692714112044_1692714152731_metadata_full.json",
+    "referred_artifact": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "recorder": "InteriorRecorder",
+        "timestamp": "2023-08-22T14:21:52.044000+00:00",
+        "end_timestamp": "2023-08-22T14:22:32.731000+00:00",
+        "upload_timing": {
+            "start": "2023-08-22T14:23:12.492000+00:00",
+            "end": "2023-08-22T14:23:13.760000+00:00"
+        },
+        "rcc_s3_path": "s3://dev-rcc-video-repo/datanauts/d76b5b32-f543-47cf-a350-7d3bcb7144f0/INTERIOR/Footage_19f5a5c0-2f07-48fa-b966-5179dbd2e067.mp4",
+        "footage_id": "19f5a5c0-2f07-48fa-b966-5179dbd2e067",
+        "recordings": [
+            {
+                "recording_id": "InteriorRecorder-bc7917fa-fd24-40a1-9d43-33602036271a",
+                "chunk_ids": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ]
+    },
+    "metadata_type": "metadata_full"
+}

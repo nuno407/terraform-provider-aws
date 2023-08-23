@@ -1,0 +1,29 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_01",
+    "referred_artifact": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "recorder": "TrainingRecorder",
+        "timestamp": "2023-08-22T14:21:52.044000+00:00",
+        "end_timestamp": "2023-08-22T14:22:32.731000+00:00",
+        "upload_timing": {
+            "start": "2023-08-22T14:22:41.676000+00:00",
+            "end": "2023-08-22T14:22:45.105000+00:00"
+        },
+        "rcc_s3_path": "s3://dev-rcc-video-repo/datanauts/d76b5b32-f543-47cf-a350-7d3bcb7144f0/TRAINING/Footage_aacc8974-956f-4e7c-b5f3-60889ed2b7dd.mp4",
+        "footage_id": "aacc8974-956f-4e7c-b5f3-60889ed2b7dd",
+        "recordings": [
+            {
+                "recording_id": "TrainingRecorder-a7e809a9-b575-4948-a7b5-894b512f8407",
+                "chunk_ids": [
+                    1,
+                    2,
+                    3,
+                    4
+                ]
+            }
+        ]
+    },
+    "metadata_type": "metadata_full"
+}
