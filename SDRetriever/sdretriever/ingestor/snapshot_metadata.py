@@ -4,7 +4,7 @@ from datetime import datetime
 
 from kink import inject
 
-from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParams
+from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParamsByPrefix
 from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.constants import FileExt
@@ -26,15 +26,6 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
                  ):
         self.__s3_interface = s3_interface
         self.__s3_chunk_ingestor = s3_chunk_ingestor
-        self.__chunk_id_pattern = re.compile(
-            r"^[^\W_]+_[^\W_]+-[a-z0-9\-]+_(\d+)\..*$")
-
-    def __get_chunk_id(self, chunk_artifact: SnapshotArtifact) -> int:
-        match = re.match(self.__chunk_id_pattern, chunk_artifact.uuid)
-        if not match:
-            raise ValueError(f"The chunk cannot ({chunk_artifact.uuid}) be interpreted")
-
-        return int(match.group(1))
 
 
     def ingest(self, artifact: Artifact) -> None:
@@ -47,16 +38,16 @@ class SnapshotMetadataIngestor:  # pylint: disable=too-few-public-methods
 
         # Initialize file name and path
         metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
-        chunk_id = self.__get_chunk_id()
 
         # Download data
-        params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.artifact_id, chunk_ids={chunk_id},device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
+        params = ChunkDownloadParamsByPrefix(device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
             stop_search=datetime.now(
                 tz=pytz.UTC),
-                suffixes=[".json.zip",".json"])
+            suffixes=[".json.zip",".json"],
+            files_prefix=[artifact.referred_artifact.uuid])
 
 
-        downloaded_object = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)
+        downloaded_object = self.__s3_chunk_ingestor.download_by_prefix_suffix(params)
 
         if len(downloaded_object) > 1 or len(downloaded_object) == 0:
             raise S3FileNotFoundError(f"A total of {len(downloaded_object)} files were found instead of 1")

@@ -37,7 +37,25 @@ class RCCS3SearchParams:
     stop_search: datetime
 
 @dataclass
-class ChunkDownloadParams:
+class ChunkDownloadParamsByPrefix:
+    """Parameters for RCC S3 chunk ingestion functions"""
+    device_id: str
+    tenant: str
+    start_search: datetime
+    stop_search: datetime
+    files_prefix: list[str]
+    suffixes: list[str]
+
+    def get_search_parameters(self) -> RCCS3SearchParams:
+        return RCCS3SearchParams(
+            device_id=self.device_id,
+            tenant=self.tenant,
+            start_search=self.start_search,
+            stop_search=self.stop_search
+        )
+
+@dataclass
+class ChunkDownloadParamsByID:
     """Parameters for RCC S3 chunk ingestion functions"""
     recorder: RecorderType
     recording_id: str

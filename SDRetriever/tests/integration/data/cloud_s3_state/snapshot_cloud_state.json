@@ -7,19 +7,37 @@
     },
     {
         "date_modified": "2023-07-25T09:13:17.297000+00:00",
-        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg.something.json.zip",
-        "device_id": "DATANAUTS_DEV_01",
-        "tenant": "datanauts"
-    },
-    {
-        "date_modified": "2023-07-25T09:13:17.297000+00:00",
-        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg.something.json",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg.smart_data_1690276397275_pose6.json.zip",
         "device_id": "DATANAUTS_DEV_01",
         "tenant": "datanauts"
     },
     {
         "date_modified": "2023-07-25T09:13:17.297000+00:00",
         "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_2.jpeg",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-23T11:42:33.297000+00:00",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-ce862038-f26c-492e-87a7-30f4c8420198_1.jpeg",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-23T11:42:33.297000+00:00",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-ce862038-f26c-492e-87a7-30f4c8420198_1.jpeg.smart_data_1692787320255_pose1.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-23T11:42:33.297000+00:00",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-ce862038-f26c-492e-87a7-30f4c8420198_2.jpeg",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
+        "date_modified": "2023-08-23T11:42:33.297000+00:00",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-ce862038-f26c-492e-87a7-30f4c8420198_2.jpeg.smart_data_1692787340243_pose2.json.zip",
         "device_id": "DATANAUTS_DEV_01",
         "tenant": "datanauts"
     }

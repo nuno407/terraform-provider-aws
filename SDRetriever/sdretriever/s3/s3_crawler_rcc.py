@@ -127,6 +127,7 @@ class S3CrawlerRCC():
 
             part_to_match = match_to_file(object_key)
             if part_to_match and part_to_match in files:
+                _logger.debug("Found matching file (%s) with the matching key (%s)",str(object_key), str(part_to_match))
                 result[part_to_match] = object_key
                 files_stack.remove(part_to_match)
 

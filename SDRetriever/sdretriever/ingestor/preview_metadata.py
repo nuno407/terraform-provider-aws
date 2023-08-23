@@ -9,7 +9,7 @@ from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParams
+from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParamsByID
 from base.model.artifacts import Artifact, PreviewSignalsArtifact
 import pytz
 
@@ -93,16 +93,11 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
         _logger.info("Found %d chunks in message",len(chunk_ids))
 
         # Download data
-        params = ChunkDownloadParams(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.recording_id, chunk_ids=chunk_ids,device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
+        params = ChunkDownloadParamsByID(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.recording_id, chunk_ids=chunk_ids,device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
             stop_search=datetime.now(
                 tz=pytz.UTC),
                 suffixes=[".json.zip",".json"])
 
-
         downloaded_objects = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)
-
-        # Merge the chunks
         metadata = self.__metadata_merger.merge_metadata_chunks(downloaded_objects)
-
-        # Upload the chunks
         artifact.s3_path = self.__upload_preview_metadata(metadata, artifact)
