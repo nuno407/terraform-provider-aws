@@ -15,6 +15,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.testing.utils import load_relative_raw_file, load_relative_json_file, get_abs_path, load_relative_str_file
 from sdretriever.main import deserialize
 
+
 class S3File(BaseModel):
     data: bytes = b"MOCK"
     date_modified: datetime = datetime.now(tz=UTC)
@@ -34,6 +35,7 @@ def get_s3_file_content(filename: str) -> bytes:
         bytes: The content of the file
     """
     return load_relative_raw_file(__file__, os.path.join("data", "cloud_s3_state", "files_content", filename))
+
 
 def get_s3_cloud_state(filename: str) -> list[S3File]:
     """
@@ -89,6 +91,7 @@ def get_sqs_message(filename: str) -> str:
     data: str = load_relative_str_file(__file__, os.path.join("data", "sqs_messages", filename))
     return data
 
+
 def get_local_content_from_s3_path(path: str) -> bytes:
     """
     Loads a file from the directory data/cloud_s3_state/files_content
@@ -102,7 +105,8 @@ def get_local_content_from_s3_path(path: str) -> bytes:
     file_name = path.split("/")[-1]
     return get_s3_file_content(file_name)
 
-def get_sqs_message_artifact(sqs_controller:  SQSController, timeout: int) -> Optional[Artifact]:
+
+def get_sqs_message_artifact(sqs_controller: SQSController, timeout: int) -> Optional[Artifact]:
     """
     Get's a message from an SQS queue and returns it's artifact if available
 
@@ -117,6 +121,7 @@ def get_sqs_message_artifact(sqs_controller:  SQSController, timeout: int) -> Op
         metadata_message = json.loads(deserialize(sqs_message["Body"]))
         return parse_artifact(metadata_message)
     return None
+
 
 def load_files_rcc_chunks(files_to_load: list[S3File], rcc_s3_client: S3Client, rcc_bucket: str):
     """
@@ -150,7 +155,7 @@ def load_files(file_s3_path: list[str], s3_client: S3Client):
         s3_client (S3Client): The mocked S3 client.
     """
     for file_path in file_s3_path:
-        bucket ,file_key = S3Controller.get_s3_path_parts(file_path)
+        bucket, file_key = S3Controller.get_s3_path_parts(file_path)
         content = get_local_content_from_s3_path(file_path)
         s3_client.put_object(Bucket=bucket, Key=file_key, Body=content)
 
@@ -182,4 +187,4 @@ def load_sqs_message(data: str, sqs_client: SQSController):
         sqs_name (str): The SQS name.
     """
     message_wrapper = {"Message": data}
-    sqs_client.send_message(json.dumps(message_wrapper),"SDRetriever")
+    sqs_client.send_message(json.dumps(message_wrapper), "SDRetriever")

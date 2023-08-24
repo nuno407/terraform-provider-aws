@@ -113,8 +113,8 @@ class S3CrawlerRCC():
         object_keys: Iterator[S3ObjectInfo] = self.list_all_objects(
             rcc_s3_params, common_prefix)
 
-        _logger.info("Crawling RCC S3 with the prefix (%s)",common_prefix)
-        _logger.info("Files to search for (%s)",str(files))
+        _logger.info("Crawling RCC S3 with the prefix (%s)", common_prefix)
+        _logger.info("Files to search for (%s)", str(files))
 
         files_stack = files.copy()
         result: dict[str, S3ObjectInfo] = {}
@@ -127,7 +127,10 @@ class S3CrawlerRCC():
 
             part_to_match = match_to_file(object_key)
             if part_to_match and part_to_match in files:
-                _logger.debug("Found matching file (%s) with the matching key (%s)",str(object_key), str(part_to_match))
+                _logger.debug(
+                    "Found matching file (%s) with the matching key (%s)",
+                    str(object_key),
+                    str(part_to_match))
                 result[part_to_match] = object_key
                 files_stack.remove(part_to_match)
 

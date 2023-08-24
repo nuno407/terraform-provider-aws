@@ -38,7 +38,7 @@ class TestSnapshotMetadataIngestion:
         load_files_rcc_chunks(rcc_files, moto_s3_client, rcc_bucket)
         load_sqs_message(input_sqs_message, download_queue_controller)
 
-        expected_artifact : SnapshotArtifact = parse_artifact(metadata_sqs_message)
+        expected_artifact: SnapshotArtifact = parse_artifact(metadata_sqs_message)
         expected_snapshot_metadata = get_local_content_from_s3_path(expected_artifact.s3_path)
         s3_controller = S3Controller(moto_s3_client)
 

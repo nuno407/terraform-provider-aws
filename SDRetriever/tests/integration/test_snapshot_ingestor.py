@@ -20,14 +20,14 @@ class TestTrainingSnapshotIngestion:
                                  get_sqs_message("training_snapshot_recorder_message_download.json"),
                                  get_sqs_message("training_snapshot_recorder_message_metadata.json"),
                              ),
-                             # Test when timestamp == last_modified_timestamp
-                             (
+                                 # Test when timestamp == last_modified_timestamp
+                                 (
                                  get_s3_cloud_state("snapshot_cloud_state_2.json"),
                                  get_sqs_message("training_snapshot_recorder_message_download.json"),
                                  get_sqs_message("training_snapshot_recorder_message_metadata.json"),
                              )
 
-                             ], ids=["integration_training_snapshot_1","integration_training_snapshot_2"])
+                             ], ids=["integration_training_snapshot_1", "integration_training_snapshot_2"])
     def test_success_preview_ingestion(
             self,
             main_function: Callable,
@@ -44,7 +44,7 @@ class TestTrainingSnapshotIngestion:
         load_files_rcc_chunks(rcc_files, moto_s3_client, rcc_bucket)
         load_sqs_message(input_sqs_message, download_queue_controller)
 
-        expected_artifact : SnapshotArtifact = parse_artifact(metadata_sqs_message)
+        expected_artifact: SnapshotArtifact = parse_artifact(metadata_sqs_message)
         expected_snapshot = get_local_content_from_s3_path(expected_artifact.uuid)
         s3_controller = S3Controller(moto_s3_client)
 

@@ -2,11 +2,11 @@
 import logging as log
 import sys
 import pytz
-
+from typing import cast
 from datetime import datetime
 from kink import inject
 
-from base.model.artifacts import Artifact, IMUArtifact
+from base.model.artifacts import Artifact, IMUArtifact, S3VideoArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import ChunkDownloadParamsByID, S3ObjectDevcloud, S3ObjectRCC
 from sdretriever.ingestor.ingestor import Ingestor
@@ -71,7 +71,8 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             list[S3ObjectRCC]: All the chunks downloaded
         """
 
-        downloaded_chunks : list[S3ObjectRCC] = []
+        downloaded_chunks: list[S3ObjectRCC] = []
+        artifact.referred_artifact = cast(S3VideoArtifact, artifact.referred_artifact)
 
         for recording in artifact.referred_artifact.recordings:
             params = ChunkDownloadParamsByID(

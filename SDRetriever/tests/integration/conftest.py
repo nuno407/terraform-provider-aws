@@ -33,9 +33,11 @@ def region_name() -> str:
 def rcc_bucket() -> str:
     return "rcc-dev-device-data"
 
+
 @pytest.fixture
 def rcc_merged_bucket() -> str:
     return "dev-rcc-video-repo"
+
 
 @pytest.fixture
 def devcloud_temporary_bucket() -> str:
@@ -56,13 +58,16 @@ def download_queue() -> str:
 def selector_queue() -> str:
     return "dev-terraform-queue-selector"
 
+
 @pytest.fixture
 def metadata_queue() -> str:
     return "dev-terraform-queue-metadata"
 
+
 @pytest.fixture
 def mdf_queue() -> str:
     return "dev-terraform-queue-mdf-parser"
+
 
 @pytest.fixture
 def all_queues(download_queue: str, selector_queue: str, metadata_queue: str, mdf_queue: str) -> list[str]:
@@ -139,6 +144,7 @@ def moto_sts_client(region_name: str) -> Generator[STSClient, None, None]:
         moto_client = boto3.client("sts", region_name=region_name)
         yield moto_client
 
+
 @pytest.fixture
 def download_queue_controller(download_queue: str, moto_sqs_client: SQSClient) -> SQSController:
     return SQSController(download_queue, moto_sqs_client)
@@ -148,9 +154,11 @@ def download_queue_controller(download_queue: str, moto_sqs_client: SQSClient) -
 def selector_queue_controller(selector_queue: str, moto_sqs_client: SQSClient) -> SQSController:
     return SQSController(selector_queue, moto_sqs_client)
 
+
 @pytest.fixture
 def metadata_queue_controller(metadata_queue: str, moto_sqs_client: SQSClient) -> SQSController:
     return SQSController(metadata_queue, moto_sqs_client)
+
 
 @pytest.fixture
 def mdf_queue_controller(mdf_queue: str, moto_sqs_client: SQSClient) -> SQSController:

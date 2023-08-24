@@ -28,7 +28,7 @@ class S3VideoIngestor(Ingestor):
         bucket, key = S3Controller.get_s3_path_parts(artifact.rcc_s3_path)
         try:
             video_bytes = self.__s3_io.download_from_rcc([key], bucket)[0]
-        except (ClientError,KeyError) as err:
+        except (ClientError, KeyError) as err:
             raise S3DownloadError(f"Failed to download video {key} from {bucket} on RCC S3") from err
 
         return video_bytes
@@ -42,7 +42,7 @@ class S3VideoIngestor(Ingestor):
         upload_path = f"{artifact.tenant_id}/{artifact.artifact_id}{FileExt.VIDEO.value}"
 
         # download video from RCC S3
-        video_object= self.__get_video_s3(artifact)
+        video_object = self.__get_video_s3(artifact)
 
         # upload video to DevCloud S3
         devcloud_object = S3ObjectDevcloud(

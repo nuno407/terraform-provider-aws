@@ -88,9 +88,9 @@ class RCCChunkDownloader:
         self.__suffixes = params.suffixes
 
         # Ensure the files names will be matched by the __file_match method
-        list_prefix_files_download = [prefix.split(".")[0] for prefix in params.files_prefix]
+        list_prefix_files_download = set(prefix.split(".")[0] for prefix in params.files_prefix)
 
-        _logger.info("Searching with suffixes=%s",str(self.__suffixes))
+        _logger.info("Searching with suffixes=%s", str(self.__suffixes))
         search_results = self.__s3_crawler.search_files(
             list_prefix_files_download,
             params.get_search_parameters(),
@@ -100,10 +100,9 @@ class RCCChunkDownloader:
             raise UploadNotYetCompletedError(
                 f"Not all metadata chunks were found {len(search_results)}/{len(list_prefix_files_download)}")
 
-        list_file_path_to_download = list(map(lambda x: x[1].key,sorted(search_results.items(), key= lambda x: x[0])))
+        list_file_path_to_download = list(map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)
-
 
     def download_by_chunk_id(self, params: ChunkDownloadParamsByID) -> list[S3ObjectRCC]:
         """
@@ -128,7 +127,7 @@ class RCCChunkDownloader:
         self.__suffixes = params.suffixes
         list_prefix_files_download = set(params.get_chunks_prefix())
 
-        _logger.info("Searching with suffixes=%s",str(self.__suffixes))
+        _logger.info("Searching with suffixes=%s", str(self.__suffixes))
         search_results = self.__s3_crawler.search_files(
             list_prefix_files_download,
             params.get_search_parameters(),
@@ -139,6 +138,6 @@ class RCCChunkDownloader:
                 f"Not all metadata chunks were found {len(search_results)}/{len(list_prefix_files_download)}")
 
         # Get the chunks s3 keys and ensure sorted by id
-        list_file_path_to_download = list(map(lambda x: x[1].key,sorted(search_results.items(), key= lambda x: x[0])))
+        list_file_path_to_download = list(map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)

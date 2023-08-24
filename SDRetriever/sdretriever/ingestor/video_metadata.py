@@ -4,10 +4,10 @@ import pytz
 import logging as log
 from kink import inject
 from datetime import datetime
-
+from typing import cast
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import Artifact, SignalsArtifact
+from base.model.artifacts import Artifact, SignalsArtifact, S3VideoArtifact
 from sdretriever.constants import FileExt
 from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
@@ -41,7 +41,9 @@ class VideoMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             list[S3ObjectRCC]: All the chunks downloaded
         """
 
-        downloaded_chunks : list[S3ObjectRCC] = []
+        downloaded_chunks: list[S3ObjectRCC] = []
+
+        artifact.referred_artifact = cast(S3VideoArtifact, artifact.referred_artifact)
 
         for recording in artifact.referred_artifact.recordings:
             params = ChunkDownloadParamsByID(
@@ -57,8 +59,6 @@ class VideoMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             downloaded_chunks.extend(self.__s3_chunk_ingestor.download_by_chunk_id(params))
 
         return downloaded_chunks
-
-
 
     def __upload_metadata(self, source_data: dict, artifact: Artifact) -> str:
         """Store source data on our raw_s3 bucket
@@ -89,7 +89,7 @@ class VideoMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-methods
             raise ValueError("SignalsIngestor can only ingest a SignalsArtifact")
 
         downloaded_chunks = self.__download_all_chunks(artifact)
-        mdf_chunks = self.__metadata_merger.merge_metadata_chunks(downloaded_chunks)
+        mdf_chunks = self.__metadata_merger.merge_metadata_chunks(downloaded_chunks)  # type: ignore
         mdf_s3_path = self.__upload_metadata(mdf_chunks, artifact)
 
         # Store the MDF path in the artifact

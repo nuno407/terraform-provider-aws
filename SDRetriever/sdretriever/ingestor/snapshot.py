@@ -14,6 +14,7 @@ from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
+
 @inject
 class SnapshotIngestor(Ingestor):
     """ Snapshot ingestor """

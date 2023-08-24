@@ -49,10 +49,13 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
         source_data_as_bytes = bytes(json.dumps(
             source_data, ensure_ascii=False).encode('UTF-8'))
 
-        obj = S3ObjectDevcloud(data=source_data_as_bytes, filename=artifact.artifact_id+".json", tenant=artifact.tenant_id)
+        obj = S3ObjectDevcloud(
+            data=source_data_as_bytes,
+            filename=artifact.artifact_id + ".json",
+            tenant=artifact.tenant_id)
         return self.__s3_interface.upload_to_devcloud_tmp(obj)
 
-    def __get_chunk_ids(self, object_info: PreviewSignalsArtifact) -> Generator[int,None,None]:
+    def __get_chunk_ids(self, object_info: PreviewSignalsArtifact) -> Generator[int, None, None]:
         """
         Strips the ids from each chunk name.
 
@@ -89,15 +92,19 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
             raise ValueError("PreviewMetadataIngestor can only ingest a PreviewSignalsArtifact")
 
         preview_artifact = cast(PreviewSignalsArtifact, artifact)
-        chunk_ids = set(self.__get_chunk_ids(preview_artifact))
-        _logger.info("Found %d chunks in message",len(chunk_ids))
+        chunk_ids = list(self.__get_chunk_ids(preview_artifact))
+        _logger.info("Found %d chunks in message", len(chunk_ids))
 
         # Download data
-        params = ChunkDownloadParamsByID(recorder =artifact.referred_artifact.recorder, recording_id=artifact.referred_artifact.recording_id, chunk_ids=chunk_ids,device_id=artifact.device_id, tenant=artifact.tenant_id,start_search=artifact.referred_artifact.timestamp,
-            stop_search=datetime.now(
-                tz=pytz.UTC),
-                suffixes=[".json.zip",".json"])
+        params = ChunkDownloadParamsByID(recorder=artifact.referred_artifact.recorder,
+                                         recording_id=artifact.referred_artifact.recording_id,
+                                         chunk_ids=chunk_ids, device_id=artifact.device_id,
+                                         tenant=artifact.tenant_id,
+                                         start_search=artifact.referred_artifact.timestamp,
+                                         stop_search=datetime.now(
+                                             tz=pytz.UTC),
+                                         suffixes=[".json.zip", ".json"])
 
         downloaded_objects = self.__s3_chunk_ingestor.download_by_chunk_id(params=params)
-        metadata = self.__metadata_merger.merge_metadata_chunks(downloaded_objects)
+        metadata = self.__metadata_merger.merge_metadata_chunks(downloaded_objects)  # type: ignore
         artifact.s3_path = self.__upload_preview_metadata(metadata, artifact)

@@ -10,6 +10,7 @@ from typing import Callable
 from mypy_boto3_s3 import S3Client
 from typing import Optional
 
+
 class TestS3VideoIngestion:
     @pytest.mark.integration()
     @pytest.mark.parametrize("input_sqs_message,metadata_sqs_message,selector_sqs_message",
@@ -17,13 +18,13 @@ class TestS3VideoIngestion:
                                  get_sqs_message("training_recorder_message_download.json"),
                                  get_sqs_message("training_recorder_message_metadata.json"),
                                  None,
-                             ),(
+                             ), (
                                  get_sqs_message("interior_recorder_message_download.json"),
                                  get_sqs_message("interior_recorder_message_metadata_hq.json"),
                                  get_sqs_message("interior_recorder_message_metadata_hq.json")
                              )
 
-                             ], ids=["integration_s3_training_video","integration_s3_interior_video"])
+                             ], ids=["integration_s3_training_video", "integration_s3_interior_video"])
     def test_success_s3_ingestion(
             self,
             main_function: Callable,
@@ -37,9 +38,9 @@ class TestS3VideoIngestion:
             metadata_queue_controller: SQSController):
 
         # GIVEN
-        expected_metadata_artifact : S3VideoArtifact = parse_artifact(metadata_sqs_message)
+        expected_metadata_artifact: S3VideoArtifact = parse_artifact(metadata_sqs_message)
 
-        input_message_artifact : S3VideoArtifact = parse_artifact(input_sqs_message)
+        input_message_artifact: S3VideoArtifact = parse_artifact(input_sqs_message)
         input_file_rcc_s3_path = input_message_artifact.rcc_s3_path
 
         expected_video = get_local_content_from_s3_path(input_file_rcc_s3_path)
@@ -53,19 +54,18 @@ class TestS3VideoIngestion:
         main_function()
 
         # Post processing
-        result_metadata_artifact = get_sqs_message_artifact(metadata_queue_controller,1)
-        result_selector_artifact = get_sqs_message_artifact(selector_queue_controller,1)
+        result_metadata_artifact = get_sqs_message_artifact(metadata_queue_controller, 1)
+        result_selector_artifact = get_sqs_message_artifact(selector_queue_controller, 1)
 
         _, key = s3_controller.get_s3_path_parts(result_metadata_artifact.s3_path)
         result_video = s3_controller.download_file(devcloud_raw_bucket, key)
 
         # THEN
-        if selector_sqs_message != None:
-            expected_metadata_artifact : S3VideoArtifact = parse_artifact(selector_sqs_message)
+        if selector_sqs_message is not None:
+            expected_metadata_artifact: S3VideoArtifact = parse_artifact(selector_sqs_message)
             assert result_selector_artifact == expected_metadata_artifact
         else:
-            assert result_selector_artifact == None
-
+            assert result_selector_artifact is None
 
         assert download_queue_controller.get_message(0) is None
         assert result_video == expected_video

@@ -20,14 +20,14 @@ class TestVideoMetadataIngestion:
                                  get_s3_file_content("merged_interior_metadata.json"),
                                  get_sqs_message("interior_metadata_mdf_message.json"),
                              ),
-                             (
+                                 (
                                  get_s3_cloud_state("rcc_video_cloud_state.json"),
                                  get_sqs_message("training_metadata_download_message.json"),
                                  get_s3_file_content("merged_training_metadata.json"),
                                  get_sqs_message("training_metadata_mdf_message.json"),
                              )
 
-                             ], ids=["integration_video_metadata_interior","integration_video_metadata_training"])
+                             ], ids=["integration_video_metadata_interior", "integration_video_metadata_training"])
     def test_success_preview_ingestion(
             self,
             main_function: Callable,

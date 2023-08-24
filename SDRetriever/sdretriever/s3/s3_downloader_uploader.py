@@ -7,7 +7,7 @@ from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
 from sdretriever.models import RCCS3SearchParams
 from kink import inject
 from sdretriever.exceptions import S3FileNotFoundError
-from typing import Optional
+from typing import Optional, cast
 import logging
 import gzip
 from typing import Iterable, Union
@@ -19,8 +19,14 @@ _logger = logging.getLogger(__file__)
 class S3DownloaderUploader:
     """Class responsible for every Input/Output opertation of S3"""
 
-    def __init__(self, rcc_s3_controller_factory: S3ControllerFactory,
-                 s3_controller: S3Controller, rcc_bucket: str, devcloud_raw_bucket: str, sdr_config: SDRetrieverConfig, rcc_crawler: S3CrawlerRCC):
+    def __init__(
+            self,
+            rcc_s3_controller_factory: S3ControllerFactory,
+            s3_controller: S3Controller,
+            rcc_bucket: str,
+            devcloud_raw_bucket: str,
+            sdr_config: SDRetrieverConfig,
+            rcc_crawler: S3CrawlerRCC):
         self.__rcc_s3_controller_factory = rcc_s3_controller_factory
         self.__s3_controller = s3_controller
         self.__rcc_bucket = rcc_bucket
@@ -28,7 +34,7 @@ class S3DownloaderUploader:
         self.__tmp_bucket = sdr_config.temporary_bucket
         self.__rcc_crawler = rcc_crawler
 
-    def download_from_rcc(self, s3_keys: Iterable[str], bucket: Optional[str]=None) -> list[S3ObjectRCC]:
+    def download_from_rcc(self, s3_keys: Iterable[str], bucket: Optional[str] = None) -> list[S3ObjectRCC]:
         """
         Download files from RCC S3.
         If the the filename ends with .zip extension it will also decompress it and return the content within.
@@ -40,9 +46,10 @@ class S3DownloaderUploader:
         Returns:
             chunks (list[S3Object]): List with all raw chunks.
         """
-        if bucket == None:
+        if bucket is None:
             bucket = self.__rcc_bucket
 
+        bucket = cast(str, bucket)
         chunks: list[S3ObjectRCC] = []
 
         for file_path in s3_keys:
@@ -81,7 +88,6 @@ class S3DownloaderUploader:
 
         if len(search_result) > 1:
             raise ValueError(f"InternalError: RCCCrawler returned too many files {len(search_result)}")
-
 
         object_info = search_result.pop(file_name)
         return self.download_from_rcc([object_info.key])[0]
