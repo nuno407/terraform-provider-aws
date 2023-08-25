@@ -5,9 +5,9 @@ from typing import Callable, Optional
 from unittest.mock import Mock, call
 import re
 import pytest
-from sdretriever.s3_crawler_rcc import S3CrawlerRCC
+from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
 from sdretriever.models import RCCS3SearchParams
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.s3.s3_finder_rcc import S3FinderRCC
 from base.aws.s3 import S3Controller
 from base.aws.model import S3ObjectInfo
 

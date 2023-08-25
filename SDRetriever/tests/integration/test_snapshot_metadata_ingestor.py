@@ -39,7 +39,7 @@ class TestSnapshotMetadataIngestion:
         load_sqs_message(input_sqs_message, download_queue_controller)
 
         expected_artifact: SnapshotArtifact = parse_artifact(metadata_sqs_message)
-        expected_snapshot_metadata = get_local_content_from_s3_path(expected_artifact.s3_path)
+        expected_snapshot_metadata = json.loads(get_local_content_from_s3_path(expected_artifact.s3_path).decode())
         s3_controller = S3Controller(moto_s3_client)
 
         # WHEN
@@ -49,7 +49,7 @@ class TestSnapshotMetadataIngestion:
         result_artifact = get_sqs_message_artifact(metadata_queue_controller, 1)
 
         result_bucket, key = s3_controller.get_s3_path_parts(result_artifact.s3_path)
-        result_snapshot_metadata = s3_controller.download_file(devcloud_raw_bucket, key)
+        result_snapshot_metadata = json.loads(s3_controller.download_file(devcloud_raw_bucket, key).decode())
 
         # THEN
         assert download_queue_controller.get_message(0) is None

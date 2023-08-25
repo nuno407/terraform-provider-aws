@@ -37,7 +37,7 @@ class MetadataMerger():
         return result
 
     @staticmethod
-    def process_chunks_into_mdf(chunks: list[dict]) -> tuple[str, dict, list]:
+    def __process_chunks_into_mdf(chunks: list[dict]) -> tuple[str, dict, list]:
         """Extract metadata from raw chunks and transform it into MDF data
 
         Args:
@@ -90,7 +90,7 @@ class MetadataMerger():
     @staticmethod
     def convert_metachunk_to_mdf(metachunks: list[S3Object]) -> list[dict]:
         """
-        Convert the metachunk into an object that can be read by _process_chunks_into_mdf.
+        Convert the metachunk into an object that can be read by __process_chunks_into_mdf.
 
         Args:
             metachunks (list[MetacontentChunk]): The metachunks downloaded
@@ -126,7 +126,7 @@ class MetadataMerger():
 
         json_chunks: list[dict] = MetadataMerger.convert_metachunk_to_mdf(
             metachunks)
-        resolution, pts, mdf_data = MetadataMerger.process_chunks_into_mdf(
+        resolution, pts, mdf_data = MetadataMerger.__process_chunks_into_mdf(
             json_chunks)
 
         if len(json_chunks) == 0:

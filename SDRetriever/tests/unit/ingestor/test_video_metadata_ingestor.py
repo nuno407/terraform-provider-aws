@@ -1,165 +1,115 @@
+from unittest.mock import Mock, call, ANY
+from itertools import chain
+
 import re
-import json
-from datetime import datetime, timedelta
-from unittest.mock import Mock, PropertyMock
-
 from pytest import fixture, mark, raises
-from pytz import UTC
+from pytest_lazyfixture import lazy_fixture
 
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (RecorderType, SignalsArtifact,
-                                  SnapshotArtifact, TimeWindow)
-from sdretriever.exceptions import UploadNotYetCompletedError
-from sdretriever.ingestor.metacontent import S3Object
+from base.model.artifacts import (S3VideoArtifact, Artifact, SignalsArtifact)
 from sdretriever.ingestor.video_metadata import VideoMetadataIngestor
 from sdretriever.metadata_merger import MetadataMerger
-from sdretriever.s3_finder_rcc import S3FinderRCC
-
-CHUNK_PATHS = [
-    "file1.json",
-    "file2.json",
-]
-CHUNKS = [
-    S3Object(s3_key=CHUNK_PATHS[0], data=b"""
-    {
-        "chunk": {
-            "pts_start": 0,
-            "pts_end": 1000
-        },
-        "chunk": {
-            "utc_start": 100,
-            "utc_end": 200
-        },
-        "resolution": "640x480",
-        "frame": [
-            {
-                "number": 4,
-                "foo": "bar"
-            },
-            {
-                "number": 2,
-                "foo": "baz"
-            }
-        ]
-    }"""),
-    S3Object(s3_key=CHUNK_PATHS[1], data=b"""
-    {
-        "chunk": {
-            "pts_start": 1000,
-            "pts_end": 2000,
-            "utc_start": 200,
-            "utc_end": 300
-        },
-        "frame": [
-            {
-                "number": 1,
-                "foo": "bar"
-            },
-            {
-                "number": 3,
-                "foo": "baz"
-            }
-        ]
-    }""")
-]
-SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
-UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
-UPLOAD_END = datetime.now(tz=UTC) - timedelta(hours=1)
-TENANT_ID = "foo"
-DEVICE_ID = "bar"
-UID = "baz"
-ART_ID = f"{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_metadata_full"
+from sdretriever.models import S3ObjectRCC, ChunkDownloadParamsByID, S3ObjectDevcloud
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 
 
-class TestMetadataIngestor:
+class TestVideoMetadataIngestor:
 
     @fixture()
-    def metadata_ingestor(
+    def video_signals_ingestor(
             self,
-            container_services: ContainerServices,
-            rcc_client_factory: S3ClientFactory,
-            s3_controller: S3Controller,
-            s3_finder: S3FinderRCC,
-            metadata_merger: MetadataMerger) -> VideoMetadataIngestor:
+            rcc_chunk_downloader: RCCChunkDownloader,
+            metadata_merger: MetadataMerger,
+            s3_downloader_uploader: S3DownloaderUploader) -> VideoMetadataIngestor:
         return VideoMetadataIngestor(
-            container_services,
-            rcc_client_factory,
-            s3_controller,
-            s3_finder,
-            metadata_merger
+            rcc_chunk_downloader,
+            metadata_merger,
+            s3_downloader_uploader
         )
 
     @fixture()
-    def snapshot_artifact(self) -> SnapshotArtifact:
-        return SnapshotArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            uuid=UID,
-            recorder=RecorderType.SNAPSHOT,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            timestamp=SNAP_TIME,
-            end_timestamp=SNAP_TIME
-        )
-
-    @fixture()
-    def metadata_artifact(self, snapshot_artifact: SnapshotArtifact) -> SignalsArtifact:
-        return SignalsArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            referred_artifact=snapshot_artifact
-        )
-
-    @mark.unit()
-    def test_other_artifacts_raise_error(self, snapshot_artifact: SnapshotArtifact,
-                                         metadata_ingestor: VideoMetadataIngestor):
-        with raises(ValueError):
-            metadata_ingestor.ingest(snapshot_artifact)
-
-    @mark.unit()
-    def test_raise_if_not_all_parts_exist(self,
-                                          metadata_artifact: SignalsArtifact,
-                                          metadata_ingestor: VideoMetadataIngestor):
-        # GIVEN
-        metadata_ingestor._check_allparts_exist = Mock(
-            return_value=(False, []))  # type: ignore[method-assign]
-
-        # WHEN
-        with raises(UploadNotYetCompletedError):
-            metadata_ingestor.ingest(metadata_artifact)
-
-    @mark.unit()
-    def test_successful_ingestion(
+    def video_signals_artifact(
             self,
-            metadata_artifact: SignalsArtifact,
-            metadata_ingestor: VideoMetadataIngestor,
-            raw_s3: str):
+            training_video_artifact: S3VideoArtifact,
+            mock_tenant_id: str,
+            mock_device_id: str) -> SignalsArtifact:
+        return SignalsArtifact(
+            tenant_id=mock_tenant_id,
+            device_id=mock_device_id,
+            referred_artifact=training_video_artifact
+        )
+
+    @mark.unit()
+    @mark.parametrize("artifact",
+                      [(lazy_fixture("snapshot_artifact")),
+                       (lazy_fixture("interior_video_artifact")),
+                          (lazy_fixture("training_video_artifact")),
+                          (lazy_fixture("preview_metadata_artifact"))],
+                      ids=["fail_snapshot_artifact",
+                           "fail_interior_video_artifact",
+                           "fail_training_video_artifact",
+                           "fail_preview_video_artifact"])
+    def test_other_artifacts_raise_error(self, artifact: Artifact,
+                                         video_signals_ingestor: VideoMetadataIngestor):
+        with raises(ValueError):
+            video_signals_ingestor.ingest(artifact)
+
+    @mark.unit()
+    def test_ingest(
+            self,
+            video_signals_ingestor: VideoMetadataIngestor,
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader,
+            rcc_bucket: str,
+            video_signals_artifact: SignalsArtifact,
+            metadata_merger: MetadataMerger):
         # GIVEN
-        metadata_ingestor._check_allparts_exist = Mock(
-            return_value=(True, CHUNK_PATHS))  # type: ignore[method-assign]
-        metadata_ingestor._download_from_rcc = Mock(
-            return_value=CHUNKS)  # type: ignore[method-assign]
-        metadata_ingestor._upload_metacontent_to_devcloud = Mock(  # type: ignore[method-assign]
-            return_value=f"s3://{raw_s3}/{metadata_artifact.tenant_id}/{metadata_artifact.artifact_id}.json")
+        list_chunk_recordings = video_signals_artifact.referred_artifact.recordings
+        downloaded_chunks_mock = [
+            [
+                S3ObjectRCC(
+                    data=b"metadata_data_mock",
+                    s3_key=f"{chunk_id}",
+                    bucket=rcc_bucket) for chunk_id in recording.chunk_ids] for recording in list_chunk_recordings]
+        concatenated_data = list(chain.from_iterable(downloaded_chunks_mock))
+        path_uploaded = "s3://metadata.json"
+        metadata_merger.merge_metadata_chunks = Mock(return_value={})
+
+        rcc_chunk_downloader.download_by_chunk_id = Mock(side_effect=downloaded_chunks_mock)
+        s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
+
+        expected_calls = [call(
+            ChunkDownloadParamsByID(
+                recorder=video_signals_artifact.referred_artifact.recorder,
+                recording_id=video_signals_artifact.referred_artifact.recordings[0].recording_id,
+                chunk_ids=video_signals_artifact.referred_artifact.recordings[0].chunk_ids,
+                device_id=video_signals_artifact.device_id,
+                tenant=video_signals_artifact.tenant_id,
+                start_search=video_signals_artifact.referred_artifact.timestamp,
+                stop_search=ANY,
+                suffixes=[".json.zip"])),
+            call(ChunkDownloadParamsByID(
+                recorder=video_signals_artifact.referred_artifact.recorder,
+                recording_id=video_signals_artifact.referred_artifact.recordings[1].recording_id,
+                chunk_ids=video_signals_artifact.referred_artifact.recordings[1].chunk_ids,
+                device_id=video_signals_artifact.device_id,
+                tenant=video_signals_artifact.tenant_id,
+                start_search=video_signals_artifact.referred_artifact.timestamp,
+                stop_search=ANY,
+                suffixes=[".json.zip"]))
+        ]
+
+        expected_devcloud_object = S3ObjectDevcloud(
+            data=b"{}",
+            filename=f"{video_signals_artifact.artifact_id}.json",
+            tenant=video_signals_artifact.tenant_id)
 
         # WHEN
-        metadata_ingestor.ingest(metadata_artifact)
+        video_signals_ingestor.ingest(video_signals_artifact)
 
         # THEN
-        metadata_ingestor._check_allparts_exist.assert_called_once_with(metadata_artifact)
-        metadata_ingestor._download_from_rcc.assert_called_once_with(CHUNK_PATHS)
-        uploaded: dict = json.loads(
-            metadata_ingestor._upload_metacontent_to_devcloud.call_args.args[0].data)
-
-        assert uploaded["chunk"]["pts_start"] == 0
-        assert uploaded["chunk"]["pts_end"] == 2000
-        assert uploaded["chunk"]["utc_start"] == 100
-        assert uploaded["chunk"]["utc_end"] == 300
-        assert uploaded["resolution"] == "640x480"
-        assert [1, 2, 3, 4] == [frame["number"] for frame in uploaded["frame"]]
-        assert ["bar", "baz", "baz", "bar"] == [frame["foo"] for frame in uploaded["frame"]]
-
-        assert metadata_artifact.s3_path == f"s3://{raw_s3}/{TENANT_ID}/{ART_ID}.json"
+        assert rcc_chunk_downloader.download_by_chunk_id.call_count == len(list_chunk_recordings)
+        rcc_chunk_downloader.download_by_chunk_id.assert_has_calls(expected_calls)
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_object)
+        assert video_signals_artifact.s3_path == path_uploaded
+        metadata_merger.merge_metadata_chunks.assert_called_once_with(concatenated_data)

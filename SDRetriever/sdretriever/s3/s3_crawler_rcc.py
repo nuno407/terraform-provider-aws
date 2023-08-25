@@ -114,7 +114,7 @@ class S3CrawlerRCC():
             rcc_s3_params, common_prefix)
 
         _logger.info("Crawling RCC S3 with the prefix (%s)", common_prefix)
-        _logger.info("Files to search for (%s)", str(files))
+        _logger.debug("Files to search for (%s)", str(files))
 
         files_stack = files.copy()
         result: dict[str, S3ObjectInfo] = {}

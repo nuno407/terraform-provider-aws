@@ -39,8 +39,6 @@ class S3VideoIngestor(Ingestor):
         if not isinstance(artifact, S3VideoArtifact):
             raise ValueError("S3VideoIngestor can only ingest an S3VideoArtifact")
 
-        upload_path = f"{artifact.tenant_id}/{artifact.artifact_id}{FileExt.VIDEO.value}"
-
         # download video from RCC S3
         video_object = self.__get_video_s3(artifact)
 
@@ -49,10 +47,10 @@ class S3VideoIngestor(Ingestor):
             data=video_object.data,
             filename=f"{artifact.artifact_id}{FileExt.VIDEO.value}",
             tenant=artifact.tenant_id)
-        upload_path = self.__s3_io.upload_to_devcloud_raw(devcloud_object)
 
         # post process video
         video_info = self._post_processor.execute(video_object.data)
+        upload_path = self.__s3_io.upload_to_devcloud_raw(devcloud_object)
         artifact.resolution = Resolution(width=video_info.width, height=video_info.height)
         artifact.actual_duration = video_info.duration
         artifact.s3_path = upload_path

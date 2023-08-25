@@ -1,35 +1,15 @@
-from datetime import datetime, timedelta
-from unittest.mock import Mock
+from unittest.mock import Mock, call, ANY
+from itertools import chain
 
 import re
 from pytest import fixture, mark, raises
-from pytz import UTC
+from pytest_lazyfixture import lazy_fixture
 
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (IMUArtifact, RecorderType, SnapshotArtifact,
-                                  TimeWindow)
-from sdretriever.exceptions import UploadNotYetCompletedError
+from base.model.artifacts import (IMUArtifact, S3VideoArtifact, SnapshotArtifact)
 from sdretriever.ingestor.imu import IMUIngestor
-from sdretriever.ingestor.metacontent import S3Object
-from sdretriever.s3_finder_rcc import S3FinderRCC
-
-RAW_S3 = "raw-s3"
-CHUNK_PATHS = [
-    "TrainingRecorder_TrainingRecorder1.mp4._a_b_1234_imu_raw.csv.zip",
-    "TrainingRecorder_TrainingRecorder1.mp4._a_b_5678_imu_raw.csv.zip",
-]
-CHUNKS = [
-    S3Object(s3_key=CHUNK_PATHS[0], data=b"1"),
-    S3Object(s3_key=CHUNK_PATHS[1], data=b"2")
-]
-SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
-UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
-UPLOAD_END = datetime.now(tz=UTC) - timedelta(hours=1)
-TENANT_ID = "foo"
-DEVICE_ID = "bar"
-UID = "baz"
-ART_ID = f"{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_IMU"
+from sdretriever.models import S3ObjectRCC, ChunkDownloadParamsByID, S3ObjectDevcloud
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 
 
 class TestImuIngestor:
@@ -37,72 +17,93 @@ class TestImuIngestor:
     @fixture()
     def imu_ingestor(
             self,
-            container_services: ContainerServices,
-            rcc_client_factory: S3ClientFactory,
-            s3_controller: S3Controller,
-            s3_finder: S3FinderRCC) -> IMUIngestor:
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader) -> IMUIngestor:
         return IMUIngestor(
-            container_services,
-            rcc_client_factory,
-            s3_controller,
-            s3_finder
+            rcc_chunk_downloader,
+            s3_downloader_uploader
         )
 
     @fixture()
-    def snapshot_artifact(self) -> SnapshotArtifact:
-        return SnapshotArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            uuid=UID,
-            recorder=RecorderType.SNAPSHOT,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            timestamp=SNAP_TIME,
-            end_timestamp=SNAP_TIME
-        )
-
-    @fixture()
-    def imu_artifact(self, snapshot_artifact: SnapshotArtifact) -> IMUArtifact:
+    def imu_artifact(
+            self,
+            training_video_artifact: S3VideoArtifact,
+            mock_tenant_id: str,
+            mock_device_id: str) -> IMUArtifact:
         return IMUArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            referred_artifact=snapshot_artifact
+            tenant_id=mock_tenant_id,
+            device_id=mock_device_id,
+            referred_artifact=training_video_artifact
         )
 
     @mark.unit()
-    def test_other_artifacts_raise_error(self, snapshot_artifact, imu_ingestor):
+    @mark.parametrize("artifact",
+                      [(lazy_fixture("snapshot_artifact")),
+                       (lazy_fixture("interior_video_artifact")),
+                          (lazy_fixture("training_video_artifact")),
+                          (lazy_fixture("preview_metadata_artifact"))],
+                      ids=["fail_snapshot_artifact",
+                           "fail_interior_video_artifact",
+                           "fail_training_video_artifact",
+                           "fail_preview_video_artifact"])
+    def test_other_artifacts_raise_error(self, artifact: SnapshotArtifact,
+                                         imu_ingestor: IMUIngestor):
         with raises(ValueError):
-            imu_ingestor.ingest(snapshot_artifact)
+            imu_ingestor.ingest(artifact)
 
     @mark.unit()
-    def test_raise_if_not_all_parts_exist(
-            self, imu_artifact: IMUArtifact, imu_ingestor: IMUIngestor):
+    def test_successful_ingestion(
+            self,
+            imu_artifact: IMUArtifact,
+            imu_ingestor: IMUIngestor,
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader,
+            rcc_bucket: str):
         # GIVEN
-        imu_ingestor._check_allparts_exist = Mock(
-            return_value=(False, []))  # type: ignore[method-assign]
+        list_chunk_recordings = imu_artifact.referred_artifact.recordings
+        downloaded_chunks_mock = [
+            [
+                S3ObjectRCC(
+                    data=b"imu_data_mock",
+                    s3_key=f"{chunk_id}",
+                    bucket=rcc_bucket) for chunk_id in recording.chunk_ids] for recording in list_chunk_recordings]
+        concatenated_data = b"".join(list(map(lambda x: x.data, chain.from_iterable(downloaded_chunks_mock))))
+        path_uploaded = "s3://imu.csv"
 
-        # WHEN
-        with raises(UploadNotYetCompletedError):
-            imu_ingestor.ingest(imu_artifact)
+        rcc_chunk_downloader.download_by_chunk_id = Mock(side_effect=downloaded_chunks_mock)
+        s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
 
-    @mark.unit()
-    def test_successful_ingestion(self, imu_artifact: IMUArtifact, imu_ingestor: IMUIngestor):
-        # GIVEN
-        imu_ingestor._check_allparts_exist = Mock(return_value=(
-            True, CHUNK_PATHS))  # type: ignore[method-assign]
-        imu_ingestor._download_from_rcc = Mock(
-            return_value=CHUNKS)  # type: ignore[method-assign]
-        imu_ingestor._upload_metacontent_to_devcloud = Mock(  # type: ignore[method-assign]
-            return_value=f"s3://{RAW_S3}/{imu_artifact.tenant_id}/{imu_artifact.artifact_id}.csv")
+        expected_calls = [call(
+            ChunkDownloadParamsByID(
+                recorder=imu_artifact.referred_artifact.recorder,
+                recording_id=imu_artifact.referred_artifact.recordings[0].recording_id,
+                chunk_ids=imu_artifact.referred_artifact.recordings[0].chunk_ids,
+                device_id=imu_artifact.device_id,
+                tenant=imu_artifact.tenant_id,
+                start_search=imu_artifact.referred_artifact.timestamp,
+                stop_search=ANY,
+                suffixes=["imu_raw.csv.zip"])),
+            call(ChunkDownloadParamsByID(
+                recorder=imu_artifact.referred_artifact.recorder,
+                recording_id=imu_artifact.referred_artifact.recordings[1].recording_id,
+                chunk_ids=imu_artifact.referred_artifact.recordings[1].chunk_ids,
+                device_id=imu_artifact.device_id,
+                tenant=imu_artifact.tenant_id,
+                start_search=imu_artifact.referred_artifact.timestamp,
+                stop_search=ANY,
+                suffixes=["imu_raw.csv.zip"]))
+        ]
+
+        expected_devcloud_object = S3ObjectDevcloud(
+            data=concatenated_data,
+            filename=f"{imu_artifact.artifact_id}.csv",
+            tenant=imu_artifact.tenant_id)
 
         # WHEN
         imu_ingestor.ingest(imu_artifact)
 
         # THEN
-        imu_ingestor._check_allparts_exist.assert_called_once_with(imu_artifact)
-        imu_ingestor._download_from_rcc.assert_called_once_with(CHUNK_PATHS)
-        upload_params = imu_ingestor._upload_metacontent_to_devcloud.call_args.args
-        assert upload_params[0].data == b"12"
-        assert imu_artifact.s3_path == f"s3://{RAW_S3}/{TENANT_ID}/{ART_ID}.csv"
+        assert rcc_chunk_downloader.download_by_chunk_id.call_count == len(list_chunk_recordings)
+        rcc_chunk_downloader.download_by_chunk_id.assert_has_calls(expected_calls)
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_object)
+        assert imu_artifact.s3_path == path_uploaded

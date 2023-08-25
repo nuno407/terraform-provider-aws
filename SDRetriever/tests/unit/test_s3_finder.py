@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from mypy_boto3_s3 import S3Client
-from sdretriever.s3_finder_rcc import S3FinderRCC
+from sdretriever.s3.s3_finder_rcc import S3FinderRCC
 
 
 @pytest.fixture

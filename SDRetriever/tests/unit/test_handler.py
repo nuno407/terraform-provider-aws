@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock, call
 import pytest
 import pytz
 
-from base.model.artifacts import (IMUArtifact, KinesisVideoArtifact,
+from base.model.artifacts import (IMUArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   TimeWindow, Recording)
@@ -24,13 +24,6 @@ def imu_ing():
 @pytest.fixture
 def video_metadata_ing():
     """MetadataIngestor fixture
-    """
-    return Mock()
-
-
-@pytest.fixture
-def kinesis_video_ing():
-    """KinesisVideoIngestor fixture
     """
     return Mock()
 
@@ -92,7 +85,6 @@ def snap_metadata_ing():
 @pytest.fixture
 def ingestion_handler(imu_ing,
                       video_metadata_ing,
-                      kinesis_video_ing,
                       s3_video_ing,
                       snap_ing,
                       snap_metadata_ing,
@@ -104,7 +96,6 @@ def ingestion_handler(imu_ing,
     """
     return IngestionHandler(imu_ing,
                             video_metadata_ing,
-                            kinesis_video_ing,
                             s3_video_ing,
                             snap_ing,
                             snap_metadata_ing,
@@ -113,17 +104,6 @@ def ingestion_handler(imu_ing,
                             config,
                             sqs_controller)
 
-
-kinesis_video_artifact = KinesisVideoArtifact(
-    stream_name="stream_name",
-    recorder=RecorderType.INTERIOR,
-    upload_timing=TimeWindow(start=datetime.now(
-        tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
-    tenant_id="tenant_id",
-    device_id="device_id",
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC)
-)
 
 s3_video_artifact = S3VideoArtifact(
     recorder=RecorderType.INTERIOR,
@@ -137,24 +117,6 @@ s3_video_artifact = S3VideoArtifact(
     end_timestamp=datetime.now(tz=pytz.UTC),
     recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
-
-
-@pytest.mark.unit
-def test_ingestion_handler_handle_kinesis_video(ingestion_handler: IngestionHandler,
-                                                kinesis_video_ing: Mock,
-                                                sqs_controller: Mock):
-    """Test IngestionHandler.handle method
-    """
-    message = MagicMock()
-    serialized_video_artifact = kinesis_video_artifact.stringify()
-
-    ingestion_handler.handle(kinesis_video_artifact, message)
-
-    kinesis_video_ing.ingest.assert_called_once_with(kinesis_video_artifact)
-    sqs_controller.send_message.assert_has_calls([
-        call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
-        call(serialized_video_artifact, CONTAINER_NAME, "selector_queue"),
-    ])
 
 
 @pytest.mark.unit
@@ -208,7 +170,7 @@ def test_ingestion_handler_handle_snapshot(ingestion_handler: IngestionHandler,
 imu_artifact = IMUArtifact(
     tenant_id="tenant_id",
     device_id="device_id",
-    referred_artifact=kinesis_video_artifact
+    referred_artifact=s3_video_artifact
 )
 
 
@@ -233,7 +195,7 @@ def test_ingestion_handler_handle_imu(ingestion_handler: IngestionHandler,
 signals_artifact = SignalsArtifact(
     tenant_id="tenant_id",
     device_id="device_id",
-    referred_artifact=kinesis_video_artifact
+    referred_artifact=s3_video_artifact
 )
 
 

@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 import os
 from sdretriever.metadata_merger import MetadataMerger
-from sdretriever.ingestor.metacontent import S3Object
+from sdretriever.models import S3Object
 
 from base.testing.utils import load_relative_raw_file, load_relative_json_file
 
@@ -71,14 +71,10 @@ class TestMetadataMerger:
             self, chunks: list[bytes], expected_merge: dict[Any, Any], metadata_merger: MetadataMerger):
 
         # GIVEN
-        metacontent_chunks = [S3Object(data, "MOCK") for data in chunks]
+        metacontent_chunks = [S3Object(data) for data in chunks]
 
         # WHEN
         merged_data = metadata_merger.merge_metadata_chunks(metacontent_chunks)
-
-        print(merged_data)
-        print()
-        print(expected_merge)
 
         # THEN
         assert merged_data == expected_merge
