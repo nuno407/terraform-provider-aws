@@ -7,7 +7,9 @@ from pytz import UTC
 from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   S3VideoArtifact, SnapshotArtifact,
-                                  TimeWindow, parse_artifact, Recording)
+                                  TimeWindow, parse_artifact, Recording, OperatorSOSReason,
+                                  CameraBlockedOperatorArtifact, PeopleCountOperatorArtifact,
+                                  SOSOperatorArtifact, OperatorAdditionalInformation)
 from base.timestamps import from_epoch_seconds_or_milliseconds
 
 
@@ -128,6 +130,52 @@ def preview_signals() -> PreviewSignalsArtifact:
     )
 
 
+def operator_additional_information() -> OperatorAdditionalInformation:
+    return OperatorAdditionalInformation(
+        is_door_blocked=True,
+        is_camera_blocked=True,
+        is_audio_malfunction=True,
+        observations="mocked",
+    )
+
+
+def camera_blocked_operator() -> CameraBlockedOperatorArtifact:
+    return CameraBlockedOperatorArtifact(
+        tenant_id="ridecare_companion_fut",
+        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        operator_monitoring_start=static_date() - timedelta(minutes=2),
+        operator_monitoring_end=static_date() - timedelta(minutes=1),
+        event_timestamp=static_date() - timedelta(minutes=2),
+        additional_information=operator_additional_information(),
+        is_chc_correct=True
+    )
+
+
+def people_count_operator() -> PeopleCountOperatorArtifact:
+    return PeopleCountOperatorArtifact(
+        tenant_id="ridecare_companion_fut",
+        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        operator_monitoring_start=static_date() - timedelta(minutes=2),
+        operator_monitoring_end=static_date() - timedelta(minutes=1),
+        event_timestamp=static_date() - timedelta(minutes=2),
+        additional_information=operator_additional_information(),
+        correct_count=0,
+        is_people_count_correct=True,
+    )
+
+
+def sos_count_operator() -> SOSOperatorArtifact:
+    return SOSOperatorArtifact(
+        tenant_id="ridecare_companion_fut",
+        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        operator_monitoring_start=static_date() - timedelta(minutes=2),
+        operator_monitoring_end=static_date() - timedelta(minutes=1),
+        event_timestamp=static_date() - timedelta(minutes=2),
+        additional_information=operator_additional_information(),
+        reason=OperatorSOSReason.ACCIDENTAL
+    )
+
+
 @mark.unit
 class TestArtifacts:
     @mark.parametrize(
@@ -169,6 +217,12 @@ class TestArtifacts:
                           [multi_snapshot(),
                            "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752"],
                           [preview_signals(),
-                           "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview"]])
+                           "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview"],
+                       [camera_blocked_operator(),
+                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_camera_blocked_1665367680000"],
+                       [people_count_operator(),
+                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_people_count_1665367680000"],
+                       [sos_count_operator(),
+                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_sos_1665367680000"]])
     def test_artifact_id(self, artifact: Artifact, expected_id: str):
         assert artifact.artifact_id == expected_id

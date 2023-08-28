@@ -31,6 +31,14 @@ class MetadataType(str, Enum):
     IMU = "IMU"
 
 
+class OperatorSOSReason(str, Enum):
+    """ reason for operator sos button """
+    ACCIDENTAL = "ACCIDENTAL"
+    TECHNICAL_ISSUE = "TECHNICAL_ISSUE"
+    RIDE_INTERRUPTION = "RIDE_INTERRUPTION"
+    HEALTH_ISSUE = "HEALTH_ISSUE"
+
+
 class Resolution(ConfiguredBaseModel):
     """Resolution"""
     width: int
@@ -250,6 +258,58 @@ class CameraServiceEventArtifact(EventArtifact):
     camera_state: list[CameraServiceState] = Field(default_factory=list)
 
 
+class OperatorAdditionalInformation(ConfiguredBaseModel):
+    """Represents the checkbox form data colleced in the SAV Operator UI"""
+    is_door_blocked: bool = Field(default=...)
+    is_camera_blocked: bool = Field(default=...)
+    is_audio_malfunction: bool = Field(default=...)
+    observations: str = Field(default=...)
+
+
+class OperatorArtifact(Artifact):
+    """Represents the footage seen by an SAV Operator as part of an incident"""
+    event_timestamp: datetime = Field(default=...)
+    operator_monitoring_start: datetime = Field(default=...)
+    operator_monitoring_end: datetime = Field(default=...)
+
+    @abstractmethod
+    def event_name(self) -> str:
+        """The event name"""
+
+    @property
+    def artifact_id(self) -> str:
+        return f"sav-operator_{self.tenant_id}_{self.device_id}_{self.event_name()}_{round(self.event_timestamp.timestamp()*1000)}"
+
+
+class SOSOperatorArtifact(OperatorArtifact):
+    """Represents an SAV SOS event"""
+    additional_information: OperatorAdditionalInformation = Field(default=...)
+    reason: OperatorSOSReason = Field(default=...)
+
+    def event_name(self) -> str:
+        return "sos"
+
+
+class PeopleCountOperatorArtifact(OperatorArtifact):
+    """Represents people count predicted by ivs_fc model vs observed by SAV Operator"""
+    additional_information: OperatorAdditionalInformation = Field(default=...)
+    is_people_count_correct: bool = Field(default=...)
+    correct_count: Optional[int] = Field(default=...)
+
+    def event_name(self) -> str:
+        return "people_count"
+
+
+class CameraBlockedOperatorArtifact(OperatorArtifact):
+    """Represents a camera service event from RCC"""
+
+    additional_information: OperatorAdditionalInformation = Field(default=...)
+    is_chc_correct: bool = Field(default=...)
+
+    def event_name(self) -> str:
+        return "camera_blocked"
+
+
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
@@ -262,7 +322,10 @@ def parse_artifact(json_data: Union[str, dict]) -> Artifact:
                                   PreviewSignalsArtifact,
                                   IncidentEventArtifact,
                                   CameraServiceEventArtifact,
-                                  DeviceInfoEventArtifact],
+                                  DeviceInfoEventArtifact,
+                                  CameraBlockedOperatorArtifact,
+                                  PeopleCountOperatorArtifact,
+                                  SOSOperatorArtifact],
                             json_data)  # type: ignore
     return parse_raw_as(Union[KinesisVideoArtifact,  # type: ignore
                               S3VideoArtifact,
@@ -273,5 +336,8 @@ def parse_artifact(json_data: Union[str, dict]) -> Artifact:
                               PreviewSignalsArtifact,
                               IncidentEventArtifact,
                               CameraServiceEventArtifact,
-                              DeviceInfoEventArtifact],
+                              DeviceInfoEventArtifact,
+                              CameraBlockedOperatorArtifact,
+                              PeopleCountOperatorArtifact,
+                              SOSOperatorArtifact],
                         json_data)  # type: ignore
