@@ -1,4 +1,4 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.16-bullseye
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.18-bullseye
 
 RUN apt -y update && apt -y upgrade
 
