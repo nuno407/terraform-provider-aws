@@ -14,7 +14,6 @@ markers = [
 max_line_length = 120
 recursive = true
 aggressive = 3
-diff = true
 
 [tool.pylint]
 recursive = true
