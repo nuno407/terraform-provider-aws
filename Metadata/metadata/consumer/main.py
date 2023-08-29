@@ -59,7 +59,6 @@ class MetadataCollections:
     algo_output: Collection
     processed_imu: Collection
     events: Collection
-    sav_operator_feedback: Collection
 
 
 def _get_anonymized_s3_path(file_key: str) -> str:
@@ -675,6 +674,7 @@ def __update_events(imu_range: TimeRange, data_type: str,
     metadata_collections.events.update_many(filter=filter_query_events, update=update_query_events)
     metadata_collections.events.update_many(filter=filter_query_shutdowns, update=update_query_shutdowns)
 
+
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
     if message["data_type"] == "imu":
         imu_ranges = insert_mdf_imu_data(
@@ -769,8 +769,8 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections,
             "Unexpected file format %s from SDRetriever.", file_format)
 
 
-def __convert_event_to_db_item(artifact: Artifact) -> dict:
-    event_data = artifact.dict()
+def __convert_event_to_db_item(event: EventArtifact) -> dict:
+    event_data = event.dict()
     return {k: v for (k, v) in event_data.items() if v is not None}
 
 
@@ -781,11 +781,11 @@ def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
         event_collection = metadata_collections.events
         db_item = __convert_event_to_db_item(artifact)
         event_collection.insert_one(db_item)
-
     if isinstance(artifact, OperatorArtifact):
-        sav_operator_collection = metadata_collections.sav_operator_feedback
-        db_item = __convert_event_to_db_item(artifact)
-        sav_operator_collection.insert_one(db_item)
+        # Workaround because DI is not initialized on import phase
+        from metadata.consumer.database.operator_repository import OperatorRepository # pylint: disable=import-outside-toplevel
+        OperatorRepository.create_operator_feedback(artifact)
+
 
 def __process_general(message: dict, metadata_collections: MetadataCollections, source: str):
     recording_id = os.path.basename(message["s3_path"]).split(".")[0]
@@ -818,7 +818,7 @@ def upsert_data_to_db(service: RelatedMediaService,
     if not ("SourceContainer" in message_attributes and
             "StringValue" in message_attributes["SourceContainer"]):
         _logger.error(
-            "Skipping message due to neccessary content not being present. Message: %s  Atributes: %s",
+            "Skipping message due to necessary content not being present. Message: %s  Attributes: %s",
             message,
             message_attributes)
         return
@@ -880,8 +880,7 @@ def fix_message(container_services: ContainerServices, body: str, dict_body: dic
 def main():
     """Main function"""
     # Define configuration for logging messages
-    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME,
-                 CONTAINER_VERSION)
+    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
 
     bootstrap_di()
 
@@ -890,8 +889,7 @@ def main():
                               region_name=AWS_REGION)
 
     # Initialise instance of ContainerServices class
-    container_services = ContainerServices(container=CONTAINER_NAME,
-                                           version=CONTAINER_VERSION)
+    container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
 
     # Load global variable values from yaml config
     container_services.load_config_vars()
@@ -940,14 +938,14 @@ def main():
                 pipeline_exec=db_client[container_services.db_tables["pipeline_exec"]],
                 algo_output=db_client[container_services.db_tables["algo_output"]],
                 processed_imu=db_client[container_services.db_tables["processed_imu"]],
-                events=db_client[container_services.db_tables["events"]],
-                sav_operator_feedback=db_client[container_services.db_tables["sav_operator_feedback"]]
+                events=db_client[container_services.db_tables["events"]]
             )
 
             # Insert/update data in db
 
             try:
-                with AutoMessageVisibilityIncreaser(sqs_client, message["ReceiptHandle"], container_services, 60, container_services.input_queue):
+                with AutoMessageVisibilityIncreaser(sqs_client, message["ReceiptHandle"],
+                                                    container_services, 60, container_services.input_queue):
                     if source == "Sanitizer":
                         process_sanitizer(message_dict, metadata_collections)
                     else:

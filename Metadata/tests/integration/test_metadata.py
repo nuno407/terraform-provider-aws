@@ -7,7 +7,6 @@ from unittest.mock import Mock, PropertyMock, call, patch
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
-from kink import di
 
 import metadata.consumer.main
 
@@ -83,6 +82,7 @@ def _input_message_snapshot_excluded(folder: str):
 
 @pytest.mark.integration
 @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+@patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
 class TestMain:
     @pytest.fixture
     def boto3_mock(self, mocker: MockerFixture):
@@ -141,17 +141,13 @@ class TestMain:
     @pytest.mark.parametrize("_input_message_recording, _input_message_snapshot_included, "
                              "_input_message_snapshot_excluded, s3_folder, expected_dataset", [
                                  (_input_message_recording("folder"),
-                                     _input_message_snapshot_included(
-                                         "folder"),
-                                     _input_message_snapshot_excluded(
-                                         "folder"),
+                                     _input_message_snapshot_included("folder"),
+                                     _input_message_snapshot_excluded("folder"),
                                      "folder",
                                      "Debug_Lync"),
                                  (_input_message_recording("ridecare_companion_gridwise"),
-                                     _input_message_snapshot_included(
-                                         "ridecare_companion_gridwise"),
-                                     _input_message_snapshot_excluded(
-                                         "ridecare_companion_gridwise"),
+                                     _input_message_snapshot_included("ridecare_companion_gridwise"),
+                                     _input_message_snapshot_excluded("ridecare_companion_gridwise"),
                                      "ridecare_companion_gridwise",
                                      "RC-ridecare_companion_gridwise")
                              ])

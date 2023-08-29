@@ -4,7 +4,7 @@ import copy
 import hashlib
 import json
 import os
-from dataclasses import asdict
+from mongoengine import connect, disconnect
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -12,7 +12,6 @@ from unittest.mock import ANY, MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 from botocore.errorfactory import ClientError
-from kink import di
 from pymongo.collection import ReturnDocument
 from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
@@ -25,6 +24,8 @@ from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from base.model.event_types import Location
 from metadata.consumer.bootstrap import bootstrap_di
 from kink import di
+
+
 from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     create_recording_item,
                                     create_snapshot_recording_item,
@@ -455,18 +456,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         location["status"] = location["status"].value
 
         artifact_body = {
-            'device_id': device_id,
-            'tenant_id': tenant_id,
-            'timestamp': timestamp,
-            'event_name': "com.bosch.ivs.incident.IncidentEvent",
-            'location': location,
-            'incident_type': "INCIDENT_TYPE__ACCIDENT_AUTOMATIC"
-        }
-
-        message_attributes = {
-            'SourceContainer': {
-                'StringValue': 'Sanitizer'
-            }
+            "device_id": device_id,
+            "tenant_id": tenant_id,
+            "timestamp": timestamp,
+            "event_name": "com.bosch.ivs.incident.IncidentEvent",
+            "location": location,
+            "incident_type": "INCIDENT_TYPE__ACCIDENT_AUTOMATIC"
         }
 
         collection_events_mock = Mock()
@@ -481,42 +476,43 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
     @pytest.mark.unit
     def test_create_sav_operator(self):
-        event_timestamp = datetime.fromisoformat("2023-08-29T08:17:15+00:00",)
-        operator_monitoring_start = datetime.fromisoformat("2023-08-29T08:18:49+00:00")
-        operator_monitoring_end = datetime.fromisoformat("2023-08-29T08:35:57+00:00")
+        # GIVEN
+        with connect("mongoenginetest", host="mongomock://localhost"):
 
-        artifact_body_sav = {
-        "tenant_id": "datanauts",
-        "device_id": "DATANAUTS_DEV_02",
-        "event_timestamp": event_timestamp,
-        "operator_monitoring_start": operator_monitoring_start,
-        "operator_monitoring_end": operator_monitoring_end,
-        "artifact_name": 'sav-operator-people-count',
-        "additional_information": {
-            "is_door_blocked": True,
-            "is_camera_blocked": False,
-            "is_audio_malfunction": True,
-            "observations": "foo"
-        },
-        "is_people_count_correct": False,
-        "correct_count": 5
-        }
+            event_timestamp = datetime.fromisoformat("2023-08-29T08:17:15+00:00",)
+            operator_monitoring_start = datetime.fromisoformat("2023-08-29T08:18:49+00:00")
+            operator_monitoring_end = datetime.fromisoformat("2023-08-29T08:35:57+00:00")
 
-
-        message_attributes = {
-            'SourceContainer': {
-                'StringValue': 'Sanitizer'
+            artifact_body_sav = {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "event_timestamp": event_timestamp,
+                "operator_monitoring_start": operator_monitoring_start,
+                "operator_monitoring_end": operator_monitoring_end,
+                "artifact_name": "sav-operator-people-count",
+                "additional_information": {
+                    "is_door_blocked": True,
+                    "is_camera_blocked": False,
+                    "is_audio_malfunction": True,
+                    "observations": "foo"
+                },
+                "is_people_count_correct": False,
+                "correct_count": 5
             }
-        }
+            di["db_metadata_tables"] = {"sav_operator_feedback": "dev-sav-operator-feedback"}
 
-        collection_sav_operator_feedback_mock = Mock()
-        metadata_collections = Mock()
-        metadata_collections.sav_operator_feedback = collection_sav_operator_feedback_mock
-        # WHEN
-        process_sanitizer(artifact_body_sav, metadata_collections)
+            metadata_collections = Mock()
+            # WHEN
+            process_sanitizer(artifact_body_sav, metadata_collections)
 
-        # THEN
-        collection_sav_operator_feedback_mock.insert_one.assert_called_once_with(artifact_body_sav)
+            # THEN
+            query = {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02"
+            }
+            from metadata.consumer.database.operator_feedback import DBPeopleCountOperatorArtifact
+            db_artifacts = DBPeopleCountOperatorArtifact.objects(**query)
+            assert len(db_artifacts) == 1
 
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
@@ -541,6 +537,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
     @pytest.mark.unit
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
@@ -589,8 +586,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             pipeline_exec=MagicMock(),
             algo_output=MagicMock(),
             processed_imu=MagicMock(),
-            events=MagicMock(),
-            sav_operator_feedback=MagicMock()
+            events=MagicMock()
         )
 
         # When
@@ -633,6 +629,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     def test_process_outputs(
             self,
@@ -696,9 +693,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             algo_output=collection_algo_out,
             pipeline_exec=MagicMock(),
             processed_imu=MagicMock(),
-            events=MagicMock(),
-            sav_operator_feedback=MagicMock()
-
+            events=MagicMock()
         )
 
         # When
@@ -955,6 +950,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
     @pytest.mark.unit
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
     def test_metadata_consumer_main(  # pylint: disable=too-many-arguments,unused-argument
             self,
             mock_container_services: Mock,
@@ -1013,7 +1009,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
         main.main()
 
-        mock_boto3_client.assert_any_call("sqs", region_name=AWS_REGION)
+        mock_boto3_client.assert_any_call("sqs", region_name=AWS_REGION, endpoint_url=None)
         mock_container_services_object.load_config_vars.assert_called_once_with()
         mock_container_services_object.load_mongodb_config_vars.assert_called_once_with()
         mock_container_services_object.create_db_client.assert_called_once_with()
@@ -1053,8 +1049,7 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
         signals=signals_collection,
         algo_output=algo_out_collection,
         processed_imu=MagicMock(),
-        events=MagicMock(),
-        sav_operator_feedback=MagicMock()
+        events=MagicMock()
     )
     mock_message = {
         "output": {
@@ -1120,8 +1115,7 @@ def test_insert_mdf_imu_data(file_exists: bool):
         algo_output=MagicMock(),
         pipeline_exec=MagicMock(),
         processed_imu=mock_imu_col,
-        events=mock_events_col,
-        sav_operator_feedback=MagicMock()
+        events=mock_events_col
     )
 
     di["s3_client"] = s3_client
