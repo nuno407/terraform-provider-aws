@@ -1,6 +1,7 @@
 """ Selector component bussiness logic. """
 import logging
 import os
+from datetime import timedelta
 from json import loads
 
 from kink import inject
@@ -9,7 +10,9 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.aws.s3 import S3Controller
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from base.model.artifacts import PreviewSignalsArtifact, parse_artifact, Artifact, VideoArtifact, RecorderType
+from base.model.artifacts import (Artifact, OperatorArtifact,
+                                  PreviewSignalsArtifact, RecorderType,
+                                  VideoArtifact, parse_artifact)
 from selector.decision import Decision
 from selector.evaluator import Evaluator
 from selector.footage_api_wrapper import FootageApiWrapper
@@ -70,7 +73,8 @@ class Selector:  # pylint: disable=too-few-public-methods
             return self.__process_preview_interior(artifact)
         if isinstance(artifact, VideoArtifact) and artifact.recorder == RecorderType.INTERIOR:
             return self.__process_video_recorder(artifact)
-
+        if isinstance(artifact, OperatorArtifact):
+            return self.__process_sav_operator(artifact)
         return False
 
     def __process_video_recorder(self, video_artifact: VideoArtifact) -> bool:
@@ -89,9 +93,29 @@ class Selector:  # pylint: disable=too-few-public-methods
                 video_artifact.timestamp,
                 video_artifact.end_timestamp)
         except Exception as error:  # pylint: disable=broad-except
-            _logger.error("Unexpected error occured when requesting footage: %s", error)
+            _logger.error("Unexpected error occured when requesting SRX footage: %s", error)
             return False
 
+        return True
+
+    def __process_sav_operator(self, sav_opreator_artifact: OperatorArtifact) -> bool:
+        """Logic to request footage upload whenever an SAV Operator spectates the video stream of an incident
+
+        Args:
+            sav_opreator_artifact (OperatorArtifact): Operator artifact, indicates device and time window
+
+        Returns:
+            bool: Boolean indicating if the request succeeded.
+        """
+        try:
+            self.footage_api_wrapper.request_recorder(
+                RecorderType.TRAINING,
+                sav_opreator_artifact.device_id,
+                sav_opreator_artifact.event_timestamp - timedelta(minutes=1),
+                sav_opreator_artifact.event_timestamp + timedelta(minutes=1))
+        except Exception as error:  # pylint: disable=broad-except
+            _logger.error("Unexpected error occured when requesting SAV footage: %s", error)
+            return False
         return True
 
     def __process_preview_interior(self, preview_metadata_artifact: PreviewSignalsArtifact) -> bool:
@@ -124,9 +148,9 @@ class Selector:  # pylint: disable=too-few-public-methods
                     decision.footage_from,
                     decision.footage_to)
             except Exception as error:  # pylint: disable=broad-except
-                _logger.error("Unexpected error occured when requesting footage: %s", error)
+                _logger.error("Unexpected error occured when requesting SRX footage from rule: %s", error)
                 return False
 
         if len(decisions) == 0:
-            _logger.info("Ride was not selected for training upload by any rule")
+            _logger.info("No Rule has been triggered, no upload request will be made.")
         return True

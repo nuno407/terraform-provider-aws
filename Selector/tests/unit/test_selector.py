@@ -7,7 +7,8 @@ from pytz import UTC
 from typing import Optional
 
 from base.model.artifacts import RecorderType
-from base.model.artifacts import RecorderType, SignalsArtifact, IMUArtifact, SnapshotArtifact, VideoArtifact, PreviewSignalsArtifact, Artifact
+from base.model.artifacts import RecorderType, SignalsArtifact, IMUArtifact, SnapshotArtifact, \
+    VideoArtifact, PreviewSignalsArtifact, OperatorArtifact, Artifact, CameraBlockedOperatorArtifact, PeopleCountOperatorArtifact, SOSOperatorArtifact
 from selector.decision import Decision
 from selector.selector import Selector
 
@@ -121,6 +122,62 @@ class TestSelector():  # pylint: disable=too-few-public-methods
 
     @patch("selector.selector.parse")
     @patch("selector.selector.parse_artifact")
+    def test_process_sav_operator(
+            self, parse_artifact_mock: Mock, parse_mock: Mock):
+        """Tests that the footage api is called correctly"""
+        footage_api_wrapper = Mock()
+        footage_api_wrapper.request_recorder = Mock()
+
+        sqs_controller = Mock()
+        sqs_controller.get_queue_url.return_value = "queue_url"
+        message = {
+            "Body": Mock()
+        }
+        sqs_controller.get_message = Mock(return_value=message)
+        sqs_controller.delete_message = Mock(return_value=None)
+
+        event_timestamp = datetime.now(tz=UTC) - timedelta(hours=1)
+
+        operator_artifact = MagicMock(spec=OperatorArtifact)
+        operator_artifact.event_timestamp = event_timestamp
+        operator_artifact.operator_monitoring_start = datetime.now(tz=UTC) - timedelta(minutes=5)
+        operator_artifact.operator_monitoring_end = datetime.now(tz=UTC)
+        operator_artifact.s3_path = None
+        operator_artifact.device_id = "DATANAUTS_DEV_01"
+        operator_artifact.tenant = "datanauts"
+        parse_artifact_mock.return_value = operator_artifact
+
+        s3_controller = Mock()
+        evaluator = Mock()
+
+        graceful_exit = Mock()
+        type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
+
+        selector = Selector(
+            s3_controller,
+            footage_api_wrapper,
+            sqs_controller,
+            evaluator
+        )
+
+        selector.run(graceful_exit)
+
+        parse_artifact_mock.assert_called_once_with(message["Body"])
+        footage_api_wrapper.request_recorder.assert_has_calls(
+            [
+                call(
+                    RecorderType.TRAINING,
+                    operator_artifact.device_id,
+                    event_timestamp -
+                    timedelta(
+                        minutes=1),
+                    event_timestamp +
+                    timedelta(
+                        minutes=1))])
+        sqs_controller.delete_message.assert_called_once_with(message)
+
+    @patch("selector.selector.parse")
+    @patch("selector.selector.parse_artifact")
     @pytest.mark.parametrize("recorder_type,artifact_type", [
         (RecorderType.TRAINING, VideoArtifact),
         (RecorderType.FRONT, VideoArtifact),
@@ -128,8 +185,8 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         (None, SignalsArtifact),
         (None, IMUArtifact),
     ])
-    def test_incorrect_artifact(self, parse_artifact_mock: Mock, parse_mock: Mock,
-                                recorder_type: Optional[RecorderType], artifact_type: Artifact):
+    def test_incorrect_srx_artifact(self, parse_artifact_mock: Mock, parse_mock: Mock,
+                                    recorder_type: Optional[RecorderType], artifact_type: Artifact):
         """Ensures that some artifacts do not request footages"""
         footage_api_wrapper = Mock()
         footage_api_wrapper.request_recorder = Mock()
@@ -161,3 +218,45 @@ class TestSelector():  # pylint: disable=too-few-public-methods
 
         parse_artifact_mock.assert_called_once_with(message["Body"])
         footage_api_wrapper.request_recorder.assert_not_called()
+
+    @patch("selector.selector.parse")
+    @patch("selector.selector.parse_artifact")
+    @pytest.mark.parametrize("artifact_type", [
+        (SOSOperatorArtifact),
+        (PeopleCountOperatorArtifact),
+        (CameraBlockedOperatorArtifact),
+    ])
+    def test_incorrect_sav_artifact(self, parse_artifact_mock: Mock, parse_mock: Mock, artifact_type: OperatorArtifact):
+        """Ensures that some artifacts do not request footages"""
+        footage_api_wrapper = Mock()
+        footage_api_wrapper.request_recorder = Mock(side_effect=Exception("What a pretty exception we got here"))
+
+        sqs_controller = Mock()
+        sqs_controller.get_queue_url.return_value = "queue_url"
+        message = {
+            "Body": Mock()
+        }
+        sqs_controller.get_message = Mock(return_value=message)
+        sqs_controller.delete_message = Mock()
+
+        operator_artifact = MagicMock(spec=artifact_type)
+        operator_artifact.event_timestamp = datetime.now()
+        operator_artifact.device_id = "DATANAUTS_DEV_01"
+
+        parse_artifact_mock.return_value = operator_artifact
+
+        s3_controller = Mock()
+        evaluator = Mock()
+        graceful_exit = Mock()
+        type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
+
+        selector = Selector(
+            s3_controller,
+            footage_api_wrapper,
+            sqs_controller,
+            evaluator
+        )
+
+        selector.run(graceful_exit)
+        parse_artifact_mock.assert_called_once_with(message["Body"])
+        sqs_controller.assert_not_called()
