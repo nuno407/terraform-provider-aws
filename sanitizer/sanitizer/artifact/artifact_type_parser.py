@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 from base.aws.model import SQSMessage
 from base.model.artifacts import (EventArtifact, KinesisVideoArtifact,
                                   MultiSnapshotArtifact, RecorderType,
-                                  S3VideoArtifact)
+                                  S3VideoArtifact, OperatorArtifact)
 from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_parser import MessageParser
 
@@ -33,6 +33,9 @@ ALLOWED_RECORDERS = {
         RecorderType.SNAPSHOT
     ],
     EventArtifact: [
+        None
+    ],
+    OperatorArtifact: [
         None
     ]
 }
@@ -90,6 +93,9 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
                                                                    .get("recorder_name", {}))
             else:
                 artifact_type = EventArtifact
+
+        elif topic_arn.endswith("operator-feedback-api"):
+            artifact_type = OperatorArtifact
 
         if artifact_type is None:
             raise MessageException(f"Cannot extract artifact type from message: {sqs_message}")

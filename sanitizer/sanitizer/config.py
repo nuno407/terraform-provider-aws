@@ -8,7 +8,8 @@ from base.model.artifacts import (Artifact, CameraServiceEventArtifact,
                                   IncidentEventArtifact, KinesisVideoArtifact,
                                   MetadataArtifact, PreviewSignalsArtifact,
                                   S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, VideoArtifact)
+                                  SnapshotArtifact, VideoArtifact, SOSOperatorArtifact,
+                                  CameraBlockedOperatorArtifact, PeopleCountOperatorArtifact)
 
 
 class SanitizerConfig(BaseModel):
@@ -36,7 +37,10 @@ class SanitizerConfig(BaseModel):
         "EventArtifact": EventArtifact,
         "IncidentEventArtifact": IncidentEventArtifact,
         "DeviceInfoEventArtifact": DeviceInfoEventArtifact,
-        "CameraServiceEventArtifact": CameraServiceEventArtifact
+        "CameraServiceEventArtifact": CameraServiceEventArtifact,
+        "CameraBlockedOperatorArtifact": CameraBlockedOperatorArtifact,
+        "PeopleCountOperatorArtifact": PeopleCountOperatorArtifact,
+        "SOSOperatorArtifact": SOSOperatorArtifact,
     }
 
     @validator("type_blacklist", pre=True, each_item=True)

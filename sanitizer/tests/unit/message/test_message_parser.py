@@ -105,7 +105,6 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                                   {},
                                   True)])
     def test_parse_message(self, test_case: str, input_message: dict, expected: SQSMessage, is_error: bool):
-        print("running test", test_case)
         if is_error:
             with pytest.raises(InvalidMessagePanic):
                 MessageParser().parse(input_message)

@@ -16,31 +16,11 @@ from base.model.event_types import (CameraServiceState, EventType,
 from sanitizer.artifact.parsers.event_parser import EventParser
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
 from sanitizer.exceptions import InvalidMessageError
-
-CURRENT_LOCATION = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
-TEST_DATA = os.path.join(CURRENT_LOCATION, "..", "data")
-MESSAGE_PARSER_DATA = os.path.join(TEST_DATA, "message_parser")
-
-
-def _events_message_raw_body(fixture_file_id: str) -> str:
-    filepath = os.path.join(MESSAGE_PARSER_DATA, fixture_file_id)
-    with open(filepath, encoding="utf-8") as fp:
-        return fp.read()
-
-
-def _valid_events_message_body(fixture_file_id: str) -> SQSMessage:
-    raw_body = _events_message_raw_body(fixture_file_id)
-    message = json.loads(raw_body)
-    return SQSMessage(message_id=message["MessageId"],
-                      receipt_handle=message["ReceiptHandle"],
-                      body=message["Body"],
-                      timestamp=message["Body"]["Timestamp"],
-                      attributes=message["Attributes"])
+from helper_functions import load_sqs_json, parse_sqs_message
 
 
 def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
-    message = _valid_events_message_body(fixture_file_id)
+    message = parse_sqs_message(fixture_file_id)
     message.body["Message"]["value"]["properties"]["header"]["message_type"] = "com.bosch.ivs.someUnknown"
     return message
 
@@ -48,7 +28,7 @@ def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
 @pytest.mark.unit
 @pytest.mark.parametrize("input_message,expected", [
     (
-        _valid_events_message_body("valid_incident_event.json"),
+        parse_sqs_message("valid_incident_event.json"),
         [
             IncidentEventArtifact(
                 tenant_id="datanauts",
@@ -62,7 +42,7 @@ def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
         ]
     ),
     (
-        _valid_events_message_body("valid_camera_service_event.json"),
+        parse_sqs_message("valid_camera_service_event.json"),
         [
             CameraServiceEventArtifact(
                 tenant_id="jackalope",
@@ -78,7 +58,7 @@ def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
         ]
     ),
     (
-        _valid_events_message_body("valid_device_info_event.json"),
+        parse_sqs_message("valid_device_info_event.json"),
         [
             DeviceInfoEventArtifact(
                 tenant_id="jackalope",

@@ -7,22 +7,7 @@ from base.aws.model import MessageAttributes, SQSMessage
 from base.model.artifacts import KinesisVideoArtifact, RecorderType, TimeWindow
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.kinesis_video_parser import KinesisVideoParser
-
-CURRENT_LOCATION = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
-TEST_DATA = os.path.join(CURRENT_LOCATION, "..", "data")
-MESSAGE_PARSER_DATA = os.path.join(TEST_DATA, "message_parser")
-
-
-def _events_message_raw_body(fixture_file_id: str) -> str:
-    filepath = os.path.join(MESSAGE_PARSER_DATA, fixture_file_id)
-    with open(filepath, encoding="utf-8") as fp:
-        return fp.read()
-
-
-def _valid_events_message_body(fixture_file_id: str) -> dict:
-    raw_body = _events_message_raw_body(fixture_file_id)
-    return json.loads(raw_body)
+from helper_functions import load_sqs_json
 
 
 MESSAGE_ID = "barfoo"
@@ -36,7 +21,7 @@ RECEIPT_HANDLE = "foobar"
         SQSMessage(
             message_id=MESSAGE_ID,
             receipt_handle=RECEIPT_HANDLE,
-            body=_valid_events_message_body("valid_footage_event.json"),
+            body=load_sqs_json("valid_footage_event.json"),
             timestamp="1671346291000",
             attributes=MessageAttributes(
                 tenant="ridecare_companion_trial",

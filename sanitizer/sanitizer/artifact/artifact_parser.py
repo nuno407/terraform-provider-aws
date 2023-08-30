@@ -6,7 +6,7 @@ from kink import inject
 from base.aws.model import SQSMessage
 from base.model.artifacts import (Artifact, EventArtifact,
                                   KinesisVideoArtifact, MultiSnapshotArtifact,
-                                  S3VideoArtifact)
+                                  S3VideoArtifact, OperatorArtifact)
 from sanitizer.artifact.artifact_type_parser import ArtifactTypeParser
 from sanitizer.artifact.parsers.event_parser import EventParser
 from sanitizer.artifact.parsers.iparser import IArtifactParser
@@ -14,6 +14,7 @@ from sanitizer.artifact.parsers.kinesis_video_parser import KinesisVideoParser
 from sanitizer.artifact.parsers.multi_snapshot_parser import \
     MultiSnapshotParser
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
+from sanitizer.artifact.parsers.operator_feedback_parser import OperatorFeedbackParser
 from sanitizer.exceptions import ArtifactException
 
 _logger = logging.getLogger(__name__)
@@ -31,26 +32,30 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
     The RecorderTypeParser is responsible for choosing the correct parser for the artifact type.
     """
 
-    def __init__(self,
+    def __init__(self,  # pylint: disable=too-many-arguments
                  kinesis_video_parser: KinesisVideoParser,
                  s3_video_parser: S3VideoParser,
                  multi_snapshot_parser: MultiSnapshotParser,
-                 event_parser: EventParser) -> None:
-        self._kinesis_video_parser = kinesis_video_parser
-        self._s3_video_parser = s3_video_parser
-        self._multi_snapshot_parser = multi_snapshot_parser
-        self._event_parser = event_parser
+                 event_parser: EventParser,
+                 operator_feedback_parser: OperatorFeedbackParser) -> None:
+        self.__kinesis_video_parser = kinesis_video_parser
+        self.__s3_video_parser = s3_video_parser
+        self.__multi_snapshot_parser = multi_snapshot_parser
+        self.__event_parser = event_parser
+        self.__operator_feedback_parser = operator_feedback_parser
 
     def __get_parser_for_artifact(self, artifact_type: type) -> IArtifactParser:
         """ Get parser for artifact type. """
         if issubclass(artifact_type, KinesisVideoArtifact):
-            return self._kinesis_video_parser
+            return self.__kinesis_video_parser
         if issubclass(artifact_type, S3VideoArtifact):
-            return self._s3_video_parser
+            return self.__s3_video_parser
         if issubclass(artifact_type, MultiSnapshotArtifact):
-            return self._multi_snapshot_parser
+            return self.__multi_snapshot_parser
         if issubclass(artifact_type, EventArtifact):
-            return self._event_parser
+            return self.__event_parser
+        if issubclass(artifact_type, OperatorArtifact):
+            return self.__operator_feedback_parser
 
         raise ArtifactException(f"Artifact type not supported: {artifact_type}")
 

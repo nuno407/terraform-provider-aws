@@ -21,6 +21,14 @@ TEST_TOPIC_NAME = "test-topic"
 TEST_QUEUE_NAME = "test-queue"
 
 
+def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
+    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
+                 ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
+    for args in call_args:
+        raw_body = raw_body.replace(args[0], args[1])
+    return json.loads(raw_body)
+
+
 @pytest.fixture(scope="session")
 def sqs_client() -> SQSClient:
     """Creates mocked moto3 SQS client """
@@ -48,14 +56,6 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
             Endpoint=sqs_queue_arn
         )
         yield msns_client  # NOSONAR
-
-
-def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
-    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
-                 ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
-    for args in call_args:
-        raw_body = raw_body.replace(args[0], args[1])
-    return json.loads(raw_body)
 
 
 @pytest.mark.integration

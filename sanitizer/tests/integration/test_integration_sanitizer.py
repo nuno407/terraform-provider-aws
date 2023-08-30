@@ -32,6 +32,8 @@ TEST_DATA = os.path.join(CURRENT_LOCATION, "data")
 class TestSanitizerIntegration:
 
     def setup_method(self, method):
+        di.clear_cache()
+
         di["start_delay"] = 0
         di["container_name"] = "test-sanitizer"
 

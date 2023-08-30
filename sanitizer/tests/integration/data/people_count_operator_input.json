@@ -1,0 +1,25 @@
+{
+    "Type": "Notification",
+    "MessageId": "b876935b-3d2e-5779-a482-ce3c90e049bb",
+    "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-operator-feedback-api",
+    "Message": "{\n  \"metadata\": {\n    \"deviceId\": \"DATANAUTS_DEV_02\",\n    \"tenant\": \"datanauts\",\n    \"eventTimestamp\": 1693297035,\n    \"operatorMonitoringStart\": 1693297129,\n    \"operatorMonitoringEnd\": 1693298157\n  },\n  \"additionalInformation\": {\n    \"isDoorBlocked\": true,\n    \"isCameraBlocked\": false,\n    \"isAudioMalfunction\": true,\n    \"observations\": \"Mr. Bean eats a banana\"\n  },\n  \"peopleCount\": {\n    \"isPeopleCountCorrect\": false,\n    \"correctCount\": 5\n  }\n}",
+    "Timestamp": "2023-08-29T08:25:50.750Z",
+    "SignatureVersion": "1",
+    "Signature": "bbfNYrGF/SBsPfxJa3n9/SoTy3hEEU6X2ijlg/EaDwYDpZGIMNkzTbTxZFMoz6yaqOISNTBdtJf8KMI1ap2XFMzktm9jelUSsD4LNnFjGkJndDU13xnhO1FjKRuoB2qw0hkeEjflOmWL2ZEON1Kp1CQsRFPBvVyscFngVtacoPSqoX/HKLAcAseh0xP73mBjQxZNIIlbo0HpquOFMHGsQuF8/RlpN3zLNy6J985AGgwzO7WQrQNPymdiuWs31bxEIhv7crywMrIuO3nqI6P6q3HzuIKtfcRHtZxIZd0p++h6IQnBzszBXJHIICwlSldGlaHPUH4yCMDUeRyRRtBp8Q==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-operator-feedback-api:7edf9718-6590-4c4c-a7b8-468e078ac3b1",
+    "MessageAttributes": {
+        "path": {
+            "Type": "String",
+            "Value": "/people-count/{deviceId}"
+        },
+        "deviceId": {
+            "Type": "String",
+            "Value": "DATANAUTS_DEV_02"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "datanauts"
+        }
+    }
+}
