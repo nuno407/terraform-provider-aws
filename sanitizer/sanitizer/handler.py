@@ -9,7 +9,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 from base.aws.model import SQSMessage
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
-from base.model.artifacts import Artifact, ImageBasedArtifact, EventArtifact
+from base.model.artifacts import Artifact, ImageBasedArtifact, EventArtifact, OperatorArtifact
 from sanitizer.artifact.artifact_controller import ArtifactController
 from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_controller import MessageController
@@ -79,6 +79,7 @@ class Handler:  # pylint: disable=too-few-public-methods
                     if isinstance(artifact, EventArtifact):
                         self.metadata_sqs_controller.send_message(artifact.stringify())
                         continue
+
                     recorder = artifact.recorder.value if isinstance(artifact, ImageBasedArtifact) else None
                     _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
                                  recorder,
@@ -86,7 +87,10 @@ class Handler:  # pylint: disable=too-few-public-methods
                                  artifact.tenant_id)
 
                     is_relevant = self.artifact.filter.is_relevant(artifact)
+
                     if is_relevant:
+                        if isinstance(artifact, OperatorArtifact):
+                            self.metadata_sqs_controller.send_message(artifact.stringify())
                         self.artifact.forwarder.publish(artifact)
                     else:
                         _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
