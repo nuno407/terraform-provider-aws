@@ -4,6 +4,7 @@
     "event_timestamp": "2023-08-29T08:17:15+00:00",
     "operator_monitoring_start": "2023-08-29T08:18:49+00:00",
     "operator_monitoring_end": "2023-08-29T08:35:57+00:00",
+    "artifact_name": "sav-operator-camera-blocked",
     "additional_information": {
         "is_door_blocked": true,
         "is_camera_blocked": false,

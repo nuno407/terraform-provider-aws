@@ -64,6 +64,7 @@ class MessageParser:
         if isinstance(attribute, str):
             return attribute
 
+        result = None
         if "Value" in attribute:
             result = attribute["Value"]
         elif "StringValue" in attribute:

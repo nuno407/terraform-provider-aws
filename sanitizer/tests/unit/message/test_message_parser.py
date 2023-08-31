@@ -7,6 +7,7 @@ import pytest
 from base.aws.model import MessageAttributes, SQSMessage
 from sanitizer.exceptions import InvalidMessagePanic
 from sanitizer.message.message_parser import MessageParser
+from typing import Union, Optional
 
 CURRENT_LOCATION = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -111,3 +112,25 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
         else:
             got_sqs_message = MessageParser().parse(input_message)
             assert got_sqs_message == expected
+
+    @pytest.mark.parametrize("attribute,expected_result", [
+        (
+            {"Value": "10"},
+            "10"
+        ),
+        (
+            {"StringValue": "test"},
+            "test"
+        ),
+        (
+            {"Nothing", "test"},
+            None
+        ),
+        (
+            "some_value",
+            "some_value"
+        )
+    ])
+    def test_flatten_string_value(self, attribute: Union[str, dict], expected_result: Optional[str]):
+        value = MessageParser().flatten_string_value(attribute)
+        assert value == expected_result

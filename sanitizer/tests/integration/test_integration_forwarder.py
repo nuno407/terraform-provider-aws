@@ -1,5 +1,6 @@
 """ Integration tests for the forwarder. """
 import json
+from json import JSONDecodeError
 from datetime import datetime
 
 import boto3
@@ -10,6 +11,7 @@ from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
 from pytz import UTC
 
+from base.aws.sqs import parse_message_body_to_dict
 from base.aws.sns import SNSController
 from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
                                   Recording, RecorderType, S3VideoArtifact,
@@ -19,14 +21,6 @@ from sanitizer.artifact.artifact_forwarder import ArtifactForwarder
 
 TEST_TOPIC_NAME = "test-topic"
 TEST_QUEUE_NAME = "test-queue"
-
-
-def _read_and_parse_msg_body_from_sns_topic(raw_body: str) -> dict:
-    call_args = [("'", '"'), ("\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
-                 ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
-    for args in call_args:
-        raw_body = raw_body.replace(args[0], args[1])
-    return json.loads(raw_body)
 
 
 @pytest.fixture(scope="session")
@@ -165,7 +159,7 @@ def test_forwarder_publish_to_sns_topic(artifact: Artifact,
     queue_url = sqs_client.get_queue_url(QueueName=TEST_QUEUE_NAME)
     messages = sqs_client.receive_message(QueueUrl=queue_url["QueueUrl"])
     raw_body = messages["Messages"][0]["Body"]
-    body = _read_and_parse_msg_body_from_sns_topic(raw_body)
+    body = parse_message_body_to_dict(raw_body, ["Message", "Body", "default"])
 
     # using ArtifactDecoder to deserialize the message published in the topic
     got_artifact = parse_artifact(json.dumps(body["Message"]["default"]))

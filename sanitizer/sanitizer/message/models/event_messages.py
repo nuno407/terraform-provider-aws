@@ -6,14 +6,7 @@ from pydantic import BaseModel, Extra, Field, validator
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
-
-
-class ConfiguredBaseModel(BaseModel):
-    class Config:
-        extra = Extra.ignore
-        use_enum_values = True
-        validate_assignment = True
-        allow_population_by_field_name = True
+from base.model.config import ConfiguredBaseModel
 
 
 class WrappedString(ConfiguredBaseModel):
