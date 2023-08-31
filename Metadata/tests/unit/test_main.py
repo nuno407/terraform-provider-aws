@@ -479,6 +479,46 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         # THEN
         collection_events_mock.insert_one.assert_called_once_with(artifact_body)
 
+    @pytest.mark.unit
+    def test_create_sav_operator(self):
+        event_timestamp = datetime.fromisoformat("2023-08-29T08:17:15+00:00",)
+        operator_monitoring_start = datetime.fromisoformat("2023-08-29T08:18:49+00:00")
+        operator_monitoring_end = datetime.fromisoformat("2023-08-29T08:35:57+00:00")
+
+        artifact_body_sav = {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_02",
+        "event_timestamp": event_timestamp,
+        "operator_monitoring_start": operator_monitoring_start,
+        "operator_monitoring_end": operator_monitoring_end,
+        "artifact_name": 'sav-operator-people-count',
+        "additional_information": {
+            "is_door_blocked": True,
+            "is_camera_blocked": False,
+            "is_audio_malfunction": True,
+            "observations": "foo"
+        },
+        "is_people_count_correct": False,
+        "correct_count": 5
+        }
+
+
+        message_attributes = {
+            'SourceContainer': {
+                'StringValue': 'Sanitizer'
+            }
+        }
+
+        collection_sav_operator_feedback_mock = Mock()
+        metadata_collections = Mock()
+        metadata_collections.sav_operator_feedback = collection_sav_operator_feedback_mock
+        # WHEN
+        process_sanitizer(artifact_body_sav, metadata_collections)
+
+        # THEN
+        collection_sav_operator_feedback_mock.insert_one.assert_called_once_with(artifact_body_sav)
+
+
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
                                  f"s3://a/b/c/dmp4.{file_format}",
@@ -549,7 +589,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             pipeline_exec=MagicMock(),
             algo_output=MagicMock(),
             processed_imu=MagicMock(),
-            events=MagicMock()
+            events=MagicMock(),
+            sav_operator_feedback=MagicMock()
         )
 
         # When
@@ -655,7 +696,9 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             algo_output=collection_algo_out,
             pipeline_exec=MagicMock(),
             processed_imu=MagicMock(),
-            events=MagicMock()
+            events=MagicMock(),
+            sav_operator_feedback=MagicMock()
+
         )
 
         # When
@@ -945,13 +988,13 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_container_services_object.load_mongodb_config_vars = Mock()
         mock_db_client = MagicMock()
         mock_db_client.__getitem__.side_effect = [
-            Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
+            Mock(), Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
         ]
         mock_db_client.client = Mock()
         mock_container_services_object.create_db_client = Mock(
             return_value=mock_db_client)
         mock_container_services_object.db_tables.__getitem__.side_effect = [
-            Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
+            Mock(), Mock(), Mock(), Mock(), Mock(), Mock(), Mock()
         ]
         mock_container_services_object.anonymized_s3 = "anon_bucket"
         mock_container_services_object.raw_s3 = "raw_bucket"
@@ -1010,7 +1053,8 @@ def test_process_outputs_chc_document_too_large(download_and_sync: Mock,
         signals=signals_collection,
         algo_output=algo_out_collection,
         processed_imu=MagicMock(),
-        events=MagicMock()
+        events=MagicMock(),
+        sav_operator_feedback=MagicMock()
     )
     mock_message = {
         "output": {
@@ -1076,7 +1120,8 @@ def test_insert_mdf_imu_data(file_exists: bool):
         algo_output=MagicMock(),
         pipeline_exec=MagicMock(),
         processed_imu=mock_imu_col,
-        events=mock_events_col
+        events=mock_events_col,
+        sav_operator_feedback=MagicMock()
     )
 
     di["s3_client"] = s3_client

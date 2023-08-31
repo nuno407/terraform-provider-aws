@@ -28,7 +28,7 @@ from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
 from base.model.artifacts import (Artifact, EventArtifact,
                                   KinesisVideoArtifact, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
-                                  VideoArtifact, parse_artifact)
+                                  VideoArtifact, parse_artifact, OperatorArtifact)
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
                                        UNKNOWN_FILE_FORMAT_MESSAGE)
 from metadata.common.errors import (EmptyDocumentQueryResult,
@@ -59,6 +59,7 @@ class MetadataCollections:
     algo_output: Collection
     processed_imu: Collection
     events: Collection
+    sav_operator_feedback: Collection
 
 
 def _get_anonymized_s3_path(file_key: str) -> str:
@@ -768,8 +769,8 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections,
             "Unexpected file format %s from SDRetriever.", file_format)
 
 
-def __convert_event_to_db_item(event: EventArtifact) -> dict:
-    event_data = event.dict()
+def __convert_event_to_db_item(artifact: Artifact) -> dict:
+    event_data = artifact.dict()
     return {k: v for (k, v) in event_data.items() if v is not None}
 
 
@@ -781,6 +782,10 @@ def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
         db_item = __convert_event_to_db_item(artifact)
         event_collection.insert_one(db_item)
 
+    if isinstance(artifact, OperatorArtifact):
+        sav_operator_collection = metadata_collections.sav_operator_feedback
+        db_item = __convert_event_to_db_item(artifact)
+        sav_operator_collection.insert_one(db_item)
 
 def __process_general(message: dict, metadata_collections: MetadataCollections, source: str):
     recording_id = os.path.basename(message["s3_path"]).split(".")[0]
@@ -935,7 +940,8 @@ def main():
                 pipeline_exec=db_client[container_services.db_tables["pipeline_exec"]],
                 algo_output=db_client[container_services.db_tables["algo_output"]],
                 processed_imu=db_client[container_services.db_tables["processed_imu"]],
-                events=db_client[container_services.db_tables["events"]]
+                events=db_client[container_services.db_tables["events"]],
+                sav_operator_feedback=db_client[container_services.db_tables["sav_operator_feedback"]]
             )
 
             # Insert/update data in db
