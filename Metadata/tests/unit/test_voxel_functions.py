@@ -1,7 +1,7 @@
 from base.aws.s3 import S3Controller
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
-from metadata.consumer.config import DatasetMappingConfig
+from metadata.consumer.config import MetadataConfig
 from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample, get_voxel_sample_data_privacy_document_id
 import pytest
 from base.model.artifacts import SignalsArtifact, SnapshotArtifact, MetadataType, RecorderType, TimeWindow
@@ -155,7 +155,7 @@ class TestVoxelFunctions():
     ])
     def test_get_voxel_snapshot_sample(
             self,
-            dataset_config: DatasetMappingConfig,
+            dataset_config: MetadataConfig,
             fiftyone: MagicMock,
             tenant: str,
             snap_id: str,
@@ -166,7 +166,7 @@ class TestVoxelFunctions():
         fiftyone.load_dataset.return_value = dataset
         return_mock = MagicMock()
         dataset.one.return_value = return_mock
-        di[DatasetMappingConfig] = dataset_config
+        di[MetadataConfig] = dataset_config
 
         # WHEN
         result_data = get_voxel_snapshot_sample(tenant, snap_id)
@@ -184,13 +184,13 @@ class TestVoxelFunctions():
                               ])
     def test_get_voxel_sample_data_privacy_document_id(
             self,
-            dataset_config: DatasetMappingConfig,
+            dataset_config: MetadataConfig,
             s3_path: str,
             expected_policy: str):
         # GIVEN
         sample_mock = Mock()
         sample_mock.filepath = s3_path
-        di[DatasetMappingConfig] = dataset_config
+        di[MetadataConfig] = dataset_config
         # WHEN
         policy = get_voxel_sample_data_privacy_document_id(sample_mock)
         assert policy == expected_policy

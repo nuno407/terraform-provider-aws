@@ -2,7 +2,7 @@ import fiftyone as fo
 from fiftyone import ViewField
 import logging
 from datetime import datetime
-from metadata.consumer.config import DatasetMappingConfig
+from metadata.consumer.config import MetadataConfig
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from base.model.metadata_artifacts import Frame
 from metadata.consumer.voxel.metadata_parser import MetadataParser
@@ -53,7 +53,7 @@ def get_voxel_snapshot_sample(tenant: str, snapshot_id: str) -> fo.Sample:
     return sample
 
 @inject
-def get_voxel_sample_data_privacy_document_id(sample: fo.Sample, mapping_config: DatasetMappingConfig) -> str:
+def get_voxel_sample_data_privacy_document_id(sample: fo.Sample, mapping_config: MetadataConfig) -> str:
     """
     Checks in config the associated data privacy document for the tenant
     """
@@ -180,7 +180,7 @@ def update_sample(dataset_name, sample_info:dict):
 
 
 @inject
-def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: DatasetMappingConfig) -> tuple[str, list[str]]:
+def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: MetadataConfig) -> tuple[str, list[str]]:
     """
     Checks in config if tenant gets its own dataset or if it is part of the default dataset.
     Dedicated dataset names are prefixed with the tag given in the config.
@@ -194,8 +194,10 @@ def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: Data
     dataset_name = mapping_config.default_dataset
     tags = [mapping_config.tag]
 
-    if tenant in mapping_config.create_dataset_for:
-        dataset_name = f"{mapping_config.tag}-{tenant}"
+    for dataset in mapping_config.create_dataset_for:
+        if tenant in dataset.tenants:
+            dataset_name = f"{mapping_config.tag}-{dataset.name}"
+            break
 
     if is_snapshot:
         dataset_name = dataset_name + "_snapshots"
@@ -204,7 +206,7 @@ def _determine_dataset_name(tenant: str, is_snapshot: bool, mapping_config: Data
 
 
 @inject
-def _determine_dataset_by_path(filepath: str, mapping_config: DatasetMappingConfig) -> tuple[str, list[str]]:
+def _determine_dataset_by_path(filepath: str, mapping_config: MetadataConfig) -> tuple[str, list[str]]:
     """
     Method to mantain compatability with legacy functions that get's the tenant by spliting the path.
 

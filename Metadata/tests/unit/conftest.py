@@ -12,7 +12,7 @@ from base.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from unittest.mock import Mock, MagicMock
 from base.aws.s3 import S3Controller
 from mypy_boto3_s3 import S3Client
-from metadata.consumer.config import DatasetMappingConfig
+from metadata.consumer.config import MetadataConfig, DatasetConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from metadata.consumer.imu_gap_finder import IMUGapFinder
 
@@ -49,9 +49,11 @@ def fo_sample() -> dict:
 
 
 @pytest.fixture
-def dataset_config() -> DatasetMappingConfig:
-    return DatasetMappingConfig(
-        create_dataset_for="datanauts",
+def dataset_config() -> MetadataConfig:
+    return MetadataConfig(
+        create_dataset_for=[
+            DatasetConfig(name="datanauts",tenants=["datanauts"])
+        ],
         default_dataset="Debug_Lync",
         tag="RC",
         default_policy_document="default-policy",

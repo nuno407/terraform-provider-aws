@@ -18,7 +18,6 @@ import pytz
 from kink import inject
 from mypy_boto3_s3 import S3Client
 from pymongo.collection import Collection, ReturnDocument
-from pymongo.database import Database
 from pymongo.errors import DocumentTooLarge, PyMongoError
 
 from base import GracefulExit
@@ -38,7 +37,6 @@ from metadata.common.errors import (EmptyDocumentQueryResult,
                                     MalformedRecordingEntry)
 from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
-from metadata.consumer.config import DatasetMappingConfig
 from metadata.consumer.exceptions import (NotSupportedArtifactError,
                                           SnapshotNotFound)
 from metadata.consumer.persistence import Persistence

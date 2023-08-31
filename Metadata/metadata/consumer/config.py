@@ -1,47 +1,38 @@
 """Metadata config loaded from config file"""
-from dataclasses import dataclass, field, fields
-
+from dataclasses import Field
+from pydantic import BaseModel
 import yaml
 
+class DatasetConfig(BaseModel):
+    """
+    Represents a list of tenants that should use a specific dataset
+    """
+    name: str
+    tenants: list[str]
 
-@dataclass
-class DatasetMappingConfig():
+
+class MetadataConfig(BaseModel):
     """
-    Config holding information about the tenant to dataset mapping and specific tenant config
+    Config holding information about Metadata component
     """
-    create_dataset_for: set[str] = field(default_factory=set)
-    default_dataset: str = ""
-    tag: str = ""
+    create_dataset_for: list[DatasetConfig] = []
+    default_dataset: str = "Debug_Lync"
+    tag: str = "RC"
     default_policy_document: str = ""
-    policy_document_per_tenant: dict[str, str] = field(default_factory=dict)
-
-
-@dataclass
-class MetadataConfig():
-    """
-    Metadata configuration
-    """
-    dataset_mapping: DatasetMappingConfig
+    policy_document_per_tenant: dict[str, str] = []
 
     @staticmethod
-    def load_config_from_yaml_file(path) -> "MetadataConfig":
-        """Loads yaml file into a MetadataConfig object. Extra yaml fields are ignored.
+    def load_yaml_config(config_path: str) -> "MetadataConfig":
+        """load_yaml_config.
+
+        Loads YAML configuration file form path
 
         Args:
-            path (_type_): path of the yaml file containing the config
+            config_path (str): path to yaml file
 
         Returns:
-            MetadataConfig: MetadataConfig object containing passed yaml config
+            SanitizerConfig: configuration
         """
-        with open(path, "r", encoding="utf-8") as configfile:
-            config = yaml.safe_load(configfile)
-
-            config_objects = {}
-            for attribute in fields(MetadataConfig):
-                # Dynamically create objects from complex types
-                config_attribute_fields = [f.name for f in fields(attribute.type)]
-                config_params = {key: value for key, value in config.get(attribute.name, {}).items() if
-                                 key in config_attribute_fields}
-                config_objects[attribute.name] = attribute.type(**config_params)
-
-            return MetadataConfig(**config_objects)
+        with open(config_path, "r", encoding="utf-8") as file_handler:
+            yaml_object = yaml.safe_load(file_handler)
+            return MetadataConfig.parse_obj(yaml_object)

@@ -1,11 +1,13 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
+from base.testing.utils import get_abs_path
 from unittest.mock import Mock, PropertyMock, call, patch
 
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
+from kink import di
 
 import metadata.consumer.main
 
@@ -153,6 +155,7 @@ class TestMain:
                                      "RC-ridecare_companion_gridwise")
                              ])
     @patch("metadata.consumer.main.add_voxel_snapshot_metadata")
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
     def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset,

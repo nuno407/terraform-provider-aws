@@ -17,11 +17,13 @@ from pymongo.collection import ReturnDocument
 from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
 from pytz import UTC
+from base.testing.utils import get_abs_path
 
 import metadata.consumer.main as main
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from base.model.event_types import Location
 from metadata.consumer.bootstrap import bootstrap_di
+from kink import di
 from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     create_recording_item,
                                     create_snapshot_recording_item,
@@ -497,7 +499,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.update_sample")
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
     @pytest.mark.unit
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
@@ -508,6 +510,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             anonymized_path: str,
             voxel_dataset_name: str):
         # Given
+        di.clear_cache()
         bootstrap_di()
         recording_item: dict = {
             "_id": "test",
