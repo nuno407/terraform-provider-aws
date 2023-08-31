@@ -14,6 +14,8 @@ from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
 
+SAV_OPERATOR_IDENTIFIER = "sav-operator"
+
 
 class RecorderType(str, Enum):
     """ artifact type enumerator. """
@@ -271,23 +273,18 @@ class OperatorArtifact(Artifact):
     event_timestamp: datetime = Field(default=...)
     operator_monitoring_start: datetime = Field(default=...)
     operator_monitoring_end: datetime = Field(default=...)
-
-    @abstractmethod
-    def event_name(self) -> str:
-        """The event name"""
+    artifact_name: str = SAV_OPERATOR_IDENTIFIER
 
     @property
     def artifact_id(self) -> str:
-        return f"sav-operator_{self.tenant_id}_{self.device_id}_{self.event_name()}_{round(self.event_timestamp.timestamp()*1000)}"
+        return f"{self.artifact_name}_{self.tenant_id}_{self.device_id}_{round(self.event_timestamp.timestamp()*1000)}"
 
 
 class SOSOperatorArtifact(OperatorArtifact):
     """Represents an SAV SOS event"""
     additional_information: OperatorAdditionalInformation = Field(default=...)
     reason: OperatorSOSReason = Field(default=...)
-
-    def event_name(self) -> str:
-        return "sos"
+    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-sos"
 
 
 class PeopleCountOperatorArtifact(OperatorArtifact):
@@ -295,9 +292,7 @@ class PeopleCountOperatorArtifact(OperatorArtifact):
     additional_information: OperatorAdditionalInformation = Field(default=...)
     is_people_count_correct: bool = Field(default=...)
     correct_count: Optional[int] = Field(default=...)
-
-    def event_name(self) -> str:
-        return "people_count"
+    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-people-count"
 
 
 class CameraBlockedOperatorArtifact(OperatorArtifact):
@@ -305,9 +300,7 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
 
     additional_information: OperatorAdditionalInformation = Field(default=...)
     is_chc_correct: bool = Field(default=...)
-
-    def event_name(self) -> str:
-        return "camera_blocked"
+    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-camera-blocked"
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:

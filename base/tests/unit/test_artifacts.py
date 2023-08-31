@@ -219,10 +219,10 @@ class TestArtifacts:
                           [preview_signals(),
                            "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview"],
                        [camera_blocked_operator(),
-                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_camera_blocked_1665367680000"],
+                        "sav-operator-camera-blocked_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"],
                        [people_count_operator(),
-                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_people_count_1665367680000"],
+                        "sav-operator-people-count_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"],
                        [sos_count_operator(),
-                        "sav-operator_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_sos_1665367680000"]])
+                        "sav-operator-sos_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"]])
     def test_artifact_id(self, artifact: Artifact, expected_id: str):
         assert artifact.artifact_id == expected_id
