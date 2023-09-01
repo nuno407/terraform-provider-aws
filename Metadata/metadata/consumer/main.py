@@ -2,10 +2,7 @@
 import copy
 import json
 import os
-import re
-from ast import literal_eval
-from collections import namedtuple
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from logging import Logger
@@ -25,6 +22,7 @@ from base.aws.auto_message_visibility_increaser import \
     AutoMessageVisibilityIncreaser
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3Controller
+from base.aws.sqs import parse_message_body_to_dict
 from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
 from base.model.artifacts import (Artifact, EventArtifact,
@@ -39,11 +37,12 @@ from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.exceptions import (NotSupportedArtifactError,
                                           SnapshotNotFound)
+from metadata.consumer.imu_gap_finder import IMUGapFinder, TimeRange
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
 from metadata.consumer.voxel.functions import (add_voxel_snapshot_metadata,
                                                update_on_voxel)
-from metadata.consumer.imu_gap_finder import IMUGapFinder, TimeRange
+
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
 DOCUMENT_TOO_LARGE_MESSAGE = "Document too large %s"
@@ -838,21 +837,6 @@ def upsert_data_to_db(service: RelatedMediaService,
                      source, message, message_attributes)
 
 
-def parse_message_to_dict(body: str) -> dict:
-    """Parses the message from string to dict"""
-    _logger.info("Processing pipeline message..")
-
-    try:
-        data = json.loads(body)
-    except JSONDecodeError as json_exc:
-        try:
-            data = literal_eval(body)
-        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as eval_exc:
-            raise ValueError("Unable to parse message content from JSON or python object", [json_exc, eval_exc])
-
-    return data
-
-
 def fix_message(container_services: ContainerServices, body: str, dict_body: dict) -> dict:
     """Copies info received from other containers and
     converts it from string into a dictionary
@@ -935,9 +919,10 @@ def main():
             continue
 
         if message:
+            _logger.info("Processing pipeline message..")
             _logger.info(message)
             # Convert message from string to dict
-            message_dict = parse_message_to_dict(message["Body"])
+            message_dict = parse_message_body_to_dict(message["Body"])
             # Processing step to be compatible with whatever is done later
             fixed_message_dict = fix_message(container_services, message["Body"], message_dict.copy())
             # Get source container name

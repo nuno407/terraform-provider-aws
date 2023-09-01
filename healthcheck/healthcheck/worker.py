@@ -1,18 +1,15 @@
 """Ridecare healthcheck module."""
-import json
 import logging
-from typing import Dict
 
 import botocore.exceptions
 from kink import inject
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
-from base.aws.sqs import TWELVE_HOURS_IN_SECONDS, SQSController
+from base.aws.sqs import (TWELVE_HOURS_IN_SECONDS, SQSController,
+                          parse_message_body_to_dict)
 from base.graceful_exit import GracefulExit
-from base.model.artifacts import (Artifact, RecorderType, SnapshotArtifact,
-                                  VideoArtifact, parse_artifact)
-from healthcheck.checker.common import ArtifactChecker  # type: ignore
-from healthcheck.config import HealthcheckConfig
+from base.model.artifacts import Artifact, parse_artifact
+from healthcheck.checker.checker_determiner import CheckerDeterminer
 from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
                                    ELASTIC_SUCCESS_MATCHER)
 from healthcheck.exceptions import FailedHealthCheckError, NotYetIngestedError
@@ -30,32 +27,12 @@ class HealthCheckWorker:
 
     def __init__(  # pylint: disable=too-many-arguments
             self,
-            config: HealthcheckConfig,
             sqs_controller: SQSController,
             notifier: Notifier,
-            checkers: Dict[RecorderType, ArtifactChecker]):
-        self.__config = config
+            checker_determiner: CheckerDeterminer):
         self.__sqs_controller = sqs_controller
         self.__notifier = notifier
-        self.__checkers = checkers
-
-    def is_relevant(self, artifact: Artifact) -> bool:
-        """ Check if artifact is relevant """
-        if artifact.recorder == RecorderType.TRAINING:
-            return self.__is_whitelisted_training(artifact)
-
-        return True
-
-    def __is_whitelisted_training(self, artifact: Artifact) -> bool:
-        """Check if message is a black listed training
-
-        Args:
-            message (SQSMessage): artifact message with type inside id
-
-        Returns:
-            bool: verification result
-        """
-        return artifact.tenant_id in self.__config.training_whitelist
+        self.__checker_determiner = checker_determiner
 
     def alert(self, artifact_id: str, message: str) -> None:
         """Emit log entry to trigger Kibana alert
@@ -65,13 +42,6 @@ class HealthCheckWorker:
         """
         logger.info("%s : %s : [%s]", ELASTIC_ALERT_MATCHER, message, artifact_id)
         self.__notifier.send_notification(f"{message} : [{artifact_id}]")
-
-    def __deserialize(self, raw_message: str) -> str:
-        call_args = [("'", '"'), ("\\n", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
-                     ("\\", ""), ('"{', "{"), ('}"', "}")]   # pylint: disable=invalid-string-quote
-        for args in call_args:
-            raw_message = raw_message.replace(args[0], args[1])
-        return raw_message
 
     @inject
     def run(self, graceful_exit: GracefulExit) -> None:
@@ -86,27 +56,13 @@ class HealthCheckWorker:
             if not raw_message:
                 continue
 
-            raw_body = self.__deserialize(raw_message["Body"])
-            parsed_body = json.loads(raw_body)
+            parsed_body = parse_message_body_to_dict(raw_message["Body"])
 
             artifact = parse_artifact(parsed_body["Message"])
-            if not isinstance(artifact, VideoArtifact) \
-                    and not isinstance(artifact, SnapshotArtifact):
-                logger.info("SKIP, artifact is not video or snapshot")
-                self.__sqs_controller.delete_message(raw_message)
-                continue
-
-            if artifact.recorder not in self.__checkers.keys():
-                logger.info("SKIP, artifact is not handled by healthcheck")
-                self.__sqs_controller.delete_message(raw_message)
-                continue
-
-            if not self.is_relevant(artifact):
-                logger.info("SKIP, artifact is not training recorder whitelisted")
-                self.__sqs_controller.delete_message(raw_message)
-                continue
-
             self.__check_artifact(artifact, raw_message)
+
+            self.__sqs_controller.delete_message(raw_message)
+            continue
 
     def __check_artifact(self, artifact: Artifact, raw_message: MessageTypeDef):
         """Run healthcheck for given artifact and treats errors
@@ -117,7 +73,8 @@ class HealthCheckWorker:
         """
         logger.info("artifact : %s", artifact)
         try:
-            self.__checkers[artifact.recorder].run_healthcheck(artifact)
+            checker = self.__checker_determiner.get_checker(artifact)
+            checker.run_healthcheck(artifact)
             logger.info("%s : %s", ELASTIC_SUCCESS_MATCHER,
                         artifact.artifact_id)
             self.__sqs_controller.delete_message(raw_message)

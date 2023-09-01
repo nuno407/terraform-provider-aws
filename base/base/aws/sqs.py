@@ -1,5 +1,7 @@
 """AWS SQS controller."""
+import json
 import logging
+from ast import literal_eval
 from datetime import datetime
 from typing import Optional, Union
 
@@ -189,3 +191,19 @@ class SQSController:
                 }
             }
         )
+
+
+def parse_message_body_to_dict(body: str, sub_fields_to_unpack: list[str] = ["Message"]) -> dict:
+    try:
+        data = json.loads(body)
+    except json.JSONDecodeError as json_exc:
+        try:
+            data = literal_eval(body)
+        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as eval_exc:
+            raise ValueError("Unable to parse message content from JSON or python object", [json_exc, eval_exc])
+
+    for sub_field in sub_fields_to_unpack:
+        if sub_field in data and isinstance(data[sub_field], str):
+            data[sub_field] = parse_message_body_to_dict(data[sub_field], [])
+
+    return data

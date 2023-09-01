@@ -6,7 +6,6 @@ import logging
 from kink import inject
 
 from base.model.artifacts import SnapshotArtifact
-from healthcheck.checker.common import ArtifactChecker
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
@@ -15,7 +14,7 @@ from healthcheck.s3_utils import S3Utils
 _logger: logging.Logger = logging.getLogger(__name__)
 
 
-@inject(alias=ArtifactChecker)
+@inject()
 class SnapshotArtifactChecker:
     """Snapshot artifact checker."""
 

@@ -2,11 +2,11 @@
 # pylint: disable=line-too-long
 """database controller module."""
 from logging import Logger
-
+from typing import Any
 from jsonschema import ValidationError
 from kink import inject
 
-from base.model.artifacts import ImageBasedArtifact, SnapshotArtifact
+from base.model.artifacts import ImageBasedArtifact, SnapshotArtifact, Artifact
 from healthcheck.database import DBCollection, INoSQLDBClient
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
@@ -27,7 +27,7 @@ class DatabaseController:
         self.__schema_validator = schema_validator
         self.__logger = logger
 
-    def __db_find_one_or_raise(self, artifact: ImageBasedArtifact, collection: DBCollection, query: dict) -> dict:
+    def __db_find_one_or_raise(self, artifact: Artifact, collection: DBCollection, query: dict) -> dict:
         """
         Executes a find query and returns the result, if only one entry was found.
         Args:
@@ -166,6 +166,24 @@ class DatabaseController:
                 f"in {DBCollection.PIPELINE_EXECUTION}")
 
         return docs_output
+
+    def get_db_artifact_or_raise(self, artifact: Artifact, collection: DBCollection) -> dict[str,Any]:
+        """
+        Searches for an artifact in a specific collection.
+        This search expects the artifact to be in the exact same format as in the database.
+
+        Args:
+            artifact (Artifact): The artifact to be searched
+            collection (DBCollection): The collection to search for the artifact
+
+        Raises:
+            FailDocumentValidation: If no entries were found or more then one entries were found.
+
+        Returns:
+            dict[str,Any]: The document in the database
+        """
+
+        return self.__db_find_one_or_raise(artifact.dict(), collection)
 
     def is_data_status_complete_or_raise(self, artifact: ImageBasedArtifact) -> None:
         """checks if db entry exists in recordings collection for computed hash

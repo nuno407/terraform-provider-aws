@@ -10,6 +10,7 @@ from kink import inject
 from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from base.aws.model import MessageAttributes, SQSMessage
+from base.aws.sqs import parse_message_body_to_dict
 from sanitizer.exceptions import InvalidMessagePanic
 
 _logger: logging.Logger = logging.getLogger(__name__)
@@ -137,10 +138,8 @@ class MessageParser:
         raw_body: str = raw_message[MessageFields.BODY.value]
 
         try:
-            body = json.loads(raw_body)
-            if MessageFields.MESSAGE.value in body and isinstance(body[MessageFields.MESSAGE.value], str):
-                body[MessageFields.MESSAGE.value] = json.loads(body[MessageFields.MESSAGE.value])
-        except JSONDecodeError as exc:
+            body = parse_message_body_to_dict(raw_body)
+        except ValueError as exc:
             raise InvalidMessagePanic("Invalid message body.") from exc
 
         if not body:

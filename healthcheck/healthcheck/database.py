@@ -8,6 +8,7 @@ from healthcheck.model import DBDocument
 
 class DBCollection(Enum):
     """DB collections available."""
+    SAV_OPERATOR_FEEDBACK = "sav-operator-feedback"
     RECORDINGS = "recordings"
     PIPELINE_EXECUTION = "pipeline-execution"
     SIGNALS = "signals"
