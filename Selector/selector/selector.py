@@ -28,7 +28,7 @@ AWS_ENDPOINT = os.getenv("AWS_ENDPOINT", None)
 class Selector:  # pylint: disable=too-few-public-methods
     """ Class responsible by containing all bussiness logic used in in the Selector component. """
 
-    def __init__(self, s3_controller: S3Controller,
+    def __init__(self, s3_controller: S3Controller,  # pylint: disable=too-many-arguments
                  footage_api_wrapper: FootageApiWrapper,
                  sqs_controller: SQSController,
                  evaluator: Evaluator):

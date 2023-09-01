@@ -1,14 +1,18 @@
 """ Selector Tests. """
 from datetime import datetime, timedelta
-from unittest.mock import Mock, PropertyMock, call, patch, MagicMock
+from typing import Optional
+from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 from pytz import UTC
-from typing import Optional
 
-from base.model.artifacts import RecorderType
-from base.model.artifacts import RecorderType, SignalsArtifact, IMUArtifact, SnapshotArtifact, \
-    VideoArtifact, PreviewSignalsArtifact, OperatorArtifact, Artifact, CameraBlockedOperatorArtifact, PeopleCountOperatorArtifact, SOSOperatorArtifact
+from base.model.artifacts import (Artifact, CameraBlockedOperatorArtifact,
+                                  IMUArtifact, OperatorArtifact,
+                                  PeopleCountOperatorArtifact,
+                                  PreviewSignalsArtifact, RecorderType,
+                                  SignalsArtifact, SnapshotArtifact,
+                                  SOSOperatorArtifact, VideoArtifact)
+from selector.config import SelectorConfig
 from selector.decision import Decision
 from selector.selector import Selector
 
@@ -151,6 +155,12 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         evaluator = Mock()
 
         graceful_exit = Mock()
+        config = SelectorConfig.parse_obj({
+            "max_GB_per_device_per_month": 2,
+            "total_GB_per_month": 100,
+            "upload_window_seconds_start": 300,
+            "upload_window_seconds_end": 300
+        })
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
         selector = Selector(
@@ -205,6 +215,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         s3_controller = Mock()
         evaluator = Mock()
         graceful_exit = Mock()
+        config = SelectorConfig.load_config_from_yaml_file("config/config.yml")
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
         selector = Selector(
