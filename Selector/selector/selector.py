@@ -111,8 +111,8 @@ class Selector:  # pylint: disable=too-few-public-methods
             self.footage_api_wrapper.request_recorder(
                 RecorderType.TRAINING,
                 sav_opreator_artifact.device_id,
-                sav_opreator_artifact.event_timestamp - timedelta(minutes=1),
-                sav_opreator_artifact.event_timestamp + timedelta(minutes=1))
+                sav_operator_artifact.event_timestamp - timedelta(seconds=config.upload_window_seconds_start),
+                sav_operator_artifact.event_timestamp + timedelta(seconds=config.upload_window_seconds_end))
         except Exception as error:  # pylint: disable=broad-except
             _logger.error("Unexpected error occured when requesting SAV footage: %s", error)
             return False
