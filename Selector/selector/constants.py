@@ -6,5 +6,6 @@ CONTAINER_VERSION = "v2.0"      # Version of the current container
 
 # Maps the artifact recorder names to the ones used by the footage API
 FOOTAGE_RECORDER_NAME_MAP = {
-    RecorderType.TRAINING: "TRAINING"
+    RecorderType.TRAINING: "TRAINING",
+    RecorderType.SNAPSHOT: "TRAINING_MULTI_SNAPSHOT"
 }

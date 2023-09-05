@@ -13,6 +13,7 @@ from base.graceful_exit import GracefulExit
 from base.model.artifacts import (Artifact, OperatorArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   VideoArtifact, parse_artifact)
+from selector.config import SelectorConfig
 from selector.decision import Decision
 from selector.evaluator import Evaluator
 from selector.footage_api_wrapper import FootageApiWrapper
@@ -31,11 +32,13 @@ class Selector:  # pylint: disable=too-few-public-methods
     def __init__(self, s3_controller: S3Controller,  # pylint: disable=too-many-arguments
                  footage_api_wrapper: FootageApiWrapper,
                  sqs_controller: SQSController,
+                 config: SelectorConfig,
                  evaluator: Evaluator):
         self.__sqs_controller = sqs_controller
         self.footage_api_wrapper = footage_api_wrapper
         self.s3_controller = s3_controller
         self.evaluator = evaluator
+        self.config = config
 
     @inject
     def run(self, graceful_exit: GracefulExit) -> None:
@@ -98,11 +101,11 @@ class Selector:  # pylint: disable=too-few-public-methods
 
         return True
 
-    def __process_sav_operator(self, sav_opreator_artifact: OperatorArtifact) -> bool:
+    def __process_sav_operator(self, sav_operator_artifact: OperatorArtifact) -> bool:
         """Logic to request footage upload whenever an SAV Operator spectates the video stream of an incident
 
         Args:
-            sav_opreator_artifact (OperatorArtifact): Operator artifact, indicates device and time window
+            sav_operator_artifact (OperatorArtifact): Operator artifact, indicates device and time window
 
         Returns:
             bool: Boolean indicating if the request succeeded.
@@ -110,9 +113,24 @@ class Selector:  # pylint: disable=too-few-public-methods
         try:
             self.footage_api_wrapper.request_recorder(
                 RecorderType.TRAINING,
-                sav_opreator_artifact.device_id,
-                sav_operator_artifact.event_timestamp - timedelta(seconds=config.upload_window_seconds_start),
-                sav_operator_artifact.event_timestamp + timedelta(seconds=config.upload_window_seconds_end))
+                sav_operator_artifact.device_id,
+                sav_operator_artifact.event_timestamp - timedelta(seconds=self.config.upload_window_seconds_start),
+                sav_operator_artifact.event_timestamp + timedelta(seconds=self.config.upload_window_seconds_end))
+            self.footage_api_wrapper.request_recorder(
+                RecorderType.SNAPSHOT,
+                sav_operator_artifact.device_id,
+                sav_operator_artifact.event_timestamp - timedelta(seconds=self.config.upload_window_seconds_start),
+                sav_operator_artifact.event_timestamp + timedelta(seconds=self.config.upload_window_seconds_end))
+            self.footage_api_wrapper.request_recorder(
+                RecorderType.TRAINING,
+                sav_operator_artifact.device_id,
+                sav_operator_artifact.operator_monitoring_start,
+                sav_operator_artifact.operator_monitoring_end)
+            self.footage_api_wrapper.request_recorder(
+                RecorderType.SNAPSHOT,
+                sav_operator_artifact.device_id,
+                sav_operator_artifact.operator_monitoring_start,
+                sav_operator_artifact.operator_monitoring_end)
         except Exception as error:  # pylint: disable=broad-except
             _logger.error("Unexpected error occured when requesting SAV footage: %s", error)
             return False

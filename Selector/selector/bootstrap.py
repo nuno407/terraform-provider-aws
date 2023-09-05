@@ -9,6 +9,7 @@ from base.aws.container_services import ContainerServices
 from base.graceful_exit import GracefulExit
 from selector.constants import CONTAINER_NAME, CONTAINER_VERSION
 from selector.rules.ruleset import ruleset
+from selector.config import SelectorConfig
 
 
 class SecretMissingError(Exception):
@@ -17,6 +18,9 @@ class SecretMissingError(Exception):
 
 def bootstrap_di():
     """ Bootstrap the dependency injection container. """
+
+    di["config_path"] = os.getenv("CONFIG_PATH", "/app/config/config.yml")
+    di[SelectorConfig] = SelectorConfig.load_config_from_yaml_file(di["config_path"])
 
     # Create the necessary clients for AWS services access
     di[SQSClient] = boto3.client(

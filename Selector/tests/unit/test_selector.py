@@ -54,7 +54,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
 
         evaluator = Mock()
         evaluator.evaluate.return_value = [Decision(RecorderType.TRAINING, from_ts, to_ts)]
-
+        config = Mock()
         graceful_exit = Mock()
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
@@ -62,6 +62,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
             s3_controller,
             footage_api_wrapper,
             sqs_controller,
+            config,
             evaluator
         )
 
@@ -105,7 +106,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
 
         s3_controller = Mock()
         evaluator = Mock()
-
+        config = Mock()
         graceful_exit = Mock()
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
@@ -113,6 +114,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
             s3_controller,
             footage_api_wrapper,
             sqs_controller,
+            config,
             evaluator
         )
 
@@ -167,6 +169,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
             s3_controller,
             footage_api_wrapper,
             sqs_controller,
+            config,
             evaluator
         )
 
@@ -180,10 +183,30 @@ class TestSelector():  # pylint: disable=too-few-public-methods
                     operator_artifact.device_id,
                     event_timestamp -
                     timedelta(
-                        minutes=1),
+                        seconds=config.upload_window_seconds_start),
                     event_timestamp +
                     timedelta(
-                        minutes=1))])
+                        seconds=config.upload_window_seconds_end)),
+                call(
+                    RecorderType.SNAPSHOT,
+                    operator_artifact.device_id,
+                    event_timestamp -
+                    timedelta(
+                        seconds=config.upload_window_seconds_start),
+                    event_timestamp +
+                    timedelta(
+                        seconds=config.upload_window_seconds_end)),
+                call(
+                    RecorderType.TRAINING,
+                    operator_artifact.device_id,
+                    operator_artifact.operator_monitoring_start,
+                    operator_artifact.operator_monitoring_end),
+                call(
+                    RecorderType.SNAPSHOT,
+                    operator_artifact.device_id,
+                    operator_artifact.operator_monitoring_start,
+                    operator_artifact.operator_monitoring_end),
+            ])
         sqs_controller.delete_message.assert_called_once_with(message)
 
     @patch("selector.selector.parse")
@@ -222,6 +245,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
             s3_controller,
             footage_api_wrapper,
             sqs_controller,
+            config,
             evaluator
         )
 
@@ -257,6 +281,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         parse_artifact_mock.return_value = operator_artifact
 
         s3_controller = Mock()
+        config = Mock()
         evaluator = Mock()
         graceful_exit = Mock()
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
@@ -265,6 +290,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
             s3_controller,
             footage_api_wrapper,
             sqs_controller,
+            config,
             evaluator
         )
 

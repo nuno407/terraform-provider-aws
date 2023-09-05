@@ -1,20 +1,23 @@
 import os
-from typing import Generator, Callable
-import boto3
-from kink import di
-from mypy_boto3_sqs import SQSClient
-from mypy_boto3_s3 import S3Client
-from base.aws.s3 import S3Controller
-from base.testing.utils import get_abs_path
-import pytest
+from typing import Callable, Generator
 from unittest.mock import Mock, PropertyMock
+
+import boto3
+import pytest
+from kink import di
 from moto import mock_s3, mock_sqs  # type: ignore
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_sqs import SQSClient
+
 from base.aws.container_services import ContainerServices
+from base.aws.s3 import S3Controller
 from base.graceful_exit import GracefulExit
-from selector.rules.ruleset import ruleset
-from selector.main import main
-from selector.footage_api_wrapper import FootageApiWrapper
+from base.testing.utils import get_abs_path
+from selector.config import SelectorConfig
 from selector.footage_api_token_manager import FootageApiTokenManager
+from selector.footage_api_wrapper import FootageApiWrapper
+from selector.main import main
+from selector.rules.ruleset import ruleset
 
 REGION_NAME = "us-east-1"
 
@@ -135,6 +138,12 @@ def run_bootstrap(
     di[ContainerServices] = container_services
     di[GracefulExit] = one_time_gracefull_exit
 
+    di[SelectorConfig] = SelectorConfig.parse_obj({
+        "max_GB_per_device_per_month": 2,
+        "total_GB_per_month": 100,
+        "upload_window_seconds_start": 300,
+        "upload_window_seconds_end": 300
+    })
     di["client_id"] = client_id
     di["client_secret"] = client_secret
     di["token_endpoint"] = container_services.api_endpoints["selector_token_endpoint"]
