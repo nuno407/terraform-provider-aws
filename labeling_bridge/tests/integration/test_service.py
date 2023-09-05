@@ -70,9 +70,8 @@ class TestService:
         container_services = Mock()
         return ApiService(s3_mock, container_services)
 
-    @pytest.fixture
-    def semseg_test_data(self):
-        with (open(os.path.join(__location__, "test_data/test.json"), "r")) as file:
+    def semseg_test_data(self, path):
+        with (open(os.path.join(__location__, path), "r")) as file:
             data_string = file.read()
             data_string = data_string.replace("__location__", __location__)
             data = json.loads(data_string)
@@ -80,9 +79,15 @@ class TestService:
         return data
 
     @pytest.fixture
-    def semseg_annotation(self, semseg_test_data):
+    def semseg_annotation(self):
         semseg = Mock()
-        semseg.content = semseg_test_data
+        semseg.content = self.semseg_test_data("test_data/test.json")
+        return semseg
+
+    @pytest.fixture
+    def semseg_empty_annotation(self):
+        semseg = Mock()
+        semseg.content = self.semseg_test_data("test_data/test_no_labels.json")
         return semseg
 
     def test_kognic_import_success(self, api_service: ApiService, semseg_annotation, sample_dataset):
@@ -115,6 +120,34 @@ class TestService:
             assert detection.labeling_job == import_msg.labelling_job_name
 
         assert untouched_sample.GT_semseg is None
+        labeling_job = LabelingJob.objects(kognic_labeling_job_name=export_msg.labelling_job_name).get()
+        assert labeling_job.import_export_status.status == Status.DONE
+        assert len(LabelingJobTask.objects(kognic_labeling_job=labeling_job)) == 2
+        for label_task in LabelingJobTask.objects(kognic_labeling_job=labeling_job):
+            assert label_task.import_export_status.status == Status.DONE
+
+    def test_kognic_import_success_empty(self, api_service: ApiService, semseg_empty_annotation, sample_dataset):
+        # GIVEN
+        labeling_type = [KognicLabelingTypeDTO.SEMSEG]
+        kognic_factory = Mock()
+        api_service.kognic_interface_factory = Mock(return_value=kognic_factory)
+        kognic_factory.get_annotation_types = Mock(return_value=labeling_type)
+        kognic_factory.get_project_annotations = Mock(return_value=[semseg_empty_annotation])
+
+        create_sample(sample_dataset, "test.png")
+        create_sample(sample_dataset, "test2.png")
+        export_msg = export_message("tag", labeling_type=labeling_type, labeling_job_name=str(uuid.uuid4()))
+        import_msg = import_message(labeling_job_name=export_msg.labelling_job_name)
+        Repository.generate_job_and_task_entries(
+            dataset_view=sample_dataset.view(),
+            user_email="test@test.com",
+            request_export_job_dto=export_msg)
+
+        # WHEN
+        print(len(sample_dataset))
+        api_service.kognic_import(request_import_job_dto=import_msg)
+
+        # THEN
         labeling_job = LabelingJob.objects(kognic_labeling_job_name=export_msg.labelling_job_name).get()
         assert labeling_job.import_export_status.status == Status.DONE
         assert len(LabelingJobTask.objects(kognic_labeling_job=labeling_job)) == 2

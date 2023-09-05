@@ -1,0 +1,55 @@
+{
+    "openlabel": {
+        "actions": {},
+        "contexts": {},
+        "coordinate_systems": {},
+        "events": {},
+        "frame_intervals": [
+            {
+                "frame_end": 0,
+                "frame_start": 0
+            }
+        ],
+        "frames": {
+            "0": {
+                "frame_properties": {
+                    "external_id": "__location__/test_data/test.png",
+                    "streams": {
+                        "Voxel_export": {
+                            "uri": "tmp3k82no6e.jpeg"
+                        }
+                    },
+                    "timestamp": 0
+                },
+                "objects": {}
+            }
+        },
+        "metadata": {
+            "annotation_id": 4935414,
+            "annotation_instruction": "2023-04-21-001",
+            "annotation_type": "2D_semseg",
+            "batch": "marian-test",
+            "input_external_id": "__location__/test_data/test.png",
+            "input_uuid": "cfa6339a-47b4-4b12-8c44-fd3646ba2908",
+            "project": "Orion-RC-Dev",
+            "schema_version": "1.0.0",
+            "uri": "app.kognic.com/view/assignment/65c4ccf9-06b5-4c9e-80f8-fb0c69cdefc0",
+            "uuid": "1d42fe7b-099c-4650-bb17-5695ffff4a24"
+        },
+        "objects": {},
+        "ontologies": {},
+        "relations": {},
+        "resources": {},
+        "streams": {
+            "Voxel_export": {
+                "description": "",
+                "stream_properties": {
+                    "height": 320,
+                    "width": 576
+                },
+                "type": "camera"
+            }
+        },
+        "tags": {}
+    }
+}

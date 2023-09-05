@@ -179,11 +179,18 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                             _logger.debug("%s labels from labeling_job %s already exists on sample %s",
                                           annotation_type, request_import_job_dto.labelling_job_name, external_id)
                         else:
-                            if annotation.content["openlabel"]["frames"]["0"].get("objects") is not None:
+                            if annotation.content["openlabel"]["frames"]["0"].get("objects") is not None and \
+                                    len(annotation.content["openlabel"]["frames"]["0"].get("objects")) != 0:
                                 for _, an_object in annotation.content["openlabel"]["frames"]["0"]["objects"].items():
                                     an_object["labeling_job"] = request_import_job_dto.labelling_job_name
+                            else:
+                                # if there is nothing to import in this sample we can skip it
+                                continue
 
-                                a_external_id = os.path.basename(external_id)
+                            a_external_id = os.path.basename(external_id)
+                            # we need to define the URI of the file in our filesystem. The URI should
+                            # be the same of the one contained in fn_map
+                            annotation.content["openlabel"]["frames"]["0"]["frame_properties"]["streams"]["Voxel_export"]["uri"] = a_external_id  # noqa pylint: disable=line-too-long
                             json_annotation = json.dumps(annotation.content, indent=4)
                             _logger.debug("File content:\n%s", str(json_annotation))
                             filename = tmp_dir_name + "/" + a_external_id + ".json"
@@ -211,6 +218,16 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                     annotation_type.value,
                     os.listdir(tmp_dir_name))
 
+                if len(fn_map) == 0:
+                    # if there is nothing to import in this annotation type we can skip it
+                    Repository.update_status_of_tasks(
+                        labeling_jobs=labeling_jobs,
+                        kognic_labeling_types=[KognicLabelingType[annotation_type.name]],
+                        status=StatusDocument(
+                            status=Status.DONE)
+                    )
+                    continue
+
                 if dataset.skeletons.get(GT_POSE_LABEL) is None:
                     _logger.debug("Body pose skeletons not found, adding them")
                     voxel_functions.set_dataset_skeleton_configuration(dataset)
@@ -228,7 +245,6 @@ class ApiService:  # pylint: disable=too-many-instance-attributes,too-few-public
                                       skeleton_key="point_class",
                                       label_field=OPENLABEL_LABEL_MAPPING
                                       )
-                    print(fn_map)
 
                     for field in fields_to_delete:
                         dataset.delete_sample_field(annotation_type_field[annotation_type] + field)
