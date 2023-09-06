@@ -204,6 +204,6 @@ def parse_message_body_to_dict(body: str, sub_fields_to_unpack: list[str] = ["Me
 
     for sub_field in sub_fields_to_unpack:
         if sub_field in data and isinstance(data[sub_field], str):
-            data[sub_field] = parse_message_body_to_dict(data[sub_field], [])
+            data[sub_field] = parse_message_body_to_dict(data[sub_field], sub_fields_to_unpack)
 
     return data

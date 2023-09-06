@@ -1,0 +1,26 @@
+[
+    {
+        "_id": {
+            "$oid": "64f600f80ba35d38be28929c"
+        },
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_02",
+        "event_timestamp": {
+            "$date": "2023-01-01T00:00:00.000Z"
+        },
+        "operator_monitoring_start": {
+            "$date": "2023-01-01T00:00:00.000Z"
+        },
+        "operator_monitoring_end": {
+            "$date": "2023-01-01T00:00:00.000Z"
+        },
+        "artifact_name": "sav-operator-sos",
+        "additional_information": {
+            "is_door_blocked": true,
+            "is_camera_blocked": true,
+            "is_audio_malfunction": true,
+            "observations": "This is just a fancy integration test."
+        },
+        "reason": "ACCIDENTAL"
+    }
+]

@@ -3,10 +3,12 @@
 """database controller module."""
 from logging import Logger
 from typing import Any
+
 from jsonschema import ValidationError
 from kink import inject
 
-from base.model.artifacts import ImageBasedArtifact, SnapshotArtifact, Artifact
+from base.model.artifacts import (Artifact, ImageBasedArtifact,
+                                  OperatorArtifact, SnapshotArtifact)
 from healthcheck.database import DBCollection, INoSQLDBClient
 from healthcheck.exceptions import (FailDocumentValidation, NotPresentError,
                                     NotYetIngestedError)
@@ -167,7 +169,8 @@ class DatabaseController:
 
         return docs_output
 
-    def get_db_artifact_or_raise(self, artifact: Artifact, collection: DBCollection) -> dict[str,Any]:
+    def is_operator_feedback_present_or_raise(self, artifact: OperatorArtifact,
+                                              collection: DBCollection) -> dict[str, Any]:
         """
         Searches for an artifact in a specific collection.
         This search expects the artifact to be in the exact same format as in the database.
@@ -183,7 +186,15 @@ class DatabaseController:
             dict[str,Any]: The document in the database
         """
 
-        return self.__db_find_one_or_raise(artifact.dict(), collection)
+        try:
+            self.__db_find_one_or_raise(artifact, collection, {
+                "tenant_id": artifact.tenant_id,
+                "device_id": artifact.device_id,
+                "event_timestamp": artifact.event_timestamp,
+                "artifact_name": artifact.artifact_name
+            })
+        except FailDocumentValidation as ex:
+            raise NotPresentError(artifact.artifact_id, "Artifact not found in database") from ex
 
     def is_data_status_complete_or_raise(self, artifact: ImageBasedArtifact) -> None:
         """checks if db entry exists in recordings collection for computed hash

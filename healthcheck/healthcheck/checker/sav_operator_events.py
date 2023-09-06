@@ -32,4 +32,4 @@ class SAVOperatorArtifactChecker:
         _logger.info("running healthcheck for SAV Operator")
 
         # Check if artifact is in database
-        self.__db_controller.get_db_artifact_or_raise(artifact, DBCollection.SAV_OPERATOR_FEEDBACK)
+        self.__db_controller.is_operator_feedback_present_or_raise(artifact, DBCollection.SAV_OPERATOR_FEEDBACK)
