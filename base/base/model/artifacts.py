@@ -39,6 +39,7 @@ class OperatorSOSReason(str, Enum):
     TECHNICAL_ISSUE = "TECHNICAL_ISSUE"
     RIDE_INTERRUPTION = "RIDE_INTERRUPTION"
     HEALTH_ISSUE = "HEALTH_ISSUE"
+    OTHER = "OTHER"
 
 
 class Resolution(ConfiguredBaseModel):
