@@ -1,0 +1,16 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_01",
+    "event_timestamp": "2023-09-07T07:10:21+00:00",
+    "operator_monitoring_start": "2023-09-07T07:10:21+00:00",
+    "operator_monitoring_end": "2023-09-07T07:12:01+00:00",
+    "artifact_name": "sav-operator-people-count",
+    "additional_information": {
+        "is_door_blocked": true,
+        "is_camera_blocked": true,
+        "is_audio_malfunction": true,
+        "observations": "string"
+    },
+    "is_people_count_correct": true,
+    "correct_count": 110
+}

@@ -305,7 +305,8 @@ def upsert_mdf_signals_data(
 
     bucket, key = S3Controller.get_s3_path_parts(message["parsed_file_path"])
 
-    s3_client = boto3.client("s3", AWS_REGION)
+    _logger.info("Using Endpoint %s", os.getenv("AWS_ENDPOINT", None))
+    s3_client = boto3.client("s3", AWS_REGION, endpoint_url=os.getenv("AWS_ENDPOINT", None))
     signals_file_raw = ContainerServices.download_file(
         s3_client, bucket, key)
     signals = json.loads(signals_file_raw.decode("UTF-8"))
@@ -885,8 +886,7 @@ def main():
     bootstrap_di()
 
     # Create the necessary clients for AWS services access
-    sqs_client = boto3.client('sqs',
-                              region_name=AWS_REGION)
+    sqs_client = boto3.client('sqs', region_name=AWS_REGION, endpoint_url=os.getenv("AWS_ENDPOINT", None))
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)

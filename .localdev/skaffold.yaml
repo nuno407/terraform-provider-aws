@@ -13,6 +13,7 @@ manifests:
       - ../../kubernetes_config/apps/pg/data_importer
       - ../../kubernetes_config/apps/pg/labeling_bridge
       - ../../kubernetes_config/apps/pg/jupyter-server
+      - ../../kubernetes_config/apps/pg/metadata
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
@@ -82,6 +83,16 @@ build:
         secrets:
           - id: voxel51token
             env: VOXEL_REGISTRY_TOKEN
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/metadata
+      context: ..
+      docker:
+        dockerfile: Metadata/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "true"
+        secrets:
+          - id: voxel51token
+            env: VOXEL_REGISTRY_TOKEN
+      runtimeType: python
 deploy:
   # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
   kubeContext: kind-kind

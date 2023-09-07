@@ -7,6 +7,7 @@ manifests:
     paths:
       # creates base infrastructure stuff. Namespace, ingress, etc
       - ../../kubernetes_config/apps/pg/data-ingestion
+      - ../../kubernetes_config/apps/pg/mongodb
   rawYaml:
     # Job used to apply infrastructure to localstack
     - ../../kubernetes_config/apps/pg/localstack/job.yml
