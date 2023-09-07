@@ -477,13 +477,14 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @pytest.mark.unit
     def test_create_sav_operator(self):
         # GIVEN
-        with connect("mongoenginetest", host="mongomock://localhost"):
+        disconnect("DataIngestionDB")
+        with connect(db="DataIngestionDB", host="mongomock://localhost", alias="DataIngestionDB"):
 
             event_timestamp = datetime.fromisoformat("2023-08-29T08:17:15+00:00",)
             operator_monitoring_start = datetime.fromisoformat("2023-08-29T08:18:49+00:00")
             operator_monitoring_end = datetime.fromisoformat("2023-08-29T08:35:57+00:00")
 
-            artifact_body_sav = {
+            artifact_body_sav_people_count = {
                 "tenant_id": "datanauts",
                 "device_id": "DATANAUTS_DEV_02",
                 "event_timestamp": event_timestamp,
@@ -499,11 +500,28 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "is_people_count_correct": False,
                 "correct_count": 5
             }
+
+            artifact_body_sav_sos = {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "event_timestamp": event_timestamp,
+                "operator_monitoring_start": operator_monitoring_start,
+                "operator_monitoring_end": operator_monitoring_end,
+                "artifact_name": "sav-operator-sos",
+                "additional_information": {
+                    "is_door_blocked": True,
+                    "is_camera_blocked": False,
+                    "is_audio_malfunction": True,
+                    "observations": "foo"
+                },
+                "reason":  "OTHER"
+            }
             di["db_metadata_tables"] = {"sav_operator_feedback": "dev-sav-operator-feedback"}
 
             metadata_collections = Mock()
             # WHEN
-            process_sanitizer(artifact_body_sav, metadata_collections)
+            process_sanitizer(artifact_body_sav_people_count, metadata_collections)
+            process_sanitizer(artifact_body_sav_sos, metadata_collections)
 
             # THEN
             query = {
@@ -511,8 +529,11 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "device_id": "DATANAUTS_DEV_02"
             }
             from metadata.consumer.database.operator_feedback import DBPeopleCountOperatorArtifact
-            db_artifacts = DBPeopleCountOperatorArtifact.objects(**query)
-            assert len(db_artifacts) == 1
+            from metadata.consumer.database.operator_feedback import DBSOSOperatorArtifact
+            db_artifacts_people_count = DBPeopleCountOperatorArtifact.objects(**query)
+            db_artifacts_sos = DBSOSOperatorArtifact.objects(**query)
+            assert len(db_artifacts_people_count) == 1
+            assert len(db_artifacts_sos) == 1
 
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
@@ -537,7 +558,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
     @pytest.mark.unit
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
@@ -628,8 +649,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.update_sample")
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     def test_process_outputs(
             self,
@@ -949,10 +970,13 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                             new_callable=PropertyMock, side_effect=[True, False])
 
     @pytest.mark.unit
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
+    @patch("metadata.consumer.main.connect")
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "DB_URI"})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
     def test_metadata_consumer_main(  # pylint: disable=too-many-arguments,unused-argument
             self,
+            mock_connect: Mock,
             mock_container_services: Mock,
             mock_boto3_client: Mock,
             mock_persistence: Mock,
@@ -1027,12 +1051,14 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_relay_list,
             input_message["MessageAttributes"],
             ANY)
+        mock_connect.assert_called_once_with(db="DataIngestion", host="DB_URI", alias="DataIngestionDB")
         mock_container_services_object.delete_message.assert_called_once_with(
             sqs_client_mock, input_message["ReceiptHandle"])
 
 
 @pytest.mark.unit
 @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
+@patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
 @patch("metadata.consumer.voxel.functions.update_sample")
 @patch("metadata.consumer.voxel.functions.create_dataset")
 @patch("metadata.consumer.main.download_and_synchronize_chc")

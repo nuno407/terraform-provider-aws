@@ -10,6 +10,7 @@ import fiftyone as fo
 
 import mongomock
 import pytest
+from mongoengine import disconnect
 from pytest_mock import MockerFixture
 
 import metadata.consumer.main
@@ -147,8 +148,11 @@ class TestMain:
                                      "RC-ridecare_companion_gridwise")
                              ])
     @patch("metadata.consumer.main.add_voxel_snapshot_metadata")
+    @patch("metadata.consumer.main.connect")
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
+    def test_snapshot_video_correlation(self, _: Mock, connect_mock: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset):
         # GIVEN

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from base.testing.utils import get_abs_path
 from metadata.consumer.config import MetadataConfig, DatasetConfig
 
 
@@ -16,7 +17,7 @@ def test_load_valid_config():
 
     with patch("yaml.safe_load", return_value=raw_config):
         # WHEN
-        config = MetadataConfig.load_yaml_config("config/config.yml")
+        config = MetadataConfig.load_yaml_config(get_abs_path(__file__,"test_data/mongo_config.yml"))
         print(config)
 
         # THEN
@@ -35,7 +36,7 @@ def test_load_invalid_config():
 
     with patch("yaml.safe_load", return_value=raw_config):
         # WHEN
-        config = MetadataConfig.load_yaml_config("config/config.yml")
+        config = MetadataConfig.load_yaml_config(get_abs_path(__file__,"test_data/mongo_config.yml"))
 
         # THEN
         assert config.create_dataset_for == []
