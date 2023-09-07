@@ -1,8 +1,12 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
+
+from fiftyone import ViewField
+
 from base.testing.utils import get_abs_path
-from unittest.mock import Mock, PropertyMock, call, patch
+from unittest.mock import Mock, PropertyMock, patch
+import fiftyone as fo
 
 import mongomock
 import pytest
@@ -99,8 +103,7 @@ class TestMain:
             "pipeline_exec": "pipeline_exec",
             "algo_output": "algo_output",
             "processed_imu": "processed_imu",
-            "events": "events",
-            "sav_operator_feedback": "sav_operator_feedback"
+            "events": "events"
         })
         type(container_services_mock.return_value).db_tables = db_tables_mock
         return container_services_mock
@@ -129,14 +132,6 @@ class TestMain:
             "metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket"})
         return environ_mock
 
-    @pytest.fixture(autouse=True)
-    def voxel_mock(self, mocker: MockerFixture) -> tuple[Mock, Mock]:
-        create_dataset_mock = mocker.patch(
-            "metadata.consumer.voxel.functions.create_dataset")
-        update_sample_mock = mocker.patch(
-            "metadata.consumer.voxel.functions.update_sample")
-        return create_dataset_mock, update_sample_mock
-
     @pytest.mark.integration
     @pytest.mark.parametrize("_input_message_recording, _input_message_snapshot_included, "
                              "_input_message_snapshot_excluded, s3_folder, expected_dataset", [
@@ -155,8 +150,7 @@ class TestMain:
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
     def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
-                                        _input_message_snapshot_excluded, s3_folder, expected_dataset,
-                                        voxel_mock: tuple[Mock, Mock]):
+                                        _input_message_snapshot_excluded, s3_folder, expected_dataset):
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
@@ -178,8 +172,7 @@ class TestMain:
         recording_db_entry = mongomock_fix["recordings"].find_one(
             {"video_id": "ridecare_device_recording_1662080172308_1662080561893"})
         # assertions on included snapshot
-        assert (snapshot_included_db_entry["recording_overview"]
-                ["source_videos"][0] == recording_db_entry["video_id"])
+        assert (snapshot_included_db_entry["recording_overview"]["source_videos"][0] == recording_db_entry["video_id"])
 
         # assert reference id is present
         assert snapshot_included_db_entry["recording_overview"]["devcloudid"]
@@ -187,37 +180,29 @@ class TestMain:
         assert recording_db_entry["recording_overview"]["devcloudid"]
 
         # assertions on excluded snapshot
-        assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == [
-        ]
+        assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == []
 
         # assertions on recording
         assert recording_db_entry["recording_overview"]["#snapshots"] == 1
-        assert len(
-            recording_db_entry["recording_overview"]["snapshots_paths"]) == 1
-        assert recording_db_entry["recording_overview"]["snapshots_paths"][
-            0] == snapshot_included_db_entry["video_id"]  # pylint: disable=line-too-long
+        assert len(recording_db_entry["recording_overview"]["snapshots_paths"]) == 1
+        assert recording_db_entry["recording_overview"]["snapshots_paths"][0] == snapshot_included_db_entry["video_id"]
 
         # assertions for voxel code
-        create_dataset, update_sample = voxel_mock
-        create_dataset.assert_has_calls(
-            [call(expected_dataset, ["RC"]), call(expected_dataset + "_snapshots", ["RC"])], any_order=True)
+        dataset = fo.load_dataset(expected_dataset)
+        assert dataset.tags == ["RC"]
 
-        snapshot_excluded_db_entry.pop("_id")
-        snapshot_excluded_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg"  # pylint: disable=line-too-long
-        snapshot_excluded_db_entry["raw_filepath"] = snapshot_excluded_db_entry["filepath"]
-        recording_db_entry.pop("_id")
-        recording_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4"  # pylint: disable=line-too-long
-        recording_db_entry["raw_filepath"] = recording_db_entry["filepath"]
-        snapshot_included_db_entry.pop("_id")
-        snapshot_included_db_entry["s3_path"] = f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg"  # pylint: disable=line-too-long
-        snapshot_included_db_entry["raw_filepath"] = snapshot_included_db_entry["filepath"]
+        ds_snapshots = fo.load_dataset(expected_dataset + "_snapshots")
+        assert ds_snapshots.tags == ["RC"]
 
-        # assert_has_calls does not work yet with pytest: https://github.com/pytest-dev/pytest-mock/issues/234
-        update_sample.assert_has_calls([
-            call(expected_dataset + "_snapshots", snapshot_excluded_db_entry),
-            call(expected_dataset, recording_db_entry),
-            call(expected_dataset + "_snapshots", snapshot_included_db_entry)
-        ], any_order=True)
+        sample_excluded = get_sample(ds_snapshots, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg")
+        assert sample_excluded["raw_filepath"] == snapshot_excluded_db_entry["filepath"]
+
+        sample_recording = get_sample(dataset, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4")
+        assert sample_recording["raw_filepath"] == recording_db_entry["filepath"]
+
+        sample_included = get_sample(ds_snapshots, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg")
+        assert sample_included["raw_filepath"] == snapshot_included_db_entry["filepath"]
+
 
     @pytest.mark.unit
     def test_transform_data_to_update_query(self):
@@ -239,3 +224,7 @@ class TestMain:
             "b.c": True,
             "d.e.f": [1, 2, 3]
         }
+
+
+def get_sample(dataset, s3_path: str):
+    return dataset.one(ViewField("s3_path") == s3_path)
