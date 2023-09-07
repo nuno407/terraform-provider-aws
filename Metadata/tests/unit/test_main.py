@@ -18,6 +18,7 @@ from pymongo.errors import DocumentTooLarge
 from pytest_mock import MockerFixture
 from pytz import UTC
 from base.testing.utils import get_abs_path
+from base.aws.sqs import parse_message_body_to_dict
 
 import metadata.consumer.main as main
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
@@ -29,8 +30,8 @@ from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     create_snapshot_recording_item,
                                     create_video_recording_item,
                                     find_and_update_media_references,
-                                    fix_message, insert_mdf_imu_data,
-                                    parse_message_to_dict, process_outputs,
+                                    fix_message,
+                                    parse_message_body_to_dict, process_outputs,
                                     process_sanitizer,
                                     transform_data_to_update_query,
                                     update_voxel_media, upsert_data_to_db,
@@ -852,7 +853,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         """
         container_services_mock = Mock()
         container_services_mock.display_processed_msg = Mock()
-        parsed_message = parse_message_to_dict(raw_message)
+        parsed_message = parse_message_body_to_dict(raw_message)
         got_relay_data = fix_message(container_services_mock, raw_message, parsed_message)
 
         assert got_relay_data == expected_message
@@ -886,7 +887,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @pytest.fixture(name="mock_parse_message")
     def fixture_parse_message(self, mocker: MockerFixture) -> Mock:
         """Mock parse_message function."""
-        return mocker.patch("metadata.consumer.main.parse_message_to_dict")
+        return mocker.patch("metadata.consumer.main.parse_message_body_to_dict")
 
     @pytest.fixture(name="mock_fix_message")
     def fixture_fix_message(self, mocker: MockerFixture) -> Mock:

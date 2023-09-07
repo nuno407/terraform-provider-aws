@@ -12,7 +12,7 @@ from base.model.artifacts import Artifact, parse_artifact
 from healthcheck.checker.checker_determiner import CheckerDeterminer
 from healthcheck.constants import (ELASTIC_ALERT_MATCHER,
                                    ELASTIC_SUCCESS_MATCHER)
-from healthcheck.exceptions import FailedHealthCheckError, NotYetIngestedError
+from healthcheck.exceptions import FailedHealthCheckError, NotYetIngestedError, ArtifactHandlerNotAvailable
 from healthcheck.notification import Notifier
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -61,9 +61,6 @@ class HealthCheckWorker:
             artifact = parse_artifact(parsed_body["Message"])
             self.__check_artifact(artifact, raw_message)
 
-            self.__sqs_controller.delete_message(raw_message)
-            continue
-
     def __check_artifact(self, artifact: Artifact, raw_message: MessageTypeDef):
         """Run healthcheck for given artifact and treats errors
 
@@ -78,6 +75,9 @@ class HealthCheckWorker:
             logger.info("%s : %s", ELASTIC_SUCCESS_MATCHER,
                         artifact.artifact_id)
             self.__sqs_controller.delete_message(raw_message)
+        except ArtifactHandlerNotAvailable:
+            logger.info("SKIP: No handler for this artifact")
+            self.__sqs_controller.delete_message(raw_message)
         except NotYetIngestedError as err:
             logger.warning(
                 "not ingested yet, increase visibility timeout %s", err)
@@ -85,6 +85,7 @@ class HealthCheckWorker:
                 raw_message, TWELVE_HOURS_IN_SECONDS)
         except FailedHealthCheckError as err:
             self.alert(err.artifact_id, err.message)
+            self.__sqs_controller.delete_message(raw_message)
         except botocore.exceptions.ClientError as error:
             logger.error("unexpected AWS SDK error %s", error)
         except Exception as err:

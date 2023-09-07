@@ -63,60 +63,6 @@ class TestWorker:
             ]
         )
 
-    @pytest.mark.parametrize("input_artifact,expected_result", [
-        (
-            image_based_artifact(
-                device_id="device2",
-                tenant_id="test-whitelist-tenant",
-                recorder=RecorderType.TRAINING
-            ),
-            True
-        ),
-        (
-            image_based_artifact(
-                device_id="device2",
-                tenant_id="tenant2",
-                recorder=RecorderType.TRAINING
-            ),
-            False
-        ),
-        (
-            image_based_artifact(
-                recorder=RecorderType.SNAPSHOT
-            ),
-            True
-        ),
-        (
-            image_based_artifact(
-                tenant_id="test-whitelist-tenant",
-                recorder=RecorderType.INTERIOR
-            ),
-            True
-        )
-    ])
-    def test_is_whitelisted_training(
-            self,
-            fix_healthcheck_worker: HealthCheckWorker,
-            input_artifact: Artifact,
-            expected_result: bool):
-        print(fix_healthcheck_worker)
-        assert fix_healthcheck_worker.is_relevant(
-            input_artifact) == expected_result
-
-    @pytest.fixture
-    def fix_healthcheck_worker(self,
-                               fix_config: HealthcheckConfig) -> HealthCheckWorker:
-        return HealthCheckWorker(
-            config=fix_config,
-            sqs_controller=MagicMock(),
-            notifier=MagicMock(),
-            checkers={
-                RecorderType.INTERIOR: MagicMock(),
-                RecorderType.SNAPSHOT: MagicMock(),
-                RecorderType.TRAINING: MagicMock()
-            }
-        )
-
     @pytest.mark.parametrize("input_sqs_message,input_artifact,exception_raised", [
         # snapshot ingestion
         (
@@ -177,15 +123,22 @@ class TestWorker:
         sqs_controller.try_update_message_visibility_timeout = Mock()
 
         patched_artifact_parse_message.return_value = input_artifact
+        checker = Mock()
 
-        checkers = self.get_checkers(input_artifact, exception_raised)
+        check_determiner = Mock()
+        check_determiner.get_checker = Mock(return_value=checker)
+
+        if exception_raised is not None:
+            checker.get_checker = Mock(side_effect=exception_raised)
+        else:
+            checker.get_checker = Mock()
+
         notifier_mock = Mock()
 
         healthcheck_worker = HealthCheckWorker(
-            config=fix_config,
             sqs_controller=sqs_controller,
             notifier=notifier_mock,
-            checkers=checkers
+            checker_determiner=check_determiner
         )
         graceful_exit = MagicMock()
         prop = PropertyMock(side_effect=[True, False])
@@ -194,36 +147,19 @@ class TestWorker:
         healthcheck_worker.run(graceful_exit)
         sqs_controller.get_message.assert_called_once()
 
-        if input_artifact.tenant_id in fix_config.tenant_blacklist:
-            return
+        check_determiner.get_checker.assert_called_once_with(input_artifact)
 
         if not exception_raised:
-            checkers[input_artifact.recorder].run_healthcheck.assert_called_once_with(input_artifact)
+            checker.run_healthcheck.assert_called_once_with(input_artifact)
             sqs_controller.delete_message.assert_called_with(
                 input_sqs_message)
         else:
-            checkers[input_artifact.recorder].run_healthcheck.assert_called_once_with(input_artifact)
+            checker.run_healthcheck.assert_called_once_with(input_artifact)
             if isinstance(exception_raised, NotPresentError):
                 notifier_mock.assert_called_once()
+                sqs_controller.delete_message.assert_called_once()
             elif isinstance(exception_raised, NotYetIngestedError):
                 sqs_controller.try_update_message_visibility_timeout.assert_called_once_with(
                     input_sqs_message
                 )
-
-    def get_checkers(self, input_artifact: Artifact, exception_raised) -> dict:
-        checkers = {
-            RecorderType.INTERIOR: self.get_mocked_checker(input_artifact, exception_raised),
-            RecorderType.SNAPSHOT: self.get_mocked_checker(input_artifact, exception_raised),
-            RecorderType.TRAINING: self.get_mocked_checker(input_artifact, exception_raised)
-        }
-        return checkers
-
-    def get_mocked_checker(self, input_artifact: Artifact, exception_raised):
-        checker = Mock()
-        if exception_raised:
-            run_healcheck_mock = Mock(side_effect=exception_raised(
-                input_artifact, "mocked-message"))
-        else:
-            run_healcheck_mock = Mock()
-        checker.run_healthcheck = run_healcheck_mock
-        return checker
+                sqs_controller.delete_message.assert_not_called()

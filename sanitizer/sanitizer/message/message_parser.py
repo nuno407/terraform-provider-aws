@@ -1,9 +1,7 @@
 # pylint: disable=invalid-string-quote
 """ SQS Message Parser module. """
-import json
 import logging
 from enum import Enum
-from json import JSONDecodeError
 from typing import Dict, Optional, Union
 
 from kink import inject

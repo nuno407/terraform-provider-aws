@@ -193,14 +193,29 @@ class SQSController:
         )
 
 
-def parse_message_body_to_dict(body: str, sub_fields_to_unpack: list[str] = ["Message"]) -> dict:
+def parse_message_body_to_dict(body: str, sub_fields_to_unpack: list[str] = ["Message"]) -> dict:  # pylint: disable=dangerous-default-value
+    """
+    Parse nested sqs and sns messages.
+
+    Args:
+        body (str): A json stringify
+        sub_fields_to_unpack (list[str], optional): A list of fields to parse to json. Defaults to ["Message"].
+
+    Raises:
+        ValueError: If cannot parse to json
+
+    Returns:
+        dict: A json.
+    """
     try:
         data = json.loads(body)
     except json.JSONDecodeError as json_exc:
         try:
             data = literal_eval(body)
         except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as eval_exc:
-            raise ValueError("Unable to parse message content from JSON or python object", [json_exc, eval_exc])
+            raise ValueError(
+                "Unable to parse message content from JSON or python object", [
+                    json_exc, eval_exc]) from eval_exc
 
     for sub_field in sub_fields_to_unpack:
         if sub_field in data and isinstance(data[sub_field], str):

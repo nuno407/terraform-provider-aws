@@ -6,7 +6,6 @@ import logging
 from kink import inject
 
 from base.model.artifacts import VideoArtifact
-from healthcheck.config import HealthcheckConfig
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.s3_utils import S3Utils

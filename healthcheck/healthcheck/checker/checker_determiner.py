@@ -3,16 +3,15 @@ from kink import inject
 
 from base.model.artifacts import (Artifact, OperatorArtifact, RecorderType,
                                   SnapshotArtifact, VideoArtifact)
-from healthcheck.checker.interior_recorder import \
-    InteriorRecorderArtifactChecker
-from healthcheck.checker.sav_operator_events import SAVOperatorArtifactChecker
-from healthcheck.checker.snapshot import SnapshotArtifactChecker
-from healthcheck.checker.training_recorder import \
-    TrainingRecorderArtifactChecker
+from healthcheck.exceptions import ArtifactHandlerNotAvailable
+from healthcheck.checker.interior_recorder import InteriorRecorderArtifactChecker  # type: ignore
+from healthcheck.checker.sav_operator_events import SAVOperatorArtifactChecker  # type: ignore
+from healthcheck.checker.snapshot import SnapshotArtifactChecker  # type: ignore
+from healthcheck.checker.training_recorder import TrainingRecorderArtifactChecker  # type: ignore
 
 
 @inject
-class CheckerDeterminer:
+class CheckerDeterminer:    # pylint: disable=too-few-public-methods
     """Class for determining the correct checker for a given artifact"""
 
     def __init__(self,
@@ -37,3 +36,5 @@ class CheckerDeterminer:
                 return self.__snapshot_checker
         if isinstance(artifact, OperatorArtifact):
             return self.__operator_checker
+
+        raise ArtifactHandlerNotAvailable("Handler not available for this artifact type")

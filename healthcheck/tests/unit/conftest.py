@@ -2,6 +2,7 @@
 import sys
 import pytest
 from unittest.mock import Mock
+from healthcheck.config import HealthcheckConfig
 
 
 @pytest.fixture

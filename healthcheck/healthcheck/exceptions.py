@@ -49,3 +49,7 @@ class AnonymizedFileNotPresent(NotPresentError):
 
 class InvalidMessagePanic(Exception):
     """Error raised when an invalid message is received and no receipt handle is available."""
+
+
+class ArtifactHandlerNotAvailable(Exception):
+    """Error raised when an artifact does not have an healthcheck handler."""

@@ -19,4 +19,4 @@ def test_sav_operator_checker():
     checker.run_healthcheck(artifact)
 
     # THEN
-    db_controller.get_db_artifact_or_raise.assert_called_with(artifact, DBCollection.SAV_OPERATOR_FEEDBACK)
+    db_controller.is_operator_feedback_present_or_raise.assert_called_with(artifact, DBCollection.SAV_OPERATOR_FEEDBACK)

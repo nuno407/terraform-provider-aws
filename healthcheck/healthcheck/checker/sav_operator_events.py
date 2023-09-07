@@ -6,13 +6,13 @@ import logging
 from kink import inject
 
 from base.model.artifacts import OperatorArtifact
-from healthcheck.checker.common import ArtifactChecker
 from healthcheck.controller.db import DatabaseController
 from healthcheck.database import DBCollection
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
 
+@inject()
 class SAVOperatorArtifactChecker:
     """Operator artifact checker."""
 
