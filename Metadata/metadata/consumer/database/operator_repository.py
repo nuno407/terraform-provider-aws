@@ -1,10 +1,16 @@
+import logging
+
 from base.model.artifacts import (OperatorArtifact, SOSOperatorArtifact, PeopleCountOperatorArtifact,
                                   CameraBlockedOperatorArtifact, OperatorAdditionalInformation)
 from metadata.consumer.database.operator_feedback import DBSOSOperatorArtifact, DBOperatorAdditionalInformation, \
     DBPeopleCountOperatorArtifact, DBCameraBlockedOperatorArtifact
 
+_logger = logging.getLogger(__name__)
+
 class OperatorRepository:
     """Operator Repository to translate model artifacts to database models"""
+
+
 
     @staticmethod
     def get_additional_information(additional_information: OperatorAdditionalInformation):
@@ -45,6 +51,7 @@ class OperatorRepository:
             db_artifact = DBSOSOperatorArtifact(reason=artifact.reason,
                                                 additional_information=additional_information, **metadata)
             db_artifact.save()
+            _logger.info("Stored SOSOperatorArtifact %s", db_artifact)
             return
         if isinstance(artifact, PeopleCountOperatorArtifact):
             additional_information = OperatorRepository.get_additional_information(artifact.additional_information)
@@ -53,10 +60,12 @@ class OperatorRepository:
             if artifact.correct_count is not None:
                 db_artifact.correct_count = artifact.correct_count
             db_artifact.save()
+            _logger.info("Stored PeopleCountOperatorArtifact %s", db_artifact)
             return
         if isinstance(artifact, CameraBlockedOperatorArtifact):
             additional_information = OperatorRepository.get_additional_information(artifact.additional_information)
             db_artifact = DBCameraBlockedOperatorArtifact(is_chc_correct=artifact.is_chc_correct,
                                                           additional_information=additional_information, **metadata)
             db_artifact.save()
+            _logger.info("Stored CameraBlockedOperatorArtifact %s", db_artifact)
             return

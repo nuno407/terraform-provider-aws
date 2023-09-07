@@ -13,6 +13,7 @@ import boto3
 import pytimeparse
 import pytz
 from kink import inject
+from mongoengine import connect, get_connection
 from mypy_boto3_s3 import S3Client
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.errors import DocumentTooLarge, PyMongoError
@@ -20,7 +21,7 @@ from pymongo.errors import DocumentTooLarge, PyMongoError
 from base import GracefulExit
 from base.aws.auto_message_visibility_increaser import \
     AutoMessageVisibilityIncreaser
-from base.aws.container_services import ContainerServices
+from base.aws.container_services import ContainerServices, DATA_INGESTION_DATABASE_NAME
 from base.aws.s3 import S3Controller
 from base.aws.sqs import parse_message_body_to_dict
 from base.chc_counter import ChcCounter
@@ -899,6 +900,8 @@ def main():
 
     # initialize DB client
     db_client = container_services.create_db_client()
+    host = os.environ["FIFTYONE_DATABASE_URI"]
+    connect(db=DATA_INGESTION_DATABASE_NAME, host=host, alias="DataIngestionDB")
 
     # initialize service (to be removed, because it belongs to API)
     persistence = Persistence(container_services.db_tables, db_client.client)

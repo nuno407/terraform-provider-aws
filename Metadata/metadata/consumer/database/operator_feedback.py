@@ -23,7 +23,8 @@ class DBOperatorFeedback(Document):
 
     meta = {
         "collection": di["db_metadata_tables"]["sav_operator_feedback"],
-        "allow_inheritance": True
+        "allow_inheritance": True,
+        "db_alias": "DataIngestionDB"
     }
 
 
