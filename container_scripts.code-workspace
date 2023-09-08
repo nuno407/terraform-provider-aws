@@ -43,6 +43,9 @@
 			"path": "./labeling_bridge"
 		},
 		{
+			"path": "./inference_importer"
+		},
+		{
 			"path": "."
 		}
 	],

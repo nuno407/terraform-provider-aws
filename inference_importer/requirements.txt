@@ -1,0 +1,3 @@
+boto3 == 1.26.91
+-e ../base[aws,voxel]
+--extra-index-url https://${TOKEN}@pypi.fiftyone.ai

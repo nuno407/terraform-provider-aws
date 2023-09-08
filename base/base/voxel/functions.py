@@ -1,4 +1,4 @@
-from base.voxel.constants import OPENLABEL_KEYPOINTS_LABELS, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS, POSE_LABEL, GT_POSE_LABEL
+from base.voxel.constants import OPENLABEL_KEYPOINTS_LABELS, VOXEL_KEYPOINTS_LABELS, VOXEL_SKELETON_LIMBS, POSE_LABEL, GT_POSE_LABEL, INFERENCE_POSE
 import fiftyone as fo
 import logging
 
@@ -13,6 +13,7 @@ def set_dataset_skeleton_configuration(dataset: fo.Dataset) -> None:
     dataset.skeletons = {
         POSE_LABEL: skeleton,
         GT_POSE_LABEL: skeleton,
+        INFERENCE_POSE: skeleton
     }
 
 

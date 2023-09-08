@@ -72,8 +72,20 @@ GT_POSE_LABEL = "GT_pose"
 GT_SEMSEG_LABEL = "GT_semseg"
 GT_DETECTIONS_LABEL = "GT_detections"
 
+# Ground truth
+INFERENCE_POSE = "PRED_inference_pose"
+INFERENCE_SEMSEG = "PRED_inference_semseg"
+INFERENCE_DETECTIONS = "PRED_inference_detections"
+
 OPENLABEL_LABEL_MAPPING = {
     "keypoints": GT_POSE_LABEL,
     "segmentations": GT_SEMSEG_LABEL,
-    "detections": GT_DETECTIONS_LABEL
+    "detections": GT_DETECTIONS_LABEL,
+}
+
+
+OPENLABEL_LABEL_MAPPING_INFERENCE = {
+    "keypoints": INFERENCE_POSE,
+    "segmentations": INFERENCE_SEMSEG,
+    "detections": INFERENCE_DETECTIONS,
 }

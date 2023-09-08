@@ -1,0 +1,912 @@
+{"SageMakerInferenceId":"f70f794d-fbf5-44fc-b6aa-0f4b1c1f9ed5","SageMakerInferenceTime":"2023-08-18T11:45:29Z",
+    "openlabel": {
+    "actions": {},
+    "contexts": {},
+    "coordinate_systems": {},
+    "events": {},
+    "frame_intervals": [
+        {
+            "frame_end": 0,
+            "frame_start": 0
+        }
+    ],
+    "frames": {
+        "0": {
+            "frame_properties": {
+                "external_id": "image_dir",
+                "streams": {
+                    "v_export": {
+                        "uri": "image_dir"
+                    }
+                },
+                "timestamp": 0
+            },
+            "objects": {
+                "b9b2654d-abf1-4077-a2a2-d07034bd8377": {
+                    "object_data": {
+                        "point2d": [
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftAnkle"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-5c839577",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftEar"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-b605f455",
+                                "val": [
+                                    134,
+                                    213
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftElbow"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-36bc9378",
+                                "val": [
+                                    328,
+                                    439
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftEye"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-77b8efb1",
+                                "val": [
+                                    82,
+                                    259
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftHip"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-71618d36",
+                                "val": [
+                                    301,
+                                    469
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftKnee"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-299303ae",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftShoulder"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-c0d8165a",
+                                "val": [
+                                    227,
+                                    290
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftWrist"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-9a6c87d4",
+                                "val": [
+                                    181,
+                                    462
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "neck"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-384e2ea1",
+                                "val": [
+                                    164,
+                                    290
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "nose"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-3a0047ec",
+                                "val": [
+                                    79,
+                                    290
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightAnkle"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-b25fe5e0",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightEar"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-51e47cf0",
+                                "val": [
+                                    107,
+                                    230
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightElbow"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-dffd38ad",
+                                "val": [
+                                    105,
+                                    438
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightEye"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-d0f0f713",
+                                "val": [
+                                    70,
+                                    267
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightHip"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-31ce0ee6",
+                                "val": [
+                                    203,
+                                    450
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightKnee"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-c358e4f0",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightShoulder"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-b1d0e030",
+                                "val": [
+                                    136,
+                                    318
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightWrist"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-c75d2eed",
+                                "val": [
+                                    12,
+                                    9
+                                ]
+                            }
+                        ]
+                    },
+                    "job_id" : "bodypose-inference-v1",
+                        "timestamp": "02-08-2023"
+                },
+                "ce8987b9-75d8-4e1c-8432-49c356846f6b": {
+                    "object_data": {
+                        "point2d": [
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftAnkle"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-94916969",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftEar"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-cc532c4a",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftElbow"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-5c3a97e4",
+                                "val": [
+                                    12,
+                                    9
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftEye"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-9338c060",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftHip"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-6af07e49",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftKnee"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-12b86d6c",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftShoulder"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-514d42c7",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "LeftWrist"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-63ea6001",
+                                "val": [
+                                    12,
+                                    9
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "neck"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-fd384f0a",
+                                "val": [
+                                    12,
+                                    9
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "nose"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-af916033",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightAnkle"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-d5fc3cfe",
+                                "val": [
+                                    796,
+                                    428
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightEar"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-1579dd4a",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightElbow"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-84268eb5",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightEye"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-df61fb4d",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightHip"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-20af0cea",
+                                "val": [
+                                    833,
+                                    255
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightKnee"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": true
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-4e468cea",
+                                "val": [
+                                    900,
+                                    366
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightShoulder"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-9de9f861",
+                                "val": [
+                                    12,
+                                    10
+                                ]
+                            },
+                            {
+                                "attributes": {
+                                    "text": [
+                                        {
+                                            "name": "point_class",
+                                            "val": "RightWrist"
+                                        },
+                                        {
+                                            "name": "stream",
+                                            "val": "V_export"
+                                        },
+                                        {
+                                            "name": "valid",
+                                            "val": false
+                                        }
+                                    ]
+                                },
+                                "name": "point2d-f947230b",
+                                "val": [
+                                    12,
+                                    9
+                                ]
+                            }
+                        ]
+                    },
+                    "job_id" : "bodypose-inference-v1",
+                        "timestamp": "02-08-2023"
+                }
+            }
+        }
+    },
+    "metadata": {},
+    "objects": {
+        "b9b2654d-abf1-4077-a2a2-d07034bd8377": {
+            "frame_intervals": [
+                {
+                    "frame_end": 0,
+                    "frame_start": 0
+                }
+            ],
+            "name": "b9b2654d-abf1-4077-a2a2-d07034bd8377",
+            "object_data": {},
+            "type": "BodyPose"
+        },
+        "ce8987b9-75d8-4e1c-8432-49c356846f6b": {
+            "frame_intervals": [
+                {
+                    "frame_end": 0,
+                    "frame_start": 0
+                }
+            ],
+            "name": "ce8987b9-75d8-4e1c-8432-49c356846f6b",
+            "object_data": {},
+            "type": "BodyPose"
+        }
+    },
+    "ontologies": {},
+    "relations": {},
+    "resources": {},
+    "streams": {
+        "Voxel_export": {
+            "description": "",
+            "stream_properties": {
+                "height": 602,
+                "width": 972
+            },
+            "type": "camera"
+        }
+    },
+    "tags": {}
+}
+}
