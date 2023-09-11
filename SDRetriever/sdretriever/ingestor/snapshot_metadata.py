@@ -5,7 +5,7 @@ from datetime import datetime
 from kink import inject
 
 from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParamsByPrefix
-from base.model.artifacts import Artifact, MetadataArtifact, SnapshotArtifact
+from base.model.artifacts import Artifact, SignalsArtifact, SnapshotArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.constants import FileExt
@@ -31,13 +31,10 @@ class SnapshotMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-meth
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """
         # validate that we are parsing a SnapshotArtifact
-        if not isinstance(artifact, MetadataArtifact):
+        if not isinstance(artifact, SignalsArtifact):
             raise ValueError("SnapshotIngestor can only ingest a MetadataArtifact")
         if not isinstance(artifact.referred_artifact, SnapshotArtifact):
             raise ValueError("SnapshotIngeArtifact can only ingest snapshot related metadata")
-
-        # Initialize file name and path
-        metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
 
         # Download data
         params = ChunkDownloadParamsByPrefix(
@@ -52,10 +49,10 @@ class SnapshotMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-meth
             files_prefix=[
                 artifact.referred_artifact.uuid])
 
-        downloaded_object = self.__s3_chunk_ingestor.download_by_prefix_suffix(params)
+        downloaded_object = self.__s3_chunk_ingestor.download_by_prefix_suffix(params=params)
 
-        if len(downloaded_object) > 1 or len(downloaded_object) == 0:
-            raise S3FileNotFoundError(f"A total of {len(downloaded_object)} files were found instead of 1")
+        # Initialize file name and path
+        metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
 
         # Upload files to DevCloud
         devcloud_object = S3ObjectDevcloud(

@@ -1,159 +1,80 @@
-# mypy: disable-error-code=attr-defined
-"""Unit tests for the SnapshotIngestor class."""
-import re
-from datetime import datetime, timedelta
-from unittest.mock import ANY, Mock
+from datetime import datetime
+from pytz import UTC
+from unittest.mock import Mock, call, ANY
 
 from pytest import fixture, mark, raises
 from pytest_lazyfixture import lazy_fixture
-from pytz import UTC
 
-from base.aws.container_services import ContainerServices
-from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (Artifact, MetadataType, RecorderType,
-                                  S3VideoArtifact, SignalsArtifact,
-                                  SnapshotArtifact, TimeWindow, Recording)
-from sdretriever.config import SDRetrieverConfig
-from sdretriever.exceptions import FileAlreadyExists
+from base.model.artifacts import (PreviewSignalsArtifact, Artifact, SignalsArtifact)
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
-
-SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
-UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
-UPLOAD_END = datetime.now(tz=UTC) - timedelta(hours=1)
-CREDENTIALS = Mock()
-TENANT_ID = "foo"
-DEVICE_ID = "bar"
-UID = "baz"
-WIDTH = 1920
-HEIGHT = 1080
-EXPECTED_FILE_NAME = f"{TENANT_ID}/{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}_metadata_full.json"
+from sdretriever.metadata_merger import MetadataMerger
+from sdretriever.models import ChunkDownloadParamsByPrefix, S3ObjectDevcloud
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 
 
-class TestMetadataSnapshotIngestor():
-    """Unit tests for the SnapshotIngestor class."""
+class TestSnapshotMetadataIngestor:
 
     @fixture()
-    def snap_metadata_ingestor(
+    def snapshot_metadata_ingestor(
             self,
-            config: SDRetrieverConfig,
-            container_services: ContainerServices,
-            rcc_client_factory: S3ClientFactory,
-            s3_controller: S3Controller) -> SnapshotMetadataIngestor:
-        """SnapshotIngestor under test."""
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader) -> SnapshotMetadataIngestor:
         return SnapshotMetadataIngestor(
-            container_services,
-            rcc_client_factory,
-            s3_controller,
-            config,
-            Mock()
-        )
-
-    @fixture()
-    def snapshot_artifact(self) -> SnapshotArtifact:
-        """SnapshotArtifact for testing."""
-        return SnapshotArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            recorder=RecorderType.SNAPSHOT,
-            timestamp=SNAP_TIME,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            uuid=UID,
-            end_timestamp=SNAP_TIME
-        )
-
-    @fixture()
-    def snapshot_metadata_artifact(self, snapshot_artifact: SnapshotArtifact) -> SignalsArtifact:
-        """SnapshotSignalsArtifact for testing."""
-        return SignalsArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            metadata_type=MetadataType.SIGNALS,
-            referred_artifact=snapshot_artifact
-        )
-
-    @fixture()
-    def video_artifact(self) -> S3VideoArtifact:
-        """S3VideoArtifact for testing."""
-        return S3VideoArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            recorder=RecorderType.INTERIOR,
-            timestamp=SNAP_TIME,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            footage_id="1741741b-162a-50ef-a1cd-fbc3caabb3f1",
-            rcc_s3_path="s3://rcc-bucket/key",
-            end_timestamp=SNAP_TIME,
-            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
+            rcc_chunk_downloader,
+            s3_downloader_uploader,
         )
 
     @mark.unit()
     @mark.parametrize("artifact", [
-        (lazy_fixture("video_artifact")),
-        (lazy_fixture("snapshot_artifact"))
-    ])
-    def test_non_snap_raises_exception(self, snap_metadata_ingestor: SnapshotMetadataIngestor,
-                                       artifact: Artifact) -> None:
-        """Non-video artifacts should raise an exception."""
+        (lazy_fixture("snapshot_artifact")),
+        (lazy_fixture("preview_metadata_artifact")),
+        (lazy_fixture("interior_video_artifact")),
+        (lazy_fixture("training_video_artifact"))
+    ], ids=["fail_snapshot_artifact", "fail_preview_metadata_artifact" ,"fail_interior_video_artifact", "fail_training_video_artifact"])
+    def test_other_artifacts_raise_error(self, artifact: Artifact,
+                                         snapshot_metadata_ingestor: SnapshotMetadataIngestor):
         with raises(ValueError):
-            snap_metadata_ingestor.ingest(artifact)
+            snapshot_metadata_ingestor.ingest(artifact)
 
     @mark.unit()
-    def test_snap_metadata_already_exists(self, snap_metadata_ingestor: SnapshotMetadataIngestor,
-                                          snapshot_metadata_artifact: SignalsArtifact,
-                                          s3_controller: S3Controller,
-                                          raw_s3: str) -> None:
-        """Snapshots that already exist should raise an exception."""
+    def test_ingest(
+            self,
+            snapshot_metadata_ingestor: SnapshotMetadataIngestor,
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader,
+            snapshot_metadata_artifact: SignalsArtifact):
+
         # GIVEN
-        s3_controller.check_s3_file_exists = Mock(return_value=True)  # type: ignore[method-assign]
+        snapshot_name = snapshot_metadata_artifact.artifact_id + ".json"
+        path_uploaded = f"s3://dummy_value"
+
+        downloaded_data = Mock()
+
+        rcc_chunk_downloader.download_by_prefix_suffix = Mock(return_value=[downloaded_data])
+        s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
+
+        expected_devcloud_obj = S3ObjectDevcloud(data=downloaded_data.data,
+                                                 filename=snapshot_name,
+                                                 tenant=snapshot_metadata_artifact.tenant_id)
+        reference_current_time = datetime.now(tz=UTC)
+
+        expected_search_params = ChunkDownloadParamsByPrefix(
+            device_id=snapshot_metadata_artifact.device_id,
+            tenant=snapshot_metadata_artifact.tenant_id,
+            start_search=snapshot_metadata_artifact.referred_artifact.timestamp,
+            stop_search=ANY,
+            suffixes=[
+                ".json.zip",
+                ".json"],
+            files_prefix=[snapshot_metadata_artifact.referred_artifact.uuid])
 
         # WHEN
-        with raises(FileAlreadyExists):
-            snap_metadata_ingestor.ingest(snapshot_metadata_artifact)
+        snapshot_metadata_ingestor.ingest(snapshot_metadata_artifact)
 
         # THEN
-        s3_controller.check_s3_file_exists.assert_called_once_with(
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
+        rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(params=expected_search_params)
+        rcc_chunk_downloader.download_by_prefix_suffix.call_args[1]["params"].stop_search > reference_current_time # Assert end date to search
 
-    @mark.unit()
-    def test_successful_ingestion(self,
-                                  snap_metadata_ingestor: SnapshotMetadataIngestor,
-                                  snapshot_metadata_artifact: SignalsArtifact,
-                                  s3_controller: S3Controller,
-                                  raw_s3: str,
-                                  rcc_bucket: str) -> None:
-        """Successful ingestion should upload the snapshot."""
-        # GIVEN
-        s3_controller.check_s3_file_exists = Mock(return_value=False)  # type: ignore[method-assign]
-        snap_metadata_ingestor.get_file_in_rcc = Mock(
-            return_value=b'decompressed_mock')  # type: ignore[method-assign]
-
-        # WHEN
-        snap_metadata_ingestor.ingest(snapshot_metadata_artifact)
-
-        # THEN
-        s3_controller.check_s3_file_exists.assert_called_once_with(
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
-        snap_metadata_ingestor.get_file_in_rcc.assert_called_once_with(
-            rcc_bucket,
-            TENANT_ID,
-            DEVICE_ID,
-            UID,
-            SNAP_TIME,
-            ANY,
-            [".json", ".json.zip"]
-        )
-        s3_controller.upload_file.assert_called_once_with(
-            b'decompressed_mock',
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
+        assert snapshot_metadata_artifact.s3_path == path_uploaded

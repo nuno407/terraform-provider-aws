@@ -25,14 +25,12 @@ class S3DownloaderUploader:
             s3_controller: S3Controller,
             rcc_bucket: str,
             devcloud_raw_bucket: str,
-            sdr_config: SDRetrieverConfig,
-            rcc_crawler: S3CrawlerRCC):
+            sdr_config: SDRetrieverConfig):
         self.__rcc_s3_controller_factory = rcc_s3_controller_factory
         self.__s3_controller = s3_controller
         self.__rcc_bucket = rcc_bucket
         self.__raw_bucket = devcloud_raw_bucket
         self.__tmp_bucket = sdr_config.temporary_bucket
-        self.__rcc_crawler = rcc_crawler
 
     def download_from_rcc(self, s3_keys: Iterable[str], bucket: Optional[str] = None) -> list[S3ObjectRCC]:
         """
@@ -65,32 +63,6 @@ class S3DownloaderUploader:
                     bucket=bucket))
 
         return chunks
-
-    def search_and_download_from_rcc(self, file_name: str,
-                                     search_params: RCCS3SearchParams) -> S3ObjectRCC:
-        """
-        Search for a file in RCC and downloads it.
-
-        Args:
-            file_name (str): The file name to be searched and downloaded
-            search_params (RCCS3SearchParams): Additional parameters needed for the search
-
-        Raises:
-            S3FileNotFoundError: If the file is not found
-
-        Returns:
-            S3ObjectRCC: The object downloaded
-        """
-        search_result = self.__rcc_crawler.search_files({file_name}, search_params)
-
-        if len(search_result) == 0:
-            raise S3FileNotFoundError(f"File {file_name} not found in RCC")
-
-        if len(search_result) > 1:
-            raise ValueError(f"InternalError: RCCCrawler returned too many files {len(search_result)}")
-
-        object_info = search_result.pop(file_name)
-        return self.download_from_rcc([object_info.key])[0]
 
     def __upload_to_devcloud(self, bucket: str, s3_key: str, data: bytes) -> str:
         """

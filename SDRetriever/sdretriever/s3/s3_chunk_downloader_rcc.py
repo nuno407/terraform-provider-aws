@@ -1,6 +1,7 @@
 from sdretriever.exceptions import UploadNotYetCompletedError
 from sdretriever.models import ChunkDownloadParamsByID, S3ObjectRCC, RCCS3SearchParams, ChunkDownloadParamsByPrefix
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.exceptions import S3FileNotFoundError
 from kink import inject
 from base.aws.model import S3ObjectInfo
 from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
@@ -14,8 +15,8 @@ _logger = logging.getLogger("SDRetriever." + __name__)
 @inject
 class RCCChunkDownloader:
     """
-    Class responsible for downloading the chunks from RCC
-    based on the FootageCompleteDevCloudEvent message.
+    Class responsible for downloading the chunks from RCC.
+    This object shall only be used for the bucket rcc-device-data
 
     An object of this class is NOT thread safe.
     """
@@ -83,7 +84,7 @@ class RCCChunkDownloader:
             UploadNotYetCompletedError: If not all files can be ingested
 
         Returns:
-            list[S3ObjectRCC]: A list with all the files downloaded.
+            list[S3ObjectRCC]: A list with all the files downloaded. This guaranteed to return the same ammount of objects as requested
         """
         self.__suffixes = params.suffixes
 
@@ -141,3 +142,29 @@ class RCCChunkDownloader:
         list_file_path_to_download = list(map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)
+
+
+    def download_by_file_name(self, file_names: list[str],
+                                     search_params: RCCS3SearchParams) -> list[S3ObjectRCC]:
+        """
+        Search for a file in RCC and downloads it.
+        Files that end wihth the .zip extension will also be extracted.
+        This will search all the chunks in RCC based on the params.
+
+        Args:
+            file_names (str): The file names to be searched and downloaded
+            search_params (RCCS3SearchParams): Additional parameters needed for the search
+
+        Raises:
+            S3FileNotFoundError: If the file is not found
+
+        Returns:
+            S3ObjectRCC: The object downloaded
+        """
+        search_result = self.__s3_crawler.search_files(set(file_names), search_params)
+
+        if len(search_result) != len(file_names):
+            raise S3FileNotFoundError(f"One or more files not found in RCC")
+
+        s3_keys = [val.key for _,val in search_result.items() ]
+        return self.__s3_downloader.download_from_rcc(s3_keys)

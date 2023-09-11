@@ -11,129 +11,70 @@ from base.aws.s3 import S3ClientFactory, S3Controller
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow, Recording)
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.exceptions import FileAlreadyExists
+from base.model.artifacts import Artifact
 from sdretriever.ingestor.snapshot import SnapshotIngestor
+from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
+from sdretriever.models import S3ObjectDevcloud, RCCS3SearchParams
+from pytest_lazyfixture import lazy_fixture
 
-SNAP_TIME = datetime.now(tz=UTC) - timedelta(hours=4)
-UPLOAD_START = datetime.now(tz=UTC) - timedelta(hours=2)
-UPLOAD_END = datetime.now(tz=UTC) - timedelta(hours=1)
-CREDENTIALS = Mock()
-TENANT_ID = "foo"
-DEVICE_ID = "bar"
-UID = "baz"
-WIDTH = 1920
-HEIGHT = 1080
-EXPECTED_FILE_NAME = f"{TENANT_ID}/{TENANT_ID}_{DEVICE_ID}_{UID}_{round(SNAP_TIME.timestamp()*1000)}.jpeg"
-raw_s3 = "raw-s3"
-
-
-class TestSnapshotIngestor():
-    """Unit tests for the SnapshotIngestor class."""
+class TestSnapshotIngestor:
 
     @fixture()
-    def snap_ingestor(
+    def snapshot_ingestor(
             self,
-            config: SDRetrieverConfig,
-            container_services: ContainerServices,
-            rcc_client_factory: S3ClientFactory,
-            s3_controller: S3Controller) -> SnapshotIngestor:
-        """SnapshotIngestor under test."""
+            s3_downloader_uploader: S3DownloaderUploader,
+            rcc_chunk_downloader: RCCChunkDownloader) -> SnapshotIngestor:
         return SnapshotIngestor(
-            container_services,
-            rcc_client_factory,
-            s3_controller,
-            config,
-            s3_finder=Mock()
-        )
-
-    @fixture()
-    def video_artifact(self) -> S3VideoArtifact:
-        """S3VideoArtifact for testing."""
-        return S3VideoArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            recorder=RecorderType.INTERIOR,
-            timestamp=SNAP_TIME,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            footage_id="babe76af-6dd8-533c-9ac3-2295f5fd779d",
-            rcc_s3_path="s3://rcc-bucket/key",
-            end_timestamp=SNAP_TIME,
-            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
-        )
-
-    @fixture()
-    def snapshot_artifact(self) -> SnapshotArtifact:
-        """SnapshotArtifact for testing."""
-        return SnapshotArtifact(
-            tenant_id=TENANT_ID,
-            device_id=DEVICE_ID,
-            recorder=RecorderType.SNAPSHOT,
-            timestamp=SNAP_TIME,
-            end_timestamp=SNAP_TIME,
-            upload_timing=TimeWindow(
-                start=UPLOAD_START,
-                end=UPLOAD_END
-            ),
-            uuid=UID
+            s3_downloader_uploader,
+            rcc_chunk_downloader
         )
 
     @mark.unit()
-    def test_non_snap_raises_exception(self, snap_ingestor: SnapshotIngestor,
-                                       video_artifact: S3VideoArtifact) -> None:
-        """Non-video artifacts should raise an exception."""
+    @mark.parametrize("artifact", [
+        (lazy_fixture("preview_metadata_artifact")),
+        (lazy_fixture("interior_video_artifact")),
+        (lazy_fixture("training_video_artifact"))
+    ], ids=["fail_preview_artifact", "fail_interior_video_artifact", "fail_training_video_artifact"])
+    def test_other_artifacts_raise_error(self, artifact: Artifact,
+                                         snapshot_ingestor: SnapshotIngestor):
         with raises(ValueError):
-            snap_ingestor.ingest(video_artifact)
+            snapshot_ingestor.ingest(artifact)
 
     @mark.unit()
-    def test_snap_already_exists(self, snap_ingestor: SnapshotIngestor,
-                                 snapshot_artifact: SnapshotArtifact,
-                                 s3_controller: S3Controller) -> None:
-        """Snapshots that already exist should raise an exception."""
+    def test_ingest(
+            self,
+            snapshot_ingestor: SnapshotIngestor,
+            snapshot_artifact: SnapshotArtifact,
+            s3_downloader_uploader: S3DownloaderUploader,
+            rcc_chunk_downloader: RCCChunkDownloader):
+
+
         # GIVEN
-        s3_controller.check_s3_file_exists = Mock(return_value=True)  # type: ignore[method-assign]
+        snapshot_name = snapshot_artifact.artifact_id + ".jpeg"
+        path_uploaded = f"s3://dummy_value"
+
+        downloaded_data = Mock()
+
+        rcc_chunk_downloader.download_by_file_name = Mock(return_value=[downloaded_data])
+        s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
+
+        expected_devcloud_obj = S3ObjectDevcloud(data=downloaded_data.data,
+                                                 filename=snapshot_name,
+                                                 tenant=snapshot_artifact.tenant_id)
+        reference_current_time = datetime.now(tz=UTC)
+        expected_search_params = RCCS3SearchParams(
+            device_id=snapshot_artifact.device_id,
+            tenant=snapshot_artifact.tenant_id,
+            start_search=snapshot_artifact.timestamp,
+            stop_search=ANY)
 
         # WHEN
-        with raises(FileAlreadyExists):
-            snap_ingestor.ingest(snapshot_artifact)
+        snapshot_ingestor.ingest(snapshot_artifact)
 
         # THEN
-        s3_controller.check_s3_file_exists.assert_called_once_with(
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
+        rcc_chunk_downloader.download_by_file_name.assert_called_once_with(file_names=[snapshot_artifact.uuid], search_params=expected_search_params)
+        rcc_chunk_downloader.download_by_file_name.call_args[1]["search_params"].stop_search > reference_current_time # Assert end date to search
 
-    @mark.unit()
-    def test_successful_ingestion(self, snap_ingestor: SnapshotIngestor,
-                                  snapshot_artifact: SnapshotArtifact,
-                                  s3_controller: S3Controller,
-                                  rcc_bucket: str) -> None:
-        """Successful ingestion should upload the snapshot."""
-        # GIVEN
-        s3_controller.check_s3_file_exists = Mock(return_value=False)  # type: ignore[method-assign]
-        snap_ingestor.get_file_in_rcc = Mock(return_value=b'')  # type: ignore[method-assign]
-
-        # WHEN
-        snap_ingestor.ingest(snapshot_artifact)
-
-        # THEN
-        s3_controller.check_s3_file_exists.assert_called_once_with(
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
-        snap_ingestor.get_file_in_rcc.assert_called_once_with(
-            rcc_bucket,
-            TENANT_ID,
-            DEVICE_ID,
-            UID,
-            SNAP_TIME,
-            ANY,
-            [".jpeg", ".png"]
-        )
-        s3_controller.upload_file.assert_called_once_with(
-            b'',
-            raw_s3,
-            EXPECTED_FILE_NAME
-        )
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
+        assert snapshot_artifact.s3_path == path_uploaded

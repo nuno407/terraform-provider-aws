@@ -17,7 +17,7 @@ from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.ingestor.post_processor import FFProbeExtractorPostProcessor
-from base.model.artifacts import TimeWindow, RecorderType, SnapshotArtifact, S3VideoArtifact, Recording, PreviewSignalsArtifact, MultiSnapshotArtifact
+from base.model.artifacts import TimeWindow, RecorderType, SnapshotArtifact, S3VideoArtifact, Recording, PreviewSignalsArtifact, MultiSnapshotArtifact, SignalsArtifact
 
 
 @fixture()
@@ -100,6 +100,18 @@ def snapshot_artifact(
         timestamp=mock_start_timestamp,
         end_timestamp=mock_start_timestamp
     )
+
+@fixture()
+def snapshot_metadata_artifact(
+        mock_device_id: str,
+        mock_tenant_id: str,
+        snapshot_artifact: SnapshotArtifact) -> SignalsArtifact:
+    """S3VideoArtifact for testing."""
+
+    return SignalsArtifact(
+        tenant_id=mock_tenant_id,
+        device_id=mock_device_id,
+        referred_artifact=snapshot_artifact)
 
 
 @fixture()
