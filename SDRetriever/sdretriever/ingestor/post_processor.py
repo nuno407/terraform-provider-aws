@@ -41,7 +41,7 @@ class FFProbeExtractorPostProcessor:  # pylint: disable=too-few-public-methods
                 f_p.write(video_bytes)
 
             # Execute ffprobe command to get video clip info
-            result = subprocess.run(["/usr/bin/ffprobe",  # nosec
+            result = subprocess.run(["/usr/local/bin/ffprobe",  # nosec
                                     "-v",
                                      "error",
                                      "-show_format",

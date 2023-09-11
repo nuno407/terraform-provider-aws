@@ -143,9 +143,8 @@ class RCCChunkDownloader:
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)
 
-
     def download_by_file_name(self, file_names: list[str],
-                                     search_params: RCCS3SearchParams) -> list[S3ObjectRCC]:
+                              search_params: RCCS3SearchParams) -> list[S3ObjectRCC]:
         """
         Search for a file in RCC and downloads it.
         Files that end wihth the .zip extension will also be extracted.
@@ -166,5 +165,5 @@ class RCCChunkDownloader:
         if len(search_result) != len(file_names):
             raise S3FileNotFoundError(f"One or more files not found in RCC")
 
-        s3_keys = [val.key for _,val in search_result.items() ]
+        s3_keys = [val.key for _, val in search_result.items()]
         return self.__s3_downloader.download_from_rcc(s3_keys)

@@ -26,12 +26,15 @@ class TestSnapshotMetadataIngestor:
         )
 
     @mark.unit()
-    @mark.parametrize("artifact", [
-        (lazy_fixture("snapshot_artifact")),
-        (lazy_fixture("preview_metadata_artifact")),
-        (lazy_fixture("interior_video_artifact")),
-        (lazy_fixture("training_video_artifact"))
-    ], ids=["fail_snapshot_artifact", "fail_preview_metadata_artifact" ,"fail_interior_video_artifact", "fail_training_video_artifact"])
+    @mark.parametrize("artifact",
+                      [(lazy_fixture("snapshot_artifact")),
+                       (lazy_fixture("preview_metadata_artifact")),
+                          (lazy_fixture("interior_video_artifact")),
+                          (lazy_fixture("training_video_artifact"))],
+                      ids=["fail_snapshot_artifact",
+                           "fail_preview_metadata_artifact",
+                           "fail_interior_video_artifact",
+                           "fail_training_video_artifact"])
     def test_other_artifacts_raise_error(self, artifact: Artifact,
                                          snapshot_metadata_ingestor: SnapshotMetadataIngestor):
         with raises(ValueError):
@@ -74,7 +77,8 @@ class TestSnapshotMetadataIngestor:
 
         # THEN
         rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(params=expected_search_params)
-        rcc_chunk_downloader.download_by_prefix_suffix.call_args[1]["params"].stop_search > reference_current_time # Assert end date to search
+        # Assert end date to search
+        rcc_chunk_downloader.download_by_prefix_suffix.call_args[1]["params"].stop_search > reference_current_time
 
         s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
         assert snapshot_metadata_artifact.s3_path == path_uploaded

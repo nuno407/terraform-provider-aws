@@ -42,7 +42,7 @@ class SnapshotIngestor(Ingestor):
             stop_search=datetime.now(
                 tz=pytz.UTC))
 
-        downloaded_object : S3ObjectRCC = self.__s3_chunk_downloader.download_by_file_name(
+        downloaded_object: S3ObjectRCC = self.__s3_chunk_downloader.download_by_file_name(
             file_names=[artifact.uuid], search_params=params)[0]
 
         # Initialize file name and path

@@ -18,6 +18,7 @@ from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import S3ObjectDevcloud, RCCS3SearchParams
 from pytest_lazyfixture import lazy_fixture
 
+
 class TestSnapshotIngestor:
 
     @fixture()
@@ -49,7 +50,6 @@ class TestSnapshotIngestor:
             s3_downloader_uploader: S3DownloaderUploader,
             rcc_chunk_downloader: RCCChunkDownloader):
 
-
         # GIVEN
         snapshot_name = snapshot_artifact.artifact_id + ".jpeg"
         path_uploaded = f"s3://dummy_value"
@@ -73,8 +73,10 @@ class TestSnapshotIngestor:
         snapshot_ingestor.ingest(snapshot_artifact)
 
         # THEN
-        rcc_chunk_downloader.download_by_file_name.assert_called_once_with(file_names=[snapshot_artifact.uuid], search_params=expected_search_params)
-        rcc_chunk_downloader.download_by_file_name.call_args[1]["search_params"].stop_search > reference_current_time # Assert end date to search
+        rcc_chunk_downloader.download_by_file_name.assert_called_once_with(
+            file_names=[snapshot_artifact.uuid], search_params=expected_search_params)
+        # Assert end date to search
+        rcc_chunk_downloader.download_by_file_name.call_args[1]["search_params"].stop_search > reference_current_time
 
         s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
         assert snapshot_artifact.s3_path == path_uploaded

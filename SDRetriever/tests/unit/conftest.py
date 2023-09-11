@@ -101,6 +101,7 @@ def snapshot_artifact(
         end_timestamp=mock_start_timestamp
     )
 
+
 @fixture()
 def snapshot_metadata_artifact(
         mock_device_id: str,
