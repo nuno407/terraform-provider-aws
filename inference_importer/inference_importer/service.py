@@ -134,8 +134,7 @@ class InferenceImporter():
                     _logger.debug("Inference job object")
                     for an_object in inference_openlabel["frames"]["0"]["objects"]:
                         inference_openlabel["frames"]["0"]["objects"][an_object]["inference_job"] = job_name  # pylint: disable=line-too-long
-                # fix inference_openlabel["frames"]["0"]
-                # fix ["frame_properties"]["streams"]["v_export"]["uri"] = os.path.basename(filepath)
+                        inference_openlabel["frames"]["0"]["frame_properties"]["streams"]["Voxel_export"]["uri"] = os.path.basename(filepath).replace(".out", "")  # pylint: disable=line-too-long # noqa
             with open(tmp_filepath, "w", encoding="utf-8") as json_file:
                 new_json = {"openlabel": inference_openlabel}
                 _logger.debug(new_json)
