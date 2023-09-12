@@ -8,7 +8,10 @@ excludes:
       comment: "Configuration for developer environment only"
     - pattern: "**/tests/**"
       reason: "TEST_OF"
-      comment: "Tests of the micro services"
+      comment: "Test directories."
+    - pattern: "**/Tests/**"
+      reason: "TEST_OF"
+      comment: "Test directories."
     - pattern: "**/requirements_dev.txt"
       reason: "BUILD_TOOL_OF"
       comment: "Packages for development only."
@@ -18,12 +21,19 @@ excludes:
     - pattern: "**/.localdev/**"
       reason: "BUILD_TOOL_OF"
       comment: "Configuration for developer environment only"
+    - pattern: "**/package*.json"
+      reason: "BUILD_TOOL_OF"
+      comment: "package and package-lock json files are automatically generated. They may reference licenses"
+    - pattern: "frontend/src/assets/files/**"
+      reason: "OTHER"
+      comment: "This file should disclose the licenses used within the project. It should reference the licenses used in the project, but it should not be scanned for licenses."
   scopes:
     - pattern: "devDependencies"
       reason: "DEV_DEPENDENCY_OF"
       comment: "Packages for development only."
 curations:
   packages:
+  ## PyPi Curations ##
   - id: "PyPI::pyasn1"
     curations:
       comment: "pyasn1 is licensed under the BSD-2-Clause license, thus this curations sets a mapping to the SPDX identifier for that license."
@@ -41,6 +51,22 @@ curations:
     curations:
       concluded_license: "PSF-2.0"
       comment: "Scanner was incorrectly detecting additional licenses, but package is under PSF-2.0"
+  - id: "PyPI::httpx:0.25.0"
+    curations:
+      comment: "Scan was detecting the BSD license, but not mapping it to the correct BSD-3-Clause identifier"
+      declared_license_mapping:
+        BSD License: "BSD-3-Clause"
+  - id: "PyPI::httpcore:0.18.0"
+    curations:
+      comment: "Scan was detecting the BSD license, but not mapping it to the correct BSD-3-Clause identifier"
+      declared_license_mapping:
+        BSD License: "BSD-3-Clause"
+  - id: "PyPI::numpy:1.26.0"
+    curations:
+      comment: "Scan was detecting the BSD license, but not mapping it to the correct BSD-3-Clause identifier"
+      declared_license_mapping:
+        BSD License: "BSD-3-Clause"
+  ## NPM Curations ##
   - id: "NPM:@bci-web-core:core"
     curations:
       comment: |
@@ -56,6 +82,88 @@ curations:
       comment: |
         This is a bosch package and released under BIOS license as stated in the license file.
       concluded_license: "LicenseRef-BIOSL5-EDF"
+package_configurations:
+## numpy configurations ##
+- id: "PyPI::numpy:1.26.0"
+  source_artifact_url: "https://files.pythonhosted.org/packages/55/b3/b13bce39ba82b7398c06d10446f5ffd5c07db39b09bd37370dc720c7951c/numpy-1.26.0.tar.gz"
+  license_finding_curations:
+  - path: "numpy-1.26.0/vendored-meson/meson/data/syntax-highlighting/vim/indent/meson.vim"
+    start_lines: "3"
+    line_count: 1
+    detected_license: "Vim"
+    concluded_license: "Apache-2.0"
+    reason: REFERENCE
+    comment: "A file within the vendored-meson package contains a reference to the Vim license. This file is part of the vendored, but not installed in built numpy packages meson package, licensed under Apache-2.0"
+  - path: "numpy-1.26.0/vendored-meson/meson/data/syntax-highlighting/vim/ftplugin/meson.vim"
+    start_lines: "3"
+    line_count: 1
+    detected_license: "Vim"
+    concluded_license: "Apache-2.0"
+    reason: REFERENCE
+    comment: "A file within the vendored-meson package contains a reference to the Vim license. This file is part of the vendored, but not installed in built numpy packages meson package, licensed under Apache-2.0"
+  - path: "numpy-1.26.0/vendored-meson/meson/data/syntax-highlighting/vim/syntax/meson.vim"
+    start_lines: "3"
+    line_count: 1
+    detected_license: "Vim"
+    concluded_license: "Apache-2.0"
+    reason: REFERENCE
+    comment: "A file within the vendored-meson package contains a reference to the Vim license. This file is part of the vendored, but not installed in built numpy packages meson package, licensed under Apache-2.0"
+  - path: "numpy-1.26.0/vendored-meson/meson/data/shell-completions/zsh/_meson"
+    start_lines: "12"
+    line_count: 16
+    detected_license: "LicenseRef-scancode-zsh"
+    concluded_license: "MIT"
+    reason: INCORRECT
+    comment: "The detected license is an MIT license."
+  - path: "numpy-1.26.0/vendored-meson/meson-python/docs/how-to-guides/first-project.rst"
+    start_lines: "81"
+    line_count: 2
+    detected_license: "Apache-2.0 AND CC-BY-NC-ND-3.0 AND NOASSERTION AND LicenseRef-scancode-proprietary-license"
+    concluded_license: MIT
+    reason: CODE
+    comment: "This is a reference to a license.txt file inside a piece of configuration code, and it is not related to a license itself. This file is part of the vendored, but not installed in built numpy packages meson-python package, licensed under MIT license"
+  - path: "numpy-1.26.0/doc/changelog/1.19.0-changelog.rst"
+    start_lines: "428"
+    line_count: 1
+    detected_license: "DOC"
+    concluded_license: BSD-3-Clause
+    reason: DOCUMENTATION_OF
+    comment: "The detected license refers to commit present in the numpy changelog. This commit references an update of the license, but mentions no license."
+  - path: "numpy-1.26.0/numpy/linalg/lapack_lite/f2c_d_lapack.c"
+    start_lines: "37608"
+    line_count: 3
+    detected_license: "LicenseRef-scancode-bsla-no-advert"
+    concluded_license: BSD-3-Clause
+    reason: INCORRECT
+    comment: "The numpy package includes the freely available LAPACK software package. This package is distributed under a BSD-3-Clause license. The curation clarifies that the detected license is an incorrect detection for this package."
+  - path: "numpy-1.26.0/numpy/linalg/lapack_lite/f2c_s_lapack.c"
+    start_lines: "38947"
+    line_count: 3
+    detected_license: "LicenseRef-scancode-bsla-no-advert"
+    concluded_license: BSD-3-Clause
+    reason: INCORRECT
+    comment: "The numpy package includes the freely available LAPACK software package. This package is distributed under a BSD-3-Clause license. The curation clarifies that the detected license is an incorrect detection for this package."
+  - path: "numpy-1.26.0/numpy/linalg/lapack_lite/f2c_d_lapack.c"
+    start_lines: "39102"
+    line_count: 3
+    detected_license: "LicenseRef-scancode-bsla-no-advert"
+    concluded_license: BSD-3-Clause
+    reason: INCORRECT
+    comment: "The numpy package includes the freely available LAPACK software package. This package is distributed under a BSD-3-Clause license. The curation clarifies that the detected license is an incorrect detection for this package."
+  - path: "numpy-1.26.0/numpy/linalg/lapack_lite/f2c_s_lapack.c"
+    start_lines: "37461"
+    line_count: 3
+    detected_license: "LicenseRef-scancode-bsla-no-advert"
+    concluded_license: BSD-3-Clause
+    reason: INCORRECT
+    comment: "The numpy package includes the freely available LAPACK software package. This package is distributed under a BSD-3-Clause license. The curation clarifies that the detected license is an incorrect detection for this package."
+  - path: "numpy-1.26.0/doc/source/f2py/windows/intel.rst"
+    start_lines: "55"
+    line_count: 1
+    detected_license: "LicenseRef-scancode-proprietary-license"
+    concluded_license: BSD-3-Clause
+    reason: DOCUMENTATION_OF
+    comment: "The detected license is a link to the Intel EULA for the Intel Fortran Compiler for oneAPI, and not a license. In fact, the Intel Fortran Compiler for oneAPI which does not require a license for download, installation, or use."
 resolutions:
   vulnerabilities:
     - id: "CVE-2021-23337"
