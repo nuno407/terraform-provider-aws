@@ -31,7 +31,7 @@ class InferenceImporter():
 
     s3_client: S3Client
 
-    def process(self, s3_client: S3Client, parsed_message: SQSMessage):  # pylint: disable=too-many-locals
+    def process(self, s3_client: S3Client, parsed_message: SQSMessage) -> bool:  # pylint: disable=too-many-locals
         """
         process function:
         downloads file results from Inference to a temporary directory
@@ -42,6 +42,7 @@ class InferenceImporter():
             s3_client (boto3.client)
             parsed_message (SQSMessage): parsed SQS Message
         """
+        processed = False
         paginator = s3_client.get_paginator("list_objects_v2")
         # gets the bucket name from a s3://<bucket-name> path
         bucket_name = parsed_message.transform_job_output_path.split("/")[2]
@@ -105,8 +106,11 @@ class InferenceImporter():
                 dataset.add_dynamic_sample_fields()
                 dataset.save()
 
+                processed = True
             except Exception:  # pylint: disable=broad-except
                 _logger.exception("Error in Voxel Import")
+
+        return processed
 
     def get_inference_from_s3(self, filepath: str, tmp_dir: str,
                               bucket_name: str, job_name: str):
@@ -130,11 +134,11 @@ class InferenceImporter():
             with open(tmp_filepath, "r", encoding="utf-8") as file:
                 json_data = json.load(file)
                 inference_openlabel = json_data["openlabel"]
+                inference_openlabel["frames"]["0"]["frame_properties"]["streams"]["Voxel_export"]["uri"] = os.path.basename(filepath).replace(".out", "")  # pylint: disable=line-too-long # noqa
                 if inference_openlabel["frames"]["0"].get("objects") is not None:
                     _logger.debug("Inference job object")
                     for an_object in inference_openlabel["frames"]["0"]["objects"]:
                         inference_openlabel["frames"]["0"]["objects"][an_object]["inference_job"] = job_name  # pylint: disable=line-too-long
-                        inference_openlabel["frames"]["0"]["frame_properties"]["streams"]["Voxel_export"]["uri"] = os.path.basename(filepath).replace(".out", "")  # pylint: disable=line-too-long # noqa
             with open(tmp_filepath, "w", encoding="utf-8") as json_file:
                 new_json = {"openlabel": inference_openlabel}
                 _logger.debug(new_json)

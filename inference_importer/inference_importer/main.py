@@ -1,5 +1,4 @@
 """ Main module. """
-import json
 import os
 import boto3
 from base import GracefulExit
@@ -34,33 +33,21 @@ def process_message(container_services, importer, s3_client, sqs_client):
     if sqs_message:
         _logger.info("Received a message")
 
-        if _drop_test_message(sqs_message, container_services, sqs_client):
-            return
-
         parsed_message = SQSMessage.from_raw_sqs_message(sqs_message)
-        importer.process(s3_client, parsed_message)
+        processed = importer.process(s3_client, parsed_message)
 
         # Delete message after processing
-        container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"],
-                                          input_queue=INFERENCE_IMPORTER_QUEUE)
-
-
-def _drop_test_message(message, container_services, sqs_client):
-    body = message["Body"].replace("\'", "\"")
-    sqs_body = json.loads(body)
-    event = sqs_body.get("Event", None)
-    if event == "s3:TestEvent":
-        _logger.info("Deleting S3 test message")
-        container_services.delete_message(sqs_client, message["ReceiptHandle"], input_queue=INFERENCE_IMPORTER_QUEUE)
-        return True
-    return False
+        if processed:
+            container_services.delete_message(sqs_client, sqs_message["ReceiptHandle"],
+                                              input_queue=INFERENCE_IMPORTER_QUEUE)
 
 
 def main(stop_condition=lambda: True):
     """Main function"""
 
     # Define configuration for logging messages
-    _logger.info("Starting Container %s (%s)..\n", CONTAINER_NAME, CONTAINER_VERSION)
+    _logger.info("Starting Container %s (%s)..\n",
+                 CONTAINER_NAME, CONTAINER_VERSION)
 
     # Create the necessary clients for AWS services access
     sqs_client = boto3.client("sqs", region_name=AWS_REGION)
