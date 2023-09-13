@@ -117,7 +117,8 @@ class VideoArtifact(ImageBasedArtifact):
     # pylint: disable=abstract-method
     end_timestamp: datetime = Field(default=...)
     actual_duration: Optional[float] = Field(default=None)
-    recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT, RecorderType.TRAINING] = Field(default=...)
+    recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT,
+                      RecorderType.TRAINING] = Field(default=...)
 
     @validator("end_timestamp")
     def check_end_timestamp(cls, value: datetime) -> datetime:
@@ -198,7 +199,8 @@ class MetadataArtifact(Artifact):
     """ Metadata """
     referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact,
                              S3VideoArtifact, VideoArtifact, MultiSnapshotArtifact] = Field(default=...)
-    metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS, MetadataType.PREVIEW] = Field(default=...)
+    metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS,
+                           MetadataType.PREVIEW] = Field(default=...)
 
     @property
     def artifact_id(self) -> str:
@@ -227,7 +229,8 @@ class PreviewSignalsArtifact(MetadataArtifact):
 class EventArtifact(Artifact):
     """Base class for all event artifacts"""
     timestamp: datetime = Field(default=...)
-    event_name: Literal[EventType.INCIDENT, EventType.DEVICE_INFO, EventType.CAMERA_SERVICE] = Field(default=...)
+    event_name: Literal[EventType.INCIDENT, EventType.DEVICE_INFO,
+                        EventType.CAMERA_SERVICE] = Field(default=...)
 
     @property
     def artifact_id(self) -> str:
@@ -292,8 +295,8 @@ class PeopleCountOperatorArtifact(OperatorArtifact):
     """Represents people count predicted by ivs_fc model vs observed by SAV Operator"""
     additional_information: OperatorAdditionalInformation = Field(default=...)
     is_people_count_correct: bool = Field(default=...)
-    correct_count: Optional[int] = Field(default=...)
     artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-people-count"
+    correct_count: Optional[int] = Field(default=None)
 
 
 class CameraBlockedOperatorArtifact(OperatorArtifact):
