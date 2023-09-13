@@ -51,7 +51,7 @@ class TestMetadataSynchronizer:
                                                   mdf_data: dict):
         """ Test the synchronize method. """
         # GIVEN
-        del mdf_data["chunk"]["utc_end"]
+        del mdf_data["chunkUtc"]["utc_end"]
 
         # WHEN
         with raises(InvalidMdfException):

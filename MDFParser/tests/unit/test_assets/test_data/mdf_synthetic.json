@@ -3,9 +3,11 @@
         "width": "1920",
         "height": "1080"
     },
-    "chunk": {
+    "chunkPts": {
         "pts_start": 16893464,
-        "pts_end": 21015045,
+        "pts_end": 21015045
+    },
+    "chunkUtc": {
         "utc_start": 1659962815,
         "utc_end": 1659962818
     },

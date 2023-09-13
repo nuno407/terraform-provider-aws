@@ -1,18 +1,24 @@
 [
     {
+        "date_modified": "2023-07-25T09:13:18.297000+00:00",
+        "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg.smart_data_1690276397275_pose7.json.zip",
+        "device_id": "DATANAUTS_DEV_01",
+        "tenant": "datanauts"
+    },
+    {
         "date_modified": "2023-07-25T09:13:17.297000+00:00",
         "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg",
         "device_id": "DATANAUTS_DEV_01",
         "tenant": "datanauts"
     },
     {
-        "date_modified": "2023-07-25T09:13:17.297000+00:00",
+        "date_modified": "2023-07-25T09:13:16.297000+00:00",
         "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_1.jpeg.smart_data_1690276397275_pose6.json.zip",
         "device_id": "DATANAUTS_DEV_01",
         "tenant": "datanauts"
     },
     {
-        "date_modified": "2023-07-25T09:13:17.297000+00:00",
+        "date_modified": "2023-07-25T09:13:16.297000+00:00",
         "file_name": "TrainingMultiSnapshot_TrainingMultiSnapshot-4599aea3-febb-4dbe-b1c2-c19ece3fc398_2.jpeg",
         "device_id": "DATANAUTS_DEV_01",
         "tenant": "datanauts"

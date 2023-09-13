@@ -1,0 +1,318 @@
+{
+    "resolution": {
+        "width": "1920",
+        "height": "1080"
+    },
+    "metaData version": "0.6.5-rc4",
+    "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+    "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+    "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+    "chunkPts": {
+        "pts_start": "85509",
+        "pts_end": "96958"
+    },
+    "chunkUtc": {
+        "utc_start": "1695137424418",
+        "utc_end": "1695137435867"
+    },
+    "frame": [
+        {
+            "number": "55",
+            "timestamp": "85700",
+            "timestamp64": "85700",
+            "objectlist": [
+                {
+                    "id": "1",
+                    "boolAttributes": [
+                        {
+                            "name": "CameraViewShifted",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "CameraVerticalShifted",
+                            "value": "0.913"
+                        },
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": "0.922"
+                        },
+                        {
+                            "name": "DrivingStatus",
+                            "value": "0.052"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "integerAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cvb",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "integerAttributes": [
+                        {
+                            "name": "interior_camera_health_response_cve",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "integerAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_blocked",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "integerAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_distorted",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "integerAttributes": [
+                        {
+                            "name": "interior_camera_health_response_audio_signal",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "floatAttributes": [
+                        {
+                            "name": "corr",
+                            "value": "0.957877"
+                        },
+                        {
+                            "name": "rms_ch0",
+                            "value": "-57.255"
+                        },
+                        {
+                            "name": "rms_ch1",
+                            "value": "-57.0353"
+                        },
+                        {
+                            "name": "sum_ch0",
+                            "value": "0.244904"
+                        },
+                        {
+                            "name": "sum_ch1",
+                            "value": "0.175781"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "zcr_ch0",
+                            "value": "711"
+                        },
+                        {
+                            "name": "zcr_ch1",
+                            "value": "739"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "floatAttributes": [
+                        {
+                            "name": "PersonCount_confidence",
+                            "value": "1"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "PersonCount_value",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "12",
+                    "floatAttributes": [
+                        {
+                            "name": "DriverCount_confidence",
+                            "value": "1"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "DriverCount_value",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "14",
+                    "boolAttributes": [
+                        {
+                            "name": "Gnss_has_fix",
+                            "value": "false"
+                        }
+                    ],
+                    "floatAttributes": [
+                        {
+                            "name": "Gnss_horizontal_speed",
+                            "value": "0"
+                        },
+                        {
+                            "name": "Gnss_horizontal_speed_accuracy",
+                            "value": "0"
+                        },
+                        {
+                            "name": "Gnss_location_accuracy",
+                            "value": "0"
+                        },
+                        {
+                            "name": "Gnss_time_ms",
+                            "value": "0"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed",
+                            "value": "0"
+                        },
+                        {
+                            "name": "Gnss_vertical_speed_accuracy",
+                            "value": "0"
+                        }
+                    ],
+                    "integerAttributes": [
+                        {
+                            "name": "Gnss_satellites_used",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "16",
+                    "confidence": "0",
+                    "personDetail": {
+                        "KeyPoint": [
+                            {
+                                "Name": "LeftAnkle",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "LeftEar",
+                                "X": "1866",
+                                "Y": "768",
+                                "Conf": "0.185"
+                            },
+                            {
+                                "Name": "LeftElbow",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "LeftEye",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "LeftHip",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "LeftKnee",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "LeftShoulder",
+                                "X": "1868",
+                                "Y": "713",
+                                "Conf": "0.435"
+                            },
+                            {
+                                "Name": "LeftWrist",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "Neck",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "Nose",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightAnkle",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightEar",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightElbow",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightEye",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightHip",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightKnee",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightShoulder",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            },
+                            {
+                                "Name": "RightWrist",
+                                "X": "0",
+                                "Y": "0",
+                                "Conf": "0"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {}
+    ]
+}

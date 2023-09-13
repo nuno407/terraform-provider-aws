@@ -10,13 +10,13 @@ from base.aws.sqs import SQSController
 from base.model.artifacts import (Artifact, IMUArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
-                                  VideoArtifact, PreviewSignalsArtifact)
+                                  VideoArtifact, PreviewSignalsArtifact, KinesisVideoArtifact)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import (CONTAINER_NAME,
                                    MESSAGE_VISIBILITY_EXTENSION_HOURS)
-from sdretriever.exceptions import (FileAlreadyExists,
-                                    NoIngestorForArtifactError,
-                                    TemporaryIngestionError)
+from sdretriever.exceptions import (
+    NoIngestorForArtifactError,
+    TemporaryIngestionError)
 from sdretriever.ingestor.imu import IMUIngestor
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.ingestor.s3_video import S3VideoIngestor
@@ -83,7 +83,7 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
                 artifact,
                 SignalsArtifact) and isinstance(
                 artifact.referred_artifact,
-                VideoArtifact):
+                S3VideoArtifact):
             return self.__video_metadata_ing
         if isinstance(
                 artifact,
@@ -91,7 +91,10 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
                 artifact.referred_artifact,
                 SnapshotArtifact):
             return self.__snap_metadata_ing
-        if isinstance(artifact, IMUArtifact):
+
+        if isinstance(artifact, IMUArtifact) and isinstance(
+                artifact.referred_artifact,
+                S3VideoArtifact):
             return self.__imu_ing
 
         if isinstance(artifact, PreviewSignalsArtifact):
@@ -139,16 +142,20 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             ingestor = self._get_ingestor(artifact)
             ingestor.ingest(artifact)
 
+            _logger.info("Artfiact has been ingested, forwarding to queues...")
             # forward artifact to next queue(s)
             queues = list(self._get_forward_queues(artifact))
             self.__send_to_queues(artifact, queues)
             self.__sqs_controller.delete_message(message)
 
         except TemporaryIngestionError as excpt:
-            _logger.exception(excpt)
+            _logger.exception(str(excpt))
             self.__increase_message_visability_timeout(message)
-        except (FileAlreadyExists, NoIngestorForArtifactError) as excpt:
-            _logger.info(str(excpt))
+        except NoIngestorForArtifactError:
+            if isinstance(artifact, KinesisVideoArtifact):
+                _logger.info("Kinesis artifact is deprecated")
+            else:
+                _logger.error("There is no ingestor for the current artifact")
             self.__sqs_controller.delete_message(message)
 
     def __send_to_queues(self, artifact: Artifact, queues: list[str]) -> None:

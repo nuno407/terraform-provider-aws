@@ -14,6 +14,7 @@ from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import ChunkDownloadParamsByID, S3ObjectDevcloud, S3ObjectRCC
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
+from sdretriever.exceptions import NoIngestorForArtifactError
 
 _logger = log.getLogger("SDRetriever." + __name__)
 

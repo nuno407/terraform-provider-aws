@@ -101,7 +101,8 @@ class RCCChunkDownloader:
             raise UploadNotYetCompletedError(
                 f"Not all metadata chunks were found {len(search_results)}/{len(list_prefix_files_download)}")
 
-        list_file_path_to_download = list(map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
+        list_file_path_to_download = list(
+            map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)
 
@@ -139,7 +140,8 @@ class RCCChunkDownloader:
                 f"Not all metadata chunks were found {len(search_results)}/{len(list_prefix_files_download)}")
 
         # Get the chunks s3 keys and ensure sorted by id
-        list_file_path_to_download = list(map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
+        list_file_path_to_download = list(
+            map(lambda x: x[1].key, sorted(search_results.items(), key=lambda x: x[0])))
 
         return self.__s3_downloader.download_from_rcc(list_file_path_to_download)
 
@@ -155,7 +157,7 @@ class RCCChunkDownloader:
             search_params (RCCS3SearchParams): Additional parameters needed for the search
 
         Raises:
-            S3FileNotFoundError: If the file is not found
+            UploadNotYetCompletedError: If the file is not found
 
         Returns:
             S3ObjectRCC: The object downloaded
@@ -163,7 +165,7 @@ class RCCChunkDownloader:
         search_result = self.__s3_crawler.search_files(set(file_names), search_params)
 
         if len(search_result) != len(file_names):
-            raise S3FileNotFoundError(f"One or more files not found in RCC")
+            raise UploadNotYetCompletedError(f"One or more files not found in RCC")
 
         s3_keys = [val.key for _, val in search_result.items()]
         return self.__s3_downloader.download_from_rcc(s3_keys)

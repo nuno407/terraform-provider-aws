@@ -28,7 +28,7 @@ class TestVideoMetadataIngestion:
                              )
 
                              ], ids=["integration_video_metadata_interior", "integration_video_metadata_training"])
-    def test_success_preview_ingestion(
+    def test_success_video_metadata_ingestion(
             self,
             main_function: Callable,
             moto_s3_client: S3Client,

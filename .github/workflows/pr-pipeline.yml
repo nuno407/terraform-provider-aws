@@ -147,9 +147,9 @@ jobs:
       - name: Checkout code
         if: ${{contains(fromJSON(needs.determine-changed-services.outputs.needs-testing), matrix.service)}}
         uses: actions/checkout@v3
-      - uses: bosch-rc-dev/actions/test-python@main
+      - name: Run integration tests
         if: ${{contains(fromJSON(needs.determine-changed-services.outputs.needs-testing), matrix.service)}}
-        name: Run integration tests
+        uses: bosch-rc-dev/actions/test-python@main
         with:
           baseDir: ${{ matrix.service }}
           python-version: ${{ matrix.python-version }}

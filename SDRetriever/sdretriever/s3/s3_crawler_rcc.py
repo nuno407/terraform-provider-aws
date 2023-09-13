@@ -80,7 +80,7 @@ class S3CrawlerRCC():
         one of the files, only the first one will be returned.
 
         The match_to_file parameter should be used to parse the S3ObjectInfo
-        and return one of the files in "files", or None, if it is not a mtach.
+        and return one of the files in "files", or None, if it is not a match.
 
         In short, the function exits when match_to_file returns all elements contained in the set "files".
         To search for a exact file names, match_to_file does not need to be passed.

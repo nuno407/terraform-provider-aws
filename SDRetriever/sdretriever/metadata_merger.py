@@ -9,7 +9,7 @@ from sdretriever.models import S3Object
 _logger = logging.getLogger("SDRetriever." + __name__)
 
 
-class MetadataMerger():
+class MetadataMerger():  # pylint: disable=too-few-public-methods
     """
     Class responsible for merging the metadata coming from RCC.
 
@@ -88,9 +88,10 @@ class MetadataMerger():
         return resolution, pts, mdf_data
 
     @staticmethod
-    def convert_metachunk_to_mdf(metachunks: list[S3Object]) -> list[dict]:
+    def __convert_metachunk_to_mdf(metachunks: list[S3Object]) -> list[dict]:
         """
         Convert the metachunk into an object that can be read by __process_chunks_into_mdf.
+        Empty frames will be removed from the concatenated file.
 
         Args:
             metachunks (list[MetacontentChunk]): The metachunks downloaded
@@ -99,6 +100,7 @@ class MetadataMerger():
             list[dict]: A list of the metachunks parsed to dict
         """
         formated_chunks: list[dict] = []
+        frame_counter = 0
         for chunk in metachunks:
             converted_json = json.loads(chunk.data,
                                         object_pairs_hook=MetadataMerger.__json_raise_on_duplicates)
@@ -107,9 +109,11 @@ class MetadataMerger():
                     filter(
                         lambda frame: len(frame) > 0,
                         converted_json["frame"]))
+                frame_counter += len(non_empty_frames)
                 converted_json["frame"] = non_empty_frames
                 formated_chunks.append(converted_json)
 
+        _logger.info("Merging %d metadata frames", frame_counter)
         return formated_chunks
 
     @staticmethod
@@ -124,12 +128,13 @@ class MetadataMerger():
             list[dict]: The metadata merged
         """
 
-        json_chunks: list[dict] = MetadataMerger.convert_metachunk_to_mdf(
+        json_chunks: list[dict] = MetadataMerger.__convert_metachunk_to_mdf(
             metachunks)
         resolution, pts, mdf_data = MetadataMerger.__process_chunks_into_mdf(
             json_chunks)
 
         if len(json_chunks) == 0:
+            _logger.warning("Metadata is empty")
             return {}
 
         first_chunk = json_chunks[0].copy()

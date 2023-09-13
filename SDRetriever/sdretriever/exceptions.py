@@ -5,19 +5,11 @@ class FileNotFound(Exception):
     """Error raised when file is not found"""
 
 
-class FileAlreadyExists(Exception):
-    """Error raised when there is already the same file in DevCloud"""
-
-
 class TemporaryIngestionError(Exception):
     """Error raised when there is an error during ingestion and it should be tried later"""
 
 
-class KinesisDownloadError(TemporaryIngestionError):
-    """Error raised when there is an error during Kinesis download"""
-
-
-class S3UploadError(TemporaryIngestionError):
+class S3UploadError(Exception):
     """Error raised when there is an error during S3 upload"""
 
 

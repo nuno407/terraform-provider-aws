@@ -27,12 +27,13 @@ class S3DownloaderUploader:
             devcloud_raw_bucket: str,
             sdr_config: SDRetrieverConfig):
         self.__rcc_s3_controller_factory = rcc_s3_controller_factory
-        self.__s3_controller = s3_controller
+        self.__devcloud_s3_controller = s3_controller
         self.__rcc_bucket = rcc_bucket
         self.__raw_bucket = devcloud_raw_bucket
         self.__tmp_bucket = sdr_config.temporary_bucket
 
-    def download_from_rcc(self, s3_keys: Iterable[str], bucket: Optional[str] = None) -> list[S3ObjectRCC]:
+    def download_from_rcc(self, s3_keys: Iterable[str],
+                          bucket: Optional[str] = None) -> list[S3ObjectRCC]:
         """
         Download files from RCC S3.
         If the the filename ends with .zip extension it will also decompress it and return the content within.
@@ -80,11 +81,11 @@ class S3DownloaderUploader:
             s3_path (str): The path to where it got uploaded.
         """
 
-        if self.__s3_controller.check_s3_file_exists(bucket, s3_key):
+        if self.__devcloud_s3_controller.check_s3_file_exists(bucket, s3_key):
             _logger.error("File %s already exists in %s", s3_key, bucket)
             raise S3UploadError
 
-        self.__s3_controller.upload_file(data, bucket, s3_key)
+        self.__devcloud_s3_controller.upload_file(data, bucket, s3_key)
 
         return f"s3://{bucket}/{s3_key}"
 
