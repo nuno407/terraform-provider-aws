@@ -192,8 +192,8 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
         end=message["footageto"],
         media_type=message["media_type"])
 
-    footage_time = datetime.fromtimestamp(
-        message["footagefrom"] / 1000.0, timezone.utc).strftime(TIME_FORMAT)
+    recording_time = datetime.fromtimestamp(message["footagefrom"] / 1000.0, timezone.utc)
+    footage_time = recording_time.strftime(TIME_FORMAT)
 
     # Update video record
     recording_item = {
@@ -208,6 +208,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
             "time": footage_time,
+            "recording_time": recording_time,  # Should replace `time` long term
             "devcloudid": message.get("devcloudid", None)
         },
         "resolution": message["resolution"]

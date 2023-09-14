@@ -5,7 +5,7 @@ import hashlib
 import json
 import os
 from mongoengine import connect, disconnect
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from unittest.mock import ANY, MagicMock, Mock, PropertyMock, call, patch
@@ -138,6 +138,7 @@ def _video_message_dict(recording_id: str, imu_path: Optional[str] = None) -> di
             "snapshots_paths": ["test_snapshot1", "test_snapshot2"],
             "#snapshots": 2,
             "time": "2022-11-25 11:43:15",
+            "recording_time": datetime(2022, 11, 25, 11, 43, 15, tzinfo=timezone.utc),
             "devcloudid": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest()
         },
         "resolution": "1280x720"
@@ -171,6 +172,7 @@ def _expected_video_recording_item(recording_id: str, extension: str = "mp4") ->
             "snapshots_paths": [],
             "tenantID": "datanauts",
             "time": "2022-11-25 11:43:15",
+            "recording_time": datetime(2022, 11, 25, 11, 43, 15, tzinfo=timezone.utc),
             "devcloudid": hashlib.sha256("Dummy_data".encode("utf-8")).hexdigest(),
         },
         "resolution": "1280x720",

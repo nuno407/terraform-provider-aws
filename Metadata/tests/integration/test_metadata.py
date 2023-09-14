@@ -1,6 +1,7 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
+from datetime import datetime
 
 from fiftyone import ViewField
 
@@ -183,6 +184,11 @@ class TestMain:
         assert snapshot_excluded_db_entry["recording_overview"]["devcloudid"]
         assert recording_db_entry["recording_overview"]["devcloudid"]
 
+        # assert recording time is present
+        assert recording_db_entry["recording_overview"]["time"] == "2022-09-02 00:56:12"
+        assert (recording_db_entry["recording_overview"]["recording_time"]
+                == datetime(2022, 9, 2, 0, 56, 12, 308000))
+
         # assertions on excluded snapshot
         assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == []
 
@@ -208,7 +214,7 @@ class TestMain:
         assert sample_included["raw_filepath"] == snapshot_included_db_entry["filepath"]
 
 
-    @pytest.mark.unit
+    @pytest.mark.integration
     def test_transform_data_to_update_query(self):
         # GIVEN
         input_data = {
