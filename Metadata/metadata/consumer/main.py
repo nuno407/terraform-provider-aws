@@ -205,6 +205,7 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
             "length": message["length"],
+            "recording_duration": message["recording_duration"],  # Should replace `length` long term
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
             "time": footage_time,
@@ -715,6 +716,7 @@ def __parse_sdr_message(artifact: Artifact) -> dict:
         length_td = timedelta(seconds=artifact.actual_duration)
         message["MDF_available"] = "No"
         message["length"] = str(length_td).split('.')[0]
+        message["recording_duration"] = artifact.actual_duration  # Should replace 'length' long term
         message["snapshots_paths"] = []
         message["media_type"] = "video"
         message["resolution"] = f"{artifact.resolution.width}x{artifact.resolution.height}"
