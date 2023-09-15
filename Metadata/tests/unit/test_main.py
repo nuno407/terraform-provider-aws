@@ -1118,8 +1118,8 @@ def test_insert_mdf_imu_data(file_exists: bool):
     s3_client = Mock()
     stream_body_mock = Mock()
     stream_body_mock.read = Mock(return_value=bytes("""[
-        {"timestamp": 1692000444123},
-        {"timestamp": 1692000444523}
+        {"timestamp": 1692000444123, "source": {"tenant":"foo","device_id":"bar"}},
+        {"timestamp": 1692000444523, "source": {"tenant":"foo","device_id":"bar"}}
         ]""", "utf-8"))
     s3_client.get_object = Mock(return_value={"Body": stream_body_mock})
     s3_client.delete_object = Mock()
@@ -1169,6 +1169,8 @@ def test_insert_mdf_imu_data(file_exists: bool):
         mock_events_col.update_many.assert_has_calls([
             call(filter={"$and": [
                 {"last_shutdown.timestamp": {"$exists": False}},
+                {"tenant_id": "foo"},
+                {"device_id": "bar"},
                 {"timestamp": {"$gte": from_ts}},
                 {"timestamp": {"$lte": to_ts}},
             ]},
@@ -1179,6 +1181,8 @@ def test_insert_mdf_imu_data(file_exists: bool):
                 filter={"$and": [
                     {"last_shutdown.timestamp": {"$exists": True}},
                     {"last_shutdown.timestamp": {"$ne": None}},
+                    {"tenant_id": "foo"},
+                    {"device_id": "bar"},
                     {"last_shutdown.timestamp": {"$gte": from_ts}},
                     {"last_shutdown.timestamp": {"$lte": to_ts}},
                 ]},

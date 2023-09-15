@@ -37,7 +37,7 @@ from metadata.common.errors import (EmptyDocumentQueryResult,
 from metadata.consumer.bootstrap import bootstrap_di
 from metadata.consumer.chc_synchronizer import ChcSynchronizer
 from metadata.consumer.exceptions import (NotSupportedArtifactError,
-                                          SnapshotNotFound)
+                                          SnapshotNotFound, IMUEmpty)
 from metadata.consumer.imu_gap_finder import IMUGapFinder, TimeRange
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
@@ -601,7 +601,7 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
 
 @inject
 def insert_mdf_imu_data(
-        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> list[TimeRange]:
+        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> tuple[list[TimeRange], str, str]:
     """ Receives a message from the MDF IMU queue, downloads IMU file from a S3 bucket
     and inserts into the timeseries database. Finally returns the start and end
     timestamp of that IMU data.
@@ -615,7 +615,6 @@ def insert_mdf_imu_data(
     }
     """
     _logger.debug("Inserting IMU data from message: %s", str(imu_message))
-
     # Get parsed file from S3
     file_path = imu_message["parsed_file_path"]
     parsed_path = urlparse(file_path)
@@ -625,7 +624,7 @@ def insert_mdf_imu_data(
     if not ContainerServices.check_s3_file_exists(s3_client, bucket_name, object_key):
         _logger.error(
             "The imu file (%s) is not available on the bucket (%s)", bucket_name, object_key)
-        return []
+        return [], "", ""
 
     raw_parsed_imu = ContainerServices.download_file(
         s3_client,
@@ -634,20 +633,25 @@ def insert_mdf_imu_data(
 
     # Load parsed file into DB
     parsed_imu = json.loads(raw_parsed_imu.decode("utf-8"))
+    if len(parsed_imu) == 0:
+        _logger.warning("The imu file (%s) does not contain any information", file_path)
+        raise IMUEmpty
+
     for doc in parsed_imu:
         doc["timestamp"] = datetime.fromtimestamp(
             doc["timestamp"] / 1000, tz=pytz.utc)
 
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
+    return imu_gap_finder.get_valid_imu_time_ranges(parsed_imu), parsed_imu[0]["source"]["tenant"], parsed_imu[0]["source"]["device_id"]
 
-    return imu_gap_finder.get_valid_imu_time_ranges(parsed_imu)
 
-
-def __update_events(imu_range: TimeRange, data_type: str,
+def __update_events(imu_range: TimeRange, imu_tenant, imu_device, data_type: str,
                     metadata_collections: MetadataCollections) -> None:
     filter_query_events = {"$and": [
         {"last_shutdown.timestamp": {"$exists": False}},
+        {"tenant_id": imu_tenant},
+        {"device_id": imu_device},
         {"timestamp": {"$gte": imu_range.min}},
         {"timestamp": {"$lte": imu_range.max}},
     ]}
@@ -655,6 +659,8 @@ def __update_events(imu_range: TimeRange, data_type: str,
     filter_query_shutdowns = {"$and": [
         {"last_shutdown.timestamp": {"$exists": True}},
         {"last_shutdown.timestamp": {"$ne": None}},
+        {"tenant_id": imu_tenant},
+        {"device_id": imu_device},
         {"last_shutdown.timestamp": {"$gte": imu_range.min}},
         {"last_shutdown.timestamp": {"$lte": imu_range.max}},
     ]}
@@ -678,10 +684,10 @@ def __update_events(imu_range: TimeRange, data_type: str,
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
     if message["data_type"] == "imu":
-        imu_ranges = insert_mdf_imu_data(
+        imu_ranges, imu_tenant, imu_device = insert_mdf_imu_data(
             message, metadata_collections)  # pylint: disable=no-value-for-parameter
         for imu_range in imu_ranges:
-            __update_events(imu_range, "imu", metadata_collections)
+            __update_events(imu_range, imu_tenant, imu_device, "imu", metadata_collections)
         return
 
     recording = upsert_mdf_signals_data(
