@@ -6,7 +6,7 @@ from datetime import datetime
 from fiftyone import ViewField
 
 from base.testing.utils import get_abs_path
-from unittest.mock import Mock, PropertyMock, patch
+from unittest.mock import Mock, PropertyMock, patch, ANY, call
 import fiftyone as fo
 
 import mongomock
@@ -112,8 +112,7 @@ class TestMain:
 
     @pytest.fixture(autouse=True)
     def graceful_exit_mock(self, mocker: MockerFixture) -> Mock:
-        graceful_exit_mock = mocker.patch(
-            "metadata.consumer.main.GracefulExit")
+        graceful_exit_mock = mocker.patch("metadata.consumer.main.GracefulExit")
         continue_running_mock = PropertyMock(
             side_effect=[True, True, True, False])
         type(graceful_exit_mock.return_value).continue_running = continue_running_mock
@@ -148,12 +147,11 @@ class TestMain:
                                      "ridecare_companion_gridwise",
                                      "RC-ridecare_companion_gridwise")
                              ])
-    @patch("metadata.consumer.main.add_voxel_snapshot_metadata")
     @patch("metadata.consumer.main.connect")
     @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
-    def test_snapshot_video_correlation(self, _: Mock, connect_mock: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
+    def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset):
         # GIVEN
@@ -213,6 +211,27 @@ class TestMain:
         sample_included = get_sample(ds_snapshots, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg")
         assert sample_included["raw_filepath"] == snapshot_included_db_entry["filepath"]
 
+    @patch("metadata.consumer.main.connect")
+    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
+    def test_main_no_message_attributes(self, _: Mock, container_services_mock: Mock, mongomock_fix: Mock):
+        # GIVEN
+        message = {
+            "no": "message_attributes",
+            "ReceiptHandle": "receipt_handle"
+        }
+        container_services_mock.return_value.create_db_client.return_value = mongomock_fix
+        container_services_mock.return_value.anonymized_s3 = "anon_bucket"
+        container_services_mock.return_value.raw_s3 = "raw_bucket"
+        container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [message] * 3
+
+        # WHEN
+        metadata.consumer.main.main()
+
+        # THEN
+        calls = [call(ANY, "receipt_handle")] * 3
+        container_services_mock.return_value.delete_message.assert_has_calls(calls)
 
     @pytest.mark.integration
     def test_transform_data_to_update_query(self):
