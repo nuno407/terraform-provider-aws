@@ -179,7 +179,7 @@ class SnapshotArtifact(ImageBasedArtifact):
 
 
 class MultiSnapshotArtifact(ImageBasedArtifact):
-    """An artifact that continas multiple snapshots"""
+    """An artifact that contains multiple snapshots"""
     chunks: list[SnapshotArtifact] = Field(default=...)
     recording_id: str = Field(default=...)
 

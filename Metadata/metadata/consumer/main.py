@@ -434,12 +434,9 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     assert recording_entry_result is not None
     recording_entry = recording_entry_result
 
-    if not (
-            "recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
-        raise MalformedRecordingEntry(
-            f"Recording entry for video_id {video_id} does not have a length information.")
-    video_length = timedelta(seconds=pytimeparse.parse(
-        recording_entry["recording_overview"]["length"]))
+    if not ("recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
+        raise MalformedRecordingEntry(f"Recording entry for video_id {video_id} does not have a length information.")
+    video_length = timedelta(seconds=pytimeparse.parse(recording_entry["recording_overview"]["length"]))
 
     # do the synchronisation
     chc_syncer = ChcSynchronizer()
@@ -917,14 +914,11 @@ def main():
 
     while graceful_exit.continue_running:
         # Check input SQS queue for new messages
-        message = container_services.get_single_message_from_input_queue(
-            sqs_client)
+        message = container_services.get_single_message_from_input_queue(sqs_client)
 
         if message and "MessageAttributes" not in message:
-            _logger.error(
-                "Message received without MessageAttributes, going to delete it: %s", message)
-            container_services.delete_message(
-                sqs_client, message["ReceiptHandle"])
+            _logger.error("Message received without MessageAttributes, going to delete it: %s", message)
+            container_services.delete_message(sqs_client, message["ReceiptHandle"])
             continue
 
         if message:
@@ -956,9 +950,9 @@ def main():
                         process_sanitizer(message_dict, metadata_collections)
                     else:
                         upsert_data_to_db(api_service,
-                            fixed_message_dict,
-                            message["MessageAttributes"],
-                            metadata_collections)
+                                          fixed_message_dict,
+                                          message["MessageAttributes"],
+                                          metadata_collections)
             except SnapshotNotFound:
                 _logger.warning(
                     "The referred snapshot was not found, it will be reingested later")

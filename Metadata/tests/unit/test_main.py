@@ -409,14 +409,18 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             input_message: dict,
             expected_recording_item: dict):
         """test_create_video_recording_item"""
+
+        # GIVEN
         given_related_snapshots = ["test_snapshot1", "test_snapshot2"]
         mock_media_svc = Mock()
         mock_media_svc.get_related = Mock(return_value=given_related_snapshots)
         mock_collection = Mock()
         mock_collection.find_one_and_update = Mock()
 
-        video_recording = create_video_recording_item(
-            input_message, mock_collection, mock_media_svc)
+        # WHEN
+        video_recording = create_video_recording_item(input_message, mock_collection, mock_media_svc)
+
+        # THEN
         assert video_recording == expected_recording_item
         mock_find_and_update_media_references.assert_called_once_with(
             given_related_snapshots,

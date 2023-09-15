@@ -8,6 +8,7 @@ from base.model.artifacts import parse_artifact, Artifact
 from .mock_utils import load_files_rcc, S3File, get_s3_cloud_state, load_sqs_message, get_sqs_message, get_s3_file_content
 from typing import Callable
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_sqs import SQSClient
 from sdretriever.main import deserialize
 import json
 
@@ -27,7 +28,7 @@ class TestPreviewMetadataIngestion:
             self,
             main_function: Callable,
             moto_s3_client: S3Client,
-            moto_sqs_client: S3Client,
+            moto_sqs_client: SQSClient,
             rcc_bucket: str,
             devcloud_temporary_bucket: str,
             download_queue: str,
@@ -49,7 +50,7 @@ class TestPreviewMetadataIngestion:
         main_function()
         time.sleep(1)
 
-        # Post processing
+        # Post-processing
         hq_message = selector_sqs_controller.get_message()
         hq_parsed_message = json.loads(deserialize(hq_message["Body"]))
         artifact: Artifact = parse_artifact(hq_parsed_message)
