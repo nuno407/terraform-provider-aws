@@ -62,7 +62,6 @@ class TestInteriorRecorderArtifactChecker:
         # Make sure no exception is raised if None is provided
         if expected_exception_type is None:
             operator_artifact_checker.run_healthcheck(artifact)
-            assert True
 
         # Make sure an exception is raised if provided
         else:

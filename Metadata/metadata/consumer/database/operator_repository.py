@@ -1,9 +1,13 @@
 import logging
 
-from base.model.artifacts import (OperatorArtifact, SOSOperatorArtifact, PeopleCountOperatorArtifact,
-                                  CameraBlockedOperatorArtifact, OperatorAdditionalInformation)
-from metadata.consumer.database.operator_feedback import DBSOSOperatorArtifact, DBOperatorAdditionalInformation, \
-    DBPeopleCountOperatorArtifact, DBCameraBlockedOperatorArtifact
+from base.model.artifacts import (CameraBlockedOperatorArtifact,
+                                  OperatorAdditionalInformation,
+                                  OperatorArtifact,
+                                  PeopleCountOperatorArtifact,
+                                  SOSOperatorArtifact)
+from metadata.consumer.database.operator_feedback import (
+    DBCameraBlockedOperatorArtifact, DBOperatorAdditionalInformation,
+    DBPeopleCountOperatorArtifact, DBSOSOperatorArtifact)
 
 _logger = logging.getLogger(__name__)
 
@@ -52,8 +56,7 @@ class OperatorRepository:
                                                 additional_information=additional_information, **metadata)
             db_artifact.save()
             _logger.info("Stored SOSOperatorArtifact %s", db_artifact)
-            return
-        if isinstance(artifact, PeopleCountOperatorArtifact):
+        elif isinstance(artifact, PeopleCountOperatorArtifact):
             additional_information = OperatorRepository.get_additional_information(artifact.additional_information)
             db_artifact = DBPeopleCountOperatorArtifact(is_people_count_correct=artifact.is_people_count_correct,
                                                         additional_information=additional_information, **metadata)
@@ -61,11 +64,9 @@ class OperatorRepository:
                 db_artifact.correct_count = artifact.correct_count
             db_artifact.save()
             _logger.info("Stored PeopleCountOperatorArtifact %s", db_artifact)
-            return
-        if isinstance(artifact, CameraBlockedOperatorArtifact):
+        elif isinstance(artifact, CameraBlockedOperatorArtifact):
             additional_information = OperatorRepository.get_additional_information(artifact.additional_information)
             db_artifact = DBCameraBlockedOperatorArtifact(is_chc_correct=artifact.is_chc_correct,
                                                           additional_information=additional_information, **metadata)
             db_artifact.save()
             _logger.info("Stored CameraBlockedOperatorArtifact %s", db_artifact)
-            return
