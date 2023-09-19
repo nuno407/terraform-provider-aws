@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fiftyone import ViewField
 
@@ -11,7 +11,6 @@ import fiftyone as fo
 
 import mongomock
 import pytest
-from mongoengine import disconnect
 from pytest_mock import MockerFixture
 
 import metadata.consumer.main
@@ -120,7 +119,7 @@ class TestMain:
 
     @pytest.fixture
     def mongomock_fix(self):
-        mockdb_client = mongomock.MongoClient()
+        mockdb_client = mongomock.MongoClient(tz_aware=True)
         _ = mockdb_client.DataIngestion["pipeline_exec"]
         _ = mockdb_client.DataIngestion["algo_output"]
         _ = mockdb_client.DataIngestion["recordings"]
@@ -183,9 +182,14 @@ class TestMain:
         assert recording_db_entry["recording_overview"]["devcloudid"]
 
         # assert recording time is present
+        assert (snapshot_included_db_entry["recording_overview"]["recording_time"]
+                == datetime(2022, 9, 2, 0, 56, 18, 308000, tzinfo=timezone.utc))
+        assert (snapshot_excluded_db_entry["recording_overview"]["recording_time"]
+                == datetime(2021, 1, 31, 8, 2, 58, 308000, tzinfo=timezone.utc))
+
         assert recording_db_entry["recording_overview"]["time"] == "2022-09-02 00:56:12"
         assert (recording_db_entry["recording_overview"]["recording_time"]
-                == datetime(2022, 9, 2, 0, 56, 12, 308000))
+                == datetime(2022, 9, 2, 0, 56, 12, 308000, tzinfo=timezone.utc))
 
         # assertions on excluded snapshot
         assert snapshot_excluded_db_entry["recording_overview"]["source_videos"] == []

@@ -150,7 +150,8 @@ def create_snapshot_recording_item(message: dict, collection_rec: Collection,
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
             "source_videos": list(related_media_paths),
-            "devcloudid": message.get("devcloudid", None)
+            "devcloudid": message.get("devcloudid", None),
+            "recording_time": datetime.fromtimestamp(message["timestamp"] / 1000.0, timezone.utc)
         }
     }
 

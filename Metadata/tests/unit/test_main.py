@@ -245,7 +245,8 @@ def _expected_image_recording_item(snapshot_id: str, source_videos: list) -> dic
             "deviceID": "rc_srx_develop_cst2hi_01",
             "source_videos": source_videos,
             "tenantID": "honeybadger",
-            "devcloudid": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest()
+            "devcloudid": hashlib.sha256(snapshot_id.encode("utf-8")).hexdigest(),
+            "recording_time": datetime(2022, 11, 28, 12, 23, 8, 317000, tzinfo=timezone.utc)
         },
         "video_id": f"{snapshot_id}",
     }
@@ -352,7 +353,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "tenantID": input_message["tenant"],
                 "deviceID": input_message["deviceid"],
                 "source_videos": list(given_related_videos),
-                "devcloudid": input_message["devcloudid"]
+                "devcloudid": input_message["devcloudid"],
+                "recording_time": datetime(2022, 11, 28, 12, 23, 8, 317000, tzinfo=timezone.utc)
             }
         }
         assert snapshot_recording == expected_recording_item
@@ -384,7 +386,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                 "tenantID": input_message["tenant"],
                 "deviceID": input_message["deviceid"],
                 "source_videos": list(given_related_videos),
-                "devcloudid": input_message["devcloudid"]
+                "devcloudid": input_message["devcloudid"],
+                "recording_time": datetime(2022, 11, 28, 12, 23, 8, 317000, tzinfo=timezone.utc)
             }
         }
         assert snapshot_recording == expected_recording_item
