@@ -6,7 +6,7 @@ from pydantic import BaseModel, Extra, Field, validator
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
-from base.model.config import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel
 
 
 class WrappedString(ConfiguredBaseModel):

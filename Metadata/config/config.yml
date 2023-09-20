@@ -3,6 +3,10 @@
 # QA: https://github.com/bosch-rc-dev/kubernetes_config/blob/master/apps/qa/config_maps/tenant_mapping_config.yaml
 dataset_mapping:
   create_dataset_for:
-    - ridecare_companion_gridwise
+    - name: ridecare_companion_gridwise
+      tenants: [ridecare_companion_gridwise]
   default_dataset: Debug_Lync
   tag: RC
+policy_mapping:
+  default_policy_document: "default-policy"
+  policy_document_per_tenant: {}

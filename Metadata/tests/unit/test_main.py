@@ -526,7 +526,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
                     "is_audio_malfunction": True,
                     "observations": "foo"
                 },
-                "reason":  "OTHER"
+                "reason": "OTHER"
             }
             di["db_metadata_tables"] = {"sav_operator_feedback": "dev-sav-operator-feedback"}
 
@@ -546,7 +546,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             db_artifacts_sos = DBSOSOperatorArtifact.objects(**query)
             assert len(db_artifacts_people_count) == 1
             assert len(db_artifacts_sos) == 1
-
 
     @pytest.mark.parametrize("file_format,filepath,anonymized_path,voxel_dataset_name",
                              [*[(file_format,
@@ -569,8 +568,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.update_sample")
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__, "test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     @pytest.mark.unit
     def test_update_voxel_media(  # pylint: disable=too-many-arguments
             self,
@@ -661,8 +662,10 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
     @patch("metadata.consumer.voxel.functions.update_sample")
     @patch("metadata.consumer.voxel.functions.create_dataset")
     @patch("metadata.consumer.main.download_and_synchronize_chc", return_value=({"a": "b"}, {"c": "d"}))
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__, "test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
     def test_process_outputs(
             self,
@@ -983,9 +986,11 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
     @pytest.mark.unit
     @patch("metadata.consumer.main.connect")
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__, "test_data/config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "DB_URI"})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     def test_metadata_consumer_main(  # pylint: disable=too-many-arguments,unused-argument
             self,
             mock_connect: Mock,
@@ -1070,7 +1075,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
 @pytest.mark.unit
 @patch.dict("metadata.consumer.main.os.environ", {"ANON_S3": "anon_bucket", "RAW_S3": "raw_bucket"})
-@patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+@patch.dict("metadata.consumer.main.os.environ",
+            {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
 @patch("metadata.consumer.voxel.functions.update_sample")
 @patch("metadata.consumer.voxel.functions.create_dataset")
 @patch("metadata.consumer.main.download_and_synchronize_chc")
@@ -1189,9 +1195,9 @@ def test_insert_mdf_imu_data(file_exists: bool):
                     {"last_shutdown.timestamp": {"$gte": from_ts}},
                     {"last_shutdown.timestamp": {"$lte": to_ts}},
                 ]},
-            update={
-                "$set": {"last_shutdown.imu_available": True}
-            })
+                update={
+                    "$set": {"last_shutdown.imu_available": True}
+                })
         ]
         )
     else:

@@ -26,6 +26,7 @@ recorder_blacklist:
 - FrontRecorder
 dataset_mapping:
   create_dataset_for:
-    - datanauts
+    - name: datanauts
+      tenants: [datanauts]
   default_dataset: Debug_Lync
   tag: RC

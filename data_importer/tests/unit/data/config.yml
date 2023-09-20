@@ -1,0 +1,4 @@
+policy_mapping:
+  default_policy_document: "default-policy"
+  policy_document_per_tenant:
+    test-tenant: "test-policy"

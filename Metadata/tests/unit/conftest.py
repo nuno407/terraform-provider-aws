@@ -3,16 +3,18 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 import sys
+
+from base.model.config.dataset_config import DatasetConfig, TenantDatasetConfig
 from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
-from metadata.consumer.voxel.constants import KEYPOINTS_SORTED
 from base.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from unittest.mock import Mock, MagicMock
 from base.aws.s3 import S3Controller
 from mypy_boto3_s3 import S3Client
-from metadata.consumer.config import MetadataConfig, DatasetConfig
+from metadata.consumer.config import MetadataConfig
+from base.model.config.policy_config import PolicyConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from metadata.consumer.imu_gap_finder import IMUGapFinder
 
@@ -49,16 +51,19 @@ def fo_sample() -> dict:
 
 
 @pytest.fixture
-def dataset_config() -> MetadataConfig:
+def metadata_config() -> MetadataConfig:
     return MetadataConfig(
-        create_dataset_for=[
-            DatasetConfig(name="datanauts",tenants=["datanauts"])
-        ],
-        default_dataset="Debug_Lync",
-        tag="RC",
-        default_policy_document="default-policy",
-        policy_document_per_tenant={
-            "test-tenant": "test-policy"})
+        dataset_mapping=DatasetConfig(
+            create_dataset_for=[
+                TenantDatasetConfig(name="datanauts", tenants=["datanauts"])
+            ],
+            default_dataset="Debug_Lync",
+            tag="RC",
+        ),
+        policy_mapping=PolicyConfig(
+            default_policy_document="default-policy",
+            policy_document_per_tenant={"test-tenant": "test-policy"})
+    )
 
 
 @pytest.fixture
@@ -74,6 +79,7 @@ def s3_controller(s3_client: S3Client) -> S3Controller:
 @pytest.fixture
 def metadata_parser() -> MetadataParser:
     return MetadataParser()
+
 
 @pytest.fixture
 def imu_gap_finder() -> IMUGapFinder:

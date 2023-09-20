@@ -7,10 +7,11 @@ from pytz import UTC
 
 from base.model.artifacts import (RecorderType, S3VideoArtifact,
                                   SnapshotArtifact, TimeWindow, Recording)
+from base.model.config.dataset_config import DatasetConfig
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params
-from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
+from healthcheck.tenant_config import TenantConfig
 
 
 @pytest.mark.unit
@@ -56,8 +57,8 @@ class TestVoxelFiftyOneController():
 
     @pytest.fixture(autouse=True)
     def initialize_config(self):
-        tenant_config = TenantConfig.load_config_from_yaml_file("./config.yaml")
-        di[DatasetMappingConfig] = tenant_config.dataset_mapping
+        tenant_config = TenantConfig.load_yaml_config("./config.yaml")
+        di[DatasetConfig] = tenant_config.dataset_mapping
 
     def _assemble_path(self, bucket: str, dir: str, key: str, ext: str) -> str:
         return f"s3://{bucket}/{dir}/{key}_anonymized.{ext}"

@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import Field
 
-from base.model.config import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel
 
 
 class EventType(str, Enum):

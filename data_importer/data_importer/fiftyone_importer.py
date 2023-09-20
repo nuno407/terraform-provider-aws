@@ -1,13 +1,13 @@
 """Fiftyone Importer module"""
-from typing import Any, Optional
 import re
+from typing import Any, Optional
 
 import fiftyone as fo
 from fiftyone import ViewField as F
 from kink import inject
 
 from base.aws.container_services import ContainerServices
-from data_importer.models.config import DatasetMappingConfig
+from base.model.config.policy_config import PolicyConfig
 from data_importer.constants import TENANT
 
 _logger = ContainerServices.configure_logging(__name__)
@@ -177,7 +177,7 @@ class FiftyoneImporter:
         self._set_policy_document_id(sample)
 
     @inject
-    def _set_policy_document_id(self, sample: fo.Sample, config: DatasetMappingConfig):
+    def _set_policy_document_id(self, sample: fo.Sample, config: PolicyConfig):
         """
         Set data_privacy_document_id on a sample
         """

@@ -32,7 +32,7 @@ class Persistence:  # pylint: disable=R0903
         ]
 
     def __get_video_media(self, device_id, tenant_id, start, end):
-        """ Get all related videos for a given video """
+        """ Get all related snapshots for a given video """
         result = []
         aggregation = self.__aggregation_query(device_id, tenant_id, "image")
 
@@ -47,7 +47,7 @@ class Persistence:  # pylint: disable=R0903
         return result
 
     def __get_snapshot_media(self, device_id, tenant_id, start):
-        """ Get all related snapshots for a given video """
+        """ Get all related videos for a given snapshot """
         result = []
         aggregation = self.__aggregation_query(device_id, tenant_id, "video")
 

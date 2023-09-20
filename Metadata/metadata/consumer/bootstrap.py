@@ -4,7 +4,8 @@ import os
 
 import boto3
 from kink import di
-from metadata.consumer.config import MetadataConfig
+from metadata.consumer.config import MetadataConfig, DatasetConfig
+from base.model.config.policy_config import PolicyConfig
 from mypy_boto3_s3 import S3Client
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
@@ -31,6 +32,8 @@ def bootstrap_di() -> None:
 
     di[KeyPointsMapper] = VoxelKPMapper()
     di[MetadataConfig] = MetadataConfig.load_yaml_config(di["config_path"])
+    di[DatasetConfig] = di[MetadataConfig].dataset_mapping
+    di[PolicyConfig] = di[MetadataConfig].policy_mapping
     di[MetadataParser] = MetadataParser()
     di[S3Client] = boto3.client("s3", aws_region)
     di[S3Controller] = S3Controller()

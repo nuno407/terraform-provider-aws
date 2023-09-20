@@ -4,9 +4,9 @@
 from kink import inject
 
 from base.model.artifacts import Artifact, RecorderType
+from base.voxel.utils import determine_dataset_name
 from healthcheck.exceptions import VoxelEntryNotPresent, VoxelEntryNotUnique
 from healthcheck.model import S3Params
-from healthcheck.tenant_config import DatasetMappingConfig
 from healthcheck.voxel_client import VoxelEntriesGetter
 
 
@@ -32,34 +32,6 @@ class VoxelFiftyOneController:
         """
         return f"{tenant_name}/{file_key}"
 
-    @inject
-    def _determine_dataset_name(self, tenant_id: str, recorder_type: RecorderType,
-                                mapping_config: DatasetMappingConfig):
-        """
-        Checks in config if tenant gets its own dataset or if it is part of the default dataset.
-        Dedicated dataset names are prefixed with the tag given in the config.
-        The tag is not added to the default dataset.
-
-        Args:
-            tenant_id (str): Name of the tenant
-            artifact_type (RecorderType): Either video or snapshot
-            mapping_config (DatasetMappingConfig): Config with mapping information about the tenants
-
-        Returns:
-            the resulting dataset name and the tags which should be added on dataset creation
-        """
-        # The root dir on the S3 bucket always is the tenant name
-
-        dataset_name = mapping_config.default_dataset
-
-        if tenant_id in mapping_config.create_dataset_for:
-            dataset_name = f"{mapping_config.tag}-{tenant_id}"
-
-        if recorder_type == RecorderType.SNAPSHOT:
-            dataset_name += "_snapshots"
-
-        return dataset_name
-
     def is_fiftyone_entry_present_or_raise(self, artifact: Artifact) -> None:
         """
         Checks if the artifact specified is present in the dataset.
@@ -78,7 +50,10 @@ class VoxelFiftyOneController:
         if artifact.recorder == RecorderType.SNAPSHOT:
             extension = "jpeg"
 
-        dataset = self._determine_dataset_name(artifact.tenant_id, artifact.recorder)
+        dataset, _ = determine_dataset_name(
+            artifact.tenant_id,
+            artifact.recorder == RecorderType.SNAPSHOT
+        )  # pylint: disable=no-value-for-parameter
 
         def get_key():
             return f"{self._full_s3_path(artifact.tenant_id, art_id)}_anonymized.{extension}"

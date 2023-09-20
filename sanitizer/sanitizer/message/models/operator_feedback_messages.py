@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Extra, Field, parse_obj_as
+from pydantic import Field, parse_obj_as
 from datetime import datetime
 from typing import Optional, Union, NewType
 from base.model.artifacts import OperatorSOSReason, OperatorAdditionalInformation
-from base.model.config import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel
 
 
 class AdditonalInformation(ConfiguredBaseModel):

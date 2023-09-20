@@ -1,27 +1,18 @@
 """Metadata config loaded from config file"""
-from dataclasses import Field
 
 import yaml
 from pydantic import BaseModel
 
-
-class DatasetConfig(BaseModel):
-    """
-    Represents a list of tenants that should use a specific dataset
-    """
-    name: str
-    tenants: list[str]
+from base.model.config.dataset_config import DatasetConfig
+from base.model.config.policy_config import PolicyConfig
 
 
 class MetadataConfig(BaseModel):
     """
     Config holding information about Metadata component
     """
-    create_dataset_for: list[DatasetConfig] = []
-    default_dataset: str = "Debug_Lync"
-    tag: str = "RC"
-    default_policy_document: str = ""
-    policy_document_per_tenant: dict[str, str] = {}
+    dataset_mapping: DatasetConfig
+    policy_mapping: PolicyConfig
 
     @staticmethod
     def load_yaml_config(config_path: str) -> "MetadataConfig":

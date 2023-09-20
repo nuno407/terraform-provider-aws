@@ -1,7 +1,9 @@
 from base.aws.s3 import S3Controller
+from base.model.config.dataset_config import DatasetConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from metadata.consumer.config import MetadataConfig
+from base.model.config.policy_config import PolicyConfig
 from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample, get_voxel_sample_data_privacy_document_id
 import pytest
 from base.model.artifacts import SignalsArtifact, SnapshotArtifact, MetadataType, RecorderType, TimeWindow
@@ -32,18 +34,37 @@ class TestVoxelFunctions():
             tenant_id=tenant_id,
             device_id=device_id,
             recorder=RecorderType.SNAPSHOT,
-            timestamp=datetime(year=2022, month=12, day=12,
-                               hour=1, minute=1, tzinfo=pytz.utc),
+            timestamp=datetime(
+                year=2022,
+                month=12,
+                day=12,
+                hour=1,
+                minute=1,
+                tzinfo=pytz.utc),
             upload_timing=TimeWindow(
-                start=datetime(year=2023, month=1, day=1,
-                               hour=1, minute=1, tzinfo=pytz.utc),
-                end=datetime(year=2023, month=1, day=1, hour=1,
-                             minute=2, tzinfo=pytz.utc),
+                start=datetime(
+                    year=2023,
+                    month=1,
+                    day=1,
+                    hour=1,
+                    minute=1,
+                    tzinfo=pytz.utc),
+                end=datetime(
+                    year=2023,
+                    month=1,
+                    day=1,
+                    hour=1,
+                    minute=2,
+                    tzinfo=pytz.utc),
             ),
-            end_timestamp=datetime(year=2022, month=12, day=12,
-                                   hour=1, minute=1, tzinfo=pytz.utc),
-            uuid="SOME_ID"
-        )
+            end_timestamp=datetime(
+                year=2022,
+                month=12,
+                day=12,
+                hour=1,
+                minute=1,
+                tzinfo=pytz.utc),
+            uuid="SOME_ID")
 
     @pytest.fixture()
     def snapshot_metadata_artifact(self, snapshot_artifact: SnapshotArtifact) -> SignalsArtifact:
@@ -53,8 +74,7 @@ class TestVoxelFunctions():
             tenant_id=snapshot_artifact.tenant_id,
             device_id=snapshot_artifact.device_id,
             metadata_type=MetadataType.SIGNALS,
-            referred_artifact=snapshot_artifact
-        )
+            referred_artifact=snapshot_artifact)
 
     @pytest.mark.unit
     @pytest.mark.parametrize("metadata_frames,file_exists,expected_exception", [
@@ -155,7 +175,7 @@ class TestVoxelFunctions():
     ])
     def test_get_voxel_snapshot_sample(
             self,
-            dataset_config: MetadataConfig,
+            metadata_config: MetadataConfig,
             fiftyone: MagicMock,
             tenant: str,
             snap_id: str,
@@ -166,7 +186,7 @@ class TestVoxelFunctions():
         fiftyone.load_dataset.return_value = dataset
         return_mock = MagicMock()
         dataset.one.return_value = return_mock
-        di[MetadataConfig] = dataset_config
+        di[DatasetConfig] = metadata_config.dataset_mapping
 
         # WHEN
         result_data = get_voxel_snapshot_sample(tenant, snap_id)
@@ -184,13 +204,13 @@ class TestVoxelFunctions():
                               ])
     def test_get_voxel_sample_data_privacy_document_id(
             self,
-            dataset_config: MetadataConfig,
+            metadata_config: MetadataConfig,
             s3_path: str,
             expected_policy: str):
         # GIVEN
         sample_mock = Mock()
         sample_mock.filepath = s3_path
-        di[MetadataConfig] = dataset_config
+        di[PolicyConfig] = metadata_config.policy_mapping
         # WHEN
         policy = get_voxel_sample_data_privacy_document_id(sample_mock)
         assert policy == expected_policy

@@ -15,13 +15,14 @@ from pymongo import MongoClient
 
 from base.model.artifacts import RecorderType
 from base.graceful_exit import GracefulExit
+from base.model.config.dataset_config import DatasetConfig
 from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 from healthcheck.checker.snapshot import SnapshotArtifactChecker
 from healthcheck.checker.training_recorder import \
     TrainingRecorderArtifactChecker
 from healthcheck.config import HealthcheckConfig
-from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
+from healthcheck.tenant_config import TenantConfig
 from healthcheck.database import INoSQLDBClient, NoSQLDBConfiguration
 from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
@@ -85,8 +86,8 @@ def bootstrap_di() -> None:
 
     config = HealthcheckConfig.load_yaml_config(di["config_path"])
     di[HealthcheckConfig] = config
-    tenant_config = TenantConfig.load_config_from_yaml_file(di["tenant_config_path"])
-    di[DatasetMappingConfig] = tenant_config.dataset_mapping
+    tenant_config = TenantConfig.load_yaml_config(di["tenant_config_path"])
+    di[DatasetConfig] = tenant_config.dataset_mapping
     di["default_sqs_queue_name"] = config.input_queue
 
     di[S3Params] = S3Params(

@@ -14,13 +14,14 @@ from moto import mock_s3
 from mypy_boto3_s3 import S3Client
 
 from base.aws.s3 import S3Controller
+from base.model.config.dataset_config import DatasetConfig
 from healthcheck.controller.db import DatabaseController
 from healthcheck.controller.voxel_fiftyone import VoxelFiftyOneController
 from healthcheck.database import NoSQLDBConfiguration
 from healthcheck.model import S3Params
 from healthcheck.mongo import MongoDBClient
 from healthcheck.schema.validator import JSONSchemaValidator
-from healthcheck.tenant_config import DatasetMappingConfig, TenantConfig
+from healthcheck.tenant_config import TenantConfig
 from healthcheck.voxel_client import VoxelEntriesGetter
 from healthcheck.s3_utils import S3Utils
 
@@ -39,8 +40,8 @@ _memoized_cache: dict = {}
 
 @pytest.fixture(autouse=True)
 def initialize_config():
-    tenant_config = TenantConfig.load_config_from_yaml_file("./config.yaml")
-    di[DatasetMappingConfig] = tenant_config.dataset_mapping
+    tenant_config = TenantConfig.load_yaml_config("./config.yaml")
+    di[DatasetConfig] = tenant_config.dataset_mapping
 
 
 def get_document_from_fixture_by_id(collection_file: str, id_field: str, id_value: str) -> dict:

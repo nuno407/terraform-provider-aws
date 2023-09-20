@@ -147,8 +147,10 @@ class TestMain:
                                      "RC-ridecare_companion_gridwise")
                              ])
     @patch("metadata.consumer.main.connect")
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__, "test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
     def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
@@ -206,18 +208,26 @@ class TestMain:
         ds_snapshots = fo.load_dataset(expected_dataset + "_snapshots")
         assert ds_snapshots.tags == ["RC"]
 
-        sample_excluded = get_sample(ds_snapshots, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg")
+        sample_excluded = get_sample(
+            ds_snapshots,
+            f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1612080178308_anonymized.jpeg")
         assert sample_excluded["raw_filepath"] == snapshot_excluded_db_entry["filepath"]
 
-        sample_recording = get_sample(dataset, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4")
+        sample_recording = get_sample(
+            dataset,
+            f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_recording_1662080172308_1662080561893_anonymized.mp4")
         assert sample_recording["raw_filepath"] == recording_db_entry["filepath"]
 
-        sample_included = get_sample(ds_snapshots, f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg")
+        sample_included = get_sample(
+            ds_snapshots,
+            f"s3://{environ_mock['ANON_S3']}/{s3_folder}/ridecare_device_foo_1662080178308_anonymized.jpeg")
         assert sample_included["raw_filepath"] == snapshot_included_db_entry["filepath"]
 
     @patch("metadata.consumer.main.connect")
-    @patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__,"test_data/config.yml")})
-    @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": get_abs_path(__file__,"test_data/mongo_config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"TENANT_MAPPING_CONFIG_PATH": get_abs_path(__file__, "test_data/config.yml")})
+    @patch.dict("metadata.consumer.main.os.environ",
+                {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
     def test_main_no_message_attributes(self, _: Mock, container_services_mock: Mock, mongomock_fix: Mock):
         # GIVEN

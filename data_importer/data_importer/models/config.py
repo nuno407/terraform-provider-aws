@@ -1,51 +1,32 @@
 """ Config """
-from dataclasses import dataclass, field, fields
 import os
 
 import yaml
+from pydantic import BaseModel
+
+from base.model.config.policy_config import PolicyConfig
 
 TENANT_MAPPING_CONFIG_PATH = os.getenv("TENANT_MAPPING_CONFIG_PATH", None)
 
 
-@dataclass
-class DatasetMappingConfig():
-    """
-    Config holding information about the tenant to dataset mapping and specific tenant config
-    """
-    create_dataset_for: set[str] = field(default_factory=set)
-    default_dataset: str = ""
-    tag: str = ""
-    default_policy_document: str = ""
-    policy_document_per_tenant: dict[str, str] = field(default_factory=dict)
-
-
-@dataclass
-class TenantConfig():
+class DataImporterConfig(BaseModel):
     """
     Tenant configuration
     """
-    dataset_mapping: DatasetMappingConfig
+    policy_mapping: PolicyConfig
 
     @staticmethod
-    def load_config_from_yaml_file(path) -> "TenantConfig":
-        """Loads yaml file into a TenantConfig object. Extra yaml fields are ignored.
+    def load_yaml_config(config_path: str) -> "DataImporterConfig":
+        """load_yaml_config.
+
+        Loads YAML configuration file form path
 
         Args:
-            path (_type_): path of the yaml file containing the config
+            config_path (str): path to yaml file
 
         Returns:
-            TenantConfig: TenantConfig object containing passed yaml config
+            DataImporterConfig: configuration
         """
-        with open(path, "r", encoding="utf-8") as configfile:
-            config = yaml.safe_load(configfile)
-
-            config_objects = {}
-            for attribute in fields(TenantConfig):
-                # Dynamically create objects from complex types
-                config_attribute_fields = [f.name for f in fields(attribute.type)]
-                config_params = {key: value for key, value in
-                                 config.get(attribute.name, {}).items() if
-                                 key in config_attribute_fields}
-                config_objects[attribute.name] = attribute.type(**config_params)
-
-            return TenantConfig(**config_objects)
+        with open(config_path, "r", encoding="utf-8") as file_handler:
+            yaml_object = yaml.safe_load(file_handler)
+            return DataImporterConfig.parse_obj(yaml_object)

@@ -33,6 +33,7 @@ triple-quote = "double"
 docstring-quote = "double"
 
 [tool.pylint."MESSAGES CONTROL"]
+extension-pkg-whitelist = "pydantic"
 disable = """
     no-value-for-parameter
 """

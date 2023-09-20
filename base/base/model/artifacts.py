@@ -9,7 +9,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, parse_obj_as, parse_raw_as, validator
 
-from base.model.config import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)

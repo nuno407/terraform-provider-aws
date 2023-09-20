@@ -1,46 +1,28 @@
 """Metadata config loaded from config file"""
-from dataclasses import dataclass, field, fields
-
 import yaml
+from pydantic import BaseModel
+
+from base.model.config.dataset_config import DatasetConfig
 
 
-@dataclass
-class DatasetMappingConfig():
-    """
-    Config holding information about the tenant to dataset mapping
-    """
-    create_dataset_for: set[str] = field(default_factory=set)
-    default_dataset: str = ""
-    tag: str = ""
-
-
-@dataclass
-class TenantConfig():
+class TenantConfig(BaseModel):
     """
     Tenant configuration
     """
-    dataset_mapping: DatasetMappingConfig
+    dataset_mapping: DatasetConfig
 
     @staticmethod
-    def load_config_from_yaml_file(path) -> "TenantConfig":
-        """Loads yaml file into a TenantConfig object. Extra yaml fields are ignored.
+    def load_yaml_config(config_path: str) -> "TenantConfig":
+        """load_yaml_config.
+
+        Loads YAML configuration file form path
 
         Args:
-            path (_type_): path of the yaml file containing the config
+            config_path (str): path to yaml file
 
         Returns:
-            TenantConfig: TenantConfig object containing passed yaml config
+            TenantConfig: configuration
         """
-        with open(path, "r", encoding="utf-8") as configfile:
-            config = yaml.safe_load(configfile)
-
-            config_objects = {}
-            for attribute in fields(TenantConfig):
-                # Dynamically create objects from complex types
-                config_attribute_fields = [f.name for f in fields(attribute.type)]
-                config_params = {key: value for key, value in
-                                 config.get(attribute.name, {}).items() if
-                                 key in config_attribute_fields}
-                config_objects[attribute.name] = attribute.type(**config_params)
-
-            return TenantConfig(**config_objects)
+        with open(config_path, "r", encoding="utf-8") as file_handler:
+            yaml_object = yaml.safe_load(file_handler)
+            return TenantConfig.parse_obj(yaml_object)
