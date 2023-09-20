@@ -9,10 +9,12 @@ WORKDIR /home/node/app
 RUN chown 1000:1000 ./
 USER 1000
 
-RUN npm config set registry https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/
 ARG NPM_AUTH
 ARG NPM_EMAIL
-COPY --chown=1000 frontend/.npmrc.docker .npmrc
+RUN npm config set registry https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/ &&\
+    npm config set //artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/:_auth $NPM_AUTH &&\
+    npm config set email $NPM_EMAIL
+
 COPY --chown=1000 frontend/package.json frontend/package-lock.json* ./
 RUN npm ci && npm cache clean --force || cat /home/node/.npm/_logs/*debug-0.log
 

@@ -1,4 +1,0 @@
-registry=https://artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/
-//artifactory.boschdevcloud.com/artifactory/api/npm/lab000003-bci-npm-virtual/:_authToken=${NPM_AUTH}
-email=${NPM_EMAIL}
-always-auth=true
