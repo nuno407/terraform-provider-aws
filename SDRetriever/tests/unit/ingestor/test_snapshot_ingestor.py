@@ -8,8 +8,8 @@ from pytz import UTC
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3ClientFactory, S3Controller
-from base.model.artifacts import (RecorderType, S3VideoArtifact,
-                                  SnapshotArtifact, TimeWindow, Recording)
+from base.model.artifacts import (RecorderType, Recording, S3VideoArtifact,
+                                  SnapshotArtifact, TimeWindow)
 from sdretriever.config import SDRetrieverConfig
 from base.model.artifacts import Artifact
 from sdretriever.ingestor.snapshot import SnapshotIngestor

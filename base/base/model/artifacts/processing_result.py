@@ -1,9 +1,11 @@
 """All pydantic models used in data transformation"""
-from typing import Annotated, Literal, Union
 from enum import Enum
 from abc import abstractmethod
+from typing import Annotated, Literal, Union
+
 from pydantic import Field, parse_obj_as, parse_raw_as
-from base.model.base_model import ConfiguredBaseModel, S3Path
+
+from base.model.config import ConfiguredBaseModel, S3Path
 
 
 class StatusProcessing(str, Enum):

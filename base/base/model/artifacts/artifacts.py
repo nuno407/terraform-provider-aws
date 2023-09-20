@@ -5,11 +5,11 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Optional, Union, Annotated
+from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, parse_obj_as, parse_raw_as, validator
 
-from base.model.base_model import ConfiguredBaseModel, S3Path
+from base.model.config import ConfiguredBaseModel, S3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
