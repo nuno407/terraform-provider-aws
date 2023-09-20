@@ -83,9 +83,10 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         """
         json_message, source_container = self.__get_parsed_message(message)
 
-        handler = self.__source_router.get(source_container, None)
+        handler = self.__source_router.get(source_container)
         if handler is None:
-            return message
+            raise UknownSQSMessage(
+                f"Message couldn't be handled by NonArtifactParser, no handler exists for {source_container}")
 
         pydantic_model_message = handler(json_message)
         message["Body"] = pydantic_model_message.stringify()
