@@ -14,3 +14,7 @@ class Ingestor:
     @abstractmethod
     def ingest(self, artifact: Artifact):
         """Ingests the artifacts described in a message into the DevCloud"""
+
+    @abstractmethod
+    def is_already_ingested(self, artifact: Artifact) -> bool:
+        """Checks if the artifact is already ingested"""

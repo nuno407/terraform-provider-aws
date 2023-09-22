@@ -12,12 +12,22 @@ SNAPSHOT = "TrainingMultiSnapshot"
 INTERIOR_RECORDER_PREVIEW = "InteriorRecorderPreview"
 
 
-class FileExt(Enum):
+class FileExtension(str, Enum):
     """ File extensions """
     METADATA = ".json"
     ZIPPED_METADATA = ".json.zip"
     SNAPSHOT = ".jpeg"
     VIDEO = ".mp4"
+    IMU = ".csv"
+
+    def __str__(self) -> str:
+        """
+        Return the name of the field (removes the need of calling .value)
+
+        Returns:
+            str: The field name
+        """
+        return str.__str__(self)
 
 
 VIDEO_CHUNK_REGX = re.compile(r"([^\W_]+)_([^\W_]+)-([a-z0-9\-]+)_(\d+)\.mp4$")

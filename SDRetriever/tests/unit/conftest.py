@@ -29,7 +29,7 @@ def config() -> SDRetrieverConfig:
         frame_buffer=0,
         training_whitelist=[],
         request_training_upload=True,
-        discard_video_already_ingested=True,
+        discard_already_ingested=True,
         input_queue="queue",
         temporary_bucket="tmp_bucket"
     )

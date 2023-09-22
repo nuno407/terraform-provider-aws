@@ -138,8 +138,15 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             artifact).__name__, artifact.artifact_id)
 
         try:
-            # ingest artifact
             ingestor = self._get_ingestor(artifact)
+
+            # ensure API Calls are not done if artifact already available
+            if self.__config.discard_already_ingested and ingestor.is_already_ingested(artifact):
+                _logger.warning("Artifact was already ingested, discarding...")
+                self.__sqs_controller.delete_message(message)
+                return
+
+            # ingest artifact
             ingestor.ingest(artifact)
 
             _logger.info("Artfiact has been ingested, forwarding to queues...")

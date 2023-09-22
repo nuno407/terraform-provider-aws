@@ -76,9 +76,28 @@ class TestSnapshotMetadataIngestor:
         snapshot_metadata_ingestor.ingest(snapshot_metadata_artifact)
 
         # THEN
-        rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(params=expected_search_params)
+        rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(
+            params=expected_search_params)
+
         # Assert end date to search
         rcc_chunk_downloader.download_by_prefix_suffix.call_args[1]["params"].stop_search > reference_current_time
 
         s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
         assert snapshot_metadata_artifact.s3_path == path_uploaded
+
+    @mark.unit
+    def test_is_already_ingested(self,
+                                 snapshot_metadata_ingestor: SnapshotMetadataIngestor,
+                                 s3_downloader_uploader: S3DownloaderUploader,
+                                 snapshot_metadata_artifact: SignalsArtifact):
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_raw = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = snapshot_metadata_ingestor.is_already_ingested(snapshot_metadata_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
+            snapshot_metadata_artifact.artifact_id + ".json", snapshot_metadata_artifact.tenant_id)

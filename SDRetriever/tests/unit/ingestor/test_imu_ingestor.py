@@ -67,7 +67,8 @@ class TestImuIngestor:
                     data=b"imu_data_mock",
                     s3_key=f"{chunk_id}",
                     bucket=rcc_bucket) for chunk_id in recording.chunk_ids] for recording in list_chunk_recordings]
-        concatenated_data = b"".join(list(map(lambda x: x.data, chain.from_iterable(downloaded_chunks_mock))))
+        concatenated_data = b"".join(
+            list(map(lambda x: x.data, chain.from_iterable(downloaded_chunks_mock))))
         path_uploaded = "s3://imu.csv"
 
         rcc_chunk_downloader.download_by_chunk_id = Mock(side_effect=downloaded_chunks_mock)
@@ -105,5 +106,25 @@ class TestImuIngestor:
         # THEN
         assert rcc_chunk_downloader.download_by_chunk_id.call_count == len(list_chunk_recordings)
         rcc_chunk_downloader.download_by_chunk_id.assert_has_calls(expected_calls)
-        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_object)
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(
+            expected_devcloud_object)
         assert imu_artifact.s3_path == path_uploaded
+
+    @mark.unit
+    def test_is_already_ingested(
+            self,
+            imu_artifact: IMUArtifact,
+            imu_ingestor: IMUIngestor,
+            s3_downloader_uploader: S3DownloaderUploader):
+
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_raw = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = imu_ingestor.is_already_ingested(imu_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
+            imu_artifact.artifact_id + ".csv", imu_artifact.tenant_id)

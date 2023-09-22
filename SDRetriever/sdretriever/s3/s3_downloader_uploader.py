@@ -1,18 +1,11 @@
 from base.aws.s3 import S3Controller, S3ControllerFactory
-from base.aws.model import S3ObjectInfo
 from sdretriever.models import S3ObjectRCC, S3ObjectDevcloud
 from sdretriever.exceptions import S3UploadError
 from sdretriever.config import SDRetrieverConfig
-from sdretriever.s3.s3_crawler_rcc import S3CrawlerRCC
-from sdretriever.models import RCCS3SearchParams
 from kink import inject
-from sdretriever.exceptions import S3FileNotFoundError
 from typing import Optional, cast
-import logging
 import gzip
-from typing import Iterable, Union
-
-_logger = logging.getLogger(__file__)
+from typing import Iterable
 
 
 @inject
@@ -30,7 +23,7 @@ class S3DownloaderUploader:
         self.__devcloud_s3_controller = s3_controller
         self.__rcc_bucket = rcc_bucket
         self.__raw_bucket = devcloud_raw_bucket
-        self.__tmp_bucket = sdr_config.temporary_bucket
+        self.__sdr_config = sdr_config
 
     def download_from_rcc(self, s3_keys: Iterable[str],
                           bucket: Optional[str] = None) -> list[S3ObjectRCC]:
@@ -81,9 +74,9 @@ class S3DownloaderUploader:
             s3_path (str): The path to where it got uploaded.
         """
 
-        if self.__devcloud_s3_controller.check_s3_file_exists(bucket, s3_key):
-            _logger.error("File %s already exists in %s", s3_key, bucket)
-            raise S3UploadError
+        if self.__sdr_config.discard_already_ingested and self.__devcloud_s3_controller.check_s3_file_exists(
+                bucket, s3_key):
+            raise S3UploadError(f"File {s3_key} already exists in {bucket}")
 
         self.__devcloud_s3_controller.upload_file(data, bucket, s3_key)
 
@@ -115,4 +108,33 @@ class S3DownloaderUploader:
             s3_path (str): The path to where it got uploaded.
         """
         s3_key = f"{data.tenant}/{data.filename}"
-        return self.__upload_to_devcloud(self.__tmp_bucket, s3_key, data.data)
+        return self.__upload_to_devcloud(self.__sdr_config.temporary_bucket, s3_key, data.data)
+
+    def is_file_devcloud_tmp(self, filename: str, tenant: str) -> bool:
+        """
+        Returns true if the file is already available in DevCloud temporary bucket.
+
+        Args:
+            filename (str): The filename in S3 (without paths)
+            tenant (str): The tenant in S3
+
+        Returns:
+            bool: True if exists, false otherwise
+        """
+        s3_key = f"{tenant}/{filename}"
+        return self.__devcloud_s3_controller.check_s3_file_exists(
+            self.__sdr_config.temporary_bucket, s3_key)
+
+    def is_file_devcloud_raw(self, filename: str, tenant: str) -> bool:
+        """
+        Returns true if the file is already available in DevCloud raw bucket.
+
+        Args:
+            filename (str): The filename in S3 (without paths)
+            tenant (str): The tenant in S3
+
+        Returns:
+            bool: True if exists, false otherwise
+        """
+        s3_key = f"{tenant}/{filename}"
+        return self.__devcloud_s3_controller.check_s3_file_exists(self.__raw_bucket, s3_key)

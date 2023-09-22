@@ -12,7 +12,7 @@ class SDRetrieverConfig:  # pylint: disable=too-many-instance-attributes
     frame_buffer: int
     training_whitelist: list[str]
     request_training_upload: bool
-    discard_video_already_ingested: bool
+    discard_already_ingested: bool
     temporary_bucket: str
     input_queue: str
 

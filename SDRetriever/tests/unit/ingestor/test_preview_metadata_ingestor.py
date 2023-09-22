@@ -74,7 +74,26 @@ class TestPreviewMetadataIngestor:
         preview_metadata_ingestor.ingest(preview_metadata_artifact)
 
         # THEN
-        rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(params=expected_search_params)
+        rcc_chunk_downloader.download_by_prefix_suffix.assert_called_once_with(
+            params=expected_search_params)
         metadata_merger.merge_metadata_chunks.assert_called_once_with(downloaded_chunks_mock)
-        s3_downloader_uploader.upload_to_devcloud_tmp.assert_called_once_with(expected_devcloud_object)
+        s3_downloader_uploader.upload_to_devcloud_tmp.assert_called_once_with(
+            expected_devcloud_object)
         assert preview_metadata_artifact.s3_path == path_uploaded
+
+    @mark.unit
+    def test_is_already_ingested(self,
+                                 preview_metadata_artifact: PreviewSignalsArtifact,
+                                 preview_metadata_ingestor: PreviewMetadataIngestor,
+                                 s3_downloader_uploader: S3DownloaderUploader):
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_tmp = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = preview_metadata_ingestor.is_already_ingested(preview_metadata_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_tmp.assert_called_once_with(
+            preview_metadata_artifact.artifact_id + ".json", preview_metadata_artifact.tenant_id)

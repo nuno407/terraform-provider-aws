@@ -1,6 +1,7 @@
 """metacontent module"""
 import logging as log
 from datetime import datetime
+import pytz
 
 from kink import inject
 
@@ -8,11 +9,8 @@ from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParamsByPrefix
 from base.model.artifacts import Artifact, SignalsArtifact, SnapshotArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.ingestor.ingestor import Ingestor
-from sdretriever.constants import FileExt
-from sdretriever.exceptions import S3FileNotFoundError
+from sdretriever.constants import FileExtension
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
-import pytz
-import re
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -27,6 +25,20 @@ class SnapshotMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-meth
                  ):
         self.__s3_interface = s3_interface
         self.__s3_chunk_ingestor = s3_chunk_ingestor
+        self.__file_extension = FileExtension.METADATA
+
+    def is_already_ingested(self, artifact: Artifact) -> bool:
+        """
+        Checks if there is already a file with the same name in DevCloud.
+
+        Args:
+            artifact (Artifact): _description_
+
+        Returns:
+            bool: True if file exists, False otherwise
+        """
+        return self.__s3_interface.is_file_devcloud_raw(
+            artifact.artifact_id + self.__file_extension, artifact.tenant_id)
 
     def ingest(self, artifact: Artifact) -> None:
         """ Ingests a snapshot artifact """
@@ -52,7 +64,7 @@ class SnapshotMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-meth
         downloaded_object = self.__s3_chunk_ingestor.download_by_prefix_suffix(params=params)
 
         # Initialize file name and path
-        metadata_snap_name = f"{artifact.artifact_id}{FileExt.METADATA.value}"
+        metadata_snap_name = f"{artifact.artifact_id}{self.__file_extension}"
 
         # Upload files to DevCloud
         devcloud_object = S3ObjectDevcloud(

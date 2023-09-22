@@ -7,13 +7,11 @@ from datetime import datetime
 from kink import inject
 
 from base.model.artifacts import Artifact, IMUArtifact, S3VideoArtifact
+from sdretriever.constants import FileExtension
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.models import ChunkDownloadParamsByID, S3ObjectDevcloud, S3ObjectRCC
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
-
-IMU_FILE_EXT = '.csv'
-_logger = log.getLogger("SDRetriever." + __name__)
 
 
 @inject
@@ -25,6 +23,7 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
                  s3_interface: S3DownloaderUploader):
         self.__s3_chunk_ingestor = s3_chunk_ingestor
         self.__s3_interface = s3_interface
+        self.__file_extension = FileExtension.IMU
 
     def __concatenate_chunks(self, chunks: list[S3ObjectRCC]) -> bytearray:
         """
@@ -89,6 +88,20 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
 
         return downloaded_chunks
 
+    def is_already_ingested(self, artifact: Artifact) -> bool:
+        """
+        Checks if there is already a file with the same name in DevCloud.
+
+        Args:
+            artifact (Artifact): _description_
+
+        Returns:
+            bool: True if file exists, False otherwise
+        """
+        print(self.__s3_interface.is_file_devcloud_raw)
+        return self.__s3_interface.is_file_devcloud_raw(
+            artifact.artifact_id + self.__file_extension, artifact.tenant_id)
+
     def ingest(self, artifact: Artifact) -> None:
         """
         Concatenates the IMU chunks and ingest them.
@@ -108,7 +121,7 @@ class IMUIngestor(Ingestor):  # pylint: disable=too-few-public-methods
 
         devcloud_object = S3ObjectDevcloud(
             data=file_binary,
-            filename=f"{artifact.artifact_id}{IMU_FILE_EXT}",
+            filename=f"{artifact.artifact_id}{self.__file_extension}",
             tenant=artifact.tenant_id)
 
         # Upload IMU chunks and force deletion

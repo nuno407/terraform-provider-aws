@@ -1,6 +1,5 @@
 """metacontent module"""
 import json
-import re
 import logging as log
 from datetime import datetime
 from kink import inject
@@ -9,11 +8,12 @@ from sdretriever.metadata_merger import MetadataMerger
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 from sdretriever.ingestor.ingestor import Ingestor
+from sdretriever.constants import FileExtension
 from sdretriever.models import S3ObjectDevcloud, ChunkDownloadParamsByPrefix
 from base.model.artifacts import Artifact, PreviewSignalsArtifact
 import pytz
 
-from typing import cast, Generator
+from typing import cast
 
 _logger = log.getLogger("SDRetriever." + __name__)
 
@@ -29,6 +29,7 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
         self.__s3_interface = s3_interface
         self.__s3_chunk_ingestor = s3_chunk_ingestor
         self.__metadata_merger = metadata_merger
+        self.__file_extension = FileExtension.METADATA
 
     def __upload_preview_metadata(self, source_data: dict, artifact: Artifact) -> str:
         """Store source data on our raw_s3 bucket
@@ -49,9 +50,22 @@ class PreviewMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-metho
 
         obj = S3ObjectDevcloud(
             data=source_data_as_bytes,
-            filename=artifact.artifact_id + ".json",
+            filename=artifact.artifact_id + self.__file_extension,
             tenant=artifact.tenant_id)
         return self.__s3_interface.upload_to_devcloud_tmp(obj)
+
+    def is_already_ingested(self, artifact: Artifact) -> bool:
+        """
+        Checks if there is already a file with the same name in DevCloud.
+
+        Args:
+            artifact (Artifact): _description_
+
+        Returns:
+            bool: True if file exists, False otherwise
+        """
+        return self.__s3_interface.is_file_devcloud_tmp(
+            artifact.artifact_id + self.__file_extension, artifact.tenant_id)
 
     def ingest(self, artifact: Artifact) -> None:
         """

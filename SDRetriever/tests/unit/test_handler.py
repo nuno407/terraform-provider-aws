@@ -63,10 +63,12 @@ def cont_services():
 
 
 @pytest.fixture
-def config():
+def config_discard_ingested():
     """SDRetrieverConfig fixture
     """
-    return Mock()
+    mock = Mock()
+    mock.discard_already_ingested = True
+    return mock
 
 
 @pytest.fixture
@@ -90,7 +92,7 @@ def ingestion_handler(imu_ing,
                       snap_metadata_ing,
                       preview_metadata_ing,
                       cont_services,
-                      config,
+                      config_discard_ingested,
                       sqs_controller):
     """IngestionHandler fixture
     """
@@ -101,7 +103,7 @@ def ingestion_handler(imu_ing,
                             snap_metadata_ing,
                             preview_metadata_ing,
                             cont_services,
-                            config,
+                            config_discard_ingested,
                             sqs_controller)
 
 
@@ -126,6 +128,7 @@ def test_ingestion_handler_handle_s3_video(ingestion_handler: IngestionHandler,
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    s3_video_ing.is_already_ingested = Mock(return_value=False)
     serialized_video_artifact = s3_video_artifact.stringify()
 
     ingestion_handler.handle(s3_video_artifact, message)
@@ -135,6 +138,23 @@ def test_ingestion_handler_handle_s3_video(ingestion_handler: IngestionHandler,
         call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
         call(serialized_video_artifact, CONTAINER_NAME, "selector_queue"),
     ])
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_s3_video(ingestion_handler: IngestionHandler,
+                                             s3_video_ing: Mock,
+                                             sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    s3_video_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(s3_video_artifact, message)
+
+    s3_video_ing.ingest.not_called()
+    s3_video_ing.is_already_ingested.assert_called_once_with(s3_video_artifact)
+    sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
 
@@ -157,6 +177,7 @@ def test_ingestion_handler_handle_snapshot(ingestion_handler: IngestionHandler,
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    snap_ing.is_already_ingested = Mock(return_value=False)
 
     ingestion_handler.handle(snapshot_artifact, message)
 
@@ -164,6 +185,23 @@ def test_ingestion_handler_handle_snapshot(ingestion_handler: IngestionHandler,
     sqs_controller.send_message.assert_called_once_with(
         snapshot_artifact.stringify(), CONTAINER_NAME, "metadata_queue")
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_snapshot(ingestion_handler: IngestionHandler,
+                                             snap_ing: Mock,
+                                             sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    snap_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(snapshot_artifact, message)
+
+    snap_ing.ingest.not_called()
+    snap_ing.is_already_ingested.assert_called_once_with(snapshot_artifact)
+    sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
 
@@ -181,6 +219,7 @@ def test_ingestion_handler_handle_imu(ingestion_handler: IngestionHandler,
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    imu_ing.is_already_ingested = Mock(return_value=False)
 
     ingestion_handler.handle(imu_artifact, message)
 
@@ -189,6 +228,23 @@ def test_ingestion_handler_handle_imu(ingestion_handler: IngestionHandler,
         call(imu_artifact.stringify(), CONTAINER_NAME, "mdfp_queue"),
     ])
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_imu(ingestion_handler: IngestionHandler,
+                                        imu_ing: Mock,
+                                        sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    imu_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(imu_artifact, message)
+
+    imu_ing.ingest.not_called()
+    imu_ing.is_already_ingested.assert_called_once_with(imu_artifact)
+    sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
 
@@ -207,6 +263,7 @@ def test_ingestion_handler_handle_signals(
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    video_metadata_ing.is_already_ingested = Mock(return_value=False)
 
     ingestion_handler.handle(signals_artifact, message)
 
@@ -215,6 +272,23 @@ def test_ingestion_handler_handle_signals(
         call(signals_artifact.stringify(), CONTAINER_NAME, "mdfp_queue"),
     ])
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_signals(ingestion_handler: IngestionHandler,
+                                            video_metadata_ing: Mock,
+                                            sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    video_metadata_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(signals_artifact, message)
+
+    video_metadata_ing.ingest.not_called()
+    video_metadata_ing.is_already_ingested.assert_called_once_with(signals_artifact)
+    sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
 
@@ -233,6 +307,7 @@ def test_ingestion_handler_handle_signals_snapshot(
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    snap_metadata_ing.is_already_ingested = Mock(return_value=False)
 
     ingestion_handler.handle(snapshot_signals_artifact, message)
 
@@ -242,6 +317,23 @@ def test_ingestion_handler_handle_signals_snapshot(
              CONTAINER_NAME, "metadata_queue")
     ])
 
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: IngestionHandler,
+                                                     snap_metadata_ing: Mock,
+                                                     sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    snap_metadata_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(snapshot_signals_artifact, message)
+
+    snap_metadata_ing.ingest.not_called()
+    snap_metadata_ing.is_already_ingested.assert_called_once_with(snapshot_signals_artifact)
+    sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
 
@@ -270,10 +362,13 @@ preview_signals_artifact = PreviewSignalsArtifact(
 def test_ingestion_handler_handle_signals_preview(
         ingestion_handler: IngestionHandler,
         preview_metadata_ing: Mock,
-        sqs_controller: Mock):
+        sqs_controller: Mock,
+        config_discard_ingested: Mock):
     """Test IngestionHandler.handle method
     """
     message = MagicMock()
+    config_discard_ingested.discard_already_ingested = False
+    preview_metadata_ing.is_already_ingested = Mock(return_value=True)
 
     ingestion_handler.handle(preview_signals_artifact, message)
     preview_metadata_ing.ingest.assert_called_once_with(preview_signals_artifact)
@@ -282,3 +377,20 @@ def test_ingestion_handler_handle_signals_preview(
         call(preview_signals_artifact.stringify(),
              CONTAINER_NAME, "selector_queue")
     ])
+
+
+@pytest.mark.unit
+def test_ingestion_already_ingested_signals_preview(ingestion_handler: IngestionHandler,
+                                                    preview_metadata_ing: Mock,
+                                                    sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    preview_metadata_ing.is_already_ingested = Mock(return_value=True)
+
+    ingestion_handler.handle(preview_signals_artifact, message)
+
+    preview_metadata_ing.ingest.not_called()
+    preview_metadata_ing.is_already_ingested.assert_called_once_with(preview_signals_artifact)
+    sqs_controller.send_message.assert_not_called()
+    sqs_controller.delete_message.assert_called_once_with(message)

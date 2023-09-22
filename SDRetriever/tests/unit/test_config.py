@@ -13,7 +13,7 @@ def test_config():
     training_whitelist:
     - onetenant
     request_training_upload: true
-    discard_video_already_ingested: true
+    discard_already_ingested: true
     input_queue: test-queue
     temporary_bucket: tmp
     """
@@ -25,7 +25,7 @@ def test_config():
     assert config.frame_buffer == 10
     assert config.training_whitelist == ["onetenant"]
     assert config.request_training_upload
-    assert config.discard_video_already_ingested
+    assert config.discard_already_ingested
     assert config.input_queue == "test-queue"
     assert config.temporary_bucket == "tmp"
 
@@ -53,7 +53,8 @@ def test_config_with_missing_input_queue_field():
     training_whitelist:
     - onetenant
     request_training_upload: true
-    discard_video_already_ingested: true
+    discard_already_ingested: true
+
     """
     with open("/tmp/config3", "w", encoding="utf-8") as file_handler:
         file_handler.write(raw_config)

@@ -80,3 +80,21 @@ class TestSnapshotIngestor:
 
         s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_obj)
         assert snapshot_artifact.s3_path == path_uploaded
+
+    @mark.unit
+    def test_is_already_ingested(
+            self,
+            snapshot_ingestor: SnapshotIngestor,
+            snapshot_artifact: SnapshotArtifact,
+            s3_downloader_uploader: S3DownloaderUploader):
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_raw = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = snapshot_ingestor.is_already_ingested(snapshot_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
+            snapshot_artifact.artifact_id + ".jpeg", snapshot_artifact.tenant_id)

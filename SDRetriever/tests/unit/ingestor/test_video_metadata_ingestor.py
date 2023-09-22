@@ -110,6 +110,24 @@ class TestVideoMetadataIngestor:
         # THEN
         assert rcc_chunk_downloader.download_by_chunk_id.call_count == len(list_chunk_recordings)
         rcc_chunk_downloader.download_by_chunk_id.assert_has_calls(expected_calls)
-        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_object)
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(
+            expected_devcloud_object)
         assert video_signals_artifact.s3_path == path_uploaded
         metadata_merger.merge_metadata_chunks.assert_called_once_with(concatenated_data)
+
+    @mark.unit
+    def test_is_already_ingested(self,
+                                 video_signals_ingestor: VideoMetadataIngestor,
+                                 s3_downloader_uploader: S3DownloaderUploader,
+                                 video_signals_artifact: SignalsArtifact):
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_raw = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = video_signals_ingestor.is_already_ingested(video_signals_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
+            video_signals_artifact.artifact_id + ".json", video_signals_artifact.tenant_id)

@@ -5,7 +5,7 @@ from base.aws.model import SQSMessage
 from base.model.artifacts import (EventArtifact,
                                   MultiSnapshotArtifact, RecorderType,
                                   S3VideoArtifact, OperatorArtifact)
-from sanitizer.exceptions import ArtifactException, MessageException
+from sanitizer.exceptions import ArtifactException, MessageException, ArtifactException
 from sanitizer.message.message_parser import MessageParser
 
 # SQS message attribute recorder's values
@@ -65,6 +65,9 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
         if topic_arn.endswith("video-footage-events"):
             if "uploadInfos" in sqs_message.body.get("Message", {}):
                 artifact_type = S3VideoArtifact
+            else:
+                raise ArtifactException(
+                    "A Kinesises artifact was recieved, ignoring")
 
             recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                                .get("MessageAttributes", {})

@@ -45,7 +45,7 @@ class TestVideoIngestor:
     def test_download_failed(
             self,
             exception: Exception,
-            video_ingestor: S3VideoArtifact,
+            video_ingestor: S3VideoIngestor,
             interior_video_artifact: S3VideoArtifact,
             s3_downloader_uploader: S3DownloaderUploader):
         s3_downloader_uploader.download_from_rcc = Mock()
@@ -72,7 +72,7 @@ class TestVideoIngestor:
             artifact: S3VideoArtifact,
             bucket: str,
             key: str,
-            video_ingestor: S3VideoArtifact,
+            video_ingestor: S3VideoIngestor,
             ffprobe_post_processor: FFProbeExtractorPostProcessor,
             s3_downloader_uploader: S3DownloaderUploader):
 
@@ -98,7 +98,26 @@ class TestVideoIngestor:
         # THEN
         s3_downloader_uploader.download_from_rcc.assert_called_once_with([key], bucket)
         ffprobe_post_processor.execute.assert_called_once_with(video_data)
-        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(expected_devcloud_object)
+        s3_downloader_uploader.upload_to_devcloud_raw.assert_called_once_with(
+            expected_devcloud_object)
         assert artifact.s3_path == upload_path
         assert artifact.resolution == expected_resolution
         assert artifact.actual_duration == video_info.duration
+
+    @mark.unit
+    def test_is_already_ingested(
+            self,
+            preview_metadata_artifact: S3VideoArtifact,
+            video_ingestor: S3VideoIngestor,
+            s3_downloader_uploader: S3DownloaderUploader):
+        # GIVEN
+        is_file_return = Mock()
+        s3_downloader_uploader.is_file_devcloud_raw = Mock(return_value=is_file_return)
+
+        # WHEN
+        result = video_ingestor.is_already_ingested(preview_metadata_artifact)
+
+        # THEN
+        assert result == is_file_return
+        s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
+            preview_metadata_artifact.artifact_id + ".mp4", preview_metadata_artifact.tenant_id)
