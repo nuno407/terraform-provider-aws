@@ -26,8 +26,7 @@ from base.aws.s3 import S3Controller
 from base.aws.sqs import parse_message_body_to_dict
 from base.chc_counter import ChcCounter
 from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
-from base.model.artifacts import (Artifact, EventArtifact,
-                                  KinesisVideoArtifact, S3VideoArtifact,
+from base.model.artifacts import (Artifact, EventArtifact, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   VideoArtifact, parse_artifact, OperatorArtifact)
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
@@ -206,7 +205,8 @@ def create_video_recording_item(message: dict, collection_rec: Collection,
             "tenantID": message["tenant"],
             "deviceID": message["deviceid"],
             "length": message["length"],
-            "recording_duration": message["recording_duration"],  # Should replace `length` long term
+            # Should replace `length` long term
+            "recording_duration": message["recording_duration"],
             "snapshots_paths": related_media_paths,
             "#snapshots": len(related_media_paths),
             "time": footage_time,
@@ -415,7 +415,7 @@ def update_pipeline_db(video_id: str, message: dict,
 
 def download_and_synchronize_chc(video_id: str, recordings_collection: Collection,
                                  bucket: str, key: str) -> Tuple[dict, dict]:
-    """Downloads and synchronize CHC signals based on kinesis recording length.
+    """Downloads and synchronize CHC signals based on recording length.
 
     Args:
         video_id (str): video identifier.
@@ -435,9 +435,12 @@ def download_and_synchronize_chc(video_id: str, recordings_collection: Collectio
     assert recording_entry_result is not None
     recording_entry = recording_entry_result
 
-    if not ("recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
-        raise MalformedRecordingEntry(f"Recording entry for video_id {video_id} does not have a length information.")
-    video_length = timedelta(seconds=pytimeparse.parse(recording_entry["recording_overview"]["length"]))
+    if not (
+            "recording_overview" in recording_entry and "length" in recording_entry["recording_overview"]):
+        raise MalformedRecordingEntry(
+            f"Recording entry for video_id {video_id} does not have a length information.")
+    video_length = timedelta(seconds=pytimeparse.parse(
+        recording_entry["recording_overview"]["length"]))
 
     # do the synchronisation
     chc_syncer = ChcSynchronizer()
@@ -600,6 +603,7 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
         update={"$set": {"data_status": "error"}}
     )
 
+
 @inject
 def insert_mdf_imu_data(
         imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> tuple[list[TimeRange], str, str]:
@@ -644,7 +648,8 @@ def insert_mdf_imu_data(
 
     metadata_collections.processed_imu.insert_many(parsed_imu)
     _logger.info("IMU data was inserted into mongodb")
-    return imu_gap_finder.get_valid_imu_time_ranges(parsed_imu), parsed_imu[0]["source"]["tenant"], parsed_imu[0]["source"]["device_id"]
+    return imu_gap_finder.get_valid_imu_time_ranges(
+        parsed_imu), parsed_imu[0]["source"]["tenant"], parsed_imu[0]["source"]["device_id"]
 
 
 def __update_events(imu_range: TimeRange, imu_tenant, imu_device, data_type: str,
@@ -676,11 +681,15 @@ def __update_events(imu_range: TimeRange, imu_tenant, imu_device, data_type: str
             "last_shutdown." + data_type + "_available": True
         }
     }
-    _logger.debug("Updating metadata events with filter=(%s) and update=(%s)",str(filter_query_events),str(update_query_events))
-    _logger.debug("Updating metadata shutdowns with filter=(%s) and update=(%s)",str(filter_query_shutdowns),str(update_query_shutdowns))
+    _logger.debug("Updating metadata events with filter=(%s) and update=(%s)",
+                  str(filter_query_events), str(update_query_events))
+    _logger.debug("Updating metadata shutdowns with filter=(%s) and update=(%s)",
+                  str(filter_query_shutdowns), str(update_query_shutdowns))
 
     metadata_collections.events.update_many(filter=filter_query_events, update=update_query_events)
-    metadata_collections.events.update_many(filter=filter_query_shutdowns, update=update_query_shutdowns)
+    metadata_collections.events.update_many(
+        filter=filter_query_shutdowns,
+        update=update_query_shutdowns)
 
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
@@ -720,17 +729,13 @@ def __parse_sdr_message(artifact: Artifact) -> dict:
         length_td = timedelta(seconds=artifact.actual_duration)
         message["MDF_available"] = "No"
         message["length"] = str(length_td).split('.')[0]
-        message["recording_duration"] = artifact.actual_duration  # Should replace 'length' long term
+        # Should replace 'length' long term
+        message["recording_duration"] = artifact.actual_duration
         message["snapshots_paths"] = []
         message["media_type"] = "video"
         message["resolution"] = f"{artifact.resolution.width}x{artifact.resolution.height}"
-
-        if isinstance(artifact, KinesisVideoArtifact):
-            message["footagefrom"] = artifact.actual_timestamp.timestamp() * 1000
-            message["footageto"] = artifact.actual_end_timestamp.timestamp() * 1000
-        elif isinstance(artifact, S3VideoArtifact):
-            message["footagefrom"] = artifact.timestamp.timestamp() * 1000
-            message["footageto"] = artifact.end_timestamp.timestamp() * 1000
+        message["footagefrom"] = artifact.timestamp.timestamp() * 1000
+        message["footageto"] = artifact.end_timestamp.timestamp() * 1000
 
     elif isinstance(artifact, SnapshotArtifact):
         message["timestamp"] = artifact.timestamp.timestamp() * 1000
@@ -792,7 +797,7 @@ def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
         event_collection.insert_one(db_item)
     if isinstance(artifact, OperatorArtifact):
         # Workaround because DI is not initialized on import phase
-        from metadata.consumer.database.operator_repository import OperatorRepository # pylint: disable=import-outside-toplevel
+        from metadata.consumer.database.operator_repository import OperatorRepository  # pylint: disable=import-outside-toplevel
         OperatorRepository.create_operator_feedback(artifact)
 
 
@@ -894,7 +899,12 @@ def main():
     bootstrap_di()
 
     # Create the necessary clients for AWS services access
-    sqs_client = boto3.client('sqs', region_name=AWS_REGION, endpoint_url=os.getenv("AWS_ENDPOINT", None))
+    sqs_client = boto3.client(
+        'sqs',
+        region_name=AWS_REGION,
+        endpoint_url=os.getenv(
+            "AWS_ENDPOINT",
+            None))
 
     # Initialise instance of ContainerServices class
     container_services = ContainerServices(container=CONTAINER_NAME, version=CONTAINER_VERSION)
@@ -924,7 +934,9 @@ def main():
         message = container_services.get_single_message_from_input_queue(sqs_client)
 
         if message and "MessageAttributes" not in message:
-            _logger.error("Message received without MessageAttributes, going to delete it: %s", message)
+            _logger.error(
+                "Message received without MessageAttributes, going to delete it: %s",
+                message)
             container_services.delete_message(sqs_client, message["ReceiptHandle"])
             continue
 
@@ -934,9 +946,16 @@ def main():
             # Convert message from string to dict
             message_dict = parse_message_body_to_dict(message["Body"])
             # Processing step to be compatible with whatever is done later
-            fixed_message_dict = fix_message(container_services, message["Body"], message_dict.copy())
+            fixed_message_dict = fix_message(
+                container_services, message["Body"], message_dict.copy())
             # Get source container name
-            source = message.get("MessageAttributes", {}).get("SourceContainer", {}).get("StringValue", None)
+            source = message.get(
+                "MessageAttributes",
+                {}).get(
+                "SourceContainer",
+                {}).get(
+                "StringValue",
+                None)
 
             # Get metadata collection names
             metadata_collections = MetadataCollections(

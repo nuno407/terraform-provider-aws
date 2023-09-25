@@ -4,13 +4,11 @@ import logging
 from kink import inject
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import (Artifact, EventArtifact,
-                                  KinesisVideoArtifact, MultiSnapshotArtifact,
+from base.model.artifacts import (Artifact, EventArtifact, MultiSnapshotArtifact,
                                   S3VideoArtifact, OperatorArtifact)
 from sanitizer.artifact.artifact_type_parser import ArtifactTypeParser
 from sanitizer.artifact.parsers.event_parser import EventParser
 from sanitizer.artifact.parsers.iparser import IArtifactParser
-from sanitizer.artifact.parsers.kinesis_video_parser import KinesisVideoParser
 from sanitizer.artifact.parsers.multi_snapshot_parser import \
     MultiSnapshotParser
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
@@ -33,12 +31,10 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self,  # pylint: disable=too-many-arguments
-                 kinesis_video_parser: KinesisVideoParser,
                  s3_video_parser: S3VideoParser,
                  multi_snapshot_parser: MultiSnapshotParser,
                  event_parser: EventParser,
                  operator_feedback_parser: OperatorFeedbackParser) -> None:
-        self.__kinesis_video_parser = kinesis_video_parser
         self.__s3_video_parser = s3_video_parser
         self.__multi_snapshot_parser = multi_snapshot_parser
         self.__event_parser = event_parser
@@ -46,8 +42,6 @@ class ArtifactParser:  # pylint: disable=too-few-public-methods
 
     def __get_parser_for_artifact(self, artifact_type: type) -> IArtifactParser:
         """ Get parser for artifact type. """
-        if issubclass(artifact_type, KinesisVideoArtifact):
-            return self.__kinesis_video_parser
         if issubclass(artifact_type, S3VideoArtifact):
             return self.__s3_video_parser
         if issubclass(artifact_type, MultiSnapshotArtifact):

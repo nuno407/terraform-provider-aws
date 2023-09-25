@@ -241,8 +241,6 @@ from sanitizer.artifact.artifact_parser import ArtifactParser
     )
 ])
 def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artifact]):
-    kinesis_video_parser = Mock()
-    kinesis_video_parser.parse = Mock(return_value=expected_artifacts)
     s3_video_parser = Mock()
     s3_video_parser.parse = Mock(return_value=expected_artifacts)
     multisnapshot_parser = Mock()
@@ -250,13 +248,15 @@ def test_artifact_parser(sqs_message: SQSMessage, expected_artifacts: list[Artif
     event_parser = Mock()
     event_parser.parse = Mock(return_value=expected_artifacts)
 
-    artifact_parser = ArtifactParser(kinesis_video_parser, s3_video_parser, multisnapshot_parser, event_parser)
+    artifact_parser = ArtifactParser(s3_video_parser, multisnapshot_parser, event_parser)
     artifacts = artifact_parser.parse(sqs_message)
     assert artifacts == expected_artifacts
     if expected_artifacts[0].recorder == RecorderType.SNAPSHOT or expected_artifacts[0].recorder == RecorderType.INTERIOR_PREVIEW:
-        multisnapshot_parser.parse.assert_called_once_with(sqs_message, expected_artifacts[0].recorder)
+        multisnapshot_parser.parse.assert_called_once_with(
+            sqs_message, expected_artifacts[0].recorder)
     else:
-        s3_video_parser.parse.assert_has_calls([call(sqs_message, art.recorder) for art in expected_artifacts])
+        s3_video_parser.parse.assert_has_calls(
+            [call(sqs_message, art.recorder) for art in expected_artifacts])
 
 
 def test_artifact_parser_unknown_recorder():

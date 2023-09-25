@@ -10,7 +10,7 @@ from base.aws.sqs import SQSController
 from base.model.artifacts import (Artifact, IMUArtifact,
                                   RecorderType, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
-                                  VideoArtifact, PreviewSignalsArtifact, KinesisVideoArtifact)
+                                  VideoArtifact, PreviewSignalsArtifact)
 from sdretriever.config import SDRetrieverConfig
 from sdretriever.constants import (CONTAINER_NAME,
                                    MESSAGE_VISIBILITY_EXTENSION_HOURS)
@@ -152,10 +152,7 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             _logger.exception(str(excpt))
             self.__increase_message_visability_timeout(message)
         except NoIngestorForArtifactError:
-            if isinstance(artifact, KinesisVideoArtifact):
-                _logger.info("Kinesis artifact is deprecated")
-            else:
-                _logger.error("There is no ingestor for the current artifact")
+            _logger.error("There is no ingestor for the current artifact")
             self.__sqs_controller.delete_message(message)
 
     def __send_to_queues(self, artifact: Artifact, queues: list[str]) -> None:

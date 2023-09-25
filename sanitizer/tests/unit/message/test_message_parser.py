@@ -62,19 +62,10 @@ def _missing_body_message(fixture_file_id: str) -> dict:
 class TestMessageParser():  # pylint: disable=too-few-public-methods
     """ Test class for MessageParser. """
     @pytest.mark.parametrize("test_case,input_message,expected,is_error",
-                             [("valid_video_footage",
-                               _valid_input_message("valid_footage_event.json"),
-                                 SQSMessage(MESSAGE_ID,
-                                            RECEIPT_HANDLE,
-                                            timestamp="2022-12-15T16:16:32.723Z",
-                                            body=_read_and_parse_msg_body_from_fixture("valid_footage_event.json"),
-                                            attributes=MessageAttributes("datanauts",
-                                                                         "DATANAUTS_DEV_01")),
-                                 False),
-                                 ("error_footage_event_missing_timestamp",
-                                  _valid_input_message("footage_event_missing_timestamp.json"),
-                                  {},
-                                  True),
+                             [("error_footage_event_missing_timestamp",
+                               _valid_input_message("footage_event_missing_timestamp.json"),
+                                 {},
+                                 True),
                                  ("valid_snapshot_event",
                                   _valid_input_message("valid_snapshot_event.json"),
                                   SQSMessage(MESSAGE_ID,
@@ -105,7 +96,8 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                                   _valid_input_message("broken_footage_event.json"),
                                   {},
                                   True)])
-    def test_parse_message(self, test_case: str, input_message: dict, expected: SQSMessage, is_error: bool):
+    def test_parse_message(self, test_case: str, input_message: dict,
+                           expected: SQSMessage, is_error: bool):
         if is_error:
             with pytest.raises(InvalidMessagePanic):
                 MessageParser().parse(input_message)
@@ -131,6 +123,7 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
             "some_value"
         )
     ])
-    def test_flatten_string_value(self, attribute: Union[str, dict], expected_result: Optional[str]):
+    def test_flatten_string_value(
+            self, attribute: Union[str, dict], expected_result: Optional[str]):
         value = MessageParser().flatten_string_value(attribute)
         assert value == expected_result

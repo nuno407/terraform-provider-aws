@@ -4,8 +4,7 @@ import os
 import pytest
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import (EventArtifact, KinesisVideoArtifact,
-                                  MultiSnapshotArtifact, RecorderType,
+from base.model.artifacts import (EventArtifact, MultiSnapshotArtifact, RecorderType,
                                   S3VideoArtifact)
 from sanitizer.artifact.artifact_type_parser import (ALLOWED_RECORDERS,
                                                      ArtifactTypeParser)
@@ -16,7 +15,6 @@ CURRENT_LOCATION = os.path.realpath(
 TEST_DATA = os.path.join(CURRENT_LOCATION, "..", "data", "message_parser")
 
 TEST_FILES_AND_TYPES = [
-    ("valid_footage_event.json", KinesisVideoArtifact),
     ("valid_preview_snapshot_event.json", MultiSnapshotArtifact),
     ("valid_s3_footage_event.json", S3VideoArtifact),
     ("valid_snapshot_event.json", MultiSnapshotArtifact),
@@ -65,7 +63,8 @@ class TestArtifactTypeParser:
                                   expected_type: type,
                                   expected_recorder: RecorderType):
         # GIVEN
-        sqs_message, recorder_replaced = self.prepare_sqs_message(test_file, recorder_attribute_value)
+        sqs_message, recorder_replaced = self.prepare_sqs_message(
+            test_file, recorder_attribute_value)
 
         # WHEN
         if not recorder_replaced:

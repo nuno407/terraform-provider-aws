@@ -30,7 +30,6 @@ def config() -> SDRetrieverConfig:
         training_whitelist=[],
         request_training_upload=True,
         discard_video_already_ingested=True,
-        ingest_from_kinesis=True,
         input_queue="queue",
         temporary_bucket="tmp_bucket"
     )

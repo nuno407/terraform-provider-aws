@@ -22,12 +22,14 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
     def test_list_s3_objects_more_1000(self, s3_client, rcc_bucket, rcc_s3_list_prefix):
         first_chunk = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__1.json")
         second_chunk = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__2.json")
-        final_data = TestContainerScripts.load_json_artifact("s3_list_5cd8076d1_11_01_16__concat.json")
+        final_data = TestContainerScripts.load_json_artifact(
+            "s3_list_5cd8076d1_11_01_16__concat.json")
 
         continuation_token = first_chunk["NextContinuationToken"]
         s3_client.list_objects_v2 = Mock(side_effect=[first_chunk, second_chunk])
 
-        response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=10)
+        response = ContainerServices.list_s3_objects(
+            rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=10)
 
         s3_client.list_objects_v2.assert_any_call(
             Bucket=rcc_bucket,
@@ -48,7 +50,8 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
         result_chunk["CommonPrefixes"] = []
         s3_client.list_objects_v2 = Mock(return_value=first_chunk)
 
-        response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=10)
+        response = ContainerServices.list_s3_objects(
+            rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=10)
 
         s3_client.list_objects_v2.assert_called_once_with(
             Bucket=rcc_bucket,
@@ -66,7 +69,8 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
         del final_data["NextContinuationToken"]
         s3_client.list_objects_v2 = Mock(side_effect=[first_chunk, second_chunk])
 
-        response = ContainerServices.list_s3_objects(rcc_s3_list_prefix, rcc_bucket, s3_client)
+        response = ContainerServices.list_s3_objects(
+            rcc_s3_list_prefix, rcc_bucket, s3_client, max_iterations=1)
 
         s3_client.list_objects_v2.assert_called_once_with(
             Bucket=rcc_bucket,
@@ -132,7 +136,8 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
         existent_file_name = "exist.json"
 
         with mock_s3():
-            # moto only accepts us-east-1 https://github.com/spulec/moto/issues/3292#issuecomment-718116897
+            # moto only accepts us-east-1
+            # https://github.com/spulec/moto/issues/3292#issuecomment-718116897
             moto_s3_client = boto3.client("s3", region_name="us-east-1")
             moto_s3_client.create_bucket(Bucket=bucket_name)
             moto_s3_client.put_object(
@@ -140,12 +145,15 @@ class TestContainerScripts:  # pylint: disable=missing-function-docstring,missin
                 Body=b"MOCK",
                 Key=existent_file_name)
 
-            file_exist = ContainerServices.check_s3_file_exists(moto_s3_client, bucket_name, existent_file_name)
-            file_not_exist = ContainerServices.check_s3_file_exists(moto_s3_client, bucket_name, "NO_FILE")
+            file_exist = ContainerServices.check_s3_file_exists(
+                moto_s3_client, bucket_name, existent_file_name)
+            file_not_exist = ContainerServices.check_s3_file_exists(
+                moto_s3_client, bucket_name, "NO_FILE")
 
             # Test bucket do not exist
             with pytest.raises(moto_s3_client.exceptions.NoSuchBucket):
-                ContainerServices.check_s3_file_exists(moto_s3_client, "NON_EXISTENT_BUCKET", existent_file_name)
+                ContainerServices.check_s3_file_exists(
+                    moto_s3_client, "NON_EXISTENT_BUCKET", existent_file_name)
 
             assert file_exist
             assert not file_not_exist

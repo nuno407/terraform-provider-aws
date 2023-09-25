@@ -14,7 +14,6 @@ def test_config():
     - onetenant
     request_training_upload: true
     discard_video_already_ingested: true
-    ingest_from_kinesis: true
     input_queue: test-queue
     temporary_bucket: tmp
     """
@@ -54,7 +53,6 @@ def test_config_with_missing_input_queue_field():
     training_whitelist:
     - onetenant
     request_training_upload: true
-    ingest_from_kinesis: true
     discard_video_already_ingested: true
     """
     with open("/tmp/config3", "w", encoding="utf-8") as file_handler:

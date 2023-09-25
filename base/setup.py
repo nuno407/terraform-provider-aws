@@ -16,13 +16,10 @@ extras_require: Dict[str, List[str]] = {
         "expiringdict==1.2.2",
         "aws-error-utils==2.7.0",
         "kink==0.6.6",
-        "boto3-stubs[kinesis-video-archived-media]==1.26.91",
         "boto3-stubs[s3]==1.26.91",
         "boto3-stubs[sts]==1.26.91",
         "boto3-stubs[sqs]==1.26.91",
-        "boto3-stubs[sns]==1.26.91",
-        "boto3-stubs[kinesisvideo]==1.26.91",
-        "boto3-stubs[kinesis-video-archived-media]==1.26.91"
+        "boto3-stubs[sns]==1.26.91"
     ],
     "model": [
         "pydantic==1.10.7",

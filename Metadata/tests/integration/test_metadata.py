@@ -12,7 +12,7 @@ import fiftyone as fo
 import mongomock
 import pytest
 from pytest_mock import MockerFixture
-
+from kink import di
 import metadata.consumer.main
 
 __location__ = os.path.realpath(
@@ -45,15 +45,15 @@ def _input_message_recording(folder) -> dict:
         "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
         "timestamp": 1662080172308,
         "end_timestamp": 1662080561893,
-        "actual_timestamp": 1662080172308,
-        "actual_end_timestamp": 1662080561893,
         "tenant_id": "ridecare",
         "device_id": "device",
-        "stream_name": "ridecare_device_recording",
         "actual_duration": 391.0,
         "recorder": "InteriorRecorder",
         "resolution": {"width": 640, "height": 360},
         "upload_timing": {"start": 1662080561993, "end": 1662080562093},
+        "recordings": [{"chunk_ids": [1, 2, 3], "recording_id": "some_recording_id_1"}],
+        "footage_id": "ridecare_device_recording",
+        "rcc_s3_path": "s3://dev-rcc-video-repo/datanauts/d76b5b32-f543-47cf-a350-7d3bcb7144f0/TRAINING/Footage_89983c99-8ff5-4eb1-9140-ca019e70c1c0.mp4"
     }
 
     message = _pack_message(body)
@@ -86,7 +86,8 @@ def _input_message_snapshot_excluded(folder: str):
 
 
 @pytest.mark.integration
-@patch.dict("metadata.consumer.main.os.environ", {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
+@patch.dict("metadata.consumer.main.os.environ",
+            {"TENANT_MAPPING_CONFIG_PATH": "./config/config.yml"})
 @patch.dict("metadata.consumer.main.os.environ", {"MONGODB_CONFIG": "./config/mongo_config.yml"})
 class TestMain:
     @pytest.fixture
@@ -141,8 +142,10 @@ class TestMain:
                                      "folder",
                                      "Debug_Lync"),
                                  (_input_message_recording("ridecare_companion_gridwise"),
-                                     _input_message_snapshot_included("ridecare_companion_gridwise"),
-                                     _input_message_snapshot_excluded("ridecare_companion_gridwise"),
+                                     _input_message_snapshot_included(
+                                         "ridecare_companion_gridwise"),
+                                     _input_message_snapshot_excluded(
+                                         "ridecare_companion_gridwise"),
                                      "ridecare_companion_gridwise",
                                      "RC-ridecare_companion_gridwise")
                              ])
@@ -155,6 +158,8 @@ class TestMain:
     def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset):
+        di.clear_cache()
+
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
@@ -174,9 +179,10 @@ class TestMain:
         snapshot_excluded_db_entry = mongomock_fix["recordings"].find_one(
             {"video_id": "ridecare_device_foo_1612080178308"})
         recording_db_entry = mongomock_fix["recordings"].find_one(
-            {"video_id": "ridecare_device_recording_1662080172308_1662080561893"})
+            {"video_id": "device_InteriorRecorder_ridecare_device_recording_1662080172308_1662080561893"})
         # assertions on included snapshot
-        assert (snapshot_included_db_entry["recording_overview"]["source_videos"][0] == recording_db_entry["video_id"])
+        assert (snapshot_included_db_entry["recording_overview"]
+                ["source_videos"][0] == recording_db_entry["video_id"])
 
         # assert reference id is present
         assert snapshot_included_db_entry["recording_overview"]["devcloudid"]
@@ -229,7 +235,8 @@ class TestMain:
     @patch.dict("metadata.consumer.main.os.environ",
                 {"MONGODB_CONFIG": get_abs_path(__file__, "test_data/mongo_config.yml")})
     @patch.dict("metadata.consumer.main.os.environ", {"FIFTYONE_DATABASE_URI": "db_uri"})
-    def test_main_no_message_attributes(self, _: Mock, container_services_mock: Mock, mongomock_fix: Mock):
+    def test_main_no_message_attributes(
+            self, _: Mock, container_services_mock: Mock, mongomock_fix: Mock):
         # GIVEN
         message = {
             "no": "message_attributes",
@@ -238,7 +245,8 @@ class TestMain:
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
         container_services_mock.return_value.raw_s3 = "raw_bucket"
-        container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [message] * 3
+        container_services_mock.return_value.get_single_message_from_input_queue.side_effect = [
+            message] * 3
 
         # WHEN
         metadata.consumer.main.main()

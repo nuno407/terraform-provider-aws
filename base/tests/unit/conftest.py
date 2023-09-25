@@ -20,8 +20,6 @@ def container_services() -> Mock:
     container_service.raw_s3 = "dev-rcd-raw-video-files"
     container_service.sdr_folder = {"debug": "Debug_Lync/",
                                     "fut2": "FUT2/", "driver_pr": "Driver-PR/"}
-    container_service.get_kinesis_clip = Mock(return_value=(b"These are some video bytes", datetime.fromtimestamp(
-        1657297040802 / 1000.0), datetime.fromtimestamp(1657297074110 / 1000.0)))
     container_service.sqs_queues_list = {
         "SDM": "dev-terraform-queue-s3-sdm",
         "Anonymize": "dev-terraform-queue-anonymize",

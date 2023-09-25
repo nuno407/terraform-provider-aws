@@ -70,7 +70,8 @@ def mdf_queue() -> str:
 
 
 @pytest.fixture
-def all_queues(download_queue: str, selector_queue: str, metadata_queue: str, mdf_queue: str) -> list[str]:
+def all_queues(download_queue: str, selector_queue: str,
+               metadata_queue: str, mdf_queue: str) -> list[str]:
     queues = [
         "dev-terraform-queue-s3-sdm",
         "dev-terraform-queue-anonymize",
@@ -96,7 +97,6 @@ def config(devcloud_temporary_bucket: str) -> SDRetrieverConfig:
         training_whitelist=[],
         request_training_upload=True,
         discard_video_already_ingested=True,
-        ingest_from_kinesis=True,
         input_queue="queue",
         temporary_bucket=devcloud_temporary_bucket
     )
@@ -243,7 +243,7 @@ def run_bootstrap(
     # base aws services
     di[ContainerServices] = container_services
     di[ContainerServices].configure_logging("SDRetriever")
-    di[StsHelper] = Mock()  # Needed for kinesis stream
+    di[StsHelper] = Mock()
 
     # di[StsHelper] = StsHelper(
     #    di[STSClient],

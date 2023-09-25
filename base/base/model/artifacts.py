@@ -131,18 +131,6 @@ class VideoArtifact(ImageBasedArtifact):
         return (self.end_timestamp - self.timestamp).total_seconds()
 
 
-class KinesisVideoArtifact(VideoArtifact):
-    """Represents a video artifact that was recorded to Kinesis Video Streams"""
-    stream_name: str = Field(default=...)
-
-    actual_timestamp: Optional[datetime] = Field(default=None)
-    actual_end_timestamp: Optional[datetime] = Field(default=None)
-
-    @property
-    def artifact_id(self) -> str:
-        return f"{self.stream_name}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
-
-
 class Recording(ConfiguredBaseModel):
     """Represents a recording represented by a recording id and the corresponding chunk ids"""
     recording_id: str = Field(default=...)
@@ -197,7 +185,7 @@ class MultiSnapshotArtifact(ImageBasedArtifact):
 
 class MetadataArtifact(Artifact):
     """ Metadata """
-    referred_artifact: Union[SnapshotArtifact, KinesisVideoArtifact,
+    referred_artifact: Union[SnapshotArtifact,
                              S3VideoArtifact, VideoArtifact, MultiSnapshotArtifact] = Field(default=...)
     metadata_type: Literal[MetadataType.IMU, MetadataType.SIGNALS,
                            MetadataType.PREVIEW] = Field(default=...)
@@ -310,8 +298,7 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(Union[KinesisVideoArtifact,  # type: ignore
-                                  S3VideoArtifact,
+        return parse_obj_as(Union[S3VideoArtifact,  # type: ignore
                                   SnapshotArtifact,
                                   SignalsArtifact,
                                   IMUArtifact,
@@ -324,8 +311,7 @@ def parse_artifact(json_data: Union[str, dict]) -> Artifact:
                                   PeopleCountOperatorArtifact,
                                   SOSOperatorArtifact],
                             json_data)  # type: ignore
-    return parse_raw_as(Union[KinesisVideoArtifact,  # type: ignore
-                              S3VideoArtifact,
+    return parse_raw_as(Union[S3VideoArtifact,  # type: ignore
                               SnapshotArtifact,
                               SignalsArtifact,
                               IMUArtifact,

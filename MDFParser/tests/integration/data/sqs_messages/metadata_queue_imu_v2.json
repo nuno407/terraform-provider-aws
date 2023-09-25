@@ -1,6 +1,6 @@
 {
-    "_id": "datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613",
-    "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_processed_imu.json",
+    "_id": "IMU_V2_TrainingRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680541729312_1680541745613",
+    "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/IMU_V2_TrainingRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680541729312_1680541745613_processed_imu.json",
     "data_type": "imu",
     "recording_overview": {}
 }

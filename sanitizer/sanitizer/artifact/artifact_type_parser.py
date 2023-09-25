@@ -2,7 +2,7 @@
 from typing import Optional, Tuple
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import (EventArtifact, KinesisVideoArtifact,
+from base.model.artifacts import (EventArtifact,
                                   MultiSnapshotArtifact, RecorderType,
                                   S3VideoArtifact, OperatorArtifact)
 from sanitizer.exceptions import ArtifactException, MessageException
@@ -19,11 +19,6 @@ RECORDER_TYPE_MAP = {
 
 ALLOWED_RECORDERS = {
     S3VideoArtifact: [
-        RecorderType.FRONT,
-        RecorderType.INTERIOR,
-        RecorderType.TRAINING
-    ],
-    KinesisVideoArtifact: [
         RecorderType.FRONT,
         RecorderType.INTERIOR,
         RecorderType.TRAINING
@@ -56,7 +51,8 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
     @staticmethod
     def _check_recorder_is_allowed_for_artifact(artifact_type: type, recorder: RecorderType):
         if recorder not in ALLOWED_RECORDERS[artifact_type]:
-            raise ArtifactException("Message has an invalid combination of recorder and artifact type.")
+            raise ArtifactException(
+                "Message has an invalid combination of recorder and artifact type.")
 
     @staticmethod
     def get_artifact_type_from_msg(sqs_message: SQSMessage) -> Tuple[type, Optional[RecorderType]]:
@@ -69,8 +65,6 @@ class ArtifactTypeParser:  # pylint: disable=too-few-public-methods
         if topic_arn.endswith("video-footage-events"):
             if "uploadInfos" in sqs_message.body.get("Message", {}):
                 artifact_type = S3VideoArtifact
-            else:
-                artifact_type = KinesisVideoArtifact
 
             recorder_name = MessageParser.flatten_string_value(sqs_message.body
                                                                .get("MessageAttributes", {})

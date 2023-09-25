@@ -2,19 +2,12 @@
 import json
 import logging
 import os
-import subprocess  # nosec
-import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from datetime import datetime
 
-import boto3
 import yaml
 from botocore.errorfactory import ClientError
 from expiringdict import ExpiringDict  # type: ignore
-from mypy_boto3_kinesis_video_archived_media import \
-    KinesisVideoArchivedMediaClient
-from mypy_boto3_kinesisvideo import KinesisVideoClient
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
 from pymongo import MongoClient
@@ -246,13 +239,15 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
                         If no message is received, returns None]
         """
 
-        result = self.get_multiple_messages_from_input_queue(client, input_queue, max_number_of_messages=1)
+        result = self.get_multiple_messages_from_input_queue(
+            client, input_queue, max_number_of_messages=1)
         if len(result) == 1:
             return result[0]
 
         return None
 
-    def get_multiple_messages_from_input_queue(self, client, input_queue=None, max_number_of_messages=1):
+    def get_multiple_messages_from_input_queue(
+            self, client, input_queue=None, max_number_of_messages=1):
         """Logs into the input SQS queue of a given container
         and checks for new messages.
 
@@ -344,7 +339,8 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         self.__message_receive_times.pop(receipt_handle, None)
         _logger.info("Deleted message [%s]", receipt_handle)
 
-    def update_message_visibility(self, client, receipt_handle: str, seconds: int, input_queue=None):
+    def update_message_visibility(self, client, receipt_handle: str,
+                                  seconds: int, input_queue=None):
         """ Updates the visibility timeout of an SQS message to allow longer processing
             Arguments:
             client {boto3.client} -- [client used to access the SQS service]
@@ -548,137 +544,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
         _logger.log(log_level, "Uploaded [%s]", key_path)
 
-    ##### Kinesis related functions ###############################################################
-    def get_kinesis_clip(self, creds, stream_name, start_time, end_time, selector) -> Tuple[bytes, datetime, datetime]:  # pylint: disable=too-many-arguments
-        """Retrieves a given chunk from the selected Kinesis video stream
-
-        Arguments:
-            creds {dict} -- [cross-account credentials to assume IAM role]
-            stream_name {string} -- [name of the source Kinesis video stream]
-            start_time {datetime} -- [starting timestamp of the desired clip]
-            end_time {datetime} -- [ending timestamp of the desired clip]
-            selector {string} -- [string containg the origin of the timestamps
-                                  (can only be either "PRODUCER_TIMESTAMP" or
-                                  "SERVER_TIMESTAMP")]
-        Returns:
-            output_video {bytes} -- [Received chunk in bytes format]
-        """
-        # Generate processing start message
-        _logger.info("Downloading test clip from stream [%s]..", stream_name)
-
-        # Create Kinesis client
-        kinesis_client: KinesisVideoClient = boto3.client("kinesisvideo",
-                                                          region_name="eu-central-1",
-                                                          aws_access_key_id=creds["AccessKeyId"],
-                                                          aws_secret_access_key=creds["SecretAccessKey"],
-                                                          aws_session_token=creds["SessionToken"])
-
-        # Getting endpoint URL for LIST_FRAGMENTS
-        get_endpoint_list_fragments_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                                                APIName="LIST_FRAGMENTS")
-
-        # Getting endpoint URL for GET_MEDIA_FOR_FRAGMENT_LIST
-        get_endpoint_get_media_response = kinesis_client.get_data_endpoint(StreamName=stream_name,
-                                                                           APIName="GET_MEDIA_FOR_FRAGMENT_LIST")
-
-        # Fetch DataEndpoint field
-        list_fragments_url = get_endpoint_list_fragments_response["DataEndpoint"]
-        get_media_url = get_endpoint_get_media_response["DataEndpoint"]
-
-        ### List fragments step ###
-        # Create Kinesis archive media client for list_fragments()
-        list_fragments_client: KinesisVideoArchivedMediaClient = boto3.client(
-            "kinesis-video-archived-media",
-            endpoint_url=list_fragments_url,
-            region_name="eu-central-1",
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"])
-
-        # Get all fragments within timestamp range (start_time, end_time)
-        list_fragments_response = list_fragments_client.list_fragments(
-            StreamName=stream_name,
-            MaxResults=1000,
-            FragmentSelector={
-                "FragmentSelectorType": selector,
-                "TimestampRange": {
-                    "StartTimestamp": start_time,
-                    "EndTimestamp": end_time
-                }
-            }
-        )
-
-        _logger.debug("Got fragments for test clip on [%s]", stream_name)
-
-        # Sort fragments by their timestamp and store start and end timestamps
-        sorted_fragments = sorted(list_fragments_response["Fragments"], key=lambda d: datetime.timestamp(
-            (d["ProducerTimestamp"])))
-        fragments_start_time = sorted_fragments[0]["ProducerTimestamp"]
-        last_fragment_length = timedelta(
-            milliseconds=sorted_fragments[-1]["FragmentLengthInMilliseconds"])
-        fragments_end_time = sorted_fragments[-1]["ProducerTimestamp"] + \
-            last_fragment_length
-
-        # Create comprehension list with sorted fragments
-        fragment_numbers = [frag["FragmentNumber"]
-                            for frag in sorted_fragments]
-
-        ### Get media step ###
-        # Create Kinesis archive media client for get_media_for_fragment_list()
-        get_media_client: KinesisVideoArchivedMediaClient = boto3.client("kinesis-video-archived-media",
-                                                                         endpoint_url=get_media_url,
-                                                                         region_name="eu-central-1",
-                                                                         aws_access_key_id=creds["AccessKeyId"],
-                                                                         aws_secret_access_key=creds["SecretAccessKey"],
-                                                                         aws_session_token=creds["SessionToken"])
-
-        # Fetch all 2sec fragments from previously sorted list
-        get_media_response = get_media_client.get_media_for_fragment_list(
-            StreamName=stream_name,
-            Fragments=fragment_numbers
-        )
-
-        _logger.debug("Got video file for test clip on [%s]", stream_name)
-
-        # On completion of the context or destruction of the temporary directory object,
-        # the newly created temporary directory and all its contents are removed from the filesystem.
-        with tempfile.TemporaryDirectory() as auto_cleaned_up_dir:
-
-            ### Conversion step (webm -> mp4) ###
-            # Defining temporary files names
-            input_name = os.path.join(auto_cleaned_up_dir, "received_file.webm")
-            output_name = os.path.join(auto_cleaned_up_dir, "converted_file.mp4")
-
-            # Read all bytes from http response body
-            # (botocore.response.StreamingBody)
-            video_chunk = get_media_response["Payload"].read()
-
-            # Save video chunks to file
-            with open(input_name, "wb") as infile:
-                infile.write(video_chunk)
-
-            # Convert .avi input file into .mp4 using ffmpeg
-            _logger.debug("Starting ffmpeg conversion")
-            process = subprocess.Popen(["/usr/bin/ffmpeg", "-i", input_name, "-qscale",  # nosec pylint: disable=consider-using-with
-                                        "0", "-filter:v", "fps=15.72", output_name],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT,
-                                       universal_newlines=True)
-
-            # Wait for completion
-            _, _ = process.communicate()
-
-            _logger.debug("Finished ffmpeg conversion")
-
-            # Load bytes from converted output file
-            with open(output_name, "rb") as output_file:
-                output_video = output_file.read()
-
-        # Generate processing end message
-        _logger.info("Test clip download completed!")
-
-        return output_video, fragments_start_time, fragments_end_time
-
     ##### Logs/Misc. functions ####################################################################
     @staticmethod
     def display_processed_msg(key_path, uid=None):
@@ -709,63 +574,39 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             delimiter (str): delimiter to be applied
             max_iterations: number of maximum requests to make to list_objects_v2
         """
-        if max_iterations < 1:
-            raise ValueError("List_s3_objects needs do at least one iteration")
+        results: ListObjectsV2OutputTypeDef = s3_client.list_objects_v2(
+            Bucket=bucket,
+            Prefix=s3_path,
+            Delimiter=delimiter
+        )
 
-        continuation_token = ""  # nosec
-        results: Optional[ListObjectsV2OutputTypeDef] = None
+        results["Contents"] = results.get("Contents", [])
+        results["CommonPrefixes"] = results.get("CommonPrefixes", [])
+        results["IsTruncated"] = results.get("IsTruncated", False)
+        continuation_token = results.get("NextContinuationToken", None)  # nosec
 
-        for i in range(0, max_iterations):
-
-            if i == 0:
-                # First API call
-                response_list = s3_client.list_objects_v2(
-                    Bucket=bucket,
-                    Prefix=s3_path,
-                    Delimiter=delimiter
-                )
-                results = response_list
-
-                # Make sure that the dictionary has a list for  keys and paths
-                if "CommonPrefixes" not in results:
-                    results["CommonPrefixes"] = []
-
-                if "Contents" not in results:
-                    results["Contents"] = []
-
-            else:
-                response_list = s3_client.list_objects_v2(
-                    Bucket=bucket,
-                    ContinuationToken=continuation_token,
-                    Prefix=s3_path,
-                    Delimiter=delimiter
-                )
-
-                # Append new file contents and paths
-                if "Contents" in response_list:
-                    results["Contents"].extend(response_list["Contents"])  # type: ignore # pylint: disable=E1136
-
-                # Append CommonPrefixes if they exist
-                if "CommonPrefixes" in response_list:
-                    results["CommonPrefixes"].extend(  # type: ignore # pylint: disable=E1136
-                        response_list["CommonPrefixes"])
-
-                # Add key count
-                results["KeyCount"] += response_list["KeyCount"]  # type: ignore # pylint: disable=E1137,E1136
-                results["MaxKeys"] += results["MaxKeys"]  # type: ignore # pylint: disable=E1137,E1136
-
-            # If all objects have been returned for the specific key/path, break
-            if not response_list.get("IsTruncated", False):
-                results["IsTruncated"] = False  # type: ignore # pylint: disable=E1137
+        for i in range(1, max_iterations):
+            if not results["IsTruncated"] or not continuation_token or i == max_iterations:
                 break
 
-            # Set continuation token for next loop
-            if "NextContinuationToken" not in response_list:
-                results["IsTruncated"] = False  # type: ignore # pylint: disable=E1137
-                break
+            response_list = s3_client.list_objects_v2(
+                Bucket=bucket,
+                ContinuationToken=continuation_token,
+                Prefix=s3_path,
+                Delimiter=delimiter
+            )
+            results["Contents"].extend(response_list.get("Contents", []))  # pylint: disable=E1136
+            results["CommonPrefixes"].extend(  # pylint: disable=E1136
+                response_list.get("CommonPrefixes",
+                                  []))
 
-            # Set continuation token and delete it from repsonse_list
-            continuation_token = response_list["NextContinuationToken"]
+            # type: ignore # pylint: disable=E1137,E1136
+            results["KeyCount"] += response_list["KeyCount"]
+            # type: ignore # pylint: disable=E1137,E1136
+            results["MaxKeys"] += response_list["MaxKeys"]
+
+            continuation_token = response_list.get("NextContinuationToken", None)  # nosec
+            results["IsTruncated"] = response_list.get("IsTruncated", False)
 
         _logger.debug("Returning a total of %d s3 keys for %s in %s",
                       results["KeyCount"], bucket, s3_path)  # type: ignore
@@ -854,7 +695,8 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
 
             return True
         except ClientError as excpt:
-            # Following this: https://stackoverflow.com/questions/33068055/how-to-handle-errors-with-boto3
+            # Following this:
+            # https://stackoverflow.com/questions/33068055/how-to-handle-errors-with-boto3
 
             if excpt.response["Error"]["Code"] == "404":
                 return False
