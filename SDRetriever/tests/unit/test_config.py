@@ -9,7 +9,6 @@ def test_config():
     - onetenant
     recorder_blacklist:
     - FrontRecorder
-    frame_buffer: 10
     training_whitelist:
     - onetenant
     request_training_upload: true
@@ -22,7 +21,6 @@ def test_config():
     config = SDRetrieverConfig.load_config_from_yaml_file("/tmp/config1")
     assert config.tenant_blacklist == ["onetenant"]
     assert config.recorder_blacklist == ["FrontRecorder"]
-    assert config.frame_buffer == 10
     assert config.training_whitelist == ["onetenant"]
     assert config.request_training_upload
     assert config.discard_already_ingested
@@ -49,7 +47,6 @@ def test_config_with_missing_input_queue_field():
     - onetenant
     recorder_blacklist:
     - FrontRecorder
-    frame_buffer: 10
     training_whitelist:
     - onetenant
     request_training_upload: true

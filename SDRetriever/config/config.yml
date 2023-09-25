@@ -21,7 +21,6 @@ training_whitelist:
   - ridecare_companion_trial
 recorder_blacklist:
   - FrontRecorder
-frame_buffer: 120000 # number of extra frames to request at the limits of a training recorder
 request_training_upload: true
 discard_already_ingested: true
 input_queue: dev-terraform-queue-download

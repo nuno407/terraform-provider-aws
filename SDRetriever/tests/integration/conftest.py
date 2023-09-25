@@ -93,7 +93,6 @@ def config(devcloud_temporary_bucket: str) -> SDRetrieverConfig:
     return SDRetrieverConfig(
         tenant_blacklist=[],
         recorder_blacklist=[],
-        frame_buffer=0,
         training_whitelist=[],
         request_training_upload=True,
         discard_already_ingested=True,

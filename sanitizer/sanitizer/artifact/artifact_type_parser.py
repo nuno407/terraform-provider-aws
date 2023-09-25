@@ -5,7 +5,7 @@ from base.aws.model import SQSMessage
 from base.model.artifacts import (EventArtifact,
                                   MultiSnapshotArtifact, RecorderType,
                                   S3VideoArtifact, OperatorArtifact)
-from sanitizer.exceptions import ArtifactException, MessageException, ArtifactException
+from sanitizer.exceptions import ArtifactException, MessageException
 from sanitizer.message.message_parser import MessageParser
 
 # SQS message attribute recorder's values

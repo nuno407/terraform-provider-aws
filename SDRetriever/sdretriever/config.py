@@ -9,7 +9,6 @@ class SDRetrieverConfig:  # pylint: disable=too-many-instance-attributes
     """ SDR configuration """
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
-    frame_buffer: int
     training_whitelist: list[str]
     request_training_upload: bool
     discard_already_ingested: bool
