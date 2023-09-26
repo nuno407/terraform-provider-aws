@@ -77,9 +77,10 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
 
         if (response.status >= 200 and response.status < 300):
             _logger.info("Successfully requested footage with response code %i", response.status)
-            _logger.info("Footage API response: %s", response.content)
+            if response.data:
+                _logger.info("Footage API response: %s", response.data.decode("utf-8"))
         else:
             _logger.warning("Unexpected response when requesting footage: %i*", response.status)
-            if response.content:
-                _logger.warning("Details: %s", response.content)
+            if response.data:
+                _logger.warning("Details: %s", response.data.decode("utf-8"))
             raise RuntimeError  # SonarQube doesn't accept "Exception", it needs a more specific one
