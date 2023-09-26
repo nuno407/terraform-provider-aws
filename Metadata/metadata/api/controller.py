@@ -93,6 +93,14 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         "statusCode": fields.String(example="200")
     })
 
+    @app.after_request
+    def add_security_headers(response):
+        response.headers["Strict-Transport-Security"] = "max-age=31536000 ; includeSubDomains"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; connect-src login.microsoftonline.com 'self'; media-src dev-rcd-anonymized-video-files.s3.amazonaws.com; script-src 'unsafe-inline' 'self';"
+        return response
+
     @api.route("/alive")
     class Alive(Resource):  # pylint: disable=too-few-public-methods,unused-variable
         """Class for /alive endpoint response"""
