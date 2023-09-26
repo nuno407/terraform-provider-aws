@@ -77,6 +77,7 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
 
         if (response.status >= 200 and response.status < 300):
             _logger.info("Successfully requested footage with response code %i", response.status)
+            _logger.info("Footage API response: %s", response.content)
         else:
             _logger.warning("Unexpected response when requesting footage: %i*", response.status)
             if response.content:
