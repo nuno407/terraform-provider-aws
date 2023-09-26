@@ -31,7 +31,7 @@ extras_require: Dict[str, List[str]] = {
     # ],
     "voxel": [
         "kink==0.6.6",
-        "fiftyone==0.13.4",
+        "fiftyone==0.14.0",
         "pydantic==1.10.7",
         "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
