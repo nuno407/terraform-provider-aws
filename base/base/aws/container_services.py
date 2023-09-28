@@ -412,7 +412,7 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
             MessageAttributes=msg_attributes,
             MessageBody=str(data)
         )
-        _logger.info("Message sent to [%s]", dest_queue)
+        _logger.info("Message sent to [%s] with content=[%s]", dest_queue, str(data))
 
     @staticmethod
     def get_message_body(message):
