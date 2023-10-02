@@ -5,16 +5,14 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, Annotated
 
 from pydantic import Field, parse_obj_as, parse_raw_as, validator
 
-from base.model.base_model import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
-
-SAV_OPERATOR_IDENTIFIER = "sav-operator"
 
 
 class RecorderType(str, Enum):
@@ -68,7 +66,7 @@ class Artifact(ConfiguredBaseModel):
     """Generic artifact"""
     tenant_id: str
     device_id: str
-    s3_path: Optional[str] = Field(default=None)
+    s3_path: Optional[S3Path] = Field(default=None)
 
     def stringify(self) -> str:
         """ stringifies the artifact. """
@@ -78,13 +76,6 @@ class Artifact(ConfiguredBaseModel):
     @abstractmethod
     def artifact_id(self) -> str:
         """Artifact ID."""
-
-    @validator("s3_path")
-    def check_s3_path(cls, value: Optional[str]) -> Optional[str]:
-        """Validates that s3_path starts with s3://"""
-        if value and not value.startswith("s3://"):
-            raise ValueError("s3_path must start with s3://")
-        return value
 
     @property
     def devcloudid(self) -> str:
@@ -139,7 +130,8 @@ class Recording(ConfiguredBaseModel):
 
 class S3VideoArtifact(VideoArtifact):
     """Represents a video artifact that has been concatenated by RCC and uploaded to S3"""
-    rcc_s3_path: str = Field(default=...)
+    artifact_name: Literal["s3_video"] = "s3_video"
+    rcc_s3_path: S3Path
     footage_id: str = Field(default=...)
     recordings: list[Recording] = Field(default=...)
 
@@ -147,16 +139,10 @@ class S3VideoArtifact(VideoArtifact):
     def artifact_id(self) -> str:
         return f"{self.device_id}_{self.recorder.value}_{self.footage_id}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
 
-    @validator("rcc_s3_path")
-    def check_rcc_s3_path(cls, value: str) -> str:
-        """Validates that s3_path starts with s3://"""
-        if not value.startswith("s3://"):
-            raise ValueError("rcc_s3_path must start with s3://")
-        return value
-
 
 class SnapshotArtifact(ImageBasedArtifact):
     """Snapshot artifact"""
+    artifact_name: Literal["snapshot"] = "snapshot"
     uuid: str = Field(default=...)
     recorder: Literal[RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW] = Field(default=...)
 
@@ -168,6 +154,7 @@ class SnapshotArtifact(ImageBasedArtifact):
 
 class MultiSnapshotArtifact(ImageBasedArtifact):
     """An artifact that contains multiple snapshots"""
+    artifact_name: Literal["multi_snapshot"] = "multi_snapshot"
     chunks: list[SnapshotArtifact] = Field(default=...)
     recording_id: str = Field(default=...)
 
@@ -198,16 +185,19 @@ class MetadataArtifact(Artifact):
 
 class IMUArtifact(MetadataArtifact):
     """ IMU Artifact """
+    artifact_name: Literal["raw_imu"] = "raw_imu"
     metadata_type: Literal[MetadataType.IMU] = MetadataType.IMU
 
 
 class SignalsArtifact(MetadataArtifact):
     """ Signals Artifact """
+    artifact_name: Literal["raw_signals"] = "raw_signals"
     metadata_type: Literal[MetadataType.SIGNALS] = MetadataType.SIGNALS
 
 
 class PreviewSignalsArtifact(MetadataArtifact):
     """ Preview Signals Artifact, that contains compacted signals data """
+    artifact_name: Literal["raw_preview_signals"] = "raw_preview_signals"
     timestamp: datetime = Field(default=...)
     end_timestamp: datetime = Field(default=...)
     referred_artifact: MultiSnapshotArtifact = Field(default=...)
@@ -229,6 +219,7 @@ class EventArtifact(Artifact):
 
 class IncidentEventArtifact(EventArtifact):
     """Represents an incident event from RCC"""
+    artifact_name: Literal["incident_info"] = "incident_info"
     event_name: Literal[EventType.INCIDENT] = Field(default=...)
     location: Optional[Location] = Field(default=None)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
@@ -237,6 +228,7 @@ class IncidentEventArtifact(EventArtifact):
 
 class DeviceInfoEventArtifact(EventArtifact):
     """Represents a device info event from RCC"""
+    artifact_name: Literal["device_info"] = "device_info"
     event_name: Literal[EventType.DEVICE_INFO] = Field(default=...)
     system_report: Optional[str] = Field(default=None)
     software_versions: list[dict[str, str]] = Field(default_factory=list)
@@ -246,6 +238,7 @@ class DeviceInfoEventArtifact(EventArtifact):
 
 class CameraServiceEventArtifact(EventArtifact):
     """Represents a camera service event from RCC"""
+    artifact_name: Literal["camera_service"] = "camera_service"
     event_name: Literal[EventType.CAMERA_SERVICE] = Field(default=...)
     service_state: GeneralServiceState = Field(default=GeneralServiceState.UNKNOWN)
     camera_name: Optional[str] = Field(default=None)
@@ -262,10 +255,10 @@ class OperatorAdditionalInformation(ConfiguredBaseModel):
 
 class OperatorArtifact(Artifact):
     """Represents the footage seen by an SAV Operator as part of an incident"""
+    artifact_name: str = "sav-operator"
     event_timestamp: datetime = Field(default=...)
     operator_monitoring_start: datetime = Field(default=...)
     operator_monitoring_end: datetime = Field(default=...)
-    artifact_name: str = SAV_OPERATOR_IDENTIFIER
 
     @property
     def artifact_id(self) -> str:
@@ -274,53 +267,46 @@ class OperatorArtifact(Artifact):
 
 class SOSOperatorArtifact(OperatorArtifact):
     """Represents an SAV SOS event"""
+    artifact_name: Literal["sav-operator-sos"] = "sav-operator-sos"
     additional_information: OperatorAdditionalInformation = Field(default=...)
     reason: OperatorSOSReason = Field(default=...)
-    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-sos"
 
 
 class PeopleCountOperatorArtifact(OperatorArtifact):
     """Represents people count predicted by ivs_fc model vs observed by SAV Operator"""
+    artifact_name: Literal["sav-operator-people-count"] = "sav-operator-people-count"
     additional_information: OperatorAdditionalInformation = Field(default=...)
     is_people_count_correct: bool = Field(default=...)
-    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-people-count"
     correct_count: Optional[int] = Field(default=None)
 
 
 class CameraBlockedOperatorArtifact(OperatorArtifact):
     """Represents a camera service event from RCC"""
-
+    artifact_name: Literal["sav-operator-camera-blocked"] = "sav-operator-camera-blocked"
     additional_information: OperatorAdditionalInformation = Field(default=...)
     is_chc_correct: bool = Field(default=...)
-    artifact_name: str = f"{SAV_OPERATOR_IDENTIFIER}-camera-blocked"
+
+
+DiscriminatedArtifacts = Annotated[Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
+                                         SnapshotArtifact,
+                                         SignalsArtifact,
+                                         IMUArtifact,
+                                         MultiSnapshotArtifact,
+                                         PreviewSignalsArtifact,
+                                         IncidentEventArtifact,
+                                         CameraServiceEventArtifact,
+                                         DeviceInfoEventArtifact,
+                                         CameraBlockedOperatorArtifact,
+                                         PeopleCountOperatorArtifact,
+                                         SOSOperatorArtifact],
+                                   Field(...,
+                                         discriminator="artifact_name")]
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(Union[S3VideoArtifact,  # type: ignore
-                                  SnapshotArtifact,
-                                  SignalsArtifact,
-                                  IMUArtifact,
-                                  MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact,
-                                  IncidentEventArtifact,
-                                  CameraServiceEventArtifact,
-                                  DeviceInfoEventArtifact,
-                                  CameraBlockedOperatorArtifact,
-                                  PeopleCountOperatorArtifact,
-                                  SOSOperatorArtifact],
-                            json_data)  # type: ignore
-    return parse_raw_as(Union[S3VideoArtifact,  # type: ignore
-                              SnapshotArtifact,
-                              SignalsArtifact,
-                              IMUArtifact,
-                              MultiSnapshotArtifact,
-                              PreviewSignalsArtifact,
-                              IncidentEventArtifact,
-                              CameraServiceEventArtifact,
-                              DeviceInfoEventArtifact,
-                              CameraBlockedOperatorArtifact,
-                              PeopleCountOperatorArtifact,
-                              SOSOperatorArtifact],
-                        json_data)  # type: ignore
+        return parse_obj_as(DiscriminatedArtifacts,  # type: ignore
+                            json_data)
+    return parse_raw_as(DiscriminatedArtifacts,  # type: ignore
+                        json_data)

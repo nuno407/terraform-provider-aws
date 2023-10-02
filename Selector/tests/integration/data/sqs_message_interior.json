@@ -1,6 +1,7 @@
 {
     "tenant_id": "test-tenant-id01",
     "device_id": "test-device-id01",
+    "artifact_name": "s3_video",
     "s3_path": "s3://dev-rcd-raw-video-files/test-device-id01/some_id.mp4",
     "resolution": {
         "width": 640,

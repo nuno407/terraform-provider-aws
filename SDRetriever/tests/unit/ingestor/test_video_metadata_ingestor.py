@@ -72,7 +72,7 @@ class TestVideoMetadataIngestor:
                     s3_key=f"{chunk_id}",
                     bucket=rcc_bucket) for chunk_id in recording.chunk_ids] for recording in list_chunk_recordings]
         concatenated_data = list(chain.from_iterable(downloaded_chunks_mock))
-        path_uploaded = "s3://metadata.json"
+        path_uploaded = "s3://bucket/metadata.json"
         metadata_merger.merge_metadata_chunks = Mock(return_value={})
 
         rcc_chunk_downloader.download_by_chunk_id = Mock(side_effect=downloaded_chunks_mock)

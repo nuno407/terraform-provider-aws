@@ -48,7 +48,7 @@ class TestPreviewMetadataIngestor:
             metadata_merger: MetadataMerger):
         # GIVEN
         downloaded_chunks_mock = Mock()
-        path_uploaded = "s3://metadata.json"
+        path_uploaded = "s3://bucket/metadata.json"
         chunks_uuids = [chunk.uuid for chunk in preview_metadata_artifact.referred_artifact.chunks]
 
         metadata_merger.merge_metadata_chunks = Mock(return_value={})

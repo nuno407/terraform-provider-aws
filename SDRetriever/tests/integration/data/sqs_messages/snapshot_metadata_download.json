@@ -1,7 +1,9 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_name": "raw_signals",
     "referred_artifact": {
+        "artifact_name": "snapshot",
         "tenant_id": "datanauts",
         "device_id": "DATANAUTS_DEV_01",
         "recorder": "TrainingMultiSnapshot",

@@ -1,5 +1,8 @@
 """ pydantic model config """
-from pydantic import BaseModel
+from typing import Annotated
+from pydantic import BaseModel, Field
+
+S3Path = Annotated[str, Field(regex="s3://.+/.+", default=...)]
 
 
 class ConfiguredBaseModel(BaseModel):

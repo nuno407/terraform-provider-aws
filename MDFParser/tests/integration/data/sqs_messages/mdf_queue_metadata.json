@@ -1,10 +1,12 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_02",
+    "artifact_name": "raw_signals",
     "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_metadata_full.json",
     "referred_artifact": {
         "tenant_id": "datanauts",
         "device_id": "DATANAUTS_DEV_02",
+        "artifact_name": "s3_video",
         "s3_path": null,
         "resolution": null,
         "recorder": "InteriorRecorder",

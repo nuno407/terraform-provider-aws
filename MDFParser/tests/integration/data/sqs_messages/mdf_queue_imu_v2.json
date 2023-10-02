@@ -1,9 +1,11 @@
 {
     "tenant_id": "datanauts",
     "device_id": "IMU_V2",
+    "artifact_name": "raw_imu",
     "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_IMU_V2_TrainingRecorder_1680541729312_1680541745613_imu.csv",
     "referred_artifact": {
         "tenant_id": "datanauts",
+        "artifact_name": "s3_video",
         "device_id": "IMU_V2",
         "s3_path": null,
         "resolution": null,

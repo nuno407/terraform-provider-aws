@@ -21,6 +21,7 @@ def json_snapshot() -> str:
     return """
     {
         "tenant_id": "foo",
+        "artifact_name":"snapshot",
         "device_id": "bar",
         "recorder": "TrainingMultiSnapshot",
         "timestamp": "2023-04-13T07:14:15.770982Z",
@@ -52,6 +53,7 @@ def json_video() -> str:
     return """
     {
         "tenant_id": "foo",
+        "artifact_name":"s3_video",
         "device_id": "bar",
         "recorder": "InteriorRecorder",
         "timestamp": "2023-04-13T07:14:15.774082Z",

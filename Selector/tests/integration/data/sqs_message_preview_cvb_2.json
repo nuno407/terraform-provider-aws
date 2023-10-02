@@ -1,10 +1,12 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_name": "raw_preview_signals",
     "s3_path": "s3://dev-rcd-temporary-metadata-files/datanauts/datanauts_DATANAUTS_DEV_01_InteriorRecorderPreview-2769d416-defa-4f81-ac0f-e41c6ceabdc2_1688566134177_metadata_preview.json",
     "referred_artifact": {
         "tenant_id": "datanauts",
         "device_id": "DATANAUTS_DEV_01",
+        "artifact_name": "multi_snapshot",
         "s3_path": null,
         "resolution": null,
         "recorder": "InteriorRecorderPreview",

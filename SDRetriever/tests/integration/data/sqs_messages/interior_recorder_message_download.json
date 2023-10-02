@@ -1,6 +1,7 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_name": "s3_video",
     "s3_path": null,
     "resolution": null,
     "recorder": "InteriorRecorder",

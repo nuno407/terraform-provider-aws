@@ -2,7 +2,9 @@
     "tenant_id": "ridecare_companion_fut",
     "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
     "s3_path": null,
+    "artifact_name": "raw_preview_signals",
     "referred_artifact": {
+        "artifact_name": "multi_snapshot",
         "tenant_id": "ridecare_companion_fut",
         "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
         "s3_path": null,

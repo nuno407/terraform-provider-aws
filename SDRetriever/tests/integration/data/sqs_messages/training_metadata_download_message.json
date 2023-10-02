@@ -1,8 +1,10 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_name": "raw_signals",
     "referred_artifact": {
         "tenant_id": "datanauts",
+        "artifact_name": "s3_video",
         "device_id": "DATANAUTS_DEV_01",
         "recorder": "TrainingRecorder",
         "timestamp": "2023-08-22T14:21:52.044000+00:00",

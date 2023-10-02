@@ -59,6 +59,7 @@ class TestImuIngestor:
             rcc_chunk_downloader: RCCChunkDownloader,
             s3_downloader_uploader: S3DownloaderUploader,
             rcc_bucket: str):
+
         # GIVEN
         list_chunk_recordings = imu_artifact.referred_artifact.recordings
         downloaded_chunks_mock = [
@@ -69,7 +70,7 @@ class TestImuIngestor:
                     bucket=rcc_bucket) for chunk_id in recording.chunk_ids] for recording in list_chunk_recordings]
         concatenated_data = b"".join(
             list(map(lambda x: x.data, chain.from_iterable(downloaded_chunks_mock))))
-        path_uploaded = "s3://imu.csv"
+        path_uploaded = "s3://bucket/imu.csv"
 
         rcc_chunk_downloader.download_by_chunk_id = Mock(side_effect=downloaded_chunks_mock)
         s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)

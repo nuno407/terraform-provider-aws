@@ -50,7 +50,7 @@ class TestSnapshotMetadataIngestor:
 
         # GIVEN
         snapshot_name = snapshot_metadata_artifact.artifact_id + ".json"
-        path_uploaded = f"s3://dummy_value"
+        path_uploaded = f"s3://bucket/dummy_value"
 
         downloaded_data = Mock()
 

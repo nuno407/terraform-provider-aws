@@ -45,6 +45,7 @@ def _input_message_recording(folder) -> dict:
         "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
         "timestamp": 1662080172308,
         "end_timestamp": 1662080561893,
+        "artifact_name" : "s3_video",
         "tenant_id": "ridecare",
         "device_id": "device",
         "actual_duration": 391.0,
@@ -63,6 +64,7 @@ def _input_message_recording(folder) -> dict:
 
 def _input_message_snapshot(folder: str, timestamp: int) -> dict:
     body = {
+        "artifact_name" : "snapshot",
         "tenant_id": "ridecare",
         "device_id": "device",
         "resolution": {"width": 640, "height": 360},

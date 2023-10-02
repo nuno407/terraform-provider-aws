@@ -1,9 +1,11 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_name": "raw_signals",
     "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ce862038-f26c-492e-87a7-30f4c8420198_2_1692787340267_metadata_full.json",
     "referred_artifact": {
         "tenant_id": "datanauts",
+        "artifact_name": "snapshot",
         "device_id": "DATANAUTS_DEV_01",
         "recorder": "TrainingMultiSnapshot",
         "timestamp": "2023-08-23T10:42:20.267000+00:00",
