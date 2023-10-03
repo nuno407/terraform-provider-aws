@@ -4,7 +4,8 @@ import os
 
 import boto3
 from kink import di
-from mypy_boto3_sqs import SQSClient
+from mypy_boto3_sqs import SQSClient, SQSClient
+from mypy_boto3_s3 import SQSClient, S3Client
 
 from base.graceful_exit import GracefulExit
 from artifact_downloader.config import ArtifactDownloaderConfig
@@ -26,3 +27,4 @@ def bootstrap_di():
     di[GracefulExit] = GracefulExit()
 
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
+    di[S3Client] = boto3.client("s3", region_name=aws_region, endpoint_url=aws_endpoint)
