@@ -79,11 +79,13 @@ class CHCResult(S3Result):
     processing_status: StatusProcessing = Field(default=...)
 
 
-DiscriminatedProcessingResult = Annotated[Union[SignalsProcessingResult,      # pylint: disable=invalid-name
+ProcessingResults = Union[SignalsProcessingResult,      # pylint: disable=invalid-name
                                                 IMUProcessingResult,
                                                 AnonymizationResult,
                                                 CHCResult,
-                                                PipelineProcessingStatus],
+                                                PipelineProcessingStatus]
+
+DiscriminatedProcessingResults = Annotated[ProcessingResults,
                                           Field(...,
                                                 discriminator="artifact_name")]
 
@@ -91,7 +93,7 @@ DiscriminatedProcessingResult = Annotated[Union[SignalsProcessingResult,      # 
 def parse_results(json_data: Union[str, dict]) -> ProcessingResult:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(DiscriminatedProcessingResult,  # type: ignore
+        return parse_obj_as(DiscriminatedProcessingResults,  # type: ignore
                             json_data)
-    return parse_raw_as(DiscriminatedProcessingResult,  # type: ignore
+    return parse_raw_as(DiscriminatedProcessingResults,  # type: ignore
                         json_data)

@@ -5,11 +5,11 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Union
+from typing import Literal, Optional, Union, Annotated
 
 from pydantic import Field, parse_obj_as, parse_raw_as, validator
 
-from base.model.config import ConfiguredBaseModel, S3Path
+from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
@@ -287,7 +287,7 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
     is_chc_correct: bool = Field(default=...)
 
 
-DiscriminatedArtifacts = Annotated[Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
+Artifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
                                          SnapshotArtifact,
                                          SignalsArtifact,
                                          IMUArtifact,
@@ -298,15 +298,15 @@ DiscriminatedArtifacts = Annotated[Union[S3VideoArtifact,  # type: ignore # pyli
                                          DeviceInfoEventArtifact,
                                          CameraBlockedOperatorArtifact,
                                          PeopleCountOperatorArtifact,
-                                         SOSOperatorArtifact],
-                                   Field(...,
+                                         SOSOperatorArtifact]
+DiscriminatedRCCArtifacts = Annotated[Artifacts, Field(...,
                                          discriminator="artifact_name")]
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(DiscriminatedArtifacts,  # type: ignore
+        return parse_obj_as(DiscriminatedRCCArtifacts,  # type: ignore
                             json_data)
-    return parse_raw_as(DiscriminatedArtifacts,  # type: ignore
+    return parse_raw_as(DiscriminatedRCCArtifacts,  # type: ignore
                         json_data)

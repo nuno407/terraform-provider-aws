@@ -1,11 +1,12 @@
 import json
 from ast import literal_eval
-from typing import Generic, Literal, TypeVar
+from typing import Generic, Literal, TypeVar, Union
+from mypy_boto3_sqs.type_defs import MessageTypeDef
+from pydantic import Field, validator, parse_obj_as
 
-from pydantic import Field, validator
-
-from base.model.artifacts import DiscriminatedArtifact
+from base.model.artifacts import DiscriminatedArtifacts
 from base.model.base_model import ConfiguredGenericModel
+
 
 BodyType = TypeVar("BodyType", bound=ConfiguredGenericModel)
 AttributeType = TypeVar("AttributeType", bound=ConfiguredGenericModel)
@@ -50,5 +51,23 @@ class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
         return data
 
 
-class SanitizerMessage(SqsMessage[DiscriminatedArtifact, MessageAttributesWithSourceContainer[Literal["Sanitizer"]]]):
+class SanitizerMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Sanitizer"]]]):
     pass
+
+class SDRetrieverMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDRetriever"]]]):
+    pass
+
+class MDFParserMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["MDFParser"]]]):
+    pass
+
+class AnonymizeMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Anonymize"]]]):
+    pass
+
+class CHCMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["CHC"]]]):
+    pass
+
+class SDMMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDM"]]]):
+    pass
+
+def parse(message: MessageTypeDef) -> SqsMessage:
+    return parse_obj_as(Union[SanitizerMessage, SDMMessage, CHCMessage, AnonymizeMessage, MDFParserMessage, SDRetrieverMessage, SanitizerMessage], message)
