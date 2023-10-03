@@ -3,6 +3,9 @@
 		{
 			"path": "./anon_ivschain"
 		},
+        {
+			"path": "./artifact_downloader"
+		},
 		{
 			"path": "./base"
 		},
