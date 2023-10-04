@@ -5,7 +5,6 @@ from artifact_downloader.message.incoming_messages import SDRetrieverMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
 from kink import inject
 from base.aws.s3 import S3Controller
-from pydantic import
 @inject
 class SDRContainerHandler(ContainerHandler):
 
@@ -24,11 +23,7 @@ class SDRContainerHandler(ContainerHandler):
 
 
     def __handle_snapshot_signals_artifact(self, message: SignalsArtifact) -> Request:
-        bucket, path = self.__s3_controller.get_s3_path_parts(message.s3_path)
-        raw_file = self.__s3_controller.download_file(bucket,path)
-
-        Request("POST", base_url+x, data=raw_file)
-
+        pass
 
     def __handle_snapshot_artifact(self, message: SnapshotArtifact) -> Request:
         pass
