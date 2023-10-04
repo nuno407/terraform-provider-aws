@@ -5,7 +5,7 @@ from artifact_downloader.message.raw_message_parser import RawMessageParser
 from artifact_downloader.container_handlers.handler import ContainerHandler
 from artifact_downloader.exceptions import UknownSQSMessage
 from artifact_downloader.container_handlers import SanitizerContainerHandler ,AnonymizeContainerHandler, CHCContainerHandler ,SDMContainerHandler ,SDRContainerHandler ,MDFParserContainerHandler
-from artifact_downloader.message.incoming_messages import parse, SanitizerMessage, SDRetrieverMessage, MDFParserMessage, AnonymizeMessage, CHCMessage, SDMMessage, SqsMessage
+from artifact_downloader.message.incoming_messages import parse_sqs_message, SanitizerMessage, SDRetrieverMessage, MDFParserMessage, AnonymizeMessage, CHCMessage, SDMMessage, SqsMessage
 from requests import Request
 
 @inject
@@ -50,13 +50,13 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
         parsed_message = self.__raw_message_parser.parse_message(message)
 
         # Parses and retireves the message based on the container
-        container_message = parse(parsed_message)
+        container_message = parse_sqs_message(parsed_message)
         container_type_message = type(container_message)
 
         if container_type_message not in self.__container_router:
             raise UknownSQSMessage(f"A message of type {container_type_message} does not have an handler")
 
         # Process the message by the correct handler
-        return self.__container_router[container_type_message](container_type_message)
+        return self.__container_router[container_type_message].create_request(container_type_message)
 
 

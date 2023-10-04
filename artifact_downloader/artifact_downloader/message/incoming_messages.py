@@ -69,5 +69,5 @@ class CHCMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceC
 class SDMMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDM"]]]):
     pass
 
-def parse(message: MessageTypeDef) -> SqsMessage:
+def parse_sqs_message(message: MessageTypeDef) -> SqsMessage:
     return parse_obj_as(Union[SanitizerMessage, SDMMessage, CHCMessage, AnonymizeMessage, MDFParserMessage, SDRetrieverMessage, SanitizerMessage], message)
