@@ -19,7 +19,8 @@ class S3Downloader:  # pylint: disable=too-few-public-methods
         """
         self.__s3_controller = s3_controller
 
-    def download_convert_json(self, s3_path: str) -> dict:
+
+    def download_convert_json(self, s3_path : str) -> dict:
         """
         Downloads json files
 
