@@ -8,10 +8,9 @@ from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from artifact_downloader.http_client import HttpClient
 from artifact_downloader.message.message_handler import MessageHandler
+from artifact_downloader.exceptions import UnexpectedReturnCode
 
-__logging = logging.getLogger(__name__)
-
-MAX_RETRIES = 2
+_logger = logging.getLogger(__name__)
 
 
 @inject
@@ -33,10 +32,14 @@ class Handler():  # pylint: disable=too-few-public-methods
         """ main entry point """
         while self.__graceful_exit.continue_running:
             message = self.__sqs_controller.get_message()
+
+            if not message:
+                _logger.info("Waiting for a new message")
+                continue
+
             try:
-                __logging.info("Received message: %s", message)
-                request, return_codes = self.__message_handler.handle(message)
-                self.__http_client.execute_request(request, return_codes)
+                request = self.__message_handler.handle(message)
+                self.__http_client.execute_request(request)
                 self.__sqs_controller.delete_message(message)
-            except Exception:  # pylint: disable=broad-exception-caught
-                __logging.exception("Error processing message.")
+            except UnexpectedReturnCode as excpt:
+                _logger.error("Error executing the API request (%s)", str(excpt))

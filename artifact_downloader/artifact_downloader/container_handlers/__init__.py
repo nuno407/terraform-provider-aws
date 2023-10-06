@@ -1,3 +1,4 @@
+""" Container Handlers """
 from artifact_downloader.container_handlers.sanitizer import SanitizerContainerHandler
 from artifact_downloader.container_handlers.anonymize import AnonymizeContainerHandler
 from artifact_downloader.container_handlers.chc import CHCContainerHandler

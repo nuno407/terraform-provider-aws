@@ -17,7 +17,7 @@ WORKDIR /app/artifact_downloader
 RUN pip install -r requirements.txt
 
 # Copy application code
-COPY --chown=1000:3000 ./artifact_downloader/downloader/ /app/artifact_downloader/downloader
+COPY --chown=1000:3000 ./artifact_downloader/artifact_downloader/ /app/artifact_downloader/artifact_downloader
 COPY --chown=1000:3000 ./artifact_downloader/setup.py /app/artifact_downloader/setup.py
 
 WORKDIR /app/artifact_downloader

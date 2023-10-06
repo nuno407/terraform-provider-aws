@@ -1,3 +1,5 @@
+# pylint: disable=too-few-public-methods
+""" SQS Message parsing """
 import json
 from ast import literal_eval
 from typing import Generic, Literal, TypeVar, Union
@@ -8,16 +10,20 @@ from base.model.artifacts import DiscriminatedArtifacts
 from base.model.base_model import ConfiguredGenericModel
 
 
-BodyType = TypeVar("BodyType", bound=ConfiguredGenericModel)
-AttributeType = TypeVar("AttributeType", bound=ConfiguredGenericModel)
+BodyType = TypeVar("BodyType", bound=ConfiguredGenericModel)  # pylint: disable=invalid-name
+AttributeType = TypeVar("AttributeType", bound=ConfiguredGenericModel)  # pylint: disable=invalid-name
 SourceContainerLiteral = TypeVar("SourceContainerLiteral")
 
 
 class MessageAttributesWithSourceContainer(ConfiguredGenericModel, Generic[SourceContainerLiteral]):
+    """MessageAtributes pydantic model for SQS message attributes"""
     source_container: SourceContainerLiteral = Field(alias="SourceContainer")
 
     @validator("source_container", pre=True)
-    def parse_source_container(val) -> str:
+    def parse_source_container(cls, val) -> str:
+        """
+        Parses the source container
+        """
         if isinstance(val, str):
             return val
         if isinstance(val, dict):
@@ -25,17 +31,25 @@ class MessageAttributesWithSourceContainer(ConfiguredGenericModel, Generic[Sourc
                 return val["Value"]
             if "StringValue" in val and isinstance(val["StringValue"], str):
                 return val["StringValue"]
+            if "stringValue" in val and isinstance(val["stringValue"], str):
+                return val["stringValue"]
         raise ValueError("Could not parse source container from message")
 
 
 class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
+    """
+    Pydantic model for an SQS message
+    """
     message_id: str = Field(alias="MessageId")
     body: BodyType = Field(alias="Body")
     receipt_handle: str = Field(alias="ReceiptHandle")
     attributes: AttributeType = Field(alias="MessageAttributes")
 
     @validator("body", pre=True)
-    def parse_body(body) -> dict:
+    def parse_body(cls, body) -> dict:
+        """Parses the body of an SQS message"""
+        if isinstance(body, dict):
+            return body
         try:
             data = json.loads(body)
         except json.JSONDecodeError as json_exc:
@@ -52,22 +66,39 @@ class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
 
 
 class SanitizerMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Sanitizer"]]]):
-    pass
+    """ SanitizerMessage """
 
-class SDRetrieverMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDRetriever"]]]):
-    pass
+
+class SDRetrieverMessage(SqsMessage[DiscriminatedArtifacts,
+                                    MessageAttributesWithSourceContainer[Literal["SDRetriever"]]]):
+    """ SDRMessage """
+
 
 class MDFParserMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["MDFParser"]]]):
-    pass
+    """ MDFParserMessage """
+
 
 class AnonymizeMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Anonymize"]]]):
-    pass
+    """ AnonymizeMessage """
+
 
 class CHCMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["CHC"]]]):
-    pass
+    """ CHCMessage """
+
 
 class SDMMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDM"]]]):
-    pass
+    """ SDMMessage """
+
 
 def parse_sqs_message(message: MessageTypeDef) -> SqsMessage:
-    return parse_obj_as(Union[SanitizerMessage, SDMMessage, CHCMessage, AnonymizeMessage, MDFParserMessage, SDRetrieverMessage, SanitizerMessage], message)
+    """
+    Parses an SQS message
+
+    Args:
+        message (MessageTypeDef): The raw SQS message
+
+    Returns:
+        SqsMessage: The respective container message
+    """
+    return parse_obj_as(Union[SanitizerMessage, SDMMessage, CHCMessage, AnonymizeMessage,  # type: ignore
+                        MDFParserMessage, SDRetrieverMessage, SanitizerMessage], message)

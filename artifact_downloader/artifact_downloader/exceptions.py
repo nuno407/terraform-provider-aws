@@ -13,9 +13,9 @@ class UnexpectedContainerMessage(Exception):
     """ Used for container handlers """
 
 
-class UknownMDFParserArtifact(Exception):
+class UnknownMDFParserArtifact(Exception):
     """ An uknown message from MDFParser has been recieved """
 
 
-class UknownSQSMessage(Exception):
+class UnknownSQSMessage(Exception):
     """ An uknown SQS message was recieved """

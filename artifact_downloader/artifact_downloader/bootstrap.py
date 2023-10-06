@@ -4,15 +4,18 @@ import os
 
 import boto3
 from kink import di
-from mypy_boto3_sqs import SQSClient, SQSClient
-from mypy_boto3_s3 import SQSClient, S3Client
+from mypy_boto3_sqs import SQSClient
+from mypy_boto3_s3 import S3Client
 
 from base.graceful_exit import GracefulExit
+from base.aws.container_services import ContainerServices
 from artifact_downloader.config import ArtifactDownloaderConfig
 
 
 def bootstrap_di():
     """ Initializes dependency injection autowiring. """
+
+    ContainerServices.configure_logging("artifact_downloader")
 
     aws_endpoint = os.getenv("AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")

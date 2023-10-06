@@ -1,30 +1,43 @@
+""" Request Factory """
 from typing import Union
 from dataclasses import dataclass
-from base.model.artifacts import ProcessingResult, Artifact, S3Path
-from artifact_downloader.s3_downloader import S3Downloader
-from artifact_downloader.config import ArtifactDownloaderConfig
+from enum import Enum
 from kink import inject
 from requests import Request
-from enum import Enum
-import os
+from base.model.artifacts import ProcessingResult, Artifact
+from artifact_downloader.s3_downloader import S3Downloader
+from artifact_downloader.config import ArtifactDownloaderConfig
+
 
 @dataclass
-class PartialEndpoints(Enum):
-    RC_SIGNALS_VIDEO="/ridecare/signals/video"
-    RC_SIGNALS_SNAPSHOT="/ridecare/signals/snapshot"
-    RC_VIDEO="/ridecare/video"
-    RC_SNAPSHOT="/ridecare/snapshots"
-    RC_IMU_VIDEO="/ridecare/imu/video"
-    RC_PIPELINE_ANON_VIDEO="/ridecare/pipeline/anonymize/video"
-    RC_PIPELINE_ANON_SNAPSHOT="/ridecare/pipeline/anonymize/snapshot"
-    RC_PIPELINE_CHC_VIDEO="/ridecare/pipeline/chc/video"
-    RC_PIPELINE_CHC_SNAPSHOT="/ridecare/pipeline/chc/snapshot"
-    RC_PIPELINE_STATUS="/ridecare/pipeline/chc/status"
-    RC_OPERATOR="/ridecare/operator"
-    RC_EVENT="/ridecare/event"
+class PartialEndpoint(Enum):
+    """ Contains all the endpoints to be used """
+    RC_SIGNALS_VIDEO = "/ridecare/signals/video"
+    RC_SIGNALS_SNAPSHOT = "/ridecare/signals/snapshot"
+    RC_VIDEO = "/ridecare/video"
+    RC_SNAPSHOT = "/ridecare/snapshots"
+    RC_IMU_VIDEO = "/ridecare/imu/video"
+    RC_PIPELINE_ANON_VIDEO = "/ridecare/pipeline/anonymize/video"
+    RC_PIPELINE_ANON_SNAPSHOT = "/ridecare/pipeline/anonymize/snapshot"
+    RC_PIPELINE_CHC_VIDEO = "/ridecare/pipeline/chc/video"
+    RC_PIPELINE_CHC_SNAPSHOT = "/ridecare/pipeline/chc/snapshot"
+    RC_PIPELINE_STATUS = "/ridecare/pipeline/chc/status"
+    RC_OPERATOR = "/ridecare/operator"
+    RC_EVENT = "/ridecare/event"
+
+    def __str__(self) -> str:
+        """
+        Return the name of the field (removes the need of calling .value)
+
+        Returns:
+            str: The field name
+        """
+        return str.__str__(self)
+
 
 @inject
 class RequestFactory:
+    """ Request Factory """
 
     def __init__(self, config: ArtifactDownloaderConfig, s3_downloader: S3Downloader):
         """
@@ -33,8 +46,11 @@ class RequestFactory:
         self.__config = config
         self.__s3_downloader = s3_downloader
 
-
-    def generate_request_from_artifact_with_file(self, endpoint: PartialEndpoints, message: Union[Artifact, ProcessingResult], s3_path: str) -> Request:
+    def generate_request_from_artifact_with_file(self,
+                                                 endpoint: PartialEndpoint,
+                                                 message: Union[Artifact,
+                                                                ProcessingResult],
+                                                 s3_path: str) -> Request:
         """
         Download json data and returns a post request with the following structure:
         {message=message,data="downloaded_data"}
@@ -52,12 +68,12 @@ class RequestFactory:
         message_artifact = message.stringify()
         data = self.__s3_downloader.download_convert_json(s3_path)
 
-        url = os.path.join(self.__config.artifact_base_url, endpoint)
-        request = Request("POST", url, data={"data":data,"message":message_artifact})
+        url = str(self.__config.artifact_base_url) + str(endpoint)
+        request = Request("POST", url, data={"data": data, "message": message_artifact})
         return request
 
-
-    def generate_request_from_artifact(self, endpoint: PartialEndpoints, data: Union[Artifact, ProcessingResult]) -> Request:
+    def generate_request_from_artifact(self, endpoint: PartialEndpoint,
+                                       data: Union[Artifact, ProcessingResult]) -> Request:
         """
         Returns the request form an artifact
 
@@ -68,11 +84,11 @@ class RequestFactory:
         Returns:
             Request: _description_
         """
-        url = os.path.join(self.__config.artifact_base_url, endpoint)
+        url = str(self.__config.artifact_base_url) + str(endpoint)
         request = Request("POST", url, data=data.stringify())
         return request
 
-    def generate_request(self, endpoint: PartialEndpoints, data: str) -> Request:
+    def generate_request(self, endpoint: PartialEndpoint, data: str) -> Request:
         """
         Returns the request with the base path appended
 
@@ -81,8 +97,6 @@ class RequestFactory:
         Returns:
             Request: The request to be made
         """
-        url = os.path.join(self.__config.artifact_base_url, endpoint)
+        url = str(self.__config.artifact_base_url) + str(endpoint)
         request = Request("POST", url, data=data)
         return request
-
-

@@ -1,14 +1,16 @@
+"""CHC container handler"""
 from requests import Request
+from kink import inject
 from base.model.artifacts import CHCResult
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.message.incoming_messages import CHCMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
-from artifact_downloader.s3_downloader import S3Downloader
-from artifact_downloader.request_factory import RequestFactory, PartialEndpoints
-from kink import inject
+from artifact_downloader.request_factory import RequestFactory, PartialEndpoint
+
 
 @inject
-class CHCContainerHandler(ContainerHandler):
+class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-methods
+    """CHC container handler"""
 
     def __init__(self, request_factory: RequestFactory):
         """
@@ -20,8 +22,8 @@ class CHCContainerHandler(ContainerHandler):
         """
         self.__request_factory = request_factory
 
-        self.__endpoint_snap = PartialEndpoints.RC_PIPELINE_CHC_SNAPSHOT
-        self.__endpoint_video = PartialEndpoints.RC_PIPELINE_CHC_VIDEO
+        self.__endpoint_snap = PartialEndpoint.RC_PIPELINE_CHC_SNAPSHOT
+        self.__endpoint_video = PartialEndpoint.RC_PIPELINE_CHC_VIDEO
 
     def create_request(self, message: CHCMessage) -> Request:
         """
@@ -36,13 +38,15 @@ class CHCContainerHandler(ContainerHandler):
         Returns:
             Request: _description_
         """
-        if not isinstance(CHCResult, message.body):
+        if not isinstance(message.body, CHCResult):
             raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not chc message")
 
-        if message.raw_s3_path.endswith(".jpeg"):
-            return self.__request_factory.generate_request_from_artifact_with_file(self.__endpoint_snap, message.body, message.body.s3_path)
+        if message.body.raw_s3_path.endswith(".jpeg"):
+            return self.__request_factory.generate_request_from_artifact_with_file(
+                self.__endpoint_snap, message.body, message.body.s3_path)
 
-        if message.raw_s3_path.endswith(".mp4"):
-            return self.__request_factory.generate_request_from_artifact_with_file(self.__endpoint_video, message.body, message.body.s3_path)
+        if message.body.raw_s3_path.endswith(".mp4"):
+            return self.__request_factory.generate_request_from_artifact_with_file(
+                self.__endpoint_video, message.body, message.body.s3_path)
 
         raise UnexpectedContainerMessage("Anonymization result is neither a snapshot or video")

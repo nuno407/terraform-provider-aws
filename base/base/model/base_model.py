@@ -6,6 +6,7 @@ from pydantic.generics import GenericModel
 
 S3Path = Annotated[str, Field(regex="s3://.+/.+", default=...)]
 
+
 class ConfiguredBaseModel(BaseModel):
     """Pydantic BaseModel with config options for DevCloud usage"""
     class Config:

@@ -1,13 +1,16 @@
+"""Sanitizer container handler"""
 from requests import Request
-from typing import Union
+from kink import inject
 from base.model.artifacts import OperatorArtifact, EventArtifact
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.message.incoming_messages import SanitizerMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
-from artifact_downloader.request_factory import RequestFactory, PartialEndpoints
-from kink import inject
+from artifact_downloader.request_factory import RequestFactory, PartialEndpoint
+
+
 @inject
-class SanitizerContainerHandler(ContainerHandler):
+class SanitizerContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-methods
+    """Sanitizer container handler"""
 
     def __init__(self, request_factory: RequestFactory):
         """
@@ -17,9 +20,8 @@ class SanitizerContainerHandler(ContainerHandler):
             request_factory (RequestFactory): RequestFactory to create the request
         """
         self.__api_request_factory = request_factory
-        self.__endpoint_events = PartialEndpoints.RC_EVENT
-        self.__endpoint_operator = PartialEndpoints.RC_OPERATOR
-
+        self.__endpoint_events = PartialEndpoint.RC_EVENT
+        self.__endpoint_operator = PartialEndpoint.RC_OPERATOR
 
     def create_request(self, message: SanitizerMessage) -> Request:
         """
@@ -34,9 +36,9 @@ class SanitizerContainerHandler(ContainerHandler):
         Returns:
             Request: The request to be made to the artifact API
         """
-        if isinstance(OperatorArtifact, message.body):
+        if isinstance(message.body, OperatorArtifact):
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_operator, message.body)
-        elif  isinstance(EventArtifact, message.body) or isinstance(OperatorArtifact, message.body):
+        if isinstance(message.body, (EventArtifact, OperatorArtifact)):
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_events, message.body)
 
         raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not a sanitizer message")

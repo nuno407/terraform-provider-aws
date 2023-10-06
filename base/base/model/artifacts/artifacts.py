@@ -288,19 +288,19 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
 
 
 Artifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
-                                         SnapshotArtifact,
-                                         SignalsArtifact,
-                                         IMUArtifact,
-                                         MultiSnapshotArtifact,
-                                         PreviewSignalsArtifact,
-                                         IncidentEventArtifact,
-                                         CameraServiceEventArtifact,
-                                         DeviceInfoEventArtifact,
-                                         CameraBlockedOperatorArtifact,
-                                         PeopleCountOperatorArtifact,
-                                         SOSOperatorArtifact]
+                  SnapshotArtifact,
+                  SignalsArtifact,
+                  IMUArtifact,
+                  MultiSnapshotArtifact,
+                  PreviewSignalsArtifact,
+                  IncidentEventArtifact,
+                  CameraServiceEventArtifact,
+                  DeviceInfoEventArtifact,
+                  CameraBlockedOperatorArtifact,
+                  PeopleCountOperatorArtifact,
+                  SOSOperatorArtifact]
 DiscriminatedRCCArtifacts = Annotated[Artifacts, Field(...,
-                                         discriminator="artifact_name")]
+                                                       discriminator="artifact_name")]
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
