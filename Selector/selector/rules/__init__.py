@@ -1,4 +1,6 @@
 """Module that lists every rule available for import."""
+from .audio_health import AudioHealth
+from .audio_signal import AudioSignal
 from .bdd import BDDEvent
 from .camera_always_blocked import CameraAlwaysBlockedRule
 from .camera_always_shifted import CameraAlwaysShiftedRule

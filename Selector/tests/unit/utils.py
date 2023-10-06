@@ -17,7 +17,7 @@ class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
         self._resolution = Resolution(width=640, height=320)
         self._segmentation_network_version = "segmentation"
         self._pose_network_version = "pose_network"
-        self._cve_reference_file = "refernce_file"
+        self._cve_reference_file = "reference_file"
         self._chunk_pts = PtsTimeWindow(start=0, end=23040)
         self._chunk_utc = UtcTimeWindow(
             start=1687275042000, end=1687275342000)
