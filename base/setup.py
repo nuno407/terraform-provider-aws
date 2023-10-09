@@ -23,8 +23,9 @@ extras_require: Dict[str, List[str]] = {
         "boto3-stubs[sns]~=1.26"
     ],
     "model": [
-        "pydantic~=1.10",
-        "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
+        "pydantic==2.4.2",
+        "typing-extensions==4.5.0",  # https://github.com/pydantic/pydantic/issues/545
+        "boto3-stubs[s3,sts,sqs,sns]==1.26.91",
     ],
     # we should use it in the future
     # "monitoring": [
@@ -33,7 +34,6 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "kink==0.6.6",
         "fiftyone==0.14.2",
-        "pydantic~=1.10",
         "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
     "testing": [],

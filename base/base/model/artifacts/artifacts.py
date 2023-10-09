@@ -5,10 +5,9 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Optional, Union, Annotated
+from typing import Literal, Optional, Union, Annotated, cast
 
-from pydantic import Field, parse_obj_as, parse_raw_as, validator
-
+from pydantic import field_validator, Field, TypeAdapter
 from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
@@ -51,7 +50,8 @@ class TimeWindow(ConfiguredBaseModel):
     start: datetime = Field(default=...)
     end: datetime = Field(default=...)
 
-    @validator("start", "end")
+    @field_validator("start", "end")
+    @classmethod
     def check_not_newer_than_now(cls, value: datetime) -> datetime:
         """Validate timestamp"""
         if value.tzinfo is None:
@@ -92,7 +92,8 @@ class ImageBasedArtifact(Artifact):
     end_timestamp: datetime = Field(default=...)
     upload_timing: TimeWindow = Field(default=...)
 
-    @validator("timestamp")
+    @field_validator("timestamp")
+    @classmethod
     def check_timestamp(cls, value: datetime) -> datetime:
         """Validate timestamp"""
         if value.tzinfo is None:
@@ -111,7 +112,8 @@ class VideoArtifact(ImageBasedArtifact):
     recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT,
                       RecorderType.TRAINING] = Field(default=...)
 
-    @validator("end_timestamp")
+    @field_validator("end_timestamp")
+    @classmethod
     def check_end_timestamp(cls, value: datetime) -> datetime:
         """Validate end timestamp"""
         return super().check_timestamp(value)
@@ -158,7 +160,8 @@ class MultiSnapshotArtifact(ImageBasedArtifact):
     chunks: list[SnapshotArtifact] = Field(default=...)
     recording_id: str = Field(default=...)
 
-    @validator("chunks")
+    @field_validator("chunks")
+    @classmethod
     def check_sorted_chunks(cls, chunks: list[SnapshotArtifact]) -> list[SnapshotArtifact]:
         """Ensure snapshot chunks are sorted"""
         chunks.sort(key=lambda x: x.timestamp)
@@ -287,26 +290,24 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
     is_chc_correct: bool = Field(default=...)
 
 
-Artifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
-                  SnapshotArtifact,
-                  SignalsArtifact,
-                  IMUArtifact,
-                  MultiSnapshotArtifact,
-                  PreviewSignalsArtifact,
-                  IncidentEventArtifact,
-                  CameraServiceEventArtifact,
-                  DeviceInfoEventArtifact,
-                  CameraBlockedOperatorArtifact,
-                  PeopleCountOperatorArtifact,
-                  SOSOperatorArtifact]
-DiscriminatedRCCArtifacts = Annotated[Artifacts, Field(...,
-                                                       discriminator="artifact_name")]
+DiscriminatedRCCArtifacts = TypeAdapter(Annotated[Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
+                                         SnapshotArtifact,
+                                         SignalsArtifact,
+                                         IMUArtifact,
+                                         MultiSnapshotArtifact,
+                                         PreviewSignalsArtifact,
+                                         IncidentEventArtifact,
+                                         CameraServiceEventArtifact,
+                                         DeviceInfoEventArtifact,
+                                         CameraBlockedOperatorArtifact,
+                                         PeopleCountOperatorArtifact,
+                                         SOSOperatorArtifact],
+                                   Field(...,
+                                         discriminator="artifact_name")])
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(DiscriminatedRCCArtifacts,  # type: ignore
-                            json_data)
-    return parse_raw_as(DiscriminatedRCCArtifacts,  # type: ignore
-                        json_data)
+        return DiscriminatedRCCArtifacts.validate_python(json_data) # type: ignore
+    return DiscriminatedRCCArtifacts.validate_json(json_data) # type: ignore

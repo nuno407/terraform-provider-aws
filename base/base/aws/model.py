@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import ConfigDict, BaseModel
 
 
 class S3ObjectInfo(BaseModel):
@@ -16,10 +16,7 @@ class S3ObjectInfo(BaseModel):
     def get_file_name(self) -> str:
         """Parse filename from the key"""
         return self.key.split("/")[-1]
-
-    class Config:
-        """Convifg for object info"""
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 @dataclass

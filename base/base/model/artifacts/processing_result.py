@@ -1,9 +1,8 @@
 """All pydantic models used in data transformation"""
+from typing import Annotated, Literal, Union
 from enum import Enum
 from abc import abstractmethod
-from typing import Annotated, Literal, Union
-
-from pydantic import Field, parse_obj_as, parse_raw_as
+from pydantic import Field, TypeAdapter
 
 from base.model.base_model import ConfiguredBaseModel, S3Path
 
@@ -79,21 +78,18 @@ class CHCResult(S3Result):
     processing_status: StatusProcessing = Field(default=...)
 
 
-ProcessingResults = Union[SignalsProcessingResult,      # pylint: disable=invalid-name
-                          IMUProcessingResult,
-                          AnonymizationResult,
-                          CHCResult,
-                          PipelineProcessingStatus]
-
-DiscriminatedProcessingResults = Annotated[ProcessingResults,
-                                           Field(...,
-                                                 discriminator="artifact_name")]
+DiscriminatedProcessingResults = TypeAdapter(Annotated[Union[SignalsProcessingResult,      # pylint: disable=invalid-name
+                                                IMUProcessingResult,
+                                                AnonymizationResult,
+                                                CHCResult,
+                                                PipelineProcessingStatus],
+                                          Field(...,
+                                                discriminator="artifact_name")])
 
 
 def parse_results(json_data: Union[str, dict]) -> ProcessingResult:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return parse_obj_as(DiscriminatedProcessingResults,  # type: ignore
-                            json_data)
-    return parse_raw_as(DiscriminatedProcessingResults,  # type: ignore
-                        json_data)
+        return DiscriminatedProcessingResults.validate_python(json_data) # type: ignore
+    return DiscriminatedProcessingResults.validate_json(json_data) # type: ignore
+

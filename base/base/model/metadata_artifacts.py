@@ -12,7 +12,7 @@ class KeyPoint(BaseModel):
     x: int
     y: int
     confidence: float
-    oclusion: Optional[bool]
+    oclusion: Optional[bool] = None
     name: str
 
 
