@@ -51,7 +51,7 @@ def imu_artifact() -> IMUArtifact:
     return IMUArtifact(
         tenant_id="tid",
         device_id="devid",
-        s3_path="s3://some_path",
+        s3_path="s3://some_path/file.mp4",
         referred_artifact=training_video(),
         metadata_type=MetadataType.IMU)
 
@@ -60,7 +60,7 @@ def metadata_artifact() -> SignalsArtifact:
     """Metadata Artifact"""
     return SignalsArtifact(tenant_id="tid",
                            device_id="devid",
-                           s3_path="s3://some_path",
+                           s3_path="s3://some_path/file.mp4",
                            referred_artifact=interior_video(),
                            metadata_type=MetadataType.SIGNALS)
 
@@ -72,14 +72,14 @@ class TestMessageAdapter():
     @mark.parametrize("artifact,input_message",
                       [(imu_artifact(),
                         InputMessage(id="bar_TrainingRecorder_64594ea7-b817-54db-bdf3-dba7e2bfb186_1681370055771_1681370115771",
-                                     s3_path="s3://some_path",
+                                     s3_path="s3://some_path/file.mp4",
                                      data_type=DataType.IMU,
                                      tenant="tid",
                                      device_id="devid",
                                      recorder="Training")),
                           (metadata_artifact(),
                            InputMessage(id="bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771",
-                                        s3_path="s3://some_path",
+                                        s3_path="s3://some_path/file.mp4",
                                         data_type=DataType.METADATA,
                                         tenant="tid",
                                         device_id="devid",

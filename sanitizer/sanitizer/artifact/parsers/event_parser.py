@@ -1,7 +1,6 @@
 """Event parser module."""
 from typing import Iterator, Optional
 
-from kink import inject
 from pydantic import ValidationError
 
 from base.aws.model import SQSMessage
@@ -9,6 +8,7 @@ from base.model.artifacts import (CameraServiceEventArtifact,
                                   DeviceInfoEventArtifact, EventArtifact,
                                   IncidentEventArtifact, RecorderType)
 from base.model.event_types import EventType
+from kink import inject
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import InvalidMessageError
 from sanitizer.message.models.event_messages import (CameraServiceEventContent,
@@ -24,7 +24,7 @@ class EventParser(IArtifactParser):  # pylint: disable=too-few-public-methods
 
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[EventArtifact]:
         try:
-            event_message_body = EventMessageBody.parse_obj(sqs_message.body)
+            event_message_body = EventMessageBody.model_validate(sqs_message.body)
         except ValidationError as ex:
             raise InvalidMessageError("Unable to parse event message into pydantic model.") from ex
 

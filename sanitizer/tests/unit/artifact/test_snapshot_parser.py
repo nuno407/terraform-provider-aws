@@ -1,7 +1,4 @@
 """ test module for parsing snapshot artifact. """
-import json
-import os
-
 import pytest
 
 from base.aws.model import MessageAttributes, SQSMessage
@@ -59,7 +56,6 @@ def test_snapshot_parser(test_case: str,
                          input_message: SQSMessage,
                          expected: list[Artifact]):
     """ Test for parsing snapshot artifact. """
-    print(f"test case: {test_case}")
     got_artifact = list(SnapshotParser().parse(input_message, RecorderType.SNAPSHOT))
     got_artifact.sort(key=lambda a: a.uuid)
     assert got_artifact == expected

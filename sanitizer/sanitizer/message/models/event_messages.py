@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel, Extra, Field, validator
+from pydantic import field_validator, BaseModel, Extra, Field
 
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
@@ -48,7 +48,8 @@ class IncidentEventContent(BaseEventContent):
     location: Optional[Location] = Field(default=None)
     bundle_id: Optional[str] = Field(default=None)
 
-    @validator("header")
+    @field_validator("header")
+    @classmethod
     def _validate_header(cls, value: EventHeader):
         BaseEventContent._check_event_type(value, EventType.INCIDENT)
         return value
@@ -59,7 +60,8 @@ class CameraServiceEventContent(BaseEventContent):
     service_status: Optional[GeneralServiceState] = Field(default=None)
     camera_service_description: list[CameraServiceState] = Field(default_factory=list)
 
-    @validator("header")
+    @field_validator("header")
+    @classmethod
     def _validate_header(cls, value: EventHeader):
         BaseEventContent._check_event_type(value, EventType.CAMERA_SERVICE)
         return value
@@ -71,7 +73,8 @@ class DeviceInfoEventContent(BaseEventContent):
     device_type: Optional[str] = Field(default=None)
     last_shutdown: Optional[Shutdown] = Field(alias="last_shutdown_reason", default=None)
 
-    @validator("header")
+    @field_validator("header")
+    @classmethod
     def _validate_header(cls, value: EventHeader):
         BaseEventContent._check_event_type(value, EventType.DEVICE_INFO)
         return value

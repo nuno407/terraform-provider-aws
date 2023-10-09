@@ -1,4 +1,4 @@
-# pylint: disable=no-self-argument, line-too-long
+# pylint: disable=no-self-argument, line-too-long, no-member
 """ Artifact model. """
 import hashlib
 from abc import abstractmethod
@@ -92,7 +92,6 @@ class ImageBasedArtifact(Artifact):
     end_timestamp: datetime = Field(default=...)
     upload_timing: TimeWindow = Field(default=...)
 
-    @field_validator("timestamp")
     @classmethod
     def check_timestamp(cls, value: datetime) -> datetime:
         """Validate timestamp"""
@@ -102,6 +101,10 @@ class ImageBasedArtifact(Artifact):
         if value > datetime.now(tz=value.tzinfo):
             raise ValueError("timestamp must be in the past")
         return value
+
+    @field_validator("timestamp")
+    def __check_timestamp(cls, value: datetime) -> datetime:  # pylint: disable=unused-private-member
+        return ImageBasedArtifact.check_timestamp(value)
 
 
 class VideoArtifact(ImageBasedArtifact):

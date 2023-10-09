@@ -7,6 +7,7 @@ class MockArtifact(ConfiguredBaseModel):
     attribute_1: S3Path
     attribute_2: Optional[S3Path] = None
 
+
 class TestBaseModel:
 
     @pytest.mark.unit

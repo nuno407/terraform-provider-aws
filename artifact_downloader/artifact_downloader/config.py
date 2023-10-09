@@ -23,4 +23,4 @@ class ArtifactDownloaderConfig(BaseModel):
         """
         with open(config_path, "r", encoding="utf-8") as file_handler:
             yaml_object = yaml.safe_load(file_handler)
-            return ArtifactDownloaderConfig.parse_obj(yaml_object)
+            return ArtifactDownloaderConfig.model_validate(yaml_object)

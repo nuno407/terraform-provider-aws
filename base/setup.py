@@ -24,8 +24,7 @@ extras_require: Dict[str, List[str]] = {
     ],
     "model": [
         "pydantic==2.4.2",
-        "typing-extensions==4.5.0",  # https://github.com/pydantic/pydantic/issues/545
-        "boto3-stubs[s3,sts,sqs,sns]==1.26.91",
+        "typing-extensions",  # https://github.com/pydantic/pydantic/issues/545
     ],
     # we should use it in the future
     # "monitoring": [

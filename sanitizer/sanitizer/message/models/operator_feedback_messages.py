@@ -1,4 +1,4 @@
-from pydantic import Field, parse_obj_as
+from pydantic import Field, TypeAdapter
 from datetime import datetime
 from typing import Optional, Union, NewType
 from base.model.artifacts import OperatorSOSReason, OperatorAdditionalInformation
@@ -57,11 +57,10 @@ class ParsedSOSOperatorMessage(ConfiguredBaseModel):
     sos: SOS = Field(alias="sos")
 
 
-OperatorFeedbackMessage = NewType("OperatorFeedbackMessage",    # type: ignore
-                                  Union[ParsedCameraBlockedOperatorMessage,
+OperatorFeedbackMessage = TypeAdapter( Union[ParsedCameraBlockedOperatorMessage,
                                         ParsedPeopleCountOperatorMessage,
                                         ParsedSOSOperatorMessage])
 
 
-def parse_operator_message(sqs_message: dict[str, str]) -> OperatorFeedbackMessage:
-    return parse_obj_as(OperatorFeedbackMessage, sqs_message)
+def parse_operator_message(sqs_message: dict[str, str]) -> OperatorFeedbackMessage: # type: ignore
+    return OperatorFeedbackMessage.validate_python(sqs_message)

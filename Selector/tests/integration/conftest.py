@@ -138,7 +138,7 @@ def run_bootstrap(
     di[ContainerServices] = container_services
     di[GracefulExit] = one_time_gracefull_exit
 
-    di[SelectorConfig] = SelectorConfig.parse_obj({
+    di[SelectorConfig] = SelectorConfig.model_validate({
         "max_GB_per_device_per_month": 2,
         "total_GB_per_month": 100,
         "upload_window_seconds_start": 300,

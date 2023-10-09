@@ -8,6 +8,11 @@ from moto import mock_sns, mock_sqs  # type: ignore
 from unittest.mock import Mock, PropertyMock
 from base.graceful_exit import GracefulExit
 
+from sanitizer.artifact.parsers.snapshot_parser import SnapshotParser
+from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
+from sanitizer.artifact.parsers.operator_feedback_parser import OperatorFeedbackParser
+from sanitizer.artifact.parsers.event_parser import EventParser
+
 from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
 from mongomock import MongoClient as MongoClientMock
@@ -171,6 +176,11 @@ def run_bootstrap(
     di[SNSClient] = moto_sns_client
 
     di["metadata_sqs_controller"] = SQSController(config.metadata_queue)
+
+    di[SnapshotParser] = SnapshotParser()
+    di[S3VideoParser] = S3VideoParser()
+    di[OperatorFeedbackParser] = OperatorFeedbackParser()
+    di[EventParser] = EventParser()
 
 
 @pytest.fixture

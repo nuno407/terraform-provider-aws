@@ -2,8 +2,8 @@
 from datetime import datetime
 from typing import Any, Iterator, Optional
 
-from kink import inject
 from pydantic import BaseModel, Field, ValidationError
+from kink import inject
 
 from base.aws.model import SQSMessage
 from base.model.artifacts import (RecorderType, Recording, S3VideoArtifact,
@@ -47,7 +47,7 @@ class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
         self._check_recorder_not_none(recorder_type)
         inner_message: dict = self._get_inner_message(sqs_message)
         try:
-            parsed_message = _S3VideoInnerMessage.parse_obj(inner_message)
+            parsed_message = _S3VideoInnerMessage.model_validate(inner_message)
         except ValidationError as err:
             raise InvalidMessageError(
                 "Invalid message body. Cannot extract message contents.") from err

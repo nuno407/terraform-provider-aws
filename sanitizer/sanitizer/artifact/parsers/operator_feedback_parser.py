@@ -1,7 +1,6 @@
 """Event parser module."""
 from typing import Iterator, Optional
 
-from kink import inject
 from pydantic import ValidationError
 
 from base.aws.model import SQSMessage
@@ -11,6 +10,7 @@ from base.model.artifacts import (
     CameraBlockedOperatorArtifact,
     RecorderType,
     OperatorArtifact)
+from kink import inject
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 from sanitizer.exceptions import InvalidMessageError
 from sanitizer.message.models.operator_feedback_messages import (

@@ -5,16 +5,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator, Optional, Union
 
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+from pydantic import ConfigDict, BaseModel, Field  # pylint: disable=no-name-in-module
 
 
 class ConfiguredBaseModel(BaseModel):
     """Base configuration for pydantic"""
-    class Config:
-        "Config for pydantic"
-        allow_population_by_field_name = True
-        extra = "allow"
-        validate_assignment = True
+    model_config = ConfigDict(populate_by_name=True, extra="allow", validate_assignment=True)
 
 
 class Resolution(ConfiguredBaseModel):
@@ -30,17 +26,17 @@ class StringObject(ConfiguredBaseModel):
 
 class FloatObject(ConfiguredBaseModel):
     """Float objects from metadata"""
-    float_attributes: list[dict[str, str]] = Field(alias="floatAttributes", default=...)
+    float_attributes: list[dict[str, float]] = Field(alias="floatAttributes", default=...)
 
 
 class BoolObject(ConfiguredBaseModel):
     """Bool objects from metadata"""
-    bool_attributes: list[dict[str, str]] = Field(alias="boolAttributes", default=...)
+    bool_attributes: list[dict[str, bool]] = Field(alias="boolAttributes", default=...)
 
 
 class IntegerObject(ConfiguredBaseModel):
     """Integer objects from metadata"""
-    integer_attributes: list[dict[str, str]] = Field(alias="integerAttributes", default=...)
+    integer_attributes: list[dict[str, int]] = Field(alias="integerAttributes", default=...)
 
 
 ObjectList = list[Union[FloatObject, BoolObject, IntegerObject, StringObject]]
@@ -80,8 +76,8 @@ class Frame(ConfiguredBaseModel):
     """Single frame of the metadata"""
     number: int
     timestamp: int
-    timestamp64: Optional[int]
-    hasPoseList: Optional[bool]
+    timestamp64: Optional[int] = None
+    hasPoseList: Optional[bool] = None
     objectlist: ObjectList
     poselist: Optional[list[Pose]] = Field(default_factory=list)
 

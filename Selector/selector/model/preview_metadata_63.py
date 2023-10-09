@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Iterator, Optional
 from pytz import UTC
 
-from pydantic import Field, validator
+from pydantic import field_validator, Field
 from selector.model.preview_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
     Frame, PreviewMetadata, FrameSignal
 
@@ -21,7 +21,8 @@ class PreviewMetadataV063(PreviewMetadata):
     chunk_utc: UtcTimeWindow = Field(alias="chunkUtc")
     frames: list[Frame] = Field(alias="frame", default_factory=list)
 
-    @validator("metadata_version")
+    @field_validator("metadata_version")
+    @classmethod
     def check_metadata_version(cls, version):  # pylint: disable=no-self-argument
         """Ensure metadata version is over 0.6"""
         if not isinstance(version, str) or not version.startswith("0.6"):

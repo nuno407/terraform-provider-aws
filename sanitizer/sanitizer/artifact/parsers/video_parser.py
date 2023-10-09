@@ -1,12 +1,18 @@
 """Base module for video based artifact parsers"""
 import json
+from typing import Optional, Iterator
 
+from base.model.artifacts import RecorderType, Artifact
 from base.aws.model import SQSMessage
 from sanitizer.artifact.parsers.iparser import IArtifactParser
 
 
 class VideoParser(IArtifactParser):  # pylint: disable=too-few-public-methods
     """Base class for video based artifact parsers"""
+
+    def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[Artifact]:
+        """ Parse SQS message and return list of artifacts. """
+        raise NotImplementedError
 
     def _get_inner_message(self, sqs_message: SQSMessage) -> dict:
         self._check_attribute_not_none(sqs_message.body, "message body")

@@ -2,7 +2,6 @@
 import logging
 from datetime import timedelta
 from typing import Iterator, Optional
-
 from kink import inject
 
 from base.aws.model import SQSMessage

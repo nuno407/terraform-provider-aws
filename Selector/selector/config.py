@@ -23,4 +23,4 @@ class SelectorConfig(BaseModel):  # pylint: disable=too-many-instance-attributes
         """
         with open(path, "r", encoding="utf-8") as configfile:
             yaml_object = yaml.safe_load(configfile)
-            return SelectorConfig.parse_obj(yaml_object)
+            return SelectorConfig.model_validate(yaml_object)

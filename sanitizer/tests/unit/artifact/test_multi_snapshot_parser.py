@@ -10,6 +10,7 @@ from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.multi_snapshot_parser import \
     MultiSnapshotParser
+from sanitizer.artifact.parsers.snapshot_parser import SnapshotParser
 from helper_functions import load_sqs_json
 
 MESSAGE_ID = "barfoo"
@@ -75,5 +76,6 @@ def test_multi_snapshot_parser(test_case: str,
                                expected: list[Artifact]):
     """ Test for parsing snapshot artifact. """
     print(f"test case: {test_case}")
-    got_artifact = list(MultiSnapshotParser().parse(input_message, RecorderType.INTERIOR_PREVIEW))
+    parser = MultiSnapshotParser(SnapshotParser())
+    got_artifact = list(parser.parse(input_message, RecorderType.INTERIOR_PREVIEW))
     assert got_artifact == expected

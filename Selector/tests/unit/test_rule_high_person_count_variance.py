@@ -56,7 +56,7 @@ class TestRuleHighPersonCount:
             for object in frame.objectlist:
                 if isinstance(
                         object, IntegerObject) and self._attribute_name in object.integer_attributes[0]:
-                    object.integer_attributes[0][self._attribute_name] = str(pc_value)
+                    object.integer_attributes[0][self._attribute_name] = str(pc_value)  # type: ignore
                     pc_value += 1
         ctx = Context(minimal_preview_metadata, artifact)
 
@@ -74,7 +74,7 @@ class TestRuleHighPersonCount:
         for i, frame in enumerate(minimal_preview_metadata.frames):
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject):
-                    object.integer_attributes[0][self._attribute_name] = "1"
+                    object.integer_attributes[0][self._attribute_name] = "1"  # type: ignore
         ctx = Context(minimal_preview_metadata, artifact)
 
         # WHEN

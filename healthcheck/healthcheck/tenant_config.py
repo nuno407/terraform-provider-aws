@@ -25,4 +25,4 @@ class TenantConfig(BaseModel):
         """
         with open(config_path, "r", encoding="utf-8") as file_handler:
             yaml_object = yaml.safe_load(file_handler)
-            return TenantConfig.parse_obj(yaml_object)
+            return TenantConfig.model_validate(yaml_object)

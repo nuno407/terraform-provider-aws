@@ -1,5 +1,4 @@
 import os
-import json
 from base.aws.model import SQSMessage
 from base.testing.utils import load_relative_json_file
 
