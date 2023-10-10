@@ -1,11 +1,10 @@
-autopep8
-pylint
-pylint_quotes
-mypy
-bandit
-types-waitress
-pytest
-pytest-cov
+autopep8 == 2.0.2
+pylint == 2.17.0
+pylint-quotes == 0.2.3
+mypy == 1.1.1
+bandit == 1.7.5
+pytest == 7.2.2
+pytest-cov == 4.0.0
 
 # install the app itself
 -e .

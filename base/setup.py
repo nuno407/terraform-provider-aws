@@ -7,22 +7,23 @@ extras_require: Dict[str, List[str]] = {
     # we should extract pymongo dependency to mongodb package base.mongodb.
     # Also we should put ContainerServices in base package
     "aws": [
-        "pymongo==4.3.3",
-        "pymongo[srv]==4.3.3",
-        "pymongo[aws]==4.3.3",
-        "boto3==1.26.91",
+        "pymongo~=4.3",
+        "pymongo[srv]~=4.3",
+        "pymongo[aws]~=4.3",
+        "boto3~=1.26",
+        "urllib3~=1.26",
         "pytz==2022.6",
-        "pyyaml==6.0.1",
-        "expiringdict==1.2.2",
-        "aws-error-utils==2.7.0",
+        "pyyaml~=6.0",
+        "expiringdict~=1.2",
+        "aws-error-utils~=2.7",
         "kink==0.6.6",
-        "boto3-stubs[s3]==1.26.91",
-        "boto3-stubs[sts]==1.26.91",
-        "boto3-stubs[sqs]==1.26.91",
-        "boto3-stubs[sns]==1.26.91"
+        "boto3-stubs[s3]~=1.26",
+        "boto3-stubs[sts]~=1.26",
+        "boto3-stubs[sqs]~=1.26",
+        "boto3-stubs[sns]~=1.26"
     ],
     "model": [
-        "pydantic==1.10.7",
+        "pydantic~=1.10",
         "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
     # we should use it in the future
@@ -32,7 +33,7 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "kink==0.6.6",
         "fiftyone==0.14.0",
-        "pydantic==1.10.7",
+        "pydantic~=1.10",
         "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
     ],
     "testing": [],
