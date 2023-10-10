@@ -13,6 +13,8 @@ from base.model.artifacts import (IMUArtifact, RecorderType, SignalsArtifact, Mu
 from sdretriever.constants import CONTAINER_NAME
 from sdretriever.handler import IngestionHandler
 
+mock_datetime = datetime(2023, 5, 10, 2, 10, tzinfo=pytz.UTC)
+
 
 @pytest.fixture
 def imu_ing():
@@ -109,14 +111,13 @@ def ingestion_handler(imu_ing,
 
 s3_video_artifact = S3VideoArtifact(
     recorder=RecorderType.INTERIOR,
-    upload_timing=TimeWindow(start=datetime.now(
-        tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
+    upload_timing=TimeWindow(start=mock_datetime, end=mock_datetime),
     tenant_id="tenant_id",
     device_id="device_id",
     footage_id="footage_id",
     rcc_s3_path="s3://bucket/key",
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC),
+    timestamp=mock_datetime,
+    end_timestamp=mock_datetime,
     recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 
@@ -160,12 +161,11 @@ def test_ingestion_already_ingested_s3_video(ingestion_handler: IngestionHandler
 
 snapshot_artifact = SnapshotArtifact(
     recorder=RecorderType.SNAPSHOT,
-    upload_timing=TimeWindow(start=datetime.now(
-        tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
-    end_timestamp=datetime.now(),
+    upload_timing=TimeWindow(start=mock_datetime, end=mock_datetime),
+    end_timestamp=mock_datetime,
     tenant_id="tenant_id",
     device_id="device_id",
-    timestamp=datetime.now(tz=pytz.UTC),
+    timestamp=mock_datetime,
     uuid="uuid"
 )
 
@@ -340,11 +340,10 @@ def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: Ingestio
 multisnapshot_artifact = MultiSnapshotArtifact(
     tenant_id="tenant_id",
     device_id="device_id",
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC),
+    timestamp=mock_datetime,
+    end_timestamp=mock_datetime,
     recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
-    upload_timing=TimeWindow(start=datetime.now(
-        tz=pytz.UTC), end=datetime.now(tz=pytz.UTC)),
+    upload_timing=TimeWindow(start=mock_datetime, end=mock_datetime),
     recorder=RecorderType.INTERIOR_PREVIEW,
     chunks=[snapshot_artifact])
 
@@ -353,8 +352,8 @@ preview_signals_artifact = PreviewSignalsArtifact(
     tenant_id="tenant_id",
     device_id="device_id",
     referred_artifact=multisnapshot_artifact,
-    timestamp=datetime.now(tz=pytz.UTC),
-    end_timestamp=datetime.now(tz=pytz.UTC)
+    timestamp=mock_datetime,
+    end_timestamp=mock_datetime
 )
 
 

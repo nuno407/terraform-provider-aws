@@ -2,12 +2,12 @@
 """ Artifact model. """
 import hashlib
 from abc import abstractmethod
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Optional, Union, Annotated, cast
+from typing import Literal, Optional, Union, Annotated
 
 from pydantic import field_validator, Field, TypeAdapter
+from base.model.validators import UtcDatetimeInPast
 from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
@@ -47,19 +47,8 @@ class Resolution(ConfiguredBaseModel):
 
 class TimeWindow(ConfiguredBaseModel):
     """Defines a timezone aware time window in the past"""
-    start: datetime = Field(default=...)
-    end: datetime = Field(default=...)
-
-    @field_validator("start", "end")
-    @classmethod
-    def check_not_newer_than_now(cls, value: datetime) -> datetime:
-        """Validate timestamp"""
-        if value.tzinfo is None:
-            raise ValueError("timestamp must be timezone aware")
-        # check if timestamp is in the future
-        if value > datetime.now(tz=value.tzinfo):
-            raise ValueError("timestamp must be in the past")
-        return value
+    start: UtcDatetimeInPast = Field(default=...)
+    end: UtcDatetimeInPast = Field(default=...)
 
 
 class Artifact(ConfiguredBaseModel):
@@ -88,38 +77,18 @@ class ImageBasedArtifact(Artifact):
     # pylint: disable=abstract-method
     resolution: Optional[Resolution] = Field(default=None)
     recorder: RecorderType = Field(default=...)
-    timestamp: datetime = Field(default=...)
-    end_timestamp: datetime = Field(default=...)
+    timestamp: UtcDatetimeInPast = Field(default=...)
+    end_timestamp: UtcDatetimeInPast = Field(default=...)
     upload_timing: TimeWindow = Field(default=...)
-
-    @classmethod
-    def check_timestamp(cls, value: datetime) -> datetime:
-        """Validate timestamp"""
-        if value.tzinfo is None:
-            raise ValueError("timestamp must be timezone aware")
-        # check if timestamp is in the future
-        if value > datetime.now(tz=value.tzinfo):
-            raise ValueError("timestamp must be in the past")
-        return value
-
-    @field_validator("timestamp")
-    def __check_timestamp(cls, value: datetime) -> datetime:  # pylint: disable=unused-private-member
-        return ImageBasedArtifact.check_timestamp(value)
 
 
 class VideoArtifact(ImageBasedArtifact):
     """Video artifact"""
     # pylint: disable=abstract-method
-    end_timestamp: datetime = Field(default=...)
+    end_timestamp: UtcDatetimeInPast = Field(default=...)
     actual_duration: Optional[float] = Field(default=None)
     recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT,
                       RecorderType.TRAINING] = Field(default=...)
-
-    @field_validator("end_timestamp")
-    @classmethod
-    def check_end_timestamp(cls, value: datetime) -> datetime:
-        """Validate end timestamp"""
-        return super().check_timestamp(value)
 
     @property
     def duration(self) -> float:
@@ -204,15 +173,15 @@ class SignalsArtifact(MetadataArtifact):
 class PreviewSignalsArtifact(MetadataArtifact):
     """ Preview Signals Artifact, that contains compacted signals data """
     artifact_name: Literal["raw_preview_signals"] = "raw_preview_signals"
-    timestamp: datetime = Field(default=...)
-    end_timestamp: datetime = Field(default=...)
+    timestamp: UtcDatetimeInPast = Field(default=...)
+    end_timestamp: UtcDatetimeInPast = Field(default=...)
     referred_artifact: MultiSnapshotArtifact = Field(default=...)
     metadata_type: Literal[MetadataType.PREVIEW] = MetadataType.PREVIEW
 
 
 class EventArtifact(Artifact):
     """Base class for all event artifacts"""
-    timestamp: datetime = Field(default=...)
+    timestamp: UtcDatetimeInPast = Field(default=...)
     event_name: Literal[EventType.INCIDENT, EventType.DEVICE_INFO,
                         EventType.CAMERA_SERVICE] = Field(default=...)
 
@@ -262,9 +231,9 @@ class OperatorAdditionalInformation(ConfiguredBaseModel):
 class OperatorArtifact(Artifact):
     """Represents the footage seen by an SAV Operator as part of an incident"""
     artifact_name: str = "sav-operator"
-    event_timestamp: datetime = Field(default=...)
-    operator_monitoring_start: datetime = Field(default=...)
-    operator_monitoring_end: datetime = Field(default=...)
+    event_timestamp: UtcDatetimeInPast = Field(default=...)
+    operator_monitoring_start: UtcDatetimeInPast = Field(default=...)
+    operator_monitoring_end: UtcDatetimeInPast = Field(default=...)
 
     @property
     def artifact_id(self) -> str:

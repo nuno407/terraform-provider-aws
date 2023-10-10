@@ -57,10 +57,12 @@ class ParsedSOSOperatorMessage(ConfiguredBaseModel):
     sos: SOS = Field(alias="sos")
 
 
-OperatorFeedbackMessage = TypeAdapter( Union[ParsedCameraBlockedOperatorMessage,
-                                        ParsedPeopleCountOperatorMessage,
-                                        ParsedSOSOperatorMessage])
+OperatorFeedbackMessage = Union[ParsedCameraBlockedOperatorMessage,
+                                ParsedPeopleCountOperatorMessage,
+                                ParsedSOSOperatorMessage]
+
+OperatorFeedbackMessageAdapter = TypeAdapter(OperatorFeedbackMessage)
 
 
-def parse_operator_message(sqs_message: dict[str, str]) -> OperatorFeedbackMessage: # type: ignore
-    return OperatorFeedbackMessage.validate_python(sqs_message)
+def parse_operator_message(sqs_message: dict[str, str]) -> OperatorFeedbackMessage:  # type: ignore
+    return OperatorFeedbackMessageAdapter.validate_python(sqs_message)  # type: ignore
