@@ -24,7 +24,7 @@ extras_require: Dict[str, List[str]] = {
     ],
     "model": [
         "pydantic==2.4.2",
-        "typing-extensions",  # https://github.com/pydantic/pydantic/issues/545
+        "typing-extensions==4.6.1",  # https://github.com/pydantic/pydantic/issues/545
     ],
     # we should use it in the future
     # "monitoring": [
@@ -33,7 +33,7 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "kink==0.6.6",
         "fiftyone==0.14.2",
-        "typing-extensions==4.5.0"  # https://github.com/pydantic/pydantic/issues/545
+        "typing-extensions==4.6.1"  # https://github.com/pydantic/pydantic/issues/545
     ],
     "testing": [],
     # for when we separate mongo from ContainerServices

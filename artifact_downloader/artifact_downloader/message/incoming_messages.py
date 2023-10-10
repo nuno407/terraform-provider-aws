@@ -4,22 +4,22 @@ import json
 from ast import literal_eval
 from typing import Generic, Literal, TypeVar, Union
 from mypy_boto3_sqs.type_defs import MessageTypeDef
-from pydantic import Field, validator, parse_obj_as
+from pydantic import Field, field_validator, parse_obj_as
 
 from base.model.artifacts import DiscriminatedArtifacts
-from base.model.base_model import ConfiguredGenericModel
+from base.model.base_model import ConfiguredBaseModel
 
 
-BodyType = TypeVar("BodyType", bound=ConfiguredGenericModel)  # pylint: disable=invalid-name
-AttributeType = TypeVar("AttributeType", bound=ConfiguredGenericModel)  # pylint: disable=invalid-name
+BodyType = TypeVar("BodyType", bound=ConfiguredBaseModel)  # pylint: disable=invalid-name
+AttributeType = TypeVar("AttributeType", bound=ConfiguredBaseModel)  # pylint: disable=invalid-name
 SourceContainerLiteral = TypeVar("SourceContainerLiteral")
 
 
-class MessageAttributesWithSourceContainer(ConfiguredGenericModel, Generic[SourceContainerLiteral]):
+class MessageAttributesWithSourceContainer(ConfiguredBaseModel, Generic[SourceContainerLiteral]):
     """MessageAtributes pydantic model for SQS message attributes"""
     source_container: SourceContainerLiteral = Field(alias="SourceContainer")
 
-    @validator("source_container", pre=True)
+    @field_validator("source_container", mode="before")
     def parse_source_container(cls, val) -> str:
         """
         Parses the source container
@@ -36,7 +36,7 @@ class MessageAttributesWithSourceContainer(ConfiguredGenericModel, Generic[Sourc
         raise ValueError("Could not parse source container from message")
 
 
-class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
+class SqsMessage(ConfiguredBaseModel, Generic[BodyType, AttributeType]):
     """
     Pydantic model for an SQS message
     """
@@ -45,7 +45,7 @@ class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
     receipt_handle: str = Field(alias="ReceiptHandle")
     attributes: AttributeType = Field(alias="MessageAttributes")
 
-    @validator("body", pre=True)
+    @field_validator("source_container", mode="before")
     def parse_body(cls, body) -> dict:
         """Parses the body of an SQS message"""
         if isinstance(body, dict):
@@ -61,7 +61,7 @@ class SqsMessage(ConfiguredGenericModel, Generic[BodyType, AttributeType]):
                         json_exc, eval_exc]) from eval_exc
 
         if "Message" in data and isinstance(data["Message"], str):
-            data["Message"] = SqsMessage.parse_body(data["Message"])
+            data["Message"] = SqsMessage.parse_body(data["Message"])  # type: ignore
         return data
 
 

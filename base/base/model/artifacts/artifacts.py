@@ -262,24 +262,25 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
     is_chc_correct: bool = Field(default=...)
 
 
-DiscriminatedRCCArtifacts = TypeAdapter(Annotated[Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
-                                         SnapshotArtifact,
-                                         SignalsArtifact,
-                                         IMUArtifact,
-                                         MultiSnapshotArtifact,
-                                         PreviewSignalsArtifact,
-                                         IncidentEventArtifact,
-                                         CameraServiceEventArtifact,
-                                         DeviceInfoEventArtifact,
-                                         CameraBlockedOperatorArtifact,
-                                         PeopleCountOperatorArtifact,
-                                         SOSOperatorArtifact],
-                                   Field(...,
-                                         discriminator="artifact_name")])
+RCCArtifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
+                     SnapshotArtifact,
+                     SignalsArtifact,
+                     IMUArtifact,
+                     MultiSnapshotArtifact,
+                     PreviewSignalsArtifact,
+                     IncidentEventArtifact,
+                     CameraServiceEventArtifact,
+                     DeviceInfoEventArtifact,
+                     CameraBlockedOperatorArtifact,
+                     PeopleCountOperatorArtifact,
+                     SOSOperatorArtifact]
+
+DiscriminatedRCCArtifacts = TypeAdapter(Annotated[RCCArtifacts,
+                                                  Field(..., discriminator="artifact_name")])
 
 
 def parse_artifact(json_data: Union[str, dict]) -> Artifact:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return DiscriminatedRCCArtifacts.validate_python(json_data) # type: ignore
-    return DiscriminatedRCCArtifacts.validate_json(json_data) # type: ignore
+        return DiscriminatedRCCArtifacts.validate_python(json_data)  # type: ignore
+    return DiscriminatedRCCArtifacts.validate_json(json_data)  # type: ignore
