@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -311,15 +310,6 @@ class ContainerServices():  # pylint: disable=too-many-locals,missing-function-d
         logging.getLogger("base").setLevel(log_level)
         logger = logging.getLogger(component_name)
         logger.setLevel(log_level)
-
-        # Logging to stdout
-        handler_stdout = logging.StreamHandler(sys.stdout)
-        handler_stdout.setLevel(log_root_level)
-        formatter = logging.Formatter("%(asctime)s %(name)s\t%(levelname)s\t%(message)s")
-        handler_stdout.setFormatter(formatter)
-
-        logging.getLogger().addHandler(handler_stdout)
-
         return logger
 
     def delete_message(self, client, receipt_handle, input_queue=None):
