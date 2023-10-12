@@ -5,7 +5,7 @@ from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
-
+from datetime import datetime
 from pydantic import field_validator, Field, TypeAdapter
 from base.model.validators import UtcDatetimeInPast
 from base.model.base_model import ConfiguredBaseModel, S3Path
@@ -47,8 +47,8 @@ class Resolution(ConfiguredBaseModel):
 
 class TimeWindow(ConfiguredBaseModel):
     """Defines a timezone aware time window in the past"""
-    start: UtcDatetimeInPast = Field(default=...)
-    end: UtcDatetimeInPast = Field(default=...)
+    start: datetime = Field(default=...)
+    end: datetime = Field(default=...)
 
 
 class Artifact(ConfiguredBaseModel):

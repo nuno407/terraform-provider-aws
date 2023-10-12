@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import os
+import pytz
 from mongoengine import connect, disconnect
 from datetime import datetime, timezone
 from pathlib import Path
@@ -463,7 +464,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         # GIVEN
         device_id = "test_device_id"
         tenant_id = "test_tenant_id"
-        timestamp = datetime.now()
+        timestamp = datetime.now(tz=pytz.UTC)
         location = Location().dict()
         location["status"] = location["status"].value
 

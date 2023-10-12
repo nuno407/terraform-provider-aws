@@ -18,7 +18,8 @@ def check_aware_timestamp_in_past(value: AwareDatetime) -> AwareDatetime:
     Returns:
         AwareDatetime: The aware timestamps
     """
-    if value > datetime.now(timezone.utc):
+    cur_time = datetime.now(timezone.utc)
+    if value > cur_time or value.utcoffset() != cur_time.utcoffset():  # type: ignore
         raise ValueError("timestamp must be in the past")
     return value
 
