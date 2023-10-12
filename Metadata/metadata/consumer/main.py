@@ -934,11 +934,13 @@ def main():
         message = container_services.get_single_message_from_input_queue(sqs_client)
 
         # Convert message from string to dict
-        message_dict = parse_message_body_to_dict(message["Body"])
-        if message and "messageAttributes" in message_dict and "body" in message_dict:
-            _logger.info("Message generated from sqs to sns subscription.")
-            message["MessageAttributes"] = message_dict["messageAttributes"]
-            message["Body"] = message_dict["body"]
+
+        if message and "Body" in message:
+            message_dict = parse_message_body_to_dict(message["Body"])
+            if "messageAttributes" in message_dict and "body" in message_dict:
+                _logger.info("Message generated from sqs to sns subscription.")
+                message["MessageAttributes"] = message_dict["messageAttributes"]
+                message["Body"] = message_dict["body"]
 
         if message and "MessageAttributes" not in message:
             _logger.error(

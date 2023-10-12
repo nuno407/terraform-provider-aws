@@ -1015,9 +1015,8 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_upsert_data_to_db (Mock): mocked upser_data_to_db function
             mock_continue_running (Mock): mocked continue_running property from GracefulExit
         """
-        input_message = _metadata_sqs_message_helper({
-            "dummy_body": "dummy_body_value",
-        })
+        body = {"dummy_body": "dummy_body_value"}
+        input_message = _metadata_sqs_message_helper(body)
         sqs_client_mock = Mock()
         s3_client_mock = Mock()
         mock_boto3_client.side_effect = [s3_client_mock, sqs_client_mock]
@@ -1047,7 +1046,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         mock_relay_list = Mock()
         mocked_parsed_message = Mock()
         mocked_parsed_message.copy = Mock()
-        mock_parse_message.return_value = mocked_parsed_message
+        mock_parse_message.side_effect = [body, mocked_parsed_message]
         mock_fix_message.return_value = mock_relay_list
 
         main.main()
@@ -1062,7 +1061,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             mock_persistence_object)
         mock_container_services_object.get_single_message_from_input_queue.assert_called_once_with(
             sqs_client_mock)
-        mock_parse_message.assert_called_once_with(input_message["Body"])
         mock_fix_message.assert_called_once_with(
             mock_container_services_object, input_message["Body"], mocked_parsed_message.copy.return_value)
         mock_upsert_data_to_db.assert_called_once_with(
