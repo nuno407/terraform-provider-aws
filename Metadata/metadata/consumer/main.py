@@ -942,6 +942,15 @@ def main():
                 message["MessageAttributes"] = message_dict["messageAttributes"]
                 message["Body"] = message_dict["body"]
 
+                # Capitilizes the message attribute type keys
+                for attr_key,attr_dict in message["MessageAttributes"].items():
+                    new_dict = {}
+                    for attr_type,attrt_value in attr_dict.items():
+                        cap_attr_type = attr_type[0].upper() + attr_type[1:]
+                        new_dict[cap_attr_type] = attrt_value
+
+                    message["MessageAttributes"][attr_key] = new_dict
+
         if message and "MessageAttributes" not in message:
             _logger.error(
                 "Message received without MessageAttributes, going to delete it: %s",
