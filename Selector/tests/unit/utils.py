@@ -2,9 +2,9 @@
 import copy
 from typing import Union
 
+from base.model.metadata.base_metadata import (BoolObject, FloatObject, Frame,
+                                               IntegerObject, Resolution, PtsTimeWindow, UtcTimeWindow)
 from selector.model import PreviewMetadataV063
-from selector.model.preview_metadata import (BoolObject, FloatObject, Frame,
-                                             IntegerObject, Resolution, PtsTimeWindow, UtcTimeWindow)
 
 
 class DataTestBuilder:  # pylint: disable=too-many-instance-attributes

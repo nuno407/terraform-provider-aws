@@ -1,5 +1,6 @@
 from pytest import fixture, mark
-from selector.model import PreviewMetadataV063, FrameSignal
+from base.model.metadata.base_metadata import FrameSignal
+from selector.model import PreviewMetadataV063
 from datetime import datetime
 import pytz
 

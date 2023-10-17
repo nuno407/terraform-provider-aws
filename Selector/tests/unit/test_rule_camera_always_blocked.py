@@ -6,9 +6,9 @@ from pytz import UTC
 from base.model.artifacts import (MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   TimeWindow)
+from base.model.metadata.base_metadata import IntegerObject
 from selector.context import Context
 from selector.model import PreviewMetadataV063
-from selector.model.preview_metadata import IntegerObject
 from selector.rule import Rule
 from selector.rules import CameraAlwaysBlockedRule
 from selector.rules.basic_rule import BaseRule

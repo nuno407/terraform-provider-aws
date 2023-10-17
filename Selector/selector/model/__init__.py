@@ -3,7 +3,7 @@
 from typing import Union, cast
 from pydantic import TypeAdapter
 
-from selector.model.preview_metadata import PreviewMetadata, FrameSignal
+from selector.model.preview_metadata import PreviewMetadata
 from selector.model.preview_metadata_63 import PreviewMetadataV063
 
 PreviewMetadataDescriminator = TypeAdapter(PreviewMetadataV063)

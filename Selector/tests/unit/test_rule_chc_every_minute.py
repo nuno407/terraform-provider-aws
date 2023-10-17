@@ -6,8 +6,8 @@ from pytz import UTC
 from base.model.artifacts import (MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
                                   TimeWindow,)
+from base.model.metadata.base_metadata import IntegerObject
 from selector.context import Context
-from selector.model.preview_metadata import IntegerObject
 from selector.model.preview_metadata_63 import PreviewMetadataV063
 from selector.rule import Rule
 from selector.rules import CHCEveryMinute

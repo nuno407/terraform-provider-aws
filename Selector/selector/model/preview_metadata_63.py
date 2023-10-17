@@ -5,8 +5,9 @@ from typing import Iterator, Optional
 from pytz import UTC
 
 from pydantic import field_validator, Field
-from selector.model.preview_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
-    Frame, PreviewMetadata, FrameSignal
+from base.model.metadata.base_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
+    Frame, FrameSignal
+from selector.model.preview_metadata import PreviewMetadata
 
 
 class PreviewMetadataV063(PreviewMetadata):

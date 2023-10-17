@@ -5,11 +5,11 @@ from datetime import timedelta
 from math import ceil
 from typing import cast
 
+from base.model.metadata.base_metadata import FrameSignal
 from functional import seq  # type: ignore
 from selector.context import Context
 from selector.decision import Decision
 from selector.model import PreviewMetadata
-from selector.model.preview_metadata import FrameSignal
 from selector.rules.basic_rule import BaseRule
 
 logger = logging.getLogger(__name__)
