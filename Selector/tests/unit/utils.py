@@ -1,10 +1,11 @@
 """Data Test Builder Module"""
 import copy
+from datetime import timedelta
 from typing import Union
 
-from base.model.metadata.base_metadata import (BoolObject, FloatObject, Frame,
+from base.model.metadata.base_metadata import (BoolObject, FloatObject,
                                                IntegerObject, Resolution, PtsTimeWindow, UtcTimeWindow)
-from selector.model import PreviewMetadataV063
+from selector.model import PreviewMetadataV063, Frame
 
 
 class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
@@ -121,9 +122,8 @@ class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
         """
         framecount = int(self._length_sec * self._frame_sec)
         frames = []
-        self._chunk_utc.start = int(
-            self._chunk_utc.end - self._length_sec * self._frame_sec * 1000)
-        self._chunk_pts.end = int(self._length_sec * self._frame_sec * 1000)
+        self._chunk_utc.start = self._chunk_utc.end - timedelta(seconds=self._length_sec)
+        self._chunk_pts.end = int(self._length_sec * 1000)
 
         objectlist: list[Union[FloatObject, BoolObject, IntegerObject]] = [
             # type: ignore
@@ -136,8 +136,8 @@ class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
         for i in range(framecount):
             frame = Frame(
                 number=i,
-                timestamp=i * 1000,
-                timestamp64=i * 1000,
+                timestamp=i * self._frame_sec * 1000,
+                timestamp64=i * self._frame_sec * 1000,
                 objectlist=copy.deepcopy(objectlist)
             )
             frames.append(frame)

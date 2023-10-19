@@ -1,39 +1,29 @@
-"""Defines the structure of the PreviewMetadata for the version 0.6.3"""
-
 from datetime import datetime, timedelta
-from typing import Iterator, Optional
-from pytz import UTC
-
-from pydantic import field_validator, Field
-from base.model.metadata.base_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
-    BaseFrame, FrameSignal, Pose
-from selector.model.preview_metadata import PreviewMetadata
+from typing import Iterator, Optional, Union
+from pydantic import Field
+from base.model.base_model import ConfiguredBaseModel
+from base.model.metadata.base_metadata import BaseFrame, BaseMetadata, FrameSignal, ObjectList, PersonDetail, PtsTimeWindow, Resolution, UtcTimeWindow
 
 
-class Frame(BaseFrame):
-    hasPoseList: Optional[bool] = None
-    poselist: Optional[list[Pose]] = Field(default_factory=list)
+class Person(ConfiguredBaseModel):
+    id: int
+    confidence: float
+    person_detail: PersonDetail = Field(alias="personDetail")
 
 
-class PreviewMetadataV063(PreviewMetadata):
-    """Preview Metadata for the version V063"""
+class SnapshotFrame(BaseFrame):
+    objectlist: list[Union[ObjectList, Person]]
+
+
+class SnapshotMetadata(BaseMetadata):
     resolution: Resolution
     metadata_version: str = Field(alias="metaData version")
     pose_network_version: str = Field(alias="PoseNetwork version")
-    segmentation_network_version: str = Field(
-        alias="SegmentationNetwork version")
+    segmentation_network_version: str = Field(alias="SegmentationNetwork version")
     cve_reference_file: str = Field(alias="CVEReference file")
     chunk_pts: PtsTimeWindow = Field(alias="chunkPts")
     chunk_utc: UtcTimeWindow = Field(alias="chunkUtc")
-    frames: list[Frame] = Field(alias="frame", default_factory=list)
-
-    @field_validator("metadata_version")
-    @classmethod
-    def check_metadata_version(cls, version):  # pylint: disable=no-self-argument
-        """Ensure metadata version is over 0.6"""
-        if not isinstance(version, str) or not version.startswith("0.6"):
-            raise ValueError("Metadata version must start with 0.6")
-        return version
+    frames: list[SnapshotFrame] = Field(alias="frame", default_factory=list)
 
     @property
     def footage_from(self) -> datetime:
@@ -49,7 +39,7 @@ class PreviewMetadataV063(PreviewMetadata):
         """
         return self.chunk_utc.end
 
-    def get_frame_utc_timestamp(self, frame: Frame) -> datetime:
+    def get_frame_utc_timestamp(self, frame: SnapshotFrame) -> datetime:
         """
         Returns the utc timestamp of a specific frame.
 

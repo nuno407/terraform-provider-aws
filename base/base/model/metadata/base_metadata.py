@@ -2,9 +2,12 @@
 """Base metadata that should be used for every metadata handling"""
 from abc import abstractmethod
 from datetime import datetime
-from typing import Iterator, Optional, Union
+from typing import Annotated, Iterator, Optional, Union, Generic, TypeVar, Dict
 
-from pydantic import ConfigDict, BaseModel, Field  # pylint: disable=no-name-in-module
+from pydantic import ConfigDict, BaseModel, Field
+from pydantic.functional_validators import BeforeValidator
+
+from base.model.validators import UtcDatetimeInPast  # pylint: disable=no-name-in-module
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -18,27 +21,43 @@ class Resolution(ConfiguredBaseModel):
     height: int
 
 
+def parse_metadata_attributes(value) -> dict:
+    attributes = {}
+    if isinstance(value, list):
+        for val in value:
+            attributes.update(parse_metadata_attributes(val))
+    elif isinstance(value, dict):
+        if "name" in value and "value" in value:
+            attributes[value["name"]] = value["value"]
+        else:
+            attributes = value
+    return attributes
+
+
+T = TypeVar("T", float, int, bool, str)
+Attributes = Annotated[dict[str, T], BeforeValidator(parse_metadata_attributes)]
+
 class StringObject(ConfiguredBaseModel):
     """String objects from metadata"""
-    string_attributes: list[dict[str, str]] = Field(alias="stringAttributes", default=...)
+    string_attributes: Attributes[str] = Field(alias="stringAttributes", default=...)
 
 
 class FloatObject(ConfiguredBaseModel):
     """Float objects from metadata"""
-    float_attributes: list[dict[str, float]] = Field(alias="floatAttributes", default=...)
+    float_attributes: Attributes[float] = Field(alias="floatAttributes", default=...)
 
 
 class BoolObject(ConfiguredBaseModel):
     """Bool objects from metadata"""
-    bool_attributes: list[dict[str, bool]] = Field(alias="boolAttributes", default=...)
+    bool_attributes: Attributes[bool] = Field(alias="boolAttributes", default=...)
 
 
 class IntegerObject(ConfiguredBaseModel):
     """Integer objects from metadata"""
-    integer_attributes: list[dict[str, int]] = Field(alias="integerAttributes", default=...)
+    integer_attributes: Attributes[int] = Field(alias="integerAttributes", default=...)
 
 
-ObjectList = list[Union[FloatObject, BoolObject, IntegerObject, StringObject]]
+ObjectList = Union[FloatObject, BoolObject, IntegerObject, StringObject]
 
 
 class PtsTimeWindow(ConfiguredBaseModel):
@@ -49,16 +68,16 @@ class PtsTimeWindow(ConfiguredBaseModel):
 
 class UtcTimeWindow(ConfiguredBaseModel):
     """Window of utc timestamps"""
-    start: int = Field(alias="utc_start")
-    end: int = Field(alias="utc_end")
+    start: UtcDatetimeInPast = Field(alias="utc_start")
+    end: UtcDatetimeInPast = Field(alias="utc_end")
 
 
 class KeyPoint(ConfiguredBaseModel):
     """Keypoint"""
-    Name: str
-    X: float
-    Y: float
-    Conf: float
+    name: str = Field(alias="Name")
+    x: float = Field(alias="X")
+    y: float = Field(alias="Y")
+    conf: float = Field(alias="Conf")
 
 
 class PersonDetail(ConfiguredBaseModel):
@@ -71,49 +90,39 @@ class Pose(ConfiguredBaseModel):
     person_detail: PersonDetail = Field(alias="personDetail")
 
 
-class Frame(ConfiguredBaseModel):
+class BaseFrame(ConfiguredBaseModel):
     """Single frame of the metadata"""
     number: int
     timestamp: int
     timestamp64: Optional[int] = None
-    hasPoseList: Optional[bool] = None
-    objectlist: ObjectList
-    poselist: Optional[list[Pose]] = Field(default_factory=list)
+    objectlist: list[ObjectList]
 
     def get_string(self, attribute_name: str) -> Optional[str]:
         """ Tries to get a boolean value from the frame """
         for oli in self.objectlist:
             if isinstance(oli, StringObject):
-                for string_attribute_dict in oli.string_attributes:
-                    if attribute_name in string_attribute_dict:
-                        return string_attribute_dict[attribute_name]
+                return oli.string_attributes.get(attribute_name, None)
         return None
 
     def get_bool(self, attribute_name: str) -> Optional[bool]:
         """ Tries to get a boolean value from the frame """
         for oli in self.objectlist:
             if isinstance(oli, BoolObject):
-                for bool_attribute_dict in oli.bool_attributes:
-                    if attribute_name in bool_attribute_dict:
-                        return bool(bool_attribute_dict[attribute_name])
+                return oli.bool_attributes.get(attribute_name, None)
         return None
 
     def get_float(self, attribute_name: str) -> Optional[float]:
         """ Tries to get a float value from the frame """
         for oli in self.objectlist:
             if isinstance(oli, FloatObject):
-                for float_attribute_dict in oli.float_attributes:
-                    if attribute_name in float_attribute_dict:
-                        return float(float_attribute_dict[attribute_name])
+                return oli.float_attributes.get(attribute_name, None)
         return None
 
     def get_integer(self, attribute_name: str) -> Optional[int]:
         """ Tries to get an integer value from the frame """
         for oli in self.objectlist:
             if isinstance(oli, IntegerObject):
-                for integer_attribute_dict in oli.integer_attributes:
-                    if attribute_name in integer_attribute_dict:
-                        return int(integer_attribute_dict[attribute_name])
+                return oli.integer_attributes.get(attribute_name, None)
         return None
 
 
@@ -204,7 +213,7 @@ class BaseMetadata(ConfiguredBaseModel):
         """
 
     @abstractmethod
-    def get_frame_utc_timestamp(self, frame: Frame) -> datetime:
+    def get_frame_utc_timestamp(self, frame: BaseFrame) -> datetime:
         """
         Returns the frame UTC timestamp from a particular frame
 

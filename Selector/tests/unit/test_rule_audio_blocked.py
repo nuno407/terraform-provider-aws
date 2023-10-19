@@ -119,7 +119,7 @@ class TestAudioBlock:
                         if not first_ignored:
                             first_ignored = True
                         else:
-                            object.integer_attributes[0][rule.attribute_name] = "1"  # type: ignore
+                            object.integer_attributes[rule.attribute_name] = "1"  # type: ignore
             frame_counter += 1
 
         # WHEN / THEN
@@ -139,7 +139,7 @@ class TestAudioBlock:
             if frame_counter % 60 == 0:
                 for object in frame.objectlist:
                     if isinstance(object, IntegerObject):
-                        object.integer_attributes[0][rule.attribute_name] = "1"  # type: ignore
+                        object.integer_attributes[rule.attribute_name] = "1"  # type: ignore
             frame_counter += 1
 
         # WHEN / THEN

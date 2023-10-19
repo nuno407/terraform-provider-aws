@@ -113,7 +113,7 @@ class TestAudioBlock:
             # every 60 Frame
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject):
-                    object.integer_attributes[0][rule.attribute_name] = "1"  # type: ignore
+                    object.integer_attributes[rule.attribute_name] = "1"  # type: ignore
                     break
 
         # WHEN / THEN
