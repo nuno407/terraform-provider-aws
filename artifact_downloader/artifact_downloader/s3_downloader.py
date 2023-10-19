@@ -29,7 +29,20 @@ class S3Downloader:  # pylint: disable=too-few-public-methods
         Returns:
             dict: The json data
         """
-        bucket, path = self.__s3_controller.get_s3_path_parts(s3_path)
-        raw_data = self.__s3_controller.download_file(bucket, path)
+
+        raw_data = self.download(s3_path)
         str_data = raw_data.decode()
         return json.loads(str_data)
+
+    def download(self, s3_path: str) -> bytes:
+        """
+        Downloads raw files
+
+        Args:
+            s3_path (str): s3_path to file
+
+        Returns:
+            bytes: The data as raw bytes
+        """
+        bucket, path = self.__s3_controller.get_s3_path_parts(s3_path)
+        return self.__s3_controller.download_file(bucket, path)

@@ -24,10 +24,6 @@ class ProcessingResult(ConfiguredBaseModel):
     """Generic processing result"""
     correlation_id: str = Field(default=...)
 
-    def stringify(self) -> str:
-        """ stringifies the artifact. """
-        return self.json(by_alias=True, exclude_unset=False, exclude_none=True)
-
     @property
     @abstractmethod
     def artifact_id(self) -> str:

@@ -7,6 +7,7 @@ from requests import Request
 from base.model.artifacts import ProcessingResult, Artifact
 from artifact_downloader.s3_downloader import S3Downloader
 from artifact_downloader.config import ArtifactDownloaderConfig
+from base.model.base_model import ConfiguredBaseModel
 
 
 @dataclass
@@ -47,18 +48,17 @@ class RequestFactory:
 
     def generate_request_from_artifact_with_file(self,
                                                  endpoint: PartialEndpoint,
-                                                 message: Union[Artifact,
-                                                                ProcessingResult],
+                                                 message: ConfiguredBaseModel,
                                                  s3_path: str) -> Request:
         """
         Download json data and returns a post request with the following structure:
         {message=message,data="downloaded_data"}
 
-        Where downloaded_data is the file pointer by "s3_path". Only JSON data is acceped!
+        Where downloaded_data is the file pointer by "s3_path". Only JSON data is accepted!
 
         Args:
             endpoint (PartialEndpoints): The endpoint to be used
-            data (Union[Artifact, ProcessingResult]): The artifact to be sent
+            message (Union[Artifact, ProcessingResult]): The artifact to be sent
             s3_path (str): The s3 path to download data from
 
         Returns:
@@ -72,7 +72,7 @@ class RequestFactory:
         return request
 
     def generate_request_from_artifact(self, endpoint: PartialEndpoint,
-                                       data: Union[Artifact, ProcessingResult]) -> Request:
+                                       data: ConfiguredBaseModel) -> Request:
         """
         Returns the request form an artifact
 
@@ -93,6 +93,7 @@ class RequestFactory:
 
         Args:
             endpoint (Endpoint): The endpoint to be used
+            data (str): Raw data for request
         Returns:
             Request: The request to be made
         """

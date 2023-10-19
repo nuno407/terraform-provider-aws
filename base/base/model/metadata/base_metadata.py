@@ -9,10 +9,7 @@ from pydantic.functional_validators import BeforeValidator
 
 from base.model.validators import UtcDatetimeInPast  # pylint: disable=no-name-in-module
 
-
-class ConfiguredBaseModel(BaseModel):
-    """Base configuration for pydantic"""
-    model_config = ConfigDict(populate_by_name=True, extra="allow", validate_assignment=True)
+from base.model.base_model import ConfiguredBaseModel
 
 
 class Resolution(ConfiguredBaseModel):
