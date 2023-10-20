@@ -21,8 +21,6 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
             s3_controller (S3Downloader): s3_controller
         """
         self.__request_factory = request_factory
-
-        self.__endpoint_snap = PartialEndpoint.RC_PIPELINE_CHC_SNAPSHOT
         self.__endpoint_video = PartialEndpoint.RC_PIPELINE_CHC_VIDEO
 
     def create_request(self, message: CHCMessage) -> Request:
@@ -40,10 +38,6 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
         """
         if not isinstance(message.body, CHCResult):
             raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not chc message")
-
-        if message.body.raw_s3_path.endswith(".jpeg"):
-            return self.__request_factory.generate_request_from_artifact_with_file(
-                self.__endpoint_snap, message.body, message.body.s3_path)
 
         if message.body.raw_s3_path.endswith(".mp4"):
             return self.__request_factory.generate_request_from_artifact_with_file(

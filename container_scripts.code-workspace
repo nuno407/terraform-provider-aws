@@ -7,6 +7,9 @@
 			"path": "./artifact_downloader"
 		},
 		{
+			"path": "./artifact_api"
+		},
+		{
 			"path": "./base"
 		},
 		{
