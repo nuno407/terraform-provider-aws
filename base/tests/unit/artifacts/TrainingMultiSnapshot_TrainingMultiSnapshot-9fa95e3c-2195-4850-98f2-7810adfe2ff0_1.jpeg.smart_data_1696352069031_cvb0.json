@@ -1,0 +1,36 @@
+{
+  "resolution": {
+    "width": "1280",
+    "height": "720"
+  },
+  "metaData version": "unknown",
+  "PoseNetwork version": "",
+  "SegmentationNetwork version": "",
+  "CVEReference file": "",
+  "chunkPts": {
+    "pts_start": "38290",
+    "pts_end": "38290"
+  },
+  "chunkUtc": {
+    "utc_start": "1696352069034",
+    "utc_end": "1696352069034"
+  },
+  "frame": [
+    {
+      "number": "7",
+      "timestamp": "38290",
+      "timestamp64": "38290",
+      "objectlist": [
+        {
+          "id": "1",
+          "floatAttributes": [
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.948"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,21 +1,30 @@
+"""Model for a snapshot metadata"""
 from datetime import datetime, timedelta
 from typing import Iterator, Optional, Union
+
 from pydantic import Field
+
 from base.model.base_model import ConfiguredBaseModel
-from base.model.metadata.base_metadata import BaseFrame, BaseMetadata, FrameSignal, ObjectList, PersonDetail, PtsTimeWindow, Resolution, UtcTimeWindow
+from base.model.metadata.base_metadata import (BaseFrame, BaseMetadata,
+                                               FrameSignal, ObjectList,
+                                               PersonDetail, PtsTimeWindow,
+                                               Resolution, UtcTimeWindow)
 
 
 class Person(ConfiguredBaseModel):
+    "Person"
     id: int
     confidence: float
     person_detail: PersonDetail = Field(alias="personDetail")
 
 
 class SnapshotFrame(BaseFrame):
-    objectlist: list[Union[ObjectList, Person]]
+    """SnapshotFrame"""
+    objectlist: list[Union[ObjectList, Person]]  # type: ignore
 
 
 class SnapshotMetadata(BaseMetadata):
+    """SnashotMetadata"""
     resolution: Resolution
     metadata_version: str = Field(alias="metaData version")
     pose_network_version: str = Field(alias="PoseNetwork version")
@@ -39,7 +48,7 @@ class SnapshotMetadata(BaseMetadata):
         """
         return self.chunk_utc.end
 
-    def get_frame_utc_timestamp(self, frame: SnapshotFrame) -> datetime:
+    def get_frame_utc_timestamp(self, frame: BaseFrame) -> datetime:
         """
         Returns the utc timestamp of a specific frame.
 
@@ -49,7 +58,7 @@ class SnapshotMetadata(BaseMetadata):
         Returns:
             datetime: The UTC timestamp of the frame
         """
-        return self.chunk_utc.start + timedelta(milliseconds=(frame.timestamp - self.chunk_pts.start))
+        return self.chunk_utc.start + timedelta(milliseconds=frame.timestamp - self.chunk_pts.start)
 
     def get_bool(self, name: str, default: Optional[bool] = None) -> Iterator[FrameSignal]:
         """

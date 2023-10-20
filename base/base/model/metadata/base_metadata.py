@@ -2,7 +2,7 @@
 """Base metadata that should be used for every metadata handling"""
 from abc import abstractmethod
 from datetime import datetime
-from typing import Annotated, Iterator, Optional, Union, Generic, TypeVar, Dict
+from typing import Annotated, Iterator, Optional, Union, TypeVar
 
 from pydantic import ConfigDict, BaseModel, Field
 from pydantic.functional_validators import BeforeValidator
@@ -22,6 +22,7 @@ class Resolution(ConfiguredBaseModel):
 
 
 def parse_metadata_attributes(value) -> dict:
+    """Parse metadata attributes"""
     attributes = {}
     if isinstance(value, list):
         for val in value:
@@ -36,6 +37,7 @@ def parse_metadata_attributes(value) -> dict:
 
 T = TypeVar("T", float, int, bool, str)
 Attributes = Annotated[dict[str, T], BeforeValidator(parse_metadata_attributes)]
+
 
 class StringObject(ConfiguredBaseModel):
     """String objects from metadata"""

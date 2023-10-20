@@ -2,7 +2,6 @@
 
 from datetime import datetime, timedelta
 from typing import Iterator, Optional
-from pytz import UTC
 
 from pydantic import field_validator, Field
 from base.model.metadata.base_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
@@ -11,6 +10,7 @@ from selector.model.preview_metadata import PreviewMetadata
 
 
 class Frame(BaseFrame):
+    """The frame for the preview metadata"""
     hasPoseList: Optional[bool] = None
     poselist: Optional[list[Pose]] = Field(default_factory=list)
 
@@ -59,7 +59,7 @@ class PreviewMetadataV063(PreviewMetadata):
         Returns:
             datetime: The UTC timestamp of the frame
         """
-        return self.chunk_utc.start + timedelta(milliseconds=(frame.timestamp - self.chunk_pts.start))
+        return self.chunk_utc.start + timedelta(milliseconds=frame.timestamp - self.chunk_pts.start)
 
     def get_bool(self, name: str, default: Optional[bool] = None) -> Iterator[FrameSignal]:
         """
