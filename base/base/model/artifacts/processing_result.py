@@ -80,13 +80,13 @@ ProcessingResults = Union[SignalsProcessingResult,
                           CHCResult,
                           PipelineProcessingStatus]
 
-DiscriminatedProcessingResults = TypeAdapter(Annotated[ProcessingResults,
-                                                       Field(...,
-                                                             discriminator="artifact_name")])
+DiscriminatedProcessingResultsTypeAdapter = TypeAdapter(Annotated[ProcessingResults,
+                                                                  Field(...,
+                                                                        discriminator="artifact_name")])
 
 
 def parse_results(json_data: Union[str, dict]) -> ProcessingResult:
     """Parse artifact from string"""
     if isinstance(json_data, dict):
-        return DiscriminatedProcessingResults.validate_python(json_data)  # type: ignore
-    return DiscriminatedProcessingResults.validate_json(json_data)  # type: ignore
+        return DiscriminatedProcessingResultsTypeAdapter.validate_python(json_data)  # type: ignore
+    return DiscriminatedProcessingResultsTypeAdapter.validate_json(json_data)  # type: ignore

@@ -7,7 +7,7 @@ S3Path = Annotated[str, Field(pattern="s3://.+/.+", default=...)]
 
 class ConfiguredBaseModel(BaseModel):
     """Pydantic BaseModel with config options for DevCloud usage"""
-    model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
+    model_config = ConfigDict(validate_assignment=True, populate_by_name=True, arbitrary_types_allowed=True)
 
     def stringify(self) -> str:
         """ stringifies the artifact. """

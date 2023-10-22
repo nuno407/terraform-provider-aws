@@ -69,7 +69,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
 
         return json_message, source_container
 
-    def parse_message(self, message: MessageTypeDef) -> MessageTypeDef:
+    def adapt_message(self, message: MessageTypeDef) -> MessageTypeDef:
         """
         Parses a raw SQS message from anon_ivschain, chc_ivschain, sdm, mdfparser.
         The returned message is parsed and will contain the artifact in string format.

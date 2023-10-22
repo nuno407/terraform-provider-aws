@@ -65,18 +65,8 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
             Request: The request to be to the handler
         """
 
-        # ONLY NEEDED FOR SNS EMBEDED MESSAGE
-        message_dict = parse_message_body_to_dict(message["Body"])
-        if message and "messageAttributes" in message_dict and "body" in message_dict:
-            _logger.info("Message generated from sqs to sns subscription.")
-            message["MessageAttributes"] = message_dict["messageAttributes"]
-            message["Body"] = message_dict["body"]
-
-        # Parse raw artifact messages from sdm, mdfparser, anonymize and chc
-        parsed_message = self.__raw_message_parser.parse_message(message)
-
         # Parses and retireves the message based on the container
-        container_message = parse_sqs_message(parsed_message)
+        container_message = self.parse_message(message)
         container_type_message = type(container_message)
 
         _logger.debug("Message has been parsed into a pydantic model")
@@ -89,3 +79,43 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
         _logger.debug("Handler %s is going to process the message", str(container_type_message))
 
         return container_handler.create_request(container_message)
+
+    def parse_message(self, message: MessageTypeDef) -> SqsMessage:
+        """
+        Converts a message from the queue into an SQSMessage.
+
+        This will apply the following temporary conversions:
+        1. Apply a conversion for SNS embedded messages.
+        2. Convert messages that are not pydantic models yet.
+
+        Lastly a final parsing will be made assuming that every message can be parsed into a pydantic model
+
+        Args:
+            message (MessageTypeDef): _description_
+
+        Returns:
+            SqsMessage: _description_
+        """
+
+        # ONLY NEEDED FOR SNS EMBEDED MESSAGE SHOULD
+        message_dict = parse_message_body_to_dict(message["Body"])
+        if "messageAttributes" in message_dict and "body" in message_dict:
+            message["MessageAttributes"] = message_dict["messageAttributes"]
+            message["Body"] = message_dict["body"]
+
+            # Capitilizes the message attribute type keys
+            for attr_key, attr_dict in message["MessageAttributes"].items():
+                new_dict = {}
+                for attr_type, attrt_value in attr_dict.items():
+                    cap_attr_type = attr_type[0].upper() + attr_type[1:]
+                    new_dict[cap_attr_type] = attrt_value
+
+                message["MessageAttributes"][attr_key] = new_dict  # type: ignore
+
+        # Parse raw artifact messages from sdm, mdfparser, anonymize and chc
+        parsed_message = self.__raw_message_parser.adapt_message(message)
+
+        _logger.info("Message after temporary parsing %s", parsed_message)
+
+        # Parses into a pydantic model
+        return parse_sqs_message(parsed_message)

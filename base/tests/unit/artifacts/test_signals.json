@@ -1,0 +1,11 @@
+{
+    "0:00:01.006000": {
+        "CameraViewShifted": false,
+        "Gnss_has_fix": true,
+        "mock_int_value": 1,
+        "mock_int_float": 1.0
+    },
+    "0:00:02.024000": {
+        "CameraViewShifted": false
+    }
+}

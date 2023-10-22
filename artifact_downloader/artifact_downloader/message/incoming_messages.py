@@ -4,9 +4,9 @@ import json
 from ast import literal_eval
 from typing import Generic, Literal, TypeVar, Union
 from mypy_boto3_sqs.type_defs import MessageTypeDef
-from pydantic import Field, field_validator, parse_obj_as
+from pydantic import Field, field_validator, TypeAdapter
 
-from base.model.artifacts import DiscriminatedArtifacts
+from base.model.artifacts import AnnotatedArtifacts
 from base.model.base_model import ConfiguredBaseModel
 
 
@@ -45,7 +45,7 @@ class SqsMessage(ConfiguredBaseModel, Generic[BodyType, AttributeType]):
     receipt_handle: str = Field(alias="ReceiptHandle")
     attributes: AttributeType = Field(alias="MessageAttributes")
 
-    @field_validator("source_container", mode="before")
+    @field_validator("body", mode="before")
     def parse_body(cls, body) -> dict:
         """Parses the body of an SQS message"""
         if isinstance(body, dict):
@@ -65,29 +65,33 @@ class SqsMessage(ConfiguredBaseModel, Generic[BodyType, AttributeType]):
         return data
 
 
-class SanitizerMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Sanitizer"]]]):
+class SanitizerMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["Sanitizer"]]]):
     """ SanitizerMessage """
 
 
-class SDRetrieverMessage(SqsMessage[DiscriminatedArtifacts,
+class SDRetrieverMessage(SqsMessage[AnnotatedArtifacts,
                                     MessageAttributesWithSourceContainer[Literal["SDRetriever"]]]):
     """ SDRMessage """
 
 
-class MDFParserMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["MDFParser"]]]):
+class MDFParserMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["MDFParser"]]]):
     """ MDFParserMessage """
 
 
-class AnonymizeMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["Anonymize"]]]):
+class AnonymizeMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["Anonymize"]]]):
     """ AnonymizeMessage """
 
 
-class CHCMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["CHC"]]]):
+class CHCMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["CHC"]]]):
     """ CHCMessage """
 
 
-class SDMMessage(SqsMessage[DiscriminatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDM"]]]):
+class SDMMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["SDM"]]]):
     """ SDMMessage """
+
+
+SQSMessageAdapter = TypeAdapter(Union[SDMMessage, CHCMessage, AnonymizeMessage,
+                                MDFParserMessage, SDRetrieverMessage, SanitizerMessage])
 
 
 def parse_sqs_message(message: MessageTypeDef) -> SqsMessage:
@@ -100,5 +104,4 @@ def parse_sqs_message(message: MessageTypeDef) -> SqsMessage:
     Returns:
         SqsMessage: The respective container message
     """
-    return parse_obj_as(Union[SanitizerMessage, SDMMessage, CHCMessage, AnonymizeMessage,  # type: ignore
-                        MDFParserMessage, SDRetrieverMessage, SanitizerMessage], message)
+    return SQSMessageAdapter.validate_python(message)  # type: ignore

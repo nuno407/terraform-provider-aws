@@ -6,6 +6,7 @@ botocore == 1.29.91
 aws_error_utils == 2.7.0
 expiringdict == 1.2.2
 backoff == 2.2.1
+requests == 2.31.0
 pylint-pydantic == 0.3.0
 types_PyYAML == 6.0.12.12
 types_requests == 2.31.0.6

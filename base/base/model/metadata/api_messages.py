@@ -1,21 +1,21 @@
 """Metadata API messages"""
 from typing import Union
-from datetime import timedelta
 from pydantic import RootModel
-from base.model.artifacts import RecorderType, IMUArtifact, SignalsArtifact
+from base.model.validators import LegacyTimeDelta, UtcDatetimeInPast
+from base.model.artifacts import IMUArtifact, SignalsArtifact
 from base.model.base_model import ConfiguredBaseModel
 
 
 class IMUSource(ConfiguredBaseModel):
     """IMU Source"""
-    device_id: float
-    tenant: float
-    recorder: RecorderType
+    device_id: str
+    tenant: str
 
 
 class IMUSample(ConfiguredBaseModel):
     "IMU Sample"
     source: IMUSource
+    timestamp: UtcDatetimeInPast  # This might cause slow parsing, needs investigation on large files
     gyr_y_mean: float
     gyr_x_var: float
     gyr_z_max: float
@@ -42,6 +42,11 @@ class IMUSample(ConfiguredBaseModel):
     gyr_z_min: float
 
 
+class IMUProcessedData(RootModel):
+    """IMUProcessedData"""
+    root: list[IMUSample]
+
+
 class SignalsFrame(RootModel):
     """SignalsFrame"""
     root: dict[str, Union[int, float, bool]]
@@ -49,7 +54,7 @@ class SignalsFrame(RootModel):
 
 class VideoSignalsData(RootModel):
     """Video Signals file"""
-    root: dict[timedelta, SignalsFrame]
+    root: dict[LegacyTimeDelta, SignalsFrame]
 
 
 class SnapshotSignalsData(ConfiguredBaseModel):
@@ -61,7 +66,7 @@ class SnapshotSignalsData(ConfiguredBaseModel):
 class IMUDataArtifact(ConfiguredBaseModel):
     """IMUData"""
     message: IMUArtifact
-    data: list[IMUSample]
+    data: IMUProcessedData
 
 
 class CHCDataResult(ConfiguredBaseModel):

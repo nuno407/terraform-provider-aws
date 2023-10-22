@@ -5,15 +5,15 @@ from datetime import timedelta
 from requests import Request
 from kink import inject
 
+from base.model.artifacts import CHCResult
+from base.model.metadata.api_messages import CHCDataResult
 from artifact_downloader.chc_synchronizer import ChcSynchronizer
 from artifact_downloader.post_processor import IVideoPostProcessor
 from artifact_downloader.s3_downloader import S3Downloader
-from base.model.artifacts import CHCResult
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.message.incoming_messages import CHCMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
 from artifact_downloader.request_factory import RequestFactory, PartialEndpoint
-from base.model.metadata.api_messages import CHCDataResult
 
 
 @inject
@@ -57,7 +57,7 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
             chc_data = CHCDataResult(id=recording_id, chc_path=message.body.raw_s3_path, data=signals)
             return self.__request_factory.generate_request_from_artifact(self.__endpoint_video, chc_data)
 
-        raise UnexpectedContainerMessage("Anonymization result is neither a snapshot nor video")
+        raise UnexpectedContainerMessage("Anonymization result is neither not a video")
 
     def download_and_synchronize_chc(self, chc_s3_path: str, video_s3_path: str) -> dict:
         """Downloads and synchronize CHC signals based on recording length.
@@ -78,6 +78,5 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
         chc_syncer = ChcSynchronizer()
         chc_dict = self.__s3_downloader.download_convert_json(chc_s3_path)
         chc_sync = chc_syncer.synchronize(chc_dict, video_length)
-        chc_sync_parsed = {str(ts): signals for ts, signals in chc_sync.items()}
 
-        return chc_sync_parsed
+        return chc_sync

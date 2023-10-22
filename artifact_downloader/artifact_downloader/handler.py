@@ -4,6 +4,7 @@ import logging
 
 from kink import inject
 
+from requests.exceptions import ConnectionError as RequestsConnectionError
 from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from artifact_downloader.http_client import HttpClient
@@ -43,3 +44,6 @@ class Handler():  # pylint: disable=too-few-public-methods
                 self.__sqs_controller.delete_message(message)
             except UnexpectedReturnCode as excpt:
                 _logger.error("Error executing the API request (%s)", str(excpt))
+
+            except RequestsConnectionError as excpt:
+                _logger.error("Error reaching endpoint. (%s)", str(excpt))

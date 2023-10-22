@@ -2,7 +2,7 @@ FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.11.5-al
 
 WORKDIR /app
 
-RUN apk update && apk upgrade
+RUN apk update && apk upgrade && apk add ffmpeg
 
 # Run as non-root user and group
 RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker

@@ -1,29 +1,25 @@
 """ Request Factory """
-from typing import Union
-from dataclasses import dataclass
 from enum import Enum
 from kink import inject
 from requests import Request
-from base.model.artifacts import ProcessingResult, Artifact
+from base.model.base_model import ConfiguredBaseModel
 from artifact_downloader.s3_downloader import S3Downloader
 from artifact_downloader.config import ArtifactDownloaderConfig
-from base.model.base_model import ConfiguredBaseModel
 
 
-@dataclass
-class PartialEndpoint(Enum):
+class PartialEndpoint(str, Enum):
     """ Contains all the endpoints to be used """
-    RC_SIGNALS_VIDEO = "/ridecare/signals/video"
-    RC_SIGNALS_SNAPSHOT = "/ridecare/signals/snapshot"
-    RC_VIDEO = "/ridecare/video"
-    RC_SNAPSHOT = "/ridecare/snapshots"
-    RC_IMU_VIDEO = "/ridecare/imu/video"
-    RC_PIPELINE_ANON_VIDEO = "/ridecare/pipeline/anonymize/video"
-    RC_PIPELINE_ANON_SNAPSHOT = "/ridecare/pipeline/anonymize/snapshot"
-    RC_PIPELINE_CHC_VIDEO = "/ridecare/pipeline/chc/video"
-    RC_PIPELINE_STATUS = "/ridecare/pipeline/chc/status"
-    RC_OPERATOR = "/ridecare/operator"
-    RC_EVENT = "/ridecare/event"
+    RC_SIGNALS_VIDEO = "ridecare/signals/video"
+    RC_SIGNALS_SNAPSHOT = "ridecare/signals/snapshot"
+    RC_VIDEO = "ridecare/video"
+    RC_SNAPSHOT = "ridecare/snapshots"
+    RC_IMU_VIDEO = "ridecare/imu/video"
+    RC_PIPELINE_ANON_VIDEO = "ridecare/pipeline/anonymize/video"
+    RC_PIPELINE_ANON_SNAPSHOT = "ridecare/pipeline/anonymize/snapshot"
+    RC_PIPELINE_CHC_VIDEO = "ridecare/pipeline/chc/video"
+    RC_PIPELINE_STATUS = "ridecare/pipeline/chc/status"
+    RC_OPERATOR = "ridecare/operator"
+    RC_EVENT = "ridecare/event"
 
     def __str__(self) -> str:
         """

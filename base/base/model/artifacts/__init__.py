@@ -2,5 +2,5 @@
 from base.model.artifacts.artifacts import *
 from base.model.artifacts.processing_result import *
 
-DiscriminatedArtifacts = TypeAdapter(
-    Annotated[Union[ProcessingResults, RCCArtifacts], Field(..., discriminator="artifact_name")])
+AnnotatedArtifacts = Annotated[Union[ProcessingResults, RCCArtifacts], Field(..., discriminator="artifact_name")]
+DiscriminatedArtifactsTypeAdapter = TypeAdapter(AnnotatedArtifacts)
