@@ -62,6 +62,12 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "mongoengine.*"
 ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "fiftyone"
+ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "fiftyone.core.metadata"
+ignore_missing_imports = true
 
 [tool.bandit]
 exclude_dirs = ["tests"]

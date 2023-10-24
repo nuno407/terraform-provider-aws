@@ -14,7 +14,7 @@ class EventsController:
     """Controller for events"""
     @events_router.post("/ridecare/operator", response_model=ResponseMessage)
     async def process_operator_feedback(self, operator_event: Union[SOSOperatorArtifact,   # pylint: disable=unused-argument
-                                                                    PeopleCountOperatorArtifact, CameraBlockedOperatorArtifact]):
+                                                                    PeopleCountOperatorArtifact, CameraBlockedOperatorArtifact]):  # pylint: disable=line-too-long
         """
         Process the operator event feedback
 
