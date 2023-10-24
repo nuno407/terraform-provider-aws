@@ -4,7 +4,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Annotated, Iterator, Optional, Union, TypeVar
 
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import Field
 from pydantic.functional_validators import BeforeValidator
 
 from base.model.validators import UtcDatetimeInPast  # pylint: disable=no-name-in-module

@@ -1,0 +1,919 @@
+{
+  "resolution": {
+    "width": "1280",
+    "height": "720"
+  },
+  "metaData version": "unknown",
+  "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+  "SegmentationNetwork version": "20220525_D7xF8_BOPre_11Classes",
+  "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+  "blockingrect": [],
+  "frame": [
+    {
+      "number": "0",
+      "timestamp": "3664604246",
+      "timestamp64": "1678701849686",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.907"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "floatAttributes": [
+            {
+              "name": "CameraViewEstimation_r",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_s",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_tx",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_ty",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "9",
+          "floatAttributes": [
+            {
+              "name": "background",
+              "value": "0.907"
+            },
+            {
+              "name": "backseat",
+              "value": "0"
+            },
+            {
+              "name": "ceiling",
+              "value": "0"
+            },
+            {
+              "name": "central_console",
+              "value": "0"
+            },
+            {
+              "name": "dashboard",
+              "value": "0.016"
+            },
+            {
+              "name": "door",
+              "value": "0.006"
+            },
+            {
+              "name": "frontseat",
+              "value": "0.005"
+            },
+            {
+              "name": "headrest",
+              "value": "0"
+            },
+            {
+              "name": "outdoor",
+              "value": "0.005"
+            },
+            {
+              "name": "person",
+              "value": "0.049"
+            },
+            {
+              "name": "pillar",
+              "value": "0.01"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "0.453"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "0.453"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "16",
+          "confidence": "0",
+          "box": {
+            "height": "0",
+            "width": "0",
+            "x": "0",
+            "y": "0"
+          },
+          "personDetail": {
+            "KeyPoint": [
+              {
+                "Name": "LeftAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "786",
+                "Y": "477",
+                "Conf": "0.536"
+              },
+              {
+                "Name": "LeftElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "729",
+                "Y": "367",
+                "Conf": "0.15"
+              },
+              {
+                "Name": "LeftEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "763",
+                "Y": "475",
+                "Conf": "0.737"
+              },
+              {
+                "Name": "LeftHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "760",
+                "Y": "318",
+                "Conf": "0.109"
+              },
+              {
+                "Name": "LeftKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "764",
+                "Y": "417",
+                "Conf": "0.425"
+              },
+              {
+                "Name": "LeftWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "Neck",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "798",
+                "Y": "434",
+                "Conf": "0.565"
+              },
+              {
+                "Name": "Nose",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "763",
+                "Y": "468",
+                "Conf": "0.714"
+              },
+              {
+                "Name": "RightAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "802",
+                "Y": "471",
+                "Conf": "0.715"
+              },
+              {
+                "Name": "RightElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "874",
+                "Y": "344",
+                "Conf": "0.288"
+              },
+              {
+                "Name": "RightEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "775",
+                "Y": "473",
+                "Conf": "0.696"
+              },
+              {
+                "Name": "RightHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "826",
+                "Y": "307",
+                "Conf": "0.175"
+              },
+              {
+                "Name": "RightKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "849",
+                "Y": "420",
+                "Conf": "0.592"
+              },
+              {
+                "Name": "RightWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "809",
+                "Y": "355",
+                "Conf": "0.19"
+              }
+            ]
+          }
+        },
+        {
+          "id": "16",
+          "confidence": "0",
+          "box": {
+            "height": "0",
+            "width": "0",
+            "x": "0",
+            "y": "0"
+          },
+          "personDetail": {
+            "KeyPoint": [
+              {
+                "Name": "LeftAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "Neck",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "Nose",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "217",
+                "Y": "522",
+                "Conf": "0.102"
+              },
+              {
+                "Name": "RightElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "232",
+                "Y": "462",
+                "Conf": "0.146"
+              },
+              {
+                "Name": "RightWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              }
+            ]
+          }
+        }
+      ],
+      "facelist": []
+    },
+    {
+      "number": "1",
+      "timestamp": "3664604253",
+      "timestamp64": "1678701849693",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.918"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "floatAttributes": [
+            {
+              "name": "CameraViewEstimation_r",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_s",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_tx",
+              "value": "0"
+            },
+            {
+              "name": "CameraViewEstimation_ty",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "9",
+          "floatAttributes": [
+            {
+              "name": "background",
+              "value": "0.918"
+            },
+            {
+              "name": "backseat",
+              "value": "0"
+            },
+            {
+              "name": "ceiling",
+              "value": "0.001"
+            },
+            {
+              "name": "central_console",
+              "value": "0"
+            },
+            {
+              "name": "dashboard",
+              "value": "0.01"
+            },
+            {
+              "name": "door",
+              "value": "0.006"
+            },
+            {
+              "name": "frontseat",
+              "value": "0.004"
+            },
+            {
+              "name": "headrest",
+              "value": "0"
+            },
+            {
+              "name": "outdoor",
+              "value": "0.004"
+            },
+            {
+              "name": "person",
+              "value": "0.047"
+            },
+            {
+              "name": "pillar",
+              "value": "0.01"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "0.486"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "0.486"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "16",
+          "confidence": "0",
+          "box": {
+            "height": "0",
+            "width": "0",
+            "x": "0",
+            "y": "0"
+          },
+          "personDetail": {
+            "KeyPoint": [
+              {
+                "Name": "LeftAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "782",
+                "Y": "477",
+                "Conf": "0.539"
+              },
+              {
+                "Name": "LeftElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "760",
+                "Y": "475",
+                "Conf": "0.73"
+              },
+              {
+                "Name": "LeftHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "760",
+                "Y": "307",
+                "Conf": "0.119"
+              },
+              {
+                "Name": "LeftKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "763",
+                "Y": "417",
+                "Conf": "0.441"
+              },
+              {
+                "Name": "LeftWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "Neck",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "797",
+                "Y": "433",
+                "Conf": "0.591"
+              },
+              {
+                "Name": "Nose",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "761",
+                "Y": "467",
+                "Conf": "0.722"
+              },
+              {
+                "Name": "RightAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "800",
+                "Y": "470",
+                "Conf": "0.712"
+              },
+              {
+                "Name": "RightElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "875",
+                "Y": "344",
+                "Conf": "0.302"
+              },
+              {
+                "Name": "RightEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "773",
+                "Y": "472",
+                "Conf": "0.713"
+              },
+              {
+                "Name": "RightHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "826",
+                "Y": "307",
+                "Conf": "0.173"
+              },
+              {
+                "Name": "RightKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "849",
+                "Y": "419",
+                "Conf": "0.579"
+              },
+              {
+                "Name": "RightWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "809",
+                "Y": "355",
+                "Conf": "0.206"
+              }
+            ]
+          }
+        },
+        {
+          "id": "16",
+          "confidence": "0",
+          "box": {
+            "height": "0",
+            "width": "0",
+            "x": "0",
+            "y": "0"
+          },
+          "personDetail": {
+            "KeyPoint": [
+              {
+                "Name": "LeftAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "LeftShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "1065",
+                "Y": "127",
+                "Conf": "0.158"
+              },
+              {
+                "Name": "LeftWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "Neck",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "1081",
+                "Y": "104",
+                "Conf": "0.308"
+              },
+              {
+                "Name": "Nose",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "1064",
+                "Y": "54",
+                "Conf": "0.1"
+              },
+              {
+                "Name": "RightAnkle",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEar",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightElbow",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightEye",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightHip",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "1114",
+                "Y": "343",
+                "Conf": "0.256"
+              },
+              {
+                "Name": "RightKnee",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              },
+              {
+                "Name": "RightShoulder",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "1115",
+                "Y": "140",
+                "Conf": "0.375"
+              },
+              {
+                "Name": "RightWrist",
+                "Valid": "1",
+                "OutOfFrame": "0",
+                "X": "0",
+                "Y": "0",
+                "Conf": "0"
+              }
+            ]
+          }
+        }
+      ],
+      "facelist": []
+    }
+  ]
+}
