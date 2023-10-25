@@ -5,6 +5,7 @@ import logging
 
 import flask
 import yaml
+import os
 from flask import make_response, request
 from flask_cors import CORS
 from flask_restx import Api, Resource, fields, reqparse
@@ -62,6 +63,8 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
     app.wsgi_app = ReverseProxied(app.wsgi_app, app)  # type: ignore
     CORS(app, resources={r"/*": {"origins": "*"}})
 
+    env = os.environ.get("ENVIRONMENT")
+
     # Swagger documentation initialisation
     api = Api(app, version="1.0", title="Metadata management API",
               description="API used for communication between Frontend UI and DocumentDB database",
@@ -98,7 +101,7 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         response.headers["Strict-Transport-Security"] = "max-age=31536000 ; includeSubDomains"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; connect-src login.microsoftonline.com 'self'; media-src dev-rcd-anonymized-video-files.s3.amazonaws.com; script-src 'unsafe-inline' 'self';"
+        response.headers["Content-Security-Policy"] = f"default-src 'self'; connect-src login.microsoftonline.com 'self'; media-src {env}-rcd-anonymized-video-files.s3.amazonaws.com; script-src 'unsafe-inline' 'self';"
         return response
 
     @api.route("/alive")
