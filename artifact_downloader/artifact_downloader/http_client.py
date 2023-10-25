@@ -43,7 +43,7 @@ class HttpClient:   # pylint: disable=too-few-public-methods
     def execute_request(self, req: Request) -> Response:
         """ Executes a request, checks with the allowed return codes and retries if neccessary. """
 
-        _logger.info("Sending request to %s with data=%s", req.url, str(req.data))
+        _logger.info("Sending request to %s", req.url)
         resp = self.__session.send(req.prepare())
         if resp.status_code != 200:
             raise UnexpectedReturnCode(
