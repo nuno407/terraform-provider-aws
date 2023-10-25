@@ -10,6 +10,7 @@ from mypy_boto3_s3 import S3Client
 from base.graceful_exit import GracefulExit
 from base.aws.container_services import ContainerServices
 from artifact_downloader.config import ArtifactDownloaderConfig
+from artifact_downloader.chc_synchronizer import ChcSynchronizer
 
 
 def bootstrap_di():
@@ -26,6 +27,7 @@ def bootstrap_di():
     config = ArtifactDownloaderConfig.load_yaml_config(di["config_path"])
     di[ArtifactDownloaderConfig] = config
     di["default_sqs_queue_name"] = config.input_queue
+    di[ChcSynchronizer] = ChcSynchronizer()
 
     di[GracefulExit] = GracefulExit()
 

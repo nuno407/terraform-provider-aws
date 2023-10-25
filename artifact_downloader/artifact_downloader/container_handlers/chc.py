@@ -21,7 +21,7 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
     """CHC container handler"""
 
     def __init__(self, request_factory: RequestFactory, s3_downloader: S3Downloader,
-                 post_processor: IVideoPostProcessor):
+                 post_processor: IVideoPostProcessor, chc_syncronizer: ChcSynchronizer):
         """
         Constructor
 
@@ -34,6 +34,7 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
         self.__s3_downloader = s3_downloader
         self.__post_processor = post_processor
         self.__endpoint_video = PartialEndpoint.RC_PIPELINE_CHC_VIDEO
+        self.__chc_syncronizer = chc_syncronizer
 
     def create_request(self, message: CHCMessage) -> Request:
         """
@@ -72,11 +73,10 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
         video_file = self.__s3_downloader.download(video_s3_path)
         video_info = self.__post_processor.execute(video_file)
 
-        video_length = timedelta(video_info.duration)
+        video_length = timedelta(seconds=video_info.duration)
 
         # do the synchronisation
-        chc_syncer = ChcSynchronizer()
         chc_dict = self.__s3_downloader.download_convert_json(chc_s3_path)
-        chc_sync = chc_syncer.synchronize(chc_dict, video_length)
+        chc_sync = self.__chc_syncronizer.synchronize(chc_dict, video_length)
 
         return chc_sync
