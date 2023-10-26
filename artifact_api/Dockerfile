@@ -28,4 +28,4 @@ WORKDIR /app/artifact_api
 RUN pip install -e .
 
 # Run uvicorn to serve the API
-CMD [ "uvicorn", "artifact_api.controller:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD [ "uvicorn", "artifact_api.router:app", "--host", "0.0.0.0", "--port", "5000"]
