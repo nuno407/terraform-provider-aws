@@ -40,5 +40,5 @@ COPY --chown=101 --from=build /home/node/app/dist/ /usr/share/nginx/html
 # Expose port 80
 EXPOSE 30080
 
-# Inject environment variables on container start
+# Inject environment variables for js on container start
 CMD ["/bin/sh",  "-c",  "envsubst < /usr/share/nginx/html/assets/env.template.js > /usr/share/nginx/html/assets/env.js && exec nginx -g 'daemon off;'"]
