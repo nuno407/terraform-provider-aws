@@ -4,12 +4,12 @@ import yaml
 from base.model.base_model import ConfiguredBaseModel
 from pydantic import Field
 
+
 class ArtifactAPIConfig(ConfiguredBaseModel):
     """
     Config holding information about ArtifactAPI component
     """
     mongodb_name: str = Field(..., alias="mongodb-name")
-    voxeldb_name: str = Field(..., alias="voxeldb-name")
 
     @staticmethod
     def load_yaml_config(config_path: str) -> "ArtifactAPIConfig":
