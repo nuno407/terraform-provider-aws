@@ -23,17 +23,16 @@ extras_require: Dict[str, List[str]] = {
         "boto3-stubs[sns]~=1.26"
     ],
     "model": [
-        "pydantic==2.4.2",
-        "typing-extensions==4.6.1",  # https://github.com/pydantic/pydantic/issues/545
+        "pydantic"  # Not forcing version here due to Kognic io in Labeling Service.
     ],
     # we should use it in the future
     # "monitoring": [
     #     "elastic-apm >= 6.12.0",
     # ],
     "voxel": [
+        "base[model]",
         "kink==0.6.6",
-        "fiftyone==0.14.2",
-        "typing-extensions==4.6.1"  # https://github.com/pydantic/pydantic/issues/545
+        "fiftyone==0.14.2"
     ],
     "testing": [],
     # for when we separate mongo from ContainerServices

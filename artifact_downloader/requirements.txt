@@ -10,4 +10,5 @@ requests == 2.31.0
 pylint-pydantic == 0.3.0
 types_PyYAML == 6.0.12.12
 types_requests == 2.31.0.6
+pydantic == 2.4.2
 -e ../base[aws,model]
