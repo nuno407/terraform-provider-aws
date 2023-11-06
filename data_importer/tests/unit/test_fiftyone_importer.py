@@ -3,6 +3,7 @@ import sys
 from unittest.mock import Mock, call, MagicMock, patch
 
 import pytest
+from pytest_mock import MockerFixture
 import fiftyone as fo
 
 from data_importer.fiftyone_importer import FiftyoneImporter
@@ -24,6 +25,12 @@ def fiftyone():
 @pytest.fixture
 def importer():
     return FiftyoneImporter()
+
+
+@pytest.fixture(name="voxel_base_function_find_sample")
+def fixture_voxel_base_function_set_field(mocker: MockerFixture) -> Mock:
+    """mocks voxel base function find_sample"""
+    return mocker.patch("base.voxel.functions.find_sample")
 
 
 @pytest.mark.unit
@@ -59,11 +66,12 @@ def test_load_existing_dataset(fiftyone, importer: FiftyoneImporter):
 
 @pytest.mark.unit
 @patch("data_importer.fiftyone_importer.TENANT", "test-tenant")
-def test_replace_existing_sample(importer: FiftyoneImporter):
+def test_replace_existing_sample(importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
+    voxel_base_function_find_sample.return_value = sample
     sample.filepath = "s3://dev-proj-anonymized/samples/dataset/test_anonymized.png"
-    importer.find_sample = Mock(return_value=sample)
     importer.override_metadata = Mock()
     dataset = Mock()
 
@@ -72,7 +80,7 @@ def test_replace_existing_sample(importer: FiftyoneImporter):
 
     # THEN
     dataset.add_sample.assert_not_called()
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    voxel_base_function_find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_called_once_with(sample, {"tst": "label"})
     sample.set_field.assert_has_calls([call(
         "raw_filepath",
@@ -86,11 +94,12 @@ def test_replace_existing_sample(importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
+def test_replace_new_sample(fiftyone, importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
+    voxel_base_function_find_sample.side_effect = ValueError("Not found")
     sample.filepath = "s3://dev-proj-anonymized/samples/dataset/test_anonymized.png"
-    importer.find_sample = Mock(side_effect=ValueError("Not found"))
     importer.override_metadata = Mock()
     fiftyone.Sample = Mock(return_value=sample)
     dataset = Mock()
@@ -102,7 +111,7 @@ def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
     fiftyone.Sample.assert_called_with("/foo/bar")
     dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    voxel_base_function_find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_called_once_with(sample, {})
     sample.set_field.assert_has_calls([call(
         "raw_filepath",
@@ -116,11 +125,12 @@ def test_replace_new_sample(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_update_existing_sample(importer: FiftyoneImporter):
+def test_update_existing_sample(importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
     sample.filepath = "s3://dev-proj-anonymized/samples/dataset/test_anonymized.png"
-    importer.find_sample = Mock(return_value=sample)
+    voxel_base_function_find_sample.return_value = sample
     importer.override_metadata = Mock()
 
     dataset = Mock()
@@ -131,7 +141,7 @@ def test_update_existing_sample(importer: FiftyoneImporter):
     # THEN
     dataset.add_sample.assert_not_called()
 
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    voxel_base_function_find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
     sample.set_field.assert_has_calls([call(
         "raw_filepath",
@@ -145,11 +155,12 @@ def test_update_existing_sample(importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
+def test_update_new_sample(fiftyone, importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
     sample.filepath = "s3://dev-proj-anonymized/samples/dataset/test_anonymized.png"
-    importer.find_sample = Mock(side_effect=ValueError("Not found"))
+    voxel_base_function_find_sample.side_effect = ValueError("Not found")
     importer.override_metadata = Mock()
     fiftyone.Sample = Mock(return_value=sample)
     dataset = Mock()
@@ -161,7 +172,7 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
     fiftyone.Sample.assert_called_with("/foo/bar")
     dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    voxel_base_function_find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
     sample.set_field.assert_has_calls([call("tst", "label", dynamic=True), call("tst2", "label2", dynamic=True)])
     importer.override_metadata.assert_not_called()
@@ -177,11 +188,12 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_update_new_sample2(fiftyone, importer: FiftyoneImporter):
+def test_update_new_sample2(fiftyone, importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
     sample = MagicMock()
+    sample.has_field.return_value = False
     sample.filepath = "s3://dev-proj-anonymized/samples/dataset/test_anonymized.png"
-    importer.find_sample = Mock(side_effect=ValueError("Not found"))
+    voxel_base_function_find_sample.side_effect = ValueError("Not found")
     importer.override_metadata = Mock()
     fiftyone.Sample = Mock(return_value=sample)
     dataset = Mock()
@@ -196,7 +208,7 @@ def test_update_new_sample2(fiftyone, importer: FiftyoneImporter):
     fiftyone.Sample.assert_called_with("/foo/bar")
     dataset.add_sample.assert_called_once_with(sample, dynamic=True)
 
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
+    voxel_base_function_find_sample.assert_called_once_with(dataset, "/foo/bar")
     importer.override_metadata.assert_not_called()
 
     sample.set_field.assert_has_calls([call("tst", nested, dynamic=True), call("tst2", "label2", dynamic=True)])
@@ -207,52 +219,10 @@ def test_update_new_sample2(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-def test_delete_existing_sample(importer: FiftyoneImporter):
-    # GIVEN
-    sample = Mock()
-    importer.find_sample = Mock(return_value=sample)
-    dataset = Mock()
-
-    # WHEN
-    importer.delete_sample(dataset, "/foo/bar")
-
-    # THEN
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
-    dataset.delete_samples.assert_called_once_with([sample])
-
-
-@pytest.mark.unit
-def test_delete_missing_sample(importer: FiftyoneImporter):
-    # GIVEN
-    importer.find_sample = Mock(side_effect=ValueError("Not found"))
-    dataset = Mock()
-
-    # WHEN
-    importer.delete_sample(dataset, "/foo/bar")
-
-    # THEN
-    importer.find_sample.assert_called_once_with(dataset, "/foo/bar")
-    dataset.delete_samples.assert_not_called()
-
-
-@pytest.mark.unit
-def test_find_sample(importer: FiftyoneImporter):
-    # GIVEN
-    sample = Mock()
-    dataset = Mock()
-    dataset.one = Mock(return_value=sample)
-
-    # WHEN
-    found_sample = importer.find_sample(dataset, "/foo/bar.jpg")
-
-    # THEN
-    assert sample == found_sample
-
-
-@pytest.mark.unit
 def test_override_metadata(importer: FiftyoneImporter):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
     sample.set_field = Mock()
     importer.delete_metadata = Mock()
 
@@ -267,7 +237,8 @@ def test_override_metadata(importer: FiftyoneImporter):
 @pytest.mark.unit
 def test_delete_metadata(importer: FiftyoneImporter):
     # GIVEN
-    sample = Mock()
+    sample = MagicMock()
+    sample.has_field.return_value = False
     sample.clear_field = Mock()
     sample.iter_fields = Mock(return_value={"foo": "bar", "boo": "baz", "filepath": "/test/path.jpg"}.items())
     importer.default_sample_fields = ["filepath", "metadata", "id"]
@@ -277,48 +248,6 @@ def test_delete_metadata(importer: FiftyoneImporter):
 
     # THEN
     sample.clear_field.assert_has_calls([call("foo"), call("boo")])
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize("values, expected_sample, sample_to_test", [
-    (
-        {"test": "value", "testnested": {"test1": "value1"}},
-        fo.Sample(
-            filepath="test_path",
-            test="value",
-            testnested=fo.DynamicEmbeddedDocument(test1="value1")
-        ),
-        fo.Sample(
-            filepath="test_path",
-        )
-    )
-]
-)
-def test_set_field(importer: FiftyoneImporter, values, expected_sample: fo.Sample, sample_to_test: fo.Sample):
-
-    for key, value in values.items():
-        importer._set_field(sample_to_test, key, value)  # pylint: disable=protected-access
-        assert sample_to_test[key] == expected_sample[key]
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize("filepath,raw_filepath_expected", [
-    ("s3://dev-proj-anonymized/samples/dataset/test_anonymized.png",
-     "s3://dev-proj-raw/samples/dataset/test.png"),
-    ("s3://dev-proj-anonymized/anonymized/anonymized/anonymized_anonymized.png",
-     "s3://dev-proj-raw/anonymized/anonymized/anonymized.png"),
-    ("s3://dev-proj-anonymized-videos/samples/dataset/test_anonymized.png",
-     "s3://dev-proj-raw-videos/samples/dataset/test.png"),
-    ("s3://dev-proj-raw/samples/dataset/test.png",
-     "s3://dev-proj-raw/samples/dataset/test.png")]
-)
-def test_get_raw_filepath_from_filepath_str(importer: FiftyoneImporter, filepath, raw_filepath_expected):
-
-    # WHEN
-    raw_filepath = importer._construct_raw_filepath_from_filepath(filepath)
-
-    # THEN
-    assert raw_filepath == raw_filepath_expected
 
 
 @pytest.mark.unit
@@ -332,7 +261,8 @@ def test_set_raw_filepath_on_dataset(importer: FiftyoneImporter):
     mock_samples = [Mock(filepath=f"s3://dev-proj-anonymized/samples/dataset/{idx}_anonymized.png",
                          expected_raw=f"s3://dev-proj-raw/samples/dataset/{idx}.png",
                          raw_filepath="",
-                         set_field=MagicMock()) for idx in range(0, 5)]
+                         set_field=MagicMock(),
+                         has_field=MagicMock(return_value=False)) for idx in range(0, 5)]
 
     # Configure the mocked dataset to use the list of mock samples
     mock_dataset.select_fields.return_value = iter(mock_samples)
@@ -347,7 +277,6 @@ def test_set_raw_filepath_on_dataset(importer: FiftyoneImporter):
     mock_dataset.add_sample_field.assert_called_with("raw_filepath", ftype=fo.StringField)
 
     for sample in mock_samples:
-
         sample.set_field.assert_called_with("raw_filepath", sample.expected_raw, dynamic=True)
         sample.save.assert_called_once()
 

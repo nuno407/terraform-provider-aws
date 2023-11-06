@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from fiftyone import ViewField
 
 from base.testing.utils import get_abs_path
+from base.voxel.functions import create_dataset
 from unittest.mock import Mock, PropertyMock, patch, ANY, call
 import fiftyone as fo
 
@@ -210,10 +211,10 @@ class TestMain:
         assert recording_db_entry["recording_overview"]["snapshots_paths"][0] == snapshot_included_db_entry["video_id"]
 
         # assertions for voxel code
-        dataset = fo.load_dataset(expected_dataset)
+        dataset = create_dataset(expected_dataset, ["RC"])
         assert dataset.tags == ["RC"]
 
-        ds_snapshots = fo.load_dataset(expected_dataset + "_snapshots")
+        ds_snapshots = create_dataset(expected_dataset + "_snapshots", ["RC"])
         assert ds_snapshots.tags == ["RC"]
 
         sample_excluded = get_sample(
