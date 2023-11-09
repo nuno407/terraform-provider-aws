@@ -32,7 +32,7 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "base[model]",
         "kink==0.6.6",
-        "fiftyone==0.14.2"
+        "fiftyone==0.14.4"
     ],
     "testing": [],
     # for when we separate mongo from ContainerServices
