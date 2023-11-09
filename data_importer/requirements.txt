@@ -1,4 +1,4 @@
-boto3 == 1.26.91
+boto3 ~= 1.28.82
 pydantic == 2.4.2
 -e ../base[aws,voxel]
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai

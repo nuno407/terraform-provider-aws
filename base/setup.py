@@ -10,17 +10,15 @@ extras_require: Dict[str, List[str]] = {
         "pymongo~=4.3",
         "pymongo[srv]~=4.3",
         "pymongo[aws]~=4.3",
-        "boto3~=1.26",
+        "boto3~=1.28.82",
+        "mypy_boto3_sqs~=1.28.55",
+        "mypy_boto3_s3~=1.28.55",
         "urllib3~=1.26",
         "pytz==2022.6",
         "pyyaml~=6.0",
         "expiringdict~=1.2",
         "aws-error-utils~=2.7",
-        "kink==0.6.6",
-        "boto3-stubs[s3]~=1.26",
-        "boto3-stubs[sts]~=1.26",
-        "boto3-stubs[sqs]~=1.26",
-        "boto3-stubs[sns]~=1.26"
+        "kink==0.6.6"
     ],
     "model": [
         "pydantic"  # Not forcing version here due to Kognic io in Labeling Service.

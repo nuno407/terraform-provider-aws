@@ -1,4 +1,4 @@
-boto3 == 1.26.91
+boto3 ~= 1.28.82
 flask == 2.2.5
 flask_cors == 3.0.10
 flask-restx == 1.1.0

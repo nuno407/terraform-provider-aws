@@ -8,9 +8,8 @@ pylint == 2.17.0
 pylint-quotes == 0.2.3
 mypy == 1.1.1
 bandit == 1.7.5
-mypy_boto3_s3 == 1.26.97
-mypy_boto3_sqs == 1.26.0
-moto[s3,sqs] == 4.1.6
+boto3-stubs[sns,s3,sts,sqs] ~= 1.28.82
+moto[s3,sqs] ~= 4.2.7
 pytest-lazy-fixture == 0.6.3
 
 # install the app itself

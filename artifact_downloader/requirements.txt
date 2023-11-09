@@ -1,8 +1,6 @@
 PyYAML == 6.0.1
 kink == 0.6.6
-boto3 == 1.26.91
-boto3-stubs[sns,sqs] == 1.26.91
-botocore == 1.29.91
+boto3 ~= 1.28
 aws_error_utils == 2.7.0
 expiringdict == 1.2.2
 backoff == 2.2.1
@@ -11,4 +9,6 @@ pylint-pydantic == 0.3.0
 types_PyYAML == 6.0.12.12
 types_requests == 2.31.0.6
 pydantic == 2.4.2
+mypy_boto3_sqs ~= 1.28.55
+mypy_boto3_s3 ~= 1.28.55
 -e ../base[aws,model]
