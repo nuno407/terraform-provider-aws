@@ -35,14 +35,15 @@ docstring-quote = "double"
 [tool.mypy]
 files = [
     "artifact_api/**/*.py",
-    "tests/**/*.py"
+    "tests/**/test_*.py"
+]
+exclude = [
+    "^test.*\\.py$",
+    "conftest.py",
 ]
 # mypy per-module options:
 [[tool.mypy.overrides]]
 module = "base.*"
-ignore_missing_imports = true
-[[tool.mypy.overrides]]
-module = "pytimeparse"
 ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "setuptools"
@@ -51,22 +52,13 @@ ignore_missing_imports = true
 module = "pymongo.*"
 ignore_missing_imports = true
 [[tool.mypy.overrides]]
-module = "bson.*"
-ignore_missing_imports = true
-[[tool.mypy.overrides]]
-module = "moto"
-ignore_missing_imports = true
-[[tool.mypy.overrides]]
 module = "flask_restx"
 ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "mongoengine.*"
 ignore_missing_imports = true
 [[tool.mypy.overrides]]
-module = "fiftyone"
-ignore_missing_imports = true
-[[tool.mypy.overrides]]
-module = "fiftyone.core.metadata"
+module = "fiftyone.*"
 ignore_missing_imports = true
 
 [tool.bandit]

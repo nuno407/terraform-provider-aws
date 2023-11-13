@@ -76,6 +76,7 @@ class ImageBasedArtifact(Artifact):
     timestamp: UtcDatetimeInPast = Field(default=...)
     end_timestamp: UtcDatetimeInPast = Field(default=...)
     upload_timing: TimeWindow = Field(default=...)
+    correlated_artifacts: list[str] = Field(default=[])
 
 
 class VideoArtifact(ImageBasedArtifact):

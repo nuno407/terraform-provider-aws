@@ -2,6 +2,7 @@
 import os
 from kink import di
 from base.aws.container_services import ContainerServices
+from base.model.config.policy_config import PolicyConfig
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.config import ArtifactAPIConfig
 
@@ -17,4 +18,5 @@ def bootstrap():
     di["mongodb_config_path"] = os.environ.get("MONGODB_CONFIG", "/app/mongo-conf/mongo_config.yaml")
     di["container_name"] = os.getenv("CONTAINER_NAME", "ArtifactAPI")
     di[VoxelConfig] = VoxelConfig.load_yaml_config(di["tenant_config_path"])
+    di[PolicyConfig] = di[VoxelConfig].policy_mapping
     di[ArtifactAPIConfig] = ArtifactAPIConfig.load_yaml_config(di["config_path"])

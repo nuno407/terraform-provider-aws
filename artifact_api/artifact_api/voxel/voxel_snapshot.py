@@ -1,0 +1,49 @@
+""" Voxel Snapshot Model """
+from typing import List
+import fiftyone as fo
+from base.model.artifacts import SnapshotArtifact
+from artifact_api.voxel.voxel_base_models import VoxelSample, VoxelField
+
+
+# pylint: disable=duplicate-code
+class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
+    """
+    Class responsible for parsing the message that comes from the API to populate snapshots
+    """
+    # Please add here all necessary fields for voxel
+    fields = [
+        VoxelField(field_name="video_id",
+                   field_type=fo.core.fields.StringField,
+                   field_value=lambda _, artifact: artifact.artifact_id),
+        VoxelField(field_name="tenant_id",
+                   field_type=fo.core.fields.StringField,
+                   field_value=lambda _, artifact: artifact.tenant_id),
+        VoxelField(field_name="device_id",
+                   field_type=fo.core.fields.StringField,
+                   field_value=lambda _, artifact: artifact.device_id),
+        VoxelField(field_name="recording_time",
+                   field_type=fo.core.fields.DateTimeField,
+                   field_value=lambda _, artifact: artifact.timestamp),
+        VoxelField(field_name="source_videos",
+                   field_type=fo.core.fields.ListField,
+                   field_subtype=fo.core.fields.StringField,
+                   field_value=VoxelSample._correlated_paths("source_videos"))
+    ]
+
+    @classmethod
+    def snapshot_sample(cls, artifact: SnapshotArtifact, dataset: fo.Dataset) -> None:
+        """
+        Creates or updates a snapshot sample
+
+        Args:
+            artifact (SnapshotArtifact): _description_
+            dataset (fo.Dataset): _description_
+        """
+        cls._create_sample(artifact, dataset)
+
+    @classmethod
+    def updates_correlation(cls, correlated: List[str], artifact_id: str, dataset_name: str) -> None:
+        """
+        Updates all snapshots that have a correlation with this video
+        """
+        cls._update_correlation(correlated, artifact_id, dataset_name, correlation_field="source_videos")
