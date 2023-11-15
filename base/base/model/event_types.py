@@ -75,8 +75,8 @@ class ShutdownReason(str, Enum):
 class Shutdown(ConfiguredBaseModel):
     """Details about the last shutdown"""
     reason: ShutdownReason = Field(default=ShutdownReason.UNKNOWN, alias="shutdown_reason")
-    reason_description: Optional[str] = Field(default=..., alias="shutdown_reason_description")
-    timestamp: Optional[datetime] = Field(default=..., alias="timestamp_ms")
+    reason_description: Optional[str] = Field(default=None, alias="shutdown_reason_description")
+    timestamp: Optional[datetime] = Field(default=None, alias="timestamp_ms")
 
 
 class GeneralServiceState(str, Enum):
