@@ -20,6 +20,9 @@ extras_require: Dict[str, List[str]] = {
         "aws-error-utils~=2.7",
         "kink==0.6.6"
     ],
+    "mongo": [
+        "motor~=3.1.2"
+    ],
     "model": [
         "pydantic"  # Not forcing version here due to Kognic io in Labeling Service.
     ],

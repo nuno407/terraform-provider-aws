@@ -1,8 +1,10 @@
 """Router for metadata"""
-from fastapi import APIRouter
+from kink import di
+from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
-from base.model.metadata.api_messages import VideoSignalsData, SnapshotSignalsData, IMUDataArtifact
+from base.model.metadata.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
 from artifact_api.models import ResponseMessage
+from artifact_api.mongo_controller import MongoController
 
 metadata_router = APIRouter()
 
@@ -11,17 +13,19 @@ metadata_router = APIRouter()
 class MetadataController:
     """Controller for metadata"""
     @metadata_router.post("/ridecare/signals/video", response_model=ResponseMessage)
-    async def process_video_signals(self, device_video_signals: VideoSignalsData):  # pylint: disable=unused-argument
+    async def process_video_signals(self, device_video_signals: VideoSignalsData,  # pylint: disable=unused-argument
+                                    mongo_service: MongoController = Depends(lambda: di[MongoController])):  # pylint: disable=unused-argument
         """
         Process device video signals
 
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
-        return {}
+        return ResponseMessage()
 
     @metadata_router.post("/ridecare/signals/snapshot", response_model=ResponseMessage)
-    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData):  # pylint: disable=unused-argument
+    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData,  # pylint: disable=unused-argument
+                                        mongo_service: MongoController = Depends(lambda: di[MongoController])):  # pylint: disable=unused-argument
         """
         Process device snapshot signals
 
@@ -29,14 +33,16 @@ class MetadataController:
             device_snapshot_signals (SnapshotSignalsData): _description_
 
         """
-        return {}
+        return ResponseMessage()
 
     @metadata_router.post("/ridecare/imu/video", response_model=ResponseMessage)
-    async def process_video_imu(self, device_video_imu: IMUDataArtifact):  # pylint: disable=unused-argument
+    async def process_video_imu(self, imu_data_artifact: IMUDataArtifact,
+                                mongo_service: MongoController = Depends(lambda: di[MongoController])):
         """
         Process video IMU
 
         Args:
-            device_video_imu (IMUDataArtifact): _description_
+            imu_data_artifact (IMUDataArtifact): _description_
         """
-        return {}
+        await mongo_service.process_imu_artifact(imu_data_artifact)
+        return ResponseMessage()

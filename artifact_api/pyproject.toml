@@ -4,6 +4,7 @@ timid = true
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
+asyncio_mode = "auto"
 addopts = "-m unit -v --cov-config=.coveragerc --cov=artifact_api --cov-report=xml"
 markers = [
     "unit",

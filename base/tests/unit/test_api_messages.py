@@ -58,7 +58,4 @@ class TestMetadataArtifacts:
         model = IMUProcessedData.model_validate_json(imu_json)
         imu_parsed = model.model_dump()
 
-        for sample in imu_parsed:
-            sample["timestamp"] = sample["timestamp"].timestamp() * 1000
-
         assert imu_parsed == imu_python

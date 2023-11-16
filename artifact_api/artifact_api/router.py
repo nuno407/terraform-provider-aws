@@ -5,7 +5,7 @@ from artifact_api.api.events_controller import events_router
 from artifact_api.api.media_controller import media_router
 from artifact_api.api.metadata_controller import metadata_router
 from artifact_api.api.pipeline_controller import pipeline_router
-from artifact_api.bootstrap import bootstrap
+from artifact_api.bootstrap import bootstrap_di
 
 
 @asynccontextmanager
@@ -16,7 +16,7 @@ async def lifespan(_: FastAPI):
     Args:
         app (FastAPI): _description_
     """
-    bootstrap()
+    bootstrap_di()
     yield
 
 app = FastAPI(lifespan=lifespan)

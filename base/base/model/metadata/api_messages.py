@@ -1,8 +1,9 @@
 """Metadata API messages"""
 from typing import Union
 from pydantic import RootModel
-from base.model.validators import LegacyTimeDelta, UtcDatetimeInPast
-from base.model.artifacts import IMUArtifact, SignalsArtifact
+
+from base.model.validators import LegacyTimeDelta
+from base.model.artifacts import SignalsArtifact, IMUProcessingResult
 from base.model.base_model import ConfiguredBaseModel
 
 
@@ -13,9 +14,9 @@ class IMUSource(ConfiguredBaseModel):
 
 
 class IMUSample(ConfiguredBaseModel):
-    "IMU Sample"
+    """IMUSample"""
     source: IMUSource
-    timestamp: UtcDatetimeInPast  # This might cause slow parsing, needs investigation on large files
+    timestamp: int  # This might cause slow parsing, needs investigation on large files
     gyr_y_mean: float
     gyr_x_var: float
     gyr_z_max: float
@@ -65,7 +66,7 @@ class SnapshotSignalsData(ConfiguredBaseModel):
 
 class IMUDataArtifact(ConfiguredBaseModel):
     """IMUData"""
-    message: IMUArtifact
+    message: IMUProcessingResult
     data: IMUProcessedData
 
 
