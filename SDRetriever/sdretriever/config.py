@@ -10,7 +10,6 @@ class SDRetrieverConfig:  # pylint: disable=too-many-instance-attributes
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
     training_whitelist: list[str]
-    request_training_upload: bool
     discard_already_ingested: bool
     temporary_bucket: str
     input_queue: str

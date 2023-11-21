@@ -21,6 +21,5 @@ training_whitelist:
   - ridecare_companion_trial
 recorder_blacklist:
   - FrontRecorder
-request_training_upload: true
 discard_already_ingested: true
 input_queue: dev-terraform-queue-download

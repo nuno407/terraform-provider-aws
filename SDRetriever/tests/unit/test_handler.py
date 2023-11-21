@@ -136,8 +136,7 @@ def test_ingestion_handler_handle_s3_video(ingestion_handler: IngestionHandler,
 
     s3_video_ing.ingest.assert_called_once_with(s3_video_artifact)
     sqs_controller.send_message.assert_has_calls([
-        call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue"),
-        call(serialized_video_artifact, CONTAINER_NAME, "selector_queue"),
+        call(serialized_video_artifact, CONTAINER_NAME, "metadata_queue")
     ])
     sqs_controller.delete_message.assert_called_once_with(message)
 

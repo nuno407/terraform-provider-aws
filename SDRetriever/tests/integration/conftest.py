@@ -94,7 +94,6 @@ def config(devcloud_temporary_bucket: str) -> SDRetrieverConfig:
         tenant_blacklist=[],
         recorder_blacklist=[],
         training_whitelist=[],
-        request_training_upload=True,
         discard_already_ingested=True,
         input_queue="queue",
         temporary_bucket=devcloud_temporary_bucket,

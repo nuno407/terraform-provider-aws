@@ -11,7 +11,6 @@ def test_config():
     - FrontRecorder
     training_whitelist:
     - onetenant
-    request_training_upload: true
     discard_already_ingested: true
     input_queue: test-queue
     temporary_bucket: tmp
@@ -22,7 +21,6 @@ def test_config():
     assert config.tenant_blacklist == ["onetenant"]
     assert config.recorder_blacklist == ["FrontRecorder"]
     assert config.training_whitelist == ["onetenant"]
-    assert config.request_training_upload
     assert config.discard_already_ingested
     assert config.input_queue == "test-queue"
     assert config.temporary_bucket == "tmp"
@@ -49,7 +47,6 @@ def test_config_with_missing_input_queue_field():
     - FrontRecorder
     training_whitelist:
     - onetenant
-    request_training_upload: true
     discard_already_ingested: true
 
     """

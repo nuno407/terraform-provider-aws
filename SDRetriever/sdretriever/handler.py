@@ -7,8 +7,7 @@ from mypy_boto3_sqs.type_defs import MessageTypeDef
 
 from base.aws.container_services import ContainerServices
 from base.aws.sqs import SQSController
-from base.model.artifacts import (Artifact, IMUArtifact,
-                                  RecorderType, S3VideoArtifact,
+from base.model.artifacts import (Artifact, IMUArtifact, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   VideoArtifact, PreviewSignalsArtifact)
 from sdretriever.config import SDRetrieverConfig
@@ -120,11 +119,6 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             yield self.__metadata_queue
 
         if isinstance(artifact, PreviewSignalsArtifact):
-            yield self.__selector_queue
-
-        if (isinstance(artifact, VideoArtifact) and
-            artifact.recorder == RecorderType.INTERIOR and
-                self.__config.request_training_upload):
             yield self.__selector_queue
 
     def handle(self, artifact: Artifact, message: MessageTypeDef) -> None:
