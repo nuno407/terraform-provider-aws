@@ -1,0 +1,90 @@
+{
+    "MessageId": "3e9a4d8c-06dc-4d5b-ae3c-50b9e4e9c795",
+    "ReceiptHandle": "AQEBFzrOaYoNyV0rgi3WuD1hiutyiuECK/I2hQi0gbPRKrzZ8lalgPC4+9UdxJxP0TNByhLhJ4uV8CfcaWvFf1hI/C8j53q1CX8Tlwl2nqN2s4ZPM0pm5J2lY4dtyVPps18/tCEOtjwsEqx4DTuzdKP3sucq4qAi2f1MworrhuJzoP6la62XgPDhnIO/mlZrdDz7FpxLpoIPNtVOTj4Ub7OrBQN1l5SD93BJpWZOsmzgQqjr2EcpQowGBKKRPAlxZj5o3oT7hC6LMZIfIDz+lZMFWa7i8Vlz+x7L+IZD/AeynDyMuqbF1XrIKhLdV1lC+xvD5LIdyWdN26qdknOP/iMntbN/fpIKbmb+cWx7sW/MemZ+ZP0gpZfgWN9PWMy7DMXVsxcl2Q8XJIs2vE6FIIgsw6DszEOkt5bE18CHgONhJK8=",
+    "MD5OfBody": "a4e3f5b0dbabadf4601c2364e80c1eca",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "8c83a880-7738-56c9-8f27-f55505ffb644",
+        "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
+        "Message": {
+            "topic": "com.bosch.rcc/rc_srx_prod_cd8bdcd1620afc89cd06cf9c88614201b2d5d04a/things/twin/events/modified",
+            "headers": {
+                "kafka.timestamp": "1700491398405",
+                "creation-time": "1700491398405",
+                "device_id": "com.bosch.rcc:rc_srx_prod_cd8bdcd1620afc89cd06cf9c88614201b2d5d04a",
+                "kafka.key": "com.bosch.rcc:rc_srx_prod_cd8bdcd1620afc89cd06cf9c88614201b2d5d04a",
+                "orig_adapter": "hono-mqtt",
+                "kafka.topic": "hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub",
+                "orig_address": "telemetry",
+                "traceparent": "00-7359204cc251edc5f9abae2b2341f10b-237cf4a225ed05d1-00",
+                "qos": "1",
+                "ditto-originator": "integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub",
+                "response-required": false,
+                "version": 2,
+                "requested-acks": [],
+                "content-type": "application/json",
+                "correlation-id": "ac85c5c6-bffc-486d-a11f-547f57bbe1a6"
+            },
+            "path": "/features/com.bosch.ivs.camera.CameraServiceEvent",
+            "value": {
+                "properties": {
+                    "header": {
+                        "message_type": "com.bosch.ivs.camera.CameraServiceEvent",
+                        "timestamp_ms": 1700215727232,
+                        "message_id": "ebd2bba5-7705-44ff-887e-836271a83f0b",
+                        "boot_id": "a473458a-52c1-4bd3-9947-cc0d329c8680"
+                    },
+                    "camera_name": "InteriorCamera",
+                    "service_status": "SERVICE_STATUS__INACTIVE"
+                }
+            },
+            "extra": {
+                "attributes": {
+                    "vin": "unknown",
+                    "tenant": "ridecare_companion_fut",
+                    "vehicleType": "CARMODEL__FIAT_500_312",
+                    "subjectId": "46bc1d50-9d4c-4f69-b16f-e7bc1ab06192",
+                    "operationMode": "PRIVATE",
+                    "deviceType": "hailysharey"
+                }
+            },
+            "revision": 21035,
+            "timestamp": "2023-11-20T14:43:19.246876359Z"
+        },
+        "Timestamp": "2023-11-20T14:43:19.293Z",
+        "SignatureVersion": "1",
+        "Signature": "FSM9c6vmuCbuBHJj7iZsG7ZBd8Lxl1YAhJXde6ngWXR5FgslNyAMHgL8ytOsNe/7wtlsbe1FJUs0XfmA3VXzc8929eGgsIptfWq6sQkdNmbYS7tcwn5LrOhrcZoA97fd/EGNDA9+k3M95cjOqRV2dWXlsCl8NdK92oaooDIxbKGclOFQtfEQfbbYukJA7P8OQzcBaF6mwqUj/o0xQ74Dm0TOLsTa4tFW0e3pO6GPcgGU0qFY9jAg+hfih9gLuVhUknsizMfenxtpN5l9LFRUNDhao6ZnSjKq8yMeE6f5084WFAUrmll7311ghJp2ro4774fs+4wO9VJLzinZTgUQXQ==",
+        "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:12f90dc9-0db6-403d-a679-545c71f8610c",
+        "MessageAttributes": {
+            "deviceType": {
+                "Type": "String",
+                "Value": "hailysharey"
+            },
+            "modifiedThingCategory": {
+                "Type": "String",
+                "Value": "features"
+            },
+            "operationMode": {
+                "Type": "String",
+                "Value": "PRIVATE"
+            },
+            "eventType": {
+                "Type": "String",
+                "Value": "com.bosch.ivs.camera.CameraServiceEvent"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "ridecare_companion_fut"
+            },
+            "subjectId": {
+                "Type": "String",
+                "Value": "46bc1d50-9d4c-4f69-b16f-e7bc1ab06192"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1700491399337",
+        "ApproximateReceiveCount": "3"
+    }
+}

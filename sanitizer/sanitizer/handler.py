@@ -11,7 +11,7 @@ from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from base.model.artifacts import Artifact, ImageBasedArtifact, EventArtifact, OperatorArtifact
 from sanitizer.artifact.artifact_controller import ArtifactController
-from sanitizer.exceptions import ArtifactException, MessageException
+from sanitizer.exceptions import ArtifactException, SanitizerException
 from sanitizer.message.message_controller import MessageController
 
 _logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class Handler:  # pylint: disable=too-few-public-methods
                 message: SQSMessage = self.message.parser.parse(raw_sqs_message)
                 _logger.debug("parsed message %s", message)
                 self._process_message(message)
-            except MessageException as err:
+            except SanitizerException as err:
                 _logger.exception("SKIP: Unable to parse message -> %s", err)
                 continue
 
@@ -75,30 +75,28 @@ class Handler:  # pylint: disable=too-few-public-methods
         try:
             artifacts = self.artifact.parser.parse(message)
             for artifact in artifacts:
-                try:
-                    if isinstance(artifact, EventArtifact):
-                        self.metadata_sqs_controller.send_message(artifact.stringify())
-                        continue
+                if isinstance(artifact, EventArtifact):
+                    self.metadata_sqs_controller.send_message(artifact.stringify())
+                    continue
 
-                    recorder = artifact.recorder.value if isinstance(artifact, ImageBasedArtifact) else None
-                    _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
-                                 recorder,
+                recorder = artifact.recorder.value if isinstance(artifact, ImageBasedArtifact) else None
+                _logger.info("checking artifact recorder=%s device_id=%s tenant_id=%s",
+                             recorder,
+                             artifact.device_id,
+                             artifact.tenant_id)
+
+                is_relevant = self.artifact.filter.is_relevant(artifact)
+
+                if is_relevant:
+                    if isinstance(artifact, OperatorArtifact):
+                        self.metadata_sqs_controller.send_message(artifact.stringify())
+                    self.artifact.forwarder.publish(artifact)
+                else:
+                    _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
                                  artifact.device_id,
                                  artifact.tenant_id)
-
-                    is_relevant = self.artifact.filter.is_relevant(artifact)
-
-                    if is_relevant:
-                        if isinstance(artifact, OperatorArtifact):
-                            self.metadata_sqs_controller.send_message(artifact.stringify())
-                        self.artifact.forwarder.publish(artifact)
-                    else:
-                        _logger.info("SKIP: artifact is irrelevant - tenant=%s device_id=%s",
-                                     artifact.device_id,
-                                     artifact.tenant_id)
-                    self._inject_and_publish_additional_artifacts(artifact)
-                except ArtifactException as err:
-                    _logger.warning("SKIP: Unable to publish artifact -> %s", err)
+                self._inject_and_publish_additional_artifacts(artifact)
         except ArtifactException as err:
             _logger.warning("SKIP: Unable to parse artifacts -> %s", err)
+            return
         self.aws_sqs.delete_message(message)

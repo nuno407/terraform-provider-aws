@@ -35,8 +35,27 @@ datetime_format = "%Y-%m-%dT%H:%M:%S.%f%z"
             artifact_name="sav-operator-people-count",
             is_people_count_correct=True
         )
-    ),
-], ids=["people_count_artifact"])
+    ), (
+        load_sqs_json("sav-people_count_artifact_no_observations.json"),
+        PeopleCountOperatorArtifact(
+            tenant_id="deepsensation",
+            device_id="ivs_slimscaley_develop_bic2hi_01",
+            event_timestamp=datetime.strptime("2023-09-13T11:10:25.746000+00:00", datetime_format),
+            operator_monitoring_start=datetime.strptime(
+                "2023-09-13T11:11:10.585000+00:00", datetime_format),
+            operator_monitoring_end=datetime.strptime(
+                "2023-09-13T11:13:02.256000+00:00", datetime_format),
+            additional_information=OperatorAdditionalInformation(
+                is_door_blocked=True,
+                is_camera_blocked=False,
+                is_audio_malfunction=True,
+                observations=None
+            ),
+            artifact_name="sav-operator-people-count",
+            is_people_count_correct=True
+        )
+    )
+], ids=["people_count_artifact", "people_count_artifact_no_obs"])
 def test_save_people_count(input_message: dict, expected: Artifact):
     assert parse_artifact(input_message) == expected
     assert parse_artifact(json.dumps(input_message)) == expected

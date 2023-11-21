@@ -48,7 +48,7 @@ class MessageParser:
         """ SQS message parser constructor. """
 
     @staticmethod
-    def flatten_string_value(attribute: Union[str, dict]) -> Optional[str]:
+    def flatten_string_value(attribute: Optional[Union[str, dict]]) -> Optional[str]:
         """Unnest attribute value if is a dictionary to string value
 
         attribute in str format is returned imediately, attrs on dict format e.g:
@@ -61,7 +61,7 @@ class MessageParser:
         Returns:
             Optional[str]: string value of the given attribute
         """
-        if isinstance(attribute, str):
+        if isinstance(attribute, str) or attribute is None:
             return attribute
 
         result = None

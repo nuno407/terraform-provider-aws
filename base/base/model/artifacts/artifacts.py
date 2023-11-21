@@ -222,7 +222,7 @@ class OperatorAdditionalInformation(ConfiguredBaseModel):
     is_door_blocked: bool = Field(default=...)
     is_camera_blocked: bool = Field(default=...)
     is_audio_malfunction: bool = Field(default=...)
-    observations: str = Field(default=...)
+    observations: Optional[str] = Field(default=None)
 
 
 class OperatorArtifact(Artifact):

@@ -84,6 +84,10 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
                                              attributes=MessageAttributes(tenant="herbie",
                                                                           device_id="srx_herbie_dev_hw_02")),
                                   False),
+                                 ("valid_camera_service_event_no_device",
+                                  _valid_input_message("valid_camera_service_event_no_device.json"),
+                                  {},
+                                  True),
                                  ("missing_receipt_footage_event",
                                   _missing_receipt_handle_message("valid_snapshot_event.json"),
                                   {},
@@ -121,6 +125,10 @@ class TestMessageParser():  # pylint: disable=too-few-public-methods
         (
             "some_value",
             "some_value"
+        ),
+        (
+            None,
+            None
         )
     ])
     def test_flatten_string_value(

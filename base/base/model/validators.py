@@ -4,6 +4,7 @@ from typing import Union
 from datetime import datetime, timezone, timedelta
 from pydantic import AwareDatetime
 from pydantic.functional_validators import AfterValidator, BeforeValidator
+from base.model.exceptions import ValidatorWrongDateTimeFormat
 
 
 def check_aware_timestamp_in_past(value: AwareDatetime) -> AwareDatetime:
@@ -21,7 +22,7 @@ def check_aware_timestamp_in_past(value: AwareDatetime) -> AwareDatetime:
     """
     cur_time = datetime.now(timezone.utc)
     if value > cur_time or value.utcoffset() != cur_time.utcoffset():  # type: ignore
-        raise ValueError("timestamp must be in the past")
+        raise ValidatorWrongDateTimeFormat("timestamp must be in the past")
     return value
 
 

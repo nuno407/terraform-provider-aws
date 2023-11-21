@@ -1,0 +1,29 @@
+{
+    "Type": "Notification",
+    "MessageId": "12931778-780d-5cdb-a1c4-4aad19a609cf",
+    "TopicArn": "arn:aws:sns:eu-central-1: 736745337734:prod-inputEventsTerraform",
+    "Message": "{\\"topic\\": \\"com.bosch.rcc/ivs_slimscaley_prod_c2ccc76d7bcdf363eece2458ddd848ca86e64165/things/twin/events/modified\\", \\"headers\\": {\\"kafka.timestamp\\": \\"1700487019152\\", \\"creation-time\\": \\"1700487019152\\", \\"device_id\\": \\"com.bosch.rcc:ivs_slimscaley_prod_c2ccc76d7bcdf363eece2458ddd848ca86e64165\\", \\"kafka.key\\": \\"com.bosch.rcc:ivs_slimscaley_prod_c2ccc76d7bcdf363eece2458ddd848ca86e64165\\", \\"orig_adapter\\": \\"hono-mqtt\\", \\"kafka.topic\\": \\"hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub\\", \\"orig_address\\": \\"telemetry\\", \\"traceparent\\": \\"00-edfd63843e11773202436afdd79cbbe2-0f0405c7f88d86a3-00\\", \\"qos\\": \\"1\\", \\"ditto-originator\\": \\"integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub\\", \\"response-required\\": false, \\"version\\": 2, \\"requested-acks\\": [], \\"content-type\\": \\"application/json\\", \\"correlation-id\\": \\"0cf05131-2bb7-4cc2-96a6-c7212424c8e4\\"}, \\"path\\": \\"/features/com.bosch.ivs.DeviceInfoEvent\\", \\"value\\": {\\"properties\\": {\\"header\\": {\\"message_type\\": \\"com.bosch.ivs.DeviceInfoEvent\\", \\"timestamp_ms\\": 1700487019630, \\"message_id\\": \\"c13fa688-61cf-484a-9482-04c240862f6d\\", \\"device_id\\": \\"ivs_slimscaley_prod_c2ccc76d7bcdf363eece2458ddd848ca86e64165\\"}, \\"system_report\\": \\"Git Commit ID: d8f0b7e | Git Branch Name: release/0.29.x | Git is dirty: true | Detected RuntimeEnvironment: IVS_PILOT_B_SAMPLE | Available disk space in (/var/local/ivs/device/rwstatic/): 55312384 | Firmware Version: SWI9X07Y_02.37.03.00 73df45 jenkins 2020/04/08 10: 59: 14 | Bootloader Version: SWI9X07Y_02.37.03.00 73df45 jenkins 2020/04/08 10: 59: 14 | Linux Version: 3.18.140 #1 PREEMPT Thu Apr 8 20: 22: 34 UTC 2021 | Legato version: 19.11.2_904ec8a60d9de95a2f9560722419afac | Microcontroller version: 002.015 | slimscaleyBootstrap\\", \\"software_versions\\": [{\\"software_name\\": \\"IVS Car Software\\", \\"version\\": \\"0.29.0-rc3\\"}, {\\"software_name\\": \\"ivs_algo_sdd\\", \\"version\\": \\"1.1.2\\"}], \\"device_type\\": \\"slimscaleyBootstrap\\"}}, \\"extra\\": {\\"attributes\\": {\\"vin\\": \\"PN154SYF103505800\\", \\"tenant\\": \\"socar\\", \\"vehicleType\\": \\"CARMODEL__TOYOTA_YARIS_XP150\\", \\"deviceType\\": \\"slimscaley\\"}}, \\"revision\\": 199366, \\"timestamp\\": \\"2023-11-20T13: 30: 19.177358299Z\\"}",
+    "Timestamp": "2023-11-20T13: 30: 19.211Z",
+    "SignatureVersion": "1",
+    "Signature": "raXoFFR3QGIZKEYdEGnMs4yUgCk63ebWon2NCxldfQdW/ke53o6XlejsLOEZsoR3S8AFhnKfgex7revmRHfQErVihKBBjyFoMrhuQNzNRn+iodNqh3nzdnoJDvEKrfPJmaHeamNb5QrypHdWEQPF78YYN/1tzOHKiJmgVcPmnWZQbHHJVr3jJzjy3ewrjlmY1PsP+Uy/G/tiDnRZgy946q3j3ZkzYERW3p2RnIh5nEwNRHQYG9rso00dtX+fuWW7Spu1Uzhxb9jForIB/Nl9GhynTrJ6vcVrDCl1oloP69nVcQfe14y5TaezpCYFEjZ49XriMDs+Ias3yphxhBZG7A==",
+    "SigningCertURL": "https: //sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:12f90dc9-0db6-403d-a679-545c71f8610c",
+    "MessageAttributes": {
+        "deviceType": {
+            "Type": "String",
+            "Value": "slimscaley"
+        },
+        "modifiedThingCategory": {
+            "Type": "String",
+            "Value": "features"
+        },
+        "eventType": {
+            "Type": "String",
+            "Value": "com.bosch.ivs.DeviceInfoEvent"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "socar"
+        }
+    }
+}
