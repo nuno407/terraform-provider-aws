@@ -1,0 +1,105 @@
+{
+    "MessageId": "c62ff810-5eb1-431b-b3c3-2b96cd8023cb",
+    "ReceiptHandle": "AQEBzBXyPAeyiPQIVeYplkXimSVYrUSndJM5FftlqeLnGqhyQWdkIhiCJtMlg9gslQTshSX+7W9UbWPanI05vZPrXJhrvwIshh0B7L2ssnUpOFgo9NCNsjwMmgxMPIkTvrhITgzeGlyF0otOFMM8v0P6SGM5eeNuUrEofCset9f33+l6RtHuMM7fa5iz65FhRdDkdiKy6xXD/9nPnIAXCf0euVTjxXU9dy+sEPTqL4shfb6gLEk7MqNNLCwThRuuDyJBmzbK3IKBAxcPQatF3D507juvyhg3G9G9uNKBg38AG+gtFv1HT5pnaykJNicG+/3Ed2TZi0hShbJi5Ov31PcJ5bppKsagNYE1m8mu+56258/IV8kazCWHsak/JCqkO6R6g941cbbJxrAQ4Y1hMaM2tLWyW2EGYQa6eNrLXJPJK7A=",
+    "MD5OfBody": "e158b5a4b376cf6a6e154135bfd1c5e4",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "1da31be6-5b69-5ba6-8041-46da452cec32",
+        "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform",
+        "Message": {
+            "topic": "com.bosch.rcc.dev/ivs_srx_develop_min1sf_01/things/twin/events/modified",
+            "headers": {
+                "kafka.timestamp": "1690442757577",
+                "creation-time": "1690442757577",
+                "device_id": "com.bosch.rcc.dev:ivs_srx_develop_min1sf_01",
+                "kafka.key": "com.bosch.rcc.dev:ivs_srx_develop_min1sf_01",
+                "orig_adapter": "hono-mqtt",
+                "kafka.topic": "hono.telemetry.tcdd1510ffc9a495e9504c77ac6a8756e_hub",
+                "orig_address": "telemetry",
+                "traceparent": "00-26810c5c47c1d3bdf8756a55d1ecf2c5-c73e1ad52fb25d23-00",
+                "qos": "1",
+                "ditto-originator": "integration:cdd1510f-fc9a-495e-9504-c77ac6a8756e_things:hub",
+                "response-required": false,
+                "version": 2,
+                "requested-acks": [],
+                "content-type": "application/json",
+                "correlation-id": "9330d859-f276-49a9-9878-6442e8239f80"
+            },
+            "path": "/features/com.bosch.ivs.DeviceInfoEvent",
+            "value": {
+                "properties": {
+                    "header": {
+                        "message_type": "com.bosch.ivs.DeviceInfoEvent",
+                        "timestamp_ms": 4190442757402,
+                        "message_id": "ffea0dea-b366-422e-b91d-add97b5119c9",
+                        "device_id": "ivs_srx_develop_min1sf_01",
+                        "boot_id": "7c182e5b-da20-4e8d-bc91-63d34429c4ec"
+                    },
+                    "system_report": "some git infos",
+                    "software_versions": [
+                        {
+                            "software_name": "BSP",
+                            "version": "3.7.0"
+                        },
+                        {
+                            "foo": "bar"
+                        }
+                    ],
+                    "device_type": "hailysharey",
+                    "last_shutdown_reason": {
+                        "shutdown_reason": "SHUTDOWN_REASON__INACTIVITY",
+                        "shutdown_reason_description": "[SHUTDOWN] No motion detected in ACTIVE. Entering LPM.",
+                        "timestamp_ms": 4190442757402
+                    }
+                }
+            },
+            "extra": {
+                "attributes": {
+                    "vin": "unknown",
+                    "tenant": "jackalope",
+                    "vehicleType": "CARMODEL__FIAT_500_312",
+                    "subjectId": "1474b5cc-f1e7-43e8-993f-cd8a2b8a06d4",
+                    "operationMode": "SILENT_ALARM",
+                    "deviceType": "hailysharey"
+                }
+            },
+            "revision": 425154,
+            "timestamp": "2023-07-27T07:25:57.657321746Z"
+        },
+        "Timestamp": "2023-07-27T07:25:57.901Z",
+        "SignatureVersion": "1",
+        "Signature": "QMKB01f1MGbulzBbrQ5cycA85mZWnBtO30nGoi3xJxD0XYTAHt8qDHuM3QuzL+Xwi2IQSUZBLhORorTphNdcbSmWb02lUpdFoxKWNKG+dblfzJZgEw6NpMOlFOxUUdcd+QskEiGXcm7XvZoUTYIYRRNIKSbORCtO4uCwh673iAPCg5R0rzeYCoNxD1KvoH2ZfpJlY20dS81NyMkewVlr1pLEM9PLxM8tNrIvZ9fNnFkRxlKW+t+YmXlamque63mJ71zmFhqH8+kKGALkNjhD/uP7UqnTnsloITZuUGz5w4vpInB2MyhZ64vA5eUZo0Trftk5iWpZQdhjgWbd0Jt+nw==",
+        "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-inputEventsTerraform:6b3c21ec-20fa-4434-b40d-ca265433f9d4",
+        "MessageAttributes": {
+            "deviceType": {
+                "Type": "String",
+                "Value": "hailysharey"
+            },
+            "modifiedThingCategory": {
+                "Type": "String",
+                "Value": "features"
+            },
+            "operationMode": {
+                "Type": "String",
+                "Value": "SILENT_ALARM"
+            },
+            "eventType": {
+                "Type": "String",
+                "Value": "com.bosch.ivs.DeviceInfoEvent"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "jackalope"
+            },
+            "subjectId": {
+                "Type": "String",
+                "Value": "1474b5cc-f1e7-43e8-993f-cd8a2b8a06d4"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1690442757953",
+        "ApproximateReceiveCount": "1"
+    }
+}

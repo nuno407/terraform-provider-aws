@@ -69,7 +69,7 @@ class TestSanitizerIntegration:
         data_path = os.path.join(TEST_DATA, "valid_incident_event.json")
         with open(data_path) as fp:
             message = json.loads(fp.read())
-        print(message)
+
         di[SQSController].get_message = Mock(return_value=message)
 
         # WHEN

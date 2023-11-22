@@ -87,6 +87,11 @@ def test_event_parser(input_message: SQSMessage,
     (
         _invalid_event_message_body("valid_device_info_event.json"),
         InvalidMessageError
+    ),
+    # Check for timestamp in the future
+    (
+        parse_sqs_message("future_device_info_event.json"),
+        InvalidMessageError
     )
 ])
 def test_event_parser_fails_as_expected(input_message: SQSMessage,

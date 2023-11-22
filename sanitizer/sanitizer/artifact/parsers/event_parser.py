@@ -34,30 +34,33 @@ class EventParser(IArtifactParser):  # pylint: disable=too-few-public-methods
         timestamp = event_message_body.message.value.properties.header.timestamp
         event_object = event_message_body.message.value.properties
 
-        if event_name == EventType.DEVICE_INFO and isinstance(event_object, DeviceInfoEventContent):
-            yield DeviceInfoEventArtifact(tenant_id=tenant_id,
-                                          device_id=device_id,
-                                          timestamp=timestamp,
-                                          event_name=event_name,
-                                          system_report=event_object.system_report,
-                                          software_versions=event_object.software_versions,
-                                          device_type=event_object.device_type,
-                                          last_shutdown=event_object.last_shutdown)
-        elif event_name == EventType.CAMERA_SERVICE and isinstance(event_object, CameraServiceEventContent):
-            yield CameraServiceEventArtifact(tenant_id=tenant_id,
-                                             device_id=device_id,
-                                             timestamp=timestamp,
-                                             event_name=event_name,
-                                             camera_name=event_object.camera_name,
-                                             service_state=event_object.service_status,
-                                             camera_state=event_object.camera_service_description)
-        elif event_name == EventType.INCIDENT and isinstance(event_object, IncidentEventContent):
-            yield IncidentEventArtifact(tenant_id=tenant_id,
-                                        device_id=device_id,
-                                        timestamp=timestamp,
-                                        event_name=event_name,
-                                        incident_type=event_object.incident_type,
-                                        location=event_object.location,
-                                        bundle_id=event_object.bundle_id)
-        else:
-            raise InvalidMessageError("Unable to determine event type from message.")
+        try:
+            if event_name == EventType.DEVICE_INFO and isinstance(event_object, DeviceInfoEventContent):
+                yield DeviceInfoEventArtifact(tenant_id=tenant_id,
+                                              device_id=device_id,
+                                              timestamp=timestamp,
+                                              event_name=event_name,
+                                              system_report=event_object.system_report,
+                                              software_versions=event_object.software_versions,
+                                              device_type=event_object.device_type,
+                                              last_shutdown=event_object.last_shutdown)
+            elif event_name == EventType.CAMERA_SERVICE and isinstance(event_object, CameraServiceEventContent):
+                yield CameraServiceEventArtifact(tenant_id=tenant_id,
+                                                 device_id=device_id,
+                                                 timestamp=timestamp,
+                                                 event_name=event_name,
+                                                 camera_name=event_object.camera_name,
+                                                 service_state=event_object.service_status,
+                                                 camera_state=event_object.camera_service_description)
+            elif event_name == EventType.INCIDENT and isinstance(event_object, IncidentEventContent):
+                yield IncidentEventArtifact(tenant_id=tenant_id,
+                                            device_id=device_id,
+                                            timestamp=timestamp,
+                                            event_name=event_name,
+                                            incident_type=event_object.incident_type,
+                                            location=event_object.location,
+                                            bundle_id=event_object.bundle_id)
+            else:
+                raise InvalidMessageError("Unable to determine event type from message.")
+        except ValidationError as ex:
+            raise InvalidMessageError("Unable to parse event message into pydantic model.") from ex
