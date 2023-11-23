@@ -3,6 +3,8 @@ from typing import Annotated
 from pydantic import ConfigDict, BaseModel, Field
 
 S3Path = Annotated[str, Field(pattern="s3://.+/.+", default=...)]
+RawS3Path = Annotated[str, Field(pattern="s3://.*anonymized.*/.+", default=...)]
+AnonymizedS3Path = Annotated[str, Field(pattern="s3://.*raw.*/.+", default=...)]
 
 
 class ConfiguredBaseModel(BaseModel):
