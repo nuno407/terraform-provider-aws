@@ -37,7 +37,7 @@ def bootstrap_di() -> None:
 
     db_uri = os.environ["DATABASE_URI"]
     db_name = os.environ["DATABASE_NAME"]
-    mongo_client = AsyncIOMotorClient(db_uri)
+    mongo_client = AsyncIOMotorClient(db_uri, tz_aware=True)
 
     event_engine = Engine(model=Union[DBCameraServiceEventArtifact,
                                       DBDeviceInfoEventArtifact,
