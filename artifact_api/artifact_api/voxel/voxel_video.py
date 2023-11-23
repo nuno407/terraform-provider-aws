@@ -41,7 +41,7 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
                    field_type=fo.core.fields.FloatField,
                    field_value=lambda _, artifact: artifact.duration),
         VoxelField(field_name="resolution",
-                   field_type=fo.core.fields.IntField,
+                   field_type=fo.core.fields.StringField,
                    field_value=lambda _, artifact: None if artifact.resolution is None else f"{artifact.resolution.width}x{artifact.resolution.height}"),  # pylint: disable=line-too-long
         VoxelField(field_name="snapshots_paths",
                    field_type=fo.core.fields.ListField,

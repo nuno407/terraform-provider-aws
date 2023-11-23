@@ -134,7 +134,7 @@ def set_policy_document_id(sample: fo.Sample, tenant_id: str, config: PolicyConf
     """
     Set data_privacy_document_id on a sample
     """
-    if sample.has_field("data_privacy_document_id"):
+    if sample.has_field("data_privacy_document_id") and sample.get_field("data_privacy_document_id") is not None:
         return
 
     value = config.default_policy_document
@@ -151,7 +151,7 @@ def set_raw_filepath_on_sample(sample: fo.Sample):
     """
     Set raw_filepath on a sample based on filepath replacing 'anonymized' with 'raw'
     """
-    if sample.has_field("raw_filepath"):
+    if sample.has_field("raw_filepath") and sample.get_field("raw_filepath") is not None:
         return
 
     raw_filepath = _construct_raw_filepath_from_filepath(sample.filepath)

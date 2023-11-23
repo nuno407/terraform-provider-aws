@@ -2,6 +2,7 @@
 import logging
 from typing import Callable, Any, List, Union
 
+
 import fiftyone as fo
 from fiftyone.core.metadata import ImageMetadata, VideoMetadata
 from fiftyone import ViewField
@@ -9,7 +10,9 @@ import fiftyone.core.media as fom
 
 from base.voxel.functions import set_mandatory_fields_on_sample, set_field, find_or_create_sample
 from base.model.artifacts import SnapshotArtifact, VideoArtifact
+from base.aws.s3 import S3Controller
 
+from artifact_api.exceptions import VoxelProcessingException
 
 _logger = logging.getLogger(__name__)
 
@@ -81,7 +84,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
 
     @classmethod
     def _update_correlation(cls,
-                            correlated: List[str],
+                            correlated: list[str],
                             artifact_id: str,
                             dataset_name: str,
                             correlation_field: str) -> None:
@@ -89,6 +92,9 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         Updates field snapshots_paths and source_videos on a correlated videos
         or snapshot from the newly arrived snapshot or video
         """
+        if not fo.dataset_exists(dataset_name):
+            return
+
         dataset = fo.load_dataset(dataset_name)
         correlated_samples = dataset.select_by("filepath", correlated)
         _logger.debug("Correlated samples: %s", str([sample.filepath for sample in correlated_samples]))
@@ -124,12 +130,26 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         dataset.save()
 
     @classmethod
+    def _get_anonymized_path_from_raw(cls, filepath: str) -> str:
+        bucket, path = S3Controller.get_s3_path_parts(filepath)
+        anon_bucket = bucket.replace("raw", "anonymized")
+
+        file_path_no_extension, extension = path.split(".")
+
+        return f"s3://{anon_bucket}/{file_path_no_extension}_anonymized.{extension}"
+
+    @classmethod
     def _create_sample(cls, artifact: Any, dataset: fo.Dataset) -> None:
         """
         Creates or updates a sample
         """
         cls._verify_dataset_video_fields(dataset)
-        sample = find_or_create_sample(dataset, artifact.s3_path)
+        anon_path = VoxelSample._get_anonymized_path_from_raw(artifact.s3_path)
+
+        if anon_path == artifact.s3_path:
+            raise VoxelProcessingException(f"Voxel anonymized path is the same as the raw path {anon_path}")
+
+        sample = find_or_create_sample(dataset, anon_path)
 
         # Seting sample fields
         set_mandatory_fields_on_sample(sample, artifact.tenant_id)

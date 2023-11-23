@@ -10,6 +10,7 @@ from base.model.config.policy_config import PolicyConfig
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow
 from artifact_api.voxel.service import VoxelService
 from artifact_api.voxel.voxel_config import VoxelConfig
+from artifact_api.voxel.voxel_base_models import VoxelSample
 
 
 # pylint: disable=duplicate-code
@@ -55,8 +56,8 @@ class TestVoxelService:
     def video_artifact(self) -> S3VideoArtifact:
         """VideoArtifact for testing."""
         return S3VideoArtifact(
-            rcc_s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
-            s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
+            rcc_s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
+            s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
             tenant_id="datanauts",
             device_id="DATANAUTS_DEV_01",
             recorder=RecorderType.INTERIOR,
@@ -121,7 +122,9 @@ class TestVoxelService:
         voxel_service.create_voxel_video(video_artifact)
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts", ["RC"])
-        mock_find_or_create_sample.assert_called_once_with(dataset, video_artifact.s3_path)
+        mock_find_or_create_sample.assert_called_once_with(
+            dataset, VoxelSample._get_anonymized_path_from_raw(
+                video_artifact.s3_path))
         mock_set_field.assert_has_calls(set_field_calls)
         assert mock_set_field.call_count == len(set_field_calls)
         mock_set_mandatory_fields_on_sample.assert_called_once_with(sample, video_artifact.tenant_id)
@@ -160,7 +163,9 @@ class TestVoxelService:
         voxel_service.create_voxel_snapshot(snapshot_artifact)
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts_snapshots", ["RC"])
-        mock_find_or_create_sample.assert_called_once_with(dataset, snapshot_artifact.s3_path)
+        mock_find_or_create_sample.assert_called_once_with(
+            dataset, VoxelSample._get_anonymized_path_from_raw(
+                snapshot_artifact.s3_path))
         mock_set_field.assert_has_calls(set_field_calls)
         assert mock_set_field.call_count == len(set_field_calls)
         mock_set_mandatory_fields_on_sample.assert_called_once_with(sample, snapshot_artifact.tenant_id)

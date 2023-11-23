@@ -52,6 +52,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
                 end=datetime.fromisoformat("2023-04-13T08:01:00+00:00")),
             footage_id="my_footage_id",
             rcc_s3_path="s3://dev-bucket/key",
+            s3_path="s3://dev-bucket/key",
             recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
         )
 
@@ -78,7 +79,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         return CameraServiceEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.CAMERA_SERVICE,
             artifact_name="camera_service",
@@ -93,7 +93,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         return DeviceInfoEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.DEVICE_INFO,
             system_report="mock_report",
@@ -109,7 +108,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         return IncidentEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.INCIDENT,
             location={},
@@ -142,7 +140,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
             mongo_controller (MongoController): class where the tested method is defined
         """
 
-        video_engine.update_many = MagicMock()
+        video_engine.update_many = AsyncMock()
         update_video = {
             "$push": {
                 "recording_overview.snapshots_paths": snapshot_id
@@ -171,7 +169,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         message = Mock(device_id="mock_device_id_bar", timestamp=111112, end_timestamp=111113)
 
         correlated = {
-            "deviceID": message.device_id,
+            "recording_overview.deviceID": message.device_id,
             "recording_overview.recording_time": {"$lte": message.timestamp},
             "$expr": {
                 "$gte": [
@@ -185,7 +183,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         }
 
         correlated_artifacts = MagicMock()
-        correlated_artifacts.__aiter__.return_value = [Mock(artifact_id=1), Mock(artifact_id=2)]
+        correlated_artifacts.__aiter__.return_value = [Mock(filepath=1), Mock(filepath=2)]
 
         video_engine.find = MagicMock()
         video_engine.find.return_value = correlated_artifacts
@@ -215,7 +213,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         }
 
         correlated_artifacts = MagicMock()
-        correlated_artifacts.__aiter__.return_value = [Mock(artifact_id=1), Mock(artifact_id=2)]
+        correlated_artifacts.__aiter__.return_value = [Mock(filepath=1), Mock(filepath=2)]
 
         snapshot_engine.find = MagicMock()
         snapshot_engine.find.return_value = correlated_artifacts
@@ -229,7 +227,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         IncidentEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.INCIDENT,
             location={},
@@ -239,7 +236,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         DeviceInfoEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.DEVICE_INFO,
             system_report="mock_report",
@@ -251,7 +247,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
         CameraServiceEventArtifact(
             tenant_id="mock_tenant_id_foo",
             device_id="mock_device_id_bar",
-            s3_path="s3://dev-bucket/key",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.CAMERA_SERVICE,
             artifact_name="camera_service",
@@ -287,7 +282,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
             mongo_controller (MongoController): class where the tested method is defined
         """
 
-        snapshot_engine.update_many = MagicMock()
+        snapshot_engine.update_many = AsyncMock()
         update_snapshot = {
             "$push": {
                 "recording_overview.source_videos": video_id

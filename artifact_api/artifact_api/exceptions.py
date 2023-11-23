@@ -13,5 +13,9 @@ class InvalidOperatorArtifactException(Exception):
     """The operator artifact does not match any of the accepted types"""
 
 
+class VoxelProcessingException(Exception):
+    """The IMU sample list was empty"""
+
+
 class IMUEmptyException(Exception):
     """The IMU sample list was empty"""

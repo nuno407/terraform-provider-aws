@@ -54,7 +54,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_videos}
         }
 
-        self.__video_engine.update_many(filter_correlated, update_video)
+        await self.__video_engine.update_many(filter_correlated, update_video)
 
     async def update_snapshots_correlations(self, correlated_snapshots: list[str], video_id: str):
         """_summary_
@@ -69,7 +69,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_snapshots}
         }
 
-        self.__snapshot_engine.update_many(filter_correlated, update_snapshot)
+        await self.__snapshot_engine.update_many(filter_correlated, update_snapshot)
 
     async def create_snapshot(self, message: SnapshotArtifact):
         """_summary_
@@ -100,38 +100,31 @@ class MongoController:  # pylint:disable=too-many-arguments
         Args:
             message (S3VideoArtifact): _description_
         """
-        resolution_str = f"{message.resolution.width}x{message.resolution.width}"
+        resolution_str = f"{message.resolution.width}x{message.resolution.height}"
         time_str = message.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+        duration = timedelta(seconds=message.actual_duration)
+        hours, remainder = divmod(duration.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
 
         overview = DBVideoRecordingOverview(snapshots=0,
                                             devcloud_id=message.devcloudid,
                                             device_id=message.device_id,
-                                            length=str(timedelta(seconds=message.actual_duration)),
+                                            length=f"{hours:01}:{minutes:02}:{seconds:02}",
                                             recording_time=message.timestamp,
                                             recording_duration=message.actual_duration,
                                             snapshots_paths=message.correlated_artifacts,
                                             tenant_id=message.tenant_id,
-                                            time=time_str,
-                                            chc_duration=0,
-                                            gnss_coverage=0,
-                                            max_audio_loudness=0,
-                                            max_person_count=0,
-                                            mean_audio_bias=0,
-                                            median_person_count=0,
-                                            number_chc_events=0,
-                                            ride_detection_people_count_after=0,
-                                            ride_detection_people_count_before=0,
-                                            sum_door_closed=0,
-                                            variance_person_count=0)
+                                            time=time_str)
 
         doc = DBS3VideoArtifact(video_id=message.artifact_id,
                                 MDF_available="No",
                                 media_type="video",
-                                filepath=message.rcc_s3_path,
+                                filepath=message.s3_path,
                                 resolution=resolution_str,
                                 recording_overview=overview
-
                                 )
+
         await self.__video_engine.save(doc)
         return doc
 
@@ -143,7 +136,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         """
 
         correlated = {
-            "deviceID": message.device_id,
+            "recording_overview.deviceID": message.device_id,
             "recording_overview.recording_time": {"$lte": message.timestamp},
             "$expr": {
                 "$gte": [
@@ -160,7 +153,7 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         correlated_artifacts = self.__video_engine.find(correlated)
 
-        correlated_artifacts_ids = [cor.artifact_id async for cor in correlated_artifacts]
+        correlated_artifacts_ids = [cor.filepath async for cor in correlated_artifacts]
 
         return correlated_artifacts_ids
 
@@ -182,7 +175,7 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         correlated_artifacts = self.__snapshot_engine.find(correlated)
 
-        correlated_artifacts_ids = [cor.artifact_id async for cor in correlated_artifacts]
+        correlated_artifacts_ids = [cor.filepath async for cor in correlated_artifacts]
 
         return correlated_artifacts_ids
 

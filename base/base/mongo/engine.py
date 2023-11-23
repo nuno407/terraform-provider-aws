@@ -27,7 +27,7 @@ class Engine(Generic[T]):
         self.__model = model
 
     def __dump(self, model: ConfiguredBaseModel) -> dict:
-        return model.model_dump(by_alias=True)
+        return model.model_dump(by_alias=True, exclude_none=True)
 
     async def save(self, item: T):
         await self.__col.insert_one(self.__dump(item))

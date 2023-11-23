@@ -1,5 +1,4 @@
 """ Voxel Snapshot Model """
-from typing import List
 import fiftyone as fo
 from base.model.artifacts import SnapshotArtifact
 from artifact_api.voxel.voxel_base_models import VoxelSample, VoxelField
@@ -42,8 +41,9 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
         cls._create_sample(artifact, dataset)
 
     @classmethod
-    def updates_correlation(cls, correlated: List[str], artifact_id: str, dataset_name: str) -> None:
+    def updates_correlation(cls, correlated: list[str], artifact_id: str, dataset_name: str) -> None:
         """
         Updates all snapshots that have a correlation with this video
         """
-        cls._update_correlation(correlated, artifact_id, dataset_name, correlation_field="source_videos")
+        anonymized_correlated = [cls._get_anonymized_path_from_raw(raw_path) for raw_path in correlated]
+        cls._update_correlation(anonymized_correlated, artifact_id, dataset_name, correlation_field="source_videos")

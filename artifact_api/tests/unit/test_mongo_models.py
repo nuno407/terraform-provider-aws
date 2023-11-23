@@ -28,7 +28,7 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             devcloud_id="mock_devcloud_id",
             device_id="mock_device_id",
             tenant_id="mock_tenant_id",
-            recording_time="2023-10-26T12:00:00",
+            recording_time=datetime.fromisoformat("2023-04-13T08:00:00+00:00"),
             source_videos=["mock_1.mp4", "mock_2.mp4"]
         )
 
@@ -91,7 +91,7 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert db_snapshot_recording_overview.devcloud_id == "mock_devcloud_id"
         assert db_snapshot_recording_overview.device_id == "mock_device_id"
         assert db_snapshot_recording_overview.tenant_id == "mock_tenant_id"
-        assert db_snapshot_recording_overview.recording_time == datetime(2023, 10, 26, 12, 0, 0)
+        assert db_snapshot_recording_overview.recording_time == datetime.fromisoformat("2023-04-13T08:00:00+00:00")
         assert db_snapshot_recording_overview.source_videos == ["mock_1.mp4", "mock_2.mp4"]
 
         with raises(ValidationError):
@@ -134,7 +134,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         event = DBCameraServiceEventArtifact(
             tenant_id="mock_tenant_id",
             device_id="mock_device_id",
-            s3_path="s3://bucket/key",
             timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc),
             event_name=EventType.CAMERA_SERVICE,
             artifact_name="camera_service",
@@ -145,7 +144,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
 
         assert event.tenant_id == "mock_tenant_id"
         assert event.device_id == "mock_device_id"
-        assert event.s3_path == "s3://bucket/key"
         assert event.timestamp == datetime(2023, 1, 1, tzinfo=timezone.utc)
         assert event.event_name == EventType.CAMERA_SERVICE
         assert event.artifact_name == "camera_service"
@@ -157,7 +155,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             DBCameraServiceEventArtifact(
                 tenant_id="mock_tenant_id",
                 device_id="mock_device_id",
-                s3_path="bad_path",
                 timestamp=datetime(2023, 1, 1),
                 event_name="bad_name",
                 artifact_name="bad_artifact",
@@ -173,20 +170,18 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         event = DBDeviceInfoEventArtifact(
             tenant_id="mock_tenant_id",
             device_id="mock_device_id",
-            s3_path="s3://bucket/key",
             timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc),
             event_name=EventType.DEVICE_INFO,
             system_report="mock_report",
             software_versions=[{"version": "1.0", "software_name": "app"}],
             device_type="mock_type",
-            last_shutdown=Shutdown(reason=ShutdownReason.UNKNOWN,
-                                   reason_description=None,
-                                   timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc)),
+            last_shutdown=dict(Shutdown(reason=ShutdownReason.UNKNOWN,
+                                        reason_description=None,
+                                        timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc))),
         )
 
         assert event.tenant_id == "mock_tenant_id"
         assert event.device_id == "mock_device_id"
-        assert event.s3_path == "s3://bucket/key"
         assert event.timestamp == datetime(2023, 1, 1, tzinfo=timezone.utc)
         assert event.event_name == EventType.DEVICE_INFO
         assert event.system_report == "mock_report"
@@ -199,7 +194,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             DBDeviceInfoEventArtifact(
                 tenant_id="mock_tenant_id",
                 device_id="mock_device_id",
-                s3_path="bad_path",
                 timestamp=datetime(2023, 1, 1),
                 event_name=EventType.DEVICE_INFO,
                 system_report="mock_report",
@@ -216,7 +210,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         event = DBIncidentEventArtifact(
             tenant_id="mock_tenant_id",
             device_id="mock_device_id",
-            s3_path="s3://bucket/key",
             timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc),
             event_name=EventType.INCIDENT,
             location={},
@@ -226,7 +219,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
 
         assert event.tenant_id == "mock_tenant_id"
         assert event.device_id == "mock_device_id"
-        assert event.s3_path == "s3://bucket/key"
         assert event.timestamp == datetime(2023, 1, 1, tzinfo=timezone.utc)
         assert event.event_name == EventType.INCIDENT
         assert event.incident_type == IncidentType.UNKNOWN
@@ -236,7 +228,6 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             DBIncidentEventArtifact(
                 tenant_id="mock_tenant_id",
                 device_id="mock_device_id",
-                s3_path="bad_path",
                 timestamp=datetime(2023, 1, 1),
                 event_name="bad_name",
                 location={},

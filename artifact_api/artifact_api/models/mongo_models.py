@@ -3,10 +3,10 @@
 from datetime import datetime
 from typing import Optional, Literal
 from pydantic import Field
-from base.model.base_model import ConfiguredBaseModel, S3Path
+from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState,
                                     GeneralServiceState, IncidentType,
-                                    Location, Shutdown)
+                                    Location, ShutdownReason)
 from base.model.validators import UtcDatetimeInPast
 
 
@@ -40,7 +40,7 @@ class DBSnapshotRecordingOverview(ConfiguredBaseModel):
     devcloud_id: str = Field(alias="devcloudid")
     device_id: str = Field(alias="deviceID")
     tenant_id: str = Field(alias="tenantID")
-    recording_time: datetime
+    recording_time: UtcDatetimeInPast
     source_videos: list[str]
 
 
@@ -49,7 +49,6 @@ class DBCameraServiceEventArtifact(ConfiguredBaseModel):
 
     tenant_id: str
     device_id: str
-    s3_path: Optional[S3Path] = Field(default=None)
     timestamp: UtcDatetimeInPast = Field(default=...)
     event_name: str = Field(default=...)
     artifact_name: Literal["camera_service"] = "camera_service"
@@ -58,25 +57,30 @@ class DBCameraServiceEventArtifact(ConfiguredBaseModel):
     camera_state: list[CameraServiceState] = Field(default_factory=list)
 
 
+class DBShutdown(ConfiguredBaseModel):
+    """Details about the last shutdown"""
+    reason: ShutdownReason = Field(default=ShutdownReason.UNKNOWN)
+    reason_description: Optional[str] = Field(default=None)
+    timestamp: Optional[datetime] = Field(default=None)
+
+
 class DBDeviceInfoEventArtifact(ConfiguredBaseModel):
     """Represents a device info event from RCC"""
     tenant_id: str
     device_id: str
-    s3_path: Optional[S3Path] = Field(default=None)
     timestamp: UtcDatetimeInPast = Field(default=...)
     artifact_name: Literal["device_info"] = "device_info"
     event_name: str = Field(default=...)
     system_report: Optional[str] = Field(default=None)
     software_versions: list[dict[str, str]] = Field(default_factory=list)
     device_type: Optional[str] = Field(default=None)
-    last_shutdown: Optional[Shutdown] = Field(default=None)
+    last_shutdown: Optional[DBShutdown] = Field(default=None)
 
 
 class DBIncidentEventArtifact(ConfiguredBaseModel):
     """Represents a incident event from RCC"""
     tenant_id: str
     device_id: str
-    s3_path: Optional[S3Path] = Field(default=None)
     timestamp: UtcDatetimeInPast = Field(default=...)
     artifact_name: Literal["incident_info"] = "incident_info"
     event_name: str = Field(default=...)
