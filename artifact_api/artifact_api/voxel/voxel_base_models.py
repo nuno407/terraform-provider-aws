@@ -85,7 +85,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
     @classmethod
     def _update_correlation(cls,
                             correlated: list[str],
-                            artifact_id: str,
+                            artifact_filepath: str,
                             dataset_name: str,
                             correlation_field: str) -> None:
         """
@@ -103,8 +103,8 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
                 correlation_field,
                 (~ViewField(correlation_field).exists())
                 .if_else(
-                    [artifact_id],
-                    ViewField(correlation_field).append(artifact_id).unique()
+                    [artifact_filepath],
+                    ViewField(correlation_field).append(artifact_filepath).unique()
                 )
             )
             _logger.debug("Correlated samples source vids field: %s",

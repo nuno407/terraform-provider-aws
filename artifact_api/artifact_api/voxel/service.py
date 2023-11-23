@@ -41,20 +41,22 @@ class VoxelService:
         dataset = create_dataset(dataset_name, tags)
         VoxelSnapshot.snapshot_sample(artifact, dataset)
 
-    def update_voxel_video_correlated_snapshots(self, correlated: List[str], artifact_id: str, tenant_id: str) -> None:
+    def update_voxel_video_correlated_snapshots(self, raw_correlated_filepaths: List[str],
+                                                raw_filepath: str, tenant_id: str) -> None:
         """
         Update a video sample with correlated snapshots when a new snapshot arrives
         """
         dataset_name, _ = determine_dataset_name(tenant=tenant_id,
                                                  is_snapshot=False,
                                                  mapping_config=self.voxel_config.dataset_mapping)
-        VoxelVideo.updates_correlation(correlated, artifact_id, dataset_name)
+        VoxelVideo.updates_correlation(raw_correlated_filepaths, raw_filepath, dataset_name)
 
-    def update_voxel_snapshots_correlated_videos(self, correlated: List[str], artifact_id: str, tenant_id: str) -> None:
+    def update_voxel_snapshots_correlated_videos(self, raw_correlated_filepaths: List[str],
+                                                 raw_filepath: str, tenant_id: str) -> None:
         """
         Update a snapshot sample with correlated videos when a new video arrives
         """
         dataset_name, _ = determine_dataset_name(tenant=tenant_id,
                                                  is_snapshot=True,
                                                  mapping_config=self.voxel_config.dataset_mapping)
-        VoxelSnapshot.updates_correlation(correlated, artifact_id, dataset_name)
+        VoxelSnapshot.updates_correlation(raw_correlated_filepaths, raw_filepath, dataset_name)

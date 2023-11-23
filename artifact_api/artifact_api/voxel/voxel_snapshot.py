@@ -41,9 +41,11 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
         cls._create_sample(artifact, dataset)
 
     @classmethod
-    def updates_correlation(cls, correlated: list[str], artifact_id: str, dataset_name: str) -> None:
+    def updates_correlation(cls, raw_correlated_filepath: list[str], raw_filepath: str, dataset_name: str) -> None:
         """
         Updates all snapshots that have a correlation with this video
         """
-        anonymized_correlated = [cls._get_anonymized_path_from_raw(raw_path) for raw_path in correlated]
-        cls._update_correlation(anonymized_correlated, artifact_id, dataset_name, correlation_field="source_videos")
+        anonymized_filepath = VoxelSample._get_anonymized_path_from_raw(raw_filepath)
+        anonymized_correlated = [cls._get_anonymized_path_from_raw(raw_path) for raw_path in raw_correlated_filepath]
+        cls._update_correlation(anonymized_correlated, anonymized_filepath,
+                                dataset_name, correlation_field="source_videos")
