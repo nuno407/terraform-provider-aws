@@ -1,5 +1,6 @@
 """ Voxel Service Implementation (abstract voxel operations). """
 from typing import List
+from kink import inject
 from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
@@ -7,7 +8,7 @@ from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo
 
-
+@inject
 class VoxelService:
     """
     Class responsible for managing the create and update samples
