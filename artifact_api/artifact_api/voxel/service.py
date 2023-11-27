@@ -8,6 +8,7 @@ from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo
 
+
 @inject
 class VoxelService:
     """

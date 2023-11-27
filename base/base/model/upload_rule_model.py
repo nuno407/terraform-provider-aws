@@ -1,15 +1,25 @@
 """ Upload Rule Model """
-from base.model.base_model import ConfiguredBaseModel, RawS3Path
+from base.model.base_model import ConfiguredBaseModel
 from base.model.validators import UtcDatetimeInPast
 
 
-class UploadRule(ConfiguredBaseModel):
+class VideoUploadRule(ConfiguredBaseModel):
     """
-    Represents a Upload Rule that is issue by the Selector to the footage API.
-    Only upload of videos are considered.
+    Represents a Video Upload Rule that is issue by the Selector to the footage API.
     """
-    s3_path: RawS3Path
+    video_id: str
     rule_name: str
     rule_version: str
     footage_from: UtcDatetimeInPast
     footage_to: UtcDatetimeInPast
+
+
+class SnapshotUploadRule(ConfiguredBaseModel):
+    """
+    Represents a Snapshot Upload Rule that is issue by the Selector to the footage API.
+    As of now, snapshots are automatically uploaded by ridecare.
+    """
+    snapshot_id: str
+    rule_name: str
+    rule_version: str
+    snapshot_timestamp: UtcDatetimeInPast
