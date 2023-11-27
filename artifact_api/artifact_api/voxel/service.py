@@ -18,7 +18,7 @@ class VoxelService:
     def __init__(self, voxel_config: VoxelConfig):
         self.voxel_config = voxel_config
 
-    def create_voxel_video(self, artifact: S3VideoArtifact) -> None:
+    def create_voxel_video(self, artifact: S3VideoArtifact, correlated_raw_filepaths: list[str] = []) -> None:  # pylint: disable=dangerous-default-value
         """
         Updates or creates a sample in a dataset with the given metadata.
         If the sample or dataset do not exist they will be created.
@@ -28,9 +28,9 @@ class VoxelService:
                                                     is_snapshot=False,
                                                     mapping_config=self.voxel_config.dataset_mapping)
         dataset = create_dataset(dataset_name, tags)
-        VoxelVideo.video_sample(artifact, dataset)
+        VoxelVideo.video_sample(artifact, dataset, correlated_raw_filepaths)
 
-    def create_voxel_snapshot(self, artifact: SnapshotArtifact) -> None:
+    def create_voxel_snapshot(self, artifact: SnapshotArtifact, correlated_raw_filepaths: list[str] = []) -> None:  # pylint: disable=dangerous-default-value
         """
         Updates or creates a sample in a dataset with the given metadata.
         If the sample or dataset do not exist they will be created.
@@ -41,7 +41,7 @@ class VoxelService:
             is_snapshot=True,
             mapping_config=self.voxel_config.dataset_mapping)
         dataset = create_dataset(dataset_name, tags)
-        VoxelSnapshot.snapshot_sample(artifact, dataset)
+        VoxelSnapshot.snapshot_sample(artifact, dataset, correlated_raw_filepaths)
 
     def update_voxel_video_correlated_snapshots(self, raw_correlated_filepaths: List[str],
                                                 raw_filepath: str, tenant_id: str) -> None:

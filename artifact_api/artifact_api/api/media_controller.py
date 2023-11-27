@@ -1,4 +1,5 @@
 """Router for Media"""
+import logging
 from kink import di
 from fastapi import APIRouter
 from fastapi import Depends
@@ -10,6 +11,7 @@ from artifact_api.voxel import VoxelService
 
 
 media_router = APIRouter()
+_logger = logging.getLogger(__name__)
 
 
 @cbv(media_router)
@@ -29,21 +31,26 @@ class MediaController:
             mongo_service (MongoController): _description_
             voxel_service (VoxelService): _description_
         """
-        # Mongo service
 
-        correlated_raw_paths = await mongo_service.get_correlated_snapshots_for_video(video_artifact)
-        video_artifact.correlated_artifacts = correlated_raw_paths
+        # Mongo service
+        _logger.info("Processing video artifact: %s", video_artifact.model_dump_json())
+        correlated_db_artifacts = await mongo_service.get_correlated_snapshots_for_video(video_artifact)
+
+        correlated_snapshot_ids = [db_artifact.video_id for db_artifact in correlated_db_artifacts]
+        raw_file_paths = [db_artifact.filepath for db_artifact in correlated_db_artifacts]
+
+        _logger.debug("Got the following correlated snapshots: %s", str(correlated_snapshot_ids))
 
         await mongo_service.create_video(video_artifact)
-        await mongo_service.update_snapshots_correlations(video_artifact.correlated_artifacts,
+        await mongo_service.update_snapshots_correlations(correlated_snapshot_ids,
                                                           video_artifact.artifact_id)
 
         # Voxel service
         voxel_service.update_voxel_video_correlated_snapshots(
-            raw_correlated_filepaths=video_artifact.correlated_artifacts,
+            raw_correlated_filepaths=raw_file_paths,
             raw_filepath=video_artifact.s3_path,
             tenant_id=video_artifact.tenant_id)
-        voxel_service.create_voxel_video(artifact=video_artifact)
+        voxel_service.create_voxel_video(artifact=video_artifact, correlated_raw_filepaths=raw_file_paths)
         return ResponseMessage()
 
     @media_router.post("/ridecare/snapshots", response_model=ResponseMessage)
@@ -59,20 +66,24 @@ class MediaController:
             mongo_service (MongoController): _description_
             voxel_service (VoxelService): _description_
         """
+        _logger.info("Processing snapshot artifact: %s", snapshot_artifact.model_dump_json())
 
         # Mongo service
+        correlated_db_artifacts = await mongo_service.get_correlated_videos_for_snapshot(snapshot_artifact)
 
-        correlated_raw_paths = await mongo_service.get_correlated_videos_for_snapshot(snapshot_artifact)
-        snapshot_artifact.correlated_artifacts = correlated_raw_paths
+        correlated_video_ids = [db_artifact.video_id for db_artifact in correlated_db_artifacts]
+        raw_file_paths = [db_artifact.filepath for db_artifact in correlated_db_artifacts]
+
+        _logger.debug("Got the following correlated videos: %s", str(correlated_video_ids))
 
         await mongo_service.create_snapshot(snapshot_artifact)
-        await mongo_service.update_videos_correlations(snapshot_artifact.correlated_artifacts,
+        await mongo_service.update_videos_correlations(correlated_video_ids,
                                                        snapshot_artifact.artifact_id)
 
         # Voxel service
         voxel_service.update_voxel_video_correlated_snapshots(
-            raw_correlated_filepaths=snapshot_artifact.correlated_artifacts,
+            raw_correlated_filepaths=raw_file_paths,
             raw_filepath=snapshot_artifact.s3_path,
             tenant_id=snapshot_artifact.tenant_id)
-        voxel_service.create_voxel_snapshot(snapshot_artifact)
+        voxel_service.create_voxel_snapshot(artifact=snapshot_artifact, correlated_raw_filepaths=raw_file_paths)
         return ResponseMessage()

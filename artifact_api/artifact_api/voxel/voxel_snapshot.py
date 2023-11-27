@@ -13,16 +13,16 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
     fields = [
         VoxelField(field_name="video_id",
                    field_type=fo.core.fields.StringField,
-                   field_value=lambda _, artifact: artifact.artifact_id),
+                   field_value=lambda ctx: ctx.artifact.artifact_id),
         VoxelField(field_name="tenant_id",
                    field_type=fo.core.fields.StringField,
-                   field_value=lambda _, artifact: artifact.tenant_id),
+                   field_value=lambda ctx: ctx.artifact.tenant_id),
         VoxelField(field_name="device_id",
                    field_type=fo.core.fields.StringField,
-                   field_value=lambda _, artifact: artifact.device_id),
+                   field_value=lambda ctx: ctx.artifact.device_id),
         VoxelField(field_name="recording_time",
                    field_type=fo.core.fields.DateTimeField,
-                   field_value=lambda _, artifact: artifact.timestamp),
+                   field_value=lambda ctx: ctx.artifact.timestamp),
         VoxelField(field_name="source_videos",
                    field_type=fo.core.fields.ListField,
                    field_subtype=fo.core.fields.StringField,
@@ -30,7 +30,8 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
     ]
 
     @classmethod
-    def snapshot_sample(cls, artifact: SnapshotArtifact, dataset: fo.Dataset) -> None:
+    def snapshot_sample(cls, artifact: SnapshotArtifact, dataset: fo.Dataset,
+                        correlated_raw_filepaths: list[str]) -> None:
         """
         Creates or updates a snapshot sample
 
@@ -38,7 +39,7 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
             artifact (SnapshotArtifact): _description_
             dataset (fo.Dataset): _description_
         """
-        cls._create_sample(artifact, dataset)
+        cls._create_sample(artifact, dataset, correlated_raw_filepaths)
 
     @classmethod
     def updates_correlation(cls, raw_correlated_filepath: list[str], raw_filepath: str, dataset_name: str) -> None:

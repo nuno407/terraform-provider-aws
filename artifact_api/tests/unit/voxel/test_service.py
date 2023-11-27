@@ -102,6 +102,7 @@ class TestVoxelService:
         dataset = MagicMock()
         mock_create_dataset.return_value = dataset
         sample = MagicMock()
+        correlated_raw_filepaths = ["some_id"]
         mock_find_or_create_sample.return_value = sample
         sample.media_type = fom.VIDEO
         set_field_calls = [
@@ -114,12 +115,12 @@ class TestVoxelService:
             call(sample, "month", video_artifact.timestamp.month),
             call(sample, "year", video_artifact.timestamp.year),
             call(sample, "recording_duration", video_artifact.duration),
-            call(sample, "snapshots_paths", video_artifact.correlated_artifacts),
-            call(sample, "num_snapshots", len(video_artifact.correlated_artifacts)),
+            call(sample, "snapshots_paths", ANY),
+            call(sample, "num_snapshots", len(correlated_raw_filepaths)),
             call(sample, "raw_metadata", ANY),  # Compute raw_metadata
         ]
         # WHEN
-        voxel_service.create_voxel_video(video_artifact)
+        voxel_service.create_voxel_video(video_artifact, correlated_raw_filepaths)
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts", ["RC"])
         mock_find_or_create_sample.assert_called_once_with(
@@ -149,6 +150,7 @@ class TestVoxelService:
         dataset = MagicMock()
         mock_create_dataset.return_value = dataset
         sample = MagicMock()
+        correlated_raw_filepaths = []
         mock_find_or_create_sample.return_value = sample
         sample.media_type = fom.IMAGE
         set_field_calls = [
@@ -156,11 +158,11 @@ class TestVoxelService:
             call(sample, "tenant_id", snapshot_artifact.tenant_id),
             call(sample, "device_id", snapshot_artifact.device_id),
             call(sample, "recording_time", snapshot_artifact.timestamp),
-            call(sample, "source_videos", snapshot_artifact.correlated_artifacts),
+            call(sample, "source_videos", correlated_raw_filepaths),
             call(sample, "raw_metadata", ANY),  # Compute raw_metadata
         ]
         # WHEN
-        voxel_service.create_voxel_snapshot(snapshot_artifact)
+        voxel_service.create_voxel_snapshot(snapshot_artifact, correlated_raw_filepaths)
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts_snapshots", ["RC"])
         mock_find_or_create_sample.assert_called_once_with(

@@ -69,8 +69,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
             upload_timing=TimeWindow(
                 start="2023-04-13T08:00:00+00:00",  # type: ignore
                 end="2023-04-13T08:01:00+00:00"),  # type: ignore
-            uuid="abc",
-            correlated_artifacts=["correlated_1", "correlated_2"]
+            uuid="abc"
         )
 
     @fixture
@@ -171,6 +170,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         correlated = {
             "recording_overview.deviceID": message.device_id,
             "recording_overview.recording_time": {"$lte": message.timestamp},
+            "_media_type": "video",
             "$expr": {
                 "$gte": [
                     {"$add": [
@@ -181,17 +181,18 @@ class TestMongoController:  # pylint: disable=duplicate-code
                 ]
             }
         }
+        result = [Mock(), Mock()]
 
         correlated_artifacts = MagicMock()
-        correlated_artifacts.__aiter__.return_value = [Mock(filepath=1), Mock(filepath=2)]
+        correlated_artifacts.__aiter__.return_value = [Mock(), Mock()]
 
         video_engine.find = MagicMock()
         video_engine.find.return_value = correlated_artifacts
 
         result = await mongo_controller.get_correlated_videos_for_snapshot(message)
-        video_engine.find.assert_called_once_with(correlated)
 
-        assert result == [1, 2]
+        video_engine.find.assert_called_once_with(correlated)
+        assert result == correlated_artifacts.__aiter__.return_value
 
     async def test_get_correlated_snapshots_for_video(self, snapshot_engine: MagicMock,
                                                       mongo_controller: MongoController):
@@ -205,7 +206,8 @@ class TestMongoController:  # pylint: disable=duplicate-code
         message = Mock(device_id="mock_device_id_bar", timestamp=111112, end_timestamp=111113)
 
         correlated = {
-            "deviceID": message.device_id,
+            "recording_overview.deviceID": message.device_id,
+            "_media_type": "image",
             "recording_overview.recording_time": {
                 "$gte": message.timestamp,
                 "$lte": message.end_timestamp
@@ -213,7 +215,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         }
 
         correlated_artifacts = MagicMock()
-        correlated_artifacts.__aiter__.return_value = [Mock(filepath=1), Mock(filepath=2)]
+        correlated_artifacts.__aiter__.return_value = [Mock(), Mock()]
 
         snapshot_engine.find = MagicMock()
         snapshot_engine.find.return_value = correlated_artifacts
@@ -221,7 +223,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         result = await mongo_controller.get_correlated_snapshots_for_video(message)
         snapshot_engine.find.assert_called_once_with(correlated)
 
-        assert result == [1, 2]
+        assert result == correlated_artifacts.__aiter__.return_value
 
     @mark.parametrize("message", [
         IncidentEventArtifact(

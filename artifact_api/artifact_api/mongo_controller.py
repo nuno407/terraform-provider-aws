@@ -1,8 +1,7 @@
 """mongo controller service module"""
 from typing import Union
 from datetime import timedelta
-from logging import Logger
-from base.aws.container_services import ContainerServices
+import logging
 from base.model.metadata.api_messages import IMUDataArtifact, IMUSample
 from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
@@ -18,10 +17,10 @@ from artifact_api.exceptions import IMUEmptyException, UnknowEventArtifactExcept
 from artifact_api.utils.imu_gap_finder import IMUGapFinder, TimeRange
 
 
-_logger: Logger = ContainerServices.configure_logging("artifact_api")
+_logger = logging.getLogger(__name__)
 
 
-@inject()
+@inject
 class MongoController:  # pylint:disable=too-many-arguments
     """
     Mongo Controller Class
@@ -54,6 +53,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_videos}
         }
 
+        _logger.debug("Updating snapshot correlations for %s", correlated_videos)
         await self.__video_engine.update_many(filter_correlated, update_video)
 
     async def update_snapshots_correlations(self, correlated_snapshots: list[str], video_id: str):
@@ -69,6 +69,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_snapshots}
         }
 
+        _logger.debug("Updating video correlations for %s", correlated_snapshots)
         await self.__snapshot_engine.update_many(filter_correlated, update_snapshot)
 
     async def create_snapshot(self, message: SnapshotArtifact):
@@ -81,8 +82,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             devcloud_id=message.devcloudid,
             device_id=message.device_id,
             tenant_id=message.tenant_id,
-            recording_time=message.timestamp,
-            source_videos=message.correlated_artifacts
+            recording_time=message.timestamp
         )
 
         doc = DBSnapshotArtifact(
@@ -92,7 +92,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         )
 
         await self.__snapshot_engine.save(doc)
-
+        _logger.debug("Snapshot saved to db [%s]", doc.model_dump_json())
         return doc
 
     async def create_video(self, message: S3VideoArtifact):
@@ -113,7 +113,6 @@ class MongoController:  # pylint:disable=too-many-arguments
                                             length=f"{hours:01}:{minutes:02}:{seconds:02}",
                                             recording_time=message.timestamp,
                                             recording_duration=message.actual_duration,
-                                            snapshots_paths=message.correlated_artifacts,
                                             tenant_id=message.tenant_id,
                                             time=time_str)
 
@@ -126,9 +125,10 @@ class MongoController:  # pylint:disable=too-many-arguments
                                 )
 
         await self.__video_engine.save(doc)
+        _logger.debug("Video saved to db [%s]", doc.model_dump_json())
         return doc
 
-    async def get_correlated_videos_for_snapshot(self, message: SnapshotArtifact):
+    async def get_correlated_videos_for_snapshot(self, message: SnapshotArtifact) -> list[DBSnapshotArtifact]:
         """_summary_
 
         Args:
@@ -137,6 +137,7 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         correlated = {
             "recording_overview.deviceID": message.device_id,
+            "_media_type": "video",
             "recording_overview.recording_time": {"$lte": message.timestamp},
             "$expr": {
                 "$gte": [
@@ -151,13 +152,9 @@ class MongoController:  # pylint:disable=too-many-arguments
             }
         }
 
-        correlated_artifacts = self.__video_engine.find(correlated)
+        return [_ async for _ in self.__video_engine.find(correlated)]
 
-        correlated_artifacts_ids = [cor.filepath async for cor in correlated_artifacts]
-
-        return correlated_artifacts_ids
-
-    async def get_correlated_snapshots_for_video(self, message: S3VideoArtifact):
+    async def get_correlated_snapshots_for_video(self, message: S3VideoArtifact) -> list[DBSnapshotArtifact]:
 
         """_summary_
 
@@ -166,18 +163,15 @@ class MongoController:  # pylint:disable=too-many-arguments
         """
 
         correlated = {
-            "deviceID": message.device_id,
+            "recording_overview.deviceID": message.device_id,
+            "_media_type": "image",
             "recording_overview.recording_time": {
                 "$gte": message.timestamp,
                 "$lte": message.end_timestamp
             }
         }
 
-        correlated_artifacts = self.__snapshot_engine.find(correlated)
-
-        correlated_artifacts_ids = [cor.filepath async for cor in correlated_artifacts]
-
-        return correlated_artifacts_ids
+        return [_ async for _ in self.__snapshot_engine.find(correlated)]
 
     async def create_event(self, message: Union[CameraServiceEventArtifact,
                                                 DeviceInfoEventArtifact,
@@ -209,6 +203,7 @@ class MongoController:  # pylint:disable=too-many-arguments
             raise UnknowEventArtifactException()
 
         await self.__event_engine.save(doc)
+        _logger.debug("Event saved to db [%s]", doc.model_dump_json())
         return doc
 
     # Operator Events
@@ -223,6 +218,7 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         if isinstance(artifact, (SOSOperatorArtifact, PeopleCountOperatorArtifact, CameraBlockedOperatorArtifact)):
             await self.__operator_feedback_engine.save(artifact)
+            _logger.debug("Operator message saved to db [%s]", artifact.model_dump_json())
         else:
             raise InvalidOperatorArtifactException()
 

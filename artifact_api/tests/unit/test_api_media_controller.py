@@ -49,8 +49,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
             upload_timing=TimeWindow(start=(datetime.now() - timedelta(minutes=50)), end=datetime.now()),
             uuid="uuid",
             footage_id="footage_id",
-            recordings=[],
-            correlated_artifacts=["a", "b"]
+            recordings=[]
         )
 
     @pytest.fixture()
@@ -68,8 +67,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
             upload_timing=TimeWindow(start=(datetime.now() - timedelta(minutes=50)), end=datetime.now()),
             uuid="uuid",
             footage_id="footage_id",
-            recordings=[],
-            correlated_artifacts=["a", "b"]
+            recordings=[]
         )
 
     @pytest.mark.unit
@@ -83,6 +81,8 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """
 
         # GIVEN
+        correlated_artifact = Mock()
+        mock_mongo_service.get_correlated_snapshots_for_video.return_value = [correlated_artifact]
 
         # WHEN
         await media_controller.process_video_artifact(video_artifact, mock_mongo_service, mock_voxel_service)
@@ -90,12 +90,13 @@ class TestMediaController:  # pylint: disable=duplicate-code
         mock_mongo_service.get_correlated_snapshots_for_video.assert_called_once_with(video_artifact)
         mock_mongo_service.create_video.assert_called_once_with(video_artifact)
         mock_mongo_service.update_snapshots_correlations.assert_called_once_with(
-            video_artifact.correlated_artifacts, video_artifact.artifact_id)
+            [correlated_artifact.video_id], video_artifact.artifact_id)
         mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(
-            raw_correlated_filepaths=video_artifact.correlated_artifacts,
+            raw_correlated_filepaths=[correlated_artifact.filepath],
             raw_filepath=video_artifact.s3_path,
             tenant_id=video_artifact.tenant_id)
-        mock_voxel_service.create_voxel_video.assert_called_once_with(artifact=video_artifact)
+        mock_voxel_service.create_voxel_video.assert_called_once_with(
+            artifact=video_artifact, correlated_raw_filepaths=[correlated_artifact.filepath])
 
     @pytest.mark.unit
     async def test_process_snapshot_artifact(self, snapshot_artifact: SnapshotArtifact,
@@ -108,16 +109,21 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """
 
         # GIVEN
+        correlated_artifact = Mock()
+        mock_mongo_service.get_correlated_videos_for_snapshot.return_value = [correlated_artifact]
 
         # WHEN
         await media_controller.process_snapshot_artifact(snapshot_artifact, mock_mongo_service, mock_voxel_service)
+
         # THEN
+
         mock_mongo_service.get_correlated_videos_for_snapshot.assert_called_once_with(snapshot_artifact)
         mock_mongo_service.create_snapshot.assert_called_once_with(snapshot_artifact)
         mock_mongo_service.update_videos_correlations.assert_called_once_with(
-            snapshot_artifact.correlated_artifacts, snapshot_artifact.artifact_id)
+            [correlated_artifact.video_id], snapshot_artifact.artifact_id)
         mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(
-            raw_correlated_filepaths=snapshot_artifact.correlated_artifacts,
+            raw_correlated_filepaths=[correlated_artifact.filepath],
             raw_filepath=snapshot_artifact.s3_path,
             tenant_id=snapshot_artifact.tenant_id)
-        mock_voxel_service.create_voxel_snapshot.assert_called_once_with(snapshot_artifact)
+        mock_voxel_service.create_voxel_snapshot.assert_called_once_with(
+            artifact=snapshot_artifact, correlated_raw_filepaths=[correlated_artifact.filepath])

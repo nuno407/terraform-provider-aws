@@ -19,7 +19,7 @@ class DBVideoRecordingOverview(ConfiguredBaseModel):
     length: str = Field(pattern=r"^\d?:\d{2}:\d{2}$")
     recording_duration: float
     recording_time: UtcDatetimeInPast = Field(default=...)
-    snapshots_paths: list[str]
+    snapshots_paths: list[str] = []
     tenant_id: str = Field(alias="tenantID")
     time: str = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
     chc_duration: Optional[float] = Field(default=None)
@@ -41,7 +41,7 @@ class DBSnapshotRecordingOverview(ConfiguredBaseModel):
     device_id: str = Field(alias="deviceID")
     tenant_id: str = Field(alias="tenantID")
     recording_time: UtcDatetimeInPast
-    source_videos: list[str]
+    source_videos: list[str] = []
 
 
 class DBCameraServiceEventArtifact(ConfiguredBaseModel):

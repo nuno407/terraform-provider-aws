@@ -1,5 +1,6 @@
 """ Voxel Base Sample Model """
 import logging
+from dataclasses import dataclass
 from typing import Callable, Any, List, Union
 
 
@@ -17,6 +18,14 @@ from artifact_api.exceptions import VoxelProcessingException
 _logger = logging.getLogger(__name__)
 
 
+@dataclass
+class VoxelFieldContext:
+    """Context for each voxel field"""
+    sample: fo.Sample
+    artifact: Union[SnapshotArtifact, VideoArtifact]
+    correlated_anonymized_filepaths: list[str]
+
+
 class VoxelField:  # pylint: disable=too-few-public-methods
     """Base Class for all voxel field
         In this class we should specify the voxel field type
@@ -25,11 +34,11 @@ class VoxelField:  # pylint: disable=too-few-public-methods
     field_name: str
     field_type: fo.core.fields.Field
     field_subtype: fo.core.fields.Field
-    field_value: Callable[[fo.Sample, Union[SnapshotArtifact, VideoArtifact]], Any]
+    field_value: Callable[[VoxelFieldContext], Any]
 
     def __init__(self,
                  field_name, field_type: fo.core.fields.Field,
-                 field_value: Callable[[fo.Sample, Union[SnapshotArtifact, VideoArtifact]], Any],
+                 field_value: Callable[[VoxelFieldContext], Any],
                  field_subtype: fo.core.fields.Field = None) -> None:
         self.field_name = field_name
         self.field_type = field_type
@@ -72,14 +81,12 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
     @classmethod
     def _correlated_paths(cls, correlated_field: str):
         """ Generalizes correlated path merging behavior. """
-        def correlates_path_logic(sample: fo.Sample, artifact: Any):
-            if artifact.correlated_artifacts is not None:
-                snapshots_paths = sample.get_field(correlated_field)
-                if snapshots_paths is None:
-                    return artifact.correlated_artifacts
-                snapshots_paths.extend(artifact.correlated_artifacts)
-                return list(set(snapshots_paths))
-            return []
+        def correlates_path_logic(ctx: VoxelFieldContext):
+            snapshots_paths: list[str] = ctx.sample.get_field(correlated_field)
+            if snapshots_paths is None:
+                return list(set(ctx.correlated_anonymized_filepaths))
+            snapshots_paths.extend(ctx.correlated_anonymized_filepaths)
+            return list(set(snapshots_paths))
         return correlates_path_logic
 
     @classmethod
@@ -139,7 +146,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         return f"s3://{anon_bucket}/{file_path_no_extension}_anonymized.{extension}"
 
     @classmethod
-    def _create_sample(cls, artifact: Any, dataset: fo.Dataset) -> None:
+    def _create_sample(cls, artifact: Any, dataset: fo.Dataset, correlated_raw_filepaths: list[str]) -> None:
         """
         Creates or updates a sample
         """
@@ -155,7 +162,8 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         set_mandatory_fields_on_sample(sample, artifact.tenant_id)
 
         for field in cls.fields:
-            result = field.field_value(sample, artifact)
+            ctx = VoxelFieldContext(sample, artifact, correlated_raw_filepaths)
+            result = field.field_value(ctx)
             if result is not None:
                 set_field(sample, field.field_name, result)
 
