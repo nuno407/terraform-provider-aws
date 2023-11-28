@@ -191,7 +191,7 @@ class EventArtifact(Artifact):
 class IncidentEventArtifact(EventArtifact):
     """Represents an incident event from RCC"""
     artifact_name: Literal["incident_info"] = "incident_info"
-    event_name: Literal[EventType.INCIDENT] = Field(default=...)
+    event_name: Literal[EventType.INCIDENT] = EventType.INCIDENT
     location: Optional[Location] = Field(default=None)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
     bundle_id: Optional[str] = Field(default=None)
@@ -200,7 +200,7 @@ class IncidentEventArtifact(EventArtifact):
 class DeviceInfoEventArtifact(EventArtifact):
     """Represents a device info event from RCC"""
     artifact_name: Literal["device_info"] = "device_info"
-    event_name: Literal[EventType.DEVICE_INFO] = Field(default=...)
+    event_name: Literal[EventType.DEVICE_INFO] = EventType.DEVICE_INFO
     system_report: Optional[str] = Field(default=None)
     software_versions: list[dict[str, str]] = Field(default_factory=list)
     device_type: Optional[str] = Field(default=None)
@@ -210,7 +210,7 @@ class DeviceInfoEventArtifact(EventArtifact):
 class CameraServiceEventArtifact(EventArtifact):
     """Represents a camera service event from RCC"""
     artifact_name: Literal["camera_service"] = "camera_service"
-    event_name: Literal[EventType.CAMERA_SERVICE] = Field(default=...)
+    event_name: Literal[EventType.CAMERA_SERVICE] = EventType.CAMERA_SERVICE
     service_state: GeneralServiceState = Field(default=GeneralServiceState.UNKNOWN)
     camera_name: Optional[str] = Field(default=None)
     camera_state: list[CameraServiceState] = Field(default_factory=list)

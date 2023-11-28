@@ -5,6 +5,7 @@ import fiftyone as fo
 from fiftyone import ViewField as F
 import logging
 from kink import inject
+from base.aws.s3 import S3Controller
 
 _logger = logging.getLogger(__name__)
 
@@ -127,6 +128,15 @@ def _construct_raw_filepath_from_filepath(filepath: str) -> str:
     raw_filepath = re.sub(suffix_pattern, replacement, raw_filepath)
 
     return raw_filepath
+
+
+def get_anonymized_path_from_raw(filepath: str) -> str:
+    bucket, path = S3Controller.get_s3_path_parts(filepath)
+    anon_bucket = bucket.replace("raw", "anonymized")
+
+    file_path_no_extension, extension = path.split(".")
+
+    return f"s3://{anon_bucket}/{file_path_no_extension}_anonymized.{extension}"
 
 
 @inject()

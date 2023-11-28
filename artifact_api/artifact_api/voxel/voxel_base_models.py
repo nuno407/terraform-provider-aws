@@ -1,18 +1,17 @@
 """ Voxel Base Sample Model """
 import logging
 from dataclasses import dataclass
-from typing import Callable, Any, List, Union
-
+from typing import Any, Callable, Union
 
 import fiftyone as fo
-from fiftyone.core.metadata import ImageMetadata, VideoMetadata
-from fiftyone import ViewField
 import fiftyone.core.media as fom
+from fiftyone import ViewField
+from fiftyone.core.metadata import ImageMetadata, VideoMetadata
 
-from base.voxel.functions import set_mandatory_fields_on_sample, set_field, find_or_create_sample
 from base.model.artifacts import SnapshotArtifact, VideoArtifact
-from base.aws.s3 import S3Controller
-
+from base.voxel.functions import (find_or_create_sample,
+                                  get_anonymized_path_from_raw, set_field,
+                                  set_mandatory_fields_on_sample)
 from artifact_api.exceptions import VoxelProcessingException
 
 _logger = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ class VoxelField:  # pylint: disable=too-few-public-methods
 class VoxelSample:  # pylint: disable=too-few-public-methods
     """Base Class for all voxel samples"""
 
-    fields: List[VoxelField]
+    fields: list[VoxelField]
 
     @classmethod
     def _compute_sample_metadata(cls, sample: fo.Sample) -> None:
@@ -137,21 +136,12 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         dataset.save()
 
     @classmethod
-    def _get_anonymized_path_from_raw(cls, filepath: str) -> str:
-        bucket, path = S3Controller.get_s3_path_parts(filepath)
-        anon_bucket = bucket.replace("raw", "anonymized")
-
-        file_path_no_extension, extension = path.split(".")
-
-        return f"s3://{anon_bucket}/{file_path_no_extension}_anonymized.{extension}"
-
-    @classmethod
     def _create_sample(cls, artifact: Any, dataset: fo.Dataset, correlated_raw_filepaths: list[str]) -> None:
         """
         Creates or updates a sample
         """
         cls._verify_dataset_video_fields(dataset)
-        anon_path = VoxelSample._get_anonymized_path_from_raw(artifact.s3_path)
+        anon_path = get_anonymized_path_from_raw(artifact.s3_path)
 
         if anon_path == artifact.s3_path:
             raise VoxelProcessingException(f"Voxel anonymized path is the same as the raw path {anon_path}")

@@ -1,0 +1,24 @@
+{
+    "DataIngestion": {
+        "recordings": [
+            {
+                "video_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317",
+                "MDF_available": "No",
+                "_media_type": "video",
+                "resolution": "640x360",
+                "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4",
+                "recording_overview": {
+                    "#snapshots": 0,
+                    "devcloudid": "6e4281b180bae1e664a8bb2d39edef93ae67f417e8a9bd3da8b8e55304b868be",
+                    "deviceID": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                    "length": "0:00:30",
+                    "recording_duration": 30.241,
+                    "recording_time": "2023-11-17T10:19:38.784000",
+                    "snapshots_paths": [],
+                    "tenantID": "ridecare_companion_fut",
+                    "time": "2023-11-17 10:19:38"
+                }
+            }
+        ]
+    }
+}

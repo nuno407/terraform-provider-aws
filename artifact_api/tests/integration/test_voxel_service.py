@@ -1,17 +1,27 @@
 """ Integration tests for voxel service. """
 import os
 from datetime import datetime, timezone, timedelta
-from typing import List
+from unittest.mock import patch
 import pytest
 from pydantic import SkipValidation
 from kink import di
+
 import fiftyone as fo
 from fiftyone import ViewField
+
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow
 from base.model.config.dataset_config import DatasetConfig
 from base.model.config.policy_config import PolicyConfig
 from base.model.base_model import S3Path
 from artifact_api.voxel import VoxelService, VoxelConfig
+
+
+def mock_anon(value: str) -> str:
+    """mocks get_anonymized_path_from_raw function
+    """
+    video_repl = value.replace(".mp4", "_anonymized.mp4")
+    snap_repl = video_repl.replace(".png", "_anonymized.png")
+    return snap_repl
 
 
 class TestVoxelService:
@@ -52,19 +62,20 @@ class TestVoxelService:
             uuid="uuid")
 
     @pytest.fixture()
-    def test_images_paths(self, request: pytest.FixtureRequest) -> List[str]:
+    def test_images_paths(self, request: pytest.FixtureRequest) -> list[str]:
         """ List of available images paths. """
         test_dir = os.path.dirname(request.module.__file__)
         return [os.path.join(test_dir, "test_data", "images", name) for name in ["a.png", "b.png", "c.png", "d.png"]]
 
     @pytest.fixture()
-    def test_videos_paths(self, request: pytest.FixtureRequest) -> List[str]:
+    def test_videos_paths(self, request: pytest.FixtureRequest) -> list[str]:
         """ List of available videos paths. """
         test_dir = os.path.dirname(request.module.__file__)
         return [os.path.join(test_dir, "test_data", "videos", name) for name in ["a.mp4", "b.mp4", "c.mp4", "d.mp4"]]
 
     @pytest.fixture()
-    def voxel_service(self, test_videos_paths: List[str], test_images_paths: List[str]) -> VoxelService:
+    @patch("artifact_api.voxel.voxel_base_models.get_anonymized_path_from_raw", new=mock_anon)
+    def voxel_service(self, test_videos_paths: list[str], test_images_paths: list[str]) -> VoxelService:
         """Generate VoxelService"""
         dataset_config = DatasetConfig(default_dataset="datanauts", tag="RC")
         policy_config = PolicyConfig(default_policy_document="test_doc")
@@ -78,11 +89,14 @@ class TestVoxelService:
         return voxel_service
 
     @pytest.mark.integration
+    @patch("artifact_api.voxel.voxel_video.get_anonymized_path_from_raw", new=mock_anon)
+    @patch("artifact_api.voxel.voxel_snapshot.get_anonymized_path_from_raw", new=mock_anon)
     def test_update_voxel_snapshots_correlated_videos(
             self,
             voxel_service: VoxelService,
-            test_videos_paths: List[str],
-            test_images_paths: List[str]):
+            test_videos_paths: list[str],
+            test_images_paths: list[str],
+    ):
         """Test update_voxel_snapshots_correlated_videos"""
         # Video at position 0 of the array is related with the snapshots 2 and 3.
         # Also video at position 3 is related with image in position 3
@@ -90,40 +104,44 @@ class TestVoxelService:
         # GIVEN
         dataset = fo.load_dataset("datanauts_snapshots")
         # WHEN
-        voxel_service.update_voxel_snapshots_correlated_videos(artifact_id=test_videos_paths[0],
-                                                               correlated=[test_images_paths[2], test_images_paths[3]],
+        voxel_service.update_voxel_snapshots_correlated_videos(
+            raw_filepath=test_videos_paths[0], raw_correlated_filepaths=[
+                test_images_paths[2], test_images_paths[3]], tenant_id="datanauts")
+        voxel_service.update_voxel_snapshots_correlated_videos(raw_filepath=test_videos_paths[3],
+                                                               raw_correlated_filepaths=[test_images_paths[3]],
                                                                tenant_id="datanauts")
-        voxel_service.update_voxel_snapshots_correlated_videos(artifact_id=test_videos_paths[3],
-                                                               correlated=[test_images_paths[3]],
-                                                               tenant_id="datanauts")
+
         # THEN
         assert len(dataset) == 4
-        assert dataset.one(ViewField("filepath").starts_with(test_images_paths[0]))["source_videos"] is None
-        assert dataset.one(ViewField("filepath").starts_with(test_images_paths[1]))["source_videos"] is None
-        assert dataset.one(ViewField("filepath").starts_with(test_images_paths[2]))[
-            "source_videos"] == [test_videos_paths[0]]
-        assert dataset.one(ViewField("filepath").starts_with(test_images_paths[3]))[
-            "source_videos"] == [test_videos_paths[0], test_videos_paths[3]]
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_images_paths[0]))["source_videos"] is None
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_images_paths[1]))["source_videos"] is None
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_images_paths[2]))[
+            "source_videos"] == [mock_anon(test_videos_paths[0])]
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_images_paths[3]))[
+            "source_videos"] == [mock_anon(test_videos_paths[0]), mock_anon(test_videos_paths[3])]
 
     @pytest.mark.integration
+    @patch("artifact_api.voxel.voxel_snapshot.get_anonymized_path_from_raw", new=mock_anon)
+    @patch("artifact_api.voxel.voxel_video.get_anonymized_path_from_raw", new=mock_anon)
     def test_update_voxel_video_correlated_snapshots(
             self,
             voxel_service: VoxelService,
-            test_videos_paths: List[str],
-            test_images_paths: List[str]):
+            test_videos_paths: list[str],
+            test_images_paths: list[str]):
         """Test update_voxel_video_correlated_snapshots"""
         # Snapshot at position 3 of the array is related with the video on position 0.
         # In this test there is no relation between samples still
         # GIVEN
         dataset = fo.load_dataset("datanauts")
         # WHEN
-        voxel_service.update_voxel_video_correlated_snapshots(artifact_id=test_images_paths[3],
-                                                              correlated=[test_videos_paths[0]],
+        voxel_service.update_voxel_video_correlated_snapshots(raw_filepath=test_images_paths[3],
+                                                              raw_correlated_filepaths=[test_videos_paths[0]],
                                                               tenant_id="datanauts")
+
         # THEN
         assert len(dataset) == 4
-        assert dataset.one(ViewField("filepath").starts_with(test_videos_paths[0]))[
-            "snapshots_paths"] == [test_images_paths[3]]
-        assert dataset.one(ViewField("filepath").starts_with(test_videos_paths[1]))["snapshots_paths"] is None
-        assert dataset.one(ViewField("filepath").starts_with(test_videos_paths[2]))["snapshots_paths"] is None
-        assert dataset.one(ViewField("filepath").starts_with(test_videos_paths[3]))["snapshots_paths"] is None
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_videos_paths[0]))[
+            "snapshots_paths"] == [mock_anon(test_images_paths[3])]
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_videos_paths[1]))["snapshots_paths"] is None
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_videos_paths[2]))["snapshots_paths"] is None
+        assert dataset.one(ViewField("raw_filepath").starts_with(test_videos_paths[3]))["snapshots_paths"] is None

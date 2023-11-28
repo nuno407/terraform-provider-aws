@@ -1,0 +1,19 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_03",
+    "s3_path": "s3://qa-rcd-raw-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724.jpeg",
+    "resolution": {
+        "width": 1280,
+        "height": 720
+    },
+    "recorder": "TrainingMultiSnapshot",
+    "timestamp": "2022-09-02T00:56:12.308000Z",
+    "end_timestamp": "2022-09-02T00:56:12.308000Z",
+    "upload_timing": {
+        "start": "2022-09-02T01:02:41.993000Z",
+        "end": "2022-09-02T01:02:42.093000Z"
+    },
+    "correlated_artifacts": [],
+    "artifact_name": "snapshot",
+    "uuid": "DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1"
+}

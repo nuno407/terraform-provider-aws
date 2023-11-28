@@ -1,0 +1,77 @@
+{
+    "DataIngestion": {
+        "events": [
+            {
+                "timestamp": "2023-08-03T13:08:56",
+                "device_type": "hailysharey",
+                "artifact_name": "device_info",
+                "last_shutdown": {
+                    "reason": "SHUTDOWN_REASON__UNKNOWN"
+                },
+                "system_report": "Git Commit ID: 20af29701 | Git Branch Name: feature/MC-40336-move-state-machine-from-controller-to-service | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 876474368 | hailysharey",
+                "software_versions": [
+                    {
+                        "software_name": "BSP",
+                        "version": "3.5.3"
+                    },
+                    {
+                        "software_name": "Board",
+                        "version": "SRX_P0_1596_16BIT_DDR4"
+                    },
+                    {
+                        "software_name": "BoardBuild",
+                        "version": "dev"
+                    },
+                    {
+                        "software_name": "Bootloader",
+                        "version": "8"
+                    },
+                    {
+                        "software_name": "HDLC",
+                        "version": "5"
+                    },
+                    {
+                        "software_name": "Hardware",
+                        "version": "4"
+                    },
+                    {
+                        "software_name": "MCU",
+                        "version": "3.7.0"
+                    },
+                    {
+                        "software_name": "Modem",
+                        "version": "EG95EXGAR08A02M1G"
+                    },
+                    {
+                        "software_name": "carapplication",
+                        "version": "0.0.1"
+                    },
+                    {
+                        "software_name": "ivs_car",
+                        "version": "1.10.0-SNAPSHOT"
+                    },
+                    {
+                        "software_name": "ivs_feature_chain",
+                        "version": "0.6.5-rc1"
+                    }
+                ],
+                "device_id": "ivs_slimscaley_develop_ivv1sf4_01",
+                "event_name": "com.bosch.ivs.DeviceInfoEvent",
+                "tenant_id": "deepsensation"
+            },
+            {
+                "tenant_id": "rubber_duck",
+                "device_id": "srx_herbie_dev_hw_06",
+                "timestamp": "2023-10-25T08:16:17",
+                "event_name": "com.bosch.ivs.incident.IncidentEvent",
+                "artifact_name": "incident_info",
+                "location": {
+                    "status": "LOCATION_DATA_STATUS__NO_FIX",
+                    "heading": {},
+                    "horizontal_speed": {}
+                },
+                "incident_type": "INCIDENT_TYPE__PANIC"
+            }
+        ]
+    }
+}

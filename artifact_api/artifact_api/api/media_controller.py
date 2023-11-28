@@ -4,6 +4,7 @@ from kink import di
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi_restful.cbv import cbv
+
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
 from artifact_api.models import ResponseMessage
 from artifact_api.mongo_controller import MongoController

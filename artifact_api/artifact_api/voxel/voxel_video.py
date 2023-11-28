@@ -1,6 +1,7 @@
 """ Voxel Video Model """
 from typing import List
 import fiftyone as fo
+from base.voxel.functions import get_anonymized_path_from_raw
 from base.model.artifacts import S3VideoArtifact
 from artifact_api.voxel.voxel_base_models import VoxelField, VoxelSample
 
@@ -64,7 +65,7 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
         """
         Updates all snapshots that have a correlation with this video
         """
-        anonymized_filepath = VoxelSample._get_anonymized_path_from_raw(raw_filepath)
-        anonymized_correlated = [cls._get_anonymized_path_from_raw(raw_path) for raw_path in correlated_raw_filepaths]
+        anonymized_filepath = get_anonymized_path_from_raw(raw_filepath)
+        anonymized_correlated = [get_anonymized_path_from_raw(raw_path) for raw_path in correlated_raw_filepaths]
         cls._update_correlation(anonymized_correlated, anonymized_filepath,
                                 dataset_name, correlation_field="snapshots_paths")

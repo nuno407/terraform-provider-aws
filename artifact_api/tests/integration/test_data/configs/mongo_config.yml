@@ -1,0 +1,10 @@
+db_metadata_tables:
+  pipeline_exec: pipeline-execution
+  algo_output: algorithm-output
+  recording: recording
+  recordings: recordings
+  signals: signals
+  processed_imu: processed-imu
+  events: events
+  sav_operator_feedback: sav-operator-feedback
+database: DataIngestion

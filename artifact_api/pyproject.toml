@@ -3,7 +3,7 @@ omit = ["*/__init__.py"]
 timid = true
 
 [tool.pytest.ini_options]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "helper_functions.py"]
 asyncio_mode = "auto"
 addopts = "-m unit -v --cov-config=.coveragerc --cov=artifact_api --cov-report=xml"
 markers = [

@@ -1,0 +1,31 @@
+{
+    "tenant_id": "ridecare_companion_fut",
+    "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+    "s3_path": "s3://qa-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4",
+    "resolution": {
+        "width": 640,
+        "height": 360
+    },
+    "recorder": "InteriorRecorder",
+    "timestamp": "2023-11-17T10:19:38.784000Z",
+    "end_timestamp": "2023-11-17T10:20:11.317000Z",
+    "upload_timing": {
+        "start": "2023-11-17T10:20:16.402000Z",
+        "end": "2023-11-17T10:20:16.990000Z"
+    },
+    "correlated_artifacts": [],
+    "actual_duration": 30.241,
+    "artifact_name": "s3_video",
+    "rcc_s3_path": "s3://prod-rcc-video-repo/ridecare_companion_fut/f9381c43-4187-498d-bbd8-19022470afe3/INTERIOR/Footage_5d9b257d-581b-42e4-9504-48c6a30c16c9.mp4",
+    "footage_id": "5d9b257d-581b-42e4-9504-48c6a30c16c9",
+    "recordings": [
+        {
+            "recording_id": "InteriorRecorder-663be289-999a-4459-9eb5-ce634fe047b9",
+            "chunk_ids": [
+                160,
+                161,
+                162
+            ]
+        }
+    ]
+}

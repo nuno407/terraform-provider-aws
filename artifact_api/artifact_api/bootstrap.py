@@ -14,9 +14,13 @@ from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
                                               DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
                                               DBS3VideoArtifact, DBSnapshotArtifact)
 from artifact_api.voxel.voxel_config import VoxelConfig
-from artifact_api.config import ArtifactAPIConfig
 from artifact_api.utils.imu_gap_finder import IMUGapFinder
 from artifact_api.mongo_controller import MongoController
+
+
+def create_mongo_client(db_uri: str) -> AsyncIOMotorClient:
+    """Function used to easealy mock the mongo client"""
+    return AsyncIOMotorClient(db_uri, tz_aware=True)
 
 
 def bootstrap_di() -> None:
@@ -26,18 +30,16 @@ def bootstrap_di() -> None:
     di["mongodb_config_path"] = os.environ.get("MONGODB_CONFIG", "/app/mongo-conf/mongo_config.yaml")
     di["db_metadata_tables"] = load_mongodb_config_vars()
 
-    di["config_path"] = os.getenv("ARTIFACT_API_CONFIG_PATH", "/app/config/config.yaml")
     di["tenant_config_path"] = os.getenv(
         "TENANT_MAPPING_CONFIG_PATH",
         "/app/tenant-mapping-conf/tenant-mapping-conf.yaml")
     di["container_name"] = os.getenv("CONTAINER_NAME", "ArtifactAPI")
     di[VoxelConfig] = VoxelConfig.load_yaml_config(di["tenant_config_path"])
     di[PolicyConfig] = di[VoxelConfig].policy_mapping
-    di[ArtifactAPIConfig] = ArtifactAPIConfig.load_yaml_config(di["config_path"])
 
     db_uri = os.environ["DATABASE_URI"]
     db_name = os.environ["DATABASE_NAME"]
-    mongo_client = AsyncIOMotorClient(db_uri, tz_aware=True)
+    mongo_client = create_mongo_client(db_uri)
 
     event_engine = Engine(model=Union[DBCameraServiceEventArtifact,
                                       DBDeviceInfoEventArtifact,

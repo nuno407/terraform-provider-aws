@@ -1,0 +1,11 @@
+dataset_mapping:
+  create_dataset_for:
+    - name: datanauts
+      tenants: [datanauts]
+    - name: ridecare_companion_gridwise
+      tenants: [ridecare_companion_gridwise]
+  default_dataset: "Debug_Lync"
+  tag: "RC"
+policy_mapping:
+  default_policy_document: "unused"
+  policy_document_per_tenant: {}

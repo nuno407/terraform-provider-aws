@@ -1,0 +1,23 @@
+{
+    "RC-datanauts_snapshots": {
+        "tags": [
+            "RC"
+        ],
+        "samples": [
+            {
+                "filepath": "s3://qa-rcd-anonymized-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724_anonymized.jpeg",
+                "tags": [],
+                "metadata": null,
+                "raw_filepath": "s3://qa-rcd-raw-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724.jpeg",
+                "data_privacy_document_id": "unused",
+                "video_id": "datanauts_DATANAUTS_DEV_03_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1662080172308",
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_03",
+                "recording_time": {
+                    "$date": "2022-09-02T00:56:12.308Z"
+                },
+                "source_videos": null
+            }
+        ]
+    }
+}

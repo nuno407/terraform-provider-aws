@@ -1,7 +1,17 @@
 """Utility functions to be used on tests"""
-import os
-from typing import Any
 import json
+import os
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from pytest import FixtureRequest as PytestRequest
+    T = TypeVar("T")
+
+    class FixtureRequest(PytestRequest, Generic[T]):
+        """ Fixture Request"""
+        param: T
+else:
+    from pytest import FixtureRequest
 
 
 def get_abs_path(caller_file: str, file_path: str) -> str:

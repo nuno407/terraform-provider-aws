@@ -7,13 +7,14 @@ from pytest_mock import MockerFixture
 from kink import di
 from base.model.config.dataset_config import DatasetConfig
 from base.model.config.policy_config import PolicyConfig
+from base.voxel.functions import get_anonymized_path_from_raw
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow
 from artifact_api.voxel.service import VoxelService
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_base_models import VoxelSample
 
-
 # pylint: disable=duplicate-code
+
 
 class TestVoxelService:
     "Unit tests for controller endpoints"
@@ -124,7 +125,7 @@ class TestVoxelService:
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts", ["RC"])
         mock_find_or_create_sample.assert_called_once_with(
-            dataset, VoxelSample._get_anonymized_path_from_raw(
+            dataset, get_anonymized_path_from_raw(
                 video_artifact.s3_path))
         mock_set_field.assert_has_calls(set_field_calls)
         assert mock_set_field.call_count == len(set_field_calls)
@@ -166,7 +167,7 @@ class TestVoxelService:
         # THEN
         mock_create_dataset.assert_called_once_with("datanauts_snapshots", ["RC"])
         mock_find_or_create_sample.assert_called_once_with(
-            dataset, VoxelSample._get_anonymized_path_from_raw(
+            dataset, get_anonymized_path_from_raw(
                 snapshot_artifact.s3_path))
         mock_set_field.assert_has_calls(set_field_calls)
         assert mock_set_field.call_count == len(set_field_calls)
