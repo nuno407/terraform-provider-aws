@@ -38,11 +38,12 @@ class MediaController:
         correlated_db_artifacts = await mongo_service.get_correlated_snapshots_for_video(video_artifact)
 
         correlated_snapshot_ids = [db_artifact.video_id for db_artifact in correlated_db_artifacts]
-        raw_file_paths = [db_artifact.filepath for db_artifact in correlated_db_artifacts]
+        raw_file_paths = [
+            db_artifact.filepath for db_artifact in correlated_db_artifacts if db_artifact.filepath is not None]
 
         _logger.debug("Got the following correlated snapshots: %s", str(correlated_snapshot_ids))
 
-        await mongo_service.create_video(video_artifact)
+        await mongo_service.upsert_video(video_artifact, correlated_snapshot_ids)
         await mongo_service.update_snapshots_correlations(correlated_snapshot_ids,
                                                           video_artifact.artifact_id)
 
@@ -73,11 +74,12 @@ class MediaController:
         correlated_db_artifacts = await mongo_service.get_correlated_videos_for_snapshot(snapshot_artifact)
 
         correlated_video_ids = [db_artifact.video_id for db_artifact in correlated_db_artifacts]
-        raw_file_paths = [db_artifact.filepath for db_artifact in correlated_db_artifacts]
+        raw_file_paths = [
+            db_artifact.filepath for db_artifact in correlated_db_artifacts if db_artifact.filepath is not None]
 
         _logger.debug("Got the following correlated videos: %s", str(correlated_video_ids))
 
-        await mongo_service.create_snapshot(snapshot_artifact)
+        await mongo_service.upsert_snapshot(snapshot_artifact, correlated_video_ids)
         await mongo_service.update_videos_correlations(correlated_video_ids,
                                                        snapshot_artifact.artifact_id)
 

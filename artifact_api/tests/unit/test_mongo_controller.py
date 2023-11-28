@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from typing import Union
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import ANY, AsyncMock, MagicMock, Mock
 from pytest import fixture, mark
 from base.model.artifacts import (CameraServiceEventArtifact, DeviceInfoEventArtifact, IncidentEventArtifact,
                                   RecorderType, Recording, Resolution, S3VideoArtifact, SnapshotArtifact,
@@ -114,19 +114,26 @@ class TestMongoController:  # pylint: disable=duplicate-code
             bundle_id="mock_bundle_id",
         )
 
-    async def test_create_snapshot(self, snapshot_engine: MagicMock, mongo_controller: MongoController,
+    async def test_upsert_snapshot(self, snapshot_engine: MagicMock, mongo_controller: MongoController,
                                    snapshot_artifact: SnapshotArtifact):
-        """Test for create_snapshot method
+        """Test for upsert_snapshot method
 
         Args:
             snapshot_engine (MagicMock): snapshot engine mock
             mongo_controller (MongoController): class where the tested method is defined
             snapshot_artifact (SnapshotArtifact): snapshot artifact to be ingested
         """
+        correlated_ids = ["mock_id"]
 
-        snapshot_engine.save = AsyncMock()
-        await mongo_controller.create_snapshot(snapshot_artifact)
-        snapshot_engine.save.assert_called_once()
+        snapshot_engine.update_one = AsyncMock()
+        await mongo_controller.upsert_snapshot(snapshot_artifact, correlated_ids)
+        snapshot_engine.update_one.assert_called_once_with(query={
+            "video_id": snapshot_artifact.artifact_id,
+            "_media_type": "image"
+        },
+            command=ANY,
+            upsert=True
+        )
 
     async def test_update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str,
                                               video_engine: MagicMock, mongo_controller: MongoController):
@@ -141,7 +148,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
 
         video_engine.update_many = AsyncMock()
         update_video = {
-            "$push": {
+            "$addToSet": {
                 "recording_overview.snapshots_paths": snapshot_id
             },
             "$inc": {
@@ -286,7 +293,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
 
         snapshot_engine.update_many = AsyncMock()
         update_snapshot = {
-            "$push": {
+            "$addToSet": {
                 "recording_overview.source_videos": video_id
             }
         }
@@ -307,7 +314,13 @@ class TestMongoController:  # pylint: disable=duplicate-code
             mongo_controller (MongoController): class where the tested method is defined
             video (S3VideoArtifact): video artifact to be created
         """
-
-        video_engine.save = AsyncMock()
-        await mongo_controller.create_video(video)
-        video_engine.save.assert_called_once()
+        correlated_ids = ["mock_id"]
+        video_engine.update_one = AsyncMock()
+        await mongo_controller.upsert_video(video, correlated_ids)
+        video_engine.update_one.assert_called_once_with(query={
+            "video_id": video.artifact_id,
+            "_media_type": "video"
+        },
+            command=ANY,
+            upsert=True
+        )

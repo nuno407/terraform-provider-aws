@@ -21,7 +21,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """
         var = AsyncMock()
         var.get_correlated_snapshots_for_video = AsyncMock()
-        var.create_video = AsyncMock()
+        var.upsert_video = AsyncMock()
         var.update_snapshots_correlations = AsyncMock()
         return var
 
@@ -88,7 +88,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         await media_controller.process_video_artifact(video_artifact, mock_mongo_service, mock_voxel_service)
         # THEN
         mock_mongo_service.get_correlated_snapshots_for_video.assert_called_once_with(video_artifact)
-        mock_mongo_service.create_video.assert_called_once_with(video_artifact)
+        mock_mongo_service.upsert_video.assert_called_once_with(video_artifact, [correlated_artifact.video_id])
         mock_mongo_service.update_snapshots_correlations.assert_called_once_with(
             [correlated_artifact.video_id], video_artifact.artifact_id)
         mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(
@@ -118,7 +118,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         # THEN
 
         mock_mongo_service.get_correlated_videos_for_snapshot.assert_called_once_with(snapshot_artifact)
-        mock_mongo_service.create_snapshot.assert_called_once_with(snapshot_artifact)
+        mock_mongo_service.upsert_snapshot.assert_called_once_with(snapshot_artifact, [correlated_artifact.video_id])
         mock_mongo_service.update_videos_correlations.assert_called_once_with(
             [correlated_artifact.video_id], snapshot_artifact.artifact_id)
         mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(

@@ -91,20 +91,24 @@ class DBIncidentEventArtifact(ConfiguredBaseModel):
 
 class DBSnapshotArtifact(ConfiguredBaseModel):
     """Snapshot Artifact in the format used in the database"""
+    # In our DB, Snapshots can be uniquely identified by video_id and _media_type
+    # Making it a composed primary key
     video_id: str
     media_type: Literal["image"] = Field(default="image", alias="_media_type")
-    filepath: str
-    recording_overview: DBSnapshotRecordingOverview
+    filepath: Optional[str]
+    recording_overview: Optional[DBSnapshotRecordingOverview]
 
 
 class DBS3VideoArtifact(ConfiguredBaseModel):
     """S3Video Artifact in the format used in the database"""
+    # In our DB, Snapshots can be uniquely identified by video_id and _media_type
+    # Making it a composed primary key
     video_id: str
-    mdf_available: str = Field(default="No", alias="MDF_available")
     media_type: Literal["video"] = Field(default="video", alias="_media_type")
-    filepath: str
+    mdf_available: Optional[str] = Field(default="No", alias="MDF_available")
+    filepath: Optional[str]
     resolution: str = Field(pattern=r"\d+x\d+")
-    recording_overview: DBVideoRecordingOverview
+    recording_overview: Optional[DBVideoRecordingOverview]
 
 
 class DBIMUSource(ConfiguredBaseModel):

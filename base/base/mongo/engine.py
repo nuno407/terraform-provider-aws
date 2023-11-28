@@ -26,14 +26,15 @@ class Engine(Generic[T]):
         self.__col = client[database][collection]
         self.__model = model
 
-    def __dump(self, model: ConfiguredBaseModel) -> dict:
+    @staticmethod
+    def dump_model(model: ConfiguredBaseModel) -> dict:
         return model.model_dump(by_alias=True, exclude_none=True)
 
     async def save(self, item: T):
-        await self.__col.insert_one(self.__dump(item))
+        await self.__col.insert_one(self.dump_model(item))
 
     async def save_all(self, items: list[T]):
-        dumps = [self.__dump(item) for item in items]
+        dumps = [self.dump_model(item) for item in items]
         await self.__col.insert_many(dumps)
 
     async def find(self, query: Optional[strDict] = None) -> AsyncIterator[T]:

@@ -41,7 +41,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         """_summary_
         """
         update_video = {
-            "$push": {
+            "$addToSet": {
                 "recording_overview.snapshots_paths": snapshot_id
             },
             "$inc": {
@@ -60,7 +60,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         """_summary_
         """
         update_snapshot = {
-            "$push": {
+            "$addToSet": {
                 "recording_overview.source_videos": video_id
             }
         }
@@ -72,7 +72,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         _logger.debug("Updating video correlations for %s", correlated_snapshots)
         await self.__snapshot_engine.update_many(filter_correlated, update_snapshot)
 
-    async def create_snapshot(self, message: SnapshotArtifact):
+    async def upsert_snapshot(self, message: SnapshotArtifact, correlated_ids: list[str]):
         """_summary_
 
         Args:
@@ -82,7 +82,8 @@ class MongoController:  # pylint:disable=too-many-arguments
             devcloud_id=message.devcloudid,
             device_id=message.device_id,
             tenant_id=message.tenant_id,
-            recording_time=message.timestamp
+            recording_time=message.timestamp,
+            source_videos=correlated_ids
         )
 
         doc = DBSnapshotArtifact(
@@ -91,11 +92,20 @@ class MongoController:  # pylint:disable=too-many-arguments
             recording_overview=rec_overview
         )
 
-        await self.__snapshot_engine.save(doc)
-        _logger.debug("Snapshot saved to db [%s]", doc.model_dump_json())
-        return doc
+        # In our DB, videos can be uniquely identified by video_id and _media_type
+        await self.__snapshot_engine.update_one(
+            query={
+                "video_id": doc.video_id,
+                "_media_type": doc.media_type
+            },
+            command={
+                "$set": self.__snapshot_engine.dump_model(doc)
+            },
+            upsert=True
+        )
+        _logger.debug("Snapshot upserted to db [%s]", doc.model_dump_json())
 
-    async def create_video(self, message: S3VideoArtifact):
+    async def upsert_video(self, message: S3VideoArtifact, correlated_ids: list[str]):
         """_summary_
         Args:
             message (S3VideoArtifact): _description_
@@ -114,19 +124,28 @@ class MongoController:  # pylint:disable=too-many-arguments
                                             recording_time=message.timestamp,
                                             recording_duration=message.actual_duration,
                                             tenant_id=message.tenant_id,
-                                            time=time_str)
+                                            time=time_str,
+                                            snapshots_paths=correlated_ids)
 
         doc = DBS3VideoArtifact(video_id=message.artifact_id,
                                 MDF_available="No",
-                                media_type="video",
                                 filepath=message.s3_path,
                                 resolution=resolution_str,
                                 recording_overview=overview
                                 )
 
-        await self.__video_engine.save(doc)
-        _logger.debug("Video saved to db [%s]", doc.model_dump_json())
-        return doc
+        # In our DB, videos can be uniquely identified by video_id and _media_type
+        await self.__video_engine.update_one(
+            query={
+                "video_id": doc.video_id,
+                "_media_type": doc.media_type
+            },
+            command={
+                "$set": self.__video_engine.dump_model(doc)
+            },
+            upsert=True
+        )
+        _logger.debug("Video upserted to db [%s]", doc.model_dump_json())
 
     async def get_correlated_videos_for_snapshot(self, message: SnapshotArtifact) -> list[DBSnapshotArtifact]:
         """_summary_

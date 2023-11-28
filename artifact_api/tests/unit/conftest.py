@@ -4,6 +4,8 @@ import sys
 from unittest.mock import MagicMock
 from pytest import fixture
 
+from base.mongo.engine import Engine
+
 from artifact_api.utils.imu_gap_finder import IMUGapFinder
 from artifact_api.mongo_controller import MongoController
 
@@ -30,7 +32,9 @@ def fixture_snapshot_engine() -> MagicMock:
     Returns:
         MagicMock: Mock of the snapshot db engine
     """
-    return MagicMock()
+    snapshot_engine = MagicMock()
+    snapshot_engine.dump_model = Engine.dump_model
+    return snapshot_engine
 
 
 @fixture(name="video_engine")
@@ -40,7 +44,9 @@ def fixture_video_engine() -> MagicMock:
     Returns:
         MagicMock: Mock of the video db engine
     """
-    return MagicMock()
+    video_engine = MagicMock()
+    video_engine.dump_model = Engine.dump_model
+    return video_engine
 
 
 @fixture(name="event_engine")
