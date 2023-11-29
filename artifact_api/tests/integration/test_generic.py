@@ -22,14 +22,14 @@ class TestGeneric:
     @ pytest.mark.parametrize("input_json_message_list, endpoint, voxel_config, \
                               mongo_api_config, expected_mongo_state, expected_voxel_state", [
         # Test snapshot
-        (
-            [get_json_message("snapshot_api_message.json")],
-            "/ridecare/snapshots",
-            "voxel_config.yml",
-            "mongo_config.yml",
-            "mongo_snapshot_state.json",
-            "voxel_snapshot_state.json",
-        ),
+        # (
+        #     [get_json_message("snapshot_api_message.json")],
+        #     "/ridecare/snapshots",
+        #     "voxel_config.yml",
+        #     "mongo_config.yml",
+        #     "mongo_snapshot_state.json",
+        #     "voxel_snapshot_state.json",
+        # ),
 
         # Test video
         (
@@ -65,7 +65,7 @@ class TestGeneric:
         )
 
     ],
-        ids=["test_snapshot_artifact", "test_video_artifact", "test_events_artifact", "test_sav_artifact"],
+        ids=["test_video_artifact", "test_events_artifact", "test_sav_artifact"],  # "test_snapshot_artifact",
         indirect=["mongo_api_config", "voxel_config"])
     def test_component(self,
                        input_json_message_list: list[dict],

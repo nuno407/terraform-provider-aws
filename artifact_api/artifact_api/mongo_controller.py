@@ -40,14 +40,25 @@ class MongoController:  # pylint:disable=too-many-arguments
     async def update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str):
         """_summary_
         """
-        update_video = {
-            "$addToSet": {
-                "recording_overview.snapshots_paths": snapshot_id
+        update_video = [
+            {
+                "$addFields": {
+                    "recording_overview.snapshots_paths": {
+                        "$setUnion": [
+                            "$recording_overview.snapshots_paths",
+                            [snapshot_id]
+                        ]
+                    }
+                }
             },
-            "$set": {
-                "#snapshots": {"$size": "$recording_overview.snapshots_paths"}
+            {
+                "$set": {
+                    "recording_overview.#snapshots": {
+                        "$size": "$recording_overview.snapshots_paths"
+                    }
+                }
             }
-        }
+        ]
 
         filter_correlated = {
             "video_id": {"$in": correlated_videos}

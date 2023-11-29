@@ -147,14 +147,25 @@ class TestMongoController:  # pylint: disable=duplicate-code
         """
 
         video_engine.update_many = AsyncMock()
-        update_video = {
-            "$addToSet": {
-                "recording_overview.snapshots_paths": snapshot_id
+        update_video = [
+            {
+                "$addFields": {
+                    "recording_overview.snapshots_paths": {
+                        "$setUnion": [
+                            "$recording_overview.snapshots_paths",
+                            [snapshot_id]
+                        ]
+                    }
+                }
             },
-            "$set": {
-                "#snapshots": {"$size": "$recording_overview.snapshots_paths"}
+            {
+                "$set": {
+                    "recording_overview.#snapshots": {
+                        "$size": "$recording_overview.snapshots_paths"
+                    }
+                }
             }
-        }
+        ]
 
         filter_correlated = {
             "video_id": {"$in": correlated_videos}
