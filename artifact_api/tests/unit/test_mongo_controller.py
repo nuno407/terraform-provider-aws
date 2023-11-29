@@ -151,8 +151,8 @@ class TestMongoController:  # pylint: disable=duplicate-code
             "$addToSet": {
                 "recording_overview.snapshots_paths": snapshot_id
             },
-            "$inc": {
-                "#snapshots": 1
+            "$set": {
+                "#snapshots": {"$size": "$recording_overview.snapshots_paths"}
             }
         }
 
