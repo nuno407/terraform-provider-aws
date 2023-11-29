@@ -128,7 +128,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         hours, remainder = divmod(duration.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
-        overview = DBVideoRecordingOverview(snapshots=0,
+        overview = DBVideoRecordingOverview(snapshots=len(correlated_ids),
                                             devcloud_id=message.devcloudid,
                                             device_id=message.device_id,
                                             length=f"{hours:01}:{minutes:02}:{seconds:02}",
