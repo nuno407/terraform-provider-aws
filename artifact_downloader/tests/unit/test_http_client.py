@@ -8,17 +8,12 @@ from artifact_downloader.exceptions import UnexpectedReturnCode
 class TestHttpClient:
 
     @pytest.fixture
-    def mock_session_factory(self) -> Session:
+    def mock_session(self) -> Session:
         return Mock()
 
     @pytest.fixture
-    def mock_session(self, mock_session_factory) -> Session:
-        return mock_session_factory()
-
-    @pytest.fixture
-    def http_client(self, mock_session_factory: Session) -> HttpClient:  # type: ignore
-        with patch("artifact_downloader.http_client.Session", mock_session_factory):
-            yield HttpClient()
+    def http_client(self, mock_session: Session) -> HttpClient:  # type: ignore
+        return HttpClient(mock_session)
 
     @pytest.mark.unit
     def test_execute_request_success(self, http_client: HttpClient, mock_session: Session):

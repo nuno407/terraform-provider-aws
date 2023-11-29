@@ -35,7 +35,9 @@ extras_require: Dict[str, List[str]] = {
         "kink==0.6.6",
         "fiftyone==0.14.4"
     ],
-    "testing": [],
+    "testing": [
+        "moto[s3]~=4.2.7"
+    ],
     # for when we separate mongo from ContainerServices
     # "mongodb": [
     #     "pymongo==3.12.3",

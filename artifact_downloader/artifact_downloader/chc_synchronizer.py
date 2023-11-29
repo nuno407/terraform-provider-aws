@@ -3,10 +3,8 @@ import json
 import logging
 from datetime import timedelta
 from math import isclose
-from typing import Dict
-from typing import Type
-from typing import TypeVar
-from typing import Union
+from typing import Type, TypeVar, Union
+from kink import inject
 
 import boto3
 
@@ -15,13 +13,14 @@ EXPECTED_FPS = 15.72
 _logger = logging.getLogger(__name__)
 
 
+@inject
 class ChcSynchronizer:
     """CHC Synchronizer class."""
 
     def __init__(self, region_name="eu-central-1") -> None:
         self.__s3_client = boto3.client("s3", region_name)
 
-    def download(self, bucket: str, key: str) -> Dict:
+    def download(self, bucket: str, key: str) -> dict:
         """Downloads CHC results from S3 bucket.
 
         Args:
@@ -40,7 +39,7 @@ class ChcSynchronizer:
         return data
 
     def synchronize(self, chc_output: dict,
-                    video_length: timedelta) -> Dict[timedelta, Dict[str, Union[bool, float, int]]]:
+                    video_length: timedelta) -> dict[timedelta, dict[str, Union[bool, float, int]]]:
         """Synchronize CHC metadata with video timestamps.
 
         Args:
@@ -68,7 +67,7 @@ class ChcSynchronizer:
         _logger.debug("Finished synchronization of CHC results")
         return sync_frames
 
-    def __get_frame_signals(self, frame: Dict) -> Dict[str, Union[bool, float, int]]:
+    def __get_frame_signals(self, frame: dict) -> dict[str, Union[bool, float, int]]:
         """Gets fill signals for a given frame and returns a dictionary with all signals in a given frame.
 
         Args:
@@ -76,7 +75,7 @@ class ChcSynchronizer:
         Returns:
             signals dictionary for a given frame
         """
-        signals: Dict[str, Union[bool, float, int]] = {}
+        signals: dict[str, Union[bool, float, int]] = {}
         if "objectlist" in frame.keys():
             for item in frame["objectlist"]:
                 signals.update(self.__extract_vars(
@@ -89,7 +88,7 @@ class ChcSynchronizer:
 
     T = TypeVar("T", bool, float, int)
 
-    def __extract_vars(self, frame_objects: dict, var_type: Type[T], sub_struct_name: str) -> Dict[str, T]:
+    def __extract_vars(self, frame_objects: dict, var_type: Type[T], sub_struct_name: str) -> dict[str, T]:
         """Extract vars and perform necessary casting operations.
 
         Treats input frame variables making the necessary cast operations to a given variable type,

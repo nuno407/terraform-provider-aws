@@ -7,7 +7,7 @@ class ArtifactDownloaderConfig(BaseModel):
     """Downloader Configuration."""
     input_queue: str
     artifact_base_url: AnyHttpUrl
-    raw_bucket: str
+    raw_bucket: str  # This is only used for the temporary conversion of messages to pydantic models
 
     @staticmethod
     def load_yaml_config(config_path: str) -> "ArtifactDownloaderConfig":

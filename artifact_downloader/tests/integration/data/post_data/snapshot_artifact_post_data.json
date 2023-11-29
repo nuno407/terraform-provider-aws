@@ -1,0 +1,14 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_01",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-bfbed9ee-435e-4432-bd1b-6b57171520c7_2_1700596094765.jpeg",
+    "recorder": "TrainingMultiSnapshot",
+    "timestamp": "2023-11-21T19:48:14.765000Z",
+    "end_timestamp": "2023-11-21T19:48:14.765000Z",
+    "upload_timing": {
+        "start": "2023-11-21T18:49:01.421559Z",
+        "end": "2023-11-21T19:49:01.421559Z"
+    },
+    "artifact_name": "snapshot",
+    "uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-bfbed9ee-435e-4432-bd1b-6b57171520c7_2.jpeg"
+}

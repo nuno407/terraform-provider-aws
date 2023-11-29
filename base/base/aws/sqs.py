@@ -65,6 +65,14 @@ class SQSController:
             return di["container_name"]
         raise ConfigurationError("Container name neither found in DI config, nor passed as parameter.")
 
+    def get_queue_url(self) -> str:
+        """
+        Retrieves the queue fetched on initializaiton
+        Returns:
+            str: the queue url
+        """
+        return self.__queue_url
+
     def get_message(self, wait_time: int = 20) -> Optional[MessageTypeDef]:
         """Get SQS queue message
 

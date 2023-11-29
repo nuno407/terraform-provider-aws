@@ -97,7 +97,7 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
             SqsMessage: _description_
         """
 
-        # ONLY NEEDED FOR SNS EMBEDED MESSAGE SHOULD
+        # ONLY NEEDED FOR SNS EMBEDED MESSAGE
         message_dict = parse_message_body_to_dict(message["Body"])
         if "messageAttributes" in message_dict and "body" in message_dict:
             message["MessageAttributes"] = message_dict["messageAttributes"]

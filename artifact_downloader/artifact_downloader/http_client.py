@@ -32,8 +32,8 @@ def _on_success_handler(details: Details):
 class HttpClient:   # pylint: disable=too-few-public-methods
     """ HTTP client for sending requests against Metadata artifact API """
 
-    def __init__(self):
-        self.__session = Session()
+    def __init__(self, session: Session):
+        self.__session = session
 
     @backoff.on_exception(backoff.expo,
                           RetriableFailureReturnCode,

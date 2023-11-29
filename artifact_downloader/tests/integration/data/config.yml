@@ -1,0 +1,3 @@
+input_queue: dev-terraform-queue-metadata-new-component
+artifact_base_url: http://random_endpoint.com
+raw_bucket: dev-rcd-raw-video-files

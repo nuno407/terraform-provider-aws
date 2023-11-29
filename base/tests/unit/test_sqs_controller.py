@@ -122,6 +122,18 @@ class TestSQSController():
         )
         assert got_message is None
 
+    def test_get_queue_url(self, input_queue_name: str, sqs_client_mock: Mock):
+        # GIVEN
+        sqs_client_mock.receive_message = Mock(return_value={"Messages": []})
+        message_controller = SQSController(
+            default_sqs_queue_name=input_queue_name, sqs_client=sqs_client_mock)
+
+        # WHEN
+        got_message = message_controller.get_queue_url()
+
+        # THEN
+        assert got_message == "foobar-url"
+
     def test_increase_visibility_timeout_and_handle_exceptions(
             self, input_queue_name: str, sqs_message: MessageTypeDef,
             sqs_client_mock: Mock):
