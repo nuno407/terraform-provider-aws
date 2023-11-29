@@ -1,0 +1,13 @@
+{
+    "tenant": "datanauts",
+    "raw_file_path": "s3://dev-rcd-raw-video-files/datanauts/some_id.mp4",
+    "rule": {
+        "rule_name": "automatic",
+        "rule_version": "1.0",
+        "origin": "UKNOWN"
+    },
+    "artifact_name": "video_rule",
+    "video_id": "some_id",
+    "footage_from": "2023-05-10T01:00:00Z",
+    "footage_to": "2023-05-10T01:10:00Z"
+}

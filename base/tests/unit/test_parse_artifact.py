@@ -1,8 +1,10 @@
 import os
 import pytest
 import json
+import pytz
+from pydantic import BaseModel
 from base.testing.utils import load_relative_json_file
-from base.model.artifacts import PeopleCountOperatorArtifact, OperatorAdditionalInformation, Artifact, parse_artifact
+from base.model.artifacts import PeopleCountOperatorArtifact, OperatorAdditionalInformation, Artifact, parse_all_models, VideoUploadRule, SnapshotUploadRule, DEFAULT_RULE, SelectorRule, RuleOrigin
 from datetime import datetime
 
 
@@ -35,7 +37,8 @@ datetime_format = "%Y-%m-%dT%H:%M:%S.%f%z"
             artifact_name="sav-operator-people-count",
             is_people_count_correct=True
         )
-    ), (
+    ),
+    (
         load_sqs_json("sav-people_count_artifact_no_observations.json"),
         PeopleCountOperatorArtifact(
             tenant_id="deepsensation",
@@ -54,8 +57,29 @@ datetime_format = "%Y-%m-%dT%H:%M:%S.%f%z"
             artifact_name="sav-operator-people-count",
             is_people_count_correct=True
         )
+    ),
+    (
+        load_sqs_json("video_upload_message.json"),
+        VideoUploadRule(
+            tenant="datanauts",
+            raw_file_path="s3://dev-rcd-raw-video-files/datanauts/some_id.mp4",
+            rule=DEFAULT_RULE,
+            video_id="some_id",
+            footage_from=datetime(year=2023, month=5, day=10, hour=1, tzinfo=pytz.UTC),
+            footage_to=datetime(year=2023, month=5, day=10, hour=1, minute=10, tzinfo=pytz.UTC),
+        )
+    ),
+    (
+        load_sqs_json("snapshot_upload_message.json"),
+        SnapshotUploadRule(
+            tenant="datanauts",
+            raw_file_path="s3://dev-rcd-raw-video-files/datanauts/some_id.jpeg",
+            rule=SelectorRule(rule_name="some_name", rule_version="1.0", origin=RuleOrigin.INTERIOR),
+            snapshot_id="some_id",
+            snapshot_timestamp=datetime(year=2023, month=5, day=10, hour=1, tzinfo=pytz.UTC)
+        )
     )
-], ids=["people_count_artifact", "people_count_artifact_no_obs"])
+], ids=["people_count_artifact", "people_count_artifact_no_obs", "video_upload_rule", "snapshot_upload_rule"])
 def test_save_people_count(input_message: dict, expected: Artifact):
-    assert parse_artifact(input_message) == expected
-    assert parse_artifact(json.dumps(input_message)) == expected
+    assert parse_all_models(input_message) == expected
+    assert parse_all_models(json.dumps(input_message)) == expected
