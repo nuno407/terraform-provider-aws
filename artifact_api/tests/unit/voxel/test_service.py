@@ -103,7 +103,7 @@ class TestVoxelService:
         dataset = MagicMock()
         mock_create_dataset.return_value = dataset
         sample = MagicMock()
-        correlated_raw_filepaths = ["some_id"]
+        correlated_raw_filepaths = []
         mock_find_or_create_sample.return_value = sample
         sample.media_type = fom.VIDEO
         set_field_calls = [

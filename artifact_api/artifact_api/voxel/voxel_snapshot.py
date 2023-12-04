@@ -40,7 +40,9 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
             artifact (SnapshotArtifact): _description_
             dataset (fo.Dataset): _description_
         """
-        cls._create_sample(artifact, dataset, correlated_raw_filepaths)
+        correlated_anonymized_filepaths = [get_anonymized_path_from_raw(
+            raw_path) for raw_path in correlated_raw_filepaths]
+        cls._create_sample(artifact, dataset, correlated_anonymized_filepaths)
 
     @classmethod
     def updates_correlation(cls, raw_correlated_filepath: list[str], raw_filepath: str, dataset_name: str) -> None:

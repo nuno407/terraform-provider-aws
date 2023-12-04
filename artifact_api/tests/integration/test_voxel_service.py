@@ -91,25 +91,25 @@ class TestVoxelService:
     @pytest.mark.integration
     @patch("artifact_api.voxel.voxel_video.get_anonymized_path_from_raw", new=mock_anon)
     @patch("artifact_api.voxel.voxel_snapshot.get_anonymized_path_from_raw", new=mock_anon)
-    def test_update_voxel_snapshots_correlated_videos(
+    def update_voxel_snapshots_with_correlated_video(
             self,
             voxel_service: VoxelService,
             test_videos_paths: list[str],
             test_images_paths: list[str],
     ):
-        """Test update_voxel_snapshots_correlated_videos"""
+        """Test update_voxel_snapshots_with_correlated_video"""
         # Video at position 0 of the array is related with the snapshots 2 and 3.
         # Also video at position 3 is related with image in position 3
         # In this test there is no relation between samples still
         # GIVEN
         dataset = fo.load_dataset("datanauts_snapshots")
         # WHEN
-        voxel_service.update_voxel_snapshots_correlated_videos(
+        voxel_service.update_voxel_snapshots_with_correlated_video(
             raw_filepath=test_videos_paths[0], raw_correlated_filepaths=[
                 test_images_paths[2], test_images_paths[3]], tenant_id="datanauts")
-        voxel_service.update_voxel_snapshots_correlated_videos(raw_filepath=test_videos_paths[3],
-                                                               raw_correlated_filepaths=[test_images_paths[3]],
-                                                               tenant_id="datanauts")
+        voxel_service.update_voxel_snapshots_with_correlated_video(raw_filepath=test_videos_paths[3],
+                                                                   raw_correlated_filepaths=[test_images_paths[3]],
+                                                                   tenant_id="datanauts")
 
         # THEN
         assert len(dataset) == 4
@@ -123,20 +123,20 @@ class TestVoxelService:
     @pytest.mark.integration
     @patch("artifact_api.voxel.voxel_snapshot.get_anonymized_path_from_raw", new=mock_anon)
     @patch("artifact_api.voxel.voxel_video.get_anonymized_path_from_raw", new=mock_anon)
-    def test_update_voxel_video_correlated_snapshots(
+    def test_update_voxel_video_with_correlated_snapshots(
             self,
             voxel_service: VoxelService,
             test_videos_paths: list[str],
             test_images_paths: list[str]):
-        """Test update_voxel_video_correlated_snapshots"""
+        """Test update_voxel_video_correlated_snapshot"""
         # Snapshot at position 3 of the array is related with the video on position 0.
         # In this test there is no relation between samples still
         # GIVEN
         dataset = fo.load_dataset("datanauts")
         # WHEN
-        voxel_service.update_voxel_video_correlated_snapshots(raw_filepath=test_images_paths[3],
-                                                              raw_correlated_filepaths=[test_videos_paths[0]],
-                                                              tenant_id="datanauts")
+        voxel_service.update_voxel_videos_with_correlated_snapshot(raw_filepath=test_images_paths[3],
+                                                                   raw_correlated_filepaths=[test_videos_paths[0]],
+                                                                   tenant_id="datanauts")
 
         # THEN
         assert len(dataset) == 4

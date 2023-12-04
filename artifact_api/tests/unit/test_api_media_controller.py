@@ -30,7 +30,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """mocks voxel_service function
         """
         var = Mock()
-        var.update_voxel_video_correlated_snapshots = Mock()
+        var.update_voxel_video_with_correlated_snapshot = Mock()
         var.create_voxel_video = Mock()
         return var
 
@@ -91,7 +91,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         mock_mongo_service.upsert_video.assert_called_once_with(video_artifact, [correlated_artifact.video_id])
         mock_mongo_service.update_snapshots_correlations.assert_called_once_with(
             [correlated_artifact.video_id], video_artifact.artifact_id)
-        mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(
+        mock_voxel_service.update_voxel_snapshots_with_correlated_video.assert_called_once_with(
             raw_correlated_filepaths=[correlated_artifact.filepath],
             raw_filepath=video_artifact.s3_path,
             tenant_id=video_artifact.tenant_id)
@@ -121,7 +121,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         mock_mongo_service.upsert_snapshot.assert_called_once_with(snapshot_artifact, [correlated_artifact.video_id])
         mock_mongo_service.update_videos_correlations.assert_called_once_with(
             [correlated_artifact.video_id], snapshot_artifact.artifact_id)
-        mock_voxel_service.update_voxel_video_correlated_snapshots.assert_called_once_with(
+        mock_voxel_service.update_voxel_videos_with_correlated_snapshot.assert_called_once_with(
             raw_correlated_filepaths=[correlated_artifact.filepath],
             raw_filepath=snapshot_artifact.s3_path,
             tenant_id=snapshot_artifact.tenant_id)

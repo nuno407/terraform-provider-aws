@@ -58,7 +58,9 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
         """
         Creates or updates a video sample
         """
-        cls._create_sample(artifact, dataset, correlated_raw_filepaths)
+        correlated_anonymized_filepaths = [get_anonymized_path_from_raw(
+            raw_path) for raw_path in correlated_raw_filepaths]
+        cls._create_sample(artifact, dataset, correlated_anonymized_filepaths)
 
     @classmethod
     def updates_correlation(cls, correlated_raw_filepaths: List[str], raw_filepath: str, dataset_name: str) -> None:

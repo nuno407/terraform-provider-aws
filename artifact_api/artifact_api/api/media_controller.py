@@ -48,7 +48,7 @@ class MediaController:
                                                           video_artifact.artifact_id)
 
         # Voxel service
-        voxel_service.update_voxel_video_correlated_snapshots(
+        voxel_service.update_voxel_snapshots_with_correlated_video(
             raw_correlated_filepaths=raw_file_paths,
             raw_filepath=video_artifact.s3_path,
             tenant_id=video_artifact.tenant_id)
@@ -84,7 +84,7 @@ class MediaController:
                                                        snapshot_artifact.artifact_id)
 
         # Voxel service
-        voxel_service.update_voxel_video_correlated_snapshots(
+        voxel_service.update_voxel_videos_with_correlated_snapshot(
             raw_correlated_filepaths=raw_file_paths,
             raw_filepath=snapshot_artifact.s3_path,
             tenant_id=snapshot_artifact.tenant_id)

@@ -136,7 +136,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         dataset.save()
 
     @classmethod
-    def _create_sample(cls, artifact: Any, dataset: fo.Dataset, correlated_raw_filepaths: list[str]) -> None:
+    def _create_sample(cls, artifact: Any, dataset: fo.Dataset, correlated_anonymized_filepaths: list[str]) -> None:
         """
         Creates or updates a sample
         """
@@ -152,7 +152,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         set_mandatory_fields_on_sample(sample, artifact.tenant_id)
 
         for field in cls.fields:
-            ctx = VoxelFieldContext(sample, artifact, correlated_raw_filepaths)
+            ctx = VoxelFieldContext(sample, artifact, correlated_anonymized_filepaths)
             result = field.field_value(ctx)
             if result is not None:
                 set_field(sample, field.field_name, result)
