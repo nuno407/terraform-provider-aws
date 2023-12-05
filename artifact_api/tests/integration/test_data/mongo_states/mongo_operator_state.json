@@ -4,9 +4,9 @@
             {
                 "tenant_id": "datanauts",
                 "device_id": "DATANAUTS_DEV_02",
-                "event_timestamp": "2023-08-29T08:17:15",
-                "operator_monitoring_start": "2023-08-29T08:18:49",
-                "operator_monitoring_end": "2023-08-29T08:35:57",
+                "event_timestamp": "2023-08-29T08:17:15+00:00",
+                "operator_monitoring_start": "2023-08-29T08:18:49+00:00",
+                "operator_monitoring_end": "2023-08-29T08:35:57+00:00",
                 "artifact_name": "sav-operator-camera-blocked",
                 "additional_information": {
                     "is_door_blocked": true,
@@ -19,9 +19,9 @@
             {
                 "tenant_id": "datanauts",
                 "device_id": "DATANAUTS_DEV_02",
-                "event_timestamp": "2023-08-29T08:17:15",
-                "operator_monitoring_start": "2023-08-29T08:18:49",
-                "operator_monitoring_end": "2023-08-29T08:35:57",
+                "event_timestamp": "2023-08-29T08:17:15+00:00",
+                "operator_monitoring_start": "2023-08-29T08:18:49+00:00",
+                "operator_monitoring_end": "2023-08-29T08:35:57+00:00",
                 "artifact_name": "sav-operator-people-count",
                 "additional_information": {
                     "is_door_blocked": true,
@@ -35,9 +35,9 @@
             {
                 "tenant_id": "datanauts",
                 "device_id": "DATANAUTS_DEV_02",
-                "event_timestamp": "2023-08-29T08:17:15",
-                "operator_monitoring_start": "2023-08-29T08:18:49",
-                "operator_monitoring_end": "2023-08-29T08:35:57",
+                "event_timestamp": "2023-08-29T08:17:15+00:00",
+                "operator_monitoring_start": "2023-08-29T08:18:49+00:00",
+                "operator_monitoring_end": "2023-08-29T08:35:57+00:00",
                 "artifact_name": "sav-operator-sos",
                 "additional_information": {
                     "is_door_blocked": true,

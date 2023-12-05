@@ -2,7 +2,7 @@
     "DataIngestion": {
         "events": [
             {
-                "timestamp": "2023-08-03T13:08:56",
+                "timestamp": "2023-08-03T13:08:56+00:00",
                 "device_type": "hailysharey",
                 "artifact_name": "device_info",
                 "last_shutdown": {
@@ -62,7 +62,7 @@
             {
                 "tenant_id": "rubber_duck",
                 "device_id": "srx_herbie_dev_hw_06",
-                "timestamp": "2023-10-25T08:16:17",
+                "timestamp": "2023-10-25T08:16:17+00:00",
                 "event_name": "com.bosch.ivs.incident.IncidentEvent",
                 "artifact_name": "incident_info",
                 "location": {

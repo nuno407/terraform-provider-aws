@@ -3,10 +3,11 @@
 import os
 from typing import Optional
 import pytest
-from mongomock import MongoClient as MongoMockClient
+from pymongo import MongoClient
 from fastapi.testclient import TestClient
 from base.testing.utils import load_relative_json_file
 from helper_functions import assert_mongo_state, assert_voxel_state
+from httpx import AsyncClient
 
 
 def get_json_message(file_name: str) -> dict:
@@ -19,17 +20,18 @@ class TestGeneric:
     Class that tests the entire component end2end
     """
     @ pytest.mark.integration
+    @ pytest.mark.asyncio
     @ pytest.mark.parametrize("input_json_message_list, endpoint, voxel_config, \
                               mongo_api_config, expected_mongo_state, expected_voxel_state", [
-        # Test snapshot
-        # (
-        #     [get_json_message("snapshot_api_message.json")],
-        #     "/ridecare/snapshots",
-        #     "voxel_config.yml",
-        #     "mongo_config.yml",
-        #     "mongo_snapshot_state.json",
-        #     "voxel_snapshot_state.json",
-        # ),
+        #Test snapshot
+        (
+            [get_json_message("snapshot_api_message.json")],
+            "/ridecare/snapshots",
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_snapshot_state.json",
+            "voxel_snapshot_state.json",
+        ),
 
         # Test video
         (
@@ -65,17 +67,17 @@ class TestGeneric:
         )
 
     ],
-        ids=["test_video_artifact", "test_events_artifact", "test_sav_artifact"],  # "test_snapshot_artifact",
+        ids=["test_snap_artifact", "test_video_artifact", "test_events_artifact", "test_sav_artifact"],  # "test_snapshot_artifact",
         indirect=["mongo_api_config", "voxel_config"])
-    def test_component(self,
+    async def test_component(self,
                        input_json_message_list: list[dict],
                        endpoint: str,
                        voxel_config: str,
                        mongo_api_config: str,
                        expected_mongo_state: Optional[str],
                        expected_voxel_state: Optional[str],
-                       api_client: TestClient,
-                       mongo_client: MongoMockClient
+                       api_client: AsyncClient,
+                       mongo_client: MongoClient
                        ):
         """
         This test will test the entire component.
@@ -93,11 +95,11 @@ class TestGeneric:
 
         # WHEN
         for input_json_message in input_json_message_list:
-            response = api_client.post(endpoint, json=input_json_message)
+            response = await api_client.post(endpoint, json=input_json_message)
             assert response.status_code == 200
 
         # THEN
         if expected_mongo_state is not None:
-            assert_mongo_state(expected_mongo_state, mongo_client)
+            await assert_mongo_state(expected_mongo_state, mongo_client)
         if expected_voxel_state is not None:
             assert_voxel_state(expected_voxel_state)

@@ -1,13 +1,12 @@
 """Helper module to manage and assert mongo and voxel docs"""
 import os
 import json
-import asyncio
 from datetime import datetime
 from typing import Any
-from motor.motor_asyncio import AsyncIOMotorClient
+import pymongo
 import fiftyone as fo
 from base.testing.utils import load_relative_json_file
-
+from motor.motor_asyncio import AsyncIOMotorClient
 
 def __serialize_datetime(obj):
     if isinstance(obj, datetime):
@@ -31,7 +30,7 @@ def assert_json_dict(real_dict: dict, expected_dict: dict):
     assert converted_real == converted_expected
 
 
-def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
+async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
     """
     Checks if a json file is presented in the database.
     The json file has to contain the following format:
@@ -59,7 +58,7 @@ def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
 
     for db_name, db_entry in mongo_expected_data.items():
         for col_name, collection in db_entry.items():
-            docs = asyncio.run(mongo_client[db_name][col_name].find().to_list())
+            docs = await mongo_client[db_name][col_name].find().to_list(length=None)
             real_docs = list(docs)
             for doc in real_docs:
                 del doc["_id"]

@@ -13,7 +13,7 @@
                     "deviceID": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
                     "length": "0:00:30",
                     "recording_duration": 30.241,
-                    "recording_time": "2023-11-17T10:19:38.784000",
+                    "recording_time": "2023-11-17T10:19:38.784000+00:00",
                     "snapshots_paths": [],
                     "tenantID": "ridecare_companion_fut",
                     "time": "2023-11-17 10:19:38"

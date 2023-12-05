@@ -6,9 +6,8 @@ import os
 import tempfile
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
-from mongomock_motor import AsyncMongoMockClient
+from httpx import AsyncClient
 from kink import di
-from unittest.mock import patch, Mock
 
 os.environ["FIFTYONE_DATABASE_DIR"] = tempfile.TemporaryDirectory().name  # pylint: disable=consider-using-with
 os.environ["FIFTYONE_DATABASE_ADMIN"] = "true"
@@ -27,9 +26,27 @@ DB_NAME = "DataIngestion"
 
 
 @pytest.fixture()
-def mongo_client() -> AsyncMongoMockClient:
+def mongo_host() -> str:
+    """
+    Test API client
+
+    Since fiftyone launches a mongodb instance by itself, it uses that database to preform the integration tests.
+    This enviornment variable is not documented in fityone, and thus might change in the future.
+
+    This uses an "hack" gather from the source code of the fiftyone library
+    (https://github.com/voxel51/fiftyone/blob/26866c5a37e2dff83fee0f18bbde9f7153ff0e99/fiftyone/core/odm/database.py#L203)
+    It uses the FIFTYONE_PRIVATE_DATABASE_PORT to get the port from the internal DB
+    
+    """
+    port = os.environ.get("FIFTYONE_PRIVATE_DATABASE_PORT")
+    return f"127.0.0.1:{port}"
+
+@pytest.fixture()
+async def mongo_client(mongo_host: str) -> AsyncIOMotorClient:
     """Test API client"""
-    return AsyncMongoMockClient()
+    client = AsyncIOMotorClient(mongo_host, tz_aware=True)
+    await client.drop_database(DB_NAME)
+    return client
 
 
 @pytest.fixture()
@@ -53,14 +70,13 @@ def mongo_api_config(request) -> str:
 
 
 @pytest.fixture()
-@patch("artifact_api.bootstrap.create_mongo_client")
 def bootstrap_run(
-        create_mongo_client: Mock,
         voxel_config: str,
         mongo_api_config: str,
-        mongo_client: AsyncIOMotorClient):
+        mongo_host: str):
     """Intilize dependency injection"""
     di.clear_cache()
+    #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # Clean Voxel and load default dataset
     fo.delete_datasets("*")
@@ -69,17 +85,17 @@ def bootstrap_run(
     dataset.tags = [config.dataset_mapping.tag]
     dataset.add_sample_field("data_privacy_document_id", ftype=fo.StringField)
 
-    create_mongo_client.return_value = mongo_client
 
     os.environ["TENANT_MAPPING_CONFIG_PATH"] = voxel_config
     os.environ["MONGODB_CONFIG"] = mongo_api_config
-    os.environ["DATABASE_URI"] = "mongodb://some_uri"
+    os.environ["DATABASE_URI"] = mongo_host
     os.environ["DATABASE_NAME"] = DB_NAME
 
     bootstrap_di()
 
 
 @pytest.fixture()
-def api_client(bootstrap_run) -> TestClient:
+async def api_client(bootstrap_run) -> AsyncClient:
     """Test API client"""
-    return TestClient(app)
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
