@@ -90,8 +90,13 @@ class SDMMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceConta
     """ SDMMessage """
 
 
+class SelectorMessage(SqsMessage[AnnotatedArtifacts, MessageAttributesWithSourceContainer[Literal["Selector"]]]):
+    """ Selector Message """
+
+
 SQSMessageAdapter = TypeAdapter(Union[SDMMessage, CHCMessage, AnonymizeMessage,
-                                MDFParserMessage, SDRetrieverMessage, SanitizerMessage])
+                                MDFParserMessage, SDRetrieverMessage, SanitizerMessage,
+                                SelectorMessage])
 
 
 def parse_sqs_message(message: MessageTypeDef) -> SqsMessage:

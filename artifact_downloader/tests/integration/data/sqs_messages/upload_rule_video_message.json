@@ -1,0 +1,30 @@
+{
+    "MessageId": "7f83c9bc-9442-4577-80a1-d75aa1c3de41",
+    "ReceiptHandle": "AQEBzra8zdz086yOLOevu8UhjolhvXSs3eNcpsjHC6JzQTfeAm5mPzKlZ2UjC8YNQxQ9wOrX8MjrRiBIosK+5QMGmnM198OgQa/Wzm/pquSFArMm1EIemNxpQXLN1VlHGISs84ZNfavAJ8+TS3j7G9hwK5AISd6liQy1vXVlZ6X6B1APCCOj5bnIb9En/pHHEKkLJIgUt76pwDvYIej22SK1oaMPS43h9Y/GrD1B7lu5IC+3xRTd1lRfdBACGG3byCpTnvrvjAoVldxyq3p/k+gU3fcQ2WQeCiHXGk5z52wEV5N1c/BPZ9xbnpyQzz6ENvDaQrxU2xkr3HqpwK5L8XwH4YfJi2JaZKbpY5Qm0b+Ll3Q+7uQiRQ1A/3hiJvfZsavcULVc6TfRHgaufa+kUBPq8Rkb3K0voPGFu49cYCTwLBGdhENFm430J+7TjKtDF4ki",
+    "MD5OfBody": "3eed446d8ec59c924f3408e0e78ccb77",
+    "Body": {
+        "tenant": "datanauts",
+        "raw_file_path": "s3://dev-rcd-raw-video-files/datanauts/some_id.mp4",
+        "rule": {
+            "rule_name": "automatic",
+            "rule_version": "1.0",
+            "origin": "UKNOWN"
+        },
+        "artifact_name": "video_rule",
+        "video_id": "some_id",
+        "footage_from": "2023-05-10T01:00:00Z",
+        "footage_to": "2023-05-10T01:10:00Z"
+    },
+    "Attributes": {
+        "SentTimestamp": "1701182663998",
+        "ApproximateReceiveCount": "1"
+    },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "Selector",
+            "StringListValues": [],
+            "BinaryListValues": [],
+            "DataType": "String"
+        }
+    }
+}

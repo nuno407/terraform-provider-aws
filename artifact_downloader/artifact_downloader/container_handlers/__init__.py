@@ -5,3 +5,4 @@ from artifact_downloader.container_handlers.chc import CHCContainerHandler
 from artifact_downloader.container_handlers.sdm import SDMContainerHandler
 from artifact_downloader.container_handlers.sdretriever import SDRContainerHandler
 from artifact_downloader.container_handlers.mdfparser import MDFParserContainerHandler
+from artifact_downloader.container_handlers.selector import SelectorContainerHandler

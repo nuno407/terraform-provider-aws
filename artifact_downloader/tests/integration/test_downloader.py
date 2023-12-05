@@ -18,8 +18,20 @@ class TestAPIDownloader:
             "snapshot_s3_state.json",
             "ridecare/snapshots",
             "snapshot_artifact_post_data.json"
+        ),
+        (
+            "upload_rule_snapshot_message.json",
+            None,
+            "ridecare/upload_rule/snapshot",
+            "upload_rule_snapshot_post_data.json"
+        ),
+        (
+            "upload_rule_video_message.json",
+            None,
+            "ridecare/upload_rule/video",
+            "upload_rule_video_post_data.json"
         )
-    ], ids=["snapshot_test_success"], indirect=["endpoint"])
+    ], ids=["snapshot_test_success", "rule_snapshot_test_success", "rule_video_test_success"], indirect=["endpoint"])
     def test_component_success(self,
                                moto_sqs_client: SQSClient,
                                s3_state_loader: S3StateLoader,
@@ -83,8 +95,20 @@ class TestAPIDownloader:
             "snapshot_s3_state.json",
             "ridecare/snapshots",
             "snapshot_artifact_post_data.json"
+        ),
+        (
+            "upload_rule_snapshot_message.json",
+            None,
+            "ridecare/upload_rule/snapshot",
+            "upload_rule_snapshot_post_data.json"
+        ),
+        (
+            "upload_rule_video_message.json",
+            None,
+            "ridecare/upload_rule/video",
+            "upload_rule_video_post_data.json"
         )
-    ], ids=["snapshot_test_failure"], indirect=["endpoint"])
+    ], ids=["snapshot_test_failure", "rule_snapshot_test_fail", "rule_video_test_fail"], indirect=["endpoint"])
     def test_component_failure(self,
                                moto_sqs_client: SQSClient,
                                s3_state_loader: S3StateLoader,

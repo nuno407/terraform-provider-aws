@@ -12,7 +12,8 @@ from artifact_downloader.container_handlers import (AnonymizeContainerHandler,
                                                     MDFParserContainerHandler,
                                                     SanitizerContainerHandler,
                                                     SDMContainerHandler,
-                                                    SDRContainerHandler)
+                                                    SDRContainerHandler,
+                                                    SelectorContainerHandler)
 from artifact_downloader.container_handlers.handler import ContainerHandler
 from artifact_downloader.exceptions import UnknownSQSMessage
 from artifact_downloader.message.incoming_messages import (AnonymizeMessage,
@@ -20,7 +21,7 @@ from artifact_downloader.message.incoming_messages import (AnonymizeMessage,
                                                            MDFParserMessage,
                                                            SanitizerMessage,
                                                            SDMMessage,
-                                                           SDRetrieverMessage,
+                                                           SDRetrieverMessage, SelectorMessage,
                                                            SqsMessage,
                                                            parse_sqs_message)
 from artifact_downloader.message.raw_message_parser import RawMessageParser
@@ -39,7 +40,8 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
                  mdfp_handler: MDFParserContainerHandler,
                  anon_handler: AnonymizeContainerHandler,
                  chc_handler: CHCContainerHandler,
-                 sdm_handler: SDMContainerHandler):
+                 sdm_handler: SDMContainerHandler,
+                 selector_handle: SelectorContainerHandler):
 
         self.__raw_message_parser = raw_message_parser
         self.__container_router: dict[Type[SqsMessage], ContainerHandler] = {
@@ -48,7 +50,8 @@ class MessageHandler:  # pylint: disable=too-few-public-methods
             MDFParserMessage: mdfp_handler,
             AnonymizeMessage: anon_handler,
             CHCMessage: chc_handler,
-            SDMMessage: sdm_handler
+            SDMMessage: sdm_handler,
+            SelectorMessage: selector_handle
         }
 
     def handle(self, message: MessageTypeDef) -> Request:  # type: ignore
