@@ -3,10 +3,10 @@ import os
 import json
 from datetime import datetime
 from typing import Any
-import pymongo
 import fiftyone as fo
 from base.testing.utils import load_relative_json_file
 from motor.motor_asyncio import AsyncIOMotorClient
+
 
 def __serialize_datetime(obj):
     if isinstance(obj, datetime):

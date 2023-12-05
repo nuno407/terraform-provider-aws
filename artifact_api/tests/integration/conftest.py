@@ -1,7 +1,6 @@
 # noqa # pylint: disable=wrong-import-position, wrong-import-order, wrong-import-position, redefined-outer-name, unused-argument
 # autopep8: off
 """Configure tests"""
-from fastapi.testclient import TestClient
 import os
 import tempfile
 import pytest
@@ -34,12 +33,13 @@ def mongo_host() -> str:
     This enviornment variable is not documented in fityone, and thus might change in the future.
 
     This uses an "hack" gather from the source code of the fiftyone library
-    (https://github.com/voxel51/fiftyone/blob/26866c5a37e2dff83fee0f18bbde9f7153ff0e99/fiftyone/core/odm/database.py#L203)
+    (https://github.com/voxel51/fiftyone/blob/26866c5a37e2dff83fee0f18bbde9f7153ff0e99/fiftyone/core/odm/database.py#L203) # pylint: disable=line-too-long
     It uses the FIFTYONE_PRIVATE_DATABASE_PORT to get the port from the internal DB
-    
+
     """
     port = os.environ.get("FIFTYONE_PRIVATE_DATABASE_PORT")
     return f"127.0.0.1:{port}"
+
 
 @pytest.fixture()
 async def mongo_client(mongo_host: str) -> AsyncIOMotorClient:
@@ -76,7 +76,7 @@ def bootstrap_run(
         mongo_host: str):
     """Intilize dependency injection"""
     di.clear_cache()
-    #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # Clean Voxel and load default dataset
     fo.delete_datasets("*")
@@ -84,7 +84,6 @@ def bootstrap_run(
     dataset = fo.Dataset(config.dataset_mapping.default_dataset)
     dataset.tags = [config.dataset_mapping.tag]
     dataset.add_sample_field("data_privacy_document_id", ftype=fo.StringField)
-
 
     os.environ["TENANT_MAPPING_CONFIG_PATH"] = voxel_config
     os.environ["MONGODB_CONFIG"] = mongo_api_config

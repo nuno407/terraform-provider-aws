@@ -3,8 +3,7 @@
 import os
 from typing import Optional
 import pytest
-from pymongo import MongoClient
-from fastapi.testclient import TestClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from base.testing.utils import load_relative_json_file
 from helper_functions import assert_mongo_state, assert_voxel_state
 from httpx import AsyncClient
@@ -20,10 +19,9 @@ class TestGeneric:
     Class that tests the entire component end2end
     """
     @ pytest.mark.integration
-    @ pytest.mark.asyncio
     @ pytest.mark.parametrize("input_json_message_list, endpoint, voxel_config, \
                               mongo_api_config, expected_mongo_state, expected_voxel_state", [
-        #Test snapshot
+        # Test snapshot
         (
             [get_json_message("snapshot_api_message.json")],
             "/ridecare/snapshots",
@@ -67,18 +65,23 @@ class TestGeneric:
         )
 
     ],
-        ids=["test_snap_artifact", "test_video_artifact", "test_events_artifact", "test_sav_artifact"],  # "test_snapshot_artifact",
+        ids=[
+        "test_snap_artifact",
+        "test_video_artifact",
+        "test_events_artifact",
+        "test_sav_artifact"],
+        # "test_snapshot_artifact",
         indirect=["mongo_api_config", "voxel_config"])
     async def test_component(self,
-                       input_json_message_list: list[dict],
-                       endpoint: str,
-                       voxel_config: str,
-                       mongo_api_config: str,
-                       expected_mongo_state: Optional[str],
-                       expected_voxel_state: Optional[str],
-                       api_client: AsyncClient,
-                       mongo_client: MongoClient
-                       ):
+                             input_json_message_list: list[dict],
+                             endpoint: str,
+                             voxel_config: str,
+                             mongo_api_config: str,
+                             expected_mongo_state: Optional[str],
+                             expected_voxel_state: Optional[str],
+                             api_client: AsyncClient,
+                             mongo_client: AsyncIOMotorClient
+                             ):
         """
         This test will test the entire component.
 

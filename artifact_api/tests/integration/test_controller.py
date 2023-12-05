@@ -11,7 +11,6 @@ class TestControllerEndpoints:
         """Test API client"""
         return api_client
 
-    @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.parametrize("api_endpoint", [
         ("/ridecare/signals/video"),
@@ -31,7 +30,6 @@ class TestControllerEndpoints:
         response = await api_client_session.post(api_endpoint)
         assert response.status_code in (200, 422)
 
-    @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.parametrize("api_endpoint", [
         ("/alive"),
