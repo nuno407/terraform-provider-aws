@@ -1,0 +1,71 @@
+{
+    "MessageId": "04262fb7-53a1-418c-a847-11714ecfe2fb",
+    "ReceiptHandle": "AQEBelKBThLT6DD8aUGwmHXXFscPJ/ubyFm9bRNmgySX90XkQmXL78NmGnHKV9CT4sfr5Nr85J7/okcA4hqElvHeSKsySHkng0ZniM8God0coadmXKkL/ypjapObG/Zr9gqaxDpie9wSGE+QI9Iar5zbyc5jLzUUK3SZvnXRSxHcL0+fnJwszj/QQLcXLTdl0mUdIilYY719t7vtvgOXRG+ak50nKOiB5BMuMvNsIU1dY8CzYUecJ2tiYTOfNNhAUV2/ze4au0pAhiw5eZK67l19gvBvVqNb2pFgwpra5lKUF17YS27kTGjrF7ii1V5krWue4nnglfhKOhv+vjC4hqRwRF955Ujt9v+bARyx0nDuq2NrVvcEHVMKYtyanP5hRU8gkeviRw5ZXmLnZ3/lLRaUp93FOLsimqQhyDnwiCsBUaYudvuxx9uMdn7pTI44Wfqi",
+    "MD5OfBody": "4a2993259618fbc52fd1f9cabebed544",
+    "Body": {
+        "timestamp": "2023-08-03T13:08:56+00:00",
+        "device_type": "hailysharey",
+        "artifact_name": "device_info",
+        "last_shutdown": {
+            "reason": "SHUTDOWN_REASON__UNKNOWN",
+            "reason_description": null,
+            "timestamp": null
+        },
+        "system_report": "Git Commit ID: 20af29701 | Git Branch Name: feature/MC-40336-move-state-machine-from-controller-to-service | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 876474368 | hailysharey",
+        "software_versions": [
+            {
+                "software_name": "BSP",
+                "version": "3.5.3"
+            },
+            {
+                "software_name": "Board",
+                "version": "SRX_P0_1596_16BIT_DDR4"
+            },
+            {
+                "software_name": "BoardBuild",
+                "version": "dev"
+            },
+            {
+                "software_name": "Bootloader",
+                "version": "8"
+            },
+            {
+                "software_name": "HDLC",
+                "version": "5"
+            },
+            {
+                "software_name": "Hardware",
+                "version": "4"
+            },
+            {
+                "software_name": "MCU",
+                "version": "3.7.0"
+            },
+            {
+                "software_name": "Modem",
+                "version": "EG95EXGAR08A02M1G"
+            },
+            {
+                "software_name": "carapplication",
+                "version": "0.0.1"
+            },
+            {
+                "software_name": "ivs_car",
+                "version": "1.10.0-SNAPSHOT"
+            },
+            {
+                "software_name": "ivs_feature_chain",
+                "version": "0.6.5-rc1"
+            }
+        ],
+        "device_id": "ivs_slimscaley_develop_ivv1sf4_01",
+        "event_name": "com.bosch.ivs.DeviceInfoEvent",
+        "tenant_id": "deepsensation"
+    },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "Sanitizer",
+            "DataType": "String"
+        }
+    }
+}

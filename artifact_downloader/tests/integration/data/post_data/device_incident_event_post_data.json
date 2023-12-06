@@ -1,0 +1,22 @@
+{
+    "tenant_id": "rubber_duck",
+    "device_id": "srx_herbie_dev_hw_06",
+    "timestamp": "2023-10-25T08:16:17+00:00",
+    "event_name": "com.bosch.ivs.incident.IncidentEvent",
+    "artifact_name": "incident_info",
+    "location": {
+        "status": "LOCATION_DATA_STATUS__NO_FIX",
+        "latitude": null,
+        "longitude": null,
+        "location_accuracy": null,
+        "heading": {
+            "heading": null,
+            "heading_accuracy": null
+        },
+        "horizontal_speed": {
+            "speed": null,
+            "speed_accuracy": null
+        }
+    },
+    "incident_type": "INCIDENT_TYPE__PANIC"
+}

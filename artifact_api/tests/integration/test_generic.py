@@ -70,7 +70,6 @@ class TestGeneric:
         "test_video_artifact",
         "test_events_artifact",
         "test_sav_artifact"],
-        # "test_snapshot_artifact",
         indirect=["mongo_api_config", "voxel_config"])
     async def test_component(self,
                              input_json_message_list: list[dict],

@@ -1,0 +1,60 @@
+{
+    "timestamp": "2023-08-03T13:08:56Z",
+    "device_type": "hailysharey",
+    "artifact_name": "device_info",
+    "last_shutdown": {
+        "reason": "SHUTDOWN_REASON__UNKNOWN",
+        "reason_description": null,
+        "timestamp": null
+    },
+    "system_report": "Git Commit ID: 20af29701 | Git Branch Name: feature/MC-40336-move-state-machine-from-controller-to-service | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 876474368 | hailysharey",
+    "software_versions": [
+        {
+            "software_name": "BSP",
+            "version": "3.5.3"
+        },
+        {
+            "software_name": "Board",
+            "version": "SRX_P0_1596_16BIT_DDR4"
+        },
+        {
+            "software_name": "BoardBuild",
+            "version": "dev"
+        },
+        {
+            "software_name": "Bootloader",
+            "version": "8"
+        },
+        {
+            "software_name": "HDLC",
+            "version": "5"
+        },
+        {
+            "software_name": "Hardware",
+            "version": "4"
+        },
+        {
+            "software_name": "MCU",
+            "version": "3.7.0"
+        },
+        {
+            "software_name": "Modem",
+            "version": "EG95EXGAR08A02M1G"
+        },
+        {
+            "software_name": "carapplication",
+            "version": "0.0.1"
+        },
+        {
+            "software_name": "ivs_car",
+            "version": "1.10.0-SNAPSHOT"
+        },
+        {
+            "software_name": "ivs_feature_chain",
+            "version": "0.6.5-rc1"
+        }
+    ],
+    "device_id": "ivs_slimscaley_develop_ivv1sf4_01",
+    "event_name": "com.bosch.ivs.DeviceInfoEvent",
+    "tenant_id": "deepsensation"
+}

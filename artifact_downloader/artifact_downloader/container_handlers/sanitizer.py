@@ -38,7 +38,7 @@ class SanitizerContainerHandler(ContainerHandler):  # pylint: disable=too-few-pu
         """
         if isinstance(message.body, OperatorArtifact):
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_operator, message.body)
-        if isinstance(message.body, (EventArtifact, OperatorArtifact)):
+        if isinstance(message.body, EventArtifact):
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_events, message.body)
 
         raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not a sanitizer message")

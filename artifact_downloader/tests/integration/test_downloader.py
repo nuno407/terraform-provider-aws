@@ -8,30 +8,56 @@ from mypy_boto3_sqs import SQSClient
 from base.testing.s3_state_manager import S3StateLoader
 from base.aws.sqs import SQSController
 from utils import load_relative_post_data, load_relative_sqs_message
+from base.model.artifacts import parse_all_models
 
-
+# autopep8: off
 class TestAPIDownloader:
     @pytest.mark.integration
     @pytest.mark.parametrize("input_sqs_message_filename, s3_state_filename, endpoint, post_artifact_data_filename", [
-        (
-            "snapshot_sqs_message.json",
-            "snapshot_s3_state.json",
-            "ridecare/snapshots",
-            "snapshot_artifact_post_data.json"
-        ),
-        (
-            "upload_rule_snapshot_message.json",
-            None,
-            "ridecare/upload_rule/snapshot",
-            "upload_rule_snapshot_post_data.json"
-        ),
-        (
-            "upload_rule_video_message.json",
-            None,
-            "ridecare/upload_rule/video",
-            "upload_rule_video_post_data.json"
-        )
-    ], ids=["snapshot_test_success", "rule_snapshot_test_success", "rule_video_test_success"], indirect=["endpoint"])
+            (
+                "snapshot_sqs_message.json",
+                "snapshot_s3_state.json",
+                "ridecare/snapshots",
+                "snapshot_artifact_post_data.json"),
+            (
+                "video_sqs_message.json",
+                "video_s3_state.json",
+                "ridecare/video",
+                "video_artifact_post_data.json"
+            ),
+            (
+                "device_info_event_sqs_message.json",
+                None,
+                "ridecare/event",
+                "device_info_event_post_data.json"
+            ),
+            (
+                "device_incident_event_sqs_message.json",
+                None,
+                "ridecare/event",
+                "device_incident_event_post_data.json"
+            ),
+            (
+                "upload_rule_snapshot_message.json",
+                None,
+                "ridecare/upload_rule/snapshot",
+                "upload_rule_snapshot_post_data.json"
+            ),
+            (
+                "upload_rule_video_message.json",
+                None,
+                "ridecare/upload_rule/video",
+                "upload_rule_video_post_data.json"
+            )
+            ],
+            ids=["snapshot_test_success",
+                "video_test_success",
+                "device_info_event_success",
+                "device_incident_event_success",
+                "rule_snapshot_test_success",
+                "rule_video_test_success"],
+            indirect=["endpoint"])
+    # autopep8: on
     def test_component_success(self,
                                moto_sqs_client: SQSClient,
                                s3_state_loader: S3StateLoader,
@@ -65,6 +91,7 @@ class TestAPIDownloader:
         if s3_state_filename is not None:
             s3_state_loader.load_s3_state(s3_state_filename)
         post_data = load_relative_post_data(post_artifact_data_filename)
+        post_data_model = parse_all_models(post_data)
 
         # Setup request mock
         success_adapter = mock_requests.post(url=endpoint, status_code=200)
@@ -86,29 +113,55 @@ class TestAPIDownloader:
         input_queue_controller.delete_message.assert_called_once()
         # Assert mock requests
         assert success_adapter.called_once
-        assert success_adapter.last_request.json() == post_data
+        assert parse_all_models(success_adapter.last_request.json()) == post_data_model
 
+    # autopep8: off
     @pytest.mark.integration
     @pytest.mark.parametrize("input_sqs_message_filename, s3_state_filename, endpoint, post_artifact_data_filename", [
-        (
-            "snapshot_sqs_message.json",
-            "snapshot_s3_state.json",
-            "ridecare/snapshots",
-            "snapshot_artifact_post_data.json"
-        ),
-        (
-            "upload_rule_snapshot_message.json",
-            None,
-            "ridecare/upload_rule/snapshot",
-            "upload_rule_snapshot_post_data.json"
-        ),
-        (
-            "upload_rule_video_message.json",
-            None,
-            "ridecare/upload_rule/video",
-            "upload_rule_video_post_data.json"
-        )
-    ], ids=["snapshot_test_failure", "rule_snapshot_test_fail", "rule_video_test_fail"], indirect=["endpoint"])
+            (
+                "snapshot_sqs_message.json",
+                "snapshot_s3_state.json",
+                "ridecare/snapshots",
+                "snapshot_artifact_post_data.json"
+            ),
+            (
+                "video_sqs_message.json",
+                "video_s3_state.json",
+                "ridecare/video",
+                "video_artifact_post_data.json"
+            ),
+            (
+                "device_info_event_sqs_message.json",
+                None,
+                "ridecare/event",
+                "device_info_event_post_data.json"
+            ),
+            (
+                "device_incident_event_sqs_message.json",
+                None,
+                "ridecare/event",
+                "device_incident_event_post_data.json"
+            ),
+            (
+                "upload_rule_snapshot_message.json",
+                None,
+                "ridecare/upload_rule/snapshot",
+                "upload_rule_snapshot_post_data.json"
+            ),
+            (
+                "upload_rule_video_message.json",
+                None,
+                "ridecare/upload_rule/video",
+                "upload_rule_video_post_data.json"
+            )],
+            ids=["snapshot_test_failure",
+                "video_test_failure",
+                "device_info_event_failure",
+                "device_incident_event_failure",
+                "rule_snapshot_test_failure",
+                "rule_video_test_failure"],
+            indirect=["endpoint"])
+    # autopep8: on
     def test_component_failure(self,
                                moto_sqs_client: SQSClient,
                                s3_state_loader: S3StateLoader,
@@ -133,6 +186,11 @@ class TestAPIDownloader:
         - post_artifact_data_filename:
             A file containing the json data that is posted by the artifact_downloader. This file needs to be placed
             under data/post_data.
+
+        REMARKS:
+        For errors related to "botocore.errorfactory.NoSuchBucket" make sure that the bucket name used
+        in the sqs message and S3 state file is the same as the one used in the test message.
+
         """
 
         # GIVEN
@@ -142,6 +200,7 @@ class TestAPIDownloader:
         if s3_state_filename is not None:
             s3_state_loader.load_s3_state(s3_state_filename)
         post_data = load_relative_post_data(post_artifact_data_filename)
+        post_data_model = parse_all_models(post_data)
 
         # Setup request mock
         link_adapter = mock_requests.post(url=endpoint, status_code=422)
@@ -163,4 +222,4 @@ class TestAPIDownloader:
         input_queue_controller.delete_message.assert_not_called()
         # Assert mock requests
         assert link_adapter.called_once
-        assert link_adapter.last_request.json() == post_data
+        assert parse_all_models(link_adapter.last_request.json()) == post_data_model
