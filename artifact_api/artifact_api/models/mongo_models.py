@@ -52,16 +52,19 @@ class DBCameraServiceEventArtifact(ConfiguredBaseModel):
     timestamp: UtcDatetimeInPast = Field(default=...)
     event_name: str = Field(default=...)
     artifact_name: Literal["camera_service"] = "camera_service"
-    service_state: GeneralServiceState = Field(default=GeneralServiceState.UNKNOWN)
+    service_state: GeneralServiceState = Field(
+        default=GeneralServiceState.UNKNOWN)
     camera_name: Optional[str] = Field(default=None)
     camera_state: list[CameraServiceState] = Field(default_factory=list)
 
 
 class DBShutdown(ConfiguredBaseModel):
     """Details about the last shutdown"""
-    reason: ShutdownReason = Field(default=ShutdownReason.UNKNOWN)
-    reason_description: Optional[str] = Field(default=None)
-    timestamp: Optional[datetime] = Field(default=None)
+    reason: ShutdownReason = Field(
+        default=ShutdownReason.UNKNOWN, alias="shutdown_reason")
+    reason_description: Optional[str] = Field(
+        default=None, alias="shutdown_reason_description")
+    timestamp: Optional[datetime] = Field(default=None, alias="timestamp_ms")
 
 
 class DBDeviceInfoEventArtifact(ConfiguredBaseModel):
@@ -120,7 +123,8 @@ class DBIMUSource(ConfiguredBaseModel):
 class DBIMUSample(ConfiguredBaseModel):
     """IMU Sample in the format used in the database"""
     source: DBIMUSource
-    timestamp: UtcDatetimeInPast  # This might cause slow parsing, needs investigation on large files
+    # This might cause slow parsing, needs investigation on large files
+    timestamp: UtcDatetimeInPast
     gyr_y_mean: float
     gyr_x_var: float
     gyr_z_max: float
