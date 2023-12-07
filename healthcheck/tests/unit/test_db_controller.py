@@ -17,6 +17,9 @@ class TestDatabaseController():
     @pytest.fixture
     def video_artifact(self) -> S3VideoArtifact:
         return S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="test",
             device_id="test",
             footage_id="test_stream",
@@ -34,6 +37,9 @@ class TestDatabaseController():
     @pytest.fixture
     def snap_artifact(self) -> SnapshotArtifact:
         return SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="test",
             device_id="test",
             uuid="test",

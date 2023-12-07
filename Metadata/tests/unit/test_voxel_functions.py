@@ -30,6 +30,9 @@ class TestVoxelFunctions():
     def snapshot_artifact(self, tenant_id: str, device_id: str) -> SnapshotArtifact:
         """SnapshotArtifact for testing."""
         return SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             s3_path="s3://dev-rcd-video-raw/datanauts/datanauts_DATANAUTS_DEV_02_TrainingMultiSnapshot_TrainingMultiSnapshot-550caa7d-ef6a-4253-9400-5fc6c73fd693_1_1680704203713.jpeg",
             tenant_id=tenant_id,
             device_id=device_id,

@@ -13,6 +13,9 @@ from mdfparser.interfaces.input_message import DataType, InputMessage
 def interior_video() -> S3VideoArtifact:
     """Video artifact"""
     return S3VideoArtifact(
+        artifact_id="bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771",
+        raw_s3_path="s3://raw/foo/bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771.jpeg",
+        anonymized_s3_path="s3://anonymized/foo/bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771_anonymized.jpeg",
         tenant_id="foo",
         device_id="bar",
         recorder=RecorderType.INTERIOR,
@@ -31,8 +34,11 @@ def interior_video() -> S3VideoArtifact:
 def training_video() -> S3VideoArtifact:
     """Video artifact"""
     return S3VideoArtifact(
+        artifact_id="bar_TrainingRecorder_64594ea7-b817-54db-bdf3-dba7e2bfb186_1681370055771_1681370115771",
         tenant_id="foo",
         device_id="bar",
+        raw_s3_path="s3://raw/foo/bar_TrainingRecorder_64594ea7-b817-54db-bdf3-dba7e2bfb186_1681370055771_1681370115771.jpeg",
+        anonymized_s3_path="s3://anonymized/foo/bar_TrainingRecorder_64594ea7-b817-54db-bdf3-dba7e2bfb186_1681370055771_1681370115771_anonymized.jpeg",
         recorder=RecorderType.TRAINING,
         timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
         end_timestamp=datetime.fromisoformat(

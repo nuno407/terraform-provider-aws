@@ -39,6 +39,8 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """VideoArtifact for testing."""
         return S3VideoArtifact(
             artifact_id="datanauts/test123",
+            anonymized_s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
+            raw_s3_path="s3://dev-rcd-raw-video-files/datanauts/test123.mp4",
             rcc_s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
             s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
             tenant_id="datanauts",
@@ -57,6 +59,8 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """VideoArtifact for testing."""
         return SnapshotArtifact(
             artifact_id="datanauts/test123",
+            anonymized_s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.mp4",
+            raw_s3_path="s3://dev-rcd-raw-video-files/datanauts/test123.mp4",
             rcc_s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.jpeg",
             s3_path="s3://dev-rcd-anonymized-video-files/datanauts/test123.jpeg",
             tenant_id="datanauts",

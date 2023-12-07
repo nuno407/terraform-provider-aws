@@ -140,7 +140,9 @@ def config(input_queue: str,
         message_collection=message_collection,
         db_name=db_name, tenant_blacklist=[],
         recorder_blacklist=[],
-        type_blacklist=[]
+        type_blacklist=[],
+        devcloud_raw_bucket="test-raw",
+        devcloud_anonymized_bucket="test-anonymized"
     )
 
 

@@ -30,6 +30,9 @@ class TestS3Utils:
     @pytest.fixture
     def fix_video(self) -> S3VideoArtifact:
         return S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="datanauts",
             device_id="test-device",
             footage_id="test",
@@ -47,6 +50,9 @@ class TestS3Utils:
     @pytest.fixture
     def fix_snap(self) -> SnapshotArtifact:
         return SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="datanauts",
             device_id="test-device",
             uuid="foobar",

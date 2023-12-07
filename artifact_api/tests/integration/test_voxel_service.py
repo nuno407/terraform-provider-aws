@@ -35,6 +35,9 @@ class TestVoxelService:
         return _S3VideoArtifactWithS3Validation(
             rcc_s3_path="s3://not-needed/not-needed/",
             s3_path=s3_path,
+            artifact_id="",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="datanauts",
             device_id="DATANAUTS_DEV_01",
             recorder=RecorderType.INTERIOR,
@@ -53,6 +56,9 @@ class TestVoxelService:
 
         return _SnapshotArtifactWithS3Validation(
             s3_path=s3_path,
+            artifact_id="",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="datanauts",
             device_id="DATANAUTS_DEV_02",
             recorder=RecorderType.SNAPSHOT,

@@ -43,7 +43,9 @@ class TestSanitizerIntegration:
                                  message_collection=MESSAGE_COLLECTION,
                                  db_name=DB_NAME,
                                  tenant_blacklist=[],
-                                 recorder_blacklist=[])
+                                 recorder_blacklist=[],
+                                 devcloud_raw_bucket="test-raw",
+                                 devcloud_anonymized_bucket="test-anonymized")
         di[SanitizerConfig] = config
         di["default_sqs_queue_name"] = config.input_queue
         di["default_sns_topic_arn"] = config.topic_arn

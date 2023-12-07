@@ -57,6 +57,9 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
     (
         SnapshotArtifact(
             uuid="test-uuid00",
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
             recorder=RecorderType.SNAPSHOT,
@@ -71,6 +74,9 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
     (
         S3VideoArtifact(
             footage_id="da234f8b-cfed-513a-8bbd-993aced80c93",
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             rcc_s3_path="s3://rcc-bucket/key",
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
@@ -86,6 +92,9 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
     (
         S3VideoArtifact(
             footage_id="f5cd9ef6-2232-5502-ac75-8fc1531f8aee",
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             rcc_s3_path="s3://rcc-bucket/key",
             timestamp=datetime.now(tz=UTC),
             end_timestamp=datetime.now(tz=UTC),
@@ -100,6 +109,7 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
     ), (
         MultiSnapshotArtifact(
             tenant_id="ridecare_companion_fut",
+            artifact_id="bar",
             device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
             timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
             end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
@@ -111,6 +121,9 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
             chunks=[
                 SnapshotArtifact(
                     uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
+                    artifact_id="bar",
+                    raw_s3_path="s3://raw/foo/bar.something",
+                    anonymized_s3_path="s3://anonymized/foo/bar.something",
                     device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
                     tenant_id="ridecare_companion_fut",
                     timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
@@ -121,6 +134,9 @@ def sns_client(sqs_client: SQSClient) -> SNSClient:  # pylint: disable=redefined
                         end="2023-05-31T15:03:51.613360+00:00")),
                 SnapshotArtifact(
                     uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
+                    artifact_id="bar",
+                    raw_s3_path="s3://raw/foo/bar.something",
+                    anonymized_s3_path="s3://anonymized/foo/bar.something",
                     device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
                     tenant_id="ridecare_companion_fut",
                     timestamp=from_epoch_seconds_or_milliseconds(1685544543757),

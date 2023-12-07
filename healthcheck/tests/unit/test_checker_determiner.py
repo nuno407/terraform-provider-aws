@@ -17,6 +17,9 @@ snapshot_checker = Mock()
 operator_checker = Mock()
 
 common_properties = {
+    "artifact_id": "bar",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "tenant_id": "tenant_id",
     "device_id": "device_id",
     "timestamp": datetime.now(tz=UTC),

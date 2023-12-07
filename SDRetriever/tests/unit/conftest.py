@@ -89,6 +89,9 @@ def snapshot_artifact(
         mock_upload_timewindow: TimeWindow,
         snapshot_uuid: str) -> SnapshotArtifact:
     return SnapshotArtifact(
+        artifact_id="bar",
+        raw_s3_path="s3://raw/foo/bar.something",
+        anonymized_s3_path="s3://anonymized/foo/bar.something",
         tenant_id=mock_tenant_id,
         device_id=mock_device_id,
         uuid=snapshot_uuid,
@@ -138,6 +141,7 @@ def preview_metadata_artifact(
         upload_timing=mock_upload_timewindow,
         end_timestamp=mock_stop_timestamp,
         referred_artifact=MultiSnapshotArtifact(
+            artifact_id="foo",
             tenant_id=mock_tenant_id,
             device_id=mock_device_id,
             recorder=RecorderType.INTERIOR_PREVIEW,
@@ -162,6 +166,9 @@ def interior_video_artifact(
         rcc_bucket: str) -> S3VideoArtifact:
     """S3VideoArtifact for testing."""
     return S3VideoArtifact(
+        artifact_id="bar",
+        raw_s3_path="s3://raw/foo/bar.something",
+        anonymized_s3_path="s3://anonymized/foo/bar.something",
         tenant_id=mock_tenant_id,
         device_id=mock_device_id,
         recorder=RecorderType.INTERIOR,
@@ -192,6 +199,9 @@ def training_video_artifact(
         rcc_bucket: str) -> S3VideoArtifact:
     """S3VideoArtifact for testing."""
     return S3VideoArtifact(
+        artifact_id="bar",
+        raw_s3_path="s3://raw/foo/bar.something",
+        anonymized_s3_path="s3://anonymized/foo/bar.something",
         tenant_id=mock_tenant_id,
         device_id=mock_device_id,
         recorder=RecorderType.TRAINING,

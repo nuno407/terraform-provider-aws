@@ -110,6 +110,9 @@ def ingestion_handler(imu_ing,
 
 
 s3_video_artifact = S3VideoArtifact(
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
     recorder=RecorderType.INTERIOR,
     upload_timing=TimeWindow(start=datetime_in_past, end=datetime_in_past),
     tenant_id="tenant_id",
@@ -159,6 +162,9 @@ def test_ingestion_already_ingested_s3_video(ingestion_handler: IngestionHandler
 
 
 snapshot_artifact = SnapshotArtifact(
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
     recorder=RecorderType.SNAPSHOT,
     upload_timing=TimeWindow(start=datetime_in_past, end=datetime_in_past),
     end_timestamp=datetime_in_past,
@@ -337,6 +343,7 @@ def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: Ingestio
 
 
 multisnapshot_artifact = MultiSnapshotArtifact(
+    artifact_id="bar",
     tenant_id="tenant_id",
     device_id="device_id",
     timestamp=datetime_in_past,

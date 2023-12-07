@@ -32,7 +32,11 @@ device_and_tenant_and_timings = {
 fixture_snapshot = SnapshotArtifact(
     **device_and_tenant_and_timings,
     recorder=RecorderType.SNAPSHOT,
-    uuid="TrainingMultiSnapshot_TrainingMultiSnapshot-e542440d-a6a2-4733-a98b-94a55884b805_1.jpeg"
+    uuid="TrainingMultiSnapshot_TrainingMultiSnapshot-e542440d-a6a2-4733-a98b-94a55884b805_1.jpeg",
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
+
 )
 
 fixture_interior = S3VideoArtifact(
@@ -40,6 +44,9 @@ fixture_interior = S3VideoArtifact(
     rcc_s3_path="s3://rcc-bucket/key",
     device_id="device_id",
     tenant_id="tenant_id",
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
     recorder=RecorderType.INTERIOR,
     timestamp=datetime.now(tz=UTC),
     end_timestamp=datetime.now(tz=UTC),
@@ -54,6 +61,9 @@ fixture_training = S3VideoArtifact(
     rcc_s3_path="s3://rcc-bucket/key",
     device_id="device_id",
     tenant_id="tenant_id",
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
     recorder=RecorderType.TRAINING,
     timestamp=datetime.now(tz=UTC),
     end_timestamp=datetime.now(tz=UTC),
@@ -65,7 +75,10 @@ fixture_training = S3VideoArtifact(
 fixture_preview = SnapshotArtifact(
     **device_and_tenant_and_timings,
     recorder=RecorderType.INTERIOR_PREVIEW,
-    uuid="some-uuid.jpeg"
+    uuid="some-uuid.jpeg",
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
 )
 
 fixture_multi_preview = MultiSnapshotArtifact(
@@ -73,6 +86,7 @@ fixture_multi_preview = MultiSnapshotArtifact(
     recorder=RecorderType.INTERIOR_PREVIEW,
     chunks=[fixture_preview],
     recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
+    artifact_id="bar"
 )
 
 

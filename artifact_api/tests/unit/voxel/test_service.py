@@ -57,6 +57,9 @@ class TestVoxelService:
     def video_artifact(self) -> S3VideoArtifact:
         """VideoArtifact for testing."""
         return S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             rcc_s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
             s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
             tenant_id="datanauts",
@@ -75,6 +78,9 @@ class TestVoxelService:
     def snapshot_artifact(self) -> SnapshotArtifact:
         """SnapshotArtifact for testing."""
         return SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             s3_path="s3://dev-rcd-video-raw/datanauts/test123.jpeg",
             tenant_id="datanauts",
             device_id="DATANAUTS_DEV_02",

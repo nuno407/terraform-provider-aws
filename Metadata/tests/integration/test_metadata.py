@@ -47,6 +47,9 @@ def _input_message_recording(folder) -> dict:
         "timestamp": 1662080172308,
         "end_timestamp": 1662080561893,
         "artifact_name" : "s3_video",
+        "artifact_id": "device_InteriorRecorder_ridecare_device_recording_1662080172308_1662080561893",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
         "tenant_id": "ridecare",
         "device_id": "device",
         "actual_duration": 391.0,
@@ -66,6 +69,9 @@ def _input_message_recording(folder) -> dict:
 def _input_message_snapshot(folder: str, timestamp: int) -> dict:
     body = {
         "artifact_name" : "snapshot",
+        "artifact_id": "ridecare_device_foo_1612080178308",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
         "tenant_id": "ridecare",
         "device_id": "device",
         "resolution": {"width": 640, "height": 360},
@@ -76,16 +82,46 @@ def _input_message_snapshot(folder: str, timestamp: int) -> dict:
         "uuid": "foo",
         "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_foo_{timestamp}.jpeg",
     }
-    message = _pack_message(body)
-    return message
+    return _pack_message(body)
 
 
 def _input_message_snapshot_included(folder: str):
-    return _input_message_snapshot(folder, 1662080178308)
+    body = {
+        "artifact_name" : "snapshot",
+        "artifact_id": "ridecare_device_foo_1662080178308",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
+        "tenant_id": "ridecare",
+        "device_id": "device",
+        "resolution": {"width": 640, "height": 360},
+        "timestamp": 1662080178308,
+        "end_timestamp": 1662080178308,
+        "upload_timing": {"start": 1662080178308 + 1000, "end": 1662080178308 + 2000},
+        "recorder": "TrainingMultiSnapshot",
+        "uuid": "foo",
+        "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_foo_1662080178308.jpeg",
+    }
+    return _pack_message(body)
 
 
 def _input_message_snapshot_excluded(folder: str):
-    return _input_message_snapshot(folder, 1612080178308)
+    body = {
+        "artifact_name" : "snapshot",
+        "artifact_id": "ridecare_device_foo_1612080178308",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
+        "tenant_id": "ridecare",
+        "device_id": "device",
+        "resolution": {"width": 640, "height": 360},
+        "timestamp": 1612080178308,
+        "end_timestamp": 1612080178308,
+        "upload_timing": {"start": 1612080178308 + 1000, "end": 1612080178308 + 2000},
+        "recorder": "TrainingMultiSnapshot",
+        "uuid": "foo",
+        "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_foo_1612080178308.jpeg",
+    }
+    message = _pack_message(body)
+    return message
 
 
 @pytest.mark.integration

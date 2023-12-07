@@ -3,12 +3,11 @@
 import hashlib
 from abc import abstractmethod
 from enum import Enum
-from pathlib import Path
-from typing import Literal, Optional, Union, Annotated
+from typing import Literal, Optional, Union, Annotated, TYPE_CHECKING
 from datetime import datetime
 from pydantic import field_validator, Field, TypeAdapter
 from base.model.validators import UtcDatetimeInPast
-from base.model.base_model import ConfiguredBaseModel, S3Path
+from base.model.base_model import ConfiguredBaseModel, S3Path, AnonymizedS3Path, RawS3Path
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Location, Shutdown)
@@ -57,10 +56,11 @@ class Artifact(ConfiguredBaseModel):
     device_id: str
     s3_path: Optional[S3Path] = Field(default=None)
 
-    @property
-    @abstractmethod
-    def artifact_id(self) -> str:
-        """Artifact ID."""
+    if TYPE_CHECKING:
+        @property
+        @abstractmethod
+        def artifact_id(self) -> str:
+            """Artifact ID."""
 
     @property
     def devcloudid(self) -> str:
@@ -70,7 +70,7 @@ class Artifact(ConfiguredBaseModel):
 
 class ImageBasedArtifact(Artifact):
     """Base class for image based artifacts"""
-    # pylint: disable=abstract-method
+    artifact_id: str = Field()
     resolution: Optional[Resolution] = Field(default=None)
     recorder: RecorderType = Field(default=...)
     timestamp: UtcDatetimeInPast = Field(default=...)
@@ -80,7 +80,6 @@ class ImageBasedArtifact(Artifact):
 
 class VideoArtifact(ImageBasedArtifact):
     """Video artifact"""
-    # pylint: disable=abstract-method
     end_timestamp: UtcDatetimeInPast = Field(default=...)
     actual_duration: Optional[float] = Field(default=None)
     recorder: Literal[RecorderType.INTERIOR, RecorderType.FRONT,
@@ -104,10 +103,8 @@ class S3VideoArtifact(VideoArtifact):
     rcc_s3_path: S3Path
     footage_id: str = Field(default=...)
     recordings: list[Recording] = Field(default=...)
-
-    @property
-    def artifact_id(self) -> str:
-        return f"{self.device_id}_{self.recorder.value}_{self.footage_id}_{round(self.timestamp.timestamp()*1000)}_{round(self.end_timestamp.timestamp()*1000)}"
+    raw_s3_path: RawS3Path = Field()
+    anonymized_s3_path: AnonymizedS3Path = Field()
 
 
 class SnapshotArtifact(ImageBasedArtifact):
@@ -115,11 +112,8 @@ class SnapshotArtifact(ImageBasedArtifact):
     artifact_name: Literal["snapshot"] = "snapshot"
     uuid: str = Field(default=...)
     recorder: Literal[RecorderType.SNAPSHOT, RecorderType.INTERIOR_PREVIEW] = Field(default=...)
-
-    @property
-    def artifact_id(self) -> str:
-        uuid_without_ext = self.uuid.removesuffix(Path(self.uuid).suffix)
-        return f"{self.tenant_id}_{self.device_id}_{uuid_without_ext}_{round(self.timestamp.timestamp()*1000)}"
+    raw_s3_path: RawS3Path = Field()
+    anonymized_s3_path: AnonymizedS3Path = Field()
 
 
 class MultiSnapshotArtifact(ImageBasedArtifact):
@@ -134,11 +128,6 @@ class MultiSnapshotArtifact(ImageBasedArtifact):
         """Ensure snapshot chunks are sorted"""
         chunks.sort(key=lambda x: x.timestamp)
         return chunks
-
-    @property
-    def artifact_id(self) -> str:
-        """Artifact ID for the multiple snapshots artifacts"""
-        return f"{self.tenant_id}_{self.device_id}_{self.recording_id}_{round(self.timestamp.timestamp()*1000)}"
 
 
 class MetadataArtifact(Artifact):

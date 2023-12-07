@@ -11,6 +11,9 @@ from healthcheck.exceptions import FailDocumentValidation, NotYetIngestedError
 mock_date = datetime(year=2023, month=4, day=2, hour=2, tzinfo=UTC)
 
 common_snapshot_attributes = {
+    "artifact_id": "bar",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "recorder": RecorderType.SNAPSHOT,
     "timestamp": mock_date,
     "upload_timing": TimeWindow(

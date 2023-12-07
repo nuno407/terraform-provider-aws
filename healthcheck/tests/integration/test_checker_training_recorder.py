@@ -23,10 +23,11 @@ S3_DATA = os.path.join(CURRENT_LOCATION, "data", "s3_data")
 
 class TestTrainingRecorderArtifactChecker:
     @pytest.mark.integration
-    @pytest.mark.parametrize("tenant_id,device_id,footage_id,footage_from,footage_to,expected_exception_type", [
+    @pytest.mark.parametrize("artifact_id,tenant_id,device_id,footage_id,footage_from,footage_to,expected_exception_type", [
         # DATANAUTS_DEV_01_TrainingRecorder_2b9a313c-9b11-5ee8-a864-cb0b115a537e_1671454631000_1671455208714
         # Success
         (
+            "DATANAUTS_DEV_01_TrainingRecorder_2b9a313c-9b11-5ee8-a864-cb0b115a537e_1671454631000_1671455208714",
             "datanauts",
             "DATANAUTS_DEV_01",
             "2b9a313c-9b11-5ee8-a864-cb0b115a537e",
@@ -37,6 +38,7 @@ class TestTrainingRecorderArtifactChecker:
         # rc_srx_develop_stv4sf_01_TrainingRecorder_aa048c8e-68b3-5cc9-8114-d5a1c76ca1b5_1670846956000_1670847650634"
         # Error: data_status not completed / not ingested by SDR yet
         (
+            "rc_srx_develop_stv4sf_01_TrainingRecorder_aa048c8e-68b3-5cc9-8114-d5a1c76ca1b5_1670846956000_1670847650634",
             "deepsensation",
             "rc_srx_develop_stv4sf_01",
             "aa048c8e-68b3-5cc9-8114-d5a1c76ca1b5",
@@ -47,6 +49,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_15afa52a-e3a1-522a-9d94-3b3a1cfbf400_1670831590000_1670831868817
         # Error: No video anonymized file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_15afa52a-e3a1-522a-9d94-3b3a1cfbf400_1670831590000_1670831868817",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "15afa52a-e3a1-522a-9d94-3b3a1cfbf400",
@@ -57,6 +60,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_854c58f5-ffac-52b2-8c96-bd75f5da978c_1670829790543_1670831591892
         # Error: No CHC file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_854c58f5-ffac-52b2-8c96-bd75f5da978c_1670829790543_1670831591892",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "854c58f5-ffac-52b2-8c96-bd75f5da978c",
@@ -67,6 +71,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_8335db64-2ce1-548c-bde1-3afd94efabbc_1670507347819_1670507467529
         # Error: Missing original video
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_8335db64-2ce1-548c-bde1-3afd94efabbc_1670507347819_1670507467529",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "8335db64-2ce1-548c-bde1-3afd94efabbc",
@@ -77,6 +82,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_14400b23-dbfb-5d5a-9b6d-1cd4f8c48601_1670499585635_1670499861537
         # Error: Missing voxel entry
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_14400b23-dbfb-5d5a-9b6d-1cd4f8c48601_1670499585635_1670499861537",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "14400b23-dbfb-5d5a-9b6d-1cd4f8c48601",
@@ -87,6 +93,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_17c5b8b2-62f5-5497-9cf1-d8fdc73feab4_1670497785727_1670499585630
         # Error: Missing CHC document in algorithm-output
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_17c5b8b2-62f5-5497-9cf1-d8fdc73feab4_1670497785727_1670499585630",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "17c5b8b2-62f5-5497-9cf1-d8fdc73feab4",
@@ -97,6 +104,7 @@ class TestTrainingRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_8ef1b5c7-dca9-5e7e-bbdb-eb01774b8cc9_1670494337819_1670494456614
         # Error: Missing pipeline-execution
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_8ef1b5c7-dca9-5e7e-bbdb-eb01774b8cc9_1670494337819_1670494456614",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "8ef1b5c7-dca9-5e7e-bbdb-eb01774b8cc9",
@@ -105,8 +113,9 @@ class TestTrainingRecorderArtifactChecker:
             NotPresentError
         ),
         # ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_21cadbce-1120-5797-81ba-08da11754c33_1670492537000_1670494337793
-        # # Error: Wrong media type in recordings
+        # Error: Wrong media type in recordings
         (
+            "ivs_slimscaley_develop_yuj2hi_01_TrainingRecorder_21cadbce-1120-5797-81ba-08da11754c33_1670492537000_1670494337793",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "21cadbce-1120-5797-81ba-08da11754c33",
@@ -117,6 +126,7 @@ class TestTrainingRecorderArtifactChecker:
     ])
     def test_run_healthcheck(
             self,
+            artifact_id: str,
             tenant_id: str,
             device_id: str,
             footage_id: str,
@@ -135,6 +145,9 @@ class TestTrainingRecorderArtifactChecker:
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
         artifact = S3VideoArtifact(
+            artifact_id=artifact_id,
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id=tenant_id,
             device_id=device_id,
             footage_id=footage_id,

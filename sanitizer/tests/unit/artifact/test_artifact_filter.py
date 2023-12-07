@@ -19,7 +19,9 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         db_name="db-foo",
         message_collection="foobar-collection",
         recorder_blacklist=recorder_blacklist,
-        tenant_blacklist=tenant_blacklist
+        tenant_blacklist=tenant_blacklist,
+        devcloud_anonymized_bucket="devcloud-anonymized-bucket",
+        devcloud_raw_bucket="devcloud-raw-bucket"
     )
 
 
@@ -38,6 +40,9 @@ timings = {
     # good artifact
     (
         SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             uuid="foobar1",
             tenant_id="datanauts",
             device_id="DEV01",
@@ -53,6 +58,9 @@ timings = {
     # blacklisted tenant
     (
         SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             uuid="foobar2",
             tenant_id="datanauts",
             device_id="DEV02",
@@ -68,6 +76,9 @@ timings = {
     # no tenant specified
     (
         SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             uuid="foobar3",
             tenant_id="",
             device_id="DEV03",
@@ -83,6 +94,9 @@ timings = {
     # blacklisted recorder
     (
         S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             footage_id="8d98a113-2a74-50e8-a706-6ae854d59923",
             rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",
@@ -100,6 +114,9 @@ timings = {
     # multiple blacklisted recorder
     (
         S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             footage_id="233df466-34d9-5c56-8d5d-e3095f855bd9",
             rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",
@@ -117,6 +134,9 @@ timings = {
     # blacklisted tenant and recorder
     (
         S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             footage_id="071a9460-ec26-5a12-b978-163a27952eae",
             rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="deepsensation",

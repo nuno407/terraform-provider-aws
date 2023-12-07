@@ -3,6 +3,9 @@
     "device_id": "test-device-id01",
     "artifact_name": "s3_video",
     "s3_path": "s3://dev-rcd-raw-video-files/test-device-id01/some_id.mp4",
+    "artifact_id": "bar",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "resolution": {
         "width": 640,
         "height": 360

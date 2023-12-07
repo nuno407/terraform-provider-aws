@@ -1,6 +1,9 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_01",
+    "artifact_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-bfbed9ee-435e-4432-bd1b-6b57171520c7_2_1700596094765",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-bfbed9ee-435e-4432-bd1b-6b57171520c7_2_1700596094765.jpeg",
     "recorder": "TrainingMultiSnapshot",
     "timestamp": "2023-11-21T19:48:14.765000Z",

@@ -1,23 +1,37 @@
+# pylint: disable=duplicate-code
 """ Snapshot Parser module """
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Iterator, Optional
+from pathlib import Path
 from kink import inject
 
 from base.aws.model import SQSMessage
 from base.model.artifacts import RecorderType, SnapshotArtifact, TimeWindow
 from base.timestamps import from_epoch_seconds_or_milliseconds
 from sanitizer.artifact.parsers.iparser import IArtifactParser
+from sanitizer.config import SanitizerConfig
 from sanitizer.exceptions import ArtifactException, InvalidMessageError
 from sanitizer.message.message_parser import MessageParser
+from sanitizer.artifact.parsers.utils import calculate_anonymized_s3_path, calculate_raw_s3_path
 
 _logger = logging.getLogger(__name__)
 
 
 @inject
-class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
+class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods,duplicate-code
     """SnapshotParser class"""
 
+    def __init__(self, sanitizer_config: SanitizerConfig):
+        self.__sanitizer_config = sanitizer_config
+
+    @staticmethod
+    def _calculate_artifact_id(tenant_id: str, device_id: str, uuid: str, timestamp: datetime):
+        """ Statically calculates artifact id. """
+        uuid_without_ext = uuid.removesuffix(Path(uuid).suffix)
+        return f"{tenant_id}_{device_id}_{uuid_without_ext}_{round(timestamp.timestamp()*1000)}"
+
+    # pylint: disable=too-many-locals
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[SnapshotArtifact]:
         """Generator method for extracting a list of snapshot or previews artifacts
 
@@ -88,8 +102,35 @@ class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
                         "Invalid snapshot chunk. Missing uuid or start_timestamp_ms.")  # pylint: disable=line-too-long
                 start_timestamp: int = chunk["start_timestamp_ms"]
                 end_timestamp: int = chunk.get("end_timestamp_ms", start_timestamp)
-                yield SnapshotArtifact(tenant_id=tenant,
+
+                # It is correct that we do not have a path for the uploaded snapshot? :o
+                # How can we check what format is the file?
+                file_extension = "jpeg"
+                # rcc_path.split(".")[-1].lower()
+                # if file_extension not in VIDEO_FORMATS:
+                #    raise InvalidMessageError("File extension not compatible. Extension %s", file_extension)
+                artifact_id = self._calculate_artifact_id(
+                    tenant_id=tenant,
+                    device_id=device_id,
+                    uuid=chunk["uuid"],
+                    timestamp=from_epoch_seconds_or_milliseconds(
+                        chunk["start_timestamp_ms"]))
+                devcloud_raw_filepath = calculate_raw_s3_path(
+                    s3_bucket=self.__sanitizer_config.devcloud_raw_bucket,
+                    tenant_id=tenant,
+                    artifact_id=artifact_id,
+                    file_extension=file_extension)
+                devcloud_anonymized_filepath = calculate_anonymized_s3_path(
+                    s3_bucket=self.__sanitizer_config.devcloud_anonymized_bucket,
+                    tenant_id=tenant,
+                    artifact_id=artifact_id,
+                    file_extension=file_extension)
+                yield SnapshotArtifact(artifact_id=artifact_id,
+                                       tenant_id=tenant,
                                        device_id=device_id,
+                                       s3_path=devcloud_raw_filepath,
+                                       raw_s3_path=devcloud_raw_filepath,
+                                       anonymized_s3_path=devcloud_anonymized_filepath,
                                        uuid=chunk["uuid"],
                                        recorder=recorder_type,
                                        timestamp=from_epoch_seconds_or_milliseconds(chunk["start_timestamp_ms"]),

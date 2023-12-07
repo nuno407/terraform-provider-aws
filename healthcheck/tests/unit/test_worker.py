@@ -17,6 +17,9 @@ from healthcheck.worker import HealthCheckWorker
 def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", device_id: str = "device1",
                          **kwargs: dict) -> Union[S3VideoArtifact, SnapshotArtifact]:
     obj = {
+        "artifact_id": "bar",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
         "tenant_id": tenant_id,
         "device_id": device_id,
         "recorder": recorder,

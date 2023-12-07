@@ -59,7 +59,9 @@ def test_integration_persistence(sqs_message: SQSMessage):
         db_name=db_name,
         message_collection=message_collection,
         tenant_blacklist=[],
-        recorder_blacklist=[]
+        recorder_blacklist=[],
+        devcloud_raw_bucket="test-raw",
+        devcloud_anonymized_bucket="test-anonymized"
     )
 
     persistence = MessagePersistence(

@@ -42,6 +42,8 @@ class SanitizerConfig(BaseModel):
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
     type_blacklist: set[type[Artifact]] = Field(default_factory=set)
+    devcloud_raw_bucket: str
+    devcloud_anonymized_bucket: str
 
     @field_validator("type_blacklist", mode="before")
     def _validate_type_blacklist(cls, value: set[str]) -> set[type[Artifact]]:  # pylint: disable=no-self-argument

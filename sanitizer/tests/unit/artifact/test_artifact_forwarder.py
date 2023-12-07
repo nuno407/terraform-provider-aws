@@ -23,6 +23,9 @@ timings = {
 @pytest.mark.parametrize("artifact", [
     (
         S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             footage_id="bd94818c-b992-50fa-8556-ed7732aed924",
             rcc_s3_path="s3://rcc-bucket/key",
             tenant_id="123456",
@@ -34,6 +37,9 @@ timings = {
     ),
     (
         SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             uuid="f8502029-9de0-4c19-8a85-1b223bdd08da",
             tenant_id="deepsensation",
             device_id="DEV_01",

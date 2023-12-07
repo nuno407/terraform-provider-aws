@@ -23,10 +23,11 @@ S3_DATA = os.path.join(CURRENT_LOCATION, "data", "s3_data")
 
 class TestInteriorRecorderArtifactChecker:
     @pytest.mark.integration
-    @pytest.mark.parametrize("tenant_id,device_id,footage_id,footage_from,footage_to,expected_exception_type", [
+    @pytest.mark.parametrize("artifact_id,tenant_id,device_id,footage_id,footage_from,footage_to,expected_exception_type", [
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_f068e0fa-be30-5301-ba1b-293195554f9a_1669992746911_1669992825429
         # Success
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_f068e0fa-be30-5301-ba1b-293195554f9a_1669992746911_1669992825429",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "f068e0fa-be30-5301-ba1b-293195554f9a",
@@ -34,9 +35,10 @@ class TestInteriorRecorderArtifactChecker:
             1669992825429,
             None
         ),
-        # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_c3838d5d-6426-5267-9f10-82fad54f765b_1669992746911_1669992825530"
+        # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_c3838d5d-6426-5267-9f10-82fad54f765b_1669992746911_1669992825530
         # Error: Hash not present / not ingested by SDR yet
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_c3838d5d-6426-5267-9f10-82fad54f765b_1669992746911_1669992825530",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "c3838d5d-6426-5267-9f10-82fad54f765b",
@@ -47,6 +49,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_a1f8422e-cfdf-5eb3-b6d4-6d784e36745b_1669992688000_1669992725794
         # Error: No video anonymized file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_a1f8422e-cfdf-5eb3-b6d4-6d784e36745b_1669992688000_1669992725794",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "a1f8422e-cfdf-5eb3-b6d4-6d784e36745b",
@@ -57,6 +60,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_2aec57dc-9f07-5692-961b-903b359a7a01_1669989865000_1669989911443
         # Error: No CHC file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_2aec57dc-9f07-5692-961b-903b359a7a01_1669989865000_1669989911443",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "2aec57dc-9f07-5692-961b-903b359a7a01",
@@ -67,6 +71,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_131429bb-f3ae-5617-9a7d-e5b79444674d_1669941151635_1669941177428
         # Error: Missing original video
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_131429bb-f3ae-5617-9a7d-e5b79444674d_1669941151635_1669941177428",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "131429bb-f3ae-5617-9a7d-e5b79444674d",
@@ -77,6 +82,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_676a8463-4b76-5681-bd9e-00574e56ef13_1669937546543_1669937582448
         # Error: Missing signals file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_676a8463-4b76-5681-bd9e-00574e56ef13_1669937546543_1669937582448",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "676a8463-4b76-5681-bd9e-00574e56ef13",
@@ -87,6 +93,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_bb4c4631-acbe-5807-810f-0c471d93b640_1669935745727_1669935774441
         # Error: Missing metadatafull file
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_bb4c4631-acbe-5807-810f-0c471d93b640_1669935745727_1669935774441",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "bb4c4631-acbe-5807-810f-0c471d93b640",
@@ -97,6 +104,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_f2c93e50-7566-59d1-819a-1c6e59a85ade_1669933942000_1669933976440
         # Error: Missing voxel entry
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_f2c93e50-7566-59d1-819a-1c6e59a85ade_1669933942000_1669933976440",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "f2c93e50-7566-59d1-819a-1c6e59a85ade",
@@ -107,6 +115,7 @@ class TestInteriorRecorderArtifactChecker:
         # DATANAUTS_DEV_01_InteriorRecorder_370d7ac9-55d6-5824-a878-4466f985a0c6_1668525233635_1668525352435
         # Success
         (
+            "DATANAUTS_DEV_01_InteriorRecorder_370d7ac9-55d6-5824-a878-4466f985a0c6_1668525233635_1668525352435",
             "datanauts",
             "DATANAUTS_DEV_01",
             "370d7ac9-55d6-5824-a878-4466f985a0c6",
@@ -117,6 +126,7 @@ class TestInteriorRecorderArtifactChecker:
         # DATANAUTS_DEV_01_InteriorRecorder_0d46bf3c-31fc-52fe-aae8-b8b7aaace851_1668520287819_1668520339524
         # Error: Missing CHC document in algorithm-output
         (
+            "DATANAUTS_DEV_01_InteriorRecorder_0d46bf3c-31fc-52fe-aae8-b8b7aaace851_1668520287819_1668520339524",
             "datanauts",
             "DATANAUTS_DEV_01",
             "0d46bf3c-31fc-52fe-aae8-b8b7aaace851",
@@ -127,6 +137,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1b4eba78-46dd-5920-9c8e-4ba55d937a02_1669920646000_1669920680442
         # Error: Missing processing_list in pipeline-execution
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_1b4eba78-46dd-5920-9c8e-4ba55d937a02_1669920646000_1669920680442",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "1b4eba78-46dd-5920-9c8e-4ba55d937a02",
@@ -137,6 +148,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_58d84c92-357c-59b9-bf8a-256b98dc4f77_1669924248635_1669924275444
         # # Error: Wrong media type in recordings
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_58d84c92-357c-59b9-bf8a-256b98dc4f77_1669924248635_1669924275444",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "58d84c92-357c-59b9-bf8a-256b98dc4f77",
@@ -147,6 +159,7 @@ class TestInteriorRecorderArtifactChecker:
         # ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_b8a210a3-557a-5f72-b673-e2b7bab750b8_1670008538727_1670008567439
         # Error: Missing document in signals
         (
+            "ivs_slimscaley_develop_yuj2hi_01_InteriorRecorder_b8a210a3-557a-5f72-b673-e2b7bab750b8_1670008538727_1670008567439",
             "deepsensation",
             "ivs_slimscaley_develop_yuj2hi_01",
             "b8a210a3-557a-5f72-b673-e2b7bab750b8",
@@ -157,6 +170,7 @@ class TestInteriorRecorderArtifactChecker:
     ])
     def test_run_healthcheck_interior(
             self,
+            artifact_id: str,
             tenant_id: str,
             device_id: str,
             footage_id: str,
@@ -174,6 +188,9 @@ class TestInteriorRecorderArtifactChecker:
             voxel_fiftyone_controller=voxel_fiftyone_controller
         )
         artifact = S3VideoArtifact(
+            artifact_id=artifact_id,
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id=tenant_id,
             device_id=device_id,
             footage_id=footage_id,

@@ -5,6 +5,7 @@
     "artifact_name": "raw_preview_signals",
     "referred_artifact": {
         "artifact_name": "multi_snapshot",
+        "artifact_id": "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-30bbcac1-a551-43f9-bda0-edac6ec39e76_1685544513752",
         "tenant_id": "ridecare_companion_fut",
         "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
         "s3_path": null,
@@ -20,6 +21,9 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "artifact_id": "bar",
+                "raw_s3_path": "s3://raw/foo/bar.something",
+                "anonymized_s3_path": "s3://anonymized/foo/bar.something",
                 "s3_path": null,
                 "resolution": null,
                 "recorder": "InteriorRecorderPreview",
@@ -34,6 +38,9 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "artifact_id": "bar",
+                "raw_s3_path": "s3://raw/foo/bar.something",
+                "anonymized_s3_path": "s3://anonymized/foo/bar.something",
                 "s3_path": null,
                 "resolution": null,
                 "recorder": "InteriorRecorderPreview",
@@ -48,6 +55,9 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "artifact_id": "bar",
+                "raw_s3_path": "s3://raw/foo/bar.something",
+                "anonymized_s3_path": "s3://anonymized/foo/bar.something",
                 "s3_path": null,
                 "resolution": null,
                 "recorder": "InteriorRecorderPreview",
@@ -62,6 +72,9 @@
             {
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+                "artifact_id": "bar",
+                "raw_s3_path": "s3://raw/foo/bar.something",
+                "anonymized_s3_path": "s3://anonymized/foo/bar.something",
                 "s3_path": null,
                 "resolution": null,
                 "recorder": "InteriorRecorderPreview",

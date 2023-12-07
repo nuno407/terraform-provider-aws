@@ -40,6 +40,9 @@ class TestMongoController:  # pylint: disable=duplicate-code
     def video(self) -> S3VideoArtifact:
         """Fixture for video artifact"""
         return S3VideoArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="foo",
             device_id="bar",
             resolution=Resolution(width=1920, height=1080),
@@ -60,6 +63,9 @@ class TestMongoController:  # pylint: disable=duplicate-code
     def snapshot_artifact(self) -> SnapshotArtifact:
         """Fixture for snapshot artifact"""
         return SnapshotArtifact(
+            artifact_id="bar",
+            raw_s3_path="s3://raw/foo/bar.something",
+            anonymized_s3_path="s3://anonymized/foo/bar.something",
             tenant_id="foo",
             device_id="bar",
             s3_path="s3://dev-bucket/key",

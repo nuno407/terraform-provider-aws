@@ -14,6 +14,8 @@ def test_load_yaml_config():
     topic_arn: test-topic
     db_name: test-db
     message_collection: test-incoming-messages
+    devcloud_raw_bucket: test-raw
+    devcloud_anonymized_bucket: test-anonymized
     tenant_blacklist:
     - onetenant
     recorder_blacklist:
@@ -33,6 +35,8 @@ def test_load_yaml_config():
     assert config.tenant_blacklist == ["onetenant"]
     assert config.message_collection == "test-incoming-messages"
     assert config.type_blacklist == {IMUArtifact}
+    assert config.devcloud_raw_bucket == "test-raw"
+    assert config.devcloud_anonymized_bucket == "test-anonymized"
 
 
 @pytest.mark.unit

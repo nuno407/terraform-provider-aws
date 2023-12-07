@@ -10,6 +10,9 @@ from healthcheck.checker.interior_recorder import \
     InteriorRecorderArtifactChecker
 
 common_video_attributes = {
+    "artifact_id": "bar",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "recorder": RecorderType.INTERIOR,
     "timestamp": datetime.now(tz=UTC),
     "end_timestamp": datetime.now(tz=UTC),

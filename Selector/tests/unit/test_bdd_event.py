@@ -14,6 +14,7 @@ from selector.rules import BDDEvent
 from unittest import mock
 
 tenant_device_and_timing = {
+    "artifact_id": "foo",
     "tenant_id": "tenant_id",
     "device_id": "device_id",
     "timestamp": datetime.now(tz=UTC),

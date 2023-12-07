@@ -7,6 +7,7 @@ from base.aws.model import MessageAttributes, SQSMessage
 from base.model.artifacts import Recording, RecorderType, S3VideoArtifact, TimeWindow
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
 from helper_functions import load_sqs_json
+from sanitizer.config import SanitizerConfig
 
 MESSAGE_ID = "barfoo"
 RECEIPT_HANDLE = "foobar"
@@ -28,9 +29,13 @@ RECEIPT_HANDLE = "foobar"
         ),
         [
             S3VideoArtifact(
+                artifact_id="srx_herbie_dev_hw_01_InteriorRecorder_303bd782-e19f-4373-ac72-f909d62f84ce_1687178909310_1687179011058",
                 tenant_id="rubber_duck",
                 device_id="srx_herbie_dev_hw_01",
                 recorder=RecorderType.INTERIOR,
+                s3_path="s3://test-raw/rubber_duck/srx_herbie_dev_hw_01_InteriorRecorder_303bd782-e19f-4373-ac72-f909d62f84ce_1687178909310_1687179011058.mp4",
+                raw_s3_path="s3://test-raw/rubber_duck/srx_herbie_dev_hw_01_InteriorRecorder_303bd782-e19f-4373-ac72-f909d62f84ce_1687178909310_1687179011058.mp4",
+                anonymized_s3_path="s3://test-anonymized/rubber_duck/srx_herbie_dev_hw_01_InteriorRecorder_303bd782-e19f-4373-ac72-f909d62f84ce_1687178909310_1687179011058_anonymized.mp4",
                 timestamp=1687178909310,
                 end_timestamp=1687179011058,
                 upload_timing=TimeWindow(
@@ -57,7 +62,8 @@ RECEIPT_HANDLE = "foobar"
 ])
 def test_video_parser(test_case: str,
                       input_message: SQSMessage,
-                      expected: list[S3VideoArtifact]):
+                      expected: list[S3VideoArtifact],
+                      sanitizer_config: SanitizerConfig):
     print("test_case: ", test_case)
-    got_video = S3VideoParser().parse(input_message, expected[0].recorder)
+    got_video = S3VideoParser(sanitizer_config=sanitizer_config).parse(input_message, expected[0].recorder)
     assert list(got_video) == expected

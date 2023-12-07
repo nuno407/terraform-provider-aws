@@ -21,6 +21,9 @@ def json_snapshot() -> str:
     return """
     {
         "tenant_id": "foo",
+        "artifact_id": "foo_bar_abc_1681370055771",
+        "raw_s3_path": "s3://raw/foo/foo_bar_abc_1681370055771.jpeg",
+        "anonymized_s3_path": "s3://anonymized/foo/foo_bar_abc_1681370055771_anonymized.jpeg",
         "artifact_name":"snapshot",
         "device_id": "bar",
         "recorder": "TrainingMultiSnapshot",
@@ -37,8 +40,11 @@ def json_snapshot() -> str:
 
 def snapshot() -> SnapshotArtifact:
     return SnapshotArtifact(
+        artifact_id="foo_bar_abc_1681370055771",
         tenant_id="foo",
         device_id="bar",
+        raw_s3_path="s3://raw/foo/foo_bar_abc_1681370055771.jpeg",
+        anonymized_s3_path="s3://anonymized/foo/foo_bar_abc_1681370055771_anonymized.jpeg",
         recorder=RecorderType.SNAPSHOT,
         timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
         end_timestamp=datetime.fromisoformat("2023-04-13T07:14:15.770982+00:00"),
@@ -54,6 +60,9 @@ def json_video() -> str:
     {
         "tenant_id": "foo",
         "artifact_name":"s3_video",
+        "artifact_id": "bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774",
+        "raw_s3_path": "s3://raw/foo/bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774.mp4",
+        "anonymized_s3_path": "s3://anonymized/foo/bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774_anonymized.mp4",
         "device_id": "bar",
         "recorder": "InteriorRecorder",
         "timestamp": "2023-04-13T07:14:15.774082Z",
@@ -74,6 +83,9 @@ def json_video() -> str:
 
 def video() -> S3VideoArtifact:
     return S3VideoArtifact(
+        artifact_id="bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774",
+        raw_s3_path="s3://raw/foo/bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774.mp4",
+        anonymized_s3_path="s3://anonymized/foo/bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774_anonymized.mp4",
         tenant_id="foo",
         device_id="bar",
         recorder=RecorderType.INTERIOR,
@@ -84,13 +96,19 @@ def video() -> S3VideoArtifact:
             end=datetime.fromisoformat("2023-04-13T08:01:00+00:00")),
         footage_id="my_footage_id",
         rcc_s3_path="s3://bucket/key",
-        recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
-    )
+        recordings=[
+            Recording(
+                recording_id="TrainingRecorder-abc",
+                chunk_ids=[
+                    1,
+                    2,
+                    3])])
 
 
 def multi_snapshot() -> MultiSnapshotArtifact:
     return MultiSnapshotArtifact(
         tenant_id="ridecare_companion_fut",
+        artifact_id="ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752",
         device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
         timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
         end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
@@ -102,8 +120,11 @@ def multi_snapshot() -> MultiSnapshotArtifact:
         chunks=[
             SnapshotArtifact(
                 uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
+                artifact_id="test3",
                 device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
                 tenant_id="ridecare_companion_fut",
+                raw_s3_path="s3://raw/ridecare_companion_fut/InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
+                anonymized_s3_path="s3://anonymized/ridecare_companion_fut/InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_61.jpeg",
                 timestamp=from_epoch_seconds_or_milliseconds(1685544513752),
                 end_timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
                 recorder=RecorderType.INTERIOR_PREVIEW,
@@ -112,8 +133,11 @@ def multi_snapshot() -> MultiSnapshotArtifact:
                     end=datetime.fromisoformat("2023-05-31T15:03:51.613360+00:00"))),
             SnapshotArtifact(
                 uuid="InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
+                artifact_id="test4",
                 device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
                 tenant_id="ridecare_companion_fut",
+                raw_s3_path="s3://raw/ridecare_companion_fut/InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
+                anonymized_s3_path="s3://anonymized/ridecare_companion_fut/InteriorRecorderPreview_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_62.jpeg",
                 timestamp=from_epoch_seconds_or_milliseconds(1685544543757),
                 end_timestamp=from_epoch_seconds_or_milliseconds(1685544573758),
                 recorder=RecorderType.INTERIOR_PREVIEW,
@@ -216,10 +240,10 @@ class TestArtifacts:
                         "bar_InteriorRecorder_my_footage_id_1681370055774_1681370115774"],
                        [snapshot(),
                         "foo_bar_abc_1681370055771"],
-                          [multi_snapshot(),
-                           "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752"],
-                          [preview_signals(),
-                           "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview"],
+                       [multi_snapshot(),
+                        "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752"],
+                       [preview_signals(),
+                        "ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8_1685544513752_metadata_preview"],
                        [camera_blocked_operator(),
                         "sav-operator-camera-blocked_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"],
                        [people_count_operator(),
@@ -227,4 +251,4 @@ class TestArtifacts:
                        [sos_count_operator(),
                         "sav-operator-sos_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"]])
     def test_artifact_id(self, artifact: Artifact, expected_id: str):
-        assert artifact.artifact_id == expected_id
+        assert artifact.artifact_id == expected_id  # type: ignore

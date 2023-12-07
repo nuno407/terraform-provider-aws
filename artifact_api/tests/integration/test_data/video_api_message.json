@@ -2,6 +2,9 @@
     "tenant_id": "ridecare_companion_fut",
     "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
     "s3_path": "s3://qa-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4",
+    "artifact_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317",
+    "raw_s3_path": "s3://raw/foo/bar.something",
+    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
     "resolution": {
         "width": 640,
         "height": 360

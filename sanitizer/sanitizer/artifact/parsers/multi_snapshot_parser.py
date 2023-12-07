@@ -1,4 +1,5 @@
 """ Snapshot Parser module """
+from datetime import datetime
 import logging
 from typing import Iterator, Optional, Union
 
@@ -21,6 +22,11 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
 
     def __init__(self, snapshot_parser: SnapshotParser):
         self.__snapshot_parser = snapshot_parser
+
+    @staticmethod
+    def _calculate_artifact_id(tenant_id: str, device_id: str, recording_id: str, timestamp: datetime) -> str:
+        """Artifact ID for the multiple snapshots artifacts"""
+        return f"{tenant_id}_{device_id}_{recording_id}_{round(timestamp.timestamp()*1000)}"
 
     def parse(self, sqs_message: SQSMessage,
               recorder_type: Optional[RecorderType]) -> Iterator[Union[SnapshotArtifact, MultiSnapshotArtifact]]:
@@ -59,7 +65,13 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
 
         first_snapshot = snapshots[0]
         last_snapshot = snapshots[-1]
-        yield MultiSnapshotArtifact(chunks=snapshots,
+        artifact_id = self._calculate_artifact_id(
+            first_snapshot.tenant_id,
+            first_snapshot.device_id,
+            recording_id,
+            first_snapshot.timestamp)
+        yield MultiSnapshotArtifact(artifact_id=artifact_id,
+                                    chunks=snapshots,
                                     recording_id=recording_id,
                                     tenant_id=first_snapshot.tenant_id,
                                     device_id=first_snapshot.device_id,
@@ -67,8 +79,6 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
                                     recorder=recorder_type,
                                     timestamp=first_snapshot.timestamp,
                                     end_timestamp=last_snapshot.end_timestamp,
-                                    upload_timing=TimeWindow(
-                                        start=first_snapshot.upload_timing.start,
-                                        end=last_snapshot.upload_timing.end
-                                    )
+                                    upload_timing=TimeWindow(start=first_snapshot.upload_timing.start,
+                                                             end=last_snapshot.upload_timing.end)
                                     )

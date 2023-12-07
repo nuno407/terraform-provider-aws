@@ -19,7 +19,7 @@ class TestS3VideoIngestion:
                                  get_sqs_message("training_recorder_message_metadata.json"),
                                  None,
                              ), (
-                                 get_sqs_message("interior_recorder_message_metadata_hq.json"),
+                                 get_sqs_message("interior_recorder_message_download.json"),
                                  get_sqs_message("interior_recorder_message_metadata_hq.json"),
                                  None
                              )

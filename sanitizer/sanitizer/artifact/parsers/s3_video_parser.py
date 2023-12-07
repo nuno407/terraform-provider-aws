@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """Module to parse videos that RCC has concatenated and uploaded to their S3."""
 from datetime import datetime
 from typing import Any, Iterator, Optional
@@ -5,11 +6,14 @@ from typing import Any, Iterator, Optional
 from pydantic import BaseModel, Field, ValidationError
 from kink import inject
 
+from base.constants import VIDEO_FORMATS
 from base.aws.model import SQSMessage
 from base.model.artifacts import (RecorderType, Recording, S3VideoArtifact,
                                   TimeWindow)
 from sanitizer.artifact.parsers.video_parser import VideoParser
+from sanitizer.config import SanitizerConfig
 from sanitizer.exceptions import InvalidMessageError
+from sanitizer.artifact.parsers.utils import calculate_anonymized_s3_path, calculate_raw_s3_path
 
 
 class _UploadInfo(BaseModel):
@@ -31,6 +35,20 @@ class _S3VideoInnerMessage(BaseModel):
 class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
     """Class to parse videos that RCC has concatenated and uploaded to their S3."""
 
+    def __init__(self, sanitizer_config: SanitizerConfig):
+        self.__sanitizer_config = sanitizer_config
+
+    @staticmethod
+    def _calculate_artifact_id(
+            device_id: str,
+            recorder: str,
+            footage_id: str,
+            start_timestamp: datetime,
+            end_timestamp: datetime):
+        """ Statically calculates artifact id"""
+        return f"{device_id}_{recorder}_{footage_id}_{round(start_timestamp.timestamp()*1000)}_{round(end_timestamp.timestamp()*1000)}"  # pylint: disable=line-too-long
+
+    # pylint: disable=too-many-locals
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[S3VideoArtifact]:
         """Extract recording artifact stored on S3 from SQS message
 
@@ -69,8 +87,31 @@ class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
         if rcc_path.endswith("_watermark.mp4"):
             rcc_path = rcc_path[:-len("_watermark.mp4")] + ".mp4"
 
-        yield S3VideoArtifact(
+        file_extension = rcc_path.split(".")[-1].lower()
+        if file_extension not in VIDEO_FORMATS:
+            raise InvalidMessageError(f"File extension not compatible. Extension {file_extension}")
+
+        artifact_id = self._calculate_artifact_id(device_id=device,
+                                                  recorder=recorder_type.value,  # type: ignore
+                                                  footage_id=parsed_message.footage_id,
+                                                  start_timestamp=parsed_message.footage_from,
+                                                  end_timestamp=parsed_message.footage_to)
+        devcloud_raw_filepath = calculate_raw_s3_path(s3_bucket=self.__sanitizer_config.devcloud_raw_bucket,
+                                                      tenant_id=tenant,
+                                                      artifact_id=artifact_id,
+                                                      file_extension=file_extension)
+        # pylint: disable=line-too-long
+        devcloud_anonymized_filepath = calculate_anonymized_s3_path(
+            s3_bucket=self.__sanitizer_config.devcloud_anonymized_bucket,
             tenant_id=tenant,
+            artifact_id=artifact_id,
+            file_extension=file_extension)
+        yield S3VideoArtifact(
+            artifact_id=artifact_id,
+            tenant_id=tenant,
+            s3_path=devcloud_raw_filepath,
+            raw_s3_path=devcloud_raw_filepath,
+            anonymized_s3_path=devcloud_anonymized_filepath,
             device_id=device,
             recorder=recorder_type,
             timestamp=parsed_message.footage_from,

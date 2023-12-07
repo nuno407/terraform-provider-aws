@@ -5,6 +5,9 @@
     "referred_artifact": {
         "tenant_id": "datanauts",
         "device_id": "DATANAUTS_DEV_01",
+        "artifact_id": "bar",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "anonymized_s3_path": "s3://anonymized/foo/bar.something",
         "artifact_name": "s3_video",
         "recorder": "TrainingRecorder",
         "timestamp": "2023-08-22T14:21:52.044000+00:00",
