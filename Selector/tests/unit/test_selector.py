@@ -43,6 +43,7 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         video_artifact.end_timestamp = to_ts
         video_artifact.s3_path = "test_s3_path"
         video_artifact.device_id = "test_device"
+        video_artifact.tenant_id = "test_tenant"
         parse_artifact_mock.return_value = video_artifact
 
         s3_controller = Mock()
