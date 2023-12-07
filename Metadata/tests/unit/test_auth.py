@@ -23,7 +23,7 @@ TEST_JWKS = {"keys": [{"kty": "RSA",
                        "n": "oaLLT9hkcSj",
                        "e": "AQAB",
                        "x5c": ["MIIDBTCCAe2gAwIBAgIQN33ROaIJ6b"],
-                       "issuer":f"{metadata.api.auth.AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"},
+                       "issuer": f"{metadata.api.auth.AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"},
                       {"kty": "RSA",
                        "use": "sig",
                        "kid": "l3sQ-50cCH4xBVZLHYXZ",
@@ -31,7 +31,7 @@ TEST_JWKS = {"keys": [{"kty": "RSA",
                        "n": "sfsXMXWuO-d",
                        "e": "AQAB",
                        "x5c": ["MIIDBTCCAe2gAwIBAgIQWPB1ofOpA7"],
-                       "issuer":f"{metadata.api.auth.AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"}]}
+                       "issuer": f"{metadata.api.auth.AZURE_OIDC_BASE_URL}/{TEST_TENANT_ID}/v2.0"}]}
 
 
 @pytest.fixture(name="test_app")

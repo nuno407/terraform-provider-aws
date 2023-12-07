@@ -605,8 +605,8 @@ def set_error_status(metadata_collections: MetadataCollections, video_id: str) -
 
 
 @inject
-def insert_mdf_imu_data(
-        imu_message: dict, metadata_collections: MetadataCollections, s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> tuple[list[TimeRange], str, str]:
+def insert_mdf_imu_data(imu_message: dict, metadata_collections: MetadataCollections,
+                        s3_client: S3Client, imu_gap_finder: IMUGapFinder) -> tuple[list[TimeRange], str, str]:
     """ Receives a message from the MDF IMU queue, downloads IMU file from a S3 bucket
     and inserts into the timeseries database. Finally returns the start and end
     timestamp of that IMU data.
@@ -943,9 +943,9 @@ def main():
                 message["Body"] = message_dict["body"]
 
                 # Capitilizes the message attribute type keys
-                for attr_key,attr_dict in message["MessageAttributes"].items():
+                for attr_key, attr_dict in message["MessageAttributes"].items():
                     new_dict = {}
-                    for attr_type,attrt_value in attr_dict.items():
+                    for attr_type, attrt_value in attr_dict.items():
                         cap_attr_type = attr_type[0].upper() + attr_type[1:]
                         new_dict[cap_attr_type] = attrt_value
 

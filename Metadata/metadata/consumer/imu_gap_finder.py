@@ -10,7 +10,7 @@ TimeRange = namedtuple("TimeRange", ["min", "max"])
 class IMUGapFinder:
 
     def __init__(self):
-        self.__local_counter = 0 # Used to find the gaps in IMU
+        self.__local_counter = 0  # Used to find the gaps in IMU
 
     def __concat_window(self, diff) -> int:
         """
@@ -28,7 +28,6 @@ class IMUGapFinder:
 
         return tmp_idx
 
-
     def get_valid_imu_time_ranges(self, imu_data: list[dict]) -> list[TimeRange]:
         """
         Return time ranges where IMU is valid.
@@ -42,14 +41,15 @@ class IMUGapFinder:
         """
         self.__local_counter = 0
 
-        df = pd.DataFrame([{"timestamp":row["timestamp"]} for row in imu_data])
+        df = pd.DataFrame([{"timestamp": row["timestamp"]} for row in imu_data])
 
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
         df["diff"] = df["timestamp"].diff().fillna(timedelta(microseconds=1))
-        df = df[["timestamp","diff"]]
+        df = df[["timestamp", "diff"]]
         df["index_windows"] = df["diff"].apply(self.__concat_window)
         df = df[df["diff"] < timedelta(seconds=1)]
 
-        result_df = df.groupby("index_windows")["timestamp"].agg(["min","max"])
-        timestamps_list = [TimeRange(dt_min.to_pydatetime(), dt_max.to_pydatetime()) for dt_min, dt_max in result_df.itertuples(index=False, name=None)]
+        result_df = df.groupby("index_windows")["timestamp"].agg(["min", "max"])
+        timestamps_list = [TimeRange(dt_min.to_pydatetime(), dt_max.to_pydatetime())
+                           for dt_min, dt_max in result_df.itertuples(index=False, name=None)]
         return timestamps_list

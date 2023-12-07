@@ -470,7 +470,7 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
 
         artifact_body = {
             "device_id": device_id,
-            "artifact_name" : "incident_info",
+            "artifact_name": "incident_info",
             "tenant_id": tenant_id,
             "timestamp": timestamp,
             "event_name": "com.bosch.ivs.incident.IncidentEvent",

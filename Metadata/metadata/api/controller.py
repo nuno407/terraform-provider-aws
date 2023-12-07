@@ -101,7 +101,8 @@ def init_controller(service: ApiService) -> flask.Flask:  # pylint: disable=too-
         response.headers["Strict-Transport-Security"] = "max-age=31536000 ; includeSubDomains"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Content-Security-Policy"] = f"default-src 'self'; connect-src login.microsoftonline.com 'self'; media-src {env}-rcd-anonymized-video-files.s3.amazonaws.com; script-src 'unsafe-inline' 'self';"
+        response.headers[
+            "Content-Security-Policy"] = f"default-src 'self'; connect-src login.microsoftonline.com 'self'; media-src {env}-rcd-anonymized-video-files.s3.amazonaws.com; script-src 'unsafe-inline' 'self';"
         return response
 
     @api.route("/alive")

@@ -1,4 +1,5 @@
 """API service module."""
+import math
 import logging
 import re
 from datetime import timedelta
@@ -97,6 +98,7 @@ class ApiService:
             for index, key in enumerate(timedelta_input):
                 if index >= len(time_obj):
                     break
+
                 timedelta_input[key] = int(time_obj[index])
 
             return timedelta(**timedelta_input)
@@ -110,13 +112,27 @@ class ApiService:
 
             for timestamp, signals in chc_result["signals"].items():
                 timestamp_with_offset = str(__convert_string_into_timedelta(timestamp) + time_offset)
-                result_signals[timestamp_with_offset] = {
-                    key: signals[key] for key in RELEVANT_DEVICE_SIGNALS if key in signals}
+                result_signals[timestamp_with_offset] = {}
+
+                # Skip None values
+                for key in RELEVANT_DEVICE_SIGNALS:
+                    if key not in signals:
+                        continue
+
+                    value = signals[key]
+
+                    if value is None or math.isnan(value):
+                        continue
+
+                    result_signals[timestamp_with_offset][key] = value
 
         elif chc_result["signals"] and type(chc_result["signals"]):
             for key, value in chc_result["signals"].items():
                 result_signals[key] = {}
-                result_signals[key]["CameraViewBlocked"] = value
+
+                # Skip None values
+                if value is not None and not math.isnan(value):
+                    result_signals[key]["CameraViewBlocked"] = value
 
         return result_signals
 

@@ -162,3 +162,35 @@ def test_update_video_description():
     # THEN
 
     db.update_recording_description.assert_called_once_with(video_id, description)
+
+
+@pytest.mark.unit
+def test_create_video_signals_object():
+
+    # GIVEN
+    input_data = {
+        "algo_out_id": "DATANAUTS_DEV_02_TrainingRecorder_d817537c-3984-41c2-b78f-5d00ade2eac8_1701708189927_1701708249916_CHC",
+        "recording": "DATANAUTS_DEV_02_TrainingRecorder_d817537c-3984-41c2-b78f-5d00ade2eac8_1701708189927_1701708249916",
+        "signals": {
+            "0:00:00": {
+                "CameraViewShifted": False,
+                "CameraViewBlocked": False,
+                "CameraVerticalShifted": 2.0,
+                "DrivingStatus": float("nan")}},
+        "source": "CHC"}
+
+    expected_output_data = {
+        "0:00:00": {
+            "CameraViewBlocked": False,
+            "CameraVerticalShifted": 2.0,
+        },
+    }
+
+    api = ApiService(Mock(), Mock())
+
+    # WHEN
+    output_data = api._ApiService__create_video_signals_object(input_data)
+
+    # THEN
+
+    assert output_data == expected_output_data

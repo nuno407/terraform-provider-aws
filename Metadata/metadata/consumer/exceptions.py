@@ -9,5 +9,6 @@ class NotSupportedArtifactError(Exception):
 class SnapshotNotFound(Exception):
     """The snapshot was not found"""
 
+
 class IMUEmpty(Exception):
     """The IMU file was empty"""

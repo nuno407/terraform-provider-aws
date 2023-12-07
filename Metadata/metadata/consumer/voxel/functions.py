@@ -66,10 +66,10 @@ def get_voxel_sample_data_privacy_document_id(sample: fo.Sample, mapping_config:
 
 @inject
 def add_voxel_snapshot_metadata(
-    metadata_artifact: SignalsArtifact,
-    s3_controller: S3Controller,
-    metadata_parser: MetadataParser,
-    voxel_loader: VoxelSnapshotMetadataLoader):
+        metadata_artifact: SignalsArtifact,
+        s3_controller: S3Controller,
+        metadata_parser: MetadataParser,
+        voxel_loader: VoxelSnapshotMetadataLoader):
     """
     Downloads the metadata form S3, parses and uploads it to voxel.
 

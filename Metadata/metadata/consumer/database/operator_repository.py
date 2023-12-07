@@ -11,10 +11,9 @@ from metadata.consumer.database.operator_feedback import (
 
 _logger = logging.getLogger(__name__)
 
+
 class OperatorRepository:
     """Operator Repository to translate model artifacts to database models"""
-
-
 
     @staticmethod
     def get_additional_information(additional_information: OperatorAdditionalInformation):
