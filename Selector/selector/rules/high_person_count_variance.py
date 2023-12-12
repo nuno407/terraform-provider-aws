@@ -31,7 +31,7 @@ class HighPersonCountVarianceRule(BaseRule):
 
         # build decision
         if high_person_count_variance_detected:
-            logger.info(
+            logger.debug(
                 "The %s has issued a training upload starting at %s to %s",
                 self.rule_name,
                 context.metadata_artifact.timestamp,

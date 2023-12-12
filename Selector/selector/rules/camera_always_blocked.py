@@ -26,7 +26,7 @@ class CameraAlwaysBlockedRule(BaseRule):
 
         # build decision
         if view_always_blocked:
-            logger.info(
+            logger.debug(
                 "The %s has issued a training upload from %s to %s", self.rule_name,
                 context.metadata_artifact.timestamp, context.metadata_artifact.end_timestamp,
             )

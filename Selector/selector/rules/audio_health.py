@@ -49,7 +49,7 @@ class AudioHealth(BaseRule):
 
         # Check if the condition is met for the specified duration
         if upload_distorted and total_frames >= self._min_ride_length_in_minutes * 60:
-            logger.info(
+            logger.debug(
                 "The Audio health Rule has issued a training upload from %s to %s",
                 context.metadata_artifact.timestamp,
                 context.metadata_artifact.end_timestamp,

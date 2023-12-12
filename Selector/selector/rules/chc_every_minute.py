@@ -59,7 +59,7 @@ class CHCEveryMinute(BaseRule):
                 ),
             )
             if all_chc:
-                logger.info(
+                logger.debug(
                     "The %s has issued a training upload from %s to %s",
                     self.rule_name,
                     context.metadata_artifact.timestamp,
