@@ -1,7 +1,6 @@
 "Evaluator"
 import logging
 from datetime import timedelta
-from itertools import chain
 from typing import Optional
 
 from functional import seq  # type: ignore
@@ -42,6 +41,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
                                          .map(lambda decision: self.__assert_invariants(context, decision))
                                          .filter(lambda decision: decision is not None)
                                          .to_list())
+
         return valid_and_permitted_decisions
 
     def __call_rules(self, context: Context) -> list[Decision]:
@@ -53,8 +53,19 @@ class Evaluator:  # pylint: disable=too-few-public-methods
         Returns:
             list[Decision]: the decisions of every Rule
         """
-        rule_results = list(map(lambda r: r.evaluate(context), self.__ruleset))
-        decisions = list(chain.from_iterable(rule_results))
+        decisions: list[Decision] = []
+
+        for rule in self.__ruleset:
+            list_of_decisions = rule.evaluate(context)
+            decisions.extend(list_of_decisions)
+            logger.info(
+                "Rule (%s) returned (%d) decisions for device (%s), tenant (%s) and recording_id (%s)",
+                rule.rule_name,
+                len(list_of_decisions),
+                context.metadata_artifact.tenant_id,
+                context.metadata_artifact.device_id,
+                context.metadata_artifact.referred_artifact.recording_id)
+
         logger.debug("A total of %d decisions were returned", len(decisions))
         return decisions
 
