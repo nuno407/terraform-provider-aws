@@ -61,10 +61,10 @@ class DBCameraServiceEventArtifact(ConfiguredBaseModel):
 class DBShutdown(ConfiguredBaseModel):
     """Details about the last shutdown"""
     reason: ShutdownReason = Field(
-        default=ShutdownReason.UNKNOWN, alias="shutdown_reason")
+        default=ShutdownReason.UNKNOWN)
     reason_description: Optional[str] = Field(
-        default=None, alias="shutdown_reason_description")
-    timestamp: Optional[datetime] = Field(default=None, alias="timestamp_ms")
+        default=None)
+    timestamp: Optional[datetime] = Field(default=None)
 
 
 class DBDeviceInfoEventArtifact(ConfiguredBaseModel):

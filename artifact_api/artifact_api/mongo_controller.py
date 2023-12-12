@@ -64,7 +64,8 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_videos}
         }
 
-        _logger.debug("Updating snapshot correlations for %s", correlated_videos)
+        _logger.debug("Updating snapshot correlations for %s",
+                      correlated_videos)
         await self.__video_engine.update_many(filter_correlated, update_video)
 
     async def update_snapshots_correlations(self, correlated_snapshots: list[str], video_id: str):
@@ -80,7 +81,8 @@ class MongoController:  # pylint:disable=too-many-arguments
             "video_id": {"$in": correlated_snapshots}
         }
 
-        _logger.debug("Updating video correlations for %s", correlated_snapshots)
+        _logger.debug("Updating video correlations for %s",
+                      correlated_snapshots)
         await self.__snapshot_engine.update_many(filter_correlated, update_snapshot)
 
     async def upsert_snapshot(self, message: SnapshotArtifact, correlated_ids: list[str]):
@@ -221,13 +223,16 @@ class MongoController:  # pylint:disable=too-many-arguments
                 DBIncidentEventArtifact): Corresponding DB Event Artifact
         """
         if isinstance(message, CameraServiceEventArtifact):
-            doc = DBCameraServiceEventArtifact(**message.model_dump())
+            doc = DBCameraServiceEventArtifact.model_validate(
+                message.model_dump())
 
         elif isinstance(message, DeviceInfoEventArtifact):
-            doc = DBDeviceInfoEventArtifact(**message.model_dump())
+            doc = DBDeviceInfoEventArtifact.model_validate(
+                message.model_dump())
 
         elif isinstance(message, IncidentEventArtifact):
-            doc = DBIncidentEventArtifact(**message.model_dump())
+            doc = DBIncidentEventArtifact.model_validate(
+                message.model_dump())
 
         else:
             raise UnknowEventArtifactException()
@@ -248,7 +253,8 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         if isinstance(artifact, (SOSOperatorArtifact, PeopleCountOperatorArtifact, CameraBlockedOperatorArtifact)):
             await self.__operator_feedback_engine.save(artifact)
-            _logger.debug("Operator message saved to db [%s]", artifact.model_dump_json())
+            _logger.debug(
+                "Operator message saved to db [%s]", artifact.model_dump_json())
         else:
             raise InvalidOperatorArtifactException()
 
@@ -310,7 +316,8 @@ class MongoController:  # pylint:disable=too-many-arguments
         """
 
         if len(imu_data) == 0:
-            _logger.warning("The imu sample list does not contain any information")
+            _logger.warning(
+                "The imu sample list does not contain any information")
             raise IMUEmptyException()
 
         imu_list: list = [doc.model_dump() for doc in imu_data]
@@ -330,7 +337,8 @@ class MongoController:  # pylint:disable=too-many-arguments
 
         imu_data: list[IMUSample] = imu_data_artifact.data
         imu_artifact: IMUArtifact = imu_data_artifact.message
-        _logger.debug("Inserting IMU data from artifact: %s", str(imu_artifact))
+        _logger.debug("Inserting IMU data from artifact: %s",
+                      str(imu_artifact))
         imu_ranges, imu_tenant, imu_device = await self._insert_mdf_imu_data(imu_data)
         for imu_range in imu_ranges:
             await self._update_events(imu_range, imu_tenant, imu_device, "imu")

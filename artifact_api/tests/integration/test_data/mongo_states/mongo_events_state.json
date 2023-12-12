@@ -6,7 +6,7 @@
                 "device_type": "hailysharey",
                 "artifact_name": "device_info",
                 "last_shutdown": {
-                    "shutdown_reason": "SHUTDOWN_REASON__UNKNOWN"
+                    "reason": "SHUTDOWN_REASON__UNKNOWN"
                 },
                 "system_report": "Git Commit ID: 20af29701 | Git Branch Name: feature/MC-40336-move-state-machine-from-controller-to-service | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 876474368 | hailysharey",
                 "software_versions": [
