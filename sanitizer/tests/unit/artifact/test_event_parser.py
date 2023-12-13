@@ -4,19 +4,16 @@ from typing import Optional
 
 import pytest
 
-from base.aws.model import MessageAttributes, SQSMessage
+from base.aws.model import SQSMessage
 from base.model.artifacts import (CameraServiceEventArtifact,
                                   DeviceInfoEventArtifact, EventArtifact,
-                                  IncidentEventArtifact, RecorderType,
-                                  TimeWindow)
+                                  IncidentEventArtifact)
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
-                                    Location, LocationStatus, Shutdown,
-                                    ShutdownReason)
+                                    Shutdown, ShutdownReason)
 from sanitizer.artifact.parsers.event_parser import EventParser
-from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
 from sanitizer.exceptions import InvalidMessageError
-from helper_functions import load_sqs_json, parse_sqs_message
+from helper_functions import parse_sqs_message
 
 
 def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
@@ -33,7 +30,6 @@ def _invalid_event_message_body(fixture_file_id: str) -> SQSMessage:
                                                   timestamp=1690206707606,
                                                   event_name=EventType.INCIDENT,
                                                   incident_type=IncidentType.ACCIDENT_AUTO,
-                                                  location=Location(status=LocationStatus.NO_FIX),
                                                   bundle_id="547854021984")]),
                              (parse_sqs_message("valid_camera_service_event.json"),
                               [CameraServiceEventArtifact(tenant_id="jackalope",

@@ -15,38 +15,6 @@ class EventType(str, Enum):
     CAMERA_SERVICE = "com.bosch.ivs.camera.CameraServiceEvent"
 
 
-class LocationStatus(str, Enum):
-    """ location status enumerator """
-    UNKNOWN = "LOCATION_DATA_STATUS__UNKNOWN"
-    VALID = "LOCATION_DATA_STATUS__FIX"
-    NO_FIX = "LOCATION_DATA_STATUS__NO_FIX"
-    LAST_KNOWN = "LOCATION_DATA_STATUS__LAST_KNOWN_POSITION"
-    FEATURE_NOT_AVAILABLE = "LOCATION_DATA_STATUS__FEATURE_NOT_AVAILABLE"
-    FEATURE_FAILED = "LOCATION_DATA_STATUS__FEATURE_FAILED"
-
-
-class Speed(ConfiguredBaseModel):
-    """Represents a speed from RCC Location"""
-    speed: Optional[float] = Field(default=None)
-    speed_accuracy: Optional[float] = Field(default=None)
-
-
-class Heading(ConfiguredBaseModel):
-    """Represents a heading from RCC Location"""
-    heading: Optional[float] = Field(default=None)
-    heading_accuracy: Optional[float] = Field(default=None)
-
-
-class Location(ConfiguredBaseModel):
-    """Represents a location from RCC"""
-    status: LocationStatus = Field(default=LocationStatus.UNKNOWN)
-    latitude: Optional[float] = Field(default=None)
-    longitude: Optional[float] = Field(default=None)
-    location_accuracy: Optional[float] = Field(default=None)
-    heading: Heading = Field(default_factory=Heading)
-    horizontal_speed: Speed = Field(default_factory=Speed)
-
-
 class IncidentType(str, Enum):
     """ incident type enumerator, used for incident events """
     UNKNOWN = "INCIDENT_TYPE__UNKNOWN"

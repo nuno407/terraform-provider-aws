@@ -9,8 +9,7 @@ from pydantic import field_validator, Field, TypeAdapter
 from base.model.validators import UtcDatetimeInPast
 from base.model.base_model import ConfiguredBaseModel, S3Path, AnonymizedS3Path, RawS3Path
 from base.model.event_types import (CameraServiceState, EventType,
-                                    GeneralServiceState, IncidentType,
-                                    Location, Shutdown)
+                                    GeneralServiceState, IncidentType, Shutdown)
 
 
 class RecorderType(str, Enum):
@@ -181,7 +180,6 @@ class IncidentEventArtifact(EventArtifact):
     """Represents an incident event from RCC"""
     artifact_name: Literal["incident_info"] = "incident_info"
     event_name: Literal[EventType.INCIDENT] = EventType.INCIDENT
-    location: Optional[Location] = Field(default=None)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
     bundle_id: Optional[str] = Field(default=None)
 

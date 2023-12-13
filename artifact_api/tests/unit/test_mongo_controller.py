@@ -115,7 +115,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
             device_id="mock_device_id_bar",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.INCIDENT,
-            location={},
             incident_type=IncidentType.UNKNOWN,
             bundle_id="mock_bundle_id",
         )
@@ -255,7 +254,6 @@ class TestMongoController:  # pylint: disable=duplicate-code
             device_id="mock_device_id_bar",
             timestamp=datetime(2023, 1, 2, tzinfo=timezone.utc),
             event_name=EventType.INCIDENT,
-            location={},
             incident_type=IncidentType.UNKNOWN,
             bundle_id="mock_bundle_id",
         ),

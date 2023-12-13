@@ -5,8 +5,7 @@ from typing import Optional, Literal
 from pydantic import Field
 from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState,
-                                    GeneralServiceState, IncidentType,
-                                    Location, ShutdownReason)
+                                    GeneralServiceState, IncidentType, ShutdownReason)
 from base.model.validators import UtcDatetimeInPast
 
 
@@ -87,7 +86,6 @@ class DBIncidentEventArtifact(ConfiguredBaseModel):
     timestamp: UtcDatetimeInPast = Field(default=...)
     artifact_name: Literal["incident_info"] = "incident_info"
     event_name: str = Field(default=...)
-    location: Optional[Location] = Field(default=None)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
     bundle_id: Optional[str] = Field(default=None)
 

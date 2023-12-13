@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Any, Optional, Union
 
-from pydantic import field_validator, BaseModel, Extra, Field
+from pydantic import field_validator, Field
 
 from base.model.event_types import (CameraServiceState, EventType,
-                                    GeneralServiceState, IncidentType,
-                                    Location, Shutdown)
+                                    GeneralServiceState, IncidentType, Shutdown)
 from base.model.base_model import ConfiguredBaseModel
 
 
@@ -45,7 +44,6 @@ class BaseEventContent(ConfiguredBaseModel):
 
 class IncidentEventContent(BaseEventContent):
     incident_type: Optional[IncidentType] = Field(default=None)
-    location: Optional[Location] = Field(default=None)
     bundle_id: Optional[str] = Field(default=None)
 
     @field_validator("header")

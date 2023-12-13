@@ -22,7 +22,6 @@ from base.aws.sqs import parse_message_body_to_dict
 
 import metadata.consumer.main as main
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
-from base.model.event_types import Location
 from metadata.consumer.bootstrap import bootstrap_di
 from kink import di
 
@@ -465,8 +464,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         device_id = "test_device_id"
         tenant_id = "test_tenant_id"
         timestamp = datetime.now(tz=pytz.UTC)
-        location = Location().dict()
-        location["status"] = location["status"].value
 
         artifact_body = {
             "device_id": device_id,
@@ -474,7 +471,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             "tenant_id": tenant_id,
             "timestamp": timestamp,
             "event_name": "com.bosch.ivs.incident.IncidentEvent",
-            "location": location,
             "incident_type": "INCIDENT_TYPE__ACCIDENT_AUTOMATIC"
         }
 

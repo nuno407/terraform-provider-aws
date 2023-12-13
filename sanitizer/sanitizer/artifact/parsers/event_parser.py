@@ -58,7 +58,6 @@ class EventParser(IArtifactParser):  # pylint: disable=too-few-public-methods
                                             timestamp=timestamp,
                                             event_name=event_name,
                                             incident_type=event_object.incident_type,
-                                            location=event_object.location,
                                             bundle_id=event_object.bundle_id)
             else:
                 raise InvalidMessageError("Unable to determine event type from message.")

@@ -24,7 +24,6 @@ class TestCreateImu:
         return IncidentEventArtifact(tenant_id=TENANT,
                                      device_id=device_id,
                                      timestamp=timestamp,
-                                     location=None,
                                      incident_type="INCIDENT_TYPE__PANIC",
                                      bundle_id="foo")
 
