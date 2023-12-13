@@ -4,7 +4,7 @@ from metadata.consumer.voxel.metadata_parser import MetadataParser
 from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from metadata.consumer.config import MetadataConfig
 from base.model.config.policy_config import PolicyConfig
-from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample, get_voxel_sample_data_privacy_document_id
+from metadata.consumer.voxel.functions import add_voxel_snapshot_metadata, get_voxel_snapshot_sample, get_voxel_sample_data_privacy_document_id, update_rule_on_voxel
 import pytest
 from base.model.artifacts import SignalsArtifact, SnapshotArtifact, MetadataType, RecorderType, TimeWindow
 from unittest.mock import Mock, patch, MagicMock, call

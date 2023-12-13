@@ -5,6 +5,7 @@ from unittest.mock import Mock, MagicMock
 import sys
 
 from base.model.config.dataset_config import DatasetConfig, TenantDatasetConfig
+from base.model.config.policy_config import PolicyConfig
 from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
@@ -17,6 +18,7 @@ from metadata.consumer.config import MetadataConfig
 from base.model.config.policy_config import PolicyConfig
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from metadata.consumer.imu_gap_finder import IMUGapFinder
+from kink import di
 
 
 def setup_voxel_mocks():

@@ -2,11 +2,13 @@
 import json
 import os
 from datetime import datetime, timezone
+import pytz
 
 from fiftyone import ViewField
 
 from base.testing.utils import get_abs_path
 from base.voxel.functions import create_dataset
+from base.model.config.dataset_config import DatasetConfig
 from unittest.mock import Mock, PropertyMock, patch, ANY, call
 import fiftyone as fo
 
@@ -197,8 +199,6 @@ class TestMain:
     def test_snapshot_video_correlation(self, _: Mock, environ_mock: Mock, container_services_mock: Mock,  # pylint: disable=too-many-arguments,redefined-outer-name
                                         mongomock_fix: Mock, _input_message_recording, _input_message_snapshot_included,
                                         _input_message_snapshot_excluded, s3_folder, expected_dataset):
-        di.clear_cache()
-
         # GIVEN
         container_services_mock.return_value.create_db_client.return_value = mongomock_fix
         container_services_mock.return_value.anonymized_s3 = "anon_bucket"
@@ -318,3 +318,24 @@ class TestMain:
 
 def get_sample(dataset, s3_path: str):
     return dataset.one(ViewField("s3_path") == s3_path)
+
+
+@pytest.mark.integration
+def test_update_rule_on_voxel():
+    #GIVEN
+    dataset_config = DatasetConfig(default_dataset="RC-datanauts", tag="RC")
+    di[DatasetConfig] = dataset_config
+    raw_filepath = "s3://qa-rcd-raw-video-files/datanauts/srxfut2internal01_rc_srx_qa_eur_fut2_013_InteriorRecorder_1643259764422_1643261551249.mp4"
+    video_id = "video_id"
+    tenant = "datanauts"
+    rules = {"name": "artifact.rule.rule_name",
+            "version": "artifact.rule.rule_version",
+            "origin": "artifact.rule.origin",
+            "footage_from": datetime.strptime("2023-12-07 16:09:29", "%Y-%m-%d %H:%M:%S"),
+            "footage_to": datetime.strptime("2023-12-07 16:11:45", "%Y-%m-%d %H:%M:%S")}
+    #WHEN
+    metadata.consumer.main.update_rule_on_voxel(raw_filepath, video_id, tenant, rules)
+    #THEN
+    dataset = fo.load_dataset("RC-datanauts")
+    sample = dataset.one(ViewField("video_id")== video_id)
+    assert sample["rules"][0].to_dict() == fo.DynamicEmbeddedDocument(**rules).to_dict()

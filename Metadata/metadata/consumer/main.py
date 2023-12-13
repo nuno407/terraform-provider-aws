@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from logging import Logger
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import boto3
@@ -29,6 +29,7 @@ from base.constants import IMAGE_FORMATS, SIGNALS_FORMATS, VIDEO_FORMATS
 from base.model.artifacts import (Artifact, EventArtifact, S3VideoArtifact,
                                   SignalsArtifact, SnapshotArtifact,
                                   VideoArtifact, parse_artifact, OperatorArtifact)
+from base.model.artifacts.upload_rule_model import VideoUploadRule, SnapshotUploadRule
 from metadata.common.constants import (AWS_REGION, TIME_FORMAT,
                                        UNKNOWN_FILE_FORMAT_MESSAGE)
 from metadata.common.errors import (EmptyDocumentQueryResult,
@@ -41,7 +42,7 @@ from metadata.consumer.imu_gap_finder import IMUGapFinder, TimeRange
 from metadata.consumer.persistence import Persistence
 from metadata.consumer.service import RelatedMediaService
 from metadata.consumer.voxel.functions import (add_voxel_snapshot_metadata,
-                                               update_on_voxel)
+                                               update_on_voxel, update_rule_on_voxel)
 
 CONTAINER_NAME = "Metadata"  # Name of the current container
 CONTAINER_VERSION = "v6.3"   # Version of the current container
@@ -801,6 +802,72 @@ def process_sanitizer(message: dict, metadata_collections: MetadataCollections):
         OperatorRepository.create_operator_feedback(artifact)
 
 
+def __convert_video_rule_to_db_item(artifact: VideoUploadRule) -> dict:
+    rule_data = {"name": artifact.rule.rule_name,
+                 "version": artifact.rule.rule_version,
+                 "origin": artifact.rule.origin,
+                 "footage_from": artifact.footage_from,
+                 "footage_to": artifact.footage_to}
+    return rule_data
+
+
+def __convert_snaphot_rule_to_db_item(artifact: SnapshotUploadRule) -> dict:
+    rule_data = {"name": artifact.rule.rule_name,
+                 "version": artifact.rule.rule_version,
+                 "origin": artifact.rule.origin,
+                 "snapshot_timestamp": artifact.snapshot_timestamp}
+    return rule_data
+
+
+def process_selector(artifact: Union[VideoUploadRule, SnapshotUploadRule], metadata_collections: MetadataCollections):
+    """
+    Process a message coming from Selector.
+    """
+    rule_collection = metadata_collections.recordings
+    if isinstance(artifact, VideoUploadRule):
+        db_item = __convert_video_rule_to_db_item(artifact)
+        rule_collection.update_one(
+            filter={
+                "video_id": artifact.video_id,
+                "tenant": artifact.tenant,
+                "_media_type": "video"
+            },
+            update={
+                # in case that the video is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": artifact.video_id,
+                    "tenant": artifact.tenant,
+                    "_media_type": "video"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {"upload_rules": db_item}
+            },
+            upsert=True
+        )
+        update_rule_on_voxel(artifact.raw_file_path, artifact.video_id, artifact.tenant, db_item)
+    elif isinstance(artifact, SnapshotUploadRule):
+        db_item = __convert_snaphot_rule_to_db_item(artifact)
+        rule_collection.update_one(
+            filter={
+                "video_id": artifact.snapshot_id,
+                "tenant": artifact.tenant,
+                "_media_type": "image"
+            },
+            update={
+                # in case that the video is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": artifact.snapshot_id,
+                    "tenant": artifact.tenant,
+                    "_media_type": "image"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {"upload_rules": db_item}
+            },
+            upsert=True
+        )
+        update_rule_on_voxel(artifact.raw_file_path, artifact.snapshot_id, artifact.tenant, db_item)
+
+
 def __process_general(message: dict, metadata_collections: MetadataCollections, source: str):
     recording_id = os.path.basename(message["s3_path"]).split(".")[0]
 
@@ -992,6 +1059,13 @@ def main():
                                                     container_services, 60, container_services.input_queue):
                     if source == "Sanitizer":
                         process_sanitizer(message_dict, metadata_collections)
+                    elif source == "Selector":
+                        if message_dict.get("artifact_name", None) == "video_rule":
+                            process_selector(VideoUploadRule(**message_dict), metadata_collections)
+                        elif message_dict.get("artifact_name", None) == "snapshot_rule":
+                            process_selector(SnapshotUploadRule(**message_dict), metadata_collections)
+                        else:
+                            raise NotSupportedArtifactError(f"Received message from selector with wrong artifact_name. Message {message_dict}")
                     else:
                         upsert_data_to_db(api_service,
                                           fixed_message_dict,

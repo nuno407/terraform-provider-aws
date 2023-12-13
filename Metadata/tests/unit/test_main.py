@@ -19,10 +19,14 @@ from pytest_mock import MockerFixture
 from pytz import UTC
 from base.testing.utils import get_abs_path
 from base.aws.sqs import parse_message_body_to_dict
-
+from base.model.artifacts import (S3VideoArtifact, SnapshotArtifact)
+from base.model.artifacts.upload_rule_model import VideoUploadRule, SnapshotUploadRule, SelectorRule
+from base.model.config.policy_config import PolicyConfig
 import metadata.consumer.main as main
 from base.constants import IMAGE_FORMATS, VIDEO_FORMATS
 from metadata.consumer.bootstrap import bootstrap_di
+from base.model.config.dataset_config import DatasetConfig
+from metadata.consumer.config import MetadataConfig
 from kink import di
 
 
@@ -33,7 +37,7 @@ from metadata.consumer.main import (AWS_REGION, MetadataCollections,
                                     find_and_update_media_references,
                                     fix_message,
                                     parse_message_body_to_dict, process_outputs,
-                                    process_sanitizer,
+                                    process_sanitizer, process_selector,
                                     transform_data_to_update_query,
                                     update_voxel_media, upsert_data_to_db,
                                     upsert_mdf_signals_data)
@@ -485,6 +489,97 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         collection_events_mock.insert_one.assert_called_once_with(artifact_body)
 
     @pytest.mark.unit
+    def test_process_selector_video(self, metadata_config: MetadataConfig):
+        # GIVEN
+        artifact_video = VideoUploadRule(
+            video_id='videoid1',
+            rule=SelectorRule(
+                rule_name='name1',
+                rule_version='version1',
+                origin="PREVIEW_RULE_BASED"),
+            tenant="datanauts",
+            raw_file_path="s3://qa-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_TEST_01_InteriorRecorder_1681813605461_1681815015007.mp4",
+            footage_from=datetime.fromisoformat("2018-12-25 23:50:53.999+00:00"),
+            footage_to=datetime.fromisoformat("2018-12-25 23:50:55.999+00:00"))
+
+        collection_recordings_mock = Mock()
+        metadata_collections = Mock()
+        metadata_collections.recordings = collection_recordings_mock
+        di[DatasetConfig] = metadata_config.dataset_mapping
+
+        # WHEN
+        process_selector(artifact_video, metadata_collections)
+
+        # THEN
+        collection_recordings_mock.update_one.assert_called_once_with(
+            filter={
+                "video_id": artifact_video.video_id,
+                "tenant": artifact_video.tenant,
+                "_media_type": "video"
+            },
+            update={
+                # in case that the video is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": artifact_video.video_id,
+                    "tenant": artifact_video.tenant,
+                    "_media_type": "video"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {"upload_rules": {"name": artifact_video.rule.rule_name,
+                                               "version": artifact_video.rule.rule_version,
+                                               "origin": artifact_video.rule.origin,
+                                               "footage_from": artifact_video.footage_from,
+                                               "footage_to": artifact_video.footage_to
+                                               }
+                              }
+            },
+            upsert=True
+        )
+
+    @pytest.mark.unit
+    def test_process_selector_snapshot(self, metadata_config: MetadataConfig):
+        # GIVEN
+        artifact_snapshot = SnapshotUploadRule(
+            snapshot_id='snapid1',
+            rule=SelectorRule(
+                rule_name='name2',
+                rule_version='version2',
+                origin="PREVIEW_RULE_BASED"),
+            tenant="datanauts",
+            raw_file_path="s3://qa-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_TEST_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1fb80ea2-7460-4388-8f96-b7676b36ff94_1_1697040352932.jpeg",
+            snapshot_timestamp=datetime.fromisoformat("2018-12-25 23:50:55.999+00:00"))
+        collection_recordings_mock = Mock()
+        metadata_collections = Mock()
+        metadata_collections.recordings = collection_recordings_mock
+        di[DatasetConfig] = metadata_config.dataset_mapping
+        # WHEN
+        process_selector(artifact_snapshot, metadata_collections)
+
+        # THEN
+        collection_recordings_mock.update_one.assert_called_once_with(
+            filter={
+                "video_id": artifact_snapshot.snapshot_id,
+                "tenant": artifact_snapshot.tenant,
+                "_media_type": "image"
+            },
+            update={
+                # in case that the video is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": artifact_snapshot.snapshot_id,
+                    "tenant": artifact_snapshot.tenant,
+                    "_media_type": "image"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {"upload_rules": {"name": artifact_snapshot.rule.rule_name,
+                                               "version": artifact_snapshot.rule.rule_version,
+                                               "origin": artifact_snapshot.rule.origin,
+                                               "snapshot_timestamp": artifact_snapshot.snapshot_timestamp
+                                               }
+                              }
+            },
+            upsert=True)
+
+    @pytest.mark.unit
     def test_create_sav_operator(self):
         # GIVEN
         disconnect("DataIngestionDB")
@@ -580,7 +675,6 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
             anonymized_path: str,
             voxel_dataset_name: str):
         # Given
-        di.clear_cache()
         bootstrap_di()
         recording_item: dict = {
             "_id": "test",
@@ -1160,7 +1254,6 @@ def test_insert_mdf_imu_data(file_exists: bool):
 
     di["s3_client"] = s3_client
     main.__process_mdfparser(imu_message, metadata_collections)
-    di.clear_cache()
 
     s3_client.head_object.assert_called_once_with(
         Bucket="bucket", Key="dir/parsed_imu.json")

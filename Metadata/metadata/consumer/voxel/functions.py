@@ -7,7 +7,7 @@ from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoade
 from base.model.metadata_artifacts import Frame
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 from kink import inject
-from base.voxel.functions import create_dataset
+from base.voxel.functions import create_dataset, get_anonymized_path_from_raw
 from base.voxel.utils import determine_dataset_name, determine_dataset_by_path
 from base.aws.s3 import S3Controller
 from base.model.artifacts import SignalsArtifact
@@ -194,3 +194,41 @@ def update_on_voxel(filepath: str, sample: dict):
     _logger.debug("Updating voxel sample %s in dataset %s", filepath, dataset_name)
     create_dataset(dataset_name, tags)
     update_sample(dataset_name, sample)
+
+
+def update_rule_on_voxel(raw_filepath: str, video_id: str, tenant: str, rule: dict):
+    """Updates a sample on Voxel with the rule that triggered the upload.
+    If the samples does not exist, is going to create a new one.
+
+    Args:
+        filepaht (str): raw file path
+        rule (dict): Fields to upload on voxel
+    """
+    filepath = get_anonymized_path_from_raw(raw_filepath)
+    dataset_name, tags = determine_dataset_by_path(filepath)  # pylint: disable=no-value-for-parameter
+    _logger.debug("Updating voxel sample %s in dataset %s", filepath, dataset_name)
+    create_dataset(dataset_name, tags)
+
+    _logger.debug("sample_rules_info: %s", rule)
+    dataset = fo.load_dataset(dataset_name)
+    try:
+        if filepath not in dataset:
+            sample = fo.Sample(filepath=filepath)
+            dataset.add_sample(sample)
+            sample["video_id"] = video_id
+            sample["tenantID"] = tenant
+            sample["raw_filepath"] = raw_filepath
+            sample.save()
+
+        sample = dataset.one(ViewField("filepath") == filepath)
+        doc = fo.DynamicEmbeddedDocument(**rule)
+
+        if "rules" not in sample or sample["rules"] is None:
+            sample["rules"] = [doc]
+        else:
+            sample["rules"].extend([doc])
+        sample.save()
+        dataset.add_dynamic_sample_fields()
+
+    except ValueError:
+        _logger.debug("Failed to create sample %s in dataset %s", filepath, dataset_name)
