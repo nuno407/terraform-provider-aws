@@ -89,13 +89,14 @@ class S3CrawlerRCC():
         This will list all objects from S3 bypassing the 1000 object limitation.
 
         The time bounds for the search are only applied on the folder path! This means
-        that some objects returned migh have been uploaded up to 1 hour in the past and 1 hour in the future.
+        that some objects returned might have been uploaded up to 1 hour in the past and 1 hour in the future.
 
         A common prefix will be generated from all the files to attempt to reduce the number of S3 API calls.
 
         Args:
             tenant (str): The tenant to search on.
-            files (set[str]): The files to search for in RCC.
+            files (set[str]): The files to search for in RCC, each element
+                                should be the return of match_to_file for a sucessfull ingestion.
             device_id (str): The device ID to search on.
             start_search (datetime): The UTC timestamp from when to start searching the bucket.
             stop_search (datetime, optional): The UTC timestamp of where the search should finish.
@@ -132,6 +133,12 @@ class S3CrawlerRCC():
                     str(object_key),
                     str(part_to_match))
                 result[part_to_match] = object_key
+
+                if part_to_match not in files_stack:
+                    _logger.warning(
+                        "Found a duplicate file (%s) in RCC, this should not happen",
+                        object_key.key)
+                    continue
                 files_stack.remove(part_to_match)
 
         _logger.info(

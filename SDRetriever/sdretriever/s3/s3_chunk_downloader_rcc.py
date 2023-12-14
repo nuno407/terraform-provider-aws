@@ -75,7 +75,7 @@ class RCCChunkDownloader:
         - Matches the filename to the following convention: <recorder>_<recording_id>_<chunk_id>.*<suffix>
         - Upload time is between params.start_search and params.stop_search.
         - Each prefix is unique
-        - Only files with one the corresponding prefix and suffix will be downloaded
+        - Only files with one corresponding prefix and suffix will be downloaded
 
         Args:
             params (ChunkDownloadParams): The parameters
@@ -84,7 +84,7 @@ class RCCChunkDownloader:
             UploadNotYetCompletedError: If not all files can be ingested
 
         Returns:
-            list[S3ObjectRCC]: A list with all the files downloaded. This guaranteed to return the same ammount of objects as requested
+            list[S3ObjectRCC]: A list with all the files downloaded. This is guaranteed to have the same ammount of objects as requested
         """
         self.__suffixes = params.suffixes
 

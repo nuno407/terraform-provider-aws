@@ -21,9 +21,15 @@ class TestPreviewMetadataIngestion:
                                  get_sqs_message("preview_signals_message_download.json"),
                                  get_s3_file_content("preview_recorder_merged.json"),
                                  get_sqs_message("preview_signals_message_hq.json"),
+                             ),
+                                 (
+                                 get_s3_cloud_state("rcc_preview_cloud_state_2.json"),
+                                 get_sqs_message("preview_signals_message_download.json"),
+                                 get_s3_file_content("preview_recorder_merged.json"),
+                                 get_sqs_message("preview_signals_message_hq.json"),
                              )
 
-                             ], ids=["integration_preview_1"])
+                             ], ids=["integration_preview_1", "integration_preview_2"])
     def test_success_preview_ingestion(
             self,
             main_function: Callable,
