@@ -59,12 +59,15 @@ class Evaluator:  # pylint: disable=too-few-public-methods
             list_of_decisions = rule.evaluate(context)
             decisions.extend(list_of_decisions)
             logger.info(
-                "Rule (%s) returned (%d) decisions for tenant (%s), device (%s) and recording_id (%s)",
+                "Rule (%s) returned (%d) decisions for tenant (%s), device (%s), \
+                recording_id (%s), start_timestamp (%s), end_timestamp (%s)",
                 rule.rule_name,
                 len(list_of_decisions),
                 context.metadata_artifact.tenant_id,
                 context.metadata_artifact.device_id,
-                context.metadata_artifact.referred_artifact.recording_id)
+                context.metadata_artifact.referred_artifact.recording_id,
+                context.metadata_artifact.timestamp,
+                context.metadata_artifact.end_timestamp)
 
         logger.debug("A total of %d decisions were returned", len(decisions))
         return decisions
