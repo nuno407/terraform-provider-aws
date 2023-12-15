@@ -3,8 +3,8 @@
     "device_id": "DATANAUTS_DEV_03",
     "s3_path": "s3://qa-rcd-raw-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724.jpeg",
     "artifact_id": "datanauts_DATANAUTS_DEV_03_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1662080172308",
-    "raw_s3_path": "s3://raw/foo/bar.something",
-    "anonymized_s3_path": "s3://anonymized/foo/bar.something",
+    "raw_s3_path": "s3://qa-rcd-raw-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724.jpeg",
+    "anonymized_s3_path": "s3://qa-rcd-anonymized-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724_anonymized.jpeg",
     "resolution": {
         "width": 1280,
         "height": 720

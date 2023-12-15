@@ -8,10 +8,9 @@ from kink import di
 from base.model.config.dataset_config import DatasetConfig
 from base.model.config.policy_config import PolicyConfig
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow
+from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow, Resolution
 from artifact_api.voxel.service import VoxelService
 from artifact_api.voxel.voxel_config import VoxelConfig
-from artifact_api.voxel.voxel_base_models import VoxelSample
 
 # pylint: disable=duplicate-code
 
@@ -58,8 +57,8 @@ class TestVoxelService:
         """VideoArtifact for testing."""
         return S3VideoArtifact(
             artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
+            raw_s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
+            anonymized_s3_path="s3://dev-rcd-video-anonymized/datanauts/test123_anonymized.mp4",
             rcc_s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
             s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4",
             tenant_id="datanauts",
@@ -68,10 +67,9 @@ class TestVoxelService:
             timestamp=datetime.now(tz=timezone.utc),
             end_timestamp=datetime.now(tz=timezone.utc),
             upload_timing=TimeWindow(start=(datetime.now() - timedelta(minutes=50)), end=datetime.now()),
-            uuid="uuid",
             footage_id="footage_id",
             recordings=[],
-            correlated_artifacts=[]
+            resolution=Resolution(width=11, height=12)
         )
 
     @pytest.fixture()
@@ -79,8 +77,8 @@ class TestVoxelService:
         """SnapshotArtifact for testing."""
         return SnapshotArtifact(
             artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
+            raw_s3_path="s3://dev-rcd-video-raw/datanauts/test123.jpeg",
+            anonymized_s3_path="s3://dev-rcd-video-anonymized/datanauts/test123_anonymized.jpeg",
             s3_path="s3://dev-rcd-video-raw/datanauts/test123.jpeg",
             tenant_id="datanauts",
             device_id="DATANAUTS_DEV_02",
@@ -89,7 +87,7 @@ class TestVoxelService:
             end_timestamp=datetime.now(tz=timezone.utc),
             upload_timing=TimeWindow(start=(datetime.now() - timedelta(minutes=5)), end=datetime.now()),
             uuid="uuid",
-            correlated_artifacts=[])
+            resolution=Resolution(width=11, height=12))
 
     @pytest.mark.unit
     def test_voxel_video(self, video_artifact: S3VideoArtifact,  # pylint: disable=too-many-arguments
@@ -122,6 +120,7 @@ class TestVoxelService:
             call(sample, "month", video_artifact.timestamp.month),
             call(sample, "year", video_artifact.timestamp.year),
             call(sample, "recording_duration", video_artifact.duration),
+            call(sample, "resolution", f"{video_artifact.resolution.width}x{video_artifact.resolution.height}"),
             call(sample, "snapshots_paths", ANY),
             call(sample, "num_snapshots", len(correlated_raw_filepaths)),
             call(sample, "raw_metadata", ANY),  # Compute raw_metadata

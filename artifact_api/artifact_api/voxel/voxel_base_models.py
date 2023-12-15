@@ -1,18 +1,16 @@
 """ Voxel Base Sample Model """
+from abc import abstractmethod
 import logging
 from dataclasses import dataclass
-from typing import Any, Callable, Union
+from typing import Any
 
 import fiftyone as fo
 import fiftyone.core.media as fom
 from fiftyone import ViewField
 from fiftyone.core.metadata import ImageMetadata, VideoMetadata
 
-from base.model.artifacts import SnapshotArtifact, VideoArtifact
-from base.voxel.functions import (find_or_create_sample,
-                                  get_anonymized_path_from_raw, set_field,
-                                  set_mandatory_fields_on_sample)
-from artifact_api.exceptions import VoxelProcessingException
+from base.voxel.functions import (set_field, set_mandatory_fields_on_sample,
+                                  find_or_create_sample)
 
 _logger = logging.getLogger(__name__)
 
@@ -21,34 +19,31 @@ _logger = logging.getLogger(__name__)
 class VoxelFieldContext:
     """Context for each voxel field"""
     sample: fo.Sample
-    artifact: Union[SnapshotArtifact, VideoArtifact]
-    correlated_anonymized_filepaths: list[str]
 
 
 class VoxelField:  # pylint: disable=too-few-public-methods
     """Base Class for all voxel field
-        In this class we should specify the voxel field type
-        and a callable to a callable that receives, as context, the sample and Artifact being processed.
+        In this class we should specify the voxel field type, sub type, if needed, and name
     """
     field_name: str
     field_type: fo.core.fields.Field
     field_subtype: fo.core.fields.Field
-    field_value: Callable[[VoxelFieldContext], Any]
 
     def __init__(self,
                  field_name, field_type: fo.core.fields.Field,
-                 field_value: Callable[[VoxelFieldContext], Any],
                  field_subtype: fo.core.fields.Field = None) -> None:
         self.field_name = field_name
         self.field_type = field_type
         self.field_subtype = field_subtype
-        self.field_value = field_value
 
 
 class VoxelSample:  # pylint: disable=too-few-public-methods
     """Base Class for all voxel samples"""
 
-    fields: list[VoxelField]
+    @classmethod
+    @abstractmethod
+    def _get_fields(cls) -> list[VoxelField]:
+        """ Should be implemented by subclasses and return all fields for the sample. """
 
     @classmethod
     def _compute_sample_metadata(cls, sample: fo.Sample) -> None:
@@ -78,15 +73,15 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
             _logger.warning("Call to build_for() raised an exception: %s", e)
 
     @classmethod
-    def _correlated_paths(cls, correlated_field: str):
-        """ Generalizes correlated path merging behavior. """
-        def correlates_path_logic(ctx: VoxelFieldContext):
-            snapshots_paths: list[str] = ctx.sample.get_field(correlated_field)
-            if snapshots_paths is None:
-                return list(set(ctx.correlated_anonymized_filepaths))
-            snapshots_paths.extend(ctx.correlated_anonymized_filepaths)
-            return list(set(snapshots_paths))
-        return correlates_path_logic
+    def _append_to_list(cls, list_field: str, values_to_append: list[Any]):
+        """ Generalizes merging of list behavior in voxel samples. """
+        def extend_path_logic(ctx: VoxelFieldContext):
+            current_list_value: list[Any] = ctx.sample.get_field(list_field)
+            if current_list_value is None:
+                return list(values_to_append)
+            current_list_value.extend(values_to_append)
+            return list(current_list_value)
+        return extend_path_logic
 
     @classmethod
     def _update_correlation(cls,
@@ -120,7 +115,7 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
     @classmethod
     def _verify_dataset_video_fields(cls, dataset: fo.Dataset) -> None:
         """ Function that setups the initial datatypes of the sample fields and his default values. """
-        for field in cls.fields:
+        for field in cls._get_fields():
             if not dataset.has_sample_field(field.field_name):
                 if field.field_subtype is not None:
                     dataset.add_sample_field(
@@ -136,26 +131,22 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         dataset.save()
 
     @classmethod
-    def _create_sample(cls, artifact: Any, dataset: fo.Dataset, correlated_anonymized_filepaths: list[str]) -> None:
+    def _upsert_sample(cls, tenant_id: str, dataset: fo.Dataset, anonymized_filepath: str,
+                       values_to_set: dict[VoxelField, Any]) -> None:
         """
         Creates or updates a sample
         """
         cls._verify_dataset_video_fields(dataset)
-        anon_path = get_anonymized_path_from_raw(artifact.s3_path)
-
-        if anon_path == artifact.s3_path:
-            raise VoxelProcessingException(f"Voxel anonymized path is the same as the raw path {anon_path}")
-
-        sample = find_or_create_sample(dataset, anon_path)
+        sample = find_or_create_sample(dataset, anonymized_filepath)
 
         # Seting sample fields
-        set_mandatory_fields_on_sample(sample, artifact.tenant_id)
+        set_mandatory_fields_on_sample(sample, tenant_id)
 
-        for field in cls.fields:
-            ctx = VoxelFieldContext(sample, artifact, correlated_anonymized_filepaths)
-            result = field.field_value(ctx)
-            if result is not None:
-                set_field(sample, field.field_name, result)
+        for voxel_field, value in values_to_set.items():
+            if callable(value):
+                set_field(sample, voxel_field.field_name, value(VoxelFieldContext(sample=sample)))
+            else:
+                set_field(sample, voxel_field.field_name, value)
 
         cls._compute_sample_metadata(sample)
 

@@ -30,7 +30,7 @@ class TestMediaController:  # pylint: disable=duplicate-code
         """mocks voxel_service function
         """
         var = Mock()
-        var.update_voxel_video_with_correlated_snapshot = Mock()
+        var.update_voxel_videos_with_correlated_snapshot = Mock()
         var.create_voxel_video = Mock()
         return var
 

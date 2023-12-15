@@ -16,7 +16,8 @@
                 "recording_time": {
                     "$date": "2022-09-02T00:56:12.308Z"
                 },
-                "source_videos": null
+                "source_videos": null,
+                "rules": null
             }
         ]
     }

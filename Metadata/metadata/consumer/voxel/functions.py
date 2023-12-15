@@ -125,6 +125,9 @@ def update_sample(dataset_name, sample_info: dict):
     _logger.debug("sample_info: %s", sample_info)
     dataset = fo.load_dataset(dataset_name)
     sample_info.pop("filepath", None)
+    # We do not want to propagate upload_rules mongodb entry into voxel
+    # since there is already a "rules" field for it
+    sample_info.pop("upload_rules", None)
     to_add = dict()
 
     # get the sample, or create one if it doesn't exist

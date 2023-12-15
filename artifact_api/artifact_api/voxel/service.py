@@ -4,6 +4,7 @@ from kink import inject
 from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
+from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo
@@ -62,3 +63,25 @@ class VoxelService:
                                                  is_snapshot=True,
                                                  mapping_config=self.voxel_config.dataset_mapping)
         VoxelSnapshot.updates_correlation(raw_correlated_filepaths, raw_filepath, dataset_name)
+
+    def attach_rule_to_video(self, rule: VideoUploadRule):
+        """
+        Attaches a upload rule to a video
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=rule.tenant,
+            is_snapshot=False,
+            mapping_config=self.voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelVideo.attach_rule_to_video(dataset, rule)
+
+    def attach_rule_to_snapshot(self, rule: SnapshotUploadRule):
+        """
+        Attaches a upload rule to a snapshot
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=rule.tenant,
+            is_snapshot=True,
+            mapping_config=self.voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelSnapshot.attach_rule_to_snapshot(dataset, rule)

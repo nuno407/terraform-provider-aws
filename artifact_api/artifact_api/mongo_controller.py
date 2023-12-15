@@ -7,12 +7,13 @@ from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEv
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
                                   PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,
                                   SOSOperatorArtifact)
+from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from base.mongo.engine import Engine
 from kink import inject
 from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
                                               DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
-                                              DBS3VideoArtifact, DBSnapshotArtifact,
-                                              DBVideoRecordingOverview, DBSnapshotRecordingOverview)
+                                              DBS3VideoArtifact, DBSnapshotArtifact, DBSnapshotUploadRule,
+                                              DBVideoRecordingOverview, DBSnapshotRecordingOverview, DBVideoUploadRule)
 from artifact_api.exceptions import IMUEmptyException, UnknowEventArtifactException, InvalidOperatorArtifactException
 from artifact_api.utils.imu_gap_finder import IMUGapFinder, TimeRange
 
@@ -342,3 +343,64 @@ class MongoController:  # pylint:disable=too-many-arguments
         imu_ranges, imu_tenant, imu_device = await self._insert_mdf_imu_data(imu_data)
         for imu_range in imu_ranges:
             await self._update_events(imu_range, imu_tenant, imu_device, "imu")
+
+    async def attach_rule_to_video(self, message: VideoUploadRule) -> None:
+        """ Attaches the upload rule to the given video. """
+        doc = DBVideoUploadRule(
+            name=message.rule.rule_name,
+            version=message.rule.rule_version,
+            footage_from=message.footage_from,
+            footage_to=message.footage_to,
+            origin=message.rule.origin
+        )
+
+        # In our DB, videos can be uniquely identified by video_id and _media_type
+        await self.__video_engine.update_one(
+            query={
+                "video_id": message.video_id,
+                "tenant": message.tenant,
+                "_media_type": "video"
+            },
+            command={
+                # in case that the video is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": message.video_id,
+                    "tenant_id": message.tenant,
+                    "_media_type": "video"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {
+                    "upload_rules": self.__video_engine.dump_model(doc),
+                }
+            },
+            upsert=True
+        )
+
+    async def attach_rule_to_snapshot(self, message: SnapshotUploadRule) -> None:
+        """ Attaches the upload rule to the given snapshot. """
+        doc = DBSnapshotUploadRule(
+            name=message.rule.rule_name,
+            version=message.rule.rule_version,
+            snapshot_timestamp=message.snapshot_timestamp,
+            origin=message.rule.origin
+        )
+
+        # In our DB, videos can be uniquely identified by video_id and _media_type
+        await self.__snapshot_engine.update_one(
+            query={
+                "video_id": message.snapshot_id,
+                "tenant": message.tenant,
+                "_media_type": "image"
+            },
+            command={
+                # in case that the snapshot is not created we add the missing fields
+                "$setOnInsert": {
+                    "video_id": message.snapshot_id,
+                    "tenant_id": message.tenant,
+                    "_media_type": "image"
+                },
+                # Add rule to upload_rule list
+                "$addToSet": {"upload_rules": self.__snapshot_engine.dump_model(doc)}
+            },
+            upsert=True
+        )

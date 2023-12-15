@@ -4,9 +4,31 @@ from datetime import datetime
 from typing import Optional, Literal
 from pydantic import Field
 from base.model.base_model import ConfiguredBaseModel
-from base.model.event_types import (CameraServiceState,
-                                    GeneralServiceState, IncidentType, ShutdownReason)
+from base.model.event_types import (CameraServiceState, GeneralServiceState,
+                                    IncidentType, ShutdownReason)
+from base.model.artifacts.upload_rule_model import RuleOrigin
 from base.model.validators import UtcDatetimeInPast
+
+
+class DBVideoUploadRule(ConfiguredBaseModel):
+    """
+    Represents a DB Video Upload Rule.
+    """
+    name: str
+    version: str
+    footage_from: UtcDatetimeInPast
+    footage_to: UtcDatetimeInPast
+    origin: RuleOrigin
+
+
+class DBSnapshotUploadRule(ConfiguredBaseModel):
+    """
+    Represents a DB Snapshot Upload Rule.
+    """
+    name: str
+    version: str
+    snapshot_timestamp: UtcDatetimeInPast
+    origin: RuleOrigin
 
 
 class DBVideoRecordingOverview(ConfiguredBaseModel):
@@ -98,6 +120,7 @@ class DBSnapshotArtifact(ConfiguredBaseModel):
     media_type: Literal["image"] = Field(default="image", alias="_media_type")
     filepath: Optional[str]
     recording_overview: Optional[DBSnapshotRecordingOverview]
+    upload_rules: Optional[list[DBVideoUploadRule]] = Field(default=None)
 
 
 class DBS3VideoArtifact(ConfiguredBaseModel):
@@ -108,8 +131,9 @@ class DBS3VideoArtifact(ConfiguredBaseModel):
     media_type: Literal["video"] = Field(default="video", alias="_media_type")
     mdf_available: Optional[str] = Field(default="No", alias="MDF_available")
     filepath: Optional[str]
-    resolution: str = Field(pattern=r"\d+x\d+")
+    resolution: Optional[str] = Field(pattern=r"\d+x\d+")
     recording_overview: Optional[DBVideoRecordingOverview]
+    upload_rules: Optional[list[DBVideoUploadRule]] = Field(default=None)
 
 
 class DBIMUSource(ConfiguredBaseModel):
