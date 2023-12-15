@@ -358,14 +358,12 @@ class MongoController:  # pylint:disable=too-many-arguments
         await self.__video_engine.update_one(
             query={
                 "video_id": message.video_id,
-                "tenant": message.tenant,
                 "_media_type": "video"
             },
             command={
                 # in case that the video is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": message.video_id,
-                    "tenant_id": message.tenant,
                     "_media_type": "video"
                 },
                 # Add rule to upload_rule list
@@ -389,14 +387,12 @@ class MongoController:  # pylint:disable=too-many-arguments
         await self.__snapshot_engine.update_one(
             query={
                 "video_id": message.snapshot_id,
-                "tenant": message.tenant,
                 "_media_type": "image"
             },
             command={
                 # in case that the snapshot is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": message.snapshot_id,
-                    "tenant_id": message.tenant,
                     "_media_type": "image"
                 },
                 # Add rule to upload_rule list

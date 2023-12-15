@@ -514,14 +514,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         collection_recordings_mock.update_one.assert_called_once_with(
             filter={
                 "video_id": artifact_video.video_id,
-                "tenant": artifact_video.tenant,
                 "_media_type": "video"
             },
             update={
                 # in case that the video is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": artifact_video.video_id,
-                    "tenant": artifact_video.tenant,
                     "_media_type": "video"
                 },
                 # Add rule to upload_rule list
@@ -559,14 +557,12 @@ class TestMetadataMain():  # pylint: disable=too-many-public-methods
         collection_recordings_mock.update_one.assert_called_once_with(
             filter={
                 "video_id": artifact_snapshot.snapshot_id,
-                "tenant": artifact_snapshot.tenant,
                 "_media_type": "image"
             },
             update={
                 # in case that the video is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": artifact_snapshot.snapshot_id,
-                    "tenant": artifact_snapshot.tenant,
                     "_media_type": "image"
                 },
                 # Add rule to upload_rule list

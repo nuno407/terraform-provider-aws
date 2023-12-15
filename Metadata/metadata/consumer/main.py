@@ -829,14 +829,12 @@ def process_selector(artifact: Union[VideoUploadRule, SnapshotUploadRule], metad
         rule_collection.update_one(
             filter={
                 "video_id": artifact.video_id,
-                "tenant": artifact.tenant,
                 "_media_type": "video"
             },
             update={
                 # in case that the video is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": artifact.video_id,
-                    "tenant": artifact.tenant,
                     "_media_type": "video"
                 },
                 # Add rule to upload_rule list
@@ -850,14 +848,12 @@ def process_selector(artifact: Union[VideoUploadRule, SnapshotUploadRule], metad
         rule_collection.update_one(
             filter={
                 "video_id": artifact.snapshot_id,
-                "tenant": artifact.tenant,
                 "_media_type": "image"
             },
             update={
                 # in case that the video is not created we add the missing fields
                 "$setOnInsert": {
                     "video_id": artifact.snapshot_id,
-                    "tenant": artifact.tenant,
                     "_media_type": "image"
                 },
                 # Add rule to upload_rule list
