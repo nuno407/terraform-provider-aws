@@ -17,15 +17,18 @@ class BaseRule(Rule):
     def __init__(
         self, attribute_name: str,
         rule_name: str,
+        rule_version: str,
     ) -> None:
         """The class constructor.
 
         Args:
             attribute_name (str): rule attribute name.
             rule_name (str): rule name.
+            rule_version (str): rule version.
         """
         self._attribute_name = attribute_name
         self._rule_name = rule_name
+        self._rule_version = rule_version
         super().__init__()
 
     @property
@@ -46,6 +49,15 @@ class BaseRule(Rule):
         """
         return self._rule_name
 
+    @property
+    def rule_version(self) -> str:
+        """Getter for rule version
+
+        Returns:
+            str: Rule version
+        """
+        return self._rule_version
+
     def evaluate(self, context: Context) -> List[Decision]:
         """Evaluate List of Decision
 
@@ -57,6 +69,8 @@ class BaseRule(Rule):
         """
         return [
             Decision(
+                rule_name=self._rule_name,
+                rule_version=self._rule_version,
                 recorder=RecorderType.TRAINING,
                 footage_from=context.metadata_artifact.timestamp,
                 footage_to=context.metadata_artifact.end_timestamp,

@@ -33,7 +33,13 @@ class TestEvaluator:
     @pytest.fixture
     def all_rule(self, artifact):
         all_rule = Mock()
-        all_rule.evaluate.return_value = [Decision(RecorderType.TRAINING, artifact.timestamp, artifact.end_timestamp)]
+        all_rule.evaluate.return_value = [
+            Decision(
+                "rule_name",
+                "1.0.0",
+                RecorderType.TRAINING,
+                artifact.timestamp,
+                artifact.end_timestamp)]
         return all_rule
 
     @pytest.fixture
@@ -48,7 +54,7 @@ class TestEvaluator:
         to_overlength = artifact.end_timestamp + timedelta(minutes=5)
         out_of_ride_bounds_rule = Mock()
         out_of_ride_bounds_rule.evaluate.return_value = [
-            Decision(RecorderType.TRAINING, from_overlength, to_overlength)]
+            Decision("rule_name", "1.0.0", RecorderType.TRAINING, from_overlength, to_overlength)]
         return out_of_ride_bounds_rule
 
     @pytest.fixture
@@ -57,14 +63,14 @@ class TestEvaluator:
         to_overlength = dummy_date
         too_long_selection_rule = Mock()
         too_long_selection_rule.evaluate.return_value = [
-            Decision(RecorderType.TRAINING, from_overlength, to_overlength)]
+            Decision("rule_name", "1.0.0", RecorderType.TRAINING, from_overlength, to_overlength)]
         return too_long_selection_rule
 
     @pytest.fixture
     def defective_rule(self, artifact):
         defective_rule = Mock()
         defective_rule.evaluate.return_value = [
-            Decision(RecorderType.TRAINING, artifact.end_timestamp, artifact.timestamp)]
+            Decision("rule_name", "1.0.0", RecorderType.TRAINING, artifact.end_timestamp, artifact.timestamp)]
         return defective_rule
 
     @pytest.fixture

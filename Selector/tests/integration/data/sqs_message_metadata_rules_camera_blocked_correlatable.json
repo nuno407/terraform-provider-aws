@@ -1,0 +1,13 @@
+{
+    "tenant": "datanauts",
+    "raw_file_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528.mp4",
+    "rule": {
+        "rule_name": "Camera completely blocked",
+        "rule_version": "1.0.0",
+        "origin": "PREVIEW_RULE_BASED"
+    },
+    "artifact_name": "video_rule",
+    "video_id": "DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528",
+    "footage_from": "2023-12-13T15:26:48.503000Z",
+    "footage_to": "2023-12-13T15:28:19.528000Z"
+}

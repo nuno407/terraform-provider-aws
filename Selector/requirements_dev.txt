@@ -11,5 +11,6 @@ types-urllib3 ~= 1.26
 bandit == 1.7.5
 moto ~= 4.2.7
 boto3-stubs[sns,s3,sts,sqs] ~= 1.28.82
+mongomock == 4.1.2
 # install the app itself
 -e .

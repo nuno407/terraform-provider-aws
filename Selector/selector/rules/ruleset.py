@@ -13,8 +13,8 @@ from selector.rules import BDDEvent
 def ruleset() -> set[Rule]:
     """Default ruleset"""
     return {
-        AudioHealth("interior_camera_health_response_audio_blocked", "Audio blocked"),
-        AudioHealth("interior_camera_health_response_audio_distorted", "Audio distorted"),
+        AudioHealth("interior_camera_health_response_audio_blocked", "Audio blocked", "1.0.0"),
+        AudioHealth("interior_camera_health_response_audio_distorted", "Audio distorted", "1.0.0"),
         AudioSignal(),
         CameraAlwaysBlockedRule(),
         CameraAlwaysShiftedRule(),

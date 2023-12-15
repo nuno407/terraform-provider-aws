@@ -1,0 +1,93 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_02",
+    "s3_path": "s3://dev-rcd-temporary-metadata-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1702481208503_metadata_preview.json",
+    "referred_artifact": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_02",
+        "artifact_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1702481208503",
+        "recorder": "InteriorRecorderPreview",
+        "timestamp": "2023-12-13T15:26:48.503000Z",
+        "end_timestamp": "2023-12-13T15:28:19.528000Z",
+        "upload_timing": {
+            "start": "2023-12-13T14:28:50.993011Z",
+            "end": "2023-12-13T15:28:50.993011Z"
+        },
+        "artifact_name": "multi_snapshot",
+        "chunks": [
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1_1702481208503.jpeg",
+                "artifact_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1_1702481208503",
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-12-13T15:26:48.503000Z",
+                "end_timestamp": "2023-12-13T15:26:48.503000Z",
+                "upload_timing": {
+                    "start": "2023-12-13T14:28:50.993011Z",
+                    "end": "2023-12-13T15:28:50.993011Z"
+                },
+                "artifact_name": "snapshot",
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1.jpeg",
+                "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1_1702481208503.jpeg",
+                "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_1_1702481208503_anonymized.jpeg"
+            },
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_2_1702481208503.jpeg",
+                "artifact_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_2_1702481208503",
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-12-13T15:26:48.503000Z",
+                "end_timestamp": "2023-12-13T15:27:18.512000Z",
+                "upload_timing": {
+                    "start": "2023-12-13T14:28:50.993011Z",
+                    "end": "2023-12-13T15:28:50.993011Z"
+                },
+                "artifact_name": "snapshot",
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_2.jpeg",
+                "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_2_1702481208503.jpeg",
+                "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_2_1702481208503_anonymized.jpeg"
+            },
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_3_1702481238512.jpeg",
+                "artifact_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_3_1702481238512",
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-12-13T15:27:18.512000Z",
+                "end_timestamp": "2023-12-13T15:27:48.522000Z",
+                "upload_timing": {
+                    "start": "2023-12-13T14:28:50.993011Z",
+                    "end": "2023-12-13T15:28:50.993011Z"
+                },
+                "artifact_name": "snapshot",
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_3.jpeg",
+                "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_3_1702481238512.jpeg",
+                "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_3_1702481238512_anonymized.jpeg"
+            },
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_4_1702481268522.jpeg",
+                "artifact_id": "datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_4_1702481268522",
+                "recorder": "InteriorRecorderPreview",
+                "timestamp": "2023-12-13T15:27:48.522000Z",
+                "end_timestamp": "2023-12-13T15:28:19.528000Z",
+                "upload_timing": {
+                    "start": "2023-12-13T14:28:50.993011Z",
+                    "end": "2023-12-13T15:28:50.993011Z"
+                },
+                "artifact_name": "snapshot",
+                "uuid": "InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_4.jpeg",
+                "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_4_1702481268522.jpeg",
+                "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorderPreview_InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b_4_1702481268522_anonymized.jpeg"
+            }
+        ],
+        "recording_id": "InteriorRecorderPreview-e268e9a2-efc6-438f-984d-5baab9c58f7b"
+    },
+    "metadata_type": "metadata_preview",
+    "artifact_name": "raw_preview_signals",
+    "timestamp": "2023-12-13T15:26:48.503000Z",
+    "end_timestamp": "2023-12-13T15:28:19.528000Z"
+}

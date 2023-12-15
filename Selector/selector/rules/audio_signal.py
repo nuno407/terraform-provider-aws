@@ -18,11 +18,12 @@ class AudioSignal(BaseRule):
             self,
             attribute_name: str = "interior_camera_health_response_audio_signal",
             rule_name: str = "Audio signal",
+            rule_version: str = "1.0.0",
             audio_signal_number_of_trigger: int = 1,
             min_ride_length_in_minutes: int = 5,
 
     ) -> None:
-        super().__init__(attribute_name=attribute_name, rule_name=rule_name)
+        super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
         self._audio_signal_number_of_trigger = audio_signal_number_of_trigger
         self._min_ride_length_in_minutes = min_ride_length_in_minutes
 

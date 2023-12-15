@@ -1,0 +1,34 @@
+{
+    "tenant_id": "datanauts",
+    "device_id": "DATANAUTS_DEV_02",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528.mp4",
+    "artifact_id": "DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528",
+    "recorder": "TrainingRecorder",
+    "timestamp": "2023-12-13T15:26:48.503000Z",
+    "end_timestamp": "2023-12-13T15:28:19.528000Z",
+    "upload_timing": {
+        "start": "2023-12-13T15:35:02.432000Z",
+        "end": "2023-12-13T15:35:15.138000Z"
+    },
+    "artifact_name": "s3_video",
+    "rcc_s3_path": "s3://dev-rcc-video-repo/datanauts/b330dd5b-b505-446f-ba5c-637ae71bf751/TRAINING/Footage_7611a125-ffec-46c5-9498-d26f8dc76fb6.mp4",
+    "footage_id": "7611a125-ffec-46c5-9498-d26f8dc76fb6",
+    "recordings": [
+        {
+            "recording_id": "TrainingRecorder-66b0bc0a-24fb-440c-9d23-3a6c59c7c1fa",
+            "chunk_ids": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            ]
+        }
+    ],
+    "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528.mp4",
+    "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/DATANAUTS_DEV_02_TrainingRecorder_7611a125-ffec-46c5-9498-d26f8dc76fb6_1702481208503_1702481299528_anonymized.mp4"
+}

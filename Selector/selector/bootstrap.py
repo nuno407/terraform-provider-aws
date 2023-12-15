@@ -3,9 +3,11 @@ import os
 
 import boto3
 from kink import di
+from mongoengine import connect
 from mypy_boto3_sqs import SQSClient
 from mypy_boto3_s3 import S3Client
 from base.aws.container_services import ContainerServices
+from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from selector.constants import CONTAINER_NAME, CONTAINER_VERSION
 from selector.rules.ruleset import ruleset
@@ -52,9 +54,23 @@ def bootstrap_di():
     if footage_api_client_secret is None:
         raise SecretMissingError("FOOTAGE_API_CLIENT_SECRET must be provided")
 
+    db_host = os.getenv("DATABASE_URI", None)
+    if db_host is None:
+        raise SecretMissingError("DATABASE_URI must be provided")
+
+    db_name = os.getenv("DATABASE_NAME", None)
+    if db_name is None:
+        raise SecretMissingError("DATABASE_NAME must be provided")
+
+    di["db_host"] = db_host
+    di["db_name"] = db_name
+
+    connect(host=di["db_host"], db=di["db_name"], alias="SelectorDB", tz_aware=True)
+
     di["client_id"] = footage_api_client_id
     di["client_secret"] = footage_api_client_secret
     di["token_endpoint"] = container_services.api_endpoints["selector_token_endpoint"]
     di["footage_api_url"] = container_services.api_endpoints["mdl_footage_endpoint"]
     di["default_sqs_queue_name"] = container_services.sqs_queues_list["Selector"]
+    di["sqs_metadata_controller"] = SQSController(container_services.sqs_queues_list["Metadata"], di[SQSClient])
     di["ruleset"] = ruleset()

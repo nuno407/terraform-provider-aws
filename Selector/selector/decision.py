@@ -13,6 +13,8 @@ from selector.exceptions import TimeInTheFuture, DatetimeObjectIsNaive, Timezone
 @dataclass
 class Decision:
     """Single decision outcome made by the evaluation of some ruleset"""
+    rule_name: str
+    rule_version: str
     recorder: RecorderType
     footage_from: datetime
     footage_to: datetime

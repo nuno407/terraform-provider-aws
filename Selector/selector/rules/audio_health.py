@@ -18,12 +18,13 @@ class AudioHealth(BaseRule):
             self,
             attribute_name: str,
             rule_name: str,
+            rule_version: str,
             audio_distorted_trigger_per_timeframe: int = 1,
             timeframe_in_frames: int = 60,
             min_ride_length_in_minutes: int = 5,
 
     ) -> None:
-        super().__init__(attribute_name=attribute_name, rule_name=rule_name)
+        super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
         self._audio_distorted_trigger_per_timeframe = audio_distorted_trigger_per_timeframe
         self._timeframe_in_frames = timeframe_in_frames
         self._min_ride_length_in_minutes = min_ride_length_in_minutes

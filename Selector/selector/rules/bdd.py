@@ -19,6 +19,7 @@ class BDDEvent(BaseRule):
     def __init__(
         self, attribute_name: str = "BigDamage_detected",
         rule_name: str = "Big Damage Detected",
+        rule_version: str = "1.0.0"
     ) -> None:
         """_summary_
 
@@ -26,7 +27,7 @@ class BDDEvent(BaseRule):
             attribute_name (str, optional): _description_. Defaults to "BigDamage_detected".
             rule_name (str, optional): _description_. Defaults to "Big Damage Detected".
         """
-        super().__init__(attribute_name=attribute_name, rule_name=rule_name)
+        super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
 
     def evaluate(self, context: Context) -> List[Decision]:  # pylint: disable-next=duplicate-code
         """_summary_

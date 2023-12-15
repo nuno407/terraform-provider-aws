@@ -17,10 +17,11 @@ class HighPersonCountVarianceRule(BaseRule):
             self,
             attribute_name: str = "PersonCount_value",
             rule_name: str = "High Person Count Variance",
+            rule_version: str = "1.0.0",
             min_ride_length_in_minutes: int = 1,
 
     ) -> None:
-        super().__init__(attribute_name=attribute_name, rule_name=rule_name)
+        super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
         self._min_ride_length_in_minutes = min_ride_length_in_minutes
 
     def evaluate(self, context: Context) -> list[Decision]:
@@ -37,7 +38,9 @@ class HighPersonCountVarianceRule(BaseRule):
                 context.metadata_artifact.timestamp,
                 context.metadata_artifact.end_timestamp
             )
-            return [Decision(recorder=RecorderType.TRAINING,
+            return [Decision(rule_name=self._rule_name,
+                             rule_version=self._rule_version,
+                             recorder=RecorderType.TRAINING,
                              footage_from=context.metadata_artifact.timestamp,
                              footage_to=context.metadata_artifact.end_timestamp)]
         return []

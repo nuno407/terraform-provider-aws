@@ -29,7 +29,7 @@ tenant_device_and_timing = {
 class TestAudioBlock:
     @fixture
     def rule(self):
-        return AudioHealth("interior_camera_health_response_audio_distorted", "Audio distorted")
+        return AudioHealth("interior_camera_health_response_audio_distorted", "Audio distorted", "1.0.0")
 
     @fixture
     def data_builder(self) -> DataTestBuilder:

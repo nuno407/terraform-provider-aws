@@ -1,9 +1,10 @@
-urllib3 ~= 1.26
 boto3 ~= 1.28.82
 kink == 0.6.6
-types_pytz == 2023.3.0.0
-pyfunctional == 1.4.3
-pydantic == 2.4.2
-mypy_boto3_sqs ~= 1.28.55
+mongoengine == 0.24.2
 mypy_boto3_s3 ~= 1.28.55
+mypy_boto3_sqs ~= 1.28.55
+pydantic == 2.4.2
+pyfunctional == 1.4.3
+types_pytz == 2023.3.0.0
+urllib3 ~= 1.26
 -e ../base[aws,model]

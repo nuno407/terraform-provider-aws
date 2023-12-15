@@ -15,8 +15,9 @@ class CameraAlwaysBlockedRule(BaseRule):
 
     def __init__(self,
                  attribute_name: str = "interior_camera_health_response_cvb",
-                 rule_name: str = "Camera completely blocked") -> None:
-        super().__init__(attribute_name, rule_name)
+                 rule_name: str = "Camera completely blocked",
+                 rule_version: str = "1.0.0") -> None:
+        super().__init__(attribute_name, rule_name, rule_version)
 
     def evaluate(self, context: Context) -> list[Decision]:
         logger.debug("Evaluating '%s' rule", self.rule_name)

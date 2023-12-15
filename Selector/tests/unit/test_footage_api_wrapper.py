@@ -27,18 +27,21 @@ class TestFootageApiWrapper():  # pylint: disable=too-few-public-methods
             footage_api_url="http://example.local/{}")
 
         mock_http_client.return_value.request.return_value.status = 200
+        footage_api_response = {"footageId": "a_dummy_footage_id"}
+        mock_http_client.return_value.request.return_value.data = bytes(json.dumps(footage_api_response), "utf8")
 
         start_date = dummy_date
         end_date = dummy_date + timedelta(minutes=2)
 
         # WHEN
-        footage_api_wrapper.request_recorder(
+        footage_id = footage_api_wrapper.request_recorder(
             RecorderType.TRAINING,
             "test_device",
             start_date,
             end_date)
 
         # THEN
+        assert footage_id == footage_api_response["footageId"]
         body = json.dumps({"from": "1673312400000", "to": "1673312520000", "recorder": "TRAINING"})
         request_headers = {
             "Content-Type": "application/json",

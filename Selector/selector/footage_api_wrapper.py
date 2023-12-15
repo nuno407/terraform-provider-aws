@@ -38,7 +38,7 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
         return FOOTAGE_RECORDER_NAME_MAP[recorder_type]
 
     def request_recorder(self, recorder_type: RecorderType, device_id: str,
-                         from_datetime: datetime, to_datetime: datetime):
+                         from_datetime: datetime, to_datetime: datetime) -> str:
         """Request the upload of a given recorder from a device between two timestamps
 
         Args:
@@ -46,6 +46,9 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
             device_id (str): device identifier
             from_datetime (int): starting datetime (UTC)
             to_datetime (int): ending datetime (UTC)
+
+        Returns:
+            str: footage_id from Footage API
 
         Raises:
             RuntimeError: _description_
@@ -79,8 +82,9 @@ class FootageApiWrapper:  # pylint: disable=too-few-public-methods
             _logger.info("Successfully requested footage with response code %i", response.status)
             if response.data:
                 _logger.info("Footage API response: %s", response.data.decode("utf-8"))
-        else:
-            _logger.warning("Unexpected response when requesting footage: %i*", response.status)
-            if response.data:
-                _logger.warning("Details: %s", response.data.decode("utf-8"))
-            raise RuntimeError  # SonarQube doesn't accept "Exception", it needs a more specific one
+            return json.loads(response.data)["footageId"]
+
+        _logger.warning("Unexpected response when requesting footage: %i*", response.status)
+        if response.data:
+            _logger.warning("Details: %s", response.data.decode("utf-8"))
+        raise RuntimeError  # SonarQube doesn't accept "Exception", it needs a more specific one

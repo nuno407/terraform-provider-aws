@@ -25,11 +25,12 @@ class CHCEveryMinute(BaseRule):
             self,
             attribute_name: str = "interior_camera_health_response_cve",
             rule_name: str = "CHC event every minute",
+            rule_version: str = "1.0.0",
             window_size_seconds: int = 60,
             min_hits_per_window: int = 1,
             min_consecutive_window_hits: int = 10,
     ) -> None:
-        super().__init__(attribute_name=attribute_name, rule_name=rule_name)
+        super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
         self._window_size_seconds = window_size_seconds
         self._min_hits_per_window = min_hits_per_window
         self._min_consecutive_window_hits = min_consecutive_window_hits

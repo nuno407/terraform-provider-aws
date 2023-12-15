@@ -11,3 +11,7 @@ class CameraAlwaysShiftedRule(CameraAlwaysBlockedRule):
     @property
     def attribute_name(self) -> str:
         return "interior_camera_health_response_cve"
+
+    @property
+    def rule_version(self) -> str:
+        return "1.0.0"

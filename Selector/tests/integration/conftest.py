@@ -8,9 +8,12 @@ from kink import di
 from moto import mock_s3, mock_sqs  # type: ignore
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
+from mongoengine import connect
+import mongomock
 
 from base.aws.container_services import ContainerServices
 from base.aws.s3 import S3Controller
+from base.aws.sqs import SQSController
 from base.graceful_exit import GracefulExit
 from base.testing.utils import get_abs_path
 from selector.config import SelectorConfig
@@ -51,7 +54,12 @@ def dev_input_queue_name() -> str:
 
 
 @pytest.fixture()
-def moto_sqs_client(dev_input_queue_name) -> Generator[SQSClient, None, None]:
+def dev_metadata_queue_name() -> str:
+    return "dev-terraform-queue-metadata"
+
+
+@pytest.fixture()
+def moto_sqs_client(dev_input_queue_name, dev_metadata_queue_name) -> Generator[SQSClient, None, None]:
     """
 
     Returns:
@@ -62,12 +70,18 @@ def moto_sqs_client(dev_input_queue_name) -> Generator[SQSClient, None, None]:
         # https://github.com/spulec/moto/issues/3292#issuecomment-718116897
         moto_client = boto3.client("sqs", region_name=REGION_NAME)
         moto_client.create_queue(QueueName=dev_input_queue_name)
+        moto_client.create_queue(QueueName=dev_metadata_queue_name)
         yield moto_client
 
 
 @pytest.fixture()
 def dev_input_queue_url(moto_sqs_client, dev_input_queue_name) -> str:
     return moto_sqs_client.get_queue_url(QueueName=dev_input_queue_name)["QueueUrl"]
+
+
+@pytest.fixture()
+def dev_metadata_controller(moto_sqs_client, dev_metadata_queue_name) -> str:
+    return SQSController(dev_metadata_queue_name, moto_sqs_client)
 
 
 @pytest.fixture
@@ -82,10 +96,9 @@ def container_services() -> ContainerServices:
 
 
 @pytest.fixture()
-def one_time_gracefull_exit() -> GracefulExit:
-    exit = Mock()
-    type(exit).continue_running = PropertyMock(side_effect=[True, False])
-    return exit
+def graceful_exit() -> GracefulExit:
+    exit_mock = Mock()
+    return exit_mock
 
 
 @pytest.fixture()
@@ -118,12 +131,13 @@ def run_bootstrap(
         moto_s3_client: S3Client,
         moto_sqs_client: SQSClient,
         container_services: ContainerServices,
-        one_time_gracefull_exit: GracefulExit,
+        graceful_exit: GracefulExit,
         client_id,
         client_secret,
         footage_api_url: str,
         footage_manager: FootageApiTokenManager,
-        footage_api: FootageApiWrapper):
+        footage_api: FootageApiWrapper,
+        dev_metadata_controller: SQSController):
 
     di.clear_cache()
     di[FootageApiWrapper] = footage_api
@@ -136,7 +150,7 @@ def run_bootstrap(
     di[S3Controller] = S3Controller()
     di[FootageApiTokenManager] = footage_manager
     di[ContainerServices] = container_services
-    di[GracefulExit] = one_time_gracefull_exit
+    di[GracefulExit] = graceful_exit
 
     di[SelectorConfig] = SelectorConfig.model_validate({
         "max_GB_per_device_per_month": 2,
@@ -144,11 +158,15 @@ def run_bootstrap(
         "upload_window_seconds_start": 300,
         "upload_window_seconds_end": 300
     })
+
+    connect(host="mongomock://localhost", db="mongoenginetest", alias="SelectorDB", tz_aware=True)
+
     di["client_id"] = client_id
     di["client_secret"] = client_secret
     di["token_endpoint"] = container_services.api_endpoints["selector_token_endpoint"]
     di["footage_api_url"] = footage_api_url
     di["default_sqs_queue_name"] = container_services.sqs_queues_list["Selector"]
+    di["sqs_metadata_controller"] = dev_metadata_controller
     di["ruleset"] = ruleset()
 
 
