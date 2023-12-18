@@ -168,11 +168,6 @@ class Selector:  # pylint: disable=too-few-public-methods,too-many-locals
             bool: Boolean indicating if the request succeeded.
         """
 
-        # THIS SHOULD BE ONLY TEMPORARY UNTIL WE HAVE A BETTER WAY TO FILTER
-        if preview_metadata_artifact.tenant_id == "ridecare_companion_gridwise":
-            _logger.info("Skipping tenant_id %s", preview_metadata_artifact.tenant_id)
-            return True
-
         # get the metadata from s3
         # location of concatenated preview metadata within the DevCloud S3
         bucket, key = self.s3_controller.get_s3_path_parts(preview_metadata_artifact.s3_path)
@@ -183,6 +178,11 @@ class Selector:  # pylint: disable=too-few-public-methods,too-many-locals
         preview_metadata: PreviewMetadata = parse(preview_metadata_json)
         decisions: list[Decision] = self.evaluator.evaluate(
             preview_metadata, preview_metadata_artifact)
+
+        # THIS SHOULD BE ONLY TEMPORARY UNTIL WE HAVE A BETTER WAY TO FILTER
+        if preview_metadata_artifact.tenant_id == "ridecare_companion_gridwise":
+            _logger.info("Skipping tenant_id %s", preview_metadata_artifact.tenant_id)
+            return True
 
         # Identify recorders to request. This prevents duplicate requests from not being registered as different rules
         rule_dict: dict = {}
