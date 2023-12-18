@@ -234,17 +234,22 @@ class TestVoxelService:
         # WHEN
         voxel_service.attach_rule_to_video(video_upload1)
         voxel_service.attach_rule_to_video(video_upload2)
+        # Only one rule 2 should be attached
+        voxel_service.attach_rule_to_video(video_upload2)
 
         # THEN
         assert len(dataset) == 4
         rules = dataset.one(ViewField("raw_filepath").starts_with(test_videos_artifacts[0].raw_s3_path))["rules"]
         assert len(rules) == 2
-        assert rules[0]["name"] == video_upload1.rule.rule_name
-        assert rules[0]["version"] == video_upload1.rule.rule_version
-        assert rules[0]["origin"] == video_upload1.rule.origin.value
-        assert rules[0]["footage_from"] == video_upload1.footage_from
-        assert rules[0]["footage_to"] == video_upload1.footage_to
-        assert rules[1]["name"] == video_upload2.rule.rule_name
+        for rule in rules:
+            if rule["name"] == video_upload1.rule.rule_name:
+                assert rule["name"] == video_upload1.rule.rule_name
+                assert rule["version"] == video_upload1.rule.rule_version
+                assert rule["origin"] == video_upload1.rule.origin.value
+                assert rule["footage_from"] == video_upload1.footage_from
+                assert rule["footage_to"] == video_upload1.footage_to
+            else:
+                assert rule["name"] == video_upload2.rule.rule_name
 
     @pytest.mark.integration
     @patch("artifact_api.voxel.voxel_video.get_anonymized_path_from_raw", new=mock_anon)
@@ -275,13 +280,18 @@ class TestVoxelService:
         # WHEN
         voxel_service.attach_rule_to_snapshot(snap_upload1)
         voxel_service.attach_rule_to_snapshot(snap_upload2)
+        # Only one rule 2 should be attached
+        voxel_service.attach_rule_to_snapshot(snap_upload2)
 
         # THEN
         assert len(dataset) == 4
         rules = dataset.one(ViewField("raw_filepath").starts_with(test_images_artifacts[0].raw_s3_path))["rules"]
         assert len(rules) == 2
-        assert rules[0]["name"] == snap_upload1.rule.rule_name
-        assert rules[0]["version"] == snap_upload1.rule.rule_version
-        assert rules[0]["origin"] == snap_upload1.rule.origin.value
-        assert rules[0]["snapshot_timestamp"] == snap_upload2.snapshot_timestamp
-        assert rules[1]["name"] == snap_upload2.rule.rule_name
+        for rule in rules:
+            if rule["name"] == snap_upload1.rule.rule_name:
+                assert rule["name"] == snap_upload1.rule.rule_name
+                assert rule["version"] == snap_upload1.rule.rule_version
+                assert rule["origin"] == snap_upload1.rule.origin.value
+                assert rule["snapshot_timestamp"] == snap_upload1.snapshot_timestamp
+            else:
+                assert rule["name"] == snap_upload2.rule.rule_name

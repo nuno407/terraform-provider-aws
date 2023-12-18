@@ -335,7 +335,10 @@ def test_update_rule_on_voxel():
             "footage_to": datetime.strptime("2023-12-07 16:11:45", "%Y-%m-%d %H:%M:%S")}
     #WHEN
     metadata.consumer.main.update_rule_on_voxel(raw_filepath, video_id, tenant, rules)
+    # Exact same rule called twice should not add a new element
+    metadata.consumer.main.update_rule_on_voxel(raw_filepath, video_id, tenant, rules)
     #THEN
     dataset = fo.load_dataset("RC-datanauts")
     sample = dataset.one(ViewField("video_id")== video_id)
+    assert len(sample["rules"]) == 1
     assert sample["rules"][0].to_dict() == fo.DynamicEmbeddedDocument(**rules).to_dict()

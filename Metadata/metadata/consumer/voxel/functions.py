@@ -229,7 +229,10 @@ def update_rule_on_voxel(raw_filepath: str, video_id: str, tenant: str, rule: di
         if "rules" not in sample or sample["rules"] is None:
             sample["rules"] = [doc]
         else:
-            sample["rules"].extend([doc])
+            current_list_value_in_dict_format = [value.to_json() for value in sample["rules"]]
+            current_list_value_in_dict_format.extend(doc.to_json())
+            unique_values = list(set(current_list_value_in_dict_format))
+            sample["rules"] = [fo.DynamicEmbeddedDocument.from_json(unique_value) for unique_value in unique_values]
         sample.save()
         dataset.add_dynamic_sample_fields()
 

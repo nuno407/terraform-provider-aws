@@ -79,6 +79,14 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
             current_list_value: list[Any] = ctx.sample.get_field(list_field)
             if current_list_value is None:
                 return list(values_to_append)
+
+            if all((isinstance(value, fo.DynamicEmbeddedDocument) for value in values_to_append)):
+                current_list_value_in_dict_format = [value.to_json() for value in current_list_value]
+                values_to_append_in_dict_format = [value.to_json() for value in values_to_append]
+                current_list_value_in_dict_format.extend(values_to_append_in_dict_format)
+                unique_values = list(set(current_list_value_in_dict_format))
+                return [fo.DynamicEmbeddedDocument.from_json(unique_value) for unique_value in unique_values]
+
             current_list_value.extend(values_to_append)
             return list(current_list_value)
         return extend_path_logic
