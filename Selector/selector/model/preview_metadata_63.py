@@ -5,7 +5,7 @@ from typing import Iterator, Optional
 
 from pydantic import field_validator, Field
 from base.model.metadata.base_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
-    BaseFrame, FrameSignal, Pose
+    BaseFrame, FrameSignal, Pose, ObjectList, StringObject, FloatObject, BoolObject, IntegerObject
 from selector.model.preview_metadata import PreviewMetadata
 
 
@@ -13,7 +13,39 @@ class Frame(BaseFrame):
     """The frame for the preview metadata"""
     hasPoseList: Optional[bool] = None
     poselist: Optional[list[Pose]] = Field(default_factory=list)
+    number: int
+    timestamp: int
+    timestamp64: Optional[int] = None
+    objectlist: list[ObjectList]
 
+
+    def get_string(self, attribute_name: str) -> Optional[str]:
+        """ Tries to get a boolean value from the frame """
+        for oli in self.objectlist:
+            if isinstance(oli, StringObject):
+                return oli.string_attributes.get(attribute_name, None)
+        return None
+
+    def get_bool(self, attribute_name: str) -> Optional[bool]:
+        """ Tries to get a boolean value from the frame """
+        for oli in self.objectlist:
+            if isinstance(oli, BoolObject):
+                return oli.bool_attributes.get(attribute_name, None)
+        return None
+
+    def get_float(self, attribute_name: str) -> Optional[float]:
+        """ Tries to get a float value from the frame """
+        for oli in self.objectlist:
+            if isinstance(oli, FloatObject):
+                return oli.float_attributes.get(attribute_name, None)
+        return None
+
+    def get_integer(self, attribute_name: str) -> Optional[int]:
+        """ Tries to get an integer value from the frame """
+        for oli in self.objectlist:
+            if isinstance(oli, IntegerObject):
+                return oli.integer_attributes.get(attribute_name, None)
+        return None
 
 class PreviewMetadataV063(PreviewMetadata):
     """Preview Metadata for the version V063"""
