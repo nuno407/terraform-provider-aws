@@ -48,14 +48,35 @@ class TestAPIDownloader:
                 None,
                 "ridecare/upload_rule/video",
                 "upload_rule_video_post_data.json"
-            )
-            ],
+            ),
+            (
+                "sanitizer_camera_blocked_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_camera_blocked_operator_artifact_post_data.json"
+            ),
+            (
+                "sanitizer_people_count_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_people_count_operator_artifact_post_data.json"
+            ),
+            (
+                "sanitizer_sos_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_sos_operator_artifact_post_data.json"
+            )],
             ids=["snapshot_test_success",
                 "video_test_success",
                 "device_info_event_success",
                 "device_incident_event_success",
                 "rule_snapshot_test_success",
-                "rule_video_test_success"],
+                "rule_video_test_success",
+                "sanitizer_camera_blocked_operator_artifact",
+                "sanitizer_people_count_operator_artifact",
+                "sanitizer_sos_operator_artifact"
+            ],
             indirect=["endpoint"])
     # autopep8: on
     def test_component_success(self,
@@ -153,13 +174,35 @@ class TestAPIDownloader:
                 None,
                 "ridecare/upload_rule/video",
                 "upload_rule_video_post_data.json"
+            ),
+            (
+                "sanitizer_camera_blocked_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_camera_blocked_operator_artifact_post_data.json"
+            ),
+            (
+                "sanitizer_people_count_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_people_count_operator_artifact_post_data.json"
+            ),
+            (
+                "sanitizer_sos_operator_artifact_sqs_message.json",
+                None,
+                "ridecare/operator",
+                "sanitizer_sos_operator_artifact_post_data.json"
             )],
             ids=["snapshot_test_failure",
                 "video_test_failure",
                 "device_info_event_failure",
                 "device_incident_event_failure",
                 "rule_snapshot_test_failure",
-                "rule_video_test_failure"],
+                "rule_video_test_failure",
+                "sanitizer_camera_blocked_operator_artifact",
+                "sanitizer_people_count_operator_artifact",
+                "sanitizer_sos_operator_artifact"
+            ],
             indirect=["endpoint"])
     # autopep8: on
     def test_component_failure(self,
