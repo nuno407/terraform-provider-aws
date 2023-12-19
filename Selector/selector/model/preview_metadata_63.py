@@ -18,7 +18,6 @@ class Frame(BaseFrame):
     timestamp64: Optional[int] = None
     objectlist: list[ObjectList]
 
-
     def get_string(self, attribute_name: str) -> Optional[str]:
         """ Tries to get a boolean value from the frame """
         for oli in self.objectlist:
@@ -46,6 +45,7 @@ class Frame(BaseFrame):
             if isinstance(oli, IntegerObject):
                 return oli.integer_attributes.get(attribute_name, None)
         return None
+
 
 class PreviewMetadataV063(PreviewMetadata):
     """Preview Metadata for the version V063"""

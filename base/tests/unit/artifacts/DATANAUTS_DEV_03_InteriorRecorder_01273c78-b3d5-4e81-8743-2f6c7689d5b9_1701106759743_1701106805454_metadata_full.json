@@ -202,7 +202,7 @@
                         "KeyPoint": [
                             {
                                 "Name": "LeftAnkle",
-                                "X": "0",
+                                "X": "1.1",
                                 "Y": "0",
                                 "Conf": "0"
                             },

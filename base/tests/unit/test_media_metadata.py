@@ -41,3 +41,19 @@ class TestMediametadata:
 
         assert isinstance(model, MediaMetadata)
         assert len(model.frames) != 0
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("snapshot_json", [
+        (load_metadata_artifacts("DATANAUTS_DEV_03_InteriorRecorder_01273c78-b3d5-4e81-8743-2f6c7689d5b9_1701106759743_1701106805454_metadata_full.json")),
+        (load_metadata_artifacts("datanauts_DATANAUTS_TEST_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1fb80ea2-7460-4388-8f96-b7676b36ff94_1_1697040352931_metadata_full.json"))
+    ], ids=["video", "snap"])
+    def test_pose_metadata(self, snapshot_json: str):
+        """
+        Test snapshot artifact
+        """
+
+        model = MediaMetadata.model_validate_json(snapshot_json)
+
+        assert isinstance(model, MediaMetadata)
+        assert len(model.frames) != 0
+        assert model.frames[0].object_list.person_details[0].keypoints[0].x == 1.1

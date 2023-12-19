@@ -4,8 +4,8 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 from metadata.consumer.metadata_artifacts import (BoundingBox,
-                                           Classification, Frame,
-                                           Person)
+                                                  Classification, Frame,
+                                                  Person)
 from metadata.consumer.voxel.metadata_parser import MetadataParser
 
 CURRENT_LOCATION = os.path.realpath(

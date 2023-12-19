@@ -48,7 +48,7 @@ def _input_message_recording(folder) -> dict:
         "s3_path": f"s3://bucket-raw-video-files/{folder}/ridecare_device_recording_1662080172308_1662080561893.mp4",
         "timestamp": 1662080172308,
         "end_timestamp": 1662080561893,
-        "artifact_name" : "s3_video",
+        "artifact_name": "s3_video",
         "artifact_id": "device_InteriorRecorder_ridecare_device_recording_1662080172308_1662080561893",
         "raw_s3_path": "s3://raw/foo/bar.something",
         "anonymized_s3_path": "s3://anonymized/foo/bar.something",
@@ -70,7 +70,7 @@ def _input_message_recording(folder) -> dict:
 
 def _input_message_snapshot(folder: str, timestamp: int) -> dict:
     body = {
-        "artifact_name" : "snapshot",
+        "artifact_name": "snapshot",
         "artifact_id": "ridecare_device_foo_1612080178308",
         "raw_s3_path": "s3://raw/foo/bar.something",
         "anonymized_s3_path": "s3://anonymized/foo/bar.something",
@@ -89,7 +89,7 @@ def _input_message_snapshot(folder: str, timestamp: int) -> dict:
 
 def _input_message_snapshot_included(folder: str):
     body = {
-        "artifact_name" : "snapshot",
+        "artifact_name": "snapshot",
         "artifact_id": "ridecare_device_foo_1662080178308",
         "raw_s3_path": "s3://raw/foo/bar.something",
         "anonymized_s3_path": "s3://anonymized/foo/bar.something",
@@ -108,7 +108,7 @@ def _input_message_snapshot_included(folder: str):
 
 def _input_message_snapshot_excluded(folder: str):
     body = {
-        "artifact_name" : "snapshot",
+        "artifact_name": "snapshot",
         "artifact_id": "ridecare_device_foo_1612080178308",
         "raw_s3_path": "s3://raw/foo/bar.something",
         "anonymized_s3_path": "s3://anonymized/foo/bar.something",
@@ -322,23 +322,23 @@ def get_sample(dataset, s3_path: str):
 
 @pytest.mark.integration
 def test_update_rule_on_voxel():
-    #GIVEN
+    # GIVEN
     dataset_config = DatasetConfig(default_dataset="RC-datanauts", tag="RC")
     di[DatasetConfig] = dataset_config
     raw_filepath = "s3://qa-rcd-raw-video-files/datanauts/srxfut2internal01_rc_srx_qa_eur_fut2_013_InteriorRecorder_1643259764422_1643261551249.mp4"
     video_id = "video_id"
     tenant = "datanauts"
     rules = {"name": "artifact.rule.rule_name",
-            "version": "artifact.rule.rule_version",
-            "origin": "artifact.rule.origin",
-            "footage_from": datetime.strptime("2023-12-07 16:09:29", "%Y-%m-%d %H:%M:%S"),
-            "footage_to": datetime.strptime("2023-12-07 16:11:45", "%Y-%m-%d %H:%M:%S")}
-    #WHEN
+             "version": "artifact.rule.rule_version",
+             "origin": "artifact.rule.origin",
+             "footage_from": datetime.strptime("2023-12-07 16:09:29", "%Y-%m-%d %H:%M:%S"),
+             "footage_to": datetime.strptime("2023-12-07 16:11:45", "%Y-%m-%d %H:%M:%S")}
+    # WHEN
     metadata.consumer.main.update_rule_on_voxel(raw_filepath, video_id, tenant, rules)
     # Exact same rule called twice should not add a new element
     metadata.consumer.main.update_rule_on_voxel(raw_filepath, video_id, tenant, rules)
-    #THEN
+    # THEN
     dataset = fo.load_dataset("RC-datanauts")
-    sample = dataset.one(ViewField("video_id")== video_id)
+    sample = dataset.one(ViewField("video_id") == video_id)
     assert len(sample["rules"]) == 1
     assert sample["rules"][0].to_dict() == fo.DynamicEmbeddedDocument(**rules).to_dict()

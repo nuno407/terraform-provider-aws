@@ -1061,7 +1061,8 @@ def main():
                         elif message_dict.get("artifact_name", None) == "snapshot_rule":
                             process_selector(SnapshotUploadRule(**message_dict), metadata_collections)
                         else:
-                            raise NotSupportedArtifactError(f"Received message from selector with wrong artifact_name. Message {message_dict}")
+                            raise NotSupportedArtifactError(
+                                f"Received message from selector with wrong artifact_name. Message {message_dict}")
                     else:
                         upsert_data_to_db(api_service,
                                           fixed_message_dict,
