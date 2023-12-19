@@ -10,7 +10,7 @@ def load_metadata_artifacts(file_name: str) -> str:
     return load_relative_str_file(__file__, path)
 
 
-class TestMetadataArtifacts:
+class TestMediametadata:
     @pytest.mark.unit
     def test_snapshot_artifact_methods(self):
         """

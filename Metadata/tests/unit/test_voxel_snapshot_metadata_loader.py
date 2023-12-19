@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from base.model.metadata_artifacts import Frame
-from base.voxel.voxel_snapshot_metadata_loader import \
+from metadata.consumer.metadata_artifacts import Frame
+from metadata.consumer.voxel.voxel_snapshot_metadata_loader import \
     VoxelSnapshotMetadataLoader
 
 CURRENT_LOCATION = os.path.realpath(

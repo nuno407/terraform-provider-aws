@@ -1,4 +1,4 @@
-from base.model.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
+from metadata.consumer.metadata_artifacts import Frame, KeyPoint, Person, BoundingBox, Classification
 import logging
 _logger = logging.getLogger(__name__)
 

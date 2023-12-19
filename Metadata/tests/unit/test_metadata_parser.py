@@ -3,7 +3,7 @@ import os
 from unittest.mock import ANY, Mock, patch
 
 import pytest
-from base.model.metadata_artifacts import (BoundingBox,
+from metadata.consumer.metadata_artifacts import (BoundingBox,
                                            Classification, Frame,
                                            Person)
 from metadata.consumer.voxel.metadata_parser import MetadataParser

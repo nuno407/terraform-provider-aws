@@ -1,5 +1,5 @@
 import fiftyone as fo
-from base.model.metadata_artifacts import Frame, DataLoader
+from metadata.consumer.metadata_artifacts import Frame, DataLoader
 from base.voxel.constants import VOXEL_KEYPOINTS_LABELS, CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL
 from typing import Optional
 from base.voxel.models import KeyPointsMapper

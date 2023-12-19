@@ -1,13 +1,10 @@
 """ Conftest."""
-from datetime import datetime
 from unittest.mock import Mock, MagicMock
-from base.voxel.constants import BBOX_LABEL, POSE_LABEL, CLASSIFICATION_LABEL
 from base.aws.s3 import S3Controller
 import sys
 import pytest
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
-from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from base.voxel.models import KeyPointsMapper
 
 # pylint: disable=missing-function-docstring
@@ -129,21 +126,6 @@ class TestVoxelKPMapper(KeyPointsMapper):
         """
 
         return self.__kp_sorted[name]
-
-
-@pytest.fixture
-def voxel_snapshot_metadata_loader() -> VoxelSnapshotMetadataLoader:
-    """
-    Class for tests.
-
-    Returns:
-        VoxelSnapshotMetadataLoader: _description_
-    """
-    return VoxelSnapshotMetadataLoader(
-        TestVoxelKPMapper(),
-        CLASSIFICATION_LABEL,
-        POSE_LABEL,
-        BBOX_LABEL)
 
 
 setup_voxel_mocks()

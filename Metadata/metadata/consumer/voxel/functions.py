@@ -1,18 +1,21 @@
-import fiftyone as fo
-from fiftyone import ViewField
+import json
 import logging
 from datetime import datetime
-from base.model.config.policy_config import PolicyConfig
-from base.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
-from base.model.metadata_artifacts import Frame
-from metadata.consumer.voxel.metadata_parser import MetadataParser
+
+import fiftyone as fo
+from fiftyone import ViewField
 from kink import inject
-from base.voxel.functions import create_dataset, get_anonymized_path_from_raw
-from base.voxel.utils import determine_dataset_name, determine_dataset_by_path
+from metadata.consumer.exceptions import SnapshotNotFound
+from metadata.consumer.metadata_artifacts import Frame
+from metadata.consumer.voxel.metadata_parser import MetadataParser
+from metadata.consumer.voxel.voxel_snapshot_metadata_loader import \
+    VoxelSnapshotMetadataLoader
+
 from base.aws.s3 import S3Controller
 from base.model.artifacts import SignalsArtifact
-from metadata.consumer.exceptions import SnapshotNotFound
-import json
+from base.model.config.policy_config import PolicyConfig
+from base.voxel.functions import create_dataset, get_anonymized_path_from_raw
+from base.voxel.utils import determine_dataset_by_path, determine_dataset_name
 
 _logger = logging.getLogger(__name__)
 

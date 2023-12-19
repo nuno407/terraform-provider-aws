@@ -87,7 +87,8 @@ class ObjectList(ConfiguredBaseModel):
             "floatAttributes": [],
             "stringAttributes": [],
             "integerAttributes": [],
-            "personDetail": []
+            "personDetail": [],
+            "boundingBoxes": []
         }
         
         for obj in data:
