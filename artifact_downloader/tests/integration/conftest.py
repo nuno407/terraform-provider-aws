@@ -39,6 +39,11 @@ def raw_bucket(config: ArtifactDownloaderConfig) -> str:
 
 
 @pytest.fixture
+def temporary_bucket() -> str:
+    return "dev-rcd-temporary-metadata-files"
+
+
+@pytest.fixture
 def input_queue_str(config: ArtifactDownloaderConfig) -> str:
     return config.input_queue
 
@@ -55,11 +60,12 @@ def mock_requests(config: ArtifactDownloaderConfig) -> requests_mock.Mocker:
 
 
 @pytest.fixture
-def moto_s3_client(raw_bucket: str, anon_bucket: str) -> S3Client:
+def moto_s3_client(raw_bucket: str, anon_bucket: str, temporary_bucket: str) -> S3Client:
     with mock_s3():
         moto_client = boto3.client("s3", region_name=AWS_REGION)
         moto_client.create_bucket(Bucket=raw_bucket)
         moto_client.create_bucket(Bucket=anon_bucket)
+        moto_client.create_bucket(Bucket=temporary_bucket)
         yield moto_client
 
 

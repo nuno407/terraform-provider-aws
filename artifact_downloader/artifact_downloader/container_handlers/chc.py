@@ -6,7 +6,7 @@ from requests import Request
 from kink import inject
 
 from base.model.artifacts import CHCResult
-from base.model.metadata.api_messages import CHCDataResult
+from base.model.artifacts.api_messages import CHCDataResult
 from artifact_downloader.chc_synchronizer import ChcSynchronizer
 from artifact_downloader.post_processor import IVideoPostProcessor
 from artifact_downloader.s3_downloader import S3Downloader

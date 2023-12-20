@@ -13,12 +13,14 @@ from base.model.artifacts import parse_all_models
 # autopep8: off
 class TestAPIDownloader:
     @pytest.mark.integration
-    @pytest.mark.parametrize("input_sqs_message_filename, s3_state_filename, endpoint, post_artifact_data_filename", [
+    @pytest.mark.parametrize("input_sqs_message_filename, s3_state_filename, endpoint, post_artifact_data_filename",
+        [
             (
                 "snapshot_sqs_message.json",
                 "snapshot_s3_state.json",
                 "ridecare/snapshots",
-                "snapshot_artifact_post_data.json"),
+                "snapshot_artifact_post_data.json"
+            ),
             (
                 "video_sqs_message.json",
                 "video_s3_state.json",
@@ -66,18 +68,26 @@ class TestAPIDownloader:
                 None,
                 "ridecare/operator",
                 "sanitizer_sos_operator_artifact_post_data.json"
-            )],
-            ids=["snapshot_test_success",
-                "video_test_success",
-                "device_info_event_success",
-                "device_incident_event_success",
-                "rule_snapshot_test_success",
-                "rule_video_test_success",
-                "sanitizer_camera_blocked_operator_artifact",
-                "sanitizer_people_count_operator_artifact",
-                "sanitizer_sos_operator_artifact"
-            ],
-            indirect=["endpoint"])
+            ),
+            (
+                "imu_processing_sqs_message.json",
+                "imu_processing_s3_state.json",
+                "ridecare/imu/video",
+                "imu_processing_post_data.json",
+            )
+        ],
+        ids=["snapshot_test_success",
+            "video_test_success",
+            "device_info_event_success",
+            "device_incident_event_success",
+            "rule_snapshot_test_success",
+            "rule_video_test_success",
+            "sanitizer_camera_blocked_operator_artifact",
+            "sanitizer_people_count_operator_artifact",
+            "sanitizer_sos_operator_artifact",
+            "imu_processing_test_success"
+        ],
+        indirect=["endpoint"])
     # autopep8: on
     def test_component_success(self,
                                moto_sqs_client: SQSClient,
@@ -192,7 +202,14 @@ class TestAPIDownloader:
                 None,
                 "ridecare/operator",
                 "sanitizer_sos_operator_artifact_post_data.json"
-            )],
+            ),
+            (
+                "imu_processing_sqs_message.json",
+                "imu_processing_s3_state.json",
+                "ridecare/imu/video",
+                "imu_processing_post_data.json",
+            )
+            ],
             ids=["snapshot_test_failure",
                 "video_test_failure",
                 "device_info_event_failure",
@@ -201,7 +218,8 @@ class TestAPIDownloader:
                 "rule_video_test_failure",
                 "sanitizer_camera_blocked_operator_artifact",
                 "sanitizer_people_count_operator_artifact",
-                "sanitizer_sos_operator_artifact"
+                "sanitizer_sos_operator_artifact",
+                "imu_processing_test_failure"
             ],
             indirect=["endpoint"])
     # autopep8: on
