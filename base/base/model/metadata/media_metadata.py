@@ -89,6 +89,11 @@ class ObjectList(ConfiguredBaseModel):
     @classmethod
     def flatten_objects(cls, data: Any) -> Any:
         """Flatten objects it ensures the attributes match the specified model"""
+        
+        # This allows the ObjectList to be parsed by a json already in the correct format
+        if "float_attributes" in data:
+            return data
+            
         if not isinstance(data, list):
             raise ValueError("ObjectList should be a list")
 
@@ -128,6 +133,10 @@ class MediaFrame(BaseFrame):
     @classmethod
     def flatten_objects(cls, data: Any) -> Any:
         """Flatten objects it ensures the attributes match the specified model"""
+
+        # This allows a MediaFrame to be parsed by a json already in the correct format
+        if "utc_timestamp_reference" not in data:
+            return data
 
         delta_timestamp_pts = int(data["timestamp"]) - data["pts_timestamp_reference"]
         actual_timestamp = data["utc_timestamp_reference"] + delta_timestamp_pts
@@ -198,6 +207,10 @@ class MediaMetadata(BaseMetadata):
         Stores additional fields related to the timestamps
         in order for each frame be able to caculate it's utc timestamp
         """
+        # This allows a MediaMetadata to be parsed by a json already in the correct format
+        if "chunkUtc" not in data:
+            return data
+        
         utc_timestamp_reference = int(data["chunkUtc"]["utc_start"])
         pts_timestamp_reference = int(data["chunkPts"]["pts_start"])
 
