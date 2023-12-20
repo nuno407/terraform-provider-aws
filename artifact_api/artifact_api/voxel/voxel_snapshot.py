@@ -2,12 +2,14 @@
 from enum import Enum
 from typing import Any
 import fiftyone as fo
+from base.voxel.constants import POSE_LABEL, CLASSIFICATION_LABEL
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import SnapshotArtifact
+from base.model.artifacts import SnapshotArtifact, SignalsArtifact
+from base.model.metadata.media_metadata import MediaMetadata
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadSnapshotRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelSample, VoxelField
-
+from artifact_api.voxel.voxel_metadata_transformer import VoxelMetadataFrameFields
 
 # pylint: disable=duplicate-code
 class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
@@ -21,14 +23,26 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
         TENANT_ID = VoxelField(field_name="tenant_id", field_type=fo.core.fields.StringField)
         DEVICE_ID = VoxelField(field_name="device_id", field_type=fo.core.fields.StringField)
         RECORDING_TIME = VoxelField(field_name="recording_time", field_type=fo.core.fields.DateTimeField)
+        KEYPOINTS = VoxelField(
+            field_name=POSE_LABEL, 
+            field_type=fo.core.fields.ListField, 
+            field_subtype=fo.core.fields.EmbeddedDocumentField(fo.Keypoint)
+        )
+        CLASSIFICATIONS = VoxelField(
+            field_name=CLASSIFICATION_LABEL, 
+            field_type=fo.core.fields.ListField,
+            field_subtype=fo.core.fields.EmbeddedDocumentField(fo.Classification)
+        )
         SOURCE_VIDEOS = VoxelField(
             field_name="source_videos",
             field_type=fo.core.fields.ListField,
-            field_subtype=fo.core.fields.StringField)
+            field_subtype=fo.core.fields.StringField
+        )
         RULES = VoxelField(
             field_name="rules",
             field_type=fo.core.fields.ListField,
-            field_subtype=fo.core.fields.EmbeddedDocumentField(fo.DynamicEmbeddedDocument))
+            field_subtype=fo.core.fields.EmbeddedDocumentField(fo.DynamicEmbeddedDocument)
+        )
 
     @classmethod
     def _get_fields(cls) -> list[VoxelField]:
@@ -73,10 +87,29 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
             snapshot_timestamp=rule.snapshot_timestamp)
         anonymized_filepath = get_anonymized_path_from_raw(filepath=rule.raw_file_path)
         values_to_set: dict[VoxelField, Any] = {
-            cls.Fields.RULES.value: VoxelSample._append_to_list("rules", [fo.DynamicEmbeddedDocument(**db_rule.dict())])
+            cls.Fields.RULES.value: VoxelSample._append_to_list("rules", [fo.DynamicEmbeddedDocument(**db_rule.model_dump())])
         }
         cls._upsert_sample(
             tenant_id=rule.tenant,
             dataset=dataset,
             anonymized_filepath=anonymized_filepath,
             values_to_set=values_to_set)
+        
+    @classmethod
+    def load_metadata(cls, dataset: fo.Dataset, signals_artifact: SignalsArtifact, field_values: VoxelMetadataFrameFields):
+        """ Loads the metadata from the signals artifact into the dataset."""
+
+        values_to_set: dict[VoxelField, Any] = {}
+
+        if len(field_values.keypoints) > 0:
+            values_to_set[cls.Fields.KEYPOINTS.value] = field_values.keypoints
+
+        if len(field_values.classifications) > 0:
+            values_to_set[cls.Fields.CLASSIFICATIONS.value] = field_values.classifications
+
+        cls._upsert_sample(
+            tenant_id=signals_artifact.tenant_id,
+            dataset=dataset,
+            anonymized_filepath=signals_artifact.referred_artifact.anonymized_s3_path,
+            values_to_set=values_to_set)
+

@@ -6,6 +6,7 @@ from base.model.validators import LegacyTimeDelta
 from base.model.artifacts.artifacts import SignalsArtifact
 from base.model.artifacts.processing_result import IMUProcessingResult
 from base.model.base_model import ConfiguredBaseModel
+from base.model.metadata.media_metadata import MediaMetadata
 
 
 class IMUSource(ConfiguredBaseModel):
@@ -63,7 +64,7 @@ class SnapshotSignalsData(ConfiguredBaseModel):
     """Snapshot signals data"""
     artifact_name: Literal["snapshot_signals_data"] = "snapshot_signals_data"
     message: SignalsArtifact
-    data: VideoSignalsData
+    data: MediaMetadata
 
 
 class IMUDataArtifact(ConfiguredBaseModel):
@@ -78,7 +79,7 @@ class CHCDataResult(ConfiguredBaseModel):
     artifact_name: Literal["chc_data_result"] = "chc_data_result"
     id: str
     chc_path: str
-    data: VideoSignalsData
+    data: MediaMetadata
 
 
 APIMessages = Union[SnapshotSignalsData, IMUDataArtifact, CHCDataResult]

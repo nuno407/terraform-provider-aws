@@ -5,6 +5,7 @@ from fastapi_restful.cbv import cbv
 from base.model.artifacts.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
 from artifact_api.models import ResponseMessage
 from artifact_api.mongo_controller import MongoController
+from artifact_api.voxel.service import VoxelService
 
 metadata_router = APIRouter()
 
@@ -24,8 +25,8 @@ class MetadataController:
         return ResponseMessage()
 
     @metadata_router.post("/ridecare/signals/snapshot", response_model=ResponseMessage)
-    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData,  # pylint: disable=unused-argument
-                                        mongo_service: MongoController = Depends(lambda: di[MongoController])):  # pylint: disable=unused-argument
+    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData, # pylint: disable=unused-argument
+                                        voxel_service: VoxelService = Depends(lambda: di[VoxelService])):
         """
         Process device snapshot signals
 
@@ -33,6 +34,7 @@ class MetadataController:
             device_snapshot_signals (SnapshotSignalsData): _description_
 
         """
+        voxel_service.load_snapshot_metadata(device_snapshot_signals)
         return ResponseMessage()
 
     @metadata_router.post("/ridecare/imu/video", response_model=ResponseMessage)
