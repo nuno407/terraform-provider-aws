@@ -80,6 +80,7 @@ class CHCDataResult(ConfiguredBaseModel):
     chc_path: str
     data: VideoSignalsData
 
+
 APIMessages = Union[SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
 
 DiscriminatedAPIMessagesTypeAdapter = TypeAdapter(Annotated[APIMessages,

@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from pytz import UTC
 
 from base.model.artifacts.api_messages import (IMUProcessedData, IMUSample,
-                                              IMUSource)
+                                               IMUSource)
 
 MIN_VALUE = -10.9
 MAX_VALUE = 10.5
