@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from mongomock import MongoClient as MongoMockClient
 
 from base.model.artifacts import IncidentEventArtifact, IMUProcessingResult
-from base.model.metadata.api_messages import IMUDataArtifact
+from base.model.artifacts.api_messages import IMUDataArtifact
 from imu_test_builder import ImuTestDataBuilder
 
 IMU_TIMESTAMP_FROM = datetime.now(tz=UTC) - timedelta(minutes=15)

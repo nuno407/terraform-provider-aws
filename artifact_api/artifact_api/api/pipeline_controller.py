@@ -1,7 +1,7 @@
 """Router for pipeline outputs/updates"""
 from fastapi import APIRouter
 from fastapi_restful.cbv import cbv
-from base.model.metadata.api_messages import CHCDataResult
+from base.model.artifacts.api_messages import CHCDataResult
 from base.model.artifacts import AnonymizationResult, PipelineProcessingStatus
 from artifact_api.models import ResponseMessage
 

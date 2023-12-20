@@ -2,7 +2,7 @@
 from kink import di
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
-from base.model.metadata.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
+from base.model.artifacts.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
 from artifact_api.models import ResponseMessage
 from artifact_api.mongo_controller import MongoController
 

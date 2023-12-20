@@ -2,7 +2,7 @@
 from typing import Union
 from datetime import timedelta
 import logging
-from base.model.metadata.api_messages import IMUDataArtifact, IMUSample
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
 from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
                                   PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,

@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from pytz import UTC
 
-from base.model.metadata.api_messages import (IMUProcessedData, IMUSample,
+from base.model.artifacts.api_messages import (IMUProcessedData, IMUSample,
                                               IMUSource)
 
 MIN_VALUE = -10.9

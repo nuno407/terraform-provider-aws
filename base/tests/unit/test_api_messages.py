@@ -1,7 +1,7 @@
 "Test metadata artifacts"
 import pytest
 from datetime import timedelta
-from base.model.metadata.api_messages import VideoSignalsData, IMUProcessedData
+from base.model.artifacts.api_messages import VideoSignalsData, IMUProcessedData
 from base.testing.utils import load_relative_str_file, load_relative_json_file
 
 

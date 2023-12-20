@@ -4,7 +4,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, call
 from pytest import mark
 import pytz
-from base.model.metadata.api_messages import IMUDataArtifact, IMUSample
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
 from base.model.artifacts import IMUProcessingResult
 from base.testing.utils import load_relative_json_file
 from artifact_api.models.mongo_models import (DBIMUSample)

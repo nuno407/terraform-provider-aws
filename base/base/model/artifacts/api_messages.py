@@ -1,9 +1,10 @@
 """Metadata API messages"""
-from typing import Union
-from pydantic import RootModel
+from typing import Union, Literal, Annotated
+from pydantic import RootModel, TypeAdapter, Field
 
 from base.model.validators import LegacyTimeDelta
-from base.model.artifacts import SignalsArtifact, IMUProcessingResult
+from base.model.artifacts.artifacts import SignalsArtifact
+from base.model.artifacts.processing_result import IMUProcessingResult
 from base.model.base_model import ConfiguredBaseModel
 
 
@@ -60,18 +61,26 @@ class VideoSignalsData(RootModel):
 
 class SnapshotSignalsData(ConfiguredBaseModel):
     """Snapshot signals data"""
+    artifact_name: Literal["snapshot_signals_data"] = "snapshot_signals_data"
     message: SignalsArtifact
     data: VideoSignalsData
 
 
 class IMUDataArtifact(ConfiguredBaseModel):
     """IMUData"""
+    artifact_name: Literal["imu_data_artifact"] = "imu_data_artifact"
     message: IMUProcessingResult
     data: IMUProcessedData
 
 
 class CHCDataResult(ConfiguredBaseModel):
     """CHC Data result"""
+    artifact_name: Literal["chc_data_result"] = "chc_data_result"
     id: str
     chc_path: str
     data: VideoSignalsData
+
+APIMessages = Union[SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
+
+DiscriminatedAPIMessagesTypeAdapter = TypeAdapter(Annotated[APIMessages,
+                                                  Field(..., discriminator="artifact_name")])
