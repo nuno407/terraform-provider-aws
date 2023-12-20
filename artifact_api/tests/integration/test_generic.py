@@ -78,7 +78,17 @@ class TestGeneric:
             "voxel_config.yml",
             "mongo_config.yml",
             "mongo_imu_state.json",
+            None
+        ),
+
+        # Tests snapshot metadata
+        (
+            [get_json_message("training_snapshot_metadata_message.json")],
+            "/ridecare/signals/snapshot",
+            "voxel_config.yml",
+            "mongo_config.yml",
             None,
+            "voxel_snapshot_metadata_state.json",
         )
 
     ],
@@ -87,7 +97,8 @@ class TestGeneric:
         "test_video_artifact",
         "test_events_artifact",
         "test_sav_artifact",
-        "test_imu_artifact"],
+        "test_imu_artifact",
+        "test_snap_metadata"],
         indirect=["mongo_api_config", "voxel_config"])
     async def test_component(self,
                              input_json_message_list: list[dict],

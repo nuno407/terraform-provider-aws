@@ -5,6 +5,8 @@
         ],
         "samples": [
             {
+                "PRED_device_classifications": null,
+                "PRED_device_pose": null,
                 "filepath": "s3://qa-rcd-anonymized-video-files/datanauts_DATANAUTS_DEV_03_TrainingMultiSnapshot_TrainingMultiSnapshot-3199cd41-5a3a-42be-b5a9-a221a8ade379_1_1699637006724_anonymized.jpeg",
                 "tags": [],
                 "metadata": null,

@@ -29,6 +29,30 @@ def assert_json_dict(real_dict: dict, expected_dict: dict):
     converted_expected = json.loads(json.dumps(expected_dict, default=__serialize_datetime))
     assert converted_real == converted_expected
 
+def filter_variant_fields(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Filter the variant fields to only keep the ones that are relevant for the test.
+    """
+    filtered_dict = {}
+    for key,val in data.items():
+        if key == "_id":
+            continue
+        elif isinstance(val, dict):
+            filtered_dict[key] = filter_variant_fields(val)
+            continue
+        elif isinstance(val, list):
+            l = []
+            for item in val:
+                if isinstance(item, dict):
+                    l.append(filter_variant_fields(item))
+                else:
+                    l.append(item)
+            filtered_dict[key] = l
+            continue
+
+        filtered_dict[key] = val
+    return filtered_dict
+        
 
 async def dump_mongo_db(mongo_client: AsyncIOMotorClient):
     """ Helper function that can be used to dump the mongo database into a file for debug purposes"""
@@ -85,6 +109,23 @@ async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
 
             assert_json_dict(real_docs, collection)
 
+def dump_all_datasets_to_file(file_name: str):
+    """
+    Dump all the datasets into a json file.
+    This can be used for debug purposes.
+    """
+    datasets = fo.list_datasets()
+    dataset_dict = {}
+    for dataset_name in datasets:
+        dataset = fo.load_dataset(dataset_name)
+        dataset_dict[dataset_name] = {
+            "tags": dataset.tags,
+            "samples": [sample.to_dict() for sample in dataset]
+        }
+
+    with open(file_name, "w") as file:
+        json.dump(dataset_dict, file, indent=4, default=__serialize_datetime)
+
 
 def assert_voxel_state(file_name: str):
     """
@@ -111,6 +152,9 @@ def assert_voxel_state(file_name: str):
     """
     voxel_expected_data: dict[str, dict[str, Any]] = load_relative_json_file(
         __file__, os.path.join("test_data/voxel_states", file_name))
+    
+    dump_all_datasets_to_file("voxel_state.json")
+    assert len(voxel_expected_data) > 0
 
     # Loop trough datasets
     for dataset_name, expected_dataset in voxel_expected_data.items():
@@ -121,5 +165,5 @@ def assert_voxel_state(file_name: str):
         # Loop trough samples
         for expected_sample in expected_dataset.get("samples", []):
             real_sample = real_dataset.one(fo.ViewField("filepath") == expected_sample["filepath"])
-
-            assert_json_dict(real_sample.to_dict(), expected_sample)
+            real_sample_dict=filter_variant_fields(real_sample.to_dict())
+            assert_json_dict(real_sample_dict, expected_sample)
