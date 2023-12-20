@@ -1,0 +1,29 @@
+{
+    "MessageId": "6548ea3c-3dac-4cbb-b319-bce24c11f7b1",
+    "ReceiptHandle": "AQEBZ4RMliNYYOt7wnqtZ28r+5swfQ5hHwd0YkecNaKf5JCx71P6PLZ1tFwZfhQ0sOE2I/wU/nU5ePgBDeIXAujDFa1xXtyDii71WC8Iy/GzQ0h7exCVZizpDIpeyep0kmNtE0p+rUK6s3KmJJxnQ+FcihoICHwVyKtQOd2qWSQOAwRYG4jzM1SNuvr1yJO8YoOT7WDVsOluOdZYb2KAA65bAdmWB004Jy+BsK2Zg9OuAJ4PpOup1XbVQpnGlbGmAXImLrY8WzR8+53wgLn191b+K5GqzG/WVmzimQ26/iHyyKUfqlrMTEjhs2bf8Spkdj/GmgcTBzqH8h9il2vrTFYHchWpkpuQ085gPsu9XsOWSSy3DFon67zqp39p4vaDPzPydXY38WCh4m/Z3QG7tesNcJuoVVdo0bIP5c+VtSxeKTKPnUZpwW1pMR7jPpKnla2R",
+    "MD5OfBody": "50aa1dd28694ce87b26e25d09790837a",
+    "Body": {
+        "_id": "DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736",
+        "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736_processed_imu.json",
+        "data_type": "imu",
+        "recording_overview": {}
+    },
+    "Attributes": {
+        "SentTimestamp": "1702663049459",
+        "ApproximateReceiveCount": "1"
+    },
+    "MessageAttributes": {
+        "ToQueue": {
+            "StringValue": "dev-terraform-queue-metadata",
+            "StringListValues": [],
+            "BinaryListValues": [],
+            "DataType": "String"
+        },
+        "SourceContainer": {
+            "StringValue": "MDFParser",
+            "StringListValues": [],
+            "BinaryListValues": [],
+            "DataType": "String"
+        }
+    }
+}
