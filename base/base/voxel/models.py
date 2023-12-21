@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 class KeyPointsMapper(ABC):
     """
     An interface to transform a keypoint name into an index
+    DEPRECATED: This can be removed after the migration to the new metadata
     """
     @abstractmethod
     def get_keypoint_index(self, name: str) -> int:

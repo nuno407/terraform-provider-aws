@@ -42,6 +42,17 @@ class TestMediametadata:
         assert model.frames[0].timestamp == datetime(2023, 10, 11, 16, 5, 52, 902000, tzinfo=pytz.UTC)
 
     @pytest.mark.unit
+    def test_empty_media_artifact(self):
+        """
+        Test media metadata artifact
+        """
+        data = load_metadata_artifacts("empty_media_metadata.json")
+        model = MediaMetadata.model_validate_json(data)
+
+        assert isinstance(model, MediaMetadata)
+        assert len(model.frames) == 0
+
+    @pytest.mark.unit
     @pytest.mark.parametrize("snapshot_json", [
         (load_metadata_artifacts("TrainingMultiSnapshot_TrainingMultiSnapshot-9fa95e3c-2195-4850-98f2-7810adfe2ff0_1.jpeg.smart_data_1696352069031_cvb0.json")),
         (load_metadata_artifacts("datanauts_DATANAUTS_TEST_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1fb80ea2-7460-4388-8f96-b7676b36ff94_1_1697040352931_metadata_full.json")),

@@ -12,6 +12,7 @@ from base.aws.s3 import S3Controller
 
 _logger = logging.getLogger(__name__)
 
+
 class MockS3File(BaseModel):
     """Represents a File in S3"""
     data: bytes = b"MOCK"

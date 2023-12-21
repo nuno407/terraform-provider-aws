@@ -8,9 +8,11 @@ class UnknowEventArtifactException(Exception):
         Exception (_type_): _description_
     """
 
+
 class VoxelSnapshotMetadataError(Exception):
     """Error while loading the metadata of a snapshot"""
-    
+
+
 class InvalidOperatorArtifactException(Exception):
     """The operator artifact does not match any of the accepted types"""
 

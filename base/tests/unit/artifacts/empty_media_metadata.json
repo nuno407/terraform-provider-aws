@@ -1,0 +1,18 @@
+{
+  "resolution": {
+    "width": "1280",
+    "height": "720"
+  },
+  "metaData version": "unknown",
+  "PoseNetwork version": "",
+  "SegmentationNetwork version": "",
+  "CVEReference file": "",
+  "chunkPts": {
+    "pts_start": "88319",
+    "pts_end": "88319"
+  },
+  "chunkUtc": {
+    "utc_start": "1703177850161",
+    "utc_end": "1703177850161"
+  }
+}

@@ -34,7 +34,7 @@ class SDRContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_snapshot, message.body)
         if isinstance(message.body, SignalsArtifact) and isinstance(message.body.referred_artifact, SnapshotArtifact):
             downloaded_file = self.__s3_downloader.download_convert_json(message.body.s3_path)
-            model = SnapshotSignalsData.model_validate({"data":downloaded_file,"message":message.body})
+            model = SnapshotSignalsData.model_validate({"data": downloaded_file, "message": message.body})
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_snapshot_signals, model)
 
         raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not a SDR message")

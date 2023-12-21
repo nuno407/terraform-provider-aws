@@ -17,6 +17,11 @@ def get_json_message(file_name: str) -> dict:
 class TestGeneric:
     """
     Class that tests the entire component end2end
+
+    REMARKS:
+    VPN HAS TO BE DISABLED IN ORDER FOR THIS TESTS TO RUN,
+    this a weird bug where the VPN is blocking the connection to the voxel API, even though
+    everything runs locally.
     """
     @ pytest.mark.integration
     @ pytest.mark.parametrize("input_json_message_list, endpoints, voxel_config, \

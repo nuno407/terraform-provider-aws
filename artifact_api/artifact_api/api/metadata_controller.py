@@ -25,7 +25,7 @@ class MetadataController:
         return ResponseMessage()
 
     @metadata_router.post("/ridecare/signals/snapshot", response_model=ResponseMessage)
-    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData, # pylint: disable=unused-argument
+    async def process_snapshots_signals(self, device_snapshot_signals: SnapshotSignalsData,  # pylint: disable=unused-argument
                                         voxel_service: VoxelService = Depends(lambda: di[VoxelService])):
         """
         Process device snapshot signals

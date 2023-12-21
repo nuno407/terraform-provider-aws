@@ -11,6 +11,7 @@ from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo
 from artifact_api.voxel.voxel_metadata_transformer import VoxelMetadataTransformer
 
+
 @inject
 class VoxelService:
     """

@@ -1,8 +1,8 @@
 """ Voxel Base Sample Model """
 from abc import abstractmethod
+from typing import Optional, Any
 import logging
 from dataclasses import dataclass
-from typing import Any
 
 import fiftyone as fo
 import fiftyone.core.media as fom
@@ -27,14 +27,17 @@ class VoxelField:  # pylint: disable=too-few-public-methods
     """
     field_name: str
     field_type: fo.core.fields.Field
-    field_subtype: fo.core.fields.Field
+    field_subtype: Optional[fo.core.fields.Field]
+    field_embedded_type: Optional[fo.core.fields.EmbeddedDocumentField]
 
     def __init__(self,
                  field_name, field_type: fo.core.fields.Field,
-                 field_subtype: fo.core.fields.Field = None) -> None:
+                 field_subtype: fo.core.fields.Field = None,
+                 field_embedded_type: fo.core.fields.EmbeddedDocumentField = None) -> None:
         self.field_name = field_name
         self.field_type = field_type
         self.field_subtype = field_subtype
+        self.field_embedded_type = field_embedded_type
 
 
 class VoxelSample:  # pylint: disable=too-few-public-methods
@@ -125,17 +128,12 @@ class VoxelSample:  # pylint: disable=too-few-public-methods
         """ Function that setups the initial datatypes of the sample fields and his default values. """
         for field in cls._get_fields():
             if not dataset.has_sample_field(field.field_name):
-                if field.field_subtype is not None:
-                    dataset.add_sample_field(
-                        field_name=field.field_name,
-                        ftype=field.field_type,
-                        subfield=field.field_subtype
-                    )
-                else:
-                    dataset.add_sample_field(
-                        field_name=field.field_name,
-                        ftype=field.field_type
-                    )
+                dataset.add_sample_field(
+                    field_name=field.field_name,
+                    ftype=field.field_type,
+                    subfield=field.field_subtype,
+                    embedded_doc_type=field.field_embedded_type
+                )
         dataset.save()
 
     @classmethod

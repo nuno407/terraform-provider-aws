@@ -132,7 +132,7 @@ class TestVoxelService:
         policy_config = PolicyConfig(default_policy_document="test_doc")
         voxel_config = VoxelConfig(dataset_mapping=dataset_config, policy_mapping=policy_config)
         di[PolicyConfig] = policy_config
-        voxel_service = VoxelService(voxel_config=voxel_config)
+        voxel_service = VoxelService(voxel_config=voxel_config)  # pylint: disable=no-value-for-parameter
         fo.delete_datasets("*")
         for artifact in test_videos_artifacts:
             voxel_service.create_voxel_video(artifact)

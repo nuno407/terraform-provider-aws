@@ -1,3 +1,4 @@
+"""Voxel class reponsible for transforming a snapshot metadata into the respective voxel fields"""
 from dataclasses import dataclass
 from typing import Optional
 import logging
@@ -11,15 +12,20 @@ from artifact_api.voxel.utils import to_relative_coord, VoxelKPMapper
 
 _logger = logging.getLogger(__name__)
 
+
 @dataclass
 class VoxelMetadataFrameFields:
-    keypoints: list[fo.Keypoint]
-    classifications: list[fo.Classification]
+    """Voxel frame fields"""
+    keypoints: fo.Keypoints
+    classifications: fo.Classifications
+
+# pylint: disable=too-few-public-methods
+
 
 @inject
 class VoxelMetadataTransformer:
     """
-    Class transforming a snapshot metadata into the respective voxel fields.
+    Class responsible transforming a snapshot metadata into the respective voxel fields.
     """
 
     def __init__(self,
@@ -47,32 +53,35 @@ class VoxelMetadataTransformer:
 
         if len(metadata.frames) < 1:
             return VoxelMetadataFrameFields(None, None)
-        elif len(metadata.frames) > 1:
+        if len(metadata.frames) > 1:
             raise VoxelSnapshotMetadataError(
                 "There should be only one frame in the list of frames")
-        
-        keypoints = self.__get_pose_keypoints(metadata.frames[0], metadata.resolution)
-        classifications = self.__get_classifications(metadata.frames[0])
 
-        _logger.info("%d keypoints and %d classifications have been converted to voxel format", len(keypoints), len(classifications))
+        keypoints = self.get_pose_keypoints(metadata.frames[0], metadata.resolution)
+        classifications = self.get_classifications(metadata.frames[0])
 
-        return VoxelMetadataFrameFields(keypoints,classifications)
+        _logger.info(
+            "%d keypoints and %d classifications have been converted to voxel format",
+            len(keypoints),
+            len(classifications))
 
-    def __get_pose_keypoints(self, frame: MediaFrame, resolution: Resolution) -> list[fo.Keypoint]:
+        return VoxelMetadataFrameFields(keypoints, classifications)
+
+    def get_pose_keypoints(self, frame: MediaFrame, resolution: Resolution) -> fo.Keypoints:
         """
         Load keypoints from a Frame.
 
         Args:
             frame (MediaFrame): The frame from where to load the keypoints.
             resolution (Resolution): The resolution of the frame.
-        
+
         Returns:
-            list[fo.Keypoint]: The keypoints in voxel format.
+            fo.Keypoints: The keypoints in voxel format.
         """
 
         tmp_keypoints_voxel: list[fo.Keypoint] = []
 
-        for i,person in enumerate(frame.object_list.person_details):
+        for i, person in enumerate(frame.object_list.person_details):
             # If there is any keypoint missing it should be filled with None
             tmp_keypoints: list[tuple[Optional[float], Optional[float]]] = [
                 (None, None)] * len(VOXEL_KEYPOINTS_LABELS)
@@ -80,12 +89,17 @@ class VoxelMetadataTransformer:
                 0.0] * len(VOXEL_KEYPOINTS_LABELS)
 
             for keypoint in person.keypoints:
+
+                # Ensures that keypoints with confidence 0 are not loaded
+                if keypoint.conf < 0.000001:
+                    continue
+
                 keypoint_index: int = self.__kp_mapper.get_keypoint_index(
                     keypoint.name)
-                x = to_relative_coord(keypoint.x, resolution.width)
-                y = to_relative_coord(keypoint.y, resolution.height)
+                x_coord = to_relative_coord(keypoint.x, resolution.width)
+                y_coord = to_relative_coord(keypoint.y, resolution.height)
 
-                tmp_keypoints[keypoint_index] = (x, y)
+                tmp_keypoints[keypoint_index] = (x_coord, y_coord)
                 tmp_confidence[keypoint_index] = keypoint.conf
 
             voxel_keypoint = fo.Keypoint(
@@ -94,9 +108,9 @@ class VoxelMetadataTransformer:
                 confidence=tmp_confidence
             )
             tmp_keypoints_voxel.append(voxel_keypoint)
-        return tmp_keypoints_voxel
+        return fo.Keypoints(keypoints=tmp_keypoints_voxel)
 
-    def __get_classifications(self, frame: MediaFrame) -> list[fo.Classification]:
+    def get_classifications(self, frame: MediaFrame) -> fo.Classifications:
         """
         Get classifications from a Frame in voxel format.
 
@@ -104,7 +118,7 @@ class VoxelMetadataTransformer:
             frame (MediaFrame): The frame from where to load the classifications.
 
         Returns:
-            list[fo.Classification]: The classifications in voxel format.
+            fo.Classifications: The classifications in voxel format.
         """
 
         tmp_classifications: list[fo.Classification] = []
@@ -112,4 +126,4 @@ class VoxelMetadataTransformer:
             tmp_classifications.append(fo.Classification(
                 label=classification.name, confidence=classification.value))
 
-        return tmp_classifications
+        return fo.Classifications(classifications=tmp_classifications)

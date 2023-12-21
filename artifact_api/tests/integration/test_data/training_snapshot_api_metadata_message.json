@@ -1,4 +1,5 @@
 {
+    "artifact_name": "snapshot_signals_data",
     "message": {
         "tenant_id": "datanauts",
         "device_id": "DATANAUTS_DEV_01",
@@ -9,8 +10,8 @@
             "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900.jpeg",
             "artifact_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900",
             "recorder": "TrainingMultiSnapshot",
-            "timestamp": "2023-12-19T18:20:21.900000Z",
-            "end_timestamp": "2023-12-19T18:20:21.900000Z",
+            "timestamp": "2023-11-29T16:01:28.009000Z",
+            "end_timestamp": "2023-11-29T16:01:28.009000Z",
             "upload_timing": {
                 "start": "2023-12-19T17:20:27.219676Z",
                 "end": "2023-12-19T18:20:27.219676Z"
@@ -37,13 +38,13 @@
             "end": 37711
         },
         "chunk_utc": {
-            "start": "2023-12-19T18:20:21.900000Z",
-            "end": "2023-12-19T18:20:21.900000Z"
+            "start": "2023-11-29T16:01:28.009000Z",
+            "end": "2023-11-29T16:01:28.009000Z"
         },
         "frames": [
             {
                 "number": 7,
-                "timestamp": "2023-11-29T16:01:28.009000",
+                "timestamp": "2023-11-29T16:01:28.009000Z",
                 "object_list": {
                     "bool_attributes": [],
                     "float_attributes": [

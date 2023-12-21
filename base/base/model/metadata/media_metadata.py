@@ -5,11 +5,11 @@ TrainingRecorder, InteriorRecorder and TrainingMultiSnapshot
 THIS IS NOT SUPPORTED FOR PREVIEW METADATA
 (Due the way each classification is handled in the metadata)
 """
-import pytz
-
 from datetime import datetime
 from enum import Enum
 from typing import Any, Generic, Iterator, Optional, TypeVar
+
+import pytz
 
 from pydantic import Field, model_validator, AwareDatetime
 
@@ -30,29 +30,29 @@ class BoundingBox(ConfiguredBaseModel):
     height: int = Field(alias="Height")
 
 
-class KeypointNames(str, Enum):
+class MediaKeypointName(str, Enum):
     """ KeyPoints names in the metadata """
-    LEFTANKLE = "LeftAnkle"
-    LEFTEAR = "LeftEar"
-    LEFTELBOW = "LeftElbow"
-    LEFTEYE = "LeftEye"
-    LEFTHIP = "LeftHip"
-    LEFTKNEE = "LeftKnee"
-    LEFTSHOULDER = "LeftShoulder"
-    LEFTWRIST = "LeftWrist"
+    LEFT_ANKLE = "LeftAnkle"
+    LEFT_EAR = "LeftEar"
+    LEFT_ELBOW = "LeftElbow"
+    LEFT_EYE = "LeftEye"
+    LEFT_HIP = "LeftHip"
+    LEFT_KNEE = "LeftKnee"
+    LEFT_SHOULDER = "LeftShoulder"
+    LEFT_WRIST = "LeftWrist"
     NECK = "Neck"
     NOSE = "Nose"
-    RIGHTANKLE = "RightAnkle"
-    RIGHTEAR = "RightEar"
-    RIGHTELBOW = "RightElbow"
-    RIGHTEYE = "RightEye"
-    RIGHTHIP = "RightHip"
-    RIGHTKNEE = "RightKnee"
-    RIGHTSHOULDER = "RightShoulder"
-    RIGHTWRIST = "RightWrist"
+    RIGHT_ANKLE = "RightAnkle"
+    RIGHT_EAR = "RightEar"
+    RIGHT_ELBOW = "RightElbow"
+    RIGHT_EYE = "RightEye"
+    RIGHT_HIP = "RightHip"
+    RIGHT_KNEE = "RightKnee"
+    RIGHT_SHOULDER = "RightShoulder"
+    RIGHT_WRIST = "RightWrist"
 
 
-KeyPointIDs = {keypoint_name: i for i, keypoint_name in enumerate(KeypointNames)}
+KeyPointIDs = {keypoint_name: i for i, keypoint_name in enumerate(MediaKeypointName)}
 
 T = TypeVar("T", float, int, bool, str)
 KeyPointName = TypeVar("KeyPointName")
@@ -74,7 +74,7 @@ class Classification(ConfiguredBaseModel, Generic[T]):
 
 class PersonDetails(ConfiguredBaseModel):
     """Pose containing person deails"""
-    keypoints: list[MediaKeyPoint[KeypointNames]] = Field(alias="KeyPoint", default_factory=list)
+    keypoints: list[MediaKeyPoint[MediaKeypointName]] = Field(alias="KeyPoint", default_factory=list)
     confidence: float = Field(alias="Confidence")
 
 
@@ -91,7 +91,7 @@ class ObjectList(ConfiguredBaseModel):
     @classmethod
     def flatten_objects(cls, data: Any) -> Any:
         """Flatten objects it ensures the attributes match the specified model"""
-        
+
         # This allows the ObjectList to be parsed by a json already in the correct format
         if not isinstance(data, list):
             return data
@@ -209,11 +209,11 @@ class MediaMetadata(BaseMetadata):
         # This allows a MediaMetadata to be parsed by a json already in the correct format
         if "chunkUtc" not in data or not data["chunkUtc"]["utc_start"].isdigit():
             return data
-        
+
         utc_timestamp_reference = int(data["chunkUtc"]["utc_start"])
         pts_timestamp_reference = int(data["chunkPts"]["pts_start"])
 
-        for entry in data["frame"]:
+        for entry in data.get("frame", []):
             entry["utc_timestamp_reference"] = utc_timestamp_reference
             entry["pts_timestamp_reference"] = pts_timestamp_reference
         return data
