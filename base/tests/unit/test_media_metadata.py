@@ -1,5 +1,7 @@
 "Test metadata artifacts"
+from datetime import datetime
 import pytest
+import pytz
 from base.model.metadata.media_metadata import MediaMetadata
 from base.testing.utils import load_relative_str_file
 
@@ -26,6 +28,18 @@ class TestMediametadata:
         assert next(model.get_float("CameraViewBlocked")).value == 0.948
         assert next(model.get_integer("intTest")).value == 1
         assert next(model.get_string("strTest")).value == "test"
+
+    @pytest.mark.unit
+    def test_media_artifact_timecalculation(self):
+        """
+        Test snapshot artifact
+        """
+        data = load_metadata_artifacts(
+            "datanauts_DATANAUTS_TEST_01_TrainingMultiSnapshot_TrainingMultiSnapshot-1fb80ea2-7460-4388-8f96-b7676b36ff94_1_1697040352931_metadata_full.json")
+        model = MediaMetadata.model_validate_json(data)
+
+        assert isinstance(model, MediaMetadata)
+        assert model.frames[0].timestamp == datetime(2023, 10, 11, 16, 5, 52, 902000, tzinfo=pytz.UTC)
 
     @pytest.mark.unit
     @pytest.mark.parametrize("snapshot_json", [

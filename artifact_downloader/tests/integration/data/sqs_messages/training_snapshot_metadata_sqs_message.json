@@ -1,0 +1,39 @@
+{
+    "MessageId": "7f83c9bc-9442-4577-80a1-d75aa1c3de41",
+    "ReceiptHandle": "AQEBzra8zdz086yOLOevu8UhjolhvXSs3eNcpsjHC6JzQTfeAm5mPzKlZ2UjC8YNQxQ9wOrX8MjrRiBIosK+5QMGmnM198OgQa/Wzm/pquSFArMm1EIemNxpQXLN1VlHGISs84ZNfavAJ8+TS3j7G9hwK5AISd6liQy1vXVlZ6X6B1APCCOj5bnIb9En/pHHEKkLJIgUt76pwDvYIej22SK1oaMPS43h9Y/GrD1B7lu5IC+3xRTd1lRfdBACGG3byCpTnvrvjAoVldxyq3p/k+gU3fcQ2WQeCiHXGk5z52wEV5N1c/BPZ9xbnpyQzz6ENvDaQrxU2xkr3HqpwK5L8XwH4YfJi2JaZKbpY5Qm0b+Ll3Q+7uQiRQ1A/3hiJvfZsavcULVc6TfRHgaufa+kUBPq8Rkb3K0voPGFu49cYCTwLBGdhENFm430J+7TjKtDF4ki",
+    "MD5OfBody": "3eed446d8ec59c924f3408e0e78ccb77",
+    "Body": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900_metadata_full.json",
+        "referred_artifact": {
+            "tenant_id": "datanauts",
+            "device_id": "DATANAUTS_DEV_01",
+            "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900.jpeg",
+            "artifact_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900",
+            "recorder": "TrainingMultiSnapshot",
+            "timestamp": "2023-11-29T16:01:28.009000Z",
+            "end_timestamp": "2023-11-29T16:01:28.009000Z",
+            "upload_timing": {
+                "start": "2023-12-19T17:20:27.219676Z",
+                "end": "2023-12-19T18:20:27.219676Z"
+            },
+            "artifact_name": "snapshot",
+            "uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13.jpeg",
+            "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900.jpeg",
+            "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900_anonymized.jpeg"
+        },
+        "metadata_type": "metadata_full",
+        "artifact_name": "raw_signals"
+    },
+    "Attributes": {
+        "SentTimestamp": "1701182633998",
+        "ApproximateReceiveCount": "1"
+    },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "SDRetriever",
+            "DataType": "String"
+        }
+    }
+}

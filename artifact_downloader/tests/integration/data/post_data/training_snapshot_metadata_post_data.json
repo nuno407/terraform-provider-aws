@@ -1,0 +1,856 @@
+{
+    "artifact_name": "snapshot_signals_data",
+    "message": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900_metadata_full.json",
+        "referred_artifact": {
+            "tenant_id": "datanauts",
+            "device_id": "DATANAUTS_DEV_01",
+            "s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900.jpeg",
+            "artifact_id": "datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900",
+            "recorder": "TrainingMultiSnapshot",
+            "timestamp": "2023-11-29T16:01:28.009000Z",
+            "end_timestamp": "2023-11-29T16:01:28.009000Z",
+            "upload_timing": {
+                "start": "2023-12-19T17:20:27.219676Z",
+                "end": "2023-12-19T18:20:27.219676Z"
+            },
+            "artifact_name": "snapshot",
+            "uuid": "TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13.jpeg",
+            "raw_s3_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900.jpeg",
+            "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/datanauts_DATANAUTS_DEV_01_TrainingMultiSnapshot_TrainingMultiSnapshot-ff94594b-aff9-495a-ad6d-355860dcf481_13_1703010021900_anonymized.jpeg"
+        },
+        "metadata_type": "metadata_full",
+        "artifact_name": "raw_signals"
+    },
+    "data": {
+        "resolution": {
+            "width": 1280,
+            "height": 720
+        },
+        "metadata_version": "unknown",
+        "pose_network_version": "",
+        "segmentation_network_version": "",
+        "cve_reference_file": "",
+        "chunk_pts": {
+            "start": 37711,
+            "end": 37711
+        },
+        "chunk_utc": {
+            "start": "2023-11-29T16:01:28.009000Z",
+            "end": "2023-11-29T16:01:28.009000Z"
+        },
+        "frames": [
+            {
+                "number": 7,
+                "timestamp": "2023-11-29T16:01:28.009000Z",
+                "object_list": {
+                    "bool_attributes": [],
+                    "float_attributes": [
+                        {
+                            "name": "CameraViewBlocked",
+                            "value": 0.675
+                        }
+                    ],
+                    "string_attributes": [],
+                    "integer_attributes": [],
+                    "bbox_attributes": [],
+                    "person_details": [
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 533.0,
+                                    "y": 399.0,
+                                    "conf": 0.786
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 513.0,
+                                    "y": 327.0,
+                                    "conf": 0.698
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 554.0,
+                                    "y": 399.0,
+                                    "conf": 0.826
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 508.0,
+                                    "y": 308.0,
+                                    "conf": 0.522
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 514.0,
+                                    "y": 375.0,
+                                    "conf": 0.748
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 561.0,
+                                    "y": 301.0,
+                                    "conf": 0.771
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 525.0,
+                                    "y": 389.0,
+                                    "conf": 0.714
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 560.0,
+                                    "y": 395.0,
+                                    "conf": 0.794
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 540.0,
+                                    "y": 405.0,
+                                    "conf": 0.674
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 564.0,
+                                    "y": 402.0,
+                                    "conf": 0.815
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 488.0,
+                                    "y": 309.0,
+                                    "conf": 0.36
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 542.0,
+                                    "y": 390.0,
+                                    "conf": 0.472
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 293.0,
+                                    "y": 356.0,
+                                    "conf": 0.794
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 297.0,
+                                    "y": 320.0,
+                                    "conf": 0.612
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 286.0,
+                                    "y": 356.0,
+                                    "conf": 0.751
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 302.0,
+                                    "y": 343.0,
+                                    "conf": 0.78
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 297.0,
+                                    "y": 310.0,
+                                    "conf": 0.573
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 300.0,
+                                    "y": 321.0,
+                                    "conf": 0.558
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 302.0,
+                                    "y": 302.0,
+                                    "conf": 0.629
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 315.0,
+                                    "y": 347.0,
+                                    "conf": 0.734
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 298.0,
+                                    "y": 310.0,
+                                    "conf": 0.522
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 299.0,
+                                    "y": 349.0,
+                                    "conf": 0.816
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 285.0,
+                                    "y": 354.0,
+                                    "conf": 0.719
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 302.0,
+                                    "y": 303.0,
+                                    "conf": 0.731
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 300.0,
+                                    "y": 283.0,
+                                    "conf": 0.63
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 106.0,
+                                    "y": 332.0,
+                                    "conf": 0.313
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 93.0,
+                                    "y": 371.0,
+                                    "conf": 0.543
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 82.0,
+                                    "y": 378.0,
+                                    "conf": 0.576
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 79.0,
+                                    "y": 391.0,
+                                    "conf": 0.465
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 77.0,
+                                    "y": 391.0,
+                                    "conf": 0.452
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 88.0,
+                                    "y": 343.0,
+                                    "conf": 0.2
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 89.0,
+                                    "y": 318.0,
+                                    "conf": 0.244
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 74.0,
+                                    "y": 371.0,
+                                    "conf": 0.544
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 925.0,
+                                    "y": 657.0,
+                                    "conf": 0.394
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 1017.0,
+                                    "y": 681.0,
+                                    "conf": 0.302
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 1112.0,
+                                    "y": 330.0,
+                                    "conf": 0.124
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 488.0,
+                                    "y": 333.0,
+                                    "conf": 0.322
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 490.0,
+                                    "y": 393.0,
+                                    "conf": 0.543
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 569.0,
+                                    "y": 308.0,
+                                    "conf": 0.279
+                                }
+                            ],
+                            "confidence": 0.0
+                        },
+                        {
+                            "keypoints": [
+                                {
+                                    "name": "LeftAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftElbow",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "LeftWrist",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Neck",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "Nose",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightAnkle",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightEar",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightElbow",
+                                    "x": 382.0,
+                                    "y": 328.0,
+                                    "conf": 0.471
+                                },
+                                {
+                                    "name": "RightEye",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightHip",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightKnee",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightShoulder",
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "conf": 0.0
+                                },
+                                {
+                                    "name": "RightWrist",
+                                    "x": 380.0,
+                                    "y": 318.0,
+                                    "conf": 0.44
+                                }
+                            ],
+                            "confidence": 0.0
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

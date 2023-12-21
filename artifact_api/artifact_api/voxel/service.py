@@ -5,7 +5,7 @@ from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
-from base.model.metadata.api_messages import SnapshotSignalsData
+from base.model.artifacts.api_messages import SnapshotSignalsData
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo

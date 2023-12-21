@@ -5,11 +5,13 @@ TrainingRecorder, InteriorRecorder and TrainingMultiSnapshot
 THIS IS NOT SUPPORTED FOR PREVIEW METADATA
 (Due the way each classification is handled in the metadata)
 """
+import pytz
+
 from datetime import datetime
 from enum import Enum
 from typing import Any, Generic, Iterator, Optional, TypeVar
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, AwareDatetime
 
 from base.model.base_model import ConfiguredBaseModel
 from base.model.metadata.base_metadata import (BaseFrame, BaseMetadata,
@@ -91,11 +93,8 @@ class ObjectList(ConfiguredBaseModel):
         """Flatten objects it ensures the attributes match the specified model"""
         
         # This allows the ObjectList to be parsed by a json already in the correct format
-        if "float_attributes" in data:
-            return data
-            
         if not isinstance(data, list):
-            raise ValueError("ObjectList should be a list")
+            return data
 
         object_list: dict[str, list[Any]] = {
             "boolAttributes": [],
@@ -126,7 +125,7 @@ class ObjectList(ConfiguredBaseModel):
 class MediaFrame(BaseFrame):
     """Single frame of the metadata"""
     number: int
-    timestamp: datetime
+    timestamp: AwareDatetime
     object_list: ObjectList = Field(alias="objectlist")
 
     @model_validator(mode="before")
@@ -140,7 +139,7 @@ class MediaFrame(BaseFrame):
 
         delta_timestamp_pts = int(data["timestamp"]) - data["pts_timestamp_reference"]
         actual_timestamp = data["utc_timestamp_reference"] + delta_timestamp_pts
-        data["timestamp"] = datetime.fromtimestamp(actual_timestamp / 1000)
+        data["timestamp"] = datetime.fromtimestamp(actual_timestamp / 1000, tz=pytz.UTC)
         del data["utc_timestamp_reference"]
         del data["pts_timestamp_reference"]
         return data
@@ -208,7 +207,7 @@ class MediaMetadata(BaseMetadata):
         in order for each frame be able to caculate it's utc timestamp
         """
         # This allows a MediaMetadata to be parsed by a json already in the correct format
-        if "chunkUtc" not in data:
+        if "chunkUtc" not in data or not data["chunkUtc"]["utc_start"].isdigit():
             return data
         
         utc_timestamp_reference = int(data["chunkUtc"]["utc_start"])

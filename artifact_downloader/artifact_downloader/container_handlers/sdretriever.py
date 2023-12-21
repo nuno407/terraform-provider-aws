@@ -2,7 +2,7 @@
 from requests import Request
 from kink import inject
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, SignalsArtifact
-from base.model.metadata.api_messages import SnapshotSignalsData
+from base.model.artifacts.api_messages import SnapshotSignalsData
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.s3_downloader import S3Downloader
 from artifact_downloader.message.incoming_messages import SDRetrieverMessage
@@ -33,7 +33,7 @@ class SDRContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
         if isinstance(message.body, SnapshotArtifact):
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_snapshot, message.body)
         if isinstance(message.body, SignalsArtifact) and isinstance(message.body.referred_artifact, SnapshotArtifact):
-            downloaded_file = self.__s3_downloader.download_convert_json(message.body.referred_artifact.s3_path)
+            downloaded_file = self.__s3_downloader.download_convert_json(message.body.s3_path)
             model = SnapshotSignalsData.model_validate({"data":downloaded_file,"message":message.body})
             return self.__api_request_factory.generate_request_from_artifact(self.__endpoint_snapshot_signals, model)
 

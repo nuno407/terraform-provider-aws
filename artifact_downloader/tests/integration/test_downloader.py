@@ -74,6 +74,12 @@ class TestAPIDownloader:
                 "imu_processing_s3_state.json",
                 "ridecare/imu/video",
                 "imu_processing_post_data.json",
+            ),
+            (
+                "training_snapshot_metadata_sqs_message.json",
+                "training_snapshot_metadata_s3_state.json",
+                "ridecare/signals/snapshot",
+                "training_snapshot_metadata_post_data.json",
             )
         ],
         ids=["snapshot_test_success",
@@ -85,7 +91,8 @@ class TestAPIDownloader:
             "sanitizer_camera_blocked_operator_artifact",
             "sanitizer_people_count_operator_artifact",
             "sanitizer_sos_operator_artifact",
-            "imu_processing_test_success"
+            "imu_processing_test_success",
+            "training_snapshot_metadata_test_success"
         ],
         indirect=["endpoint"])
     # autopep8: on
@@ -140,11 +147,15 @@ class TestAPIDownloader:
         # WHEN
         main_function()
 
+        with open("test.json", "w") as file:
+            import json
+            json.dump(success_adapter.last_request.json(), file)
+
         # THEN
         input_queue_controller.delete_message.assert_called_once()
         # Assert mock requests
         assert success_adapter.called_once
-        assert parse_all_models(success_adapter.last_request.json()) == post_data_model
+        assert parse_all_models(success_adapter.last_request.json()).model_dump() == post_data_model.model_dump()
 
     # autopep8: off
     @pytest.mark.integration

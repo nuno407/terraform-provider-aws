@@ -1,6 +1,7 @@
 """Module used to automatically load data into multiple fake S3 buckets"""
 import os
 import json
+import logging
 from datetime import datetime
 from typing import Any, cast, Optional
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ from mypy_boto3_s3 import S3Client
 import moto  # type: ignore
 from base.aws.s3 import S3Controller
 
+_logger = logging.getLogger(__name__)
 
 class MockS3File(BaseModel):
     """Represents a File in S3"""
@@ -125,6 +127,7 @@ class S3StateLoader:
 
         for file_to_load in files_to_load:
             bucket, key = S3Controller.get_s3_path_parts(file_to_load.s3_path)
+            _logger.info("Loading file %s in bucket %s with data_size=%d", key, bucket, len(file_to_load.data))
             self.s3_client.put_object(Bucket=bucket, Key=key, Body=file_to_load.data)
 
             # Replace date modified

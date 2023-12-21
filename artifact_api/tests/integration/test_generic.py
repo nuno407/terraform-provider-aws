@@ -83,7 +83,7 @@ class TestGeneric:
 
         # Tests snapshot metadata
         (
-            [get_json_message("training_snapshot_metadata_message.json")],
+            [get_json_message("training_snapshot_api_metadata_message.json")],
             "/ridecare/signals/snapshot",
             "voxel_config.yml",
             "mongo_config.yml",
