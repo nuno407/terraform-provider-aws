@@ -110,6 +110,7 @@ class DBIncidentEventArtifact(ConfiguredBaseModel):
     event_name: str = Field(default=...)
     incident_type: IncidentType = Field(default=IncidentType.UNKNOWN)
     bundle_id: Optional[str] = Field(default=None)
+    imu_available: Optional[bool] = Field(default=None)
 
 
 class DBSnapshotArtifact(ConfiguredBaseModel):
@@ -120,7 +121,7 @@ class DBSnapshotArtifact(ConfiguredBaseModel):
     media_type: Literal["image"] = Field(default="image", alias="_media_type")
     filepath: Optional[str]
     recording_overview: Optional[DBSnapshotRecordingOverview]
-    upload_rules: Optional[list[DBVideoUploadRule]] = Field(default=None)
+    upload_rules: Optional[list[DBSnapshotUploadRule]] = Field(default=None)
 
 
 class DBS3VideoArtifact(ConfiguredBaseModel):

@@ -303,8 +303,8 @@ class MongoController:  # pylint:disable=too-many-arguments
         _logger.debug("Updating metadata shutdowns with filter=(%s) and update=(%s)",
                       str(filter_query_shutdowns), str(update_query_shutdowns))
 
-        await self.__event_engine.update_many(filter=filter_query_events, update=update_query_events)
-        await self.__event_engine.update_many(filter=filter_query_shutdowns, update=update_query_shutdowns)
+        await self.__event_engine.update_many(filter_query_events, update_query_events)
+        await self.__event_engine.update_many(filter_query_shutdowns, update_query_shutdowns)
 
     async def _insert_mdf_imu_data(self, imu_data: list[IMUSample]) -> tuple[list[TimeRange], str, str]:
         """
@@ -336,11 +336,12 @@ class MongoController:  # pylint:disable=too-many-arguments
             imu_data_artifact (IMUDataArtifact): _description_
         """
 
-        imu_data: list[IMUSample] = imu_data_artifact.data
+        imu_data: list[IMUSample] = imu_data_artifact.data.root
         imu_artifact: IMUArtifact = imu_data_artifact.message
         _logger.debug("Inserting IMU data from artifact: %s",
                       str(imu_artifact))
         imu_ranges, imu_tenant, imu_device = await self._insert_mdf_imu_data(imu_data)
+
         for imu_range in imu_ranges:
             await self._update_events(imu_range, imu_tenant, imu_device, "imu")
 

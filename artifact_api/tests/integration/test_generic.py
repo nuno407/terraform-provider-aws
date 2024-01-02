@@ -1,7 +1,7 @@
 # pylint: disable=too-many-arguments, unused-argument, too-few-public-methods
 """ Integration test. """
 import os
-from typing import Optional
+from typing import Optional, Union
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 from base.testing.utils import load_relative_json_file
@@ -19,7 +19,7 @@ class TestGeneric:
     Class that tests the entire component end2end
     """
     @ pytest.mark.integration
-    @ pytest.mark.parametrize("input_json_message_list, endpoint, voxel_config, \
+    @ pytest.mark.parametrize("input_json_message_list, endpoints, voxel_config, \
                               mongo_api_config, expected_mongo_state, expected_voxel_state", [
         # Test snapshot
         (
@@ -62,6 +62,23 @@ class TestGeneric:
             "mongo_config.yml",
             "mongo_operator_state.json",
             None,
+        ),
+        # Tests IMU data and event updates
+        (
+            [
+                get_json_message("device_incident_event_api_message.json"),
+                get_json_message("device_incident_event_outside_imu_api_message.json"),
+                get_json_message("imu_api_message.json")
+            ],
+            [
+                "/ridecare/event",
+                "/ridecare/event",
+                "/ridecare/imu/video"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_imu_state.json",
+            None,
         )
 
     ],
@@ -69,11 +86,12 @@ class TestGeneric:
         "test_snap_artifact",
         "test_video_artifact",
         "test_events_artifact",
-        "test_sav_artifact"],
+        "test_sav_artifact",
+        "test_imu_artifact"],
         indirect=["mongo_api_config", "voxel_config"])
     async def test_component(self,
                              input_json_message_list: list[dict],
-                             endpoint: str,
+                             endpoints: Union[str, list[str]],
                              voxel_config: str,
                              mongo_api_config: str,
                              expected_mongo_state: Optional[str],
@@ -94,9 +112,11 @@ class TestGeneric:
             metadata_sqs_controller (SQSController): _description_
             main_function (Callable): _description_
         """
+        if isinstance(endpoints, str):
+            endpoints = [endpoints for _ in input_json_message_list]
 
         # WHEN
-        for input_json_message in input_json_message_list:
+        for input_json_message, endpoint in zip(input_json_message_list, endpoints):
             response = await api_client.post(endpoint, json=input_json_message)
             assert response.status_code == 200
 

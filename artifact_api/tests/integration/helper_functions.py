@@ -30,6 +30,25 @@ def assert_json_dict(real_dict: dict, expected_dict: dict):
     assert converted_real == converted_expected
 
 
+async def dump_mongo_db(mongo_client: AsyncIOMotorClient):
+    """ Helper function that can be used to dump the mongo database into a file for debug purposes"""
+    dump_data = {}
+    # Dump everything from mongo into a file
+    for database in await mongo_client.list_database_names():
+        db_dump = {}
+        for collection in await mongo_client[database].list_collection_names():
+            docs = await mongo_client[database][collection].find().to_list(length=None)
+            real_docs = list(docs)
+            for doc in real_docs:
+                del doc["_id"]
+            db_dump[collection] = real_docs
+
+        dump_data[database] = db_dump
+
+    with open("mongo_dump.json", "w", encoding="utf-8") as file:
+        json.dump(dump_data, file, default=__serialize_datetime)
+
+
 async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
     """
     Checks if a json file is presented in the database.
@@ -53,6 +72,7 @@ async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
         file_name (str): Name of the expected json file (present under test_data)
         mongo_client (MongoMockClient): A mock for the mongo client
     """
+
     mongo_expected_data: dict[str, dict[str, Any]] = load_relative_json_file(
         __file__, os.path.join("test_data/mongo_states", file_name))
 

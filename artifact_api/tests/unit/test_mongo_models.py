@@ -10,7 +10,7 @@ from base.model.event_types import (CameraServiceState, EventType,
 from artifact_api.models.mongo_models import (DBSnapshotRecordingOverview, DBSnapshotArtifact,
                                               DBCameraServiceEventArtifact, DBDeviceInfoEventArtifact,
                                               DBIncidentEventArtifact, DBS3VideoArtifact,
-                                              DBVideoRecordingOverview)
+                                              DBVideoRecordingOverview, DBSnapshotUploadRule)
 
 
 @mark.unit
@@ -104,13 +104,29 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         Args:
             db_snapshot_recording_overview (DBSnapshotRecordingOverview): DB Snapshot Artifact mongodb model
         """
+        valid_db_rule = DBSnapshotUploadRule(
+            name="mock_name",
+            version="mock_version",
+            snapshot_timestamp=datetime(2023, 1, 1, tzinfo=timezone.utc),
+            origin="MANUAL_UPLOAD"
+        )
 
-        valid_db_snapshot_artifact = DBSnapshotArtifact(
+        valid_db_snapshot_artifact_no_rules = DBSnapshotArtifact(
             video_id="mock_video_id",
             filepath="s3://bucket/key",
             recording_overview=db_snapshot_recording_overview
         )
 
+        valid_db_snapshot_artifact = DBSnapshotArtifact(
+            video_id="mock_video_id",
+            filepath="s3://bucket/key",
+            recording_overview=db_snapshot_recording_overview,
+            upload_rules=[valid_db_rule],
+        )
+
+        assert valid_db_snapshot_artifact_no_rules.video_id == "mock_video_id"
+
+        assert valid_db_snapshot_artifact.upload_rules == [valid_db_rule]
         assert valid_db_snapshot_artifact.video_id == "mock_video_id"
         assert valid_db_snapshot_artifact.media_type == "image"
         assert valid_db_snapshot_artifact.filepath == "s3://bucket/key"

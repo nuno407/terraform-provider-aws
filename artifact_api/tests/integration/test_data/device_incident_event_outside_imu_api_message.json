@@ -1,7 +1,7 @@
 {
     "tenant_id": "datanauts",
     "device_id": "DATANAUTS_DEV_02",
-    "timestamp": "2023-12-15T17:42:45.750000+00:00",
+    "timestamp": "2023-11-15T17:42:46+00:00",
     "event_name": "com.bosch.ivs.incident.IncidentEvent",
     "artifact_name": "incident_info",
     "incident_type": "INCIDENT_TYPE__PANIC"

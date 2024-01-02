@@ -60,9 +60,9 @@
                 "tenant_id": "deepsensation"
             },
             {
-                "tenant_id": "rubber_duck",
-                "device_id": "srx_herbie_dev_hw_06",
-                "timestamp": "2023-10-25T08:16:17+00:00",
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "timestamp": "2023-12-15T17:42:45.750000+00:00",
                 "event_name": "com.bosch.ivs.incident.IncidentEvent",
                 "artifact_name": "incident_info",
                 "incident_type": "INCIDENT_TYPE__PANIC"

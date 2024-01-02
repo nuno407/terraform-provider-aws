@@ -4,7 +4,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, call
 from pytest import mark
 import pytz
-from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample, IMUProcessedData
 from base.model.artifacts import IMUProcessingResult
 from base.testing.utils import load_relative_json_file
 from artifact_api.models.mongo_models import (DBIMUSample)
@@ -39,7 +39,8 @@ def _generate_imu_data_artifact(filename: str) -> IMUDataArtifact:
         correlation_id=filename.split(".")[0]
     )
 
-    imu_data = IMUDataArtifact(message=message, data=_helper_load_imu_file(filename))
+    data = IMUProcessedData.model_validate(_helper_load_imu_file(filename))
+    imu_data = IMUDataArtifact(message=message, data=data)
     return imu_data
 
 
@@ -83,7 +84,7 @@ class TestControllerIMU:  # pylint: disable=protected-access, duplicate-code
         await mongo_controller.process_imu_artifact(imu_data_artifact)
 
         # THEN
-        mongo_controller._insert_mdf_imu_data.assert_called_once_with(imu_data_artifact.data)
+        mongo_controller._insert_mdf_imu_data.assert_called_once_with(imu_data_artifact.data.root)
         mongo_controller._update_events.assert_has_calls([
             call(rng, "datanauts", "DATANAUTS_DEV_01", "imu") for rng in time_ranges])
 
@@ -175,15 +176,15 @@ class TestControllerIMU:  # pylint: disable=protected-access, duplicate-code
 
         # THEN
         event_engine.update_many.assert_has_calls([
-            call(filter=expected_query_events,
-                 update={
+            call(expected_query_events,
+                 {
                      "$set": {
                          data_type + "_available": True
                      }
                  }
                  ),
-            call(filter=expected_query_shutdowns,
-                 update={
+            call(expected_query_shutdowns,
+                 {
                      "$set": {
                          "last_shutdown." + data_type + "_available": True
                      }
