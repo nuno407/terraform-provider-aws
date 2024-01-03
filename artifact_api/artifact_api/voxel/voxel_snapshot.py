@@ -4,7 +4,7 @@ from typing import Any
 import fiftyone as fo
 from base.voxel.constants import POSE_LABEL, CLASSIFICATION_LABEL
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import SnapshotArtifact, SignalsArtifact
+from base.model.artifacts import SnapshotArtifact
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadSnapshotRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelSample, VoxelField
@@ -63,8 +63,8 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
             cls.Fields.VIDEO_ID.value: artifact.artifact_id,
             cls.Fields.TENANT_ID.value: artifact.tenant_id,
             cls.Fields.DEVICE_ID.value: artifact.device_id,
-            cls.Fields.RECORDING_TIME.value: artifact.timestamp,
             cls.Fields.SOURCE_VIDEOS.value: VoxelSample._append_to_list("source_videos", correlated_anonymized_filepaths),  # pylint: disable=line-too-long
+            cls.Fields.RECORDING_TIME.value: artifact.timestamp
         }
         cls._upsert_sample(artifact.tenant_id, dataset, anonymized_filepath, values_to_set)
 
@@ -99,20 +99,18 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
     def load_metadata(
             cls,
             dataset: fo.Dataset,
-            signals_artifact: SignalsArtifact,
+            sample_anonymized_s3_path: str,
+            tenant_id: str,
             field_values: VoxelMetadataFrameFields):
         """ Loads the metadata from the signals artifact into the dataset."""
 
-        values_to_set: dict[VoxelField, Any] = {}
-
-        if len(field_values.keypoints) > 0:
-            values_to_set[cls.Fields.KEYPOINTS.value] = field_values.keypoints
-
-        if len(field_values.classifications) > 0:
-            values_to_set[cls.Fields.CLASSIFICATIONS.value] = field_values.classifications
+        values_to_set: dict[VoxelField, Any] = {
+            cls.Fields.KEYPOINTS.value: field_values.keypoints,
+            cls.Fields.CLASSIFICATIONS.value: field_values.classifications
+        }
 
         cls._upsert_sample(
-            tenant_id=signals_artifact.tenant_id,
+            tenant_id=tenant_id,
             dataset=dataset,
-            anonymized_filepath=signals_artifact.referred_artifact.anonymized_s3_path,
+            anonymized_filepath=sample_anonymized_s3_path,
             values_to_set=values_to_set)

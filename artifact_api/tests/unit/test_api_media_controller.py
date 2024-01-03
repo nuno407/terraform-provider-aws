@@ -9,31 +9,6 @@ from artifact_api.api.media_controller import MediaController
 class TestMediaController:  # pylint: disable=duplicate-code
     "Unit tests for media_controller endpoints"
 
-    @pytest.fixture(name="media_controller")
-    def fixture_generate_voxel_service(self) -> MediaController:
-        """generate MediaController
-        """
-        return MediaController()
-
-    @pytest.fixture(name="mock_mongo_service")
-    def fixture_mongo_service(self) -> AsyncMock:
-        """mocks mongo_service function
-        """
-        var = AsyncMock()
-        var.get_correlated_snapshots_for_video = AsyncMock()
-        var.upsert_video = AsyncMock()
-        var.update_snapshots_correlations = AsyncMock()
-        return var
-
-    @pytest.fixture(name="mock_voxel_service")
-    def fixture_voxel_service(self) -> Mock:
-        """mocks voxel_service function
-        """
-        var = Mock()
-        var.update_voxel_videos_with_correlated_snapshot = Mock()
-        var.create_voxel_video = Mock()
-        return var
-
     @pytest.fixture()
     def video_artifact(self) -> S3VideoArtifact:
         """VideoArtifact for testing."""

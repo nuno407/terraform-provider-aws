@@ -93,10 +93,15 @@ class VoxelService:
         """
         Add the metadata from the signals artifact to the sample
         """
+        tenant_id = signals_message.message.tenant_id
         dataset_name, tags = determine_dataset_name(
             tenant=signals_message.message.tenant_id,
             is_snapshot=True,
             mapping_config=self.__voxel_config.dataset_mapping)
         dataset = create_dataset(dataset_name, tags)
         voxel_fields = self.__metadata_transformer.transform_snapshot_metadata_to_voxel(signals_message.data)
-        VoxelSnapshot.load_metadata(dataset, signals_message.message, voxel_fields)
+        VoxelSnapshot.load_metadata(
+            dataset,
+            signals_message.message.referred_artifact.anonymized_s3_path,
+            tenant_id,
+            voxel_fields)

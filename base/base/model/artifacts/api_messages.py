@@ -79,7 +79,7 @@ class CHCDataResult(ConfiguredBaseModel):
     artifact_name: Literal["chc_data_result"] = "chc_data_result"
     id: str
     chc_path: str
-    data: MediaMetadata
+    data: VideoSignalsData
 
 
 APIMessages = Union[SnapshotSignalsData, IMUDataArtifact, CHCDataResult]

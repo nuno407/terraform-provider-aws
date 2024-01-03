@@ -19,8 +19,6 @@ class VoxelMetadataFrameFields:
     keypoints: fo.Keypoints
     classifications: fo.Classifications
 
-# pylint: disable=too-few-public-methods
-
 
 @inject
 class VoxelMetadataTransformer:
@@ -52,7 +50,7 @@ class VoxelMetadataTransformer:
         """
 
         if len(metadata.frames) < 1:
-            return VoxelMetadataFrameFields(None, None)
+            return VoxelMetadataFrameFields(fo.Keypoints(keypoints=[]), fo.Classifications(classifications=[]))
         if len(metadata.frames) > 1:
             raise VoxelSnapshotMetadataError(
                 "There should be only one frame in the list of frames")
@@ -62,8 +60,8 @@ class VoxelMetadataTransformer:
 
         _logger.info(
             "%d keypoints and %d classifications have been converted to voxel format",
-            len(keypoints),
-            len(classifications))
+            len(keypoints.keypoints),
+            len(classifications.classifications))
 
         return VoxelMetadataFrameFields(keypoints, classifications)
 
@@ -91,7 +89,7 @@ class VoxelMetadataTransformer:
             for keypoint in person.keypoints:
 
                 # Ensures that keypoints with confidence 0 are not loaded
-                if keypoint.conf < 0.000001:
+                if keypoint.conf <= 0.01:
                     continue
 
                 keypoint_index: int = self.__kp_mapper.get_keypoint_index(

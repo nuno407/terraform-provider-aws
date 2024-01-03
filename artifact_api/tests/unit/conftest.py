@@ -1,18 +1,20 @@
 """conftest contains common fixtures and mocks for all unit tests"""
-
-import sys
-from unittest.mock import MagicMock
+# autopep8: off
+# pylint: disable=wrong-import-position
+import os
+from unittest.mock import MagicMock, AsyncMock, Mock
 from pytest import fixture
 
+os.environ["FIFTYONE_DISABLE_SERVICES"] = "1"
+
 from base.mongo.engine import Engine
-
-from artifact_api.utils.imu_gap_finder import IMUGapFinder
+from base.testing.utils import load_relative_str_file
+from base.model.artifacts.api_messages import SnapshotSignalsData
+from artifact_api.api.metadata_controller import MetadataController
+from artifact_api.api.media_controller import MediaController
 from artifact_api.mongo_controller import MongoController
-
-sys.modules["fiftyone"] = MagicMock()
-sys.modules["fiftyone.core"] = MagicMock()
-sys.modules["fiftyone.core.media"] = MagicMock()
-sys.modules["fiftyone.core.metadata"] = MagicMock()
+from artifact_api.utils.imu_gap_finder import IMUGapFinder
+# autopep8: on
 
 
 @fixture(name="imu_gap_finder")
@@ -79,6 +81,56 @@ def fixture_operator_feedback_engine() -> MagicMock:
     return MagicMock()
 
 # pylint: disable=too-many-arguments
+
+
+@fixture(name="media_controller")
+def fixture_generate_voxel_service() -> MediaController:
+    """generate MediaController
+    """
+    return MediaController()
+
+
+@fixture(name="metadata_controller")
+def fixture_metadata_controller() -> MetadataController:
+    """generate MetadataController
+    """
+    return MetadataController()
+
+
+@fixture(name="mock_mongo_service")
+def fixture_mongo_service() -> AsyncMock:
+    """mocks mongo_service function
+    """
+    var = AsyncMock()
+    var.get_correlated_snapshots_for_video = AsyncMock()
+    var.upsert_video = AsyncMock()
+    var.update_snapshots_correlations = AsyncMock()
+    return var
+
+
+@fixture(name="mock_voxel_service")
+def fixture_voxel_service() -> Mock:
+    """mocks voxel_service function
+    """
+    var = Mock()
+    var.update_voxel_videos_with_correlated_snapshot = Mock()
+    var.create_voxel_video = Mock()
+    return var
+
+
+@fixture(name="mock_voxel_metadata_transformer")
+def fixture_voxel_metadata_transformer() -> Mock:
+    """mocks voxel_metadata_transformer function
+    """
+    var = Mock()
+    return var
+
+
+@fixture()
+def snap_signals_artifact() -> SnapshotSignalsData:
+    """VideoArtifact for testing."""
+    return SnapshotSignalsData.model_validate_json(load_relative_str_file(
+        __file__, "test_data/training_snapshot_api_metadata_message.json"))
 
 
 @fixture

@@ -732,6 +732,27 @@
                 },
                 "source_videos": null,
                 "rules": null
+            },
+            {
+                "filepath": "s3://dev-rcd-anonymized-video-files/datanauts/test_no_keypoints.jpeg",
+                "tags": [],
+                "metadata": null,
+                "raw_filepath": "s3://dev-rcd-raw-video-files/datanauts/test_no_keypoints.jpeg",
+                "data_privacy_document_id": "unused",
+                "video_id": null,
+                "tenant_id": null,
+                "device_id": null,
+                "recording_time": null,
+                "PRED_device_pose": {
+                    "_cls": "Keypoints",
+                    "keypoints": []
+                },
+                "PRED_device_classifications": {
+                    "_cls": "Classifications",
+                    "classifications": []
+                },
+                "source_videos": null,
+                "rules": null
             }
         ]
     }

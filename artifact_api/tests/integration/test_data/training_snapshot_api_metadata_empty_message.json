@@ -1,0 +1,46 @@
+{
+    "artifact_name": "snapshot_signals_data",
+    "message": {
+        "tenant_id": "datanauts",
+        "device_id": "DATANAUTS_DEV_01",
+        "s3_path": "s3://dev-rcd-raw-video-files/datanauts/test_no_keypoints.jpeg",
+        "referred_artifact": {
+            "tenant_id": "datanauts",
+            "device_id": "DATANAUTS_DEV_01",
+            "s3_path": "s3://dev-rcd-raw-video-files/datanauts/test_no_keypoints.jpeg",
+            "artifact_id": "test_no_keypoints.jpeg",
+            "recorder": "TrainingMultiSnapshot",
+            "timestamp": "2023-11-29T16:01:28.009000Z",
+            "end_timestamp": "2023-11-29T16:01:28.009000Z",
+            "upload_timing": {
+                "start": "2023-12-19T17:20:27.219676Z",
+                "end": "2023-12-19T18:20:27.219676Z"
+            },
+            "artifact_name": "snapshot",
+            "uuid": "test_no_keypoints.jpeg",
+            "raw_s3_path": "s3://dev-rcd-raw-video-files/test_no_keypoints.jpeg",
+            "anonymized_s3_path": "s3://dev-rcd-anonymized-video-files/datanauts/test_no_keypoints.jpeg"
+        },
+        "metadata_type": "metadata_full",
+        "artifact_name": "raw_signals"
+    },
+    "data": {
+        "resolution": {
+            "width": 1280,
+            "height": 720
+        },
+        "metadata_version": "unknown",
+        "pose_network_version": "",
+        "segmentation_network_version": "",
+        "cve_reference_file": "",
+        "chunk_pts": {
+            "start": 37711,
+            "end": 37711
+        },
+        "chunk_utc": {
+            "start": "2023-11-29T16:01:28.009000Z",
+            "end": "2023-11-29T16:01:28.009000Z"
+        },
+        "frames": []
+    }
+}
