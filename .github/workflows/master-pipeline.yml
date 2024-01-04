@@ -43,7 +43,7 @@ permissions:
 jobs:
   pre-commit:
     name: Pre-commit checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -53,7 +53,7 @@ jobs:
 
   lint-python-projects:
     name: Lint Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.lint
     needs: [determine-changed-services]
     strategy:
@@ -74,7 +74,7 @@ jobs:
 
   lint-javascript-projects:
     name: Lint Javascript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.lint
     needs: [determine-changed-services]
     strategy:
@@ -95,7 +95,7 @@ jobs:
 
   run-python-sast:
     name: SAST Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.sast
     needs: [determine-changed-services]
     strategy:
@@ -114,7 +114,7 @@ jobs:
 
   run-python-tests:
     name: Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
@@ -135,7 +135,7 @@ jobs:
 
   run-python-integration-tests:
     name: Integration tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
@@ -158,7 +158,7 @@ jobs:
 
   run-javascript-tests:
     name: Javascript tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref_name == 'master' || inputs.test
     needs: [determine-changed-services]
     strategy:
@@ -180,7 +180,7 @@ jobs:
 
   sonarqube-scan:
     name: Sonarqube scan on code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [run-python-tests, run-javascript-tests, run-python-sast]
     if: github.ref_name == 'master' || inputs.test
     steps:
@@ -214,7 +214,7 @@ jobs:
 
   determine-changed-services:
     name: Determine which services to build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       services: ${{ steps.changed-services.outputs.services }}
       needs-testing: ${{ steps.changed-services.outputs.needs-testing }}
@@ -261,7 +261,7 @@ jobs:
   build-image:
     needs: [determine-changed-services]
     name: Build image for
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: needs.determine-changed-services.outputs.services != '[]' && (github.ref_name == 'master' || inputs.build-image)
     strategy:
       fail-fast: false
@@ -324,7 +324,7 @@ jobs:
     name: Update image tags in dev K8s manifests
     if: github.ref_name == 'master' || inputs.update-images
     needs: [build-image, determine-changed-services]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       ECR_REPO: 081962623310.dkr.ecr.eu-central-1.amazonaws.com
       NEW_TAG: ${{ needs.determine-changed-services.outputs.git-tag }}

@@ -9,7 +9,7 @@ on:
 jobs:
   pre-commit:
     name: Pre-commit checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
 
   determine-changed-services:
     name: Determine which services to build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       services: ${{ steps.changed-services.outputs.services }}
       needs-testing: ${{ steps.changed-services.outputs.needs-testing }}
@@ -47,7 +47,7 @@ jobs:
 
   lint-python-projects:
     name: Lint Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -68,7 +68,7 @@ jobs:
 
   lint-javascript-projects:
     name: Lint Javascript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [determine-changed-services]
     strategy:
       fail-fast: false
@@ -90,7 +90,7 @@ jobs:
 
   run-python-sast:
     name: SAST Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: success() || failure() # making SAST optional for now
     needs: [determine-changed-services]
     strategy:
@@ -111,7 +111,7 @@ jobs:
 
   run-python-tests:
     name: Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: success() || failure() # making lint optional for now
     needs: [determine-changed-services]
     strategy:
@@ -134,7 +134,7 @@ jobs:
 
   run-python-integration-tests:
     name: Integration tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: success() || failure() # making lint optional for now
     needs: [determine-changed-services]
     strategy:
@@ -159,7 +159,7 @@ jobs:
 
   run-javascript-tests:
     name: Javascript tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: success() || failure() # making lint optional for now
     needs: [determine-changed-services]
     strategy:
@@ -184,7 +184,7 @@ jobs:
 
   sonarqube-scan:
     name: Sonarqube scan on code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [run-python-tests, run-python-integration-tests, run-javascript-tests, run-python-sast]
     if: success() || failure()
     steps:

@@ -10,9 +10,9 @@ extras_require: Dict[str, List[str]] = {
         "pymongo~=4.3",
         "pymongo[srv]~=4.3",
         "pymongo[aws]~=4.3",
-        "boto3~=1.28.82",
-        "mypy_boto3_sqs~=1.28.55",
-        "mypy_boto3_s3~=1.28.55",
+        "boto3>= 1.34, < 2.0",
+        "mypy_boto3_sqs>= 1.34, < 2.0",
+        "mypy_boto3_s3>= 1.34, < 2.0",
         "urllib3~=1.26",
         "pytz==2022.6",
         "pyyaml~=6.0",
@@ -33,7 +33,9 @@ extras_require: Dict[str, List[str]] = {
     "voxel": [
         "base[model]",
         "kink==0.6.6",
-        "fiftyone==0.14.4"
+        "fiftyone==0.15.3",
+        # Fiftyone paid version package seems to be missing the install of fiftyone-db
+        "fiftyone-db==1.1.0"
     ],
     "testing": [
         "moto[s3]~=4.2.7"

@@ -16,7 +16,7 @@ env:
 jobs:
   ocaas-scan-project:
     name: OCaaS scan on code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
