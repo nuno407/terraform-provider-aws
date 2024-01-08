@@ -116,7 +116,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         if not matches:
             raise UnknownSQSMessage("Could not parse s3 raw path")
 
-        return matches.group(0)
+        return matches.group(1)
 
     def __generate_s3_path(self, bucket: str, path: str) -> str:
         """

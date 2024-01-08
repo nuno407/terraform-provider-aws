@@ -73,13 +73,19 @@ class TestAPIDownloader:
                 "imu_processing_sqs_message.json",
                 "imu_processing_s3_state.json",
                 "ridecare/imu/video",
-                "imu_processing_post_data.json",
+                "imu_processing_post_data.json"
             ),
             (
                 "training_snapshot_metadata_sqs_message.json",
                 "training_snapshot_metadata_s3_state.json",
                 "ridecare/signals/snapshot",
-                "training_snapshot_metadata_post_data.json",
+                "training_snapshot_metadata_post_data.json"
+            ),
+            (
+                "sdm_message.json",
+                None,
+                "ridecare/pipeline/status",
+                "sdm_message_post_data.json"
             )
         ],
         ids=["snapshot_test_success",
@@ -92,7 +98,8 @@ class TestAPIDownloader:
             "sanitizer_people_count_operator_artifact",
             "sanitizer_sos_operator_artifact",
             "imu_processing_test_success",
-            "training_snapshot_metadata_test_success"
+            "training_snapshot_metadata_test_success",
+            "sdm_message_test_success"
         ],
         indirect=["endpoint"])
     # autopep8: on
@@ -219,6 +226,12 @@ class TestAPIDownloader:
                 "imu_processing_s3_state.json",
                 "ridecare/imu/video",
                 "imu_processing_post_data.json",
+            ),
+            (
+                "sdm_message.json",
+                None,
+                "ridecare/pipeline/status",
+                "sdm_message_post_data.json",
             )
             ],
             ids=["snapshot_test_failure",
@@ -230,7 +243,8 @@ class TestAPIDownloader:
                 "sanitizer_camera_blocked_operator_artifact",
                 "sanitizer_people_count_operator_artifact",
                 "sanitizer_sos_operator_artifact",
-                "imu_processing_test_failure"
+                "imu_processing_test_failure",
+                "sdm_message_test_failure"
             ],
             indirect=["endpoint"])
     # autopep8: on

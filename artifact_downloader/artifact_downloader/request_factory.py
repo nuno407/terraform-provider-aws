@@ -19,7 +19,7 @@ class PartialEndpoint(str, Enum):
     RC_PIPELINE_ANON_VIDEO = "ridecare/pipeline/anonymize/video"
     RC_PIPELINE_ANON_SNAPSHOT = "ridecare/pipeline/anonymize/snapshot"
     RC_PIPELINE_CHC_VIDEO = "ridecare/pipeline/chc/video"
-    RC_PIPELINE_STATUS = "ridecare/pipeline/chc/status"
+    RC_PIPELINE_STATUS = "ridecare/pipeline/status"
     RC_OPERATOR = "ridecare/operator"
     RC_EVENT = "ridecare/event"
 
