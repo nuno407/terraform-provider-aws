@@ -153,11 +153,6 @@ class TestAPIDownloader:
 
         # WHEN
         main_function()
-
-        with open("test.json", "w") as file:
-            import json
-            json.dump(success_adapter.last_request.json(), file)
-
         # THEN
         input_queue_controller.delete_message.assert_called_once()
         # Assert mock requests

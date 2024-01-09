@@ -37,6 +37,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         """
         self.__config = config
         self.__regex_id_from_path = r"\/([^\/]+)\."
+        self.__regex_id_from_tenant = r"([^\/]+).+"
 
         self.__source_router: dict[str, Callable[[dict], ProcessingResult]] = {
             "anonymize": self.__handle_anon_message,
@@ -118,6 +119,25 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
 
         return matches.group(1)
 
+    def __get_tenant_from_path(self, path: str) -> str:
+        """
+        Returns the tenant based in the path.
+
+        Args:
+            path (str): The path in to the file (can be an s3 path or not)
+
+        Raises:
+            UnknownSQSMessage: Raises an exception if a match is not found
+
+        Returns:
+            str: The tenant of the file
+        """
+        matches = re.search(self.__regex_id_from_tenant, path)
+        if not matches:
+            raise UnknownSQSMessage("Could not parse s3 raw path")
+
+        return matches.group(1)
+
     def __generate_s3_path(self, bucket: str, path: str) -> str:
         """
         Generates the s3 path based on a bucket and a path
@@ -152,6 +172,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
             correlation_id=self.__get_id_from_path(raw_video_path),
             raw_s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
             s3_path=self.__generate_s3_path(bucket, anon_video_path),
+            tenant_id=self.__get_tenant_from_path(raw_video_path),
             processing_status=body["data_status"]
         )
 
@@ -172,6 +193,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         return CHCResult(
             correlation_id=self.__get_id_from_path(raw_video_path),
             raw_s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            tenant_id=self.__get_tenant_from_path(raw_video_path),
             s3_path=self.__generate_s3_path(bucket, chc_path),
             processing_status=body["data_status"]
         )
@@ -191,6 +213,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         return PipelineProcessingStatus(
             correlation_id=self.__get_id_from_path(raw_video_path),
             s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            tenant_id=self.__get_tenant_from_path(raw_video_path),
             info_source="SDM",
             processing_status=body["data_status"],
             processing_steps=body["processing_steps"]
@@ -218,6 +241,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
             return SignalsProcessingResult(
                 correlation_id=body["_id"],
                 s3_path=body["parsed_file_path"],
-                recording_overview=body["recording_overview"]
+                recording_overview=body["recording_overview"],
+                tenant_id=self.__get_tenant_from_path(body["parsed_file_path"])
             )
         raise UnknownMDFParserArtifact(f"Uknown mdfparser artifact data_type={data_type}")

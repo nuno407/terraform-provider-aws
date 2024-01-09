@@ -45,6 +45,7 @@ class S3Result(ProcessingResult):
 class SignalsProcessingResult(S3Result):
     """Signals MDF Processed Artifact"""
     artifact_name: Literal["signals_processed"] = "signals_processed"
+    tenant_id: str = Field(default=...)
     recording_overview: dict[str, Union[float, int, str]] = Field(default=...)
 
 
@@ -57,6 +58,7 @@ class PipelineProcessingStatus(S3Result):
     """Pipelines processing status"""
     artifact_name: Literal["sdm"] = "sdm"
     info_source: str = Field(default=...)
+    tenant_id: str = Field(default=...)
     processing_status: StatusProcessing = Field(default=...)
     processing_steps: list[ProcessingStep] = Field(default=...)
 
@@ -65,12 +67,14 @@ class AnonymizationResult(S3Result):
     """Anonymization result"""
     artifact_name: Literal["anonymize"] = "anonymize"
     raw_s3_path: S3Path
+    tenant_id: str = Field(default=...)
     processing_status: StatusProcessing = Field(default=...)
 
 
 class CHCResult(S3Result):
     """CHC result"""
     artifact_name: Literal["chc"] = "chc"
+    tenant_id: str = Field(default=...)
     raw_s3_path: S3Path
     processing_status: StatusProcessing = Field(default=...)
 
