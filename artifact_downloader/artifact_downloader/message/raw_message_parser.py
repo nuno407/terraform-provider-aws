@@ -191,6 +191,7 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         return PipelineProcessingStatus(
             correlation_id=self.__get_id_from_path(raw_video_path),
             s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            info_source="SDM",
             processing_status=body["data_status"],
             processing_steps=body["processing_steps"]
         )

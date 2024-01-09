@@ -56,6 +56,7 @@ class IMUProcessingResult(S3Result):
 class PipelineProcessingStatus(S3Result):
     """Pipelines processing status"""
     artifact_name: Literal["sdm"] = "sdm"
+    info_source: str = Field(default=...)
     processing_status: StatusProcessing = Field(default=...)
     processing_steps: list[ProcessingStep] = Field(default=...)
 
