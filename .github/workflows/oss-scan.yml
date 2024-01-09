@@ -1,0 +1,79 @@
+name: OSS Scan
+
+on:
+  schedule:
+    # At 22:35 from Monday through Friday.
+    - cron: 35 22 * * 1-5
+  workflow_dispatch:
+    inputs:
+      emails:
+        description: Email addresses to send the OCaaS report to (separated by semicolon); default is our distribution list
+        required: false
+      url:
+        description: Url to FOSSID instance; default is CM instance
+        required: false
+      project:
+        description: Project code for FOSSID instance; default is DevCloud project
+        required: false
+
+env:
+  default-email: Brg_XC-CT_RideCare_DevCloud@bosch.com
+  default-url: https://foss-scanner.bosch.tech/CM/
+  default-project: XC-CT_Ridecare_DevCloud_Datanauts
+
+jobs:
+  ocaas-scan-project:
+    name: OCaaS scan on code
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get branch name
+        run: echo "branch=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
+      - name: OCaaS Scan on ${{ env.branch }}
+        id: ocaas
+        uses: docker://osmipublic.azurecr.io/ocaas-ci:latest
+        with:
+          args: auth generate-token run start
+        env:
+          OCAAS_USERNAME: ${{ secrets.OCAAS_USERNAME }}
+          OCAAS_PASSWORD: ${{ secrets.OCAAS_PASSWORD }}
+          PROJECT_NAME: "ridecare_devcloud_source_code"
+          PIPELINE_ID: 407 # Your pipeline ID. Provided by the OSMI team.
+          VCS_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          VCS_REVISION: ${{ env.branch }}
+          APPLICATION_CATEGORY: "BT10"
+          BLOCKING: false
+          EMAIL_RECIPIENTS: ${{ inputs.emails || env.default-email }}
+
+  fossid-scan-project:
+    name: FOSSID scan on code
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set env variables
+        shell: bash
+        run: |
+          echo "folder=$(pwd)" >> $GITHUB_ENV
+          echo "repo=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+          echo "branch=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
+      - name: FOSSID Scan on ${{ env.branch }}
+        id: fossid-scan
+        uses: bosch-rc-dev/actions/fossid-scan@main
+        with:
+          url: ${{ inputs.url || env.default-url }}
+          user: ${{ secrets.TECH_USER }}
+          token: ${{ secrets.TECH_USER_FOSSID_KEY }}
+          project: ${{ inputs.project || env.default-project }}
+          folder: "${{ env.folder }}"
+          prefix: "${{ env.repo }}"
+          infix: "Scan"
+          postfix: ${{ env.branch }}
