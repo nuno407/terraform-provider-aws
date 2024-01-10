@@ -14,7 +14,9 @@ from artifact_downloader.config import ArtifactDownloaderConfig
 from artifact_downloader.bootstrap import bootstrap_di
 from kink import di
 from base.graceful_exit import GracefulExit
+from base.testing.mock_functions import set_mock_aws_credentials
 
+set_mock_aws_credentials()
 AWS_REGION = "us-east-1"
 
 

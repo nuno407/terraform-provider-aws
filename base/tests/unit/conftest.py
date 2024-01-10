@@ -1,11 +1,15 @@
 """ Conftest."""
+from base.voxel.models import KeyPointsMapper
+from base.testing.mock_functions import set_mock_aws_credentials
 from unittest.mock import Mock, MagicMock
 from base.aws.s3 import S3Controller
 import sys
 import pytest
+import os
+
+set_mock_aws_credentials()
 
 sys.modules["fiftyone"] = MagicMock()  # noqa
-from base.voxel.models import KeyPointsMapper
 
 # pylint: disable=missing-function-docstring
 

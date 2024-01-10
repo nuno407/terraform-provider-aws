@@ -3,11 +3,14 @@
 import pytest
 from unittest.mock import Mock, MagicMock
 import sys
+import os
 
 from base.model.config.dataset_config import DatasetConfig, TenantDatasetConfig
 from base.model.config.policy_config import PolicyConfig
+from base.testing.mock_functions import set_mock_aws_credentials
 from metadata.consumer.voxel.voxel_metadata_kp_mapper import VoxelKPMapper
 
+set_mock_aws_credentials()
 sys.modules["fiftyone"] = MagicMock()  # noqa
 from metadata.consumer.voxel.voxel_snapshot_metadata_loader import VoxelSnapshotMetadataLoader
 from base.voxel.constants import CLASSIFICATION_LABEL, BBOX_LABEL, POSE_LABEL

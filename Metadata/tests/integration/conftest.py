@@ -1,9 +1,11 @@
 """conftest contains common fixtures and mocks for all unit tests"""
 import os
 import tempfile
-
 from mongoengine import connect, get_connection
 
+from base.testing.mock_functions import set_mock_aws_credentials
+
+set_mock_aws_credentials()
 os.environ["FIFTYONE_DATABASE_DIR"] = tempfile.TemporaryDirectory().name
 os.environ["FIFTYONE_DATABASE_ADMIN"] = "true"
 os.environ["FIFTYONE_DO_NOT_TRACK"] = "true"

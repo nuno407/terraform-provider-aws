@@ -5,6 +5,9 @@ import os
 from unittest.mock import MagicMock, AsyncMock, Mock
 from pytest import fixture
 
+from base.testing.mock_functions import set_mock_aws_credentials
+
+set_mock_aws_credentials()
 os.environ["FIFTYONE_DISABLE_SERVICES"] = "1"
 
 from base.mongo.engine import Engine

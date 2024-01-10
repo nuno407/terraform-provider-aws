@@ -46,3 +46,16 @@ def get_container_services_mock() -> ContainerServices:
     type(service).anonymized_s3 = PropertyMock(return_value="anonimized_s3_mock")  # type: ignore
 
     return service
+
+
+def set_mock_aws_credentials():
+    """Mocks AWS environments variables and ensure that the tests will connect to the DEV|QA environments"""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"  # nosec
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"  # nosec
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"  # nosec
+    os.environ["AWS_SESSION_TOKEN"] = "testing"  # nosec
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+    os.environ["AWS_REGION"] = "us-east-1"
+
+    if "AWS_PROFILE" in os.environ:
+        del os.environ["AWS_PROFILE"]

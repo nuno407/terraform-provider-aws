@@ -1,8 +1,13 @@
 from moto import mock_s3, mock_sqs
 from mypy_boto3_s3 import S3Client
+from base.testing.mock_functions import set_mock_aws_credentials
 from typing import Generator
 import boto3
 import pytest
+import os
+
+
+set_mock_aws_credentials()
 
 
 @pytest.fixture()

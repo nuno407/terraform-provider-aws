@@ -7,14 +7,16 @@ import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 from httpx import AsyncClient
 from kink import di
+from base.testing.mock_functions import set_mock_aws_credentials
+from base.testing.utils import get_abs_path
 
+set_mock_aws_credentials()
 os.environ["FIFTYONE_DATABASE_DIR"] = tempfile.TemporaryDirectory().name  # pylint: disable=consider-using-with
 os.environ["FIFTYONE_DATABASE_ADMIN"] = "true"
 os.environ["FIFTYONE_DO_NOT_TRACK"] = "true"
 # Fiftyone launches a file database by itself when we import it without prior defining a database uri.
 import fiftyone as fo
 
-from base.testing.utils import get_abs_path
 from artifact_api.router import app
 from artifact_api.bootstrap import bootstrap_di
 from artifact_api.voxel.voxel_config import VoxelConfig
