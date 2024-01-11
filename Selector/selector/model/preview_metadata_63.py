@@ -7,6 +7,7 @@ from pydantic import field_validator, Field
 from base.model.metadata.base_metadata import Resolution, PtsTimeWindow, UtcTimeWindow, \
     BaseFrame, FrameSignal, Pose, ObjectList, StringObject, FloatObject, BoolObject, IntegerObject
 from selector.model.preview_metadata import PreviewMetadata
+from selector.constants import ALLOWED_METADATA_VERSIONS
 
 
 class Frame(BaseFrame):
@@ -62,9 +63,12 @@ class PreviewMetadataV063(PreviewMetadata):
     @field_validator("metadata_version")
     @classmethod
     def check_metadata_version(cls, version):  # pylint: disable=no-self-argument
-        """Ensure metadata version is over 0.6"""
-        if not isinstance(version, str) or not version.startswith("0.6"):
-            raise ValueError("Metadata version must start with 0.6")
+        """Ensure metadata version is expected"""
+        if not isinstance(version, str):
+            raise ValueError("Metadata does not contain a version")
+
+        if not any(map(version.startswith, ALLOWED_METADATA_VERSIONS)):
+            raise ValueError(f"Metadata version {version} is not supported")
         return version
 
     @property
