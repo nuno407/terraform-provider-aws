@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Optional, Literal
 from pydantic import Field
+from base.model.artifacts.processing_result import StatusProcessing, ProcessingStep
 from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState, GeneralServiceState,
                                     IncidentType, ShutdownReason)
@@ -172,3 +173,14 @@ class DBIMUSample(ConfiguredBaseModel):
     gyr_y_max: float
     acc_x_var: float
     gyr_z_min: float
+
+
+class DBPipelineProcessingStatus(ConfiguredBaseModel):
+    """Pipeline Processing Status in the format used in the database"""
+    _id: str
+    s3_path: str
+    info_source: str
+    last_updated: str
+    from_container: Literal["Metadata"] = Field(default="Metadata")
+    processing_status: StatusProcessing
+    processing_steps: list[ProcessingStep] = Field(default=...)

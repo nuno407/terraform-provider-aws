@@ -1,9 +1,15 @@
 """Router for pipeline outputs/updates"""
+from datetime import datetime
+from kink import di
+import pytz
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi_restful.cbv import cbv
 from base.model.artifacts.api_messages import CHCDataResult
-from base.model.artifacts import AnonymizationResult, PipelineProcessingStatus
+from base.model.artifacts import AnonymizationResult, PipelineProcessingStatus, PayloadType
 from artifact_api.models import ResponseMessage
+from artifact_api.mongo_controller import MongoController
+from artifact_api.voxel import VoxelService
 
 pipeline_router = APIRouter()
 
@@ -47,7 +53,10 @@ class PipelineController:
         return ResponseMessage()
 
     @pipeline_router.post("/ridecare/pipeline/status", response_model=ResponseMessage)
-    async def update_pipeline_status(self, pipeline_status: PipelineProcessingStatus):  # pylint: disable=unused-argument
+    async def update_pipeline_status(self, pipeline_status: PipelineProcessingStatus,
+                                     mongo_service: MongoController = Depends(
+                                         lambda: di[MongoController]),
+                                     voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process pipelines status
 
@@ -55,4 +64,17 @@ class PipelineController:
             pipeline_status (PipelineProcessingStatus): _description_
 
         """
+        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+
+        await mongo_service.create_pipeline_processing_status(pipeline_status, last_updated_str)
+
+        if pipeline_status.object_type == PayloadType.VIDEO:
+            voxel_service.attach_pipeline_processing_status_to_video(
+                pipeline_status=pipeline_status, last_updated=last_updated)
+
+        elif pipeline_status.object_type == PayloadType.SNAPSHOT:
+            voxel_service.attach_pipeline_processing_status_to_snapshot(
+                pipeline_status=pipeline_status, last_updated=last_updated)
+
         return ResponseMessage()

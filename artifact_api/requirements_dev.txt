@@ -17,6 +17,7 @@ types-waitress == 2.1.4.5
 bandit == 1.7.5
 pandas-stubs==1.5.3.230321
 motor-types == 1.0.0b3
+freezegun == 0.3.4
 
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai

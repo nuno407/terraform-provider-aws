@@ -14,6 +14,12 @@ class StatusProcessing(str, Enum):
     COMPLETE = "complete"
 
 
+class PayloadType(str, Enum):
+    """ Payload Types """
+    SNAPSHOT = "snapshot"
+    VIDEO = "video"
+
+
 class ProcessingStep(str, Enum):
     """ Processing Steps """
     CHC = "CHC"
@@ -59,6 +65,7 @@ class PipelineProcessingStatus(S3Result):
     artifact_name: Literal["sdm"] = "sdm"
     info_source: str = Field(default=...)
     tenant_id: str = Field(default=...)
+    object_type: PayloadType = Field(default=...)
     processing_status: StatusProcessing = Field(default=...)
     processing_steps: list[ProcessingStep] = Field(default=...)
 

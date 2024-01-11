@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from base.testing.utils import load_relative_json_file
 from helper_functions import assert_mongo_state, assert_voxel_state
 from httpx import AsyncClient
+from freezegun import freeze_time
 
 
 def get_json_message(file_name: str) -> dict:
@@ -72,7 +73,8 @@ class TestGeneric:
         (
             [
                 get_json_message("device_incident_event_api_message.json"),
-                get_json_message("device_incident_event_outside_imu_api_message.json"),
+                get_json_message(
+                    "device_incident_event_outside_imu_api_message.json"),
                 get_json_message("imu_api_message.json")
             ],
             [
@@ -95,6 +97,16 @@ class TestGeneric:
             "mongo_config.yml",
             None,
             "voxel_snapshot_metadata_state.json",
+        ),
+
+        # Tests pipeline processing status
+        (
+            [get_json_message("sdm_pipeline_status_api_message.json")],
+            "/ridecare/pipeline/status",
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_sdm_status_state.json",
+            "voxel_sdm_status_state.json",
         )
 
     ],
@@ -104,8 +116,10 @@ class TestGeneric:
         "test_events_artifact",
         "test_sav_artifact",
         "test_imu_artifact",
-        "test_snap_metadata"],
+        "test_snap_metadata",
+        "test_sdm_status"],
         indirect=["mongo_api_config", "voxel_config"])
+    @freeze_time("2030-01-14")
     async def test_component(self,
                              input_json_message_list: list[dict],
                              endpoints: Union[str, list[str]],

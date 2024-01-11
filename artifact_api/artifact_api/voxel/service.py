@@ -1,9 +1,10 @@
 """ Voxel Service Implementation (abstract voxel operations). """
+from datetime import datetime
 from typing import List
 from kink import inject
 from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
-from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
+from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, PipelineProcessingStatus
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from base.model.artifacts.api_messages import SnapshotSignalsData
 from artifact_api.voxel.voxel_config import VoxelConfig
@@ -45,7 +46,8 @@ class VoxelService:
             is_snapshot=True,
             mapping_config=self.__voxel_config.dataset_mapping)
         dataset = create_dataset(dataset_name, tags)
-        VoxelSnapshot.snapshot_sample(artifact, dataset, correlated_raw_filepaths)
+        VoxelSnapshot.snapshot_sample(
+            artifact, dataset, correlated_raw_filepaths)
 
     def update_voxel_videos_with_correlated_snapshot(self, raw_correlated_filepaths: List[str],
                                                      raw_filepath: str, tenant_id: str) -> None:
@@ -55,7 +57,8 @@ class VoxelService:
         dataset_name, _ = determine_dataset_name(tenant=tenant_id,
                                                  is_snapshot=False,
                                                  mapping_config=self.__voxel_config.dataset_mapping)
-        VoxelVideo.updates_correlation(raw_correlated_filepaths, raw_filepath, dataset_name)
+        VoxelVideo.updates_correlation(
+            raw_correlated_filepaths, raw_filepath, dataset_name)
 
     def update_voxel_snapshots_with_correlated_video(self, raw_correlated_filepaths: List[str],
                                                      raw_filepath: str, tenant_id: str) -> None:
@@ -65,7 +68,8 @@ class VoxelService:
         dataset_name, _ = determine_dataset_name(tenant=tenant_id,
                                                  is_snapshot=True,
                                                  mapping_config=self.__voxel_config.dataset_mapping)
-        VoxelSnapshot.updates_correlation(raw_correlated_filepaths, raw_filepath, dataset_name)
+        VoxelSnapshot.updates_correlation(
+            raw_correlated_filepaths, raw_filepath, dataset_name)
 
     def attach_rule_to_video(self, rule: VideoUploadRule):
         """
@@ -99,9 +103,36 @@ class VoxelService:
             is_snapshot=True,
             mapping_config=self.__voxel_config.dataset_mapping)
         dataset = create_dataset(dataset_name, tags)
-        voxel_fields = self.__metadata_transformer.transform_snapshot_metadata_to_voxel(signals_message.data)
+        voxel_fields = self.__metadata_transformer.transform_snapshot_metadata_to_voxel(
+            signals_message.data)
         VoxelSnapshot.load_metadata(
             dataset,
             signals_message.message.referred_artifact.anonymized_s3_path,
             tenant_id,
             voxel_fields)
+
+    def attach_pipeline_processing_status_to_snapshot(
+            self, pipeline_status: PipelineProcessingStatus, last_updated: datetime):
+        """
+        Attaches a pipeline processing status to a snapshot
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=pipeline_status.tenant_id,
+            is_snapshot=True,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelSnapshot.attach_pipeline_processing_status_to_snapshot(
+            dataset, pipeline_status, last_updated=last_updated)
+
+    def attach_pipeline_processing_status_to_video(self, pipeline_status: PipelineProcessingStatus,
+                                                   last_updated: datetime):
+        """
+        Attaches a pipeline processing status to a video
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=pipeline_status.tenant_id,
+            is_snapshot=False,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelVideo.attach_pipeline_processing_status_to_video(
+            dataset, pipeline_status, last_updated=last_updated)

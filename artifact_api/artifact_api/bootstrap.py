@@ -12,7 +12,7 @@ from base.model.artifacts import (SOSOperatorArtifact, CameraBlockedOperatorArti
                                   PeopleCountOperatorArtifact)
 from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
                                               DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
-                                              DBS3VideoArtifact, DBSnapshotArtifact)
+                                              DBS3VideoArtifact, DBSnapshotArtifact, DBPipelineProcessingStatus)
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.utils.imu_gap_finder import IMUGapFinder
 from artifact_api.mongo_controller import MongoController
@@ -27,7 +27,8 @@ def bootstrap_di() -> None:
     """Initializes dependency injection autowiring container."""
     ContainerServices.configure_logging("artifact_api")
 
-    di["mongodb_config_path"] = os.environ.get("MONGODB_CONFIG", "/app/mongo-conf/mongo_config.yaml")
+    di["mongodb_config_path"] = os.environ.get(
+        "MONGODB_CONFIG", "/app/mongo-conf/mongo_config.yaml")
     di["db_metadata_tables"] = load_mongodb_config_vars()
 
     di["tenant_config_path"] = os.getenv(
@@ -65,13 +66,18 @@ def bootstrap_di() -> None:
                                   database=db_name,
                                   collection=di["db_metadata_tables"]["processed_imu"],
                                   client=mongo_client)
+    pipeline_processing_status_engine = Engine(model=DBPipelineProcessingStatus,
+                                               database=db_name,
+                                               collection=di["db_metadata_tables"]["pipeline_exec"],
+                                               client=mongo_client)
     di[MongoController] = MongoController(
         event_engine=event_engine,
         operator_feedback_engine=operator_feedback_engine,
         snapshot_engine=snapshot_engine,
         video_engine=video_engine,
         processed_imu_engine=processed_imu_engine,
-        imu_gap_finder=IMUGapFinder()
+        imu_gap_finder=IMUGapFinder(),
+        pipeline_processing_status_engine=pipeline_processing_status_engine
     )
 
 

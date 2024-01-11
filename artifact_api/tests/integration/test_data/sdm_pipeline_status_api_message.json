@@ -3,11 +3,11 @@
     "s3_path": "s3://dev-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074.mp4",
     "artifact_name": "sdm",
     "info_source": "SDM",
-    "tenant_id": "ridecare_companion_fut",
-    "object_type": "video",
     "processing_status": "received",
     "processing_steps": [
         "Anonymize",
         "CHC"
-    ]
+    ],
+    "object_type": "video",
+    "tenant_id": "ridecare_companion_fut"
 }

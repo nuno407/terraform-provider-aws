@@ -6,14 +6,15 @@ from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
 from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
                                   PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,
-                                  SOSOperatorArtifact)
+                                  SOSOperatorArtifact, PipelineProcessingStatus)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from base.mongo.engine import Engine
 from kink import inject
 from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
                                               DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
                                               DBS3VideoArtifact, DBSnapshotArtifact, DBSnapshotUploadRule,
-                                              DBVideoRecordingOverview, DBSnapshotRecordingOverview, DBVideoUploadRule)
+                                              DBVideoRecordingOverview, DBSnapshotRecordingOverview, DBVideoUploadRule,
+                                              DBPipelineProcessingStatus)
 from artifact_api.exceptions import IMUEmptyException, UnknowEventArtifactException, InvalidOperatorArtifactException
 from artifact_api.utils.imu_gap_finder import IMUGapFinder, TimeRange
 
@@ -29,7 +30,8 @@ class MongoController:  # pylint:disable=too-many-arguments
 
     def __init__(self, event_engine: Engine, operator_feedback_engine: Engine,
                  processed_imu_engine: Engine, snapshot_engine: Engine,
-                 video_engine: Engine, imu_gap_finder: IMUGapFinder) -> None:
+                 video_engine: Engine, imu_gap_finder: IMUGapFinder,
+                 pipeline_processing_status_engine: Engine) -> None:
 
         self.__event_engine = event_engine
         self.__operator_feedback_engine = operator_feedback_engine
@@ -37,6 +39,7 @@ class MongoController:  # pylint:disable=too-many-arguments
         self.__video_engine = video_engine
         self.__processed_imu_engine = processed_imu_engine
         self.__imu_gap_finder = imu_gap_finder
+        self.__pipeline_processing_status_engine = pipeline_processing_status_engine
 
     async def update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str):
         """_summary_
@@ -401,3 +404,35 @@ class MongoController:  # pylint:disable=too-many-arguments
             },
             upsert=True
         )
+
+    async def create_pipeline_processing_status(self, message: PipelineProcessingStatus, last_updated: str):
+        """Creates DB Pipeline Processing Status Artifact and writes the document to the mongoDB
+
+        Args:
+            message (PipelineProcessingStatus): Pipeline Processing Status Artifact
+            last_updated (str): Last Updated date as a string
+
+        Returns:
+            DBPipelineProcessingStatus: Corresponding DB Pipeline Processing Status Artifact
+        """
+        doc = DBPipelineProcessingStatus(
+            _id=message.correlation_id,
+            s3_path=message.s3_path,
+            artifact_name=message.artifact_name,
+            info_source=message.info_source,
+            last_updated=last_updated,
+            processing_status=message.processing_status,
+            processing_steps=message.processing_steps
+        )
+
+        await self.__pipeline_processing_status_engine.update_one(
+            query={
+                "_id": message.correlation_id
+            },
+            command={
+                # in case that the snapshot is not created we add the missing fields
+                "$set": self.__pipeline_processing_status_engine.dump_model(doc)
+            },
+            upsert=True
+        )
+        return doc

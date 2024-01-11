@@ -86,6 +86,16 @@ def fixture_operator_feedback_engine() -> MagicMock:
 # pylint: disable=too-many-arguments
 
 
+@fixture(name="pipeline_processing_status_engine")
+def fixture_pipeline_processing_status_engine() -> MagicMock:
+    """ Fixture for pipeline processing status engine
+
+    Returns:
+        MagicMock: Mock of the pipeline processing status db engine
+    """
+    return MagicMock()
+
+
 @fixture(name="media_controller")
 def fixture_generate_voxel_service() -> MediaController:
     """generate MediaController
@@ -139,7 +149,8 @@ def snap_signals_artifact() -> SnapshotSignalsData:
 @fixture
 def mongo_controller(event_engine: MagicMock, operator_feedback_engine: MagicMock,
                      processed_imu_engine: MagicMock, snapshot_engine: MagicMock,
-                     video_engine: MagicMock, imu_gap_finder: IMUGapFinder) -> MongoController:
+                     video_engine: MagicMock, imu_gap_finder: IMUGapFinder,
+                     pipeline_processing_status_engine: MagicMock) -> MongoController:
     """ Fixture for mongo controller
 
     Args:
@@ -154,4 +165,5 @@ def mongo_controller(event_engine: MagicMock, operator_feedback_engine: MagicMoc
     """
     return MongoController(event_engine=event_engine, operator_feedback_engine=operator_feedback_engine,
                            processed_imu_engine=processed_imu_engine, snapshot_engine=snapshot_engine,
-                           video_engine=video_engine, imu_gap_finder=imu_gap_finder)
+                           video_engine=video_engine, imu_gap_finder=imu_gap_finder,
+                           pipeline_processing_status_engine=pipeline_processing_status_engine)

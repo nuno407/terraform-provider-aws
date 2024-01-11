@@ -7,10 +7,12 @@ from pydantic import ValidationError
 from base.model.event_types import (CameraServiceState, EventType,
                                     GeneralServiceState, IncidentType,
                                     Shutdown, ShutdownReason)
+from base.model.artifacts import StatusProcessing
 from artifact_api.models.mongo_models import (DBSnapshotRecordingOverview, DBSnapshotArtifact,
                                               DBCameraServiceEventArtifact, DBDeviceInfoEventArtifact,
                                               DBIncidentEventArtifact, DBS3VideoArtifact,
-                                              DBVideoRecordingOverview, DBSnapshotUploadRule)
+                                              DBVideoRecordingOverview, DBSnapshotUploadRule,
+                                              DBPipelineProcessingStatus)
 
 
 @mark.unit
@@ -72,6 +74,26 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             variance_person_count=0
         )
 
+    # fixture for DBPipelineProcessingStatus with all the fields from the DBPipelineProcessingStatus class
+    @fixture
+    def db_pipeline_processing_status(self) -> DBPipelineProcessingStatus:
+        """Fixture for DB Pipeline Processing Status
+
+        Returns:
+            DBPipelineProcessingStatus: DB Pipeline Processing Status
+        """
+        return DBPipelineProcessingStatus(
+            processing_status=StatusProcessing.COMPLETE,
+            last_updated=str(datetime(2023, 1, 1, tzinfo=timezone.utc)),
+            s3_path="s3://bucket/key",
+            info_source="mock_info_source",
+            from_container="Metadata",
+            artifact_name="mock_artifact_name",
+            processing_steps=["CHC",
+                              "Anonymize"],
+            _id="mock_id"
+        )
+
     @mark.unit
     def test_db_snapshot_recording_overview(self, db_snapshot_recording_overview: DBSnapshotRecordingOverview):
         """Test for DB Snapshot Recording Overview mongodb model
@@ -91,8 +113,10 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert db_snapshot_recording_overview.devcloud_id == "mock_devcloud_id"
         assert db_snapshot_recording_overview.device_id == "mock_device_id"
         assert db_snapshot_recording_overview.tenant_id == "mock_tenant_id"
-        assert db_snapshot_recording_overview.recording_time == datetime.fromisoformat("2023-04-13T08:00:00+00:00")
-        assert db_snapshot_recording_overview.source_videos == ["mock_1.mp4", "mock_2.mp4"]
+        assert db_snapshot_recording_overview.recording_time == datetime.fromisoformat(
+            "2023-04-13T08:00:00+00:00")
+        assert db_snapshot_recording_overview.source_videos == [
+            "mock_1.mp4", "mock_2.mp4"]
 
         with raises(ValidationError):
             DBSnapshotRecordingOverview(**invalid_data)
@@ -130,7 +154,8 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert valid_db_snapshot_artifact.video_id == "mock_video_id"
         assert valid_db_snapshot_artifact.media_type == "image"
         assert valid_db_snapshot_artifact.filepath == "s3://bucket/key"
-        assert isinstance(valid_db_snapshot_artifact.recording_overview, DBSnapshotRecordingOverview)
+        assert isinstance(
+            valid_db_snapshot_artifact.recording_overview, DBSnapshotRecordingOverview)
 
         invalid_data = {
             "video_id": "mock_video_id",
@@ -155,7 +180,8 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             artifact_name="camera_service",
             service_state=GeneralServiceState.UNKNOWN,
             camera_name="mock_camera",
-            camera_state=[CameraServiceState.UNKNOWN, CameraServiceState.CAMERA_READY]
+            camera_state=[CameraServiceState.UNKNOWN,
+                          CameraServiceState.CAMERA_READY]
         )
 
         assert event.tenant_id == "mock_tenant_id"
@@ -165,7 +191,8 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert event.artifact_name == "camera_service"
         assert event.service_state == GeneralServiceState.UNKNOWN
         assert event.camera_name == "mock_camera"
-        assert event.camera_state == [CameraServiceState.UNKNOWN, CameraServiceState.CAMERA_READY]
+        assert event.camera_state == [
+            CameraServiceState.UNKNOWN, CameraServiceState.CAMERA_READY]
 
         with raises(ValidationError):
             DBCameraServiceEventArtifact(
@@ -175,7 +202,8 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
                 event_name="bad_name",
                 artifact_name="bad_artifact",
                 camera_name="mock_camera",
-                camera_state=[CameraServiceState.UNKNOWN, CameraServiceState.CAMERA_READY]
+                camera_state=[CameraServiceState.UNKNOWN,
+                              CameraServiceState.CAMERA_READY]
             )
 
     @mark.unit
@@ -201,10 +229,12 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert event.timestamp == datetime(2023, 1, 1, tzinfo=timezone.utc)
         assert event.event_name == EventType.DEVICE_INFO
         assert event.system_report == "mock_report"
-        assert event.software_versions == [{"version": "1.0", "software_name": "app"}]
+        assert event.software_versions == [
+            {"version": "1.0", "software_name": "app"}]
         assert event.device_type == "mock_type"
         assert event.last_shutdown.reason == ShutdownReason.UNKNOWN
-        assert event.last_shutdown.timestamp == datetime(2023, 1, 1, tzinfo=timezone.utc)
+        assert event.last_shutdown.timestamp == datetime(
+            2023, 1, 1, tzinfo=timezone.utc)
 
         with raises(ValidationError):
             DBDeviceInfoEventArtifact(
@@ -261,9 +291,11 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert db_video_recording_overview.devcloud_id == "mock_dev_id"
         assert db_video_recording_overview.device_id == "mock_device_id"
         assert db_video_recording_overview.length == "0:01:40"
-        assert db_video_recording_overview.recording_time == datetime(2023, 1, 1, tzinfo=timezone.utc)
+        assert db_video_recording_overview.recording_time == datetime(
+            2023, 1, 1, tzinfo=timezone.utc)
         assert db_video_recording_overview.recording_duration == 100
-        assert db_video_recording_overview.snapshots_paths == ["correlated_artifact1", "correlated_artifact2"]
+        assert db_video_recording_overview.snapshots_paths == [
+            "correlated_artifact1", "correlated_artifact2"]
         assert db_video_recording_overview.tenant_id == "mock_tenant_id"
         assert db_video_recording_overview.time == "2023-01-01 00:00:00"
         assert db_video_recording_overview.chc_duration == 0
@@ -304,3 +336,22 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
         assert video_artifact.filepath == "s3://bucket/key"
         assert video_artifact.resolution == "1920x1080"
         assert video_artifact.recording_overview == recording_overview
+
+    @mark.unit
+    def test_db_pipeline_processing_status(self, db_pipeline_processing_status: DBPipelineProcessingStatus):
+        """Test for DB Pipeline Processing Status mongodb model
+
+        Args:
+            db_pipeline_processing_status (DBPipelineProcessingStatus): DB Pipeline Processing Status mongodb model
+        """
+
+        assert db_pipeline_processing_status.processing_status == StatusProcessing.COMPLETE
+        assert db_pipeline_processing_status.last_updated == str(datetime(
+            2023, 1, 1, tzinfo=timezone.utc))
+
+        invalid_data = {
+            "pipeline_status": "bad_status"
+        }
+
+        with raises(ValidationError):
+            DBPipelineProcessingStatus(**invalid_data)

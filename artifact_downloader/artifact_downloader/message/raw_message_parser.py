@@ -11,7 +11,8 @@ from base.model.artifacts.processing_result import (AnonymizationResult,
                                                     IMUProcessingResult,
                                                     PipelineProcessingStatus,
                                                     ProcessingResult,
-                                                    SignalsProcessingResult)
+                                                    SignalsProcessingResult,
+                                                    PayloadType)
 
 from base.aws.sqs import parse_message_body_to_dict
 from artifact_downloader.config import ArtifactDownloaderConfig
@@ -65,7 +66,8 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
 
         json_message = parse_message_body_to_dict(body)
 
-        message_attributes = MessageAttributesWithSourceContainer[str](**message.get("MessageAttributes", {}))
+        message_attributes = MessageAttributesWithSourceContainer[str](
+            **message.get("MessageAttributes", {}))
         source_container = message_attributes.source_container.lower()
 
         return json_message, source_container
@@ -91,12 +93,14 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         if handler is None:
             return message
 
-        _logger.debug("Message sent is not yet a pydantic model... Converting it")
+        _logger.debug(
+            "Message sent is not yet a pydantic model... Converting it")
 
         pydantic_model_message = handler(json_message)
         message["Body"] = pydantic_model_message.stringify()
 
-        _logger.info("Message has been converted to a pydantic model. Message=%s", message["Body"])
+        _logger.info(
+            "Message has been converted to a pydantic model. Message=%s", message["Body"])
         return message
 
     def __get_id_from_path(self, path: str) -> str:
@@ -170,7 +174,8 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
 
         return AnonymizationResult(
             correlation_id=self.__get_id_from_path(raw_video_path),
-            raw_s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            raw_s3_path=self.__generate_s3_path(
+                self.__config.raw_bucket, raw_video_path),
             s3_path=self.__generate_s3_path(bucket, anon_video_path),
             tenant_id=self.__get_tenant_from_path(raw_video_path),
             processing_status=body["data_status"]
@@ -192,7 +197,8 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
 
         return CHCResult(
             correlation_id=self.__get_id_from_path(raw_video_path),
-            raw_s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            raw_s3_path=self.__generate_s3_path(
+                self.__config.raw_bucket, raw_video_path),
             tenant_id=self.__get_tenant_from_path(raw_video_path),
             s3_path=self.__generate_s3_path(bucket, chc_path),
             processing_status=body["data_status"]
@@ -210,11 +216,16 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         """
         raw_video_path = body["s3_path"]
 
+        payload_type = PayloadType.VIDEO if raw_video_path.endswith(
+            ".mp4") else PayloadType.SNAPSHOT
+
         return PipelineProcessingStatus(
             correlation_id=self.__get_id_from_path(raw_video_path),
-            s3_path=self.__generate_s3_path(self.__config.raw_bucket, raw_video_path),
+            s3_path=self.__generate_s3_path(
+                self.__config.raw_bucket, raw_video_path),
             tenant_id=self.__get_tenant_from_path(raw_video_path),
             info_source="SDM",
+            object_type=payload_type,
             processing_status=body["data_status"],
             processing_steps=body["processing_steps"]
         )
@@ -244,4 +255,5 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
                 recording_overview=body["recording_overview"],
                 tenant_id=self.__get_tenant_from_path(body["parsed_file_path"])
             )
-        raise UnknownMDFParserArtifact(f"Uknown mdfparser artifact data_type={data_type}")
+        raise UnknownMDFParserArtifact(
+            f"Uknown mdfparser artifact data_type={data_type}")
