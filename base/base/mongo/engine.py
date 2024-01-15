@@ -22,8 +22,8 @@ class UpdateManyResult(NamedTuple):
 
 @inject
 class Engine(Generic[T]):
-    def __init__(self, model: Type[T], database: str, collection: str, client: AsyncIOMotorClient):
-        self.__col = client[database][collection]
+    def __init__(self, model: Type[T], database: str, collection: str, client: AsyncIOMotorClient):  # type: ignore
+        self.__col = client[database][collection]  # type: ignore
         self.__model = model
 
     @staticmethod

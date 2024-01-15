@@ -12,6 +12,7 @@ from sanitizer.artifact.parsers.snapshot_parser import SnapshotParser
 from sanitizer.artifact.parsers.s3_video_parser import S3VideoParser
 from sanitizer.artifact.parsers.operator_feedback_parser import OperatorFeedbackParser
 from sanitizer.artifact.parsers.event_parser import EventParser
+from sanitizer.device_info_db_client import DeviceInfoDBClient
 
 from mypy_boto3_sns import SNSClient
 from mypy_boto3_sqs import SQSClient
@@ -19,6 +20,7 @@ from mongomock import MongoClient as MongoClientMock
 from pymongo import MongoClient
 
 from base.aws.sqs import SQSController
+from base.testing.utils import get_abs_path
 from base.graceful_exit import GracefulExit
 from sanitizer.config import SanitizerConfig
 from sanitizer.main import main
@@ -121,46 +123,70 @@ def output_topic_arn(moto_sns_client: SNSClient, output_topic_name: str) -> str:
 
 
 @pytest.fixture()
-def one_time_gracefull_exit() -> GracefulExit:
+def gracefull_exit() -> GracefulExit:
     exit = Mock()
     type(exit).continue_running = PropertyMock(side_effect=[True, False])
     return exit
 
 
 @pytest.fixture()
-def config(input_queue: str,
+def config(request, input_queue: str,
            metadata_queue: str,
            output_topic_arn: str,
            message_collection: str,
            db_name: str) -> SanitizerConfig:
-    return SanitizerConfig(
-        input_queue=input_queue,
-        metadata_queue=metadata_queue,
-        topic_arn=output_topic_arn,
-        message_collection=message_collection,
-        db_name=db_name, tenant_blacklist=[],
-        recorder_blacklist=[],
-        type_blacklist=[],
-        devcloud_raw_bucket="test-raw",
-        devcloud_anonymized_bucket="test-anonymized"
-    )
+
+    if not hasattr(request, "param") or request.param is None:
+        return SanitizerConfig(
+            input_queue=input_queue,
+            metadata_queue=metadata_queue,
+            topic_arn=output_topic_arn,
+            message_collection=message_collection,
+            db_name=db_name,
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            type_blacklist=[],
+            version_blacklist={},
+            device_info_collection="device_info_collection",
+            devcloud_raw_bucket="test-raw",
+            devcloud_anonymized_bucket="test-anonymized"
+        )
+    else:
+        remote_config = SanitizerConfig.load_yaml_config(get_abs_path(__file__, os.path.join("data", request.param)))
+        remote_config.input_queue = input_queue
+        remote_config.metadata_queue = metadata_queue
+        remote_config.topic_arn = output_topic_arn
+        remote_config.message_collection = message_collection
+        remote_config.db_name = db_name
+        return remote_config
+
+
+@pytest.fixture()
+def device_info_client(mongo_client: MongoClientMock, config: SanitizerConfig) -> DeviceInfoDBClient:
+    return DeviceInfoDBClient(device_info_collection=mongo_client[config.db_name][config.device_info_collection])
+
+
+def configure_logging(component_name: str) -> logging.Logger:
+    logging.basicConfig(
+        format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=logging.DEBUG)
+    logging.getLogger("base").setLevel(logging.DEBUG)
+    logger = logging.getLogger(component_name)
+    logger.setLevel(logging.DEBUG)
+    return logger
 
 
 @pytest.fixture()
 def run_bootstrap(
         moto_sns_client: SNSClient,
         moto_sqs_client: SQSClient,
-        one_time_gracefull_exit: GracefulExit,
+        gracefull_exit: GracefulExit,
         config: SanitizerConfig,
-        mongo_client: MongoClientMock):
+        mongo_client: MongoClientMock,
+        device_info_client: DeviceInfoDBClient,
+        metadata_sqs_controller: SQSController):
 
     di.clear_cache()
-
-    str_level = "DEBUG"
-    log_level = logging.getLevelName(str_level)
-
-    logging.basicConfig(
-        format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=log_level)
+    configure_logging("sanitizer")
 
     # useful for local testing
     di["start_delay"] = 0
@@ -168,16 +194,17 @@ def run_bootstrap(
     di["container_name"] = "Sanitizer"
     di["default_sqs_queue_name"] = config.input_queue
     di["default_sns_topic_arn"] = config.topic_arn
+    di[DeviceInfoDBClient] = device_info_client
 
     di[logging.Logger] = logging.getLogger("sanitizer")
-    di[GracefulExit] = one_time_gracefull_exit
+    di[GracefulExit] = gracefull_exit
 
     di[MongoClient] = mongo_client
 
     di[SQSClient] = moto_sqs_client
     di[SNSClient] = moto_sns_client
 
-    di["metadata_sqs_controller"] = SQSController(config.metadata_queue)
+    di["metadata_sqs_controller"] = metadata_sqs_controller
 
     di[SnapshotParser] = SnapshotParser()
     di[S3VideoParser] = S3VideoParser()

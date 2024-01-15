@@ -1,0 +1,37 @@
+{
+    "Type": "Notification",
+    "MessageId": "34061ec2-e7f5-539e-9d40-40d491f6cbfd",
+    "TopicArn": "arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform",
+    "Message": "{\"topic\":\"com.bosch.rcc/rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7/things/twin/events/modified\",\"headers\":{\"orig_adapter\":\"hono-mqtt\",\"kafka_key\":\"com.bosch.rcc:rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7\",\"device_id\":\"com.bosch.rcc:rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7\",\"creation-time\":\"1704752066949\",\"kafka_timestamp\":\"1704752066949\",\"qos\":\"1\",\"traceparent\":\"00-cdb5ca7b3e64d78a8c1195e8955e8dcb-7033a2d08fc559af-00\",\"orig_address\":\"telemetry\",\"kafka_topic\":\"hono.telemetry.tbccf1729c0ac4f748ef8c4a62a953076_hub\",\"ditto-originator\":\"integration:bccf1729-c0ac-4f74-8ef8-c4a62a953076_things:hub\",\"response-required\":false,\"version\":2,\"requested-acks\":[],\"content-type\":\"application/json\",\"correlation-id\":\"cc03061c-227b-40cd-acee-1eb7667b7876\"},\"path\":\"/features/com.bosch.ivs.DeviceInfoEvent\",\"value\":{\"properties\":{\"header\":{\"message_type\":\"com.bosch.ivs.DeviceInfoEvent\",\"timestamp_ms\":1704752066850,\"message_id\":\"bf85fd4e-84f0-492f-92f2-0663466dca91\",\"device_id\":\"rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7\",\"boot_id\":\"7eb5aba1-795a-413e-94a5-9f208eeb7371\"},\"system_report\":\"Git Commit ID: 2971ccf1b | Git Branch Name:  | Git is dirty: true | Detected RuntimeEnvironment: UNKNOWN | Available disk space in (/home/ivs/appdata/rw_static/softwareupdate/): 966066176 | hailysharey\",\"software_versions\":[{\"software_name\":\"BSP\",\"version\":\"3.7.0\"},{\"software_name\":\"Board\",\"version\":\"SRX_P0_1596_16BIT_DDR4\"},{\"software_name\":\"BoardBuild\",\"version\":\"prod\"},{\"software_name\":\"Bootloader\",\"version\":\"8\"},{\"software_name\":\"HDLC\",\"version\":\"5\"},{\"software_name\":\"Hardware\",\"version\":\"4\"},{\"software_name\":\"MCU\",\"version\":\"3.7.0\"},{\"software_name\":\"Modem\",\"version\":\"EG95NAXGAR07A03M1G\"},{\"software_name\":\"carapplication\",\"version\":\"0.0.1\"},{\"software_name\":\"ivs_car\",\"version\":\"1.8.0\"},{\"software_name\":\"ivs_feature_chain\",\"version\":\"0.6.5-rc4\"}],\"device_type\":\"hailysharey\",\"last_shutdown_reason\":{\"shutdown_reason\":\"SHUTDOWN_REASON__BATTERY_LOW\",\"shutdown_reason_description\":\"[SHUTDOWN] Battery LOW in LPM, system going to ULPM!\",\"timestamp_ms\":1643673618537}}},\"extra\":{\"attributes\":{\"vin\":\"unknown\",\"tenant\":\"ridecare_companion_gridwise\",\"vehicleType\":\"CARMODEL__FIAT_500_312\",\"subjectId\":\"4d000abc-b07f-4666-bd42-abf502ce8d82\",\"operationMode\":\"SRX\",\"deviceType\":\"hailysharey\"}},\"revision\":21585,\"timestamp\":\"2024-01-08T22:14:27.017660586Z\"}",
+    "Timestamp": "2024-01-08T22:14:27.056Z",
+    "SignatureVersion": "1",
+    "Signature": "aH54XXQCKNPfLR67MAA/E5gKav4ecSP7HSNesxTXvizyJIVERkYiLzKP3uLAMPqhTfMsq+mMDMLuNYlJCP2GliaP9WwTsyjLn7ryFersEBh3PgxWlwM3mVtI4+iQF/Wjb3Nw8a3ZtxfV3x7qxMcW40yhGCziVpow4xbJHSh1uemdzHQYbSpdFa4gEVB77EPad8aRzjGedFH4qyc7Z3qefv7kBIXlNFuo004QZPcBsCb4iTno0r4BHKMwIM4KJLmtpFSlZ9R4pdZZ110cjPZUOWJSeHuo60x092DIr4DvbVYKnWOvjIIvJUje9REgSIEd8D1hMfrwJBHJU6j1YJq7vg==",
+    "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+    "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:736745337734:prod-inputEventsTerraform:12f90dc9-0db6-403d-a679-545c71f8610c",
+    "MessageAttributes": {
+        "deviceType": {
+            "Type": "String",
+            "Value": "hailysharey"
+        },
+        "modifiedThingCategory": {
+            "Type": "String",
+            "Value": "features"
+        },
+        "operationMode": {
+            "Type": "String",
+            "Value": "SRX"
+        },
+        "eventType": {
+            "Type": "String",
+            "Value": "com.bosch.ivs.DeviceInfoEvent"
+        },
+        "tenant": {
+            "Type": "String",
+            "Value": "ridecare_companion_gridwise"
+        },
+        "subjectId": {
+            "Type": "String",
+            "Value": "4d000abc-b07f-4666-bd42-abf502ce8d82"
+        }
+    }
+}

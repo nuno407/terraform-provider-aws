@@ -1,6 +1,6 @@
-
 """ Integration test. """
 from base.testing.utils import load_relative_str_file
+from unittest.mock import Mock
 import json
 from typing import Callable
 import os
@@ -84,9 +84,12 @@ class TestMessageSentMetadata:
         """
         # GIVEN
         input_sqs_controller.send_message(input_sqs_message)
+        metadata_sqs_controller.send_message = Mock()
+        input_sqs_controller.delete_message = Mock()
 
         # WHEN
         main_function()
 
-        message_body = metadata_sqs_controller.get_message(1)
-        assert message_body is None
+        metadata_sqs_controller.send_message.assert_not_called()
+        input_sqs_controller.delete_message.assert_not_called()
+        assert metadata_sqs_controller.get_message(0) is None

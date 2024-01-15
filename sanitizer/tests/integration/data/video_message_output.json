@@ -1,0 +1,29 @@
+{
+    "tenant_id": "ridecare_companion_gridwise",
+    "device_id": "rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7",
+    "s3_path": "s3://test-raw/ridecare_companion_gridwise/rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingRecorder_48e1b2b1-f78b-4655-ab95-7488ca43c6ca_1704748353018_1704750051625.mp4",
+    "artifact_id": "rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingRecorder_48e1b2b1-f78b-4655-ab95-7488ca43c6ca_1704748353018_1704750051625",
+    "recorder": "TrainingRecorder",
+    "timestamp": "2024-01-08T21:12:33.018000Z",
+    "end_timestamp": "2024-01-08T21:40:51.625000Z",
+    "upload_timing": {
+        "start": "2024-01-08T21:53:07.868000Z",
+        "end": "2024-01-08T21:59:28.380000Z"
+    },
+    "artifact_name": "s3_video",
+    "rcc_s3_path": "s3://prod-rcc-video-repo/ridecare_companion_gridwise/7337a612-9d49-4a0d-824b-acd354abe3c8/TRAINING/Footage_48e1b2b1-f78b-4655-ab95-7488ca43c6ca.mp4",
+    "footage_id": "48e1b2b1-f78b-4655-ab95-7488ca43c6ca",
+    "recordings": [
+        {
+            "recording_id": "TrainingRecorder-b50f5ae8-09ff-4860-b68d-46588a90a462",
+            "chunk_ids": [
+                252,
+                253,
+                254,
+                255
+            ]
+        }
+    ],
+    "raw_s3_path": "s3://test-raw/ridecare_companion_gridwise/rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingRecorder_48e1b2b1-f78b-4655-ab95-7488ca43c6ca_1704748353018_1704750051625.mp4",
+    "anonymized_s3_path": "s3://test-anonymized/ridecare_companion_gridwise/rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingRecorder_48e1b2b1-f78b-4655-ab95-7488ca43c6ca_1704748353018_1704750051625_anonymized.mp4"
+}

@@ -44,6 +44,8 @@ class TestSanitizerIntegration:
                                  db_name=DB_NAME,
                                  tenant_blacklist=[],
                                  recorder_blacklist=[],
+                                 device_info_collection="device_info_collection",
+                                 version_blacklist={},
                                  devcloud_raw_bucket="test-raw",
                                  devcloud_anonymized_bucket="test-anonymized")
         di[SanitizerConfig] = config

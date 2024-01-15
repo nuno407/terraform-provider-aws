@@ -38,9 +38,11 @@ class SanitizerConfig(BaseModel):
     metadata_queue: str
     topic_arn: str
     message_collection: str
+    device_info_collection: str
     db_name: str
     tenant_blacklist: list[str]
     recorder_blacklist: list[str]
+    version_blacklist: dict[type[Artifact], set[str]]
     type_blacklist: set[type[Artifact]] = Field(default_factory=set)
     devcloud_raw_bucket: str
     devcloud_anonymized_bucket: str
@@ -55,6 +57,19 @@ class SanitizerConfig(BaseModel):
                 raise ValueError(f"Artifact type {each} cannot be blacklisted")
 
             result.add(_artifact_types[each])
+
+        return result
+
+    @field_validator("version_blacklist", mode="before")
+    def _validate_version_blacklist(cls, value: dict[str, list[str]]) -> dict[type[Artifact], set[str]]:  # pylint: disable=no-self-argument
+
+        result: dict[type[Artifact], set[str]] = {}
+
+        for key, val in value.items():
+            if key not in _artifact_types:
+                raise ValueError(f"Artifact type {key} cannot be blacklisted")
+
+            result[_artifact_types[key]] = set(val)
 
         return result
 

@@ -68,3 +68,17 @@ def load_relative_json_file(caller_file: str, file_path: str) -> dict[Any, Any]:
     """
     data = load_relative_raw_file(caller_file, file_path)
     return json.loads(data.decode("utf-8"))
+
+
+def assert_unordered_lists(list_a: list[Any], list_b: list[Any]) -> None:
+    """
+    Asserts that two lists are equal, regardless of their order.
+    Also supports unhashable types.
+
+    Args:
+        list_a (list[Any]): _description_
+        list_b (list[Any]): _description_
+    """
+    for item in list_a:
+        assert item in list_b, f"Item {item} not in \n {list_b}"
+    assert len(list_a) == len(list_b)

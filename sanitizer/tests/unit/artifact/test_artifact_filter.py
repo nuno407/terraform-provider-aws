@@ -1,17 +1,23 @@
 """ artifact filter test module. """
 from datetime import datetime, timedelta
-
+from typing import Optional
+from unittest.mock import ANY, Mock
 import pytest
 from pytz import UTC
 
 from base.model.artifacts import (Artifact, RecorderType, Recording,
                                   S3VideoArtifact, SnapshotArtifact,
-                                  TimeWindow)
+                                  TimeWindow, IMUArtifact)
 from sanitizer.artifact.artifact_filter import ArtifactFilter
 from sanitizer.config import SanitizerConfig
+from sanitizer.device_info_db_client import DeviceInfoDBClient
+from sanitizer.models import DeviceInformation
 
 
-def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]) -> SanitizerConfig:
+def _sanitizer_config(tenant_blacklist: list[str],
+                      recorder_blacklist: list[str],
+                      version_blacklist: dict[type[Artifact],
+                                              set[str]] = {}) -> SanitizerConfig:
     return SanitizerConfig(
         input_queue="foo",
         metadata_queue="md_q",
@@ -21,7 +27,9 @@ def _sanitizer_config(tenant_blacklist: list[str], recorder_blacklist: list[str]
         recorder_blacklist=recorder_blacklist,
         tenant_blacklist=tenant_blacklist,
         devcloud_anonymized_bucket="devcloud-anonymized-bucket",
-        devcloud_raw_bucket="devcloud-raw-bucket"
+        devcloud_raw_bucket="devcloud-raw-bucket",
+        device_info_collection="device-collection",
+        version_blacklist=version_blacklist
     )
 
 
@@ -35,20 +43,39 @@ timings = {
 }
 
 
+def video_artifact() -> S3VideoArtifact:
+    return S3VideoArtifact(
+        artifact_id="bar",
+        raw_s3_path="s3://raw/foo/bar.something",
+        anonymized_s3_path="s3://anonymized/foo/bar.something",
+        footage_id="8d98a113-2a74-50e8-a706-6ae854d59923",
+        rcc_s3_path="s3://rcc-bucket/key",
+        tenant_id="deepsensation",
+        device_id="DEV04",
+        recorder=RecorderType.FRONT,
+        recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
+        **timings
+    )
+
+
+def snapshot_artifact() -> SnapshotArtifact:
+    return SnapshotArtifact(
+        artifact_id="bar",
+        raw_s3_path="s3://raw/foo/bar.something",
+        anonymized_s3_path="s3://anonymized/foo/bar.something",
+        uuid="foobar1",
+        tenant_id="datanauts",
+        device_id="DEV01",
+        recorder=RecorderType.SNAPSHOT,
+        **timings
+    )
+
+
 @pytest.mark.unit
-@pytest.mark.parametrize("artifact,config,expected", [
+@pytest.mark.parametrize("artifact,test_config,expected", [
     # good artifact
     (
-        SnapshotArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            uuid="foobar1",
-            tenant_id="datanauts",
-            device_id="DEV01",
-            recorder=RecorderType.SNAPSHOT,
-            **timings
-        ),
+        snapshot_artifact(),
         _sanitizer_config(
             tenant_blacklist=[],
             recorder_blacklist=[]
@@ -57,16 +84,7 @@ timings = {
     ),
     # blacklisted tenant
     (
-        SnapshotArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            uuid="foobar2",
-            tenant_id="datanauts",
-            device_id="DEV02",
-            recorder=RecorderType.SNAPSHOT,
-            **timings
-        ),
+        snapshot_artifact(),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
             recorder_blacklist=[]
@@ -75,16 +93,7 @@ timings = {
     ),
     # no tenant specified
     (
-        SnapshotArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            uuid="foobar3",
-            tenant_id="",
-            device_id="DEV03",
-            recorder=RecorderType.SNAPSHOT,
-            **timings
-        ),
+        snapshot_artifact(),
         _sanitizer_config(
             tenant_blacklist=[],
             recorder_blacklist=[]
@@ -93,18 +102,7 @@ timings = {
     ),
     # blacklisted recorder
     (
-        S3VideoArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            footage_id="8d98a113-2a74-50e8-a706-6ae854d59923",
-            rcc_s3_path="s3://rcc-bucket/key",
-            tenant_id="deepsensation",
-            device_id="DEV04",
-            recorder=RecorderType.FRONT,
-            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
-            **timings
-        ),
+        video_artifact(),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
             recorder_blacklist=[RecorderType.FRONT.value]
@@ -113,18 +111,7 @@ timings = {
     ),
     # multiple blacklisted recorder
     (
-        S3VideoArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            footage_id="233df466-34d9-5c56-8d5d-e3095f855bd9",
-            rcc_s3_path="s3://rcc-bucket/key",
-            tenant_id="deepsensation",
-            device_id="DEV04",
-            recorder=RecorderType.INTERIOR,
-            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
-            **timings
-        ),
+        video_artifact(),
         _sanitizer_config(
             tenant_blacklist=["datanauts"],
             recorder_blacklist=[RecorderType.INTERIOR.value, RecorderType.FRONT.value]
@@ -133,18 +120,7 @@ timings = {
     ),
     # blacklisted tenant and recorder
     (
-        S3VideoArtifact(
-            artifact_id="bar",
-            raw_s3_path="s3://raw/foo/bar.something",
-            anonymized_s3_path="s3://anonymized/foo/bar.something",
-            footage_id="071a9460-ec26-5a12-b978-163a27952eae",
-            rcc_s3_path="s3://rcc-bucket/key",
-            tenant_id="deepsensation",
-            device_id="DEV05",
-            recorder=RecorderType.TRAINING,
-            recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])],
-            **timings
-        ),
+        video_artifact(),
         _sanitizer_config(
             tenant_blacklist=["deepsensation"],
             recorder_blacklist=[RecorderType.TRAINING.value]
@@ -153,6 +129,127 @@ timings = {
     )
 ])
 def test_artifact_filter_is_relevant(artifact: Artifact,
-                                     config: SanitizerConfig,
-                                     expected: bool):
-    assert ArtifactFilter().is_relevant(artifact, config) == expected
+                                     test_config: SanitizerConfig,
+                                     expected: bool,
+                                     mock_device_db_client: DeviceInfoDBClient):
+    mock_device_db_client.get_latest_device_information.assert_not_called()
+    assert ArtifactFilter(mock_device_db_client, test_config).is_relevant(artifact) == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("artifact,test_config,device_version,assert_db_query,expected", [
+    # Test blacklisted artifact
+    (
+        video_artifact(),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"S3VideoArtifact": ["1.8.0"]}
+        ),
+        "1.8.0",
+        True,
+        False
+    ),
+    # Test when another artifact is blacklisted
+    (
+        video_artifact(),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"PreviewSignalsArtifact": ["1.8.0"]}
+        ),
+        "1.8.0",
+        False,
+        True
+    ),
+    # Test when a diferent version is blacklisted
+    (
+        video_artifact(),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"S3VideoArtifact": ["1.8.0"]}
+        ),
+        "1.7.0",
+        True,
+        True
+    ),
+    # Test when the device is not in the databse yet
+    (
+        video_artifact(),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"S3VideoArtifact": ["1.8.0"]}
+        ),
+        None,
+        True,
+        True
+    ),
+    # Test for an artifact without timestamp not in the blacklist
+    (
+        IMUArtifact(
+            tenant_id="deepsensation",
+            device_id="DEV04",
+            referred_artifact=Mock(spec=S3VideoArtifact)
+        ),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"PreviewSignalsArtifact": ["1.8.0"]}
+        ),
+        "1.8.0",
+        False,
+        True
+    ),
+    # Test for an artifact without timestamp in the blacklist
+    (
+        IMUArtifact(
+            tenant_id="deepsensation",
+            device_id="DEV04",
+            referred_artifact=Mock(spec=S3VideoArtifact)
+        ),
+        _sanitizer_config(
+            tenant_blacklist=[],
+            recorder_blacklist=[],
+            version_blacklist={"IMUArtifact": ["1.8.0"]}
+        ),
+        "1.8.0",
+        True,
+        False
+    )
+])
+def test_artifact_filter_is_relevant_device_versions(
+        artifact: Artifact,
+        test_config: SanitizerConfig,
+        device_version: Optional[str],
+        assert_db_query: bool,
+        expected: bool,
+        mock_device_db_client: DeviceInfoDBClient):
+
+    mocked_date = datetime(year=2023, month=10, day=1)
+    filter = ArtifactFilter(mock_device_db_client, test_config)
+
+    if device_version is not None:
+        mocked_device_info = DeviceInformation(
+            ivscar_version=device_version,
+            timestamp=mocked_date,
+            tenant_id=artifact.tenant_id,
+            device_id=artifact.device_id)
+    else:
+        mocked_device_info = None
+    mock_device_db_client.get_latest_device_information.return_value = mocked_device_info
+
+    result = filter.is_relevant(artifact)
+
+    if assert_db_query:
+        if hasattr(artifact, "timestamp"):
+            mock_device_db_client.get_latest_device_information.assert_called_once_with(
+                artifact.device_id, artifact.tenant_id, timings["timestamp"])
+        else:
+            mock_device_db_client.get_latest_device_information.assert_called_once_with(
+                artifact.device_id, artifact.tenant_id, ANY)
+    else:
+        mock_device_db_client.get_latest_device_information.assert_not_called()
+
+    assert result == expected

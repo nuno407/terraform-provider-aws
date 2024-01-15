@@ -60,6 +60,8 @@ def test_integration_persistence(sqs_message: SQSMessage):
         message_collection=message_collection,
         tenant_blacklist=[],
         recorder_blacklist=[],
+        device_info_collection="device_info_collection",
+        version_blacklist={},
         devcloud_raw_bucket="test-raw",
         devcloud_anonymized_bucket="test-anonymized"
     )

@@ -1,0 +1,15 @@
+input_queue: test-queue # replaced in conftest
+metadata_queue: mdq # replaced in conftest
+topic_arn: test-topic # replaced in conftest
+db_name: test-db # replaced in conftest
+message_collection: test-incoming-messages # replaced in conftest
+devcloud_raw_bucket: test-raw
+devcloud_anonymized_bucket: test-anonymized
+tenant_blacklist:
+  - onetenant
+recorder_blacklist:
+  - FrontRecorder
+device_info_collection: device_info_collection
+version_blacklist:
+  IMUArtifact:
+    - 1.8.0

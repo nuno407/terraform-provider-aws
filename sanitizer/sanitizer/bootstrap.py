@@ -40,6 +40,7 @@ def bootstrap_di():
     di[GracefulExit] = GracefulExit()
 
     di[MongoClient] = MongoClient(db_uri)
+    di["device_info_collection"] = di[MongoClient][config.db_name][config.device_info_collection]
 
     di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
     di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
