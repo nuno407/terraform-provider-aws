@@ -17,6 +17,7 @@ from data_importer.processor import Processor
 from data_importer.processor_repository import ProcessorRepository
 from data_importer.sqs_message import SQSMessage
 
+DOWNLOAD_STORAGE_PATH = os.getenv("DOWNLOAD_STORAGE_PATH", None)
 _logger = ContainerServices.configure_logging(__name__)
 
 
@@ -50,7 +51,7 @@ class ZipDatasetProcessor(Processor):
         _logger.debug("Message full path: %s", message.full_path)
         try:
             # DOWNLOAD AND EXTRACT ZIP FILE TO DISK
-            temp_dir = tempfile.TemporaryDirectory()
+            temp_dir = tempfile.TemporaryDirectory(dir=DOWNLOAD_STORAGE_PATH)
             zip_filename = f"{temp_dir.name}/zip_file.zip"
             container_services.download_file_to_disk(  # type: ignore
                 s3_client, message.bucket_name, message.file_path, zip_filename)
