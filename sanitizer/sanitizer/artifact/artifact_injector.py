@@ -41,7 +41,7 @@ class MetadataArtifactInjector:  # pylint: disable=too-few-public-methods
             injected_artifacts.append(preview_metadata_artifact)
             _logger.info("injecting preview metadata artifact: %s", preview_metadata_artifact)
 
-        if SignalsArtifact in to_inject:
+        if SignalsArtifact in to_inject and not isinstance(artifact, MultiSnapshotArtifact):
             signals_artifact = SignalsArtifact(  # pylint: disable=unexpected-keyword-arg
                 tenant_id=artifact.tenant_id,
                 device_id=artifact.device_id,

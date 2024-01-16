@@ -80,12 +80,28 @@ fixture_preview = SnapshotArtifact(
     raw_s3_path="s3://raw/foo/bar.something",
     anonymized_s3_path="s3://anonymized/foo/bar.something",
 )
+fixture_snapshot = SnapshotArtifact(
+    **device_and_tenant_and_timings,
+    recorder=RecorderType.SNAPSHOT,
+    uuid="some-uuid.jpeg",
+    artifact_id="bar",
+    raw_s3_path="s3://raw/foo/bar.something",
+    anonymized_s3_path="s3://anonymized/foo/bar.something",
+)
 
 fixture_multi_preview = MultiSnapshotArtifact(
     **device_and_tenant_and_timings,
     recorder=RecorderType.INTERIOR_PREVIEW,
     chunks=[fixture_preview],
     recording_id="InteriorRecorderPreview-145c7e01-5278-4f2b-8637-40f3f027a4b8",
+    artifact_id="bar"
+)
+
+fixture_multi_training = MultiSnapshotArtifact(
+    **device_and_tenant_and_timings,
+    recorder=RecorderType.SNAPSHOT,
+    chunks=[fixture_snapshot],
+    recording_id="MultiTrainingSnapshot-145c7e01-5278-4f2b-8637-40f3f027a4b8",
     artifact_id="bar"
 )
 
@@ -133,6 +149,10 @@ fixture_multi_preview = MultiSnapshotArtifact(
                 **device_and_tenant_and_timings,
                 referred_artifact=fixture_multi_preview
             )
+        ]
+    ), (
+        fixture_multi_training,
+        [
         ]
     )
 ])
