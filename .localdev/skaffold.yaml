@@ -9,16 +9,18 @@ manifests:
       - ../../kubernetes_config/apps/pg/selector
       - ../../kubernetes_config/apps/pg/mdfparser
       - ../../kubernetes_config/apps/pg/sdm
-      - ../../kubernetes_config/apps/pg/voxel-stack
       - ../../kubernetes_config/apps/pg/data_importer
       - ../../kubernetes_config/apps/pg/labeling_bridge
-      - ../../kubernetes_config/apps/pg/jupyter-server
       - ../../kubernetes_config/apps/pg/metadata
+      - ../../kubernetes_config/apps/pg/sanitizer
+      - ../../kubernetes_config/apps/pg/sdretriever
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
+    tagPolicy:
+      gitCommit:
+        prefix: "skaffold-"
     local:
-      push: false
       concurrency: 3
       useBuildkit: true
     artifacts:
@@ -62,27 +64,7 @@ build:
           - id: voxel51token
             env: VOXEL_REGISTRY_TOKEN
       runtimeType: python
-      # Local Voxel Instance
-    - image: voxel-local
-      context: ../../kubernetes_config/apps/pg/voxel-stack/image
-      docker:
-        dockerfile: Dockerfile
-        secrets:
-          - id: voxel51token
-            env: VOXEL_REGISTRY_TOKEN
-      runtimeType: python
-    - image: voxel-ui-plugins-image
-      context: ../../voxel51_plugins/ui-plugins
-      docker:
-        dockerfile: ../utils/ui-plugins/Dockerfile.BuildPlugins
-    # Local jupyter server
-    - image: jupyter-server-local
-      context: ../../kubernetes_config/apps/pg/jupyter-server/image
-      docker:
-        dockerfile: Dockerfile
-        secrets:
-          - id: voxel51token
-            env: VOXEL_REGISTRY_TOKEN
+    # Metadata
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/metadata
       context: ..
       docker:
@@ -93,15 +75,37 @@ build:
           - id: voxel51token
             env: VOXEL_REGISTRY_TOKEN
       runtimeType: python
-deploy:
-  # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
-  kubeContext: kind-kind
-
-
-profiles:
-- name: local
-  activation:
-    - kubeContext: kind-kind
+    # Sanitizer
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sanitizer
+      context: ..
+      docker:
+        dockerfile: sanitizer/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "true"
+        secrets:
+          - id: voxel51token
+            env: VOXEL_REGISTRY_TOKEN
+      runtimeType: python
+      # SDRetreiver
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdretriever
+      context: ..
+      docker:
+        dockerfile: SDRetriever/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "true"
+        secrets:
+          - id: voxel51token
+            env: VOXEL_REGISTRY_TOKEN
+      runtimeType: python
+    # Voxel instance
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/skaffold/voxel-local
+      context: ../../kubernetes_config/apps/pg/voxel-stack/image
+      docker:
+        dockerfile: Dockerfile
+        secrets:
+          - id: voxel51token
+            env: VOXEL_REGISTRY_TOKEN
+      runtimeType: python
 
 portForward:
   - resourceType: Service
@@ -120,7 +124,79 @@ portForward:
     port: 27017
     localPort: 27017
   - resourceType: Service
-    resourceName: jupyter-server
+    resourceName: localstack
     namespace: data-ingestion
-    port: 8888
-    localPort: 8888
+    port: 4566
+    localPort: 4566
+
+deploy:
+  kubeContext: not-the-default-context
+
+profiles:
+
+- name: vcluster
+  build:
+    local:
+      push: true
+  patches:
+    - op: add
+      path: /manifests/kustomize/paths/-
+      value: ../../kubernetes_config/apps/pg/voxel-stack/vcluster
+  deploy:
+    # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+    kubeContext: vcluster-dev
+
+  manifests:
+    hooks:
+      before:
+        - host:
+            command: ["sh", "-c", 'sed -i "/input_queue:/c\input_queue: dev-terraform-queue-sanitizer-vcluster-$(echo $NTUSER)" ../../kubernetes_config/apps/pg/sanitizer/config.yml']
+      after:
+        - host:
+            command: ["sh", "-c", 'sed -i "/input_queue:/c\input_queue: dev-terraform-queue-sanitizer" ../../kubernetes_config/apps/pg/sanitizer/config.yml']
+- name: local
+  build:
+    local:
+      push: false
+
+  manifests:
+    hooks:
+      before:
+        - host:
+            command: ["sh", "-c", 'sed -i "/input_queue:/c\input_queue: dev-terraform-queue-sanitizer" ../../kubernetes_config/apps/pg/sanitizer/config.yml']
+  patches:
+    - op: add
+      path: /manifests/kustomize/paths/-
+      value: ../../kubernetes_config/apps/pg/jupyter-server
+    - op: add
+      path: /manifests/kustomize/paths/-
+      value: ../../kubernetes_config/apps/pg/voxel-stack/local
+    - op: add
+      path: /build/artifacts/-
+      value: |
+        - image: voxel-ui-plugins-image
+          context: ../../voxel51_plugins/ui-plugins
+          docker:
+            dockerfile: ../utils/ui-plugins/Dockerfile.BuildPlugins
+    - op: add
+      path: /build/artifacts/-
+      value: |
+        - image: jupyter-server-local
+          context: ../../kubernetes_config/apps/pg/jupyter-server/image
+          docker:
+            dockerfile: Dockerfile
+            secrets:
+              - id: voxel51token
+                env: VOXEL_REGISTRY_TOKEN
+    - op: add
+      path: /portForward/-
+      value: |
+        - resourceType: Service
+          resourceName: jupyter-server
+          namespace: data-ingestion
+          port: 8888
+          localPort: 8888
+
+  deploy:
+    # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+    kubeContext: kind-kind

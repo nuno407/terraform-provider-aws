@@ -2,48 +2,72 @@ apiVersion: skaffold/v4beta2
 kind: Config
 metadata:
   name: infrastructure-deploy
+
 manifests:
   kustomize:
     paths:
       # creates base infrastructure stuff. Namespace, ingress, etc
       - ../../kubernetes_config/apps/pg/data-ingestion
-      - ../../kubernetes_config/apps/pg/mongodb
   rawYaml:
     # Job used to apply infrastructure to localstack
     - ../../kubernetes_config/apps/pg/localstack/job.yml
 
 build:
-    local:
-      push: false
     artifacts:
-      - image: localstack-apply
+      - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/skaffold/localstack-apply
         context: ../../tf_infrastructure
         docker:
           dockerfile: Dockerfile
 
 deploy:
-  # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
-  kubeContext: kind-kind
-
+  kubeContext: not-the-default-context
   helm:
     releases:
       - name: localstack
         repo: https://localstack.github.io/helm-charts
         remoteChart: localstack
-        version: 0.5.5
+        version: 0.6.4
         namespace: data-ingestion
         createNamespace: true
         setValues:
-          service:
-            type: ClusterIP
+          service.type: ClusterIP
           # We want to have persistence on the stack
-          persistence:
-            enabled: true
+          persistence.enabled: true
 
 portForward:
-# we forward the localstack port in order to apply changes
+  # we forward the localstack port in order to apply changes
   - resourceType: Service
     resourceName: localstack
     namespace: data-ingestion
     port: 4566
     localPort: 4566
+
+profiles:
+- name: vcluster
+  build:
+    local:
+      push: true
+  deploy:
+    # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+    kubeContext: vcluster-dev
+  patches:
+    - op: add
+      path: /deploy/helm/releases/0/setValues/persistence.storageClass
+      value: efs-delete
+    - op: add
+      path: /manifests/kustomize/paths/-
+      value: ../../kubernetes_config/apps/pg/mongodb/vcluster
+
+- name: local
+  build:
+    local:
+      push: false
+
+  patches:
+    - op: add
+      path: /manifests/kustomize/paths/-
+      value: ../../kubernetes_config/apps/pg/mongodb/local
+
+  deploy:
+    # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
+    kubeContext: kind-kind

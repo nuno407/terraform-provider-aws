@@ -183,7 +183,8 @@ def run_bootstrap(
         config: SanitizerConfig,
         mongo_client: MongoClientMock,
         device_info_client: DeviceInfoDBClient,
-        metadata_sqs_controller: SQSController):
+        metadata_sqs_controller: SQSController,
+        input_sqs_controller: SQSController):
 
     di.clear_cache()
     configure_logging("sanitizer")
@@ -192,8 +193,8 @@ def run_bootstrap(
     di["start_delay"] = 0
     di[SanitizerConfig] = config
     di["container_name"] = "Sanitizer"
-    di["default_sqs_queue_name"] = config.input_queue
     di["default_sns_topic_arn"] = config.topic_arn
+    di["default_sqs_queue_name"] = config.input_queue
     di[DeviceInfoDBClient] = device_info_client
 
     di[logging.Logger] = logging.getLogger("sanitizer")
@@ -205,6 +206,7 @@ def run_bootstrap(
     di[SNSClient] = moto_sns_client
 
     di["metadata_sqs_controller"] = metadata_sqs_controller
+    di["aws_sqs_rcc_controller"] = input_sqs_controller
 
     di[SnapshotParser] = SnapshotParser()
     di[S3VideoParser] = S3VideoParser()

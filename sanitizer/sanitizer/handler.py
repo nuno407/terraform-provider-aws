@@ -42,12 +42,12 @@ class Handler:  # pylint: disable=too-few-public-methods
 
     def __init__(self,  # pylint: disable=too-many-arguments
                  metadata_sqs_controller: SQSController,
-                 aws_sqs_controller: SQSController,
+                 aws_sqs_rcc_controller: SQSController,
                  message: MessageController,
                  artifact: ArtifactController,
                  device_info_db: DeviceInfoDBClient) -> None:
         self.__metadata_sqs_controller = metadata_sqs_controller
-        self.__aws_sqs = aws_sqs_controller
+        self.__aws_sqs_rcc_controller = aws_sqs_rcc_controller
         self.__message = message
         self.__artifact = artifact
         self.__device_info_db = device_info_db
@@ -56,7 +56,7 @@ class Handler:  # pylint: disable=too-few-public-methods
     def run(self, graceful_exit: GracefulExit):
         """retrieves incoming messages, parses them and forwards them to the next step"""
         while graceful_exit.continue_running:
-            raw_sqs_message: Optional[MessageTypeDef] = self.__aws_sqs.get_message()
+            raw_sqs_message: Optional[MessageTypeDef] = self.__aws_sqs_rcc_controller.get_message()
             _logger.debug("receveid raw message %s", raw_sqs_message)
             if raw_sqs_message is None:
                 continue
@@ -149,7 +149,7 @@ class Handler:  # pylint: disable=too-few-public-methods
             _logger.info("SKIP: message is irrelevant - message_id=%s: tenant=%s",
                          message.message_id,
                          message.attributes.tenant)
-            self.__aws_sqs.delete_message(message)
+            self.__aws_sqs_rcc_controller.delete_message(message)
             return
 
         self.__message.persistence.save(message)
@@ -160,6 +160,6 @@ class Handler:  # pylint: disable=too-few-public-methods
                 artifact_dispatch.merge(self.__handle_artifact(artifact))
 
             self.__dispatch_artifacts(artifact_dispatch)
-            self.__aws_sqs.delete_message(message)
+            self.__aws_sqs_rcc_controller.delete_message(message)
         except ArtifactException as err:
             _logger.error("SKIP: Unable to parse artifacts -> %s, message will not be deleted", err)

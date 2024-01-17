@@ -8,7 +8,6 @@ from logging import Logger
 import boto3
 from kink import di
 from mypy_boto3_sns import SNSClient
-from mypy_boto3_sqs import SQSClient
 from pymongo import MongoClient
 
 from base.aws.sqs import SQSController
@@ -23,7 +22,8 @@ def bootstrap_di():
     logging.basicConfig(
         format="%(asctime)s %(name)s\t%(levelname)s\t%(message)s", level=log_level)
     db_uri = os.environ["DB_URI"]
-    aws_endpoint = os.getenv("AWS_ENDPOINT", None)
+    rcc_aws_endpoint = os.getenv("RCC_AWS_ENDPOINT", None)
+    devcloud_aws_endpoint = os.getenv("DEVCLOUD_AWS_ENDPOINT", None)
     aws_region = os.getenv("AWS_REGION", "eu-central-1")
 
     # useful for local testing
@@ -33,7 +33,6 @@ def bootstrap_di():
 
     config = SanitizerConfig.load_yaml_config(di["config_path"])
     di[SanitizerConfig] = config
-    di["default_sqs_queue_name"] = config.input_queue
     di["default_sns_topic_arn"] = config.topic_arn
 
     di[Logger] = logging.getLogger("sanitizer")
@@ -42,7 +41,13 @@ def bootstrap_di():
     di[MongoClient] = MongoClient(db_uri)
     di["device_info_collection"] = di[MongoClient][config.db_name][config.device_info_collection]
 
-    di[SQSClient] = boto3.client("sqs", region_name=aws_region, endpoint_url=aws_endpoint)
-    di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=aws_endpoint)
+    di[SNSClient] = boto3.client("sns", region_name=aws_region, endpoint_url=devcloud_aws_endpoint)
 
-    di["metadata_sqs_controller"] = SQSController(config.metadata_queue)
+    rcc_sqs_client = boto3.client("sqs", region_name=aws_region, endpoint_url=rcc_aws_endpoint)
+    devcloud_sqs_client = boto3.client("sqs", region_name=aws_region, endpoint_url=devcloud_aws_endpoint)
+    di["metadata_sqs_controller"] = SQSController(
+        default_sqs_queue_name=config.metadata_queue,
+        sqs_client=devcloud_sqs_client)
+    di["aws_sqs_rcc_controller"] = SQSController(
+        default_sqs_queue_name=config.input_queue,
+        sqs_client=rcc_sqs_client)

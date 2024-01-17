@@ -49,7 +49,6 @@ class TestSanitizerIntegration:
                                  devcloud_raw_bucket="test-raw",
                                  devcloud_anonymized_bucket="test-anonymized")
         di[SanitizerConfig] = config
-        di["default_sqs_queue_name"] = config.input_queue
         di["default_sns_topic_arn"] = config.topic_arn
 
         di[Logger] = logging.getLogger("sanitizer")
@@ -63,7 +62,12 @@ class TestSanitizerIntegration:
         di[SQSClient].get_queue_url.side_effect = [{"QueueUrl": METADATA_QUEUE}, {"QueueUrl": INPUT_QUEUE}]
         di[SNSClient] = Mock()
 
-        di["metadata_sqs_controller"] = SQSController(config.metadata_queue)
+        di["metadata_sqs_controller"] = SQSController(
+            default_sqs_queue_name=config.metadata_queue,
+            sqs_client=di[SQSClient])
+        di["aws_sqs_rcc_controller"] = SQSController(
+            default_sqs_queue_name=config.input_queue,
+            sqs_client=di[SQSClient])
 
     def teardown_method(self, method):
         di.clear_cache()
@@ -74,7 +78,7 @@ class TestSanitizerIntegration:
         with open(data_path) as fp:
             message = json.loads(fp.read())
 
-        di[SQSController].get_message = Mock(return_value=message)
+        di["aws_sqs_rcc_controller"].get_message = Mock(return_value=message)
 
         # WHEN
         handler = di[Handler]

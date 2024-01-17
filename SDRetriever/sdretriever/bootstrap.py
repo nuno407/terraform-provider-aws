@@ -16,11 +16,16 @@ from sdretriever.constants import CONTAINER_NAME, CONTAINER_VERSION
 from sdretriever.metadata_merger import MetadataMerger
 
 
+devcloud_endpoint_url = os.getenv("DEVCLOUD_AWS_ENDPOINT", None)
+rcc_endpoint_url = os.getenv("RCC_AWS_ENDPOINT", None)
+
+
 def __create_rcc_s3_boto3_client(sts_helper: StsHelper) -> S3ClientFactory:
     def factory() -> S3Client:
         credentials = sts_helper.get_credentials()
         return boto3.client(
             "s3",
+            endpoint_url=rcc_endpoint_url,
             region_name="eu-central-1",
             aws_access_key_id=credentials["AccessKeyId"],
             aws_secret_access_key=credentials["SecretAccessKey"],
@@ -45,9 +50,9 @@ def bootstrap_di():
     di["default_sqs_queue_name"] = config.input_queue
 
     # boto3 clients
-    di[SQSClient] = boto3.client("sqs", region_name="eu-central-1")
-    di[S3Client] = boto3.client("s3", region_name="eu-central-1")
-    di[STSClient] = boto3.client("sts", region_name="eu-central-1")
+    di[SQSClient] = boto3.client("sqs", region_name="eu-central-1", endpoint_url=devcloud_endpoint_url)
+    di[S3Client] = boto3.client("s3", region_name="eu-central-1", endpoint_url=devcloud_endpoint_url)
+    di[STSClient] = boto3.client("sts", region_name="eu-central-1", endpoint_url=rcc_endpoint_url)
 
     # base aws services
     container_services = ContainerServices(
