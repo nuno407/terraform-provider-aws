@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import queue
+from multiprocessing import Queue
 import uuid
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -132,7 +133,7 @@ class MessageHandler():
             container_services: ContainerServices,
             aws_clients: AWSServiceClients,
             consumer_name: str,
-            internal_queue: queue.Queue[InternalMessage],
+            internal_queue: Queue,
             post_processor: PostProcessor) -> None:
         """
         Creates a MessageHandler service that will handle the messages between the algorithm processing service.
@@ -162,7 +163,7 @@ class MessageHandler():
             container_services (ContainerServices): An instance of ContainerServices
             aws_clients (AWSServiceClients): An instance of AWSServicesClients containing the required clients
             consumer_name (str): The name of the consumer service
-            internal_queue (queue.Queue): A queue that used as a synchronization mechanism between the API and
+            internal_queue (Queue): A queue that used as a synchronization mechanism between the API and
                                           the handler
             post_processor (PostProcessor): A class that implements PostProcessor that will be run after
                                             the return from the algorithm processing service.
@@ -209,8 +210,9 @@ class MessageHandler():
         raw_file = container_services.download_file(
             client, container_services.raw_s3, dict_body["s3_path"])
         if not raw_file:
+            s3_path = dict_body["s3_path"]
             raise FileIsEmptyException(
-                f"File {dict_body['s3_path']} is empty")
+                f"File {s3_path} is empty")
 
         uid = str(uuid.uuid4())
 
@@ -469,7 +471,8 @@ def on_backoff_handler(details):
 
 def on_success_handler(details):
     """ Handler for success of ivs API"""
-    elapsed = f"{details['elapsed']:0.1f}"
+    elapsed_value = details["elapsed"]
+    elapsed = f"{elapsed_value:0.1f}"
     _logger.info("Got response from IVSFC API: %s after %s seconds",
                  IVS_FC_STATUS_ENDPOINT, elapsed)
 

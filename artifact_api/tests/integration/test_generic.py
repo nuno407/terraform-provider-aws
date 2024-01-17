@@ -120,6 +120,7 @@ class TestGeneric:
         "test_sdm_status"],
         indirect=["mongo_api_config", "voxel_config"])
     @freeze_time("2030-01-14")
+    @pytest.mark.asyncio
     async def test_component(self,
                              input_json_message_list: list[dict],
                              endpoints: Union[str, list[str]],

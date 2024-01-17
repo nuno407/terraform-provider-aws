@@ -40,7 +40,7 @@ Checkout/Clone the repo then just do:
 export VOXEL_REGISTRY_TOKEN=XXXXXXXX
 make setup-python-virtual-envs
 ```
-This will create a virtualenv for each solution and install de solution dependencies.
+This will create a virtualenv for each solution and install the solution dependencies.
 
 Then open the `container_scripts.code-workspace` VS Code workspace.
 

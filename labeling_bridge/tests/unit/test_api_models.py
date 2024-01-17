@@ -36,7 +36,7 @@ def test_parse_export_request(input_message):
     # THEN
     assert test_obj.dataset_name == input_message["dataset"]
     assert test_obj.kognic_project_id == input_message["kognicProjectId"]
-    assert [e.value for e in test_obj.labelling_types] == input_message["labellingType"]
+    assert [e.value for e in test_obj.labelling_types] == input_message["labellingType"]  # pylint: disable=not-an-iterable
     assert test_obj.labelling_job_name == input_message["labellingJobName"]
     assert test_obj.labelling_guidelines == input_message["labellingGuidelines"]
     assert test_obj.voxel_export_method == input_message["voxelExportMethod"]

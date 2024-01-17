@@ -4,20 +4,17 @@ pytest_cov == 4.0.0
 pytest-mock == 3.10.0
 pytest-asyncio == 0.21.1
 
-mongomock-motor == 0.0.21
-mongomock ~= 4.1.2
 autopep8 == 2.0.4
-pylint == 2.17.0
-pylint-quotes == 0.2.3
+pylint == 3.0.3
 mypy == 1.7.0
 types-PyYAML == 6.0.12
 types-pytz == 2022.4.0.0
-types-requests ~= 2.31.0
 types-waitress == 2.1.4.5
 bandit == 1.7.5
-pandas-stubs==1.5.3.230321
 motor-types == 1.0.0b3
-freezegun == 0.3.4
+freezegun == 1.4.0
+typing-inspect == 0.9.0
+pandas-stubs == 2.1.4.231227
 
 # Adding voxel url
 --extra-index-url https://${TOKEN}@pypi.fiftyone.ai

@@ -89,4 +89,4 @@ class TestMain:
         importer.upsert_sample.assert_called_once_with(dataset, expected_image, {"filepath": expected_image,
                                                                                  "metadata": ANY})
         importer.replace_sample.assert_called_once_with(dataset, expected_json, {"foo": "bar", "test-data": "yes"})
-        container_services.delete_message.called_once_with(sqs_client, "test-handle", input_queue=ANY)
+        container_services.delete_message.assert_called_with(sqs_client, "test-handle", input_queue=ANY)

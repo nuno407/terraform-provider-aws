@@ -173,7 +173,7 @@ class EventArtifact(Artifact):
     def artifact_id(self) -> str:
         """Artifact ID for event artifacts"""
         event_name = self.event_name.value.split(".")[-1]
-        return f"{self.tenant_id}_{self.device_id}_{event_name}_{round(self.timestamp.timestamp()*1000)}"
+        return f"{self.tenant_id}_{self.device_id}_{event_name}_{round(self.timestamp.timestamp() * 1000)}"
 
 
 class IncidentEventArtifact(EventArtifact):
@@ -220,7 +220,13 @@ class OperatorArtifact(Artifact):
 
     @property
     def artifact_id(self) -> str:
-        return f"{self.artifact_name}_{self.tenant_id}_{self.device_id}_{round(self.event_timestamp.timestamp()*1000)}"
+        return f"{
+            self.artifact_name}_{
+            self.tenant_id}_{
+            self.device_id}_{
+                round(
+                    self.event_timestamp.timestamp() *
+                    1000)}"
 
 
 class SOSOperatorArtifact(OperatorArtifact):

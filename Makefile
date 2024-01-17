@@ -1,7 +1,7 @@
-PYTHON_SERVICES_DIRS = anon_ivschain base basehandler chc_ivschain MDFParser Metadata SDM SDRetriever Selector healthcheck data_importer sanitizer labeling_bridge inference_importer artifact_downloader artifact_api
+PYTHON_SERVICES_DIRS = base anon_ivschain basehandler chc_ivschain MDFParser Metadata SDM SDRetriever Selector healthcheck data_importer sanitizer labeling_bridge inference_importer artifact_downloader artifact_api
 PYENV_ROOT=${HOME}/.pyenv
 TOKEN=${VOXEL_REGISTRY_TOKEN}
-PYTHON_VERSION=3.9.12
+PYTHON_VERSION=3.12.1
 
 
 setup-single-python-env:
@@ -23,6 +23,7 @@ setup-single-python-env:
 
 setup-python-virtual-envs:
 	# Try to install necessary version
+	pyenv update
 	pyenv install $(PYTHON_VERSION) --skip-existing
 	for python_service_dir in $(PYTHON_SERVICES_DIRS); do \
 		$(MAKE) setup-single-python-env python_service_dir=$$python_service_dir; \
@@ -31,6 +32,6 @@ setup-python-virtual-envs:
 
 remove-all-python-virtual-envs:
 	for python_service_dir in $(PYTHON_SERVICES_DIRS); do \
-		pyenv virtualenv-delete $$python_service_dir; \
+		pyenv virtualenv-delete -f $$python_service_dir; \
 	done
 	pyenv uninstall $(PYTHON_VERSION)

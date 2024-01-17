@@ -29,7 +29,7 @@ class SnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-methods
     def _calculate_artifact_id(tenant_id: str, device_id: str, uuid: str, timestamp: datetime):
         """ Statically calculates artifact id. """
         uuid_without_ext = uuid.removesuffix(Path(uuid).suffix)
-        return f"{tenant_id}_{device_id}_{uuid_without_ext}_{round(timestamp.timestamp()*1000)}"
+        return f"{tenant_id}_{device_id}_{uuid_without_ext}_{round(timestamp.timestamp() * 1000)}"
 
     # pylint: disable=too-many-locals
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[SnapshotArtifact]:

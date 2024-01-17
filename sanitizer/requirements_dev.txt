@@ -6,14 +6,14 @@ mongomock == 4.1.2
 moto[sns,sqs] ~= 4.2.7
 
 autopep8 == 2.0.2
-pylint == 2.17.0
-pylint-quotes == 0.2.3
+pylint == 3.0.3
 pylint-pydantic == 0.3.0
-mypy == 1.1.1
+mypy == 1.8.0
 bandit == 1.7.5
 python-dotenv == 1.0.0
 mongo-types == 0.15.1
 boto3-stubs[sns,s3,sts,sqs] >= 1.34, < 2.0
+setuptools == 69.0.3 # Required by mongomock on python >3.12
 
 # install the app itself
 -e .

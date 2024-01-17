@@ -1,7 +1,7 @@
 """ Module that should be use dby all ivs chain handlers. """
 import os
 
-from setuptools import setup
+from setuptools import setup  # pylint: disable=import-error
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 install_requires = [

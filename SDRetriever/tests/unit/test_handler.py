@@ -155,7 +155,7 @@ def test_ingestion_already_ingested_s3_video(ingestion_handler: IngestionHandler
 
     ingestion_handler.handle(s3_video_artifact, message)
 
-    s3_video_ing.ingest.not_called()
+    s3_video_ing.ingest.assert_not_called()
     s3_video_ing.is_already_ingested.assert_called_once_with(s3_video_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
@@ -204,7 +204,7 @@ def test_ingestion_already_ingested_snapshot(ingestion_handler: IngestionHandler
 
     ingestion_handler.handle(snapshot_artifact, message)
 
-    snap_ing.ingest.not_called()
+    snap_ing.ingest.assert_not_called()
     snap_ing.is_already_ingested.assert_called_once_with(snapshot_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
@@ -247,7 +247,7 @@ def test_ingestion_already_ingested_imu(ingestion_handler: IngestionHandler,
 
     ingestion_handler.handle(imu_artifact, message)
 
-    imu_ing.ingest.not_called()
+    imu_ing.ingest.assert_not_called()
     imu_ing.is_already_ingested.assert_called_once_with(imu_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
@@ -291,7 +291,7 @@ def test_ingestion_already_ingested_signals(ingestion_handler: IngestionHandler,
 
     ingestion_handler.handle(signals_artifact, message)
 
-    video_metadata_ing.ingest.not_called()
+    video_metadata_ing.ingest.assert_not_called()
     video_metadata_ing.is_already_ingested.assert_called_once_with(signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
@@ -336,7 +336,7 @@ def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: Ingestio
 
     ingestion_handler.handle(snapshot_signals_artifact, message)
 
-    snap_metadata_ing.ingest.not_called()
+    snap_metadata_ing.ingest.assert_not_called()
     snap_metadata_ing.is_already_ingested.assert_called_once_with(snapshot_signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
@@ -395,7 +395,7 @@ def test_ingestion_already_ingested_signals_preview(ingestion_handler: Ingestion
 
     ingestion_handler.handle(preview_signals_artifact, message)
 
-    preview_metadata_ing.ingest.not_called()
+    preview_metadata_ing.ingest.assert_not_called()
     preview_metadata_ing.is_already_ingested.assert_called_once_with(preview_signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)

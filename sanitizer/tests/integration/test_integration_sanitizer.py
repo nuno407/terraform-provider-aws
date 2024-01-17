@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from logging import Logger
-from unittest.mock import ANY, MagicMock, Mock, PropertyMock
+from unittest.mock import ANY, MagicMock, Mock, PropertyMock, call
 
 from kink import di
 from mypy_boto3_sns import SNSClient
@@ -85,9 +85,10 @@ class TestSanitizerIntegration:
         handler.run()
 
         # THEN
-        assert di[SQSClient].get_queue_url.has_calls((METADATA_QUEUE), (INPUT_QUEUE))
-        assert di[SQSClient].send_message.has_calls(({"QueueUrl": METADATA_QUEUE, "MessageBody": ANY, "MessageAttributes": {
-                                                    "SourceContainer": {"StringValue": "test-sanitizer", "DataType": "String"}}}))
+        print(di[SQSClient].get_queue_url.call_args_list)
+        di[SQSClient].get_queue_url.assert_has_calls([call(QueueName=METADATA_QUEUE), call(QueueName=INPUT_QUEUE)])
+        di[SQSClient].send_message.assert_called_once_with(QueueUrl=METADATA_QUEUE, MessageBody=ANY, MessageAttributes={
+            "SourceContainer": {"StringValue": "test-sanitizer", "DataType": "String"}})
         sent_artifact_str = di[SQSClient].send_message.call_args.kwargs["MessageBody"]
         event_artifact = parse_artifact(sent_artifact_str)
         assert isinstance(event_artifact, IncidentEventArtifact)

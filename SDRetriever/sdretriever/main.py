@@ -28,8 +28,8 @@ def deserialize(raw_message: str) -> str:
     Returns:
         str: The message desirialized
     """
-    call_args = [("'", '"'), ("\\n", ""), ("\\r", ""), ("\\\\", ""),  # pylint: disable=invalid-string-quote
-                 ("\\", ""), ('"{', "{"), ('}"', "}")]  # pylint: disable=invalid-string-quote
+    call_args = [("'", '"'), ("\\n", ""), ("\\r", ""), ("\\\\", ""),
+                 ("\\", ""), ('"{', "{"), ('}"', "}")]
     for args in call_args:
         raw_message = raw_message.replace(args[0], args[1])
     return raw_message

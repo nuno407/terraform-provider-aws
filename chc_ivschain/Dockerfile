@@ -1,4 +1,4 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.9.17-alpine3.18
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.12-alpine
 
 # Install latest patches
 RUN apk update && apk upgrade

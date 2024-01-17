@@ -139,7 +139,8 @@ def load_files_rcc_chunks(files_to_load: list[S3File], rcc_s3_client: S3Client, 
         day = file_to_load.date_modified.day
         hour = file_to_load.date_modified.hour
 
-        rcc_key: str = f"{file_to_load.tenant}/{file_to_load.device_id}/year={year}/month={month:02d}/day={day:02d}/hour={hour:02d}/{file_to_load.file_name}"
+        rcc_key: str = f"{file_to_load.tenant}/{file_to_load.device_id}/year={
+            year}/month={month:02d}/day={day:02d}/hour={hour:02d}/{file_to_load.file_name}"
         rcc_s3_client.put_object(Bucket=rcc_bucket, Key=rcc_key, Body=file_to_load.data)
         key = moto.s3.models.s3_backends["123456789012"]["global"].buckets[rcc_bucket].keys[rcc_key]
         key.last_modified = file_to_load.date_modified

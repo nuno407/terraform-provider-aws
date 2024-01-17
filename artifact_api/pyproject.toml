@@ -6,6 +6,10 @@ timid = true
 python_files = ["test_*.py", "helper_functions.py"]
 asyncio_mode = "auto"
 addopts = "-m unit -v --cov-config=.coveragerc --cov=artifact_api --cov-report=xml"
+filterwarnings = [
+    "ignore::DeprecationWarning:botocore.*", # Botocore uses datetime.datetime.utcnow() which is deprecated in python 3.12
+    "ignore::DeprecationWarning:fiftyone.*", # fiftyone uses datetime.datetime.utcnow() which is deprecated in python 3.12
+]
 markers = [
     "unit",
     "integration"
@@ -15,23 +19,18 @@ markers = [
 max_line_length = 120
 recursive = true
 aggressive = 3
+ignore = ["E231"] # Avoids this bug https://github.com/hhatto/autopep8/issues/712
 
 [tool.pylint]
 recursive = true
-load-plugins = [
-    "pylint_quotes",
-]
+check-quote-consistency = true
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
+ignored-modules = "setuptools"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
 max-line-length = 120
-
-[tool.pylint.pylint_quotes]
-string-quote = "double"
-triple-quote = "double"
-docstring-quote = "double"
 
 [tool.mypy]
 files = [

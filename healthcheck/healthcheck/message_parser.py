@@ -1,4 +1,3 @@
-# pylint: disable=invalid-string-quote
 """SQS Message Parser module."""
 import json
 import logging

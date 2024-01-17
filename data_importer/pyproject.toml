@@ -14,23 +14,18 @@ markers = [
 max_line_length = 120
 recursive = true
 aggressive = 3
+ignore = ["E231"] # Avoids this bug https://github.com/hhatto/autopep8/issues/712
 
 [tool.pylint]
 recursive = true
-load-plugins = [
-    "pylint_quotes",
-]
+check-quote-consistency = true
+ignored-modules = "setuptools"
 # We need to include base path in pylint config
 init-hook = "import sys; sys.path.append('../base');"
 
 [tool.pylint.format]
 # Maximum number of characters on a single line.
 max-line-length = 120
-
-[tool.pylint.pylint_quotes]
-string-quote = "double"
-triple-quote = "double"
-docstring-quote = "double"
 
 [tool.pylint."MESSAGES CONTROL"]
 extension-pkg-whitelist = "pydantic"

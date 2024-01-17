@@ -91,9 +91,10 @@ class TestAnonymizeCallbackEndpointCreator():
         _, _args = thread.call_args
         _kwargs = _args["kwargs"]
         actual_internal_message = _kwargs["internal_message"]
+        kwargs_path = form_field["path"]
 
         assert _kwargs["chunk"] == b"abcdef"
-        assert _kwargs["path"] == f"{form_field['path'][:-4]}_anonymized.mp4"
+        assert _kwargs["path"] == f"{kwargs_path[:-4]}_anonymized.mp4"
         assert actual_internal_message.uid == form_field["uid"]
         assert actual_internal_message.status == OperationalMessage.Status.PROCESSING_COMPLETED
         assert actual_internal_message.bucket == "mock_container"

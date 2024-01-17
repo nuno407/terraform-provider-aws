@@ -26,7 +26,7 @@ class MultiSnapshotParser(IArtifactParser):  # pylint: disable=too-few-public-me
     @staticmethod
     def _calculate_artifact_id(tenant_id: str, device_id: str, recording_id: str, timestamp: datetime) -> str:
         """Artifact ID for the multiple snapshots artifacts"""
-        return f"{tenant_id}_{device_id}_{recording_id}_{round(timestamp.timestamp()*1000)}"
+        return f"{tenant_id}_{device_id}_{recording_id}_{round(timestamp.timestamp() * 1000)}"
 
     def parse(self, sqs_message: SQSMessage,
               recorder_type: Optional[RecorderType]) -> Iterator[Union[SnapshotArtifact, MultiSnapshotArtifact]]:

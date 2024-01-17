@@ -23,7 +23,8 @@ def _on_backoff_handler(details: Details):
 
 def _on_success_handler(details: Details):
     """ Handler for success of ivs API"""
-    elapsed = f"{details['elapsed']:0.1f}"
+    elapsed_val = details["elapsed"]
+    elapsed = f"{elapsed_val:0.1f}"
     _logger.info("HTTP request sent successfully after %s seconds",
                  elapsed)
 

@@ -13,7 +13,7 @@ extras_require: Dict[str, List[str]] = {
         "boto3>= 1.34, < 2.0",
         "mypy_boto3_sqs>= 1.34, < 2.0",
         "mypy_boto3_s3>= 1.34, < 2.0",
-        "urllib3~=1.26",
+        "urllib3<2.1",
         "pytz==2022.6",
         "pyyaml~=6.0",
         "expiringdict~=1.2",
