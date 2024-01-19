@@ -46,13 +46,7 @@ class S3VideoParser(VideoParser):  # pylint: disable=too-few-public-methods
             start_timestamp: datetime,
             end_timestamp: datetime):
         """ Statically calculates artifact id"""
-        return f"{device_id}_{recorder}_{footage_id}_{
-            round(
-                start_timestamp.timestamp() *
-                1000)}_{
-            round(
-                end_timestamp.timestamp() *
-                1000)}"  # pylint: disable=line-too-long
+        return f"{device_id}_{recorder}_{footage_id}_{round(start_timestamp.timestamp() *1000)}_{round(end_timestamp.timestamp() *1000)}"  # pylint: disable=line-too-long
 
     # pylint: disable=too-many-locals
     def parse(self, sqs_message: SQSMessage, recorder_type: Optional[RecorderType]) -> Iterator[S3VideoArtifact]:

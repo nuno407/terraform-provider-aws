@@ -36,7 +36,7 @@ class CameraBlockedOperator(ConfiguredBaseModel):
 
 class PeopleCountOperator(ConfiguredBaseModel):
     is_people_count_correct: bool = Field(alias="isPeopleCountCorrect")
-    correct_count: Optional[int] = Field(alias="correctCount")
+    correct_count: Optional[int] = Field(alias="correctCount", default=None)
 
 
 class ParsedCameraBlockedOperatorMessage(ConfiguredBaseModel):

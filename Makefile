@@ -1,7 +1,7 @@
 PYTHON_SERVICES_DIRS = base anon_ivschain basehandler chc_ivschain MDFParser Metadata SDM SDRetriever Selector healthcheck data_importer sanitizer labeling_bridge inference_importer artifact_downloader artifact_api
 PYENV_ROOT=${HOME}/.pyenv
 TOKEN=${VOXEL_REGISTRY_TOKEN}
-PYTHON_VERSION=3.12.1
+PYTHON_VERSION=3.10
 
 
 setup-single-python-env:

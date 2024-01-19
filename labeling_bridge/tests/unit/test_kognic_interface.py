@@ -1,9 +1,9 @@
 """Test Labelling Bridge Kognic Interface"""
 from unittest.mock import ANY, MagicMock, Mock
-import kognic.io.model.input as InputModel
-import kognic.io.model.input.cameras as CamerasModel
-
+from base.testing.utils import get_abs_path
 import pytest
+import kognic.io.model.scene as InputModel
+import kognic.io.model.input.cameras as CamerasModel
 
 from labeling_bridge.kognic_interface import KognicInterface
 
@@ -49,8 +49,9 @@ def test_upload_image(kognic_interface: KognicInterface):
     project_id = "dummy_project_id"
     batch_name = "dummy_batch_name"
     labelling_types = ["Splines"]
-    file_path = "~/some/local/temp/file.jpg"
-    file_name = "~/some/file.jpg"
+    file_path = "some/local/temp/file.jpg"
+    file_name = get_abs_path(__file__, "data/file.jpg")  # "some/file.jpg"
+
     cameras = CamerasModel.Cameras(
         external_id=file_path,
         frame=CamerasModel.Frame(

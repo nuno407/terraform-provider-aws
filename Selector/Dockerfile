@@ -1,4 +1,4 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.12-alpine
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10-alpine
 
 WORKDIR /app
 

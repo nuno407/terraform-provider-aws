@@ -220,13 +220,7 @@ class OperatorArtifact(Artifact):
 
     @property
     def artifact_id(self) -> str:
-        return f"{
-            self.artifact_name}_{
-            self.tenant_id}_{
-            self.device_id}_{
-                round(
-                    self.event_timestamp.timestamp() *
-                    1000)}"
+        return f"{self.artifact_name}_{self.tenant_id}_{self.device_id}_{round(self.event_timestamp.timestamp() *1000)}"
 
 
 class SOSOperatorArtifact(OperatorArtifact):

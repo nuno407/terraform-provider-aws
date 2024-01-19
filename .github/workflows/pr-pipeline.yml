@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10"]
         service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
@@ -96,7 +96,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10"]
         service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
@@ -117,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10"]
         service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:
@@ -140,7 +140,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10"]
         service: ${{ fromJSON(needs.determine-changed-services.outputs.python-directories) }}
 
     steps:

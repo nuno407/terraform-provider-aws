@@ -1,4 +1,4 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.12-bullseye
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10-bullseye
 
 RUN apt -y update && apt -y upgrade && apt -y --no-install-recommends install ffmpeg
 

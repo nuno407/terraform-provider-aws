@@ -24,7 +24,7 @@ extras_require: Dict[str, List[str]] = {
         "motor~=3.1.2"
     ],
     "model": [
-        "pydantic"  # Not forcing version here due to Kognic io in Labeling Service.
+        "pydantic==2.4.2"
     ],
     # we should use it in the future
     # "monitoring": [

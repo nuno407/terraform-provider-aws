@@ -3,7 +3,7 @@
 import logging
 from typing import Optional
 
-import kognic.io.model.input as InputModel
+import kognic.io.model.scene as InputModel
 import kognic.io.model.input.cameras as CamerasModel
 from kognic.io.client import KognicIOClient
 
