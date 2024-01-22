@@ -24,7 +24,7 @@ RUN pip install -e .
 # Necessary in order to have localstack working
 COPY --chown=1000:3000 ./labeling_bridge/localstack.patch /app/labeling_bridge/localstack.patch
 ARG LOCALSTACK_PATCH
-RUN if [ -z "$LOCALSTACK_PATCH" ] ; then echo Localstack patch NOT APPLIED ; else patch ~/.local/lib/python3.9/site-packages/eta/core/storage.py < /app/labeling_bridge/localstack.patch ; fi
+RUN if [ -z "$LOCALSTACK_PATCH" ] ; then echo Localstack patch NOT APPLIED ; else patch ~/.local/lib/python3.10/site-packages/eta/core/storage.py < /app/labeling_bridge/localstack.patch ; fi
 
 # Run DataImporter python script
 ENTRYPOINT [ "python", "-m", "labeling_bridge.main"]

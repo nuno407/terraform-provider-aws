@@ -11,9 +11,9 @@ manifests:
       - ../../kubernetes_config/apps/pg/sdm
       - ../../kubernetes_config/apps/pg/data_importer
       - ../../kubernetes_config/apps/pg/labeling_bridge
-      - ../../kubernetes_config/apps/pg/metadata
+      # - ../../kubernetes_config/apps/pg/metadata
       - ../../kubernetes_config/apps/pg/sanitizer
-      - ../../kubernetes_config/apps/pg/sdretriever
+      - ../../kubernetes_config/apps/pg/artifact_downloader
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
@@ -22,7 +22,6 @@ build:
         prefix: "skaffold-"
     local:
       concurrency: 3
-      useBuildkit: true
     artifacts:
       # SDM
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdm
@@ -86,17 +85,6 @@ build:
           - id: voxel51token
             env: VOXEL_REGISTRY_TOKEN
       runtimeType: python
-      # SDRetreiver
-    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdretriever
-      context: ..
-      docker:
-        dockerfile: SDRetriever/Dockerfile
-        buildArgs:
-          LOCALSTACK_PATCH: "true"
-        secrets:
-          - id: voxel51token
-            env: VOXEL_REGISTRY_TOKEN
-      runtimeType: python
     # Voxel instance
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/skaffold/voxel-local
       context: ../../kubernetes_config/apps/pg/voxel-stack/image
@@ -105,6 +93,14 @@ build:
         secrets:
           - id: voxel51token
             env: VOXEL_REGISTRY_TOKEN
+      runtimeType: python
+    #Artifact downloader
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/artifact_downloader
+      context: ..
+      docker:
+        dockerfile: artifact_downloader/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "true"
       runtimeType: python
 
 portForward:
@@ -128,16 +124,14 @@ portForward:
     namespace: data-ingestion
     port: 4566
     localPort: 4566
-
 deploy:
   kubeContext: not-the-default-context
-
 profiles:
-
 - name: vcluster
   build:
     local:
       push: true
+      useBuildkit: true
   patches:
     - op: add
       path: /manifests/kustomize/paths/-
@@ -145,7 +139,6 @@ profiles:
   deploy:
     # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
     kubeContext: vcluster-dev
-
   manifests:
     hooks:
       before:
@@ -158,7 +151,7 @@ profiles:
   build:
     local:
       push: false
-
+      useBuildkit: true
   manifests:
     hooks:
       before:
@@ -196,7 +189,6 @@ profiles:
           namespace: data-ingestion
           port: 8888
           localPort: 8888
-
   deploy:
     # Set this value according to your needs. Very dangerous since you can destroy the full deployment of an application if you point to the wrong context (aka wrong)
     kubeContext: kind-kind

@@ -26,7 +26,7 @@ RUN pip install -e .
 # Necessary in order to have localstack working
 COPY --chown=1000:3000 ./data_importer/localstack.patch /app/data_importer/localstack.patch
 ARG LOCALSTACK_PATCH
-RUN if [ -z "$LOCALSTACK_PATCH" ] ; then echo Localstack patch NOT APPLIED ; else patch ~/.local/lib/python3.9/site-packages/eta/core/storage.py < /app/data_importer/localstack.patch ; fi
+RUN if [ -z "$LOCALSTACK_PATCH" ] ; then echo Localstack patch NOT APPLIED ; else patch ~/.local/lib/python3.10/site-packages/eta/core/storage.py < /app/data_importer/localstack.patch ; fi
 
 # Run DataImporter python script
 ENTRYPOINT [ "python", "-m", "data_importer.main"]

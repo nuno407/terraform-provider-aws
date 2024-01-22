@@ -18,6 +18,7 @@ build:
         context: ../../tf_infrastructure
         docker:
           dockerfile: Dockerfile
+          noCache: true
 
 deploy:
   kubeContext: not-the-default-context

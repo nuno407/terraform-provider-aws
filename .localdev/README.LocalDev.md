@@ -64,18 +64,10 @@ skaffold dev --trigger polling --profile local
 
 ### Create a vcluster
 
-Create the `values.yaml` file
-
-```yaml
-sync:
-  serviceaccounts:
-    enabled: true
-```
-
 Create the cluster
 
 ```
-vcluster create NTUSER --namespace developer-env-NTUSER --context arn:aws:eks:eu-central-1:081962623310:cluster/dev_rcd-eks-cluster --kube-config-context-name vcluster-dev --upgrade -f values.yaml
+vcluster create NTUSER --namespace developer-env-NTUSER --context arn:aws:eks:eu-central-1:081962623310:cluster/dev_rcd-eks-cluster --kube-config-context-name vcluster-dev --upgrade -f vcluster-config.yaml
 ```
 NOTE: Replace NTUSER by you user in lowercase
 
@@ -104,7 +96,7 @@ skaffold run -f skaffold.stack.yaml --port-forward --tail --port-forward --profi
 Please note that if you want to fully remove/reset the localstack you should do (localstack has cross-deployment persistence):
 
 ```
-skaffold delete -f skaffold.stack.yaml --port-forward --profile vcluster --kube-context vcluster-dev
+skaffold delete -f skaffold.stack.yaml --profile vcluster --kube-context vcluster-dev
 ```
 
 ### Deploy all apps/services
