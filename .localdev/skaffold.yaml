@@ -14,6 +14,7 @@ manifests:
       # - ../../kubernetes_config/apps/pg/metadata
       - ../../kubernetes_config/apps/pg/sanitizer
       - ../../kubernetes_config/apps/pg/artifact_downloader
+      - ../../kubernetes_config/apps/pg/artifact_api
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
@@ -99,6 +100,17 @@ build:
       context: ..
       docker:
         dockerfile: artifact_downloader/Dockerfile
+        buildArgs:
+          LOCALSTACK_PATCH: "true"
+      runtimeType: python
+    #Artifact api
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/artifact_api
+      context: ..
+      docker:
+        dockerfile: artifact_api/Dockerfile
+        secrets:
+          - id: voxel51token
+            env: VOXEL_REGISTRY_TOKEN
         buildArgs:
           LOCALSTACK_PATCH: "true"
       runtimeType: python
