@@ -15,6 +15,7 @@ manifests:
       - ../../kubernetes_config/apps/pg/sanitizer
       - ../../kubernetes_config/apps/pg/artifact_downloader
       - ../../kubernetes_config/apps/pg/artifact_api
+      - ../../kubernetes_config/apps/pg/sdretriever
     buildArgs:
       - "--load-restrictor=LoadRestrictionsNone"
 build:
@@ -24,6 +25,12 @@ build:
     local:
       concurrency: 3
     artifacts:
+       # SDRetriever
+    - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdretriever
+      context: ..
+      docker:
+        dockerfile: SDRetriever/Dockerfile
+      runtimeType: python
       # SDM
     - image: 081962623310.dkr.ecr.eu-central-1.amazonaws.com/sdm
       context: ..

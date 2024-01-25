@@ -4,6 +4,10 @@ metadata:
   name: infrastructure-deploy
 
 manifests:
+  hooks:
+      before:
+        - host:
+            command: ["sh", "-c", "kubectl delete --namespace data-ingestion -f ../../kubernetes_config/apps/pg/localstack/job.yml  || true"]
   kustomize:
     paths:
       # creates base infrastructure stuff. Namespace, ingress, etc
@@ -11,6 +15,7 @@ manifests:
   rawYaml:
     # Job used to apply infrastructure to localstack
     - ../../kubernetes_config/apps/pg/localstack/job.yml
+    - ../../kubernetes_config/apps/pg/localstack/terraform_state_pvc.yml
 
 build:
     artifacts:
@@ -27,13 +32,18 @@ deploy:
       - name: localstack
         repo: https://localstack.github.io/helm-charts
         remoteChart: localstack
-        version: 0.6.4
+        version: 0.6.7
         namespace: data-ingestion
         createNamespace: true
         setValues:
+          global.storageClass: efs-retain
           service.type: ClusterIP
           # We want to have persistence on the stack
-          persistence.enabled: true
+          persistence:
+            enabled: true
+            size: 1Gi
+            accessModes:
+              - ReadWriteOnce
 
 portForward:
   # we forward the localstack port in order to apply changes

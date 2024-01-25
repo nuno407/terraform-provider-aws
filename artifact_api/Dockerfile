@@ -20,6 +20,10 @@ WORKDIR /app/artifact_api
 #Code to install always the latest
 RUN pip install -U pip
 RUN --mount=type=secret,id=voxel51token,uid=1000 TOKEN=$(cat /run/secrets/voxel51token) pip --no-cache-dir install -r requirements.txt
+# Necessary in order to have localstack working
+COPY --chown=1000:3000 ./artifact_api/localstack.patch /app/artifact_api/localstack.patch
+ARG LOCALSTACK_PATCH
+RUN if [ -z "$LOCALSTACK_PATCH" ] ; then echo Localstack patch NOT APPLIED ; else patch ~/.local/lib/python3.10/site-packages/eta/core/storage.py < /app/artifact_api/localstack.patch ; fi
 
 # Copy application code
 COPY --chown=1000:3000 ./artifact_api/artifact_api/ /app/artifact_api/artifact_api
