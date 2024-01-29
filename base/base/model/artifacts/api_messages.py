@@ -5,7 +5,7 @@ from pydantic import RootModel, TypeAdapter, Field
 from base.model.validators import LegacyTimeDelta
 from base.model.artifacts.artifacts import SignalsArtifact
 from base.model.artifacts.processing_result import IMUProcessingResult
-from base.model.base_model import ConfiguredBaseModel
+from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.metadata.media_metadata import MediaMetadata
 
 
@@ -55,9 +55,13 @@ class SignalsFrame(RootModel):
     root: dict[str, Union[int, float, bool]]
 
 
-class VideoSignalsData(RootModel):
+class VideoSignalsData(ConfiguredBaseModel):
     """Video Signals file"""
-    root: dict[LegacyTimeDelta, SignalsFrame]
+    data: dict[LegacyTimeDelta, SignalsFrame]
+    agregated_metadata: dict[str, Union[str,int,float,bool]]
+    correlation_id : str
+    tenant_id: str
+    video_raw_s3_path: S3Path
 
 
 class SnapshotSignalsData(ConfiguredBaseModel):

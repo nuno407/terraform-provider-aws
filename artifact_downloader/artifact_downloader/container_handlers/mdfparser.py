@@ -1,7 +1,7 @@
 """MDFParser container handler"""
 from requests import Request
 from kink import inject
-from base.model.artifacts import IMUDataArtifact, IMUProcessingResult, SignalsProcessingResult
+from base.model.artifacts import IMUDataArtifact, IMUProcessingResult, SignalsProcessingResult, VideoSignalsData
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.message.incoming_messages import MDFParserMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
@@ -40,8 +40,17 @@ class MDFParserContainerHandler(ContainerHandler):  # pylint: disable=too-few-pu
             Request: _description_
         """
         if isinstance(message.body, SignalsProcessingResult):
-            return self.__request_factory.generate_request_from_artifact_with_file(
-                self.__endpoint_signals, message.body, message.body.s3_path)
+            data = self.__s3_downloader.download_convert_json(message.body.s3_path)
+            artifact = VideoSignalsData(
+                data=data,
+                agregated_metadata=message.body.recording_overview,
+                correlation_id=message.body.correlation_id,
+                tenant_id=message.body.tenant_id,
+                video_raw_s3_path=message.body.video_raw_s3_path
+            )
+            return self.__request_factory.generate_request_from_artifact(
+                self.__endpoint_signals, artifact)
+
         if isinstance(message.body, IMUProcessingResult):
             # if the model validation causes a bottleneck, create a dict payload and use generate_request instead
             data = self.__s3_downloader.download_convert_json(message.body.s3_path)
