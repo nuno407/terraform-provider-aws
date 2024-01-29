@@ -13,4 +13,4 @@ class ConfiguredBaseModel(BaseModel):
 
     def stringify(self) -> str:
         """ stringifies the artifact. """
-        return self.json(by_alias=True, exclude_unset=False, exclude_none=True)
+        return self.model_dump_json(by_alias=True, exclude_unset=False, exclude_none=True)
