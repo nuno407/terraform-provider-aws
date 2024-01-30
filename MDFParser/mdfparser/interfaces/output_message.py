@@ -16,6 +16,8 @@ class OutputMessage():
     parsed_file_path: str
     data_type: DataType
     recording_overview: dict[str, Union[float, int]]
+    tenant: str
+    raw_s3_path: str
 
     def to_json(self) -> str:
         """

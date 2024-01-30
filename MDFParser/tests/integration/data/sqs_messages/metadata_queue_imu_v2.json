@@ -2,5 +2,7 @@
     "_id": "IMU_V2_TrainingRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680541729312_1680541745613",
     "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/IMU_V2_TrainingRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680541729312_1680541745613_processed_imu.json",
     "data_type": "imu",
-    "recording_overview": {}
+    "recording_overview": {},
+    "tenant": "datanauts",
+    "raw_s3_path": "s3://raw/foo/bar.something"
 }

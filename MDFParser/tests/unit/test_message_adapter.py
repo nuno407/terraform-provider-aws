@@ -82,14 +82,16 @@ class TestMessageAdapter():
                                      data_type=DataType.IMU,
                                      tenant="tid",
                                      device_id="devid",
-                                     recorder="Training")),
+                                     recorder="Training",
+                                     raw_s3_path="s3://raw/foo/bar_TrainingRecorder_64594ea7-b817-54db-bdf3-dba7e2bfb186_1681370055771_1681370115771.jpeg")),
                           (metadata_artifact(),
                            InputMessage(id="bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771",
                                         s3_path="s3://some_path/file.mp4",
                                         data_type=DataType.METADATA,
                                         tenant="tid",
                                         device_id="devid",
-                                        recorder="Interior"))])
+                                        recorder="Interior",
+                                        raw_s3_path="s3://raw/foo/bar_InteriorRecorder_c9e5b11d-e77a-5306-8e0b-68aa609e49db_1681370055771_1681370115771.jpeg"))])
     def test_adapt_message(
             self,
             artifact: MetadataArtifact,

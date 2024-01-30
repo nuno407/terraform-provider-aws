@@ -15,6 +15,7 @@ class InputMessage:
     id: str  # pylint: disable=invalid-name
     s3_path: str
     data_type: DataType
+    raw_s3_path: str
     tenant: str
     device_id: str
     recorder: str
@@ -44,6 +45,7 @@ class InputMessage:
             message_body["id"],
             message_body["s3_path"],
             DataType(message_body["data_type"]),
+            message_body["raw_s3_path"],
             message_body["tenant"],
             message_body["device_id"],
             message_body["recorder"])

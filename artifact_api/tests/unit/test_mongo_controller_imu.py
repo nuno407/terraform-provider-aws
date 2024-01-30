@@ -36,7 +36,9 @@ def _generate_imu_data_artifact(filename: str) -> IMUDataArtifact:
     message = IMUProcessingResult(
         artifact_name="imu_processed",
         s3_path=f"s3://bucket/dir/{filename}",
-        correlation_id=filename.split(".")[0]
+        correlation_id=filename.split(".")[0],
+        tenant_id="datanauts",
+        video_raw_s3_path="s3://bucket/dir/video.mp4"
     )
 
     data = IMUProcessedData.model_validate(_helper_load_imu_file(filename))

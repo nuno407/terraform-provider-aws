@@ -246,14 +246,17 @@ class RawMessageParser:  # pylint: disable=too-few-public-methods
         if data_type == "imu":
             return IMUProcessingResult(
                 correlation_id=body["_id"],
-                s3_path=body["parsed_file_path"]
+                s3_path=body["parsed_file_path"],
+                tenant_id=body["tenant"],
+                video_raw_s3_path=body["raw_s3_path"],
             )
         if data_type == "metadata":
             return SignalsProcessingResult(
                 correlation_id=body["_id"],
                 s3_path=body["parsed_file_path"],
+                tenant_id=body["tenant"],
                 recording_overview=body["recording_overview"],
-                tenant_id=self.__get_tenant_from_path(body["parsed_file_path"])
+                video_raw_s3_path=body["raw_s3_path"]
             )
         raise UnknownMDFParserArtifact(
             f"Uknown mdfparser artifact data_type={data_type}")

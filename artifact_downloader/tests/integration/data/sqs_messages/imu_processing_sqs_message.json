@@ -6,6 +6,8 @@
         "_id": "DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736",
         "parsed_file_path": "s3://dev-rcd-temporary-metadata-files/DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736_processed_imu.json",
         "data_type": "imu",
+        "tenant": "datanauts",
+        "raw_s3_path": "s3://dev-raw-data/DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736",
         "recording_overview": {}
     },
     "Attributes": {

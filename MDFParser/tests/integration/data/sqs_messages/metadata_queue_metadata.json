@@ -14,5 +14,7 @@
         "ride_detection_people_count_after": 0,
         "sum_door_closed": 0,
         "variance_person_count": 0.04
-    }
+    },
+    "tenant": "datanauts",
+    "raw_s3_path": "s3://raw/foo/bar.something"
 }

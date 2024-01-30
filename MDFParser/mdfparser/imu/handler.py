@@ -86,7 +86,12 @@ class IMUHandler(Handler):
         self.uploader.upload(processed_imu, self.config.temporary_bucket, tmp_file_key)
 
         return OutputMessage(
-            message.id, f"s3://{self.config.temporary_bucket}/{tmp_file_key}", DataType.IMU, {})
+            message.id,
+            f"s3://{self.config.temporary_bucket}/{tmp_file_key}",
+            DataType.IMU,
+            {},
+            message.tenant,
+            message.raw_s3_path)
 
     def handler_type(self) -> DataType:
         """

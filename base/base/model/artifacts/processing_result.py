@@ -52,12 +52,15 @@ class SignalsProcessingResult(S3Result):
     """Signals MDF Processed Artifact"""
     artifact_name: Literal["signals_processed"] = "signals_processed"
     tenant_id: str = Field(default=...)
+    video_raw_s3_path: S3Path = Field(default=...)
     recording_overview: dict[str, Union[float, int, str]] = Field(default=...)
 
 
 class IMUProcessingResult(S3Result):
     """IMU MDF Processed Result"""
     artifact_name: Literal["imu_processed"] = "imu_processed"
+    tenant_id: str = Field(default=...)
+    video_raw_s3_path: S3Path = Field(default=...)
 
 
 class PipelineProcessingStatus(S3Result):

@@ -224,6 +224,8 @@ def _mdf_imu_message_body(_id: str) -> dict:
         "_id": _id,
         "parsed_file_path": f"s3://dev-rcd-raw-video-files/Debug_Lync/{_id}_signals.json",
         "data_type": "metadata",
+        "tenant" : "datanauts",
+        "raw_s3_path" : "s3://some-bucket/file.mp4",
         "recording_overview": {}
     }
 
@@ -237,7 +239,9 @@ def _mdf_metadata_message_body(_id: str) -> dict:
                                "ride_detection_people_count_before": 1,
                                "ride_detection_people_count_after": 0,
                                "sum_door_closed": 0,
-                               "variance_person_count": 0.04}
+                               "variance_person_count": 0.04},
+        "raw_s3_path" : "s3://some-bucket/file.mp4",
+        "tenant" : "datanauts"
     }
 
 
@@ -1231,7 +1235,9 @@ def test_insert_mdf_imu_data(file_exists: bool):
         "data_type": "imu",
         "recording_overview": {
             "foo": "bar"
-        }
+        },
+        "raw_s3_path": "s3://bucket/dir/raw_imu.json",
+        "tenant": "datanauts"
     }
 
     mock_imu_col = Mock()

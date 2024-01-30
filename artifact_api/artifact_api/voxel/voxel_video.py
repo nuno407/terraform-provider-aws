@@ -108,7 +108,7 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
             filepath=rule.raw_file_path)
         values_to_set: dict[VoxelField, Any] = {
             cls.Fields.RULES.value: VoxelSample._append_to_list(
-                "rules", [fo.DynamicEmbeddedDocument(**db_rule.dict())])
+                "rules", [fo.DynamicEmbeddedDocument(**db_rule.model_dump())])
         }
         cls._upsert_sample(
             tenant_id=rule.tenant,

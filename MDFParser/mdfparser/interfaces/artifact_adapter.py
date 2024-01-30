@@ -42,5 +42,6 @@ class ArtifactAdapter:  # pylint: disable=too-few-public-methods
                             data_type=artifact_type,
                             tenant=artifact.tenant_id,
                             device_id=artifact.device_id,
-                            recorder=converted_recorder
+                            recorder=converted_recorder,
+                            raw_s3_path=artifact.referred_artifact.raw_s3_path
                             )

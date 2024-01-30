@@ -49,7 +49,13 @@ class MetadataHandler(Handler):
             OutputMessage: The message to be sent to the Metadata service.
         """
         metadata_file, processors = self.process_request(message.s3_path)
-        return OutputMessage(message.id, metadata_file, self.handler_type(), processors)
+        return OutputMessage(
+            message.id,
+            metadata_file,
+            self.handler_type(),
+            processors,
+            message.tenant,
+            message.raw_s3_path)
 
     def handler_type(self) -> DataType:
         """

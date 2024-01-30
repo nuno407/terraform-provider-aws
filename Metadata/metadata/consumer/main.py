@@ -694,6 +694,10 @@ def __update_events(imu_range: TimeRange, imu_tenant, imu_device, data_type: str
 
 
 def __process_mdfparser(message: dict, metadata_collections: MetadataCollections):
+
+    del message["tenant"]
+    del message["raw_s3_path"]
+
     if message["data_type"] == "imu":
         imu_ranges, imu_tenant, imu_device = insert_mdf_imu_data(
             message, metadata_collections)  # pylint: disable=no-value-for-parameter

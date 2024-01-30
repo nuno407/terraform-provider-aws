@@ -3,7 +3,9 @@
     "message": {
         "artifact_name": "imu_processed",
         "s3_path": "s3://dev-rcd-temporary-metadata-files/DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736_processed_imu.json",
-        "correlation_id": "DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736"
+        "correlation_id": "DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736",
+        "tenant_id": "datanauts",
+        "video_raw_s3_path": "s3://dev-raw-data/DATANAUTS_DEV_02_TrainingRecorder_d9b15b43-8147-485f-89a2-fa039b29ab6b_1702662159997_1702662318736"
     },
     "data": [
         {
