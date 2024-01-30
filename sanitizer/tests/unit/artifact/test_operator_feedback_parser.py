@@ -1,14 +1,10 @@
-import json
-import os
-from typing import Optional
-
 import pytest
 
 from base.aws.model import SQSMessage
 from base.model.artifacts import (SOSOperatorArtifact, PeopleCountOperatorArtifact, OperatorArtifact,
                                   CameraBlockedOperatorArtifact, OperatorAdditionalInformation, OperatorSOSReason)
 from sanitizer.artifact.parsers.operator_feedback_parser import OperatorFeedbackParser
-from sanitizer.exceptions import InvalidMessageError
+from sanitizer.exceptions import ArtifactException
 from helper_functions import parse_sqs_message
 
 
@@ -125,11 +121,11 @@ def test_operator_feedback_parser(input_message: SQSMessage,
 @pytest.mark.parametrize("input_message,expected_exception", [
     (
         load_sos_message("WRONG_REASON"),
-        InvalidMessageError
+        ArtifactException
     ),
     (
         parse_sqs_message("valid_camera_service_event.json"),
-        InvalidMessageError
+        ArtifactException
     )
 ])
 def test_operator_feedback_parser_fails_as_expected(input_message: SQSMessage,

@@ -1,6 +1,7 @@
 from pydantic import Field, TypeAdapter
 from datetime import datetime
-from typing import Optional, Union, NewType
+from typing import Optional, Union
+from base.model.validators import UtcDatetimeInPast
 from base.model.artifacts import OperatorSOSReason, OperatorAdditionalInformation
 from base.model.base_model import ConfiguredBaseModel
 
@@ -21,9 +22,9 @@ class AdditonalInformation(ConfiguredBaseModel):
 class Metadata(ConfiguredBaseModel):
     device_id: str = Field(alias="deviceId")
     tenant: str = Field(alias="tenant")
-    event_timestamp: datetime = Field(alias="eventTimestamp")
-    operator_monitoring_start: datetime = Field(alias="operatorMonitoringStart")
-    operator_monitoring_end: datetime = Field(alias="operatorMonitoringEnd")
+    event_timestamp: UtcDatetimeInPast = Field(alias="eventTimestamp")
+    operator_monitoring_start: UtcDatetimeInPast = Field(alias="operatorMonitoringStart")
+    operator_monitoring_end: UtcDatetimeInPast = Field(alias="operatorMonitoringEnd")
 
 
 class SOS(ConfiguredBaseModel):

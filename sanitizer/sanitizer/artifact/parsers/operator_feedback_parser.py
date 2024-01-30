@@ -12,7 +12,7 @@ from base.model.artifacts import (
     OperatorArtifact)
 from kink import inject
 from sanitizer.artifact.parsers.iparser import IArtifactParser
-from sanitizer.exceptions import InvalidMessageError
+from sanitizer.exceptions import ArtifactException
 from sanitizer.message.models.operator_feedback_messages import (
     ParsedCameraBlockedOperatorMessage,
     ParsedPeopleCountOperatorMessage,
@@ -29,7 +29,7 @@ class OperatorFeedbackParser(IArtifactParser):  # pylint: disable=too-few-public
         try:
             event_message_body: OperatorFeedbackMessage = parse_operator_message(sqs_message.body["Message"])
         except (ValidationError, KeyError) as ex:
-            raise InvalidMessageError("Unable to parse event message into pydantic model.") from ex
+            raise ArtifactException("Unable to parse event message into pydantic model.") from ex
 
         if isinstance(event_message_body, ParsedCameraBlockedOperatorMessage):
             metadata = event_message_body.metadata
@@ -64,4 +64,4 @@ class OperatorFeedbackParser(IArtifactParser):  # pylint: disable=too-few-public
                                       additional_information=information.parse_additional_information(),
                                       reason=event_message_body.sos.reason)
         else:
-            raise InvalidMessageError("Unable to determine event type from message.")
+            raise ArtifactException("Unable to determine event type from message.")
