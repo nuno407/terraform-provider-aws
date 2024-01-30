@@ -57,6 +57,7 @@ class SignalsFrame(RootModel):
 
 class VideoSignalsData(ConfiguredBaseModel):
     """Video Signals file"""
+    artifact_name: Literal["video_signals_data"] = "video_signals_data"
     data: dict[LegacyTimeDelta, SignalsFrame]
     agregated_metadata: dict[str, Union[str,int,float,bool]]
     correlation_id : str
@@ -86,7 +87,7 @@ class CHCDataResult(ConfiguredBaseModel):
     data: VideoSignalsData
 
 
-APIMessages = Union[SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
+APIMessages = Union[VideoSignalsData, SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
 
 DiscriminatedAPIMessagesTypeAdapter = TypeAdapter(Annotated[APIMessages,
                                                   Field(..., discriminator="artifact_name")])

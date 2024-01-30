@@ -86,6 +86,12 @@ class TestAPIDownloader:
                 None,
                 "ridecare/pipeline/status",
                 "sdm_message_post_data.json"
+            ),
+            (
+                "mdfparser_message.json",
+                "mdfparser_state.json",
+                "ridecare/signals/video",
+                "mdfparser_post_data.json",
             )
         ],
         ids=["snapshot_test_success",
@@ -99,7 +105,8 @@ class TestAPIDownloader:
             "sanitizer_sos_operator_artifact",
             "imu_processing_test_success",
             "training_snapshot_metadata_test_success",
-            "sdm_message_test_success"
+            "sdm_message_test_success",
+            "mdfparser_test_success"
         ],
         indirect=["endpoint"])
     # autopep8: on
@@ -227,6 +234,12 @@ class TestAPIDownloader:
                 None,
                 "ridecare/pipeline/status",
                 "sdm_message_post_data.json",
+            ),
+            (
+                "mdfparser_message.json",
+                "mdfparser_state.json",
+                "ridecare/signals/video",
+                "mdfparser_post_data.json",
             )
             ],
             ids=["snapshot_test_failure",
@@ -239,7 +252,8 @@ class TestAPIDownloader:
                 "sanitizer_people_count_operator_artifact",
                 "sanitizer_sos_operator_artifact",
                 "imu_processing_test_failure",
-                "sdm_message_test_failure"
+                "sdm_message_test_failure",
+                "mdfparser_test_failure"
             ],
             indirect=["endpoint"])
     # autopep8: on

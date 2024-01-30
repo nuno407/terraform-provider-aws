@@ -1,0 +1,33 @@
+{
+    "MessageId": "7f83c9bc-9442-4577-80a1-d75aa1c3de41",
+    "ReceiptHandle": "AQEBzra8zdz086yOLOevu8UhjolhvXSs3eNcpsjHC6JzQTfeAm5mPzKlZ2UjC8YNQxQ9wOrX8MjrRiBIosK+5QMGmnM198OgQa/Wzm/pquSFArMm1EIemNxpQXLN1VlHGISs84ZNfavAJ8+TS3j7G9hwK5AISd6liQy1vXVlZ6X6B1APCCOj5bnIb9En/pHHEKkLJIgUt76pwDvYIej22SK1oaMPS43h9Y/GrD1B7lu5IC+3xRTd1lRfdBACGG3byCpTnvrvjAoVldxyq3p/k+gU3fcQ2WQeCiHXGk5z52wEV5N1c/BPZ9xbnpyQzz6ENvDaQrxU2xkr3HqpwK5L8XwH4YfJi2JaZKbpY5Qm0b+Ll3Q+7uQiRQ1A/3hiJvfZsavcULVc6TfRHgaufa+kUBPq8Rkb3K0voPGFu49cYCTwLBGdhENFm430J+7TjKtDF4ki",
+    "MD5OfBody": "3eed446d8ec59c924f3408e0e78ccb77",
+    "Body": {
+        "recording_overview": {
+            "chc_duration": 26.478034,
+            "gnss_coverage": 0.0,
+            "max_audio_loudness": -32.2027,
+            "max_person_count": 1.0,
+            "mean_audio_bias": 0.36789289230769234,
+            "median_person_count": 0.0,
+            "number_chc_events": 1,
+            "ride_detection_people_count_before": -1,
+            "ride_detection_people_count_after": 0,
+            "sum_door_closed": 0,
+            "variance_person_count": 0.04
+        },
+        "_id": "DATANAUTS_DEV_02_InteriorRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680540223210_1680540250651",
+        "parsed_file_path": "s3://dev-rcd-raw-video-files/datanauts/datanauts_DATANAUTS_DEV_02_InteriorRecorder_1680540223210_1680540250651_signals.json",
+        "tenant": "datanauts",
+        "raw_s3_path": "s3://raw/foo/bar.something",
+        "data_type": "metadata"
+    },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "MDFParser",
+            "StringListValues": [],
+            "BinaryListValues": [],
+            "DataType": "String"
+        }
+    }
+}
