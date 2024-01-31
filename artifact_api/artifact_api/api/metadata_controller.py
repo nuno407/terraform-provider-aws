@@ -23,7 +23,7 @@ class MetadataController:
         Process device video signals
 
         Args:
-            device_video_signals (VideoAgregatedMetadata): _description_
+            device_video_signals (VideoSignalsData): _description_
         """
         return ResponseMessage()
 
