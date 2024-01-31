@@ -5,7 +5,7 @@ from fastapi_restful.cbv import cbv
 from kink import di
 from base.model.artifacts import (CameraServiceEventArtifact, CameraBlockedOperatorArtifact, DeviceInfoEventArtifact,
                                   IncidentEventArtifact, PeopleCountOperatorArtifact, SOSOperatorArtifact)
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.models import ResponseMessage
 
 
@@ -19,7 +19,7 @@ class EventsController:
     @events_router.post("/ridecare/event", response_model=ResponseMessage)
     async def process_device_event(self, message: Union[CameraServiceEventArtifact,
                                                         DeviceInfoEventArtifact, IncidentEventArtifact],
-                                   mongo_service: MongoController = Depends(lambda: di[MongoController])):
+                                   mongo_service: MongoService = Depends(lambda: di[MongoService])):
         """
         Process a device event
 
@@ -34,7 +34,7 @@ class EventsController:
     async def process_operator_feedback(self, operator_feedback_event: Union[SOSOperatorArtifact,
                                                                              PeopleCountOperatorArtifact,
                                                                              CameraBlockedOperatorArtifact],
-                                        mongo_service: MongoController = Depends(lambda: di[MongoController])):
+                                        mongo_service: MongoService = Depends(lambda: di[MongoService])):
         """
         Process the operator feedback event
 

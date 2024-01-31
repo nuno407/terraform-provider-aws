@@ -14,8 +14,6 @@ from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
                                               DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
                                               DBS3VideoArtifact, DBSnapshotArtifact, DBPipelineProcessingStatus)
 from artifact_api.voxel.voxel_config import VoxelConfig
-from artifact_api.utils.imu_gap_finder import IMUGapFinder
-from artifact_api.mongo_controller import MongoController
 
 
 def create_mongo_client(db_uri: str) -> AsyncIOMotorClient:
@@ -42,43 +40,34 @@ def bootstrap_di() -> None:
     db_name = os.environ["DATABASE_NAME"]
     mongo_client = create_mongo_client(db_uri)
 
-    event_engine = Engine(model=Union[DBCameraServiceEventArtifact,
-                                      DBDeviceInfoEventArtifact,
-                                      DBIncidentEventArtifact],
-                          database=db_name,
-                          collection=di["db_metadata_tables"]["events"],
-                          client=mongo_client)
-    operator_feedback_engine = Engine(model=Union[SOSOperatorArtifact,
-                                                  PeopleCountOperatorArtifact,
-                                                  CameraBlockedOperatorArtifact],
-                                      database=db_name,
-                                      collection=di["db_metadata_tables"]["sav_operator_feedback"],
-                                      client=mongo_client)
-    snapshot_engine = Engine(model=DBSnapshotArtifact,
-                             database=db_name,
-                             collection=di["db_metadata_tables"]["recordings"],
-                             client=mongo_client)
-    video_engine = Engine(model=DBS3VideoArtifact,
-                          database=db_name,
-                          collection=di["db_metadata_tables"]["recordings"],
-                          client=mongo_client)
-    processed_imu_engine = Engine(model=DBIMUSample,
-                                  database=db_name,
-                                  collection=di["db_metadata_tables"]["processed_imu"],
-                                  client=mongo_client)
-    pipeline_processing_status_engine = Engine(model=DBPipelineProcessingStatus,
-                                               database=db_name,
-                                               collection=di["db_metadata_tables"]["pipeline_exec"],
-                                               client=mongo_client)
-    di[MongoController] = MongoController(
-        event_engine=event_engine,
-        operator_feedback_engine=operator_feedback_engine,
-        snapshot_engine=snapshot_engine,
-        video_engine=video_engine,
-        processed_imu_engine=processed_imu_engine,
-        imu_gap_finder=IMUGapFinder(),
-        pipeline_processing_status_engine=pipeline_processing_status_engine
-    )
+    di["event_engine"] = Engine(model=Union[DBCameraServiceEventArtifact,
+                                            DBDeviceInfoEventArtifact,
+                                            DBIncidentEventArtifact],
+                                database=db_name,
+                                collection=di["db_metadata_tables"]["events"],
+                                client=mongo_client)
+    di["operator_feedback_engine"] = Engine(model=Union[SOSOperatorArtifact,
+                                                        PeopleCountOperatorArtifact,
+                                                        CameraBlockedOperatorArtifact],
+                                            database=db_name,
+                                            collection=di["db_metadata_tables"]["sav_operator_feedback"],
+                                            client=mongo_client)
+    di["snapshot_engine"] = Engine(model=DBSnapshotArtifact,
+                                   database=db_name,
+                                   collection=di["db_metadata_tables"]["recordings"],
+                                   client=mongo_client)
+    di["video_engine"] = Engine(model=DBS3VideoArtifact,
+                                database=db_name,
+                                collection=di["db_metadata_tables"]["recordings"],
+                                client=mongo_client)
+    di["processed_imu_engine"] = Engine(model=DBIMUSample,
+                                        database=db_name,
+                                        collection=di["db_metadata_tables"]["processed_imu"],
+                                        client=mongo_client)
+    di["pipeline_processing_status_engine"] = Engine(model=DBPipelineProcessingStatus,
+                                                     database=db_name,
+                                                     collection=di["db_metadata_tables"]["pipeline_exec"],
+                                                     client=mongo_client)
 
 
 def load_mongodb_config_vars() -> dict[str, str]:

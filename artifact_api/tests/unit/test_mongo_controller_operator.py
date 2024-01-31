@@ -7,7 +7,7 @@ from pytest import mark, raises
 from base.model.artifacts import (CameraBlockedOperatorArtifact,
                                   PeopleCountOperatorArtifact,
                                   SOSOperatorArtifact, OperatorArtifact)
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.exceptions import InvalidOperatorArtifactException
 
 
@@ -73,7 +73,7 @@ class TestMongoControllerOperator:
     @mark.parametrize("artifact", [_generate_camera_blocked_operator_artifact(),
                                    _generate_sos_operator_artifact(),
                                    _generate_people_count_operator_artifact()])
-    async def test_create_sav_operator(self, mongo_controller: MongoController, operator_feedback_engine: MagicMock,
+    async def test_create_sav_operator(self, mongo_controller: MongoService, operator_feedback_engine: MagicMock,
                                        artifact: Union[SOSOperatorArtifact, CameraBlockedOperatorArtifact,
                                                        PeopleCountOperatorArtifact]):
         """Test for proces_imu_artifact method
@@ -94,7 +94,7 @@ class TestMongoControllerOperator:
         operator_feedback_engine.save.assert_called_once_with(artifact)
 
     @mark.parametrize("artifact", [_generate_bad_operator_artifact()])
-    async def test_create_sav_operator_invalid(self, mongo_controller: MongoController,
+    async def test_create_sav_operator_invalid(self, mongo_controller: MongoService,
                                                operator_feedback_engine: MagicMock, artifact: OperatorArtifact):
         """Test for create_sav_operator method with invalid artifact
 

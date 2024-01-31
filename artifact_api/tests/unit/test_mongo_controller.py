@@ -9,7 +9,7 @@ from base.model.artifacts import (CameraServiceEventArtifact, DeviceInfoEventArt
                                   TimeWindow)
 from base.model.event_types import (CameraServiceState, EventType, GeneralServiceState, IncidentType,
                                     Shutdown, ShutdownReason)
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 
 
 @mark.unit
@@ -119,7 +119,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
             bundle_id="mock_bundle_id",
         )
 
-    async def test_upsert_snapshot(self, snapshot_engine: MagicMock, mongo_controller: MongoController,
+    async def test_upsert_snapshot(self, snapshot_engine: MagicMock, mongo_controller: MongoService,
                                    snapshot_artifact: SnapshotArtifact):
         """Test for upsert_snapshot method
 
@@ -141,7 +141,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         )
 
     async def test_update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str,
-                                              video_engine: MagicMock, mongo_controller: MongoController):
+                                              video_engine: MagicMock, mongo_controller: MongoService):
         """Test for update_videos_correlations method
 
         Args:
@@ -180,7 +180,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         video_engine.update_many.assert_called_once_with(filter_correlated, update_video)
 
     async def test_get_correlated_videos_for_snapshot(self, video_engine: MagicMock,
-                                                      mongo_controller: MongoController):
+                                                      mongo_controller: MongoService):
         """Test for get_correlated_videos_for_snapshot method
 
         Args:
@@ -218,7 +218,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         assert result == correlated_artifacts.__aiter__.return_value
 
     async def test_get_correlated_snapshots_for_video(self, snapshot_engine: MagicMock,
-                                                      mongo_controller: MongoController):
+                                                      mongo_controller: MongoService):
         """Test for get_correlated_snapshots_for_video method
 
         Args:
@@ -279,7 +279,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
             camera_state=[CameraServiceState.UNKNOWN, CameraServiceState.CAMERA_READY]
         )
     ])
-    async def test_create_event(self, event_engine: MagicMock, mongo_controller: MongoController,
+    async def test_create_event(self, event_engine: MagicMock, mongo_controller: MongoService,
                                 message: Union[CameraServiceEventArtifact, DeviceInfoEventArtifact,
                                                IncidentEventArtifact]):
         """Test for create_event method
@@ -296,7 +296,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         event_engine.save.assert_called_once()
 
     async def test_update_snapshots_correlations(self, correlated_snapshots: list[str], video_id: str,
-                                                 snapshot_engine: MagicMock, mongo_controller: MongoController):
+                                                 snapshot_engine: MagicMock, mongo_controller: MongoService):
         """Test for update_snapshots_correlations method
 
         Args:
@@ -320,7 +320,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         await mongo_controller.update_snapshots_correlations(correlated_snapshots, video_id)
         snapshot_engine.update_many.assert_called_once_with(filter_correlated, update_snapshot)
 
-    async def test_create_s3video(self, video_engine: MagicMock, mongo_controller: MongoController,
+    async def test_create_s3video(self, video_engine: MagicMock, mongo_controller: MongoService,
                                   video: S3VideoArtifact):
         """Test for create_s3video method
 

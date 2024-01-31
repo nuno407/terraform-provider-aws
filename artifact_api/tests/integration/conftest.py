@@ -14,6 +14,7 @@ set_mock_aws_credentials()
 os.environ["FIFTYONE_DATABASE_DIR"] = tempfile.TemporaryDirectory().name  # pylint: disable=consider-using-with
 os.environ["FIFTYONE_DATABASE_ADMIN"] = "true"
 os.environ["FIFTYONE_DO_NOT_TRACK"] = "true"
+
 # Fiftyone launches a file database by itself when we import it without prior defining a database uri.
 import fiftyone as fo
 

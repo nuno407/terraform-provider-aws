@@ -8,7 +8,7 @@ from fastapi_restful.cbv import cbv
 from base.model.artifacts.api_messages import CHCDataResult
 from base.model.artifacts import AnonymizationResult, PipelineProcessingStatus, PayloadType
 from artifact_api.models import ResponseMessage
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.voxel import VoxelService
 
 pipeline_router = APIRouter()
@@ -54,8 +54,8 @@ class PipelineController:
 
     @pipeline_router.post("/ridecare/pipeline/status", response_model=ResponseMessage)
     async def update_pipeline_status(self, pipeline_status: PipelineProcessingStatus,
-                                     mongo_service: MongoController = Depends(
-                                         lambda: di[MongoController]),
+                                     mongo_service: MongoService = Depends(
+                                         lambda: di[MongoService]),
                                      voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process pipelines status

@@ -7,7 +7,7 @@ from fastapi_restful.cbv import cbv
 
 from base.model.artifacts import S3VideoArtifact, SnapshotArtifact
 from artifact_api.models import ResponseMessage
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.voxel import VoxelService
 
 
@@ -21,7 +21,7 @@ class MediaController:
     """Controller for media"""
     @media_router.post("/ridecare/video", response_model=ResponseMessage)
     async def process_video_artifact(self, video_artifact: S3VideoArtifact,
-                                     mongo_service: MongoController = Depends(lambda: di[MongoController]),
+                                     mongo_service: MongoService = Depends(lambda: di[MongoService]),
                                      voxel_service: VoxelService = Depends(lambda: di[VoxelService])
                                      ):
         """
@@ -57,7 +57,7 @@ class MediaController:
 
     @media_router.post("/ridecare/snapshots", response_model=ResponseMessage)
     async def process_snapshot_artifact(self, snapshot_artifact: SnapshotArtifact,
-                                        mongo_service: MongoController = Depends(lambda: di[MongoController]),
+                                        mongo_service: MongoService = Depends(lambda: di[MongoService]),
                                         voxel_service: VoxelService = Depends(lambda: di[VoxelService])):
 
         """

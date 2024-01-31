@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 from base.model.artifacts.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
 from artifact_api.models import ResponseMessage
-from artifact_api.mongo_controller import MongoController
+from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.voxel.service import VoxelService
 
 metadata_router = APIRouter()
@@ -16,8 +16,8 @@ class MetadataController:
 
     @metadata_router.post("/ridecare/signals/video", response_model=ResponseMessage)
     async def process_video_signals(self, device_video_signals: VideoSignalsData,  # pylint: disable=unused-argument
-                                    mongo_service: MongoController = Depends(  # pylint: disable=unused-argument
-                                        lambda: di[MongoController]),
+                                    mongo_service: MongoService = Depends(  # pylint: disable=unused-argument
+                                        lambda: di[MongoService]),
                                     voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process device video signals
@@ -25,6 +25,7 @@ class MetadataController:
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
+
         return ResponseMessage()
 
     @metadata_router.post("/ridecare/signals/snapshot", response_model=ResponseMessage)
@@ -42,7 +43,7 @@ class MetadataController:
 
     @metadata_router.post("/ridecare/imu/video", response_model=ResponseMessage)
     async def process_video_imu(self, imu_data_artifact: IMUDataArtifact,
-                                mongo_service: MongoController = Depends(lambda: di[MongoController])):
+                                mongo_service: MongoService = Depends(lambda: di[MongoService])):
         """
         Process video IMU
 
