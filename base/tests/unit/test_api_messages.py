@@ -20,22 +20,20 @@ def load_data_dict(file_name: str) -> dict:
 class TestMetadataArtifacts:
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("signals_json,signals_dict", [
-        (
-            load_data_str("test_signals.json"),
-            {
-                timedelta(seconds=1, microseconds=6000): {
-                    "CameraViewShifted": False,
-                    "Gnss_has_fix": True,
-                    "mock_int_value": 1,
-                    "mock_int_float": 1.0
-                },
-                timedelta(seconds=2, microseconds=24000): {
-                    "CameraViewShifted": False
-                }
-            }
-        )
-    ], ids=["signals_1"])
+    @pytest.mark.parametrize("signals_json,signals_dict",
+                             [(load_data_str("test_signals.json"),
+                               {"correlation_id": "DATANAUTS_DEV_02_InteriorRecorder_89983c99-8ff5-4eb1-9140-ca019e70c1c0_1680540223210_1680540250651",
+                                "artifact_name": "video_signals_data",
+                                 "data": {timedelta(seconds=1): {"CameraViewShifted": False,
+                                                                 "CameraVerticalShifted": 0.988,
+                                                                 "CameraViewBlocked": 0.972},
+                                          timedelta(seconds=2): {"CameraViewShifted": False,
+                                                                 "CameraVerticalShifted": 0.953,
+                                                                 "CameraViewBlocked": 0.97}},
+                                 "aggregated_metadata": {"foo": 10},
+                                 "tenant_id": "datanauts",
+                                 "video_raw_s3_path": "s3://raw/foo/bar.something"})],
+                             ids=["signals_1"])
     def test_video_signals(self, signals_json: str, signals_dict: dict):
         """
         Test video signals

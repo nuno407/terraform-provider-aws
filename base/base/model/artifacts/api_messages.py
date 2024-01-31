@@ -59,8 +59,8 @@ class VideoSignalsData(ConfiguredBaseModel):
     """Video Signals file"""
     artifact_name: Literal["video_signals_data"] = "video_signals_data"
     data: dict[LegacyTimeDelta, SignalsFrame]
-    agregated_metadata: dict[str, Union[str,int,float,bool]]
-    correlation_id : str
+    aggregated_metadata: dict[str, Union[str,int,float,bool]]
+    correlation_id: str
     tenant_id: str
     video_raw_s3_path: S3Path
 
