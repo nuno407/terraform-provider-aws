@@ -3,26 +3,14 @@ from datetime import datetime, timedelta
 from pytest import fixture, mark
 from pytz import UTC
 
-from base.model.artifacts import (MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact, RecorderType,
-                                  TimeWindow,)
+from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.context import Context
-from selector.model.preview_metadata_63 import PreviewMetadataV063
+from selector.model import Context, PreviewMetadataV063, RideInfo
 from selector.rule import Rule
 from selector.rules import AudioSignal
 from selector.rules.basic_rule import BaseRule
 
-from .utils import DataTestBuilder
-
-tenant_device_and_timing = {
-    "artifact_id": "foo",
-    "tenant_id": "tenant_id",
-    "device_id": "device_id",
-    "timestamp": datetime.now(tz=UTC),
-    "end_timestamp": datetime.now(tz=UTC),
-    "upload_timing": TimeWindow(start=datetime.now(tz=UTC), end=datetime.now(tz=UTC))
-}
+from ..utils import DataTestBuilder
 
 
 @mark.unit()
@@ -53,16 +41,11 @@ class TestAudioBlock:
         return data_builder.with_length(
             6 * 60).with_integer_attribute("interior_camera_health_response_audio_signal", 1).build()
 
-    @fixture
-    def artifact(self) -> PreviewSignalsArtifact:
-        return PreviewSignalsArtifact(
-            **tenant_device_and_timing,
-            referred_artifact=MultiSnapshotArtifact(
-                **tenant_device_and_timing,
-                recorder=RecorderType.INTERIOR_PREVIEW,
-                chunks=[],
-                recording_id="foo"
-            )
+    def ride_info(self, artifact: PreviewMetadataV063) -> RideInfo:
+        return RideInfo(
+            preview_metadata=artifact,
+            start_ride=datetime.now(tz=UTC),
+            end_ride=datetime.now(tz=UTC)
         )
 
     def test_rule_name(self, rule: Rule):
@@ -71,44 +54,39 @@ class TestAudioBlock:
     def test_all_audio_selects_ride(
             self,
             rule: Rule,
-            data_audio_true: PreviewMetadataV063,
-            artifact: PreviewSignalsArtifact):
-        result = rule.evaluate(Context(data_audio_true, artifact))
+            data_audio_true: PreviewMetadataV063):
+        result = rule.evaluate(Context(self.ride_info(data_audio_true), tenant_id="", device_id=""))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}
 
     def test_no_audio_does_not_select_ride(
             self,
             rule: Rule,
-            data_audio_false: PreviewMetadataV063,
-            artifact: PreviewSignalsArtifact):
-        result = rule.evaluate(Context(data_audio_false, artifact))
+            data_audio_false: PreviewMetadataV063):
+        result = rule.evaluate(Context(self.ride_info(data_audio_false), tenant_id="", device_id=""))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
     def test_too_short_data_does_not_select_ride(
             self,
             rule: Rule,
-            too_short_data: PreviewMetadataV063,
-            artifact: PreviewSignalsArtifact):
-        result = rule.evaluate(Context(too_short_data, artifact))
+            too_short_data: PreviewMetadataV063):
+        result = rule.evaluate(Context(self.ride_info(too_short_data), tenant_id="", device_id=""))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
     def test_enough_data_select_ride(
             self,
             rule: Rule,
-            enough_data: PreviewMetadataV063,
-            artifact: PreviewSignalsArtifact):
-        result = rule.evaluate(Context(enough_data, artifact))
+            enough_data: PreviewMetadataV063):
+        result = rule.evaluate(Context(self.ride_info(enough_data), tenant_id="", device_id=""))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}
 
     def test_one_signal_audio_long_enough_does_select_ride(
             self,
             rule: BaseRule,
-            data_audio_false: PreviewMetadataV063,
-            artifact: PreviewSignalsArtifact):
+            data_audio_false: PreviewMetadataV063):
 
         for frame in data_audio_false.frames:
             # every 60 Frame
@@ -118,6 +96,6 @@ class TestAudioBlock:
                     break
 
         # WHEN / THEN
-        result = rule.evaluate(Context(data_audio_false, artifact))
+        result = rule.evaluate(Context(self.ride_info(data_audio_false), tenant_id="", device_id=""))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}

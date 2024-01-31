@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from base.model.artifacts import RecorderType
-from selector.context import Context
+from selector.model import Context
 from selector.decision import Decision
 from selector.rule import Rule
 
@@ -72,7 +72,7 @@ class BaseRule(Rule):
                 rule_name=self._rule_name,
                 rule_version=self._rule_version,
                 recorder=RecorderType.TRAINING,
-                footage_from=context.metadata_artifact.timestamp,
-                footage_to=context.metadata_artifact.end_timestamp,
+                footage_from=context.ride_info.start_ride,
+                footage_to=context.ride_info.end_ride,
             ),
         ]

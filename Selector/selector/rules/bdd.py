@@ -5,7 +5,7 @@ from typing import List
 
 from base.model.metadata.base_metadata import FrameSignal
 from functional import seq  # type: ignore
-from selector.context import Context
+from selector.model import Context
 from selector.decision import Decision
 from selector.model import PreviewMetadata
 from selector.rules.basic_rule import BaseRule
@@ -41,15 +41,15 @@ class BDDEvent(BaseRule):
         logger.debug("Evaluating '%s' rule", self.rule_name)
 
         # check if big damage event is present during the whole ride
-        bdd_event_detected = self.check_bdd_in_metadata(context.preview_metadata)
+        bdd_event_detected = self.check_bdd_in_metadata(context.ride_info.preview_metadata)
 
         # build decision
         if bdd_event_detected:
             logger.info(
                 "The %s has issued a training upload from %s to %s",
                 self.rule_name,
-                context.metadata_artifact.timestamp,
-                context.metadata_artifact.end_timestamp,
+                context.ride_info.start_ride,
+                context.ride_info.end_ride,
             )
             return super().evaluate(context=context)
         return []

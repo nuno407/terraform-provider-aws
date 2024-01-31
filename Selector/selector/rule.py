@@ -2,7 +2,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from selector.context import Context
+from selector.model.context import Context
 from selector.decision import Decision
 
 

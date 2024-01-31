@@ -7,10 +7,11 @@ from functional import seq  # type: ignore
 from kink import inject
 
 from base.model.artifacts import PreviewSignalsArtifact
-from selector.context import Context
 from selector.decision import Decision
 from selector.model import PreviewMetadata
 from selector.rule import Rule
+from selector.model.ride_info import RideInfo
+from selector.model.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,13 @@ class Evaluator:  # pylint: disable=too-few-public-methods
             permitted_decisions (set(Decision)): all valid outcomes of the evaluation
         """
         logger.info("Evaluating %d rules", len(self.__ruleset))
-        context = Context(preview_metadata, artifact)
-        decisions: list[Decision] = self.__call_rules(context)
+        ride_info = RideInfo(
+            preview_metadata=preview_metadata,
+            start_ride=artifact.timestamp,
+            end_ride=artifact.end_timestamp
+        )
+        context = Context(ride_info=ride_info, tenant_id=artifact.tenant_id, device_id=artifact.device_id)
+        decisions: list[Decision] = self.__call_rules(context, artifact)
         valid_and_permitted_decisions = (seq(decisions)
                                          .filter(lambda decision: self.__validate_decision(context, decision))
                                          .map(lambda decision: self.__assert_invariants(context, decision))
@@ -44,7 +50,7 @@ class Evaluator:  # pylint: disable=too-few-public-methods
 
         return valid_and_permitted_decisions
 
-    def __call_rules(self, context: Context) -> list[Decision]:
+    def __call_rules(self, context: Context, artifact: PreviewSignalsArtifact) -> list[Decision]:
         """Invokes the evaluate() method for every rule in the ruleset
 
         Args:
@@ -63,11 +69,11 @@ class Evaluator:  # pylint: disable=too-few-public-methods
                 recording_id (%s), start_timestamp (%s), end_timestamp (%s)",
                 rule.rule_name,
                 len(list_of_decisions),
-                context.metadata_artifact.tenant_id,
-                context.metadata_artifact.device_id,
-                context.metadata_artifact.referred_artifact.recording_id,
-                context.metadata_artifact.timestamp,
-                context.metadata_artifact.end_timestamp)
+                artifact.tenant_id,
+                artifact.device_id,
+                artifact.referred_artifact.recording_id,
+                artifact.timestamp,
+                artifact.end_timestamp)
 
         logger.debug("A total of %d decisions were returned", len(decisions))
         return decisions
@@ -96,10 +102,10 @@ class Evaluator:  # pylint: disable=too-few-public-methods
         # assert that we don't request more footage than what is allowed in the
         # ride, i.e. footage_from <= consensus_footage_from <=
         # consensus_footage_to <= footage_to
-        if decision.footage_from < context.metadata_artifact.timestamp:
-            decision.footage_from = context.metadata_artifact.timestamp
-        if context.metadata_artifact.end_timestamp < decision.footage_to:
-            decision.footage_to = context.metadata_artifact.end_timestamp
+        if decision.footage_from < context.ride_info.start_ride:
+            decision.footage_from = context.ride_info.start_ride
+        if context.ride_info.end_ride < decision.footage_to:
+            decision.footage_to = context.ride_info.end_ride
 
         # assert the timedelta between consensus_footage_from and
         # consensus_footage_to is less than 2h - MAX allowed by footageAPI

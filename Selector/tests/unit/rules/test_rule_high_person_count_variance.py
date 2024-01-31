@@ -3,24 +3,12 @@ from datetime import datetime
 from pytest import fixture, mark
 from pytz import UTC
 
-from base.model.artifacts import (MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact, RecorderType,
-                                  TimeWindow)
+from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.context import Context
-from selector.model import PreviewMetadataV063
+from selector.model import Context, RideInfo, PreviewMetadataV063
 from selector.rule import Rule
 from selector.rules import HighPersonCountVarianceRule
-from .utils import DataTestBuilder
-
-tenant_device_and_timing = {
-    "artifact_id": "foo",
-    "tenant_id": "tenant_id",
-    "device_id": "device_id",
-    "timestamp": datetime.now(tz=UTC),
-    "end_timestamp": datetime.now(tz=UTC),
-    "upload_timing": TimeWindow(start=datetime.now(tz=UTC), end=datetime.now(tz=UTC))
-}
+from ..utils import DataTestBuilder
 
 
 @mark.unit()
@@ -59,16 +47,11 @@ class TestRuleHighPersonCount:
     def rule(self):
         return HighPersonCountVarianceRule()
 
-    @fixture
-    def artifact(self):
-        return PreviewSignalsArtifact(
-            **tenant_device_and_timing,
-            referred_artifact=MultiSnapshotArtifact(
-                **tenant_device_and_timing,
-                recorder=RecorderType.INTERIOR_PREVIEW,
-                chunks=[],
-                recording_id="foo"
-            )
+    def ride_info(self, artifact: PreviewMetadataV063) -> RideInfo:
+        return RideInfo(
+            preview_metadata=artifact,
+            start_ride=datetime.now(tz=UTC),
+            end_ride=datetime.now(tz=UTC)
         )
 
     def test_rule_name(self, rule: Rule):
@@ -76,10 +59,9 @@ class TestRuleHighPersonCount:
 
     def test_positive_evaluation(self,
                                  data_person_count_high_variance: PreviewMetadataV063,
-                                 rule: Rule,
-                                 artifact: PreviewSignalsArtifact):
+                                 rule: Rule):
         # GIVEN
-        ctx = Context(data_person_count_high_variance, artifact)
+        ctx = Context(self.ride_info(data_person_count_high_variance), tenant_id="", device_id="")
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN
@@ -88,10 +70,9 @@ class TestRuleHighPersonCount:
 
     def test_negative_evaluation(self,
                                  data_person_count_one: PreviewMetadataV063,
-                                 rule: Rule,
-                                 artifact: PreviewSignalsArtifact):
+                                 rule: Rule):
         # GIVEN
-        ctx = Context(data_person_count_one, artifact)
+        ctx = Context(self.ride_info(data_person_count_one), tenant_id="", device_id="")
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN
@@ -100,10 +81,9 @@ class TestRuleHighPersonCount:
 
     def test_too_short_data_does_not_select_ride(self,
                                                  rule: Rule,
-                                                 too_short_data: PreviewMetadataV063,
-                                                 artifact: PreviewSignalsArtifact):
+                                                 too_short_data: PreviewMetadataV063):
         # GIVEN
-        ctx = Context(too_short_data, artifact)
+        ctx = Context(self.ride_info(too_short_data), tenant_id="", device_id="")
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN

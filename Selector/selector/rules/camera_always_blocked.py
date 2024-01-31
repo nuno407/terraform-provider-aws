@@ -2,7 +2,7 @@
 import logging
 
 from functional import seq  # type: ignore
-from selector.context import Context
+from selector.model import Context
 from selector.decision import Decision
 from selector.model import PreviewMetadata
 from selector.rules.basic_rule import BaseRule
@@ -23,13 +23,13 @@ class CameraAlwaysBlockedRule(BaseRule):
         logger.debug("Evaluating '%s' rule", self.rule_name)
 
         # check if camera view is blocked during the whole ride
-        view_always_blocked = self._is_view_always_blocked(context.preview_metadata)
+        view_always_blocked = self._is_view_always_blocked(context.ride_info.preview_metadata)
 
         # build decision
         if view_always_blocked:
             logger.debug(
                 "The %s has issued a training upload from %s to %s", self.rule_name,
-                context.metadata_artifact.timestamp, context.metadata_artifact.end_timestamp,
+                context.ride_info.start_ride, context.ride_info.end_ride,
             )
             return super().evaluate(context=context)
         return []

@@ -7,6 +7,10 @@ from selector.model.preview_metadata import PreviewMetadata
 from selector.model.preview_metadata_63 import PreviewMetadataV063, Frame
 from selector.model.upload_requests import DBDecision
 
+from selector.model.context import Context
+from selector.model.ride_info import RideInfo
+
+
 PreviewMetadataDescriminator = TypeAdapter(PreviewMetadataV063)
 
 

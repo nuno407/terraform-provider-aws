@@ -3,24 +3,12 @@ from datetime import datetime
 from pytest import fixture, mark
 from pytz import UTC
 
-from base.model.artifacts import (MultiSnapshotArtifact,
-                                  PreviewSignalsArtifact, RecorderType,
-                                  TimeWindow)
+from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.context import Context
-from selector.model import PreviewMetadataV063
+from selector.model import Context, RideInfo, PreviewMetadataV063
 from selector.rule import Rule
 from selector.rules import CameraAlwaysBlockedRule
 from selector.rules.basic_rule import BaseRule
-
-tenant_device_and_timing = {
-    "artifact_id": "foo",
-    "tenant_id": "tenant_id",
-    "device_id": "device_id",
-    "timestamp": datetime.now(tz=UTC),
-    "end_timestamp": datetime.now(tz=UTC),
-    "upload_timing": TimeWindow(start=datetime.now(tz=UTC), end=datetime.now(tz=UTC))
-}
 
 
 @mark.unit()
@@ -30,16 +18,11 @@ class TestRuleCameraAlwaysBlocked:
     def rule(self):
         return CameraAlwaysBlockedRule()
 
-    @fixture
-    def artifact(self):
-        return PreviewSignalsArtifact(
-            **tenant_device_and_timing,
-            referred_artifact=MultiSnapshotArtifact(
-                **tenant_device_and_timing,
-                recorder=RecorderType.INTERIOR_PREVIEW,
-                chunks=[],
-                recording_id="foo"
-            )
+    def ride_info(self, artifact: PreviewMetadataV063) -> RideInfo:
+        return RideInfo(
+            preview_metadata=artifact,
+            start_ride=datetime.now(tz=UTC),
+            end_ride=datetime.now(tz=UTC)
         )
 
     def test_rule_name(self, rule: Rule):
@@ -47,15 +30,14 @@ class TestRuleCameraAlwaysBlocked:
 
     def test_positive_evaluation(self,
                                  minimal_preview_metadata: PreviewMetadataV063,
-                                 rule: BaseRule,
-                                 artifact: PreviewSignalsArtifact):
+                                 rule: BaseRule):
         # GIVEN
         for frame in minimal_preview_metadata.frames:
             for object in frame.objectlist:
                 if isinstance(
                         object, IntegerObject) and rule.attribute_name in object.integer_attributes:
                     object.integer_attributes[rule.attribute_name] = 1  # type: ignore
-        ctx = Context(minimal_preview_metadata, artifact)
+        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
 
         # WHEN
         decisions = rule.evaluate(ctx)
@@ -65,14 +47,13 @@ class TestRuleCameraAlwaysBlocked:
 
     def test_negative_evaluation(self,
                                  minimal_preview_metadata: PreviewMetadataV063,
-                                 rule: BaseRule,
-                                 artifact: PreviewSignalsArtifact):
+                                 rule: BaseRule):
         # GIVEN
         for i, frame in enumerate(minimal_preview_metadata.frames):
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject):
                     object.integer_attributes[rule.attribute_name] = 1 if i > 2 else 0  # type: ignore
-        ctx = Context(minimal_preview_metadata, artifact)
+        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
 
         # WHEN
         decisions = rule.evaluate(ctx)

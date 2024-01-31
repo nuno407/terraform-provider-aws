@@ -62,7 +62,7 @@ class Selector:  # pylint: disable=too-few-public-methods,too-many-locals
 
     def __message_dispatcher(self, message: MessageTypeDef) -> bool:
         """
-        Will parse the artifact comming from the queue and redirect it to the correct handler.
+        Will parse the artifact coming from the queue and redirect it to the correct handler.
 
         Args:
             message (MessageTypeDef): Message from the queue

@@ -2,7 +2,7 @@
 import logging
 
 from base.model.artifacts import RecorderType
-from selector.context import Context
+from selector.model import Context
 from selector.decision import Decision
 from selector.model import PreviewMetadata
 from selector.rules.basic_rule import BaseRule
@@ -28,21 +28,21 @@ class HighPersonCountVarianceRule(BaseRule):
         logger.debug("Evaluating '%s' rule", self.rule_name)
 
         # check if the person count variance is high during the whole ride
-        high_person_count_variance_detected = self._has_high_person_count_variance(context.preview_metadata)
+        high_person_count_variance_detected = self._has_high_person_count_variance(context.ride_info.preview_metadata)
 
         # build decision
         if high_person_count_variance_detected:
             logger.debug(
                 "The %s has issued a training upload starting at %s to %s",
                 self.rule_name,
-                context.metadata_artifact.timestamp,
-                context.metadata_artifact.end_timestamp
+                context.ride_info.start_ride,
+                context.ride_info.end_ride
             )
             return [Decision(rule_name=self._rule_name,
                              rule_version=self._rule_version,
                              recorder=RecorderType.TRAINING,
-                             footage_from=context.metadata_artifact.timestamp,
-                             footage_to=context.metadata_artifact.end_timestamp)]
+                             footage_from=context.ride_info.start_ride,
+                             footage_to=context.ride_info.end_ride)]
         return []
 
     def _has_high_person_count_variance(self, metadata: PreviewMetadata) -> bool:

@@ -1,7 +1,7 @@
 """Rule for audio signal """
 import logging
 
-from selector.context import Context
+from selector.model import Context
 from selector.decision import Decision
 from selector.rules.basic_rule import BaseRule
 
@@ -30,7 +30,7 @@ class AudioSignal(BaseRule):
     def evaluate(self, context: Context) -> list[Decision]:
         logger.debug("Evaluating '%s' rule", self.rule_name)
         # Get the "interior_camera_health_response_audio_signal" signal
-        audio_signal = [int(i.value) for i in context.preview_metadata.get_integer(self.attribute_name)
+        audio_signal = [int(i.value) for i in context.ride_info.preview_metadata.get_integer(self.attribute_name)
                         if i.value is not None]
 
         total_frames = len(audio_signal)
@@ -49,8 +49,8 @@ class AudioSignal(BaseRule):
         if upload_signal and total_frames >= self._min_ride_length_in_minutes * 60:
             logger.debug(
                 "The Audio signal Rule has issued a training upload from %s to %s",
-                context.metadata_artifact.timestamp,
-                context.metadata_artifact.end_timestamp,
+                context.ride_info.start_ride,
+                context.ride_info.end_ride,
             )
             return super().evaluate(context=context)
         return []
