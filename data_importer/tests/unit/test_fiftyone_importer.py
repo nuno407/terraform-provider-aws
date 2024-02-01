@@ -1,6 +1,6 @@
 """Test Fiftyone importer"""
 import sys
-from unittest.mock import Mock, call, MagicMock, patch
+from unittest.mock import Mock, call, MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -65,7 +65,6 @@ def test_load_existing_dataset(fiftyone, importer: FiftyoneImporter):
 
 
 @pytest.mark.unit
-@patch("data_importer.fiftyone_importer.TENANT", "test-tenant")
 def test_replace_existing_sample(importer: FiftyoneImporter, voxel_base_function_find_sample: Mock):
     # GIVEN
     sample = MagicMock()
@@ -76,7 +75,7 @@ def test_replace_existing_sample(importer: FiftyoneImporter, voxel_base_function
     dataset = Mock()
 
     # WHEN
-    importer.replace_sample(dataset, "/foo/bar", {"tst": "label"})
+    importer.replace_sample("test-tenant", dataset, "/foo/bar", {"tst": "label"})
 
     # THEN
     dataset.add_sample.assert_not_called()
@@ -105,7 +104,7 @@ def test_replace_new_sample(fiftyone, importer: FiftyoneImporter, voxel_base_fun
     dataset = Mock()
 
     # WHEN
-    importer.replace_sample(dataset, "/foo/bar", {})
+    importer.replace_sample("proj",dataset, "/foo/bar", {})
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
@@ -136,7 +135,7 @@ def test_update_existing_sample(importer: FiftyoneImporter, voxel_base_function_
     dataset = Mock()
 
     # WHEN
-    importer.upsert_sample(dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
+    importer.upsert_sample("PROJ", dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
 
     # THEN
     dataset.add_sample.assert_not_called()
@@ -166,7 +165,7 @@ def test_update_new_sample(fiftyone, importer: FiftyoneImporter, voxel_base_func
     dataset = Mock()
 
     # WHEN
-    importer.upsert_sample(dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
+    importer.upsert_sample("PROJ", dataset, "/foo/bar", {"tst": "label", "tst2": "label2"})
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")
@@ -202,7 +201,7 @@ def test_update_new_sample2(fiftyone, importer: FiftyoneImporter, voxel_base_fun
     test_dict = {"test": "value", "test2": "value2"}
 
     # WHEN
-    importer.upsert_sample(dataset, "/foo/bar", {"tst": test_dict, "tst2": "label2"})
+    importer.upsert_sample("PROJ", dataset, "/foo/bar", {"tst": test_dict, "tst2": "label2"})
 
     # THEN
     fiftyone.Sample.assert_called_with("/foo/bar")

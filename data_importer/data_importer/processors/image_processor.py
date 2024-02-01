@@ -24,7 +24,7 @@ class ImageMetadataLoader(Processor):
     def _process(cls, message: SQSMessage, fiftyone_importer: FiftyoneImporter, **kwargs):
         metadata = cls._load_metadata(message, **kwargs)
 
-        dataset = cls._create_dataset(message.data_owner, message, fiftyone_importer, **kwargs)
+        dataset = cls._create_dataset(message, fiftyone_importer, **kwargs)
 
         # Find or create a new Sample with the given metadata
         cls._upsert_sample(dataset, message, metadata, fiftyone_importer)
@@ -36,8 +36,8 @@ class ImageMetadataLoader(Processor):
     @classmethod
     def _upsert_sample(cls, dataset: Dataset, message: SQSMessage, metadata: dict[str, Any],
                        importer: FiftyoneImporter) -> Any:
-        importer.upsert_sample(dataset, message.full_path, metadata)
+        importer.upsert_sample(message.tenant_id, dataset, message.full_path, metadata)
 
     @classmethod
-    def _create_dataset(cls, data_owner: str, message: SQSMessage, importer: FiftyoneImporter, **_kwargs) -> Any:
-        return importer.load_dataset(f"{data_owner}-{message.dataset}", [data_owner])
+    def _create_dataset(cls, message: SQSMessage, importer: FiftyoneImporter, **_kwargs) -> Any:
+        return importer.load_dataset(f"{message.tenant_id}-{message.dataset}", [message.tenant_id])

@@ -5,7 +5,6 @@ import fiftyone as fo
 from base.voxel.functions import set_mandatory_fields_on_sample, set_field, \
     find_or_create_sample, set_raw_filepath_on_sample
 from base.aws.container_services import ContainerServices
-from data_importer.constants import TENANT
 
 _logger = ContainerServices.configure_logging(__name__)
 
@@ -36,13 +35,14 @@ class FiftyoneImporter:
         dataset.tags = tags
         return dataset
 
-    def replace_sample(self, dataset: fo.Dataset, path: str, metadata: Optional[dict[Any, Any]] = None):
+    def replace_sample(self, tenant_id: str, dataset: fo.Dataset, path: str, metadata: Optional[dict[Any, Any]] = None):
         """
         Replaces a sample by the given file path by either finding the existing one
         or creating a new one if it doesn't exist yet.
         If metadata is provided it will override the Sample's metadata with the new one.
         Fields internal to the Sample are not changed (e.g. ID and filepath).
 
+        :param tenant_id: Tenant id
         :param dataset: Dataset to use
         :param path: Filepath of the sample
         :param metadata: Optional metadata to set on the Sample
@@ -54,16 +54,17 @@ class FiftyoneImporter:
         if metadata is not None:
             self.override_metadata(sample, metadata)
 
-        set_mandatory_fields_on_sample(sample, tenant_id=TENANT)
+        set_mandatory_fields_on_sample(sample, tenant_id=tenant_id)
         sample.save()
         return sample
 
-    def upsert_sample(self, dataset: fo.Dataset, path: str, metadata: dict[Any, Any]):
+    def upsert_sample(self, tenant_id: str, dataset: fo.Dataset, path: str, metadata: dict[Any, Any]):
         """
         Updates a sample by the given file path by either finding the existing one
         or creating a new one if it doesn't exist yet.
         If metadata is provided it will override the Sample's metadata with the new one.
 
+        :param tenant_id: Tenant id
         :param dataset: Dataset to use
         :param path: Filepath of the sample
         :param metadata: Optional metadata to set on the Sample
@@ -76,7 +77,7 @@ class FiftyoneImporter:
             _logger.info("Setting key %s value %s", key, value)
             set_field(sample, key, value)
 
-        set_mandatory_fields_on_sample(sample, tenant_id=TENANT)
+        set_mandatory_fields_on_sample(sample, tenant_id=tenant_id)
         sample.save()
         return sample
 

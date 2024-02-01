@@ -71,7 +71,7 @@ class ZipDatasetProcessor(Processor):
             img_dir = f"{dirname(message.file_path)}/{dataset_name}/"
 
             # CHECK IF DATASET ALREADY EXISTS
-            full_dataset_name = f"{message.data_owner}-{dataset_name}"
+            full_dataset_name = f"{message.tenant_id}-{dataset_name}"
             if fiftyone_importer.check_if_dataset_exists(full_dataset_name):
                 log_message = f"Dataset {full_dataset_name} already exists"
                 _logger.warning(log_message)
@@ -95,7 +95,7 @@ class ZipDatasetProcessor(Processor):
 
             # LOAD DATASET FROM DIR
             dataset = fiftyone_importer.from_dir(dataset_dir=subfolder,
-                                                 tags=[message.data_owner],
+                                                 tags=[message.tenant_id],
                                                  name=full_dataset_name,
                                                  rel_dir=f"s3://{message.bucket_name}/{img_dir}")
 

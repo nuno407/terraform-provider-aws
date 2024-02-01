@@ -25,9 +25,9 @@ def message(extension):
                               "responseElements": {"x-amz-request-id": "54ADJ1QBN2GR8GXN",
                                                    "x-amz-id-2": "something"},
                               "s3": {"s3SchemaVersion": "1.0", "configurationId": "test-event",
-                                     "bucket": {"name": "test-bucket",
+                                     "bucket": {"name": "dev-mock_bucket-raw",
                                                 "ownerIdentity": {"principalId": "SOMETHING"},
-                                                "arn": "arn:aws:s3:::-test-bucket"},
+                                                "arn": "arn:aws:s3:::dev-mock_bucket-raw"},
                                      "object": {"key": f"samples/test-dataset/bumlux.{extension}",
                                                 "size": 4043, "eTag": "2712b08adeeecf9ab9fda9beec1d6adf",
                                                 "sequencer": "0063F4FE942D3BC51D"}}}]}
@@ -82,11 +82,15 @@ class TestMain:
         process_message(container_services, importer, s3_client, sqs_client)
 
         # THEN
-        expected_file_path = "s3://test-bucket/samples/test-dataset/bumlux."
+        expected_file_path = "s3://dev-mock_bucket-raw/samples/test-dataset/bumlux."
         expected_image = expected_file_path + "jpg"
         expected_json = expected_file_path + "json"
-        importer.load_dataset.assert_has_calls([call("IMS-test-dataset", ["IMS"]), call("IMS-test-dataset", ["IMS"])])
-        importer.upsert_sample.assert_called_once_with(dataset, expected_image, {"filepath": expected_image,
-                                                                                 "metadata": ANY})
-        importer.replace_sample.assert_called_once_with(dataset, expected_json, {"foo": "bar", "test-data": "yes"})
+        importer.load_dataset.assert_has_calls(
+            [call("MOCK_BUCKET-test-dataset", ["MOCK_BUCKET"]), call("MOCK_BUCKET-test-dataset", ["MOCK_BUCKET"])])
+        importer.upsert_sample.assert_called_once_with(
+            "MOCK_BUCKET", dataset, expected_image, {
+                "filepath": expected_image, "metadata": ANY})
+        importer.replace_sample.assert_called_once_with(
+            "MOCK_BUCKET", dataset, expected_json, {
+                "foo": "bar", "test-data": "yes"})
         container_services.delete_message.assert_called_with(sqs_client, "test-handle", input_queue=ANY)

@@ -13,5 +13,5 @@ class Processor(ABC):
 
     @classmethod
     @abc.abstractmethod
-    def process(cls, message: SQSMessage, **_kwargs) -> Optional[dict[str, Any]]:
+    def process(cls, message: SQSMessage, **_kwargs: Any) -> Optional[dict[str, Any]]:
         """Process a SQSMessage."""

@@ -32,20 +32,22 @@ class TestSQSMessage():
 
     @pytest.mark.parametrize("sqs_message,expected_sqs_message", [
         (
-            _sqs_message_helper("mock_id", "mock_bucket", "samples/mock_key/mock_file.mock_extension"),
+            _sqs_message_helper("mock_id", "dev-mock_bucket-raw", "samples/mock_key/mock_file.mock_extension"),
             SQSMessage(principal_id="mock_id",
-                       bucket_name="mock_bucket",
+                       bucket_name="dev-mock_bucket-raw",
                        file_path="samples/mock_key/mock_file.mock_extension",
                        file_extension="mock_extension",
-                       dataset="mock_key")
+                       dataset="mock_key",
+                       tenant_id="MOCK_BUCKET")
         ),
         (
-            _sqs_message_helper("mock_id", "mock_bucket", "samples/mock_file.mock_extension"),
+            _sqs_message_helper("mock_id", "dev-mock_bucket-raw", "samples/mock_file.mock_extension"),
             SQSMessage(principal_id="mock_id",
-                       bucket_name="mock_bucket",
+                       bucket_name="dev-mock_bucket-raw",
                        file_path="samples/mock_file.mock_extension",
                        file_extension="mock_extension",
-                       dataset="default")
+                       dataset="default",
+                       tenant_id="MOCK_BUCKET")
         )
     ]
     )

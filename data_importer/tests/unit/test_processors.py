@@ -59,7 +59,7 @@ class TestProcessorRepositoryLoading:
 class TestDefaultProcessor:
     def test_process(self):
         # GIVEN
-        message = SQSMessage("principal", "test-bucket", "tmp/test/file.bumlux", "bumlux", "tmp")
+        message = SQSMessage("principal", "dev-tenant_id-raw", "tmp/test/file.bumlux", "bumlux", "tmp", "TENANT_ID")
 
         # WHEN
         result = DefaultProcessor.process(message)
@@ -72,7 +72,7 @@ class TestDefaultProcessor:
 class TestImageProcessor:
     def test_load_metadata(self):
         # GIVEN
-        message = SQSMessage("principal", "test-bucket", "tmp/test/file.jpg", "jpg", "tmp")
+        message = SQSMessage("principal", "dev-tenant_id-raw", "tmp/test/file.jpg", "jpg", "tmp", "TENANT_ID")
         fo_metadata = sys.modules["fiftyone.core.metadata"]
         fo_metadata.ImageMetadata.build_for = Mock(return_value={"width": 111, "height": 222})
 
@@ -80,7 +80,11 @@ class TestImageProcessor:
         metadata = ImageMetadataLoader._load_metadata(message)  # type: ignore # pylint: disable=protected-access
 
         # THEN
-        assert metadata == {"filepath": "s3://test-bucket/tmp/test/file.jpg", "metadata": {"width": 111, "height": 222}}
+        assert metadata == {
+            "filepath": "s3://dev-tenant_id-raw/tmp/test/file.jpg",
+            "metadata": {
+                "width": 111,
+                "height": 222}}
 
 
 @pytest.mark.unit
@@ -88,7 +92,7 @@ class TestMetadataProcessor:
 
     @pytest.fixture
     def message(self):
-        return SQSMessage("principal", "test-bucket", "tmp/test/file.json", "json", "tmp")
+        return SQSMessage("principal", "dev-tenant_id-raw", "tmp/test/file.json", "json", "tmp", "TENANT_ID")
 
     @pytest.fixture
     def container_services(self):
@@ -170,7 +174,7 @@ class TestMetadataProcessor:
 class TestZipDatasetProcessor:
     @pytest.fixture
     def message(self):
-        return SQSMessage("principal", "test-bucket", "batches/file.zip", "zip", "tmp")
+        return SQSMessage("principal", "dev-tenant_id-raw", "batches/file.zip", "zip", "tmp", "TENANT_ID")
 
     @pytest.fixture
     def container_services(self):
@@ -207,7 +211,7 @@ class TestZipDatasetProcessor:
         # THEN
         container_services.download_file_to_disk.assert_called_once_with(
             s3_client, message.bucket_name, message.file_path, ANY)
-        importer.check_if_dataset_exists.assert_called_once_with("IMS-RC-datanauts_snapshots")
+        importer.check_if_dataset_exists.assert_called_once_with("TENANT_ID-RC-datanauts_snapshots")
         container_services.upload_file.assert_any_call(
             s3_client,
             ANY,
@@ -222,6 +226,6 @@ class TestZipDatasetProcessor:
             log_level=logging.DEBUG)
         importer.from_dir.assert_called_once_with(
             dataset_dir=ANY,
-            tags=["IMS"],
-            name="IMS-RC-datanauts_snapshots",
+            tags=["TENANT_ID"],
+            name="TENANT_ID-RC-datanauts_snapshots",
             rel_dir=f"s3://{message.bucket_name}/batches/RC-datanauts_snapshots/")

@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from base.aws.container_services import ContainerServices
-from data_importer.constants import TENANT
 
 _logger = ContainerServices.configure_logging(__name__)
 
@@ -24,7 +23,7 @@ class SQSMessage():
     file_extension: str
     dataset: str
     full_path: str = field(init=False)
-    data_owner: str = TENANT.upper()
+    tenant_id: str
 
     def __post_init__(self):
         self.full_path = f"s3://{self.bucket_name}/{self.file_path}"
@@ -41,6 +40,13 @@ class SQSMessage():
         _logger.debug("file_extension: %s", self.file_extension)
         _logger.debug("dataset: %s", self.dataset)
         _logger.debug("full_path: %s", self.full_path)
+
+    @classmethod
+    def _calculate_tenant(cls, bucket_name: str) -> str:
+        # All buckets should follow the convention of having the tenant name as follows:
+        # <env>-<tenant>-<raw> or
+        # <env>-<tenant>-<anonymized>
+        return "-".join(bucket_name.split("-")[1:-1]).upper()
 
     @classmethod
     def from_raw_sqs_message(cls, sqs_message):
@@ -66,7 +72,13 @@ class SQSMessage():
         # minimun length is always 2 since we have at least "samples/filename.extension"
         dataset = dir_splits[1] if len(dir_splits) > 2 else "default"
 
-        message_to_return = SQSMessage(principal_id, bucket_name, str(file_path), file_extension, dataset)
+        message_to_return = SQSMessage(
+            principal_id=principal_id,
+            bucket_name=bucket_name,
+            file_path=str(file_path),
+            file_extension=file_extension,
+            dataset=dataset,
+            tenant_id=cls._calculate_tenant(bucket_name))
         message_to_return.print_message()
 
         return message_to_return
