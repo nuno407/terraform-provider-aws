@@ -32,7 +32,12 @@ class ZipDatasetProcessor(Processor):
     Example command:
         * fiftyone datasets export DATASET_NAME -d DESTINY_FOLDER
             -t fiftyone.types.FiftyOneDataset
-            -k export_media=False rel_dir="/mnt/ims/ICT_cooperation"
+            -k export_media=False rel_dir="/mnt/ims/ICT_cooperation" use_dirs=true
+
+    Real example:
+        fiftyone datasets export Bosch_COCO -d /mnt/c/boschcoco \
+        -t fiftyone.types.FiftyOneDataset \
+        -k export_media=False rel_dir="s3://boschcoco/extracted/BoschCOCO" use_dirs=true
     """
 
     @classmethod

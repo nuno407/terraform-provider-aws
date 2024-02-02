@@ -1,4 +1,4 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10-alpine
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10.13-alpine
 RUN apk update && apk upgrade && apk add ffmpeg
 
 # Run as non-root user and group

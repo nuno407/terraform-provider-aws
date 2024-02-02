@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import unquote_plus
 
 from base.aws.container_services import ContainerServices
 
@@ -62,7 +63,8 @@ class SQSMessage():
         principal_id = sqs_body["Records"][0]["userIdentity"]["principalId"]
 
         bucket_name = sqs_body["Records"][0]["s3"]["bucket"]["name"]
-        file_path = Path(sqs_body["Records"][0]["s3"]["object"]["key"])
+        unquoted_object_key = unquote_plus(sqs_body["Records"][0]["s3"]["object"]["key"])
+        file_path = Path(unquoted_object_key)
         # assumed that file extension is always given (S3 notification configuration)
         file_extension = file_path.suffix.strip(".").lower()
 
