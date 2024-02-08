@@ -4,7 +4,7 @@ from typing import Optional, Union
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 import pytest
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 from pytz import UTC
 
 from base.model.artifacts import (Artifact, RecorderType, S3VideoArtifact,
@@ -40,7 +40,9 @@ def image_based_artifact(recorder: RecorderType, tenant_id: str = "tenant1", dev
         # snapshot required fields
         obj["uuid"] = "uuid1"
 
-    return parse_obj_as(Union[S3VideoArtifact, SnapshotArtifact], obj)
+    adapter = TypeAdapter(S3VideoArtifact | SnapshotArtifact)
+
+    return adapter.validate_python(obj)
 
 
 @pytest.mark.unit

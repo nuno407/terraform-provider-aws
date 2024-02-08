@@ -88,7 +88,7 @@ class TestKognicExport:
                         "stages": []})
 
         # WHEN
-        resp = test_client.post(KOGNIC_EXPORT_URL, json=test_obj.dict(by_alias=True))
+        resp = test_client.post(KOGNIC_EXPORT_URL, json=test_obj.model_dump(by_alias=True))
 
         # THEN
         assert resp.status_code == 200
@@ -117,7 +117,7 @@ class TestKognicExport:
                         "stages": []})
 
         # WHEN
-        resp = test_client.post(KOGNIC_EXPORT_URL, json=test_obj.dict(by_alias=True))
+        resp = test_client.post(KOGNIC_EXPORT_URL, json=test_obj.model_dump(by_alias=True))
 
         # THEN
         data = json.loads(resp.data)
@@ -159,7 +159,7 @@ class TestKognicImport:
                                           })
 
         # WHEN
-        resp = test_client.post(KOGNIC_IMPORT_URL, json=test_obj.dict(by_alias=True))
+        resp = test_client.post(KOGNIC_IMPORT_URL, json=test_obj.model_dump(by_alias=True))
 
         # THEN
         assert resp.status_code == 200
@@ -182,7 +182,7 @@ class TestKognicImport:
                                           })
 
         # WHEN
-        resp = test_client.post(KOGNIC_IMPORT_URL, json=test_obj.dict(by_alias=True))
+        resp = test_client.post(KOGNIC_IMPORT_URL, json=test_obj.model_dump(by_alias=True))
 
         # THEN
         assert resp.status_code == 500

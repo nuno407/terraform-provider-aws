@@ -5,7 +5,9 @@ timid = true
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-m unit -v --cov-config=.coveragerc --cov=mdfparser --cov-report=xml"
-
+filterwarnings = [
+    'ignore:\nPyarrow:DeprecationWarning', # Warning to collect feedback about pyarrow(https://github.com/pandas-dev/pandas/issues/54466)
+]
 markers = [
     "unit",
     "integration"

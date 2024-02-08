@@ -9,6 +9,9 @@ markers = [
     "unit",
     "integration"
 ]
+filterwarnings = [
+    'ignore:\nPyarrow:DeprecationWarning', # Warning to collect feedback about pyarrow(https://github.com/pandas-dev/pandas/issues/54466)
+]
 
 [tool.autopep8]
 max_line_length = 120

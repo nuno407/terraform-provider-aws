@@ -9,6 +9,10 @@ markers = [
     "unit",
     "integration"
 ]
+filterwarnings = [
+    'ignore:No uuid:DeprecationWarning', # Requires update in mongoengine dependecy which is pinned in voxel51 at 0.25.3
+    'ignore:pkg_resources:DeprecationWarning' # Outdated mongomock dependency
+]
 
 [tool.autopep8]
 max_line_length = 120

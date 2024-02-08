@@ -789,7 +789,7 @@ def __process_sdr(message: dict, metadata_collections: MetadataCollections,
 
 
 def __convert_event_to_db_item(event: EventArtifact) -> dict:
-    event_data = event.dict()
+    event_data = event.model_dump()
     return {k: v for (k, v) in event_data.items() if v is not None}
 
 

@@ -7,8 +7,8 @@ python_files = ["test_*.py", "helper_functions.py"]
 asyncio_mode = "auto"
 addopts = "-m unit -v --cov-config=.coveragerc --cov=artifact_api --cov-report=xml"
 filterwarnings = [
-    "ignore::DeprecationWarning:botocore.*", # Botocore uses datetime.datetime.utcnow() which is deprecated in python 3.12
-    "ignore::DeprecationWarning:fiftyone.*", # fiftyone uses datetime.datetime.utcnow() which is deprecated in python 3.12
+    'ignore:\nPyarrow:DeprecationWarning', # Warning to collect feedback about pyarrow(https://github.com/pandas-dev/pandas/issues/54466)
+    'ignore:No uuid:DeprecationWarning', # Requires update in pymongo dependecy which is pinned in voxel51 at 0.25.3
 ]
 markers = [
     "unit",

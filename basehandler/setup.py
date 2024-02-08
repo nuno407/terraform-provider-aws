@@ -7,7 +7,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 install_requires = [
     "backoff==2.2.1",
     "requests==2.31.0",
-    "flask==2.2.5",
+    "flask==3.0.2",
     "elastic-apm==6.13.2",
     "base[aws]",
 ]
