@@ -4,7 +4,7 @@ from typing import List
 from kink import inject
 from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
-from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, PipelineProcessingStatus
+from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, PipelineProcessingStatus, VideoSignalsData
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from base.model.artifacts.api_messages import SnapshotSignalsData
 from artifact_api.voxel.voxel_config import VoxelConfig
@@ -70,6 +70,21 @@ class VoxelService:
                                                  mapping_config=self.__voxel_config.dataset_mapping)
         VoxelSnapshot.updates_correlation(
             raw_correlated_filepaths, raw_filepath, dataset_name)
+
+    def load_device_video_aggregated_metadata(self, device_video_signals: VideoSignalsData):
+        """
+        Add the metadata from the signals artifact to the sample
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=device_video_signals.tenant_id,
+            is_snapshot=False,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelVideo.load_device_aggregated_metadata(
+            dataset,
+            device_video_signals.tenant_id,
+            device_video_signals.video_raw_s3_path,
+            device_video_signals.aggregated_metadata)
 
     def attach_rule_to_video(self, rule: VideoUploadRule):
         """

@@ -1,19 +1,20 @@
 """mongo controller service module"""
 from typing import Union
 import logging
-from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
-from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample, SignalsFrame
+from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,VideoSignalsData,
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
                                   PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,
                                   SOSOperatorArtifact, PipelineProcessingStatus)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from kink import inject
-from artifact_api.models.mongo_models import DBSnapshotArtifact
+from artifact_api.models.mongo_models import DBSnapshotArtifact, SignalsSource
 from artifact_api.mongo.services.mongo_event_service import MongoEventService
 from artifact_api.mongo.services.mongo_imu_service import MongoIMUService
 from artifact_api.mongo.services.mongo_sav_operator_service import MongoSavOperatorService
 from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
 from artifact_api.mongo.services.mongo_pipeline_service import MongoPipelineService
+from artifact_api.mongo.services.mongo_signals_service import MongoSignalsService
 from artifact_api.exceptions import IMUEmptyException
 
 
@@ -32,13 +33,15 @@ class MongoService:  # pylint:disable=too-many-arguments
             mongo_imu_controller: MongoIMUService,
             sav_operator_feedback_controller: MongoSavOperatorService,
             mongo_recordings_controller: MongoRecordingsService,
-            pipeline_processing_controller: MongoPipelineService) -> None:
+            pipeline_processing_controller: MongoPipelineService,
+            mongo_signals_controller: MongoSignalsService) -> None:
 
         self.__event_controller = mongo_event_controller
         self.__imu_controller = mongo_imu_controller
         self.__sav_operator_feedback_controller = sav_operator_feedback_controller
         self.__mongo_recordings_controller = mongo_recordings_controller
         self.__pipeline_processing_controller = pipeline_processing_controller
+        self.__signals_controller = mongo_signals_controller
 
     async def update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str):
         """_summary_
@@ -114,6 +117,15 @@ class MongoService:  # pylint:disable=too-many-arguments
         """
 
         await self.__sav_operator_feedback_controller.save_event(artifact)
+
+    async def load_device_video_signals_data(self, device_video_signals: VideoSignalsData):
+        """_summary_
+
+        Args:
+            device_video_signals (VideoSignalsData): _description_
+        """
+        await self.__signals_controller.save_signals(device_video_signals.data, SignalsSource.MDF_PARSER,device_video_signals.correlation_id)
+        await self.__mongo_recordings_controller.upsert_video_aggregated_metadata(device_video_signals.aggregated_metadata, device_video_signals.correlation_id)
 
     async def process_imu_artifact(self, imu_data_artifact: IMUDataArtifact):
         """_summary_

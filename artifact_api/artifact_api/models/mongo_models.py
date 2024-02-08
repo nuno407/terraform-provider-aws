@@ -1,8 +1,8 @@
 """Mongo Models Module"""
-
-from datetime import datetime
-from typing import Optional, Literal
-from pydantic import Field
+from enum import Enum
+from typing import Any, Optional, Literal
+from datetime import datetime, timedelta
+from pydantic import Field, field_serializer, model_serializer, SerializationInfo
 from base.model.artifacts.processing_result import StatusProcessing, ProcessingStep
 from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState, GeneralServiceState,
@@ -35,26 +35,40 @@ class DBSnapshotUploadRule(ConfiguredBaseModel):
 class DBVideoRecordingOverview(ConfiguredBaseModel):
     """Video Recording Overview in the format used in the database"""
 
-    snapshots: int = Field(alias="#snapshots")
-    devcloud_id: str = Field(alias="devcloudid")
-    device_id: str = Field(alias="deviceID")
-    length: str = Field(pattern=r"^\d?:\d{2}:\d{2}$")
-    recording_duration: float
-    recording_time: UtcDatetimeInPast = Field(default=...)
+    snapshots: int = Field(alias="#snapshots", default=0)
+    devcloud_id: Optional[str] = Field(alias="devcloudid", default=None)
+    device_id: Optional[str] = Field(alias="deviceID", default=None)
+    length: Optional[str] = Field(pattern=r"^\d?:\d{2}:\d{2}$", default=None)
+    recording_duration: Optional[float] = Field(default=None)
+    recording_time: Optional[UtcDatetimeInPast] = Field(default=None)
     snapshots_paths: list[str] = []
-    tenant_id: str = Field(alias="tenantID")
-    time: str = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
-    chc_duration: Optional[float] = Field(default=None)
-    gnss_coverage: Optional[float] = Field(default=None)
-    max_audio_loudness: Optional[float] = Field(default=None)
-    max_person_count: Optional[int] = Field(default=None)
-    mean_audio_bias: Optional[float] = Field(default=None)
-    median_person_count: Optional[int] = Field(default=None)
-    number_chc_events: Optional[int] = Field(default=None)
-    ride_detection_people_count_after: Optional[int] = Field(default=None)
-    ride_detection_people_count_before: Optional[int] = Field(default=None)
-    sum_door_closed: Optional[int] = Field(default=None)
-    variance_person_count: Optional[float] = Field(default=None)
+    tenant_id: Optional[str] = Field(alias="tenantID", default=None)
+    time: Optional[str] = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
+    aggregated_metadata: Optional[dict[str,str | bool | int | float]] = Field(default=None)
+
+    @model_serializer(mode="wrap")
+    def serialize_aggregated_metadata(self, serializer: Any, _: SerializationInfo) -> Any:
+        """
+        Serializes the recording overview and flattens the aggregated_metadata to comply with
+        the current DB schema.
+
+        This is an "hack" to keep a single agregated metadata model shared between Mongo and voxel.
+        This way any new field in the agregated metadata, can be changed in a single place.
+
+        Based on: https://github.com/pydantic/pydantic/issues/6575
+        """
+        partial_result = serializer(self)
+        if "aggregated_metadata" not in partial_result:
+            return partial_result
+
+        if partial_result["aggregated_metadata"] is None:
+            del partial_result["aggregated_metadata"]
+            return partial_result
+
+        for m_key, m_value in partial_result["aggregated_metadata"].items():
+            partial_result[m_key] = m_value
+        del partial_result["aggregated_metadata"]
+        return partial_result
 
 
 class DBSnapshotRecordingOverview(ConfiguredBaseModel):
@@ -131,9 +145,9 @@ class DBS3VideoArtifact(ConfiguredBaseModel):
     # Making it a composed primary key
     video_id: str
     media_type: Literal["video"] = Field(default="video", alias="_media_type")
-    mdf_available: Optional[str] = Field(default="No", alias="MDF_available")
-    filepath: Optional[str]
-    resolution: Optional[str] = Field(pattern=r"\d+x\d+")
+    mdf_available: str = Field(default="No", alias="MDF_available")
+    filepath: Optional[str] = Field(default=None)
+    resolution: Optional[str] = Field(default=None, pattern=r"\d+x\d+")
     recording_overview: Optional[DBVideoRecordingOverview]
     upload_rules: Optional[list[DBVideoUploadRule]] = Field(default=None)
 
@@ -184,3 +198,26 @@ class DBPipelineProcessingStatus(ConfiguredBaseModel):
     from_container: Literal["Metadata"] = Field(default="Metadata")
     processing_status: StatusProcessing
     processing_steps: list[ProcessingStep] = Field(default=...)
+
+
+class SignalsSource(str, Enum):
+    """Signals source"""
+    MDF_PARSER = "MDFParser"
+    CHC = "CHC"
+
+
+class DBSignals(ConfiguredBaseModel):
+    """Signals in the format used in the database"""
+    recording: str
+    signals: dict[timedelta,dict[str, int | float | bool]]
+    source: SignalsSource
+
+    @field_serializer("signals")
+    def serialize_signals(signals: dict[timedelta,dict[str, int | float | bool]]  # pylint: disable=no-self-argument
+                          ) -> dict[str, dict[str, int | float | bool]]:
+        """Serialize the signals dict"""
+        return {
+            "{:01d}:{:02d}:{:02d}.{:06d}".format(  # pylint: disable=consider-using-f-string
+                td.seconds // 3600,(td.seconds // 60) %
+                60, td.seconds %
+                60,td.microseconds // 1000):val for td, val in signals.items()}

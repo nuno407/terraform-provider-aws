@@ -10,6 +10,8 @@ from base.model.artifacts import (CameraServiceEventArtifact, DeviceInfoEventArt
 from base.model.event_types import (CameraServiceState, EventType, GeneralServiceState, IncidentType,
                                     Shutdown, ShutdownReason)
 from artifact_api.mongo.mongo_service import MongoService
+from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
+from artifact_api.mongo.services.mongo_signals_service import MongoSignalsService
 
 
 @mark.unit
@@ -130,13 +132,13 @@ class TestMongoController:  # pylint: disable=duplicate-code
         """
         correlated_ids = ["mock_id"]
 
-        snapshot_engine.update_one = AsyncMock()
+        snapshot_engine.update_one_flatten = AsyncMock()
         await mongo_controller.upsert_snapshot(snapshot_artifact, correlated_ids)
-        snapshot_engine.update_one.assert_called_once_with(query={
+        snapshot_engine.update_one_flatten.assert_called_once_with(query={
             "video_id": snapshot_artifact.artifact_id,
             "_media_type": "image"
         },
-            command=ANY,
+            set_command=ANY,
             upsert=True
         )
 
@@ -330,12 +332,38 @@ class TestMongoController:  # pylint: disable=duplicate-code
             video (S3VideoArtifact): video artifact to be created
         """
         correlated_ids = ["mock_id"]
-        video_engine.update_one = AsyncMock()
+        video_engine.update_one_flatten = AsyncMock()
         await mongo_controller.upsert_video(video, correlated_ids)
-        video_engine.update_one.assert_called_once_with(query={
+        video_engine.update_one_flatten.assert_called_once_with(query={
             "video_id": video.artifact_id,
             "_media_type": "video"
         },
-            command=ANY,
+            set_command=ANY,
             upsert=True
         )
+
+    async def test_load_device_video_signals_data(self, mongo_controller: MongoService, mongo_signals_controller: MongoSignalsService, mongo_recordings_controller: MongoRecordingsService):
+        """Test for load_device_video_signals_data method
+
+        Args:
+            MongoService (MongoService): mongo controller
+            mongo_signals_controller (MongoSignalsService): mongo signals controller
+            mongo_recordings_controller (MongoRecordingsService): mongo recordings controller
+        """
+        # GIVEN
+        video_signals_artifact = Mock()
+        video_signals_artifact.data = Mock()
+        video_signals_artifact.aggregated_metadata = Mock()
+        video_signals_artifact.correlation_id = Mock()
+
+        mongo_signals_controller.save_signals = AsyncMock()
+        mongo_recordings_controller.upsert_video_aggregated_metadata = AsyncMock()
+
+        # WHEN
+        await mongo_controller.load_device_video_signals_data(video_signals_artifact)
+
+        # THEN
+        mongo_signals_controller.save_signals.assert_called_once_with(
+            video_signals_artifact.data, "MDFParser", video_signals_artifact.correlation_id)
+        mongo_recordings_controller.upsert_video_aggregated_metadata.assert_called_once_with(
+            video_signals_artifact.aggregated_metadata, video_signals_artifact.correlation_id)

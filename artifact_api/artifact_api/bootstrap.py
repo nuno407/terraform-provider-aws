@@ -10,9 +10,15 @@ from base.mongo.engine import Engine
 from base.model.config.policy_config import PolicyConfig
 from base.model.artifacts import (SOSOperatorArtifact, CameraBlockedOperatorArtifact,
                                   PeopleCountOperatorArtifact)
-from artifact_api.models.mongo_models import (DBCameraServiceEventArtifact,
-                                              DBDeviceInfoEventArtifact, DBIncidentEventArtifact, DBIMUSample,
-                                              DBS3VideoArtifact, DBSnapshotArtifact, DBPipelineProcessingStatus)
+from artifact_api.models.mongo_models import (
+    DBCameraServiceEventArtifact,
+    DBDeviceInfoEventArtifact,
+    DBIncidentEventArtifact,
+    DBIMUSample,
+    DBS3VideoArtifact,
+    DBSnapshotArtifact,
+    DBPipelineProcessingStatus,
+    DBSignals)
 from artifact_api.voxel.voxel_config import VoxelConfig
 
 
@@ -68,6 +74,11 @@ def bootstrap_di() -> None:
                                                      database=db_name,
                                                      collection=di["db_metadata_tables"]["pipeline_exec"],
                                                      client=mongo_client)
+
+    di["signals_engine"] = Engine(model=DBSignals,
+                                  database=db_name,
+                                  collection=di["db_metadata_tables"]["signals"],
+                                  client=mongo_client)
 
 
 def load_mongodb_config_vars() -> dict[str, str]:

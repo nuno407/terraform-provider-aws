@@ -71,7 +71,6 @@ class MongoEventService:
         Creates DB Event Artifact and writes the document to the mongoDB
 
         This is NOT an upsert, if the event already exists it will be overwritten
-        #TODO: Add unique index into the collection
         Args:
             message (Union[CameraServiceEventArtifact,
                             DeviceInfoEventArtifact,

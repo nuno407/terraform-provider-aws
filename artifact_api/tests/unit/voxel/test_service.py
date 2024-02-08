@@ -2,13 +2,14 @@
 from unittest.mock import Mock, MagicMock, call, ANY
 from datetime import datetime, timezone, timedelta
 import fiftyone.core.media as fom
+import fiftyone as fo
 import pytest
 from pytest_mock import MockerFixture
 from kink import di
 from base.model.config.dataset_config import DatasetConfig
 from base.model.config.policy_config import PolicyConfig
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow, Resolution, SnapshotSignalsData
+from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, RecorderType, TimeWindow, Resolution, SnapshotSignalsData, VideoSignalsData
 from artifact_api.voxel.service import VoxelService
 from artifact_api.voxel.voxel_config import VoxelConfig
 
@@ -249,3 +250,50 @@ class TestVoxelService:
             snap_signals_artifact.message.referred_artifact.anonymized_s3_path,
             snap_signals_artifact.message.tenant_id,
             voxel_fields)
+
+    @pytest.mark.unit
+    def test_load_device_video_aggregated_metadata(self, aggregated_metadata: dict[str, str | int | float | bool],  # pylint: disable=too-many-arguments
+                                                   mock_create_dataset: Mock,
+                                                   mock_find_or_create_sample: Mock,
+                                                   mock_set_field: Mock,
+                                                   mock_set_mandatory_fields_on_sample: Mock,
+                                                   mock_video_build_for_sample: Mock,
+                                                   voxel_service: VoxelService):
+        """
+        Test a snapshot sample create and update.
+
+        Args:
+            snapshot_artifact (SnapshotArtifact): _description_
+            dataset (MagicMock): _description_
+        """
+        # GIVEN
+        artifact = VideoSignalsData(
+            data={},
+            aggregated_metadata=aggregated_metadata,
+            correlation_id="correlation_id",
+            tenant_id="datanauts",
+            video_raw_s3_path="s3://dev-rcd-video-raw/datanauts/test123.mp4")
+        dynamic_doc = fo.DynamicEmbeddedDocument(**aggregated_metadata)
+        raw_metadata = Mock()
+        dataset = MagicMock()
+        mock_create_dataset.return_value = dataset
+        sample = MagicMock()
+        mock_video_build_for_sample.return_value = raw_metadata
+        mock_find_or_create_sample.return_value = sample
+        sample.media_type = fom.VIDEO
+        set_field_calls = [
+            call(sample, "aggregated_metadata", dynamic_doc),
+            call(sample, "raw_metadata", raw_metadata)  # Compute raw_metadata
+        ]
+        # WHEN
+        voxel_service.load_device_video_aggregated_metadata(artifact)
+
+        # THEN
+        mock_create_dataset.assert_called_once_with("datanauts", ["RC"])
+        mock_find_or_create_sample.assert_called_once_with(
+            dataset, get_anonymized_path_from_raw(artifact.video_raw_s3_path))
+        mock_set_field.assert_has_calls(set_field_calls, True)
+        assert mock_set_field.call_count == len(set_field_calls)
+        mock_set_mandatory_fields_on_sample.assert_called_once_with(sample, artifact.tenant_id)
+        sample.compute_metadata.assert_called_once()
+        sample.save.assert_called_once()

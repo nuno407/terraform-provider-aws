@@ -15,16 +15,17 @@ class MetadataController:
     """Controller for metadata"""
 
     @metadata_router.post("/ridecare/signals/video", response_model=ResponseMessage)
-    async def process_video_signals(self, device_video_signals: VideoSignalsData,  # pylint: disable=unused-argument
-                                    mongo_service: MongoService = Depends(  # pylint: disable=unused-argument
-                                        lambda: di[MongoService]),
-                                    voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
+    async def process_video_signals(self, device_video_signals: VideoSignalsData,
+                                    mongo_service: MongoService = Depends(lambda: di[MongoService]),
+                                    voxel_service: VoxelService = Depends(lambda: di[VoxelService])):
         """
         Process device video signals
 
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
+        await mongo_service.load_device_video_signals_data(device_video_signals)
+        voxel_service.load_device_video_aggregated_metadata(device_video_signals)
 
         return ResponseMessage()
 

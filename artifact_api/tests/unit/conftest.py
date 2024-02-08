@@ -18,12 +18,31 @@ from artifact_api.api.media_controller import MediaController
 from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.utils.imu_gap_finder import IMUGapFinder
 
+from artifact_api.mongo.services.mongo_signals_service import MongoSignalsService
 from artifact_api.mongo.services.mongo_event_service import MongoEventService
 from artifact_api.mongo.services.mongo_imu_service import MongoIMUService
 from artifact_api.mongo.services.mongo_sav_operator_service import MongoSavOperatorService
 from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
 from artifact_api.mongo.services.mongo_pipeline_service import MongoPipelineService
 # autopep8: on
+
+
+@fixture
+def aggregated_metadata() -> dict[str, str | int | float | bool]:
+    """Fixture for Correlated metadata"""
+    return {
+        "chc_duration": 5.0,
+        "gnss_coverage": 0.2,
+        "max_audio_loudness": 0.3,
+        "max_person_count": 10,
+        "mean_audio_bias": 0.5,
+        "number_chc_events": 20,
+        "ride_detection_people_count_after": 0,
+        "ride_detection_people_count_before": 1,
+        "sum_door_closed": 10,
+        "variance_person_count": 0.5,
+        "median_person_count": 1,
+    }
 
 
 @fixture(name="imu_gap_finder")
@@ -76,6 +95,16 @@ def fixture_processed_imu_engine() -> MagicMock:
 
     Returns:
         MagicMock: Mock of the processed imu db engine
+    """
+    return MagicMock()
+
+
+@fixture(name="signals_engine")
+def fixture_signals_engine() -> MagicMock:
+    """ Fixture for signals engine
+
+    Returns:
+        MagicMock: Mock of the processed signals db engine
     """
     return MagicMock()
 
@@ -156,6 +185,19 @@ def fixture_mongo_imu_controller(processed_imu_engine: MagicMock, imu_gap_finder
     return MongoIMUService(processed_imu_engine, imu_gap_finder)
 
 
+@fixture(name="mongo_signals_controller")
+def fixture_mongo_signals_controller(signals_engine: MagicMock) -> MongoSignalsService:
+    """ Fixture for mongo signal controller
+
+    Args:
+        signals_engine (MagicMock): Mock of the signal db engine
+
+    Returns:
+        MongoEventController: class with business logic methods for mongodb
+    """
+    return MongoSignalsService(signals_engine)
+
+
 @fixture(name="mongo_event_controller")
 def fixture_mongo_event_controller(event_engine: MagicMock) -> MongoEventService:
     """ Fixture for mongo event controller
@@ -225,7 +267,8 @@ def mongo_controller(
         mongo_recordings_controller: MagicMock,
         mongo_sav_operator_controller: MagicMock,
         mongo_pipeline_controller: MagicMock,
-        mongo_event_controller: MagicMock) -> MongoService:
+        mongo_event_controller: MagicMock,
+        mongo_signals_controller: MagicMock) -> MongoService:
     """ Fixture for mongo controller
 
     Args:
@@ -234,6 +277,7 @@ def mongo_controller(
         mongo_sav_operator_controller (MagicMock): Mock of the mongo sav operator controller
         mongo_pipeline_controller (MagicMock): Mock of the mongo pipeline controller
         mongo_event_controller (MagicMock): Mock of the mongo event controller
+        mongo_signals_controller (MagicMock): Mock of the mongo signals controller
 
     Returns:
         MongoController: class with business logic methods for mongodb
@@ -243,4 +287,5 @@ def mongo_controller(
         mongo_imu_controller,
         mongo_sav_operator_controller,
         mongo_recordings_controller,
-        mongo_pipeline_controller)
+        mongo_pipeline_controller,
+        mongo_signals_controller)

@@ -94,17 +94,31 @@ class MongoRecordingsService():
         )
 
         # In our DB, videos can be uniquely identified by video_id and _media_type
-        await self.__snapshot_engine.update_one(
+        await self.__snapshot_engine.update_one_flatten(
             query={
                 "video_id": doc.video_id,
                 "_media_type": doc.media_type
             },
-            command={
-                "$set": self.__snapshot_engine.dump_model(doc)
-            },
+            set_command=self.__snapshot_engine.dump_model(doc),
             upsert=True
         )
         _logger.debug("Snapshot upserted to db [%s]", doc.model_dump_json())
+
+    async def upsert_video_aggregated_metadata(self, aggregated_metadata: dict[str, str | int | float | bool], correlated_id: str):
+
+        recording_overview = DBVideoRecordingOverview.model_validate({"aggregated_metadata":aggregated_metadata})
+        video_model = DBS3VideoArtifact(video_id=correlated_id,recording_overview=recording_overview)
+
+        video_model.mdf_available = "Yes"
+
+        await self.__video_engine.update_one_flatten(
+            query={
+                "video_id": correlated_id,
+                "_media_type": "video"
+            },
+            set_command=self.__video_engine.dump_model(video_model),
+            upsert=True
+        )
 
     async def upsert_video(self, message: S3VideoArtifact, correlated_ids: list[str]):
         """_summary_
@@ -136,14 +150,12 @@ class MongoRecordingsService():
                                 )
 
         # In our DB, videos can be uniquely identified by video_id and _media_type
-        await self.__video_engine.update_one(
+        await self.__video_engine.update_one_flatten(
             query={
                 "video_id": doc.video_id,
                 "_media_type": doc.media_type
             },
-            command={
-                "$set": self.__video_engine.dump_model(doc)
-            },
+            set_command=self.__video_engine.dump_model(doc),
             upsert=True
         )
         _logger.debug("Video upserted to db [%s]", doc.model_dump_json())

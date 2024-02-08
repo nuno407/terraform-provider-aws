@@ -84,7 +84,7 @@ class CHCDataResult(ConfiguredBaseModel):
     artifact_name: Literal["chc_data_result"] = "chc_data_result"
     id: str
     chc_path: str
-    data: VideoSignalsData
+    data: dict[LegacyTimeDelta, SignalsFrame]
 
 
 APIMessages = Union[VideoSignalsData, SnapshotSignalsData, IMUDataArtifact, CHCDataResult]

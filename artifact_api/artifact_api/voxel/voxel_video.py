@@ -48,6 +48,11 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
             field_name="rules",
             field_type=fo.core.fields.ListField,
             field_subtype=fo.core.fields.EmbeddedDocumentField(fo.DynamicEmbeddedDocument))
+        AGREGATED_METADATA = VoxelField(
+            field_name="aggregated_metadata",
+            field_type=fo.EmbeddedDocumentField,
+            field_embedded_type=fo.DynamicEmbeddedDocument
+        )
         DATA_STATUS = VoxelField(
             field_name="data_status", field_type=fo.core.fields.StringField)
         LAST_UPDATED = VoxelField(
@@ -133,6 +138,25 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
 
         cls._upsert_sample(
             tenant_id=pipeline_status.tenant_id,
+            dataset=dataset,
+            anonymized_filepath=anonymized_filepath,
+            values_to_set=values_to_set)
+
+    @classmethod
+    def load_device_aggregated_metadata(cls,
+                                        dataset: fo.Dataset,
+                                        tenant: str,
+                                        raw_s3_path: str,
+                                        agregated_metrics: dict[str, str | int | float | bool]):
+        """ Load device agregated metadata. """
+
+        anonymized_filepath = get_anonymized_path_from_raw(filepath=raw_s3_path)
+
+        values_to_set: dict[VoxelField, fo.DynamicEmbeddedDocument] = {
+            cls.Fields.AGREGATED_METADATA.value: fo.DynamicEmbeddedDocument(**agregated_metrics)
+        }
+        cls._upsert_sample(
+            tenant_id=tenant,
             dataset=dataset,
             anonymized_filepath=anonymized_filepath,
             values_to_set=values_to_set)

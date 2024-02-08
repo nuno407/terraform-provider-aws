@@ -8,6 +8,7 @@
                 "filepath": "s3://qa-rcd-anonymized-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317_anonymized.mp4",
                 "tags": [],
                 "metadata": null,
+                "data_privacy_document_id": "unused",
                 "video_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317",
                 "tenant_id": "ridecare_companion_fut",
                 "device_id": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
@@ -20,14 +21,26 @@
                 "year": 2023,
                 "recording_duration": 32.533,
                 "resolution": "640x360",
-                "aggregated_metadata": null,
                 "snapshots_paths": null,
                 "num_snapshots": 0,
-                "raw_filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4",
-                "data_privacy_document_id": "unused",
                 "rules": null,
+                "aggregated_metadata": {
+                    "_cls": "DynamicEmbeddedDocument",
+                    "chc_duration": 26.478034,
+                    "gnss_coverage": 0.0,
+                    "max_audio_loudness": -32.2027,
+                    "max_person_count": 1,
+                    "mean_audio_bias": 0.36789289230769234,
+                    "median_person_count": 0,
+                    "number_chc_events": 1,
+                    "ride_detection_people_count_after": 0,
+                    "ride_detection_people_count_before": -1,
+                    "sum_door_closed": 0,
+                    "variance_person_count": 0.04
+                },
                 "data_status": null,
-                "last_updated": null
+                "last_updated": null,
+                "raw_filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4"
             }
         ]
     }

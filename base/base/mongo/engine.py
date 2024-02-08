@@ -3,6 +3,7 @@ from typing import Any, AsyncIterator, Generic, NamedTuple, Optional, Type, Type
 
 from kink import inject
 from base.model.base_model import ConfiguredBaseModel
+from base.mongo.utils import flatten_dict
 from motor.motor_asyncio import AsyncIOMotorClient
 
 
@@ -50,10 +51,42 @@ class Engine(Generic[T]):
             return self.__model.model_validate(result)
         return None
 
+    async def update_one_flatten(self, query: strDict, set_command: strDict, upsert: bool = False) -> UpdateOneResult:
+        """
+        Updates one document in the collection.
+        Flattens the set_command before updating the document. This ensure that embedded documents
+        are not replaced.
+
+        This should be avoided on very large embedded documents, as it can have a significant performance impact.
+
+        Args:
+            query (strDict): The query to find the document to update.
+            set_command (strDict): The data that should be updated (Without set).
+            upsert (bool, optional): Wheter to do an upsert or just an update. Defaults to False.
+
+        Returns:
+            UpdateOneResult: _description_
+        """
+        command = {
+            "$set": flatten_dict(set_command)
+        }
+        result = await self.__col.update_one(query, command, upsert)
+        return UpdateOneResult(result.matched_count == 1, result.modified_count == 1)
+
     async def update_one(self, query: strDict, command: strDict, upsert: bool = False) -> UpdateOneResult:
+        """
+        Updates one document in the collection.
+
+        REMARKS: Any embedded documents will be replaced by the new document.
+        """
         result = await self.__col.update_one(query, command, upsert)
         return UpdateOneResult(result.matched_count == 1, result.modified_count == 1)
 
     async def update_many(self, query: strDict, command: strDict, upsert: bool = False) -> UpdateManyResult:
+        """
+            Updates multiple document in the collection.
+
+            REMARKS: Any embedded documents will be replaced by the new document.
+        """
         result = await self.__col.update_many(query, command, upsert)
         return UpdateManyResult(result.matched_count, result.modified_count)

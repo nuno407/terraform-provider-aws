@@ -107,8 +107,22 @@ class TestGeneric:
             "mongo_config.yml",
             "mongo_sdm_status_state.json",
             "voxel_sdm_status_state.json",
+        ),
+        # Test metadata after video from video signals
+        (
+            [
+                get_json_message("video_api_message.json"),
+                get_json_message("video_signals_data_api_message.json")
+            ],
+            [
+                "/ridecare/video",
+                "/ridecare/signals/video"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_video_signals_state.json",
+            "voxel_video_signals_state.json",
         )
-
     ],
         ids=[
         "test_snap_artifact",
@@ -117,7 +131,9 @@ class TestGeneric:
         "test_sav_artifact",
         "test_imu_artifact",
         "test_snap_metadata",
-        "test_sdm_status"],
+        "test_sdm_status",
+        "test_video_signals"
+    ],
         indirect=["mongo_api_config", "voxel_config"])
     @freeze_time("2030-01-14")
     @pytest.mark.asyncio
@@ -129,13 +145,21 @@ class TestGeneric:
                              expected_mongo_state: Optional[str],
                              expected_voxel_state: Optional[str],
                              api_client: AsyncClient,
-                             mongo_client: AsyncIOMotorClient
+                             mongo_client: AsyncIOMotorClient,
+                             debug: bool = False
                              ):
         """
         This test will test the entire component.
 
         REMARKS:
         The S3 is not mocked, thus this WILL NOT test that the compute_metadata function is called correctly!
+
+        To debug the tests, set the debug flag to True and run one test at a time,
+        this will dump the state of the mongo and voxel database into seperated files in the same
+        path where the tests were run. (mongo_dump.json and voxel_dump.json)
+        The test will always fail in debug mode to avoid accidental pushes but
+        will allow to check the state of the database
+        after the test is run.
 
         Args:
             input_sqs_message_list (list[str]): _description_
@@ -154,6 +178,8 @@ class TestGeneric:
 
         # THEN
         if expected_mongo_state is not None:
-            await assert_mongo_state(expected_mongo_state, mongo_client)
+            await assert_mongo_state(expected_mongo_state, mongo_client, debug)
         if expected_voxel_state is not None:
-            assert_voxel_state(expected_voxel_state)
+            assert_voxel_state(expected_voxel_state, debug)
+
+        assert debug is False  # Avoids accidental pushes in debug mode

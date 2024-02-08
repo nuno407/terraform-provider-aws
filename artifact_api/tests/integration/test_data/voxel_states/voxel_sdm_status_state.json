@@ -22,6 +22,7 @@
                 "snapshots_paths": null,
                 "num_snapshots": null,
                 "rules": null,
+                "aggregated_metadata": null,
                 "data_status": "received",
                 "last_updated": {
                     "$date": "2030-01-14T00:00:00Z"

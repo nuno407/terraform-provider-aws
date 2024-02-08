@@ -11,7 +11,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 def __serialize_datetime(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
-    raise TypeError("Type not serializable")
+    return obj
 
 
 def assert_json_dict(real_dict: dict, expected_dict: dict):
@@ -74,7 +74,7 @@ async def dump_mongo_db(mongo_client: AsyncIOMotorClient):
         json.dump(dump_data, file, default=__serialize_datetime)
 
 
-async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
+async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient, debug=False):
     """
     Checks if a json file is presented in the database.
     The json file has to contain the following format:
@@ -96,7 +96,10 @@ async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
     Args:
         file_name (str): Name of the expected json file (present under test_data)
         mongo_client (MongoMockClient): A mock for the mongo client
+        debug (bool, optional): If true, will dump the current mongo state into a file for debug purposes.
     """
+    if debug:
+        await dump_mongo_db(mongo_client)
 
     mongo_expected_data: dict[str, dict[str, Any]] = load_relative_json_file(
         __file__, os.path.join("test_data/mongo_states", file_name))
@@ -111,7 +114,7 @@ async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient):
             assert_json_dict(real_docs, collection)
 
 
-def dump_all_voxel_datasets_to_file(file_name: str):
+def dump_all_voxel_datasets_to_file():
     """
     Dump all the datasets into a json file.
     This can be used for debug purposes.
@@ -127,11 +130,11 @@ def dump_all_voxel_datasets_to_file(file_name: str):
 
     dataset_dict = filter_variant_fields(dataset_dict)
 
-    with open(file_name, "w", encoding="utf-8") as file:
+    with open("voxel_dump.json", "w", encoding="utf-8") as file:
         json.dump(dataset_dict, file, indent=4, default=__serialize_datetime)
 
 
-def assert_voxel_state(file_name: str):
+def assert_voxel_state(file_name: str, debug=False):
     """
     Checks if a json file is presented in the database.
     The json file has to contain the following format:
@@ -153,7 +156,12 @@ def assert_voxel_state(file_name: str):
 
     Args:
         file_name (str): Name of the expected json file (present under test_data)
+        debug (bool, optional): If true, will dump the current voxel state into a file for debug purposes.
     """
+
+    if debug:
+        dump_all_voxel_datasets_to_file()
+
     voxel_expected_data: dict[str, dict[str, Any]] = load_relative_json_file(
         __file__, os.path.join("test_data/voxel_states", file_name))
 

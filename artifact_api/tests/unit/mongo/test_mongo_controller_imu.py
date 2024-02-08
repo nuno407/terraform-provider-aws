@@ -23,7 +23,7 @@ def _helper_load_imu_file(filename: str) -> list[dict]:
     Returns:
         list[dict]: list of imu dicts, where each dict is an imu record
     """
-    return load_relative_json_file(__file__, f"test_data/imu/{filename}")
+    return load_relative_json_file(__file__, f"../test_data/imu/{filename}")
 
 
 def _generate_imu_data_artifact(filename: str) -> IMUDataArtifact:
