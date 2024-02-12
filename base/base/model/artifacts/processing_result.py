@@ -53,7 +53,7 @@ class SignalsProcessingResult(S3Result):
     artifact_name: Literal["signals_processed"] = "signals_processed"
     tenant_id: str = Field(default=...)
     video_raw_s3_path: S3Path = Field(default=...)
-    recording_overview: dict[str, Union[float, int, str]] = Field(default=...)
+    recording_overview: dict[str, int | float | str] = Field(default=...)
 
 
 class IMUProcessingResult(S3Result):

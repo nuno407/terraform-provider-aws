@@ -1,4 +1,5 @@
 """Router for metadata"""
+import logging
 from kink import di
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
@@ -7,6 +8,7 @@ from artifact_api.models import ResponseMessage
 from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.voxel.service import VoxelService
 
+_logger = logging.getLogger(__name__)
 metadata_router = APIRouter()
 
 
@@ -24,8 +26,10 @@ class MetadataController:
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
+        _logger.info("Processing video signals")
         await mongo_service.load_device_video_signals_data(device_video_signals)
         voxel_service.load_device_video_aggregated_metadata(device_video_signals)
+        _logger.info("Signals has been processed successfully")
 
         return ResponseMessage()
 

@@ -50,6 +50,7 @@ def create_dataset(dataset_name, tags) -> fo.Dataset:
         tags: Tags to add on dataset creation
     """
     if fo.dataset_exists(dataset_name):
+        _logger.debug("Loading dataset [%s]", dataset_name)
         return fo.load_dataset(dataset_name)
     else:
         dataset = fo.Dataset(dataset_name, persistent=True)

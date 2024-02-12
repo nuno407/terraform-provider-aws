@@ -124,8 +124,11 @@ class MongoService:  # pylint:disable=too-many-arguments
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
+        _logger.debug("Inserting video signals to : %s", device_video_signals.video_raw_s3_path)
         await self.__signals_controller.save_signals(device_video_signals.data, SignalsSource.MDF_PARSER,device_video_signals.correlation_id)
+        _logger.debug("Inserting aggregated_metadata : %s", str(device_video_signals.aggregated_metadata))
         await self.__mongo_recordings_controller.upsert_video_aggregated_metadata(device_video_signals.aggregated_metadata, device_video_signals.correlation_id)
+        _logger.info("Video signals have been processed successfully to mongoDB")
 
     async def process_imu_artifact(self, imu_data_artifact: IMUDataArtifact):
         """_summary_

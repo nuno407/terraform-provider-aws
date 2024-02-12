@@ -1,5 +1,6 @@
 """ Voxel Video Model """
 from enum import Enum
+import logging
 from typing import Any
 from datetime import datetime
 import fiftyone as fo
@@ -9,8 +10,11 @@ from base.model.artifacts.upload_rule_model import VideoUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadVideoRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelField, VoxelSample
 
+_logger = logging.getLogger(__name__)
 
 # pylint: disable=duplicate-code
+
+
 class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
     """
     Class responsible for parsing the message that comes from the API to populate video
@@ -149,9 +153,10 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
                                         raw_s3_path: str,
                                         agregated_metrics: dict[str, str | int | float | bool]):
         """ Load device agregated metadata. """
-
         anonymized_filepath = get_anonymized_path_from_raw(filepath=raw_s3_path)
 
+        _logger.debug("Anonymized path calculated : %s", anonymized_filepath)
+        _logger.debug("Inserting aggregated_metadata : %s",str(agregated_metrics))
         values_to_set: dict[VoxelField, fo.DynamicEmbeddedDocument] = {
             cls.Fields.AGREGATED_METADATA.value: fo.DynamicEmbeddedDocument(**agregated_metrics)
         }
@@ -160,3 +165,5 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
             dataset=dataset,
             anonymized_filepath=anonymized_filepath,
             values_to_set=values_to_set)
+
+        _logger.info("Device aggregated metadata inserted successfully")
