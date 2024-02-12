@@ -51,6 +51,26 @@ jobs:
     - name: Pre-commit check
       uses: pre-commit/action@v3.0.0
 
+  login-to-amazon-ecr:
+    # https://github.com/aws-actions/amazon-ecr-login#docker-credentials
+    name: Login to Amazon ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false' # https://github.com/actions/runner/issues/1498#issuecomment-1066836352
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+      docker_username: ${{ steps.login-ecr.outputs.docker_username_081962623310_dkr_ecr_eu_central_1_amazonaws_com }}
+      docker_password: ${{ steps.login-ecr.outputs.docker_password_081962623310_dkr_ecr_eu_central_1_amazonaws_com }}
+
   lint-python-projects:
     name: Lint Python
     runs-on: ubuntu-22.04
@@ -136,8 +156,16 @@ jobs:
   run-python-integration-tests:
     name: Integration tests
     runs-on: ubuntu-22.04
+    needs: [determine-changed-services, login-to-amazon-ecr]
+    services:
+      mongo:
+        image: ${{ needs.login-to-amazon-ecr.outputs.registry }}/base-images:mongo5.0
+        credentials:
+          username: ${{ needs.login-to-amazon-ecr.outputs.docker_username }}
+          password: ${{ needs.login-to-amazon-ecr.outputs.docker_password }}
+        ports:
+          - 27017:27017
     if: github.ref_name == 'master' || inputs.test
-    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:

@@ -6,6 +6,12 @@ on:
     branches:
       - master
 
+env:
+  AWS_DEFAULT_REGION: eu-central-1
+  AWS_ROLE: arn:aws:iam::081962623310:role/github-oidc-access
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
 jobs:
   pre-commit:
     name: Pre-commit checks
@@ -25,6 +31,27 @@ jobs:
         [[ $PR_TITLE =~ $REGEX_PR_TITLE ]] && exit 0
         echo "The pull request title does not contain a ticket name." 1>&2
         exit 1
+
+  login-to-amazon-ecr:
+    # https://github.com/aws-actions/amazon-ecr-login#docker-credentials
+    name: Login to Amazon ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false' # https://github.com/actions/runner/issues/1498#issuecomment-1066836352
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+      docker_username: ${{ steps.login-ecr.outputs.docker_username_081962623310_dkr_ecr_eu_central_1_amazonaws_com }}
+      docker_password: ${{ steps.login-ecr.outputs.docker_password_081962623310_dkr_ecr_eu_central_1_amazonaws_com }}
+
 
   determine-changed-services:
     name: Determine which services to build
@@ -134,9 +161,17 @@ jobs:
 
   run-python-integration-tests:
     name: Integration tests
+    needs: [determine-changed-services, login-to-amazon-ecr]
     runs-on: ubuntu-22.04
+    services:
+      mongo:
+        image: ${{ needs.login-to-amazon-ecr.outputs.registry }}/base-images:mongo5.0
+        credentials:
+          username: ${{ needs.login-to-amazon-ecr.outputs.docker_username }}
+          password: ${{ needs.login-to-amazon-ecr.outputs.docker_password }}
+        ports:
+          - 27017:27017
     if: success() || failure() # making lint optional for now
-    needs: [determine-changed-services]
     strategy:
       fail-fast: false
       matrix:

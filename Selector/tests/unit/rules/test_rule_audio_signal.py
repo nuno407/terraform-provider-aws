@@ -5,7 +5,7 @@ from pytz import UTC
 
 from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.model import Context, PreviewMetadataV063, RideInfo
+from selector.model import Context, PreviewMetadataV063, RideInfo, Recordings
 from selector.rule import Rule
 from selector.rules import AudioSignal
 from selector.rules.basic_rule import BaseRule
@@ -55,7 +55,12 @@ class TestAudioBlock:
             self,
             rule: Rule,
             data_audio_true: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(data_audio_true), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_audio_true),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}
 
@@ -63,7 +68,12 @@ class TestAudioBlock:
             self,
             rule: Rule,
             data_audio_false: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(data_audio_false), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_audio_false),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
@@ -71,7 +81,12 @@ class TestAudioBlock:
             self,
             rule: Rule,
             too_short_data: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(too_short_data), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(too_short_data),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
@@ -79,7 +94,12 @@ class TestAudioBlock:
             self,
             rule: Rule,
             enough_data: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(enough_data), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(enough_data),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}
 
@@ -96,6 +116,11 @@ class TestAudioBlock:
                     break
 
         # WHEN / THEN
-        result = rule.evaluate(Context(self.ride_info(data_audio_false), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_audio_false),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}

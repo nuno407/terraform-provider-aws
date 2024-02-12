@@ -5,7 +5,7 @@ from pytz import UTC
 
 from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.model import Context, RideInfo, PreviewMetadataV063
+from selector.model import Context, RideInfo, PreviewMetadataV063, Recordings
 from selector.rule import Rule
 from selector.rules import CHCEveryMinute
 from selector.rules.basic_rule import BaseRule
@@ -50,7 +50,12 @@ class TestChcEveryMinute:
             self,
             rule: Rule,
             data_chc_true: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(data_chc_true), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_chc_true),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}
 
@@ -58,7 +63,12 @@ class TestChcEveryMinute:
             self,
             rule: Rule,
             data_chc_false: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(data_chc_false), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_chc_false),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
@@ -66,7 +76,12 @@ class TestChcEveryMinute:
             self,
             rule: Rule,
             too_short_data: PreviewMetadataV063):
-        result = rule.evaluate(Context(self.ride_info(too_short_data), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(too_short_data),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
@@ -84,7 +99,12 @@ class TestChcEveryMinute:
                     object.integer_attributes[rule.attribute_name] = 1  # type: ignore
 
         # WHEN / THEN
-        result = rule.evaluate(Context(self.ride_info(data_chc_false), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_chc_false),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == set()
 
@@ -103,6 +123,11 @@ class TestChcEveryMinute:
                     object.integer_attributes[rule.attribute_name] = 1  # type: ignore
 
         # WHEN / THEN
-        result = rule.evaluate(Context(self.ride_info(data_chc_false), tenant_id="", device_id=""))
+        result = rule.evaluate(
+            Context(
+                self.ride_info(data_chc_false),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings("")))
         recorders = set(map(lambda d: d.recorder, result))
         assert recorders == {RecorderType.TRAINING}

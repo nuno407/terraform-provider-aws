@@ -1,0 +1,886 @@
+[
+    {
+        "_id": {
+            "$oid": "65bfe9855a3056e1709d8e90"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_1_1707075898591",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:44:58.591Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_1_1707075898591.jpeg",
+        "recording_overview": {
+            "devcloudid": "1c627504cc07b9c404611211207def0ef7fb50e22a6ec6b360e7eab9def1c6e5",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:44:58.591Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfe9885a3056e1709d8fc3"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_5_1707075918583",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:45:18.583Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_5_1707075918583.jpeg",
+        "recording_overview": {
+            "devcloudid": "5748fb70c2ba0b2db1d0ec54579cdae51a03c20dff20de6f7a7c0e4498954fb8",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:45:18.583Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfe98a5a3056e1709d90c2"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_4_1707075902591",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:45:02.591Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_4_1707075902591.jpeg",
+        "recording_overview": {
+            "devcloudid": "2e9ba51dd7504b8d4c93064a805f1357d74e335ebc7773207d7546d272fb1c90",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:45:02.591Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfe98d5a3056e1709d923d"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_6_1707075919607",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:45:19.607Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_6_1707075919607.jpeg",
+        "recording_overview": {
+            "devcloudid": "108b01db97a2360becd2011160cc3b53d4c1d901920333e2271e9438ef1b919d",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:45:19.607Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfe98f5a3056e1709d934c"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_3_1707075900584",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:45:00.584Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_3_1707075900584.jpeg",
+        "recording_overview": {
+            "devcloudid": "ee6dfcb6e6ca984ecf567dec4915e386b2ca34e4dc4a54ae0b52003c51e26024",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:45:00.584Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfe9925a3056e1709d9474"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_2_1707075899582",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:44:59.582Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_2_1707075899582.jpeg",
+        "recording_overview": {
+            "devcloudid": "4f018e3e0f9c00193fbd3060c1e23645912bb437349d222aed40b650b8ee8a60",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-04T19:44:59.582Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfea835a3056e1709db1b6"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingMultiSnapshot_TrainingMultiSnapshot-18e67564-59d1-41e6-9a0e-d7bc434e6ed9_7_1707076096818",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T19:48:16.818Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingMultiSnapshot_TrainingMultiSnapshot-18e67564-59d1-41e6-9a0e-d7bc434e6ed9_7_1707076096818.jpeg",
+        "recording_overview": {
+            "devcloudid": "a1619b21fbbda564ede668f3b93977fd24cd097503e6bdbb1d9932fd42f52f7d",
+            "deviceID": "rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7",
+            "recording_time": {
+                "$date": "2024-02-04T19:48:16.818Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bfefa05a3056e1709e4c76"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_12_1707077245283",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T20:07:25.283Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_12_1707077245283.jpeg",
+        "recording_overview": {
+            "devcloudid": "beea80946c328f510e57f9eb5b3087b18a15f0564b0b6916bd63ec302bbea3d1",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "recording_time": {
+                "$date": "2024-02-04T20:07:25.283Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bff0135a3056e1709e59f9"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_13_1707077520358",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T20:12:00.358Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_13_1707077520358.jpeg",
+        "recording_overview": {
+            "devcloudid": "4b5b884ba303c02b95fb872ea0724094ddb61c38dc08c091a06b8af131784748",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "recording_time": {
+                "$date": "2024-02-04T20:12:00.358Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bff0165a3056e1709e5b67"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_14_1707077549335",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T20:12:29.335Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_14_1707077549335.jpeg",
+        "recording_overview": {
+            "devcloudid": "f5fec62c3b2c922daa82c9e7d1d4ca57966ac0b76f2a213c643f847fc958ec10",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "recording_time": {
+                "$date": "2024-02-04T20:12:29.335Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bff0185a3056e1709e5c77"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_15_1707077589336",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-04T20:13:09.336Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingMultiSnapshot_TrainingMultiSnapshot-6cfc91f6-3499-40f2-b357-346aa37675a4_15_1707077589336.jpeg",
+        "recording_overview": {
+            "devcloudid": "44d3f41fac09a65b7b1824490ddc1ddc300281356e1ddf915a9cc88f6aedfd1e",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "recording_time": {
+                "$date": "2024-02-04T20:13:09.336Z"
+            },
+            "source_videos": [
+                "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingRecorder_a23fce4a-28ff-42b4-b9d4-4dab3fc7b0f3_1707077567774_1707079300991"
+            ],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65bffb885a3056e1709fbb96"
+        },
+        "_media_type": "video",
+        "video_id": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingRecorder_bd7d392f-e8b2-4b1f-88d5-7715ceb6b635_1707079269986_1707079970096",
+        "upload_rules": [
+            {
+                "name": "CHC event every minute",
+                "version": "1.0.0",
+                "origin": "PREVIEW_RULE_BASED",
+                "footage_from": {
+                    "$date": "2024-02-04T20:41:09.986Z"
+                },
+                "footage_to": {
+                    "$date": "2024-02-04T20:52:50.096Z"
+                }
+            },
+            {
+                "name": "Camera completely blocked",
+                "version": "1.0.0",
+                "origin": "PREVIEW_RULE_BASED",
+                "footage_from": {
+                    "$date": "2024-02-04T20:41:09.986Z"
+                },
+                "footage_to": {
+                    "$date": "2024-02-04T20:52:50.096Z"
+                }
+            }
+        ],
+        "recording_overview": {
+            "chc_duration": 700.1,
+            "gnss_coverage": 0.938953488372093,
+            "max_audio_loudness": -20.8078,
+            "max_person_count": 4,
+            "mean_audio_bias": 0.5869674478305232,
+            "median_person_count": 3,
+            "number_chc_events": 1,
+            "ride_detection_people_count_after": -1,
+            "ride_detection_people_count_before": -1,
+            "sum_door_closed": 2,
+            "variance_person_count": 0.16,
+            "#snapshots": 0,
+            "devcloudid": "0d9ed94ba7ab73cfcb9badb5e21a5125c2025745fc345ee6dbd57a6c1e1607ee",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "length": "0:11:37",
+            "recording_duration": 697.573,
+            "recording_time": {
+                "$date": "2024-02-04T20:41:09.986Z"
+            },
+            "snapshots_paths": [],
+            "tenantID": "ridecare_companion_trial",
+            "time": "2024-02-04 20:41:09"
+        },
+        "MDF_available": "No",
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingRecorder_bd7d392f-e8b2-4b1f-88d5-7715ceb6b635_1707079269986_1707079970096.mp4",
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "65bff9bf5a3056e1709f83b9"
+        },
+        "_media_type": "video",
+        "video_id": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingRecorder_8a57db99-36d9-46ff-8748-c4ec535dcb2d_1707079939075_1707080061102",
+        "upload_rules": [
+            {
+                "name": "Camera completely blocked",
+                "version": "1.0.0",
+                "origin": "PREVIEW_RULE_BASED",
+                "footage_from": {
+                    "$date": "2024-02-04T20:52:19.075Z"
+                },
+                "footage_to": {
+                    "$date": "2024-02-04T20:54:21.102Z"
+                }
+            }
+        ],
+        "MDF_available": "No",
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02_TrainingRecorder_8a57db99-36d9-46ff-8748-c4ec535dcb2d_1707079939075_1707080061102.mp4",
+        "recording_overview": {
+            "#snapshots": 0,
+            "devcloudid": "23f4f2404e9fe1fe25bd02386f29d9157e96ebd3b73fd502481c10f0e1b35555",
+            "deviceID": "rc_srx_prod_125627aca97f818127c1af3e168dbd9524b6bd02",
+            "length": "0:01:59",
+            "recording_duration": 119.384,
+            "recording_time": {
+                "$date": "2024-02-04T20:52:19.075Z"
+            },
+            "snapshots_paths": [],
+            "tenantID": "ridecare_companion_trial",
+            "time": "2024-02-04 20:52:19",
+            "chc_duration": 121.994,
+            "gnss_coverage": 0.9454545454545454,
+            "max_audio_loudness": -16.9529,
+            "max_person_count": 4,
+            "mean_audio_bias": 0.7622780945454546,
+            "median_person_count": 0,
+            "number_chc_events": 1,
+            "ride_detection_people_count_after": 0,
+            "ride_detection_people_count_before": 3,
+            "sum_door_closed": 5,
+            "variance_person_count": 0.87
+        },
+        "resolution": "1280x720"
+    },
+    {
+        "_id": {
+            "$oid": "65bff5675a3056e1709f0109"
+        },
+        "video_id": "rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_InteriorRecorder_5a100e6c-d57c-4bfc-8221-8f292bf66332_1707058455317_1707060255317",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_InteriorRecorder_5a100e6c-d57c-4bfc-8221-8f292bf66332_1707058455317_1707060255317.mp4",
+        "recording_overview": {
+            "#snapshots": 1,
+            "devcloudid": "1fe5602900ec0a9b0e58d9fc433ba6fcf369b919af114ea5af8d4bb31660fc77",
+            "deviceID": "rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c",
+            "length": "0:30:00",
+            "recording_duration": 1800.032,
+            "recording_time": {
+                "$date": "2024-02-04T14:54:15.317Z"
+            },
+            "snapshots_paths": [
+                "ridecare_companion_gridwise_rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_TrainingMultiSnapshot_TrainingMultiSnapshot-f18a9f7d-7ebb-4b5a-b8f5-e37061ce8dad_12_1707058506750"
+            ],
+            "tenantID": "ridecare_companion_gridwise",
+            "time": "2024-02-04 14:54:15",
+            "chc_duration": 110.926062,
+            "gnss_coverage": 0.92,
+            "max_audio_loudness": -16.3226,
+            "max_person_count": 5,
+            "mean_audio_bias": 1.865743892988889,
+            "median_person_count": 4,
+            "number_chc_events": 5,
+            "ride_detection_people_count_after": 5,
+            "ride_detection_people_count_before": 1,
+            "sum_door_closed": 9,
+            "variance_person_count": 0.13
+        },
+        "resolution": "640x360"
+    },
+    {
+        "_id": {
+            "$oid": "65bff5f25a3056e1709f113b"
+        },
+        "video_id": "rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_InteriorRecorder_f4788b07-c740-41e7-a6a7-54935a4e8699_1707060255317_1707062039880",
+        "MDF_available": "No",
+        "_media_type": "video",
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_InteriorRecorder_f4788b07-c740-41e7-a6a7-54935a4e8699_1707060255317_1707062039880.mp4",
+        "recording_overview": {
+            "#snapshots": 1,
+            "devcloudid": "cd9576ab19dbce8c6e76eff7e571842ac492009147f1fc3518c6cce541e4df43",
+            "deviceID": "rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c",
+            "length": "0:29:44",
+            "recording_duration": 1784.604,
+            "recording_time": {
+                "$date": "2024-02-04T15:24:15.317Z"
+            },
+            "snapshots_paths": [
+                "ridecare_companion_gridwise_rc_srx_prod_bbd95377daacff780f566c937fc2df486b767d4c_TrainingMultiSnapshot_TrainingMultiSnapshot-f18a9f7d-7ebb-4b5a-b8f5-e37061ce8dad_14_1707061931207"
+            ],
+            "tenantID": "ridecare_companion_gridwise",
+            "time": "2024-02-04 15:24:15",
+            "chc_duration": 0,
+            "gnss_coverage": 0.9607623318385651,
+            "max_audio_loudness": -15.3414,
+            "max_person_count": 5,
+            "mean_audio_bias": 1.522314192891536,
+            "median_person_count": 4,
+            "number_chc_events": 0,
+            "ride_detection_people_count_after": -1,
+            "ride_detection_people_count_before": -1,
+            "sum_door_closed": 3,
+            "variance_person_count": 0.11
+        },
+        "resolution": "640x360"
+    },
+    {
+        "_id": {
+            "$oid": "65c0504c5a3056e170a9bbd8"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingMultiSnapshot_TrainingMultiSnapshot-c5c90277-e242-4aa8-a7fa-f4b9e7f69a95_6_1707102165006",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T03:02:45.006Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7_TrainingMultiSnapshot_TrainingMultiSnapshot-c5c90277-e242-4aa8-a7fa-f4b9e7f69a95_6_1707102165006.jpeg",
+        "recording_overview": {
+            "devcloudid": "5748f3612a906685fe262e29362c0267357c86f8944b944eb5a3f0c516d2e13c",
+            "deviceID": "rc_srx_prod_d38f9834a17349a2359bbdb5d252ea9d6facedd7",
+            "recording_time": {
+                "$date": "2024-02-05T03:02:45.006Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c053c55a3056e170aa246b"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_1_1707103063816",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T03:17:43.816Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_1_1707103063816.jpeg",
+        "recording_overview": {
+            "devcloudid": "9ab69eaf1c81851b81ddd146992f24da1a217e535c3cc2afc9895cedc5d263fc",
+            "deviceID": "rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b",
+            "recording_time": {
+                "$date": "2024-02-05T03:17:43.816Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c053c75a3056e170aa2536"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_2_1707103065801",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T03:17:45.801Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_2_1707103065801.jpeg",
+        "recording_overview": {
+            "devcloudid": "38c24575bfe0ebd1ea508b9dfd9232a53ea3e93c7be42bd54a909a81e9f43e42",
+            "deviceID": "rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b",
+            "recording_time": {
+                "$date": "2024-02-05T03:17:45.801Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c067115a3056e170ac5d36"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_7_1707108004504",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T04:40:04.504Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_7_1707108004504.jpeg",
+        "recording_overview": {
+            "devcloudid": "83859148dd76382392b33dfc1c6b8b9c84e33b593cab9c484a9df8e245fc5eda",
+            "deviceID": "rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6",
+            "recording_time": {
+                "$date": "2024-02-05T04:40:04.504Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c06bc95a3056e170ace8fa"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_9_1707109232673",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T05:00:32.673Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_9_1707109232673.jpeg",
+        "recording_overview": {
+            "devcloudid": "243fe3e2f15630239b70a0d9c73e41231ded57be7db9eb7b49ebab8dd2b0f612",
+            "deviceID": "rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6",
+            "recording_time": {
+                "$date": "2024-02-05T05:00:32.673Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c06bca5a3056e170ace97e"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_8_1707109230644",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T05:00:30.644Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-57c18371-a015-45c1-8979-e2059a0bfa15_8_1707109230644.jpeg",
+        "recording_overview": {
+            "devcloudid": "affdceca6a043fec07f97144e01dbd50a303b28af9236ef4d0aa543fa429e4e2",
+            "deviceID": "rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6",
+            "recording_time": {
+                "$date": "2024-02-05T05:00:30.644Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c06cd35a3056e170ad0aa8"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_19_1707106572594",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T04:16:12.594Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_19_1707106572594.jpeg",
+        "recording_overview": {
+            "devcloudid": "90a30fc9d8554609e9496e9c54ef3c4c609a01f7cc39440d47ffb5a05ffec0d1",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-05T04:16:12.594Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c06fb35a3056e170ad620d"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_20_1707110229116",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T05:17:09.116Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20_TrainingMultiSnapshot_TrainingMultiSnapshot-d9bf700d-5882-43c8-bde0-fe4f5c0de4cf_20_1707110229116.jpeg",
+        "recording_overview": {
+            "devcloudid": "6a12190fc4d73fea36c0720c500e93ea233971bb7def8c67cb94a4f74a8b3476",
+            "deviceID": "rc_srx_prod_ebb9fccdbbde9ac538d32fce98f81708f65ffb20",
+            "recording_time": {
+                "$date": "2024-02-05T05:17:09.116Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c070545a3056e170ad76f3"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_8_1707110310839",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-05T05:18:30.839Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_trial/ridecare_companion_trial_rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b_TrainingMultiSnapshot_TrainingMultiSnapshot-94a0729a-9cc2-40b9-b4f3-ddf402857224_8_1707110310839.jpeg",
+        "recording_overview": {
+            "devcloudid": "b119b48eb3eddb5fadf07aa869487642fd0006f532ff1877c8165e6718be345c",
+            "deviceID": "rc_srx_prod_342180fc7187d8e29db698c1aefe941c7ab6b32b",
+            "recording_time": {
+                "$date": "2024-02-05T05:18:30.839Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_trial"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d6425a3056e17023f469"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_3_1707333107410",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-07T19:11:47.410Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_3_1707333107410.jpeg",
+        "recording_overview": {
+            "devcloudid": "7c973de945d10db99573cfcfb333ea9c1d907839058198a5806dc71d967e6bc0",
+            "deviceID": "rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265",
+            "recording_time": {
+                "$date": "2024-02-07T19:11:47.410Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d6425a3056e17023f514"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_4_1707333113402",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-07T19:11:53.402Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_4_1707333113402.jpeg",
+        "recording_overview": {
+            "devcloudid": "f7e10bc66e86ab179c90d8258c5152ec613a267025d05151e858b41cf0f24bf8",
+            "deviceID": "rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265",
+            "recording_time": {
+                "$date": "2024-02-07T19:11:53.402Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d6435a3056e17023f58d"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_5_1707333114424",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-07T19:11:54.424Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_5_1707333114424.jpeg",
+        "recording_overview": {
+            "devcloudid": "aa44cf9b0ba6b9965da2b174a1bd0d7ad325b50058b99e44942d6212ffabb2e2",
+            "deviceID": "rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265",
+            "recording_time": {
+                "$date": "2024-02-07T19:11:54.424Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d6435a3056e17023f604"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_2_1707333106415",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-07T19:11:46.415Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265_TrainingMultiSnapshot_TrainingMultiSnapshot-d9517244-f306-4e29-bac0-19a158753633_2_1707333106415.jpeg",
+        "recording_overview": {
+            "devcloudid": "f6b2a3f047c1db24bddc29269b634b779fcaf2941d0ef2475272365823ed1d23",
+            "deviceID": "rc_srx_prod_91b7972e8563005b2745084cac7fc923808a2265",
+            "recording_time": {
+                "$date": "2024-02-07T19:11:46.415Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d7245a3056e170241a7c"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-c3a76175-eefb-4e1d-a280-f3f83a88b736_1_1707333352870",
+        "upload_rules": [
+            {
+                "name": "automatic",
+                "version": "1.0",
+                "origin": "UKNOWN",
+                "snapshot_timestamp": {
+                    "$date": "2024-02-07T19:15:52.870Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-c3a76175-eefb-4e1d-a280-f3f83a88b736_1_1707333352870.jpeg",
+        "recording_overview": {
+            "devcloudid": "f794224ad9c7e38bd523cf2d6d935b3fca99757b0790f2d1e7e978f54a70c085",
+            "deviceID": "rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6",
+            "recording_time": {
+                "$date": "2024-02-07T19:15:52.870Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "65c3d7245a3056e170241b13"
+        },
+        "_media_type": "image",
+        "video_id": "ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-c3a76175-eefb-4e1d-a280-f3f83a88b736_2_1707333353877",
+        "upload_rules": [
+            {
+                "name": "Camera completely blocked",
+                "version": "1.0.0",
+                "origin": "PREVIEW_RULE_BASED",
+                "footage_from": {
+                    "$date": "2024-02-04T20:52:19.075Z"
+                },
+                "footage_to": {
+                    "$date": "2024-02-04T20:54:21.102Z"
+                }
+            }
+        ],
+        "filepath": "s3://qa-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6_TrainingMultiSnapshot_TrainingMultiSnapshot-c3a76175-eefb-4e1d-a280-f3f83a88b736_2_1707333353877.jpeg",
+        "recording_overview": {
+            "devcloudid": "913db32cbfdbf21b5198cd5584386126e2878151161895b37a053424b88b05ed",
+            "deviceID": "rc_srx_prod_66282f33340516e481251f311e1e5699a8dbbba6",
+            "recording_time": {
+                "$date": "2024-02-07T19:15:53.877Z"
+            },
+            "source_videos": [],
+            "tenantID": "ridecare_companion_gridwise"
+        }
+    }
+]

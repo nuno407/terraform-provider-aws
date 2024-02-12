@@ -4,4 +4,5 @@ mongoengine == 0.24.2
 pydantic == 2.6.0
 pyfunctional == 1.4.3
 urllib3 ~= 1.26
+pymongo>=4.1 # pymongo 4.1 supports typehints
 -e ../base[aws,model]

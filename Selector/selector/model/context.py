@@ -1,6 +1,6 @@
 """Context module"""
 from dataclasses import dataclass
-
+from selector.model.recordings import Recordings
 from selector.model.ride_info import RideInfo
 
 
@@ -10,3 +10,4 @@ class Context:
     ride_info: RideInfo
     tenant_id: str
     device_id: str
+    recordings: Recordings

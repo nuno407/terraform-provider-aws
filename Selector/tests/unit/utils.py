@@ -1,11 +1,19 @@
 """Data Test Builder Module"""
 import copy
-from datetime import timedelta
+import os
+from unittest.mock import Mock
+from datetime import timedelta, datetime, timezone
 from typing import Union
-
 from base.model.metadata.base_metadata import (BoolObject, FloatObject,
                                                IntegerObject, Resolution, PtsTimeWindow, UtcTimeWindow)
-from selector.model import PreviewMetadataV063, Frame
+from base.testing.utils import load_relative_json_file
+from selector.model import Frame
+from selector.model.context import Context
+from selector.model.ride_info import RideInfo
+from selector.model.preview_metadata_63 import PreviewMetadataV063
+
+DEFAULT_START_DATETIME = datetime(2023, 7, 3, 8, 38, 29, 461000, tzinfo=timezone.utc)
+DEFAULT_END_DATETIME = datetime(2023, 7, 3, 8, 48, 29, 461000, tzinfo=timezone.utc)
 
 
 class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
@@ -151,3 +159,42 @@ class DataTestBuilder:  # pylint: disable=too-many-instance-attributes
             chunk_pts=self._chunk_pts,
             chunk_utc=self._chunk_utc,
             frames=frames)
+
+
+def get_rule_metadata(file_name: str) -> dict:
+    """
+    Retrieve a preview metadata from a file.
+    The file should be located in the test_data folder.
+
+    Args:
+        file_name (str): The file name
+
+    Returns:
+        dict: The metadata in json format
+    """
+    return load_relative_json_file(__file__, os.path.join("test_data", file_name))
+
+
+def build_context(metadata_file: str, ride_start: datetime = DEFAULT_START_DATETIME,
+                  ride_end: datetime = DEFAULT_END_DATETIME) -> Context:
+    """
+    Build a context with a specific metadata file.
+
+    Args:
+        metadata_file (str): The metadata file name, should be located in the test_data folder.
+        ride_start (datetime, optional): The time where the ride started. Defaults to DEFAULT_START_DATETIME.
+        ride_end (datetime, optional): The time where the ride ended. Defaults to DEFAULT_END_DATETIME.
+
+    Returns:
+        Context: _description_
+    """
+    return Context(
+        tenant_id="mock_tenant",
+        device_id="mock_device",
+        ride_info=RideInfo(
+            start_ride=ride_start,
+            end_ride=ride_end,
+            preview_metadata=PreviewMetadataV063.model_validate(get_rule_metadata(metadata_file))
+        ),
+        recordings=Mock()
+    )

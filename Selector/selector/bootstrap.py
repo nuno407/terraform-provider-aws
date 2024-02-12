@@ -58,14 +58,20 @@ def bootstrap_di():
     if db_host is None:
         raise SecretMissingError("DATABASE_URI must be provided")
 
-    db_name = os.getenv("DATABASE_NAME", None)
-    if db_name is None:
-        raise SecretMissingError("DATABASE_NAME must be provided")
+    selector_db_name = os.getenv("SELECTOR_DATABASE_NAME", None)
+    if selector_db_name is None:
+        raise SecretMissingError("SELECTOR_DATABASE_NAME must be provided")
+
+    ingestion_db_name = os.getenv("INGESTION_DATABASE_NAME", None)
+    if ingestion_db_name is None:
+        raise SecretMissingError("INGESTION_DATABASE_NAME must be provided")
 
     di["db_host"] = db_host
-    di["db_name"] = db_name
+    di["selector_db_name"] = selector_db_name
+    di["ingestion_db_name"] = ingestion_db_name
 
-    connect(host=di["db_host"], db=di["db_name"], alias="SelectorDB", tz_aware=True)
+    connect(host=di["db_host"], db=di["selector_db_name"], alias="SelectorDB", tz_aware=True)
+    connect(host=di["db_host"], db=di["ingestion_db_name"], alias="DataIngestionDB", tz_aware=True)
 
     di["client_id"] = footage_api_client_id
     di["client_secret"] = footage_api_client_secret

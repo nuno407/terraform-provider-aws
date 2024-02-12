@@ -9,23 +9,14 @@ from mypy_boto3_s3 import S3Client
 from mypy_boto3_sqs import SQSClient
 from base.graceful_exit import GracefulExit
 from unittest.mock import Mock, call
-from base.testing.utils import load_relative_json_file, load_relative_raw_file
 from base.model.artifacts import parse_artifact, parse_upload_rule, S3VideoArtifact, VideoUploadRule
 from base.aws.s3 import S3Controller
 from base.aws.sqs import SQSController
+from .helper_functions import get_sqs_message, get_s3_file
 from selector.footage_api_wrapper import FootageApiWrapper
 from base.model.artifacts import RecorderType
 from selector.decision import Decision
-import os
 import json
-
-
-def get_sqs_message(file_name: str) -> dict:
-    return load_relative_json_file(__file__, os.path.join("data", file_name))
-
-
-def get_s3_file(file_name: str) -> bytes:
-    return load_relative_raw_file(__file__, os.path.join("data", file_name))
 
 # pylint: disable=missing-class-docstring,missing-function-docstring,too-few-public-methods
 

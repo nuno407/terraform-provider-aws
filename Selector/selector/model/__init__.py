@@ -9,6 +9,8 @@ from selector.model.upload_requests import DBDecision
 
 from selector.model.context import Context
 from selector.model.ride_info import RideInfo
+from selector.model.recordings import (Recordings, RecordingOptions, RecordingType,
+                                       RecordingUploadRule, SnapshotRecordingEntry, VideoRecordingEntry)
 
 
 PreviewMetadataDescriminator = TypeAdapter(PreviewMetadataV063)

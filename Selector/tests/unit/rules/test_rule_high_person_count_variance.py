@@ -5,7 +5,7 @@ from pytz import UTC
 
 from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.model import Context, RideInfo, PreviewMetadataV063
+from selector.model import Context, RideInfo, PreviewMetadataV063, Recordings
 from selector.rule import Rule
 from selector.rules import HighPersonCountVarianceRule
 from ..utils import DataTestBuilder
@@ -61,7 +61,8 @@ class TestRuleHighPersonCount:
                                  data_person_count_high_variance: PreviewMetadataV063,
                                  rule: Rule):
         # GIVEN
-        ctx = Context(self.ride_info(data_person_count_high_variance), tenant_id="", device_id="")
+        ctx = Context(self.ride_info(data_person_count_high_variance),
+                      tenant_id="", device_id="", recordings=Recordings(""))
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN
@@ -72,7 +73,7 @@ class TestRuleHighPersonCount:
                                  data_person_count_one: PreviewMetadataV063,
                                  rule: Rule):
         # GIVEN
-        ctx = Context(self.ride_info(data_person_count_one), tenant_id="", device_id="")
+        ctx = Context(self.ride_info(data_person_count_one), tenant_id="", device_id="", recordings=Recordings(""))
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN
@@ -83,7 +84,7 @@ class TestRuleHighPersonCount:
                                                  rule: Rule,
                                                  too_short_data: PreviewMetadataV063):
         # GIVEN
-        ctx = Context(self.ride_info(too_short_data), tenant_id="", device_id="")
+        ctx = Context(self.ride_info(too_short_data), tenant_id="", device_id="", recordings=Recordings(""))
         # WHEN
         decisions = rule.evaluate(ctx)
         # THEN

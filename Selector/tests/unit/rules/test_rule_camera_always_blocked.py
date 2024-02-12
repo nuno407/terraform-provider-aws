@@ -5,7 +5,7 @@ from pytz import UTC
 
 from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
-from selector.model import Context, RideInfo, PreviewMetadataV063
+from selector.model import Context, RideInfo, PreviewMetadataV063, Recordings
 from selector.rule import Rule
 from selector.rules import CameraAlwaysBlockedRule
 from selector.rules.basic_rule import BaseRule
@@ -37,7 +37,7 @@ class TestRuleCameraAlwaysBlocked:
                 if isinstance(
                         object, IntegerObject) and rule.attribute_name in object.integer_attributes:
                     object.integer_attributes[rule.attribute_name] = 1  # type: ignore
-        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
+        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="", recordings=Recordings(""))
 
         # WHEN
         decisions = rule.evaluate(ctx)
@@ -53,7 +53,7 @@ class TestRuleCameraAlwaysBlocked:
             for object in frame.objectlist:
                 if isinstance(object, IntegerObject):
                     object.integer_attributes[rule.attribute_name] = 1 if i > 2 else 0  # type: ignore
-        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
+        ctx = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="", recordings=Recordings(""))
 
         # WHEN
         decisions = rule.evaluate(ctx)

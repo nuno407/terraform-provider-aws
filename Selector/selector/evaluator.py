@@ -8,10 +8,9 @@ from kink import inject
 
 from base.model.artifacts import PreviewSignalsArtifact
 from selector.decision import Decision
-from selector.model import PreviewMetadata
+from selector.model import Context, PreviewMetadata, Recordings, RideInfo
 from selector.rule import Rule
-from selector.model.ride_info import RideInfo
-from selector.model.context import Context
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,15 @@ class Evaluator:  # pylint: disable=too-few-public-methods
             start_ride=artifact.timestamp,
             end_ride=artifact.end_timestamp
         )
-        context = Context(ride_info=ride_info, tenant_id=artifact.tenant_id, device_id=artifact.device_id)
+
+        # Get recordings interface to add to context
+        recordings: Recordings = Recordings(artifact.tenant_id)
+
+        context = Context(
+            ride_info=ride_info,
+            tenant_id=artifact.tenant_id,
+            device_id=artifact.device_id,
+            recordings=recordings)
         decisions: list[Decision] = self.__call_rules(context, artifact)
         valid_and_permitted_decisions = (seq(decisions)
                                          .filter(lambda decision: self.__validate_decision(context, decision))

@@ -8,7 +8,7 @@ from base.model.artifacts import (MultiSnapshotArtifact,
                                   TimeWindow)
 from selector.model.context import Context
 from selector.model.ride_info import RideInfo
-from selector.model import PreviewMetadataV063
+from selector.model import PreviewMetadataV063, Recordings
 
 from selector.rule import Rule
 from selector.rules import BDDEvent
@@ -47,7 +47,11 @@ class TestBDDEventRule:
                                  minimal_preview_metadata: PreviewMetadataV063,
                                  rule: BDDEvent):
         # GIVEN
-        context = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
+        context = Context(
+            self.ride_info(minimal_preview_metadata),
+            tenant_id="",
+            device_id="",
+            recordings=Recordings(""))
 
         # WHEN
         decisions = rule.evaluate(context)
@@ -61,7 +65,11 @@ class TestBDDEventRule:
         # GIVEN
         # Mock check_bdd_in_metadata to return a metadata_preview without bdd
         with mock.patch.object(rule, "check_bdd_in_metadata", return_value=False) as check_bdd_in_metadata:
-            context = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
+            context = Context(
+                self.ride_info(minimal_preview_metadata),
+                tenant_id="",
+                device_id="",
+                recordings=Recordings(""))
 
             # WHEN
             decisions = rule.evaluate(context)
@@ -77,7 +85,11 @@ class TestBDDEventRule:
                                    minimal_preview_metadata: PreviewMetadataV063,
                                    rule: BDDEvent):
         # GIVEN
-        context = context = Context(self.ride_info(minimal_preview_metadata), tenant_id="", device_id="")
+        context = Context(
+            self.ride_info(minimal_preview_metadata),
+            tenant_id="",
+            device_id="",
+            recordings=Recordings(""))
 
         # WHEN
         bdd_presence = rule.check_bdd_in_metadata(context.ride_info.preview_metadata)
