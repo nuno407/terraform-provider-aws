@@ -220,4 +220,4 @@ class DBSignals(ConfiguredBaseModel):
             "{:01d}:{:02d}:{:02d}.{:06d}".format(  # pylint: disable=consider-using-f-string
                 td.seconds // 3600,(td.seconds // 60) %
                 60, td.seconds %
-                60,td.microseconds // 1000):val for td, val in signals.items()}
+                60,td.microseconds):val for td, val in signals.items()}

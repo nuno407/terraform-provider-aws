@@ -1,7 +1,7 @@
 pytest == 7.2.2
 pytest-cov == 4.0.0
 types_pytz == 2023.3.0.0
-autopep8 == 2.0.2
+autopep8 == 2.0.4
 pylint == 3.0.3
 pylint-pydantic == 0.3.0
 mypy == 1.8.0

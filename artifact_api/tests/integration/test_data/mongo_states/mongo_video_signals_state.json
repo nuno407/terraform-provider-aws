@@ -4,7 +4,7 @@
             {
                 "recording": "rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317",
                 "signals": {
-                    "0:00:00.000508": {
+                    "0:00:00.508982": {
                         "CameraViewShifted": false,
                         "CameraVerticalShifted": 0.988,
                         "CameraViewBlocked": 0.972,
@@ -41,7 +41,7 @@
                         "DriverCount_confidence": 1.0,
                         "DriverCount_value": 0.0
                     },
-                    "0:00:01.000462": {
+                    "0:00:01.462946": {
                         "CameraViewShifted": false,
                         "CameraVerticalShifted": 0.953,
                         "CameraViewBlocked": 0.97,

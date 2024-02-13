@@ -1,7 +1,7 @@
 "Test metadata artifacts"
 import pytest
 from datetime import timedelta
-from base.model.artifacts.api_messages import VideoSignalsData, IMUProcessedData
+from base.model.artifacts.api_messages import VideoSignalsData, IMUProcessedData, SignalsFrame, ConfiguredBaseModel
 from base.testing.utils import load_relative_str_file, load_relative_json_file
 
 
@@ -57,3 +57,26 @@ class TestMetadataArtifacts:
         imu_parsed = model.model_dump()
 
         assert imu_parsed == imu_python
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("signals_json,signals_pydantic", [
+        (
+            {
+                "CameraViewShifted":False,
+                "CameraVerticalShifted":0.988,
+                "DrivingStatus":0,
+            },
+            SignalsFrame(DrivingStatus=0,CameraVerticalShifted=0.988,CameraViewShifted=False),  # type: ignore
+        )
+    ], ids=["test_signals_frame"])
+    def test_signals_frame(self, signals_json: str, signals_pydantic: SignalsFrame):
+        """
+        Test signals frame
+        """
+        model = SignalsFrame.model_validate(signals_json)
+        model_dump = model.model_dump()
+
+        assert model == signals_pydantic
+        assert isinstance(model_dump["CameraViewShifted"],bool)
+        assert isinstance(model_dump["DrivingStatus"],int)
+        assert model_dump == signals_json
