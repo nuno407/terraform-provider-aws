@@ -180,9 +180,11 @@ class Selector:  # pylint: disable=too-few-public-methods,too-many-locals
             preview_metadata, preview_metadata_artifact)
 
         # THIS SHOULD BE ONLY TEMPORARY UNTIL WE HAVE A BETTER WAY TO FILTER
+        # In this case, we are enabling temporary logic to ingest Gridwise data
         if preview_metadata_artifact.tenant_id == "ridecare_companion_gridwise":
-            _logger.info("Skipping tenant_id %s", preview_metadata_artifact.tenant_id)
-            return True
+            _logger.info("Ingesting data from Gridwise tenant...")
+        #    _logger.info("Skipping tenant_id %s", preview_metadata_artifact.tenant_id)
+        #    return True
 
         # Identify recorders to request. This prevents duplicate requests from not being registered as different rules
         rule_dict: dict = {}
