@@ -1,0 +1,9 @@
+[
+    {
+        "s3_path": "s3://dev-rcd-anonymized-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934_anonymized.jpeg"
+    },
+    {
+        "s3_path": "s3://dev-rcd-anonymized-video-files/ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317_anonymized.mp4"
+    }
+
+]

@@ -1,0 +1,20 @@
+{
+    "MessageId": "04262fb7-53a1-418c-a847-11714ecfe2fb",
+    "ReceiptHandle": "AQEBelKBThLT6DD8aUGwmHXXFscPJ/ubyFm9bRNmgySX90XkQmXL78NmGnHKV9CT4sfr5Nr85J7/okcA4hqElvHeSKsySHkng0ZniM8God0coadmXKkL/ypjapObG/Zr9gqaxDpie9wSGE+QI9Iar5zbyc5jLzUUK3SZvnXRSxHcL0+fnJwszj/QQLcXLTdl0mUdIilYY719t7vtvgOXRG+ak50nKOiB5BMuMvNsIU1dY8CzYUecJ2tiYTOfNNhAUV2/ze4au0pAhiw5eZK67l19gvBvVqNb2pFgwpra5lKUF17YS27kTGjrF7ii1V5krWue4nnglfhKOhv+vjC4hqRwRF955Ujt9v+bARyx0nDuq2NrVvcEHVMKYtyanP5hRU8gkeviRw5ZXmLnZ3/lLRaUp93FOLsimqQhyDnwiCsBUaYudvuxx9uMdn7pTI44Wfqi",
+    "MD5OfBody": "4a2993259618fbc52fd1f9cabebed544",
+    "Body": {
+        "s3_path": "ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317.mp4",
+        "data_status": "processing",
+        "output": {
+            "bucket": "dev-rcd-anonymized-video-files",
+            "media_path": "ridecare_companion_fut/rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_InteriorRecorder_5d9b257d-581b-42e4-9504-48c6a30c16c9_1700216378784_1700216411317_anonymized.mp4",
+            "meta_path": "-"
+        }
+    },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "Anonymize",
+            "DataType": "String"
+        }
+    }
+}

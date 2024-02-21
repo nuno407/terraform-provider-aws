@@ -92,6 +92,18 @@ class TestAPIDownloader:
                 "mdfparser_state.json",
                 "ridecare/signals/video",
                 "mdfparser_post_data.json",
+            ),
+            (
+                "anonymization_image_result_sqs_message.json",
+                "anonymized_s3_state.json",
+                "ridecare/pipeline/anonymize/snapshot",
+                "anonymization_snap_result_post_data.json",
+            ),
+            (
+                "anonymization_video_result_sqs_message.json",
+                "anonymized_s3_state.json",
+                "ridecare/pipeline/anonymize/video",
+                "anonymization_video_result_post_data.json",
             )
         ],
         ids=["snapshot_test_success",
@@ -106,7 +118,9 @@ class TestAPIDownloader:
             "imu_processing_test_success",
             "training_snapshot_metadata_test_success",
             "sdm_message_test_success",
-            "mdfparser_test_success"
+            "mdfparser_test_success",
+            "anonymize_snapshot_test",
+            "anonymize_video_test"
         ],
         indirect=["endpoint"])
     # autopep8: on
@@ -240,6 +254,18 @@ class TestAPIDownloader:
                 "mdfparser_state.json",
                 "ridecare/signals/video",
                 "mdfparser_post_data.json",
+            ),
+            (
+                "anonymization_image_result_sqs_message.json",
+                "anonymized_s3_state.json",
+                "ridecare/pipeline/anonymize/snapshot",
+                "anonymization_snap_result_post_data.json",
+            ),
+            (
+                "anonymization_video_result_sqs_message.json",
+                "anonymized_s3_state.json",
+                "ridecare/pipeline/anonymize/video",
+                "anonymization_video_result_post_data.json",
             )
             ],
             ids=["snapshot_test_failure",
@@ -253,7 +279,9 @@ class TestAPIDownloader:
                 "sanitizer_sos_operator_artifact",
                 "imu_processing_test_failure",
                 "sdm_message_test_failure",
-                "mdfparser_test_failure"
+                "mdfparser_test_failure",
+                "anonymize_snapshot_test",
+                "anonymize_video_test"
             ],
             indirect=["endpoint"])
     # autopep8: on
@@ -303,6 +331,7 @@ class TestAPIDownloader:
         # Setup SQS
         input_queue_controller.delete_message = Mock()
         queue_url = input_queue_controller.get_queue_url()
+        print(sqs_message.get("Body"))
         moto_sqs_client.send_message(
             QueueUrl=queue_url,
             MessageBody=sqs_message.get("Body"),

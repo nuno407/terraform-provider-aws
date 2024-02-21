@@ -31,8 +31,8 @@ def config(config_path: str) -> ArtifactDownloaderConfig:
 
 
 @pytest.fixture
-def anon_bucket() -> str:
-    return "dev-anon-bucket"
+def anon_bucket(config: ArtifactDownloaderConfig) -> str:
+    return config.raw_bucket.replace("raw","anonymized")
 
 
 @pytest.fixture

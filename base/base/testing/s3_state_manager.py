@@ -120,7 +120,7 @@ class S3StateLoader:
         Load an s3 state into a mocked client
 
         Args:
-            filename (str): The file nam within the state directory to be loaded.
+            filename (str): The file name within the state directory to be loaded.
             s3_client (S3Client): _description_
         """
 
