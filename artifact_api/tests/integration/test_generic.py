@@ -122,6 +122,36 @@ class TestGeneric:
             "mongo_config.yml",
             "mongo_video_signals_state.json",
             "voxel_video_signals_state.json",
+        ),
+        # Test anonymize result video after sdn pipeline
+        (
+            [
+                get_json_message("sdm_pipeline_status_api_message.json"),
+                get_json_message("anon_result_api_video_message.json")
+            ],
+            [
+                "ridecare/pipeline/status",
+                "ridecare/pipeline/anonymize/video"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_anon_video_state.json",
+            "voxel_anon_video_state.json",
+        ),
+        # Test anonymize result snapshot
+        (
+            [
+                get_json_message("sdm_pipeline_snapshot_status_api_message.json"),
+                get_json_message("anon_result_api_snapshot_message.json")
+            ],
+            [
+                "ridecare/pipeline/status",
+                "ridecare/pipeline/anonymize/snapshot"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_anon_snapshot_state.json",
+            "voxel_anon_snapshot_state.json",
         )
     ],
         ids=[
@@ -132,7 +162,9 @@ class TestGeneric:
         "test_imu_artifact",
         "test_snap_metadata",
         "test_sdm_status",
-        "test_video_signals"
+        "test_video_signals",
+        "test_anon_result_video",
+        "test_anon_result_snapshot"
     ],
         indirect=["mongo_api_config", "voxel_config"])
     @freeze_time("2030-01-14")

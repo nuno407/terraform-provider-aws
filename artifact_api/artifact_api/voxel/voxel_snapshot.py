@@ -1,17 +1,19 @@
 """ Voxel Snapshot Model """
 from enum import Enum
 from typing import Any
+import logging
 from datetime import datetime
 import fiftyone as fo
 from base.voxel.constants import POSE_LABEL, CLASSIFICATION_LABEL
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import SnapshotArtifact, PipelineProcessingStatus
+from base.model.artifacts import SnapshotArtifact, PipelineProcessingStatus, AnonymizationResult
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadSnapshotRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelSample, VoxelField
 from artifact_api.voxel.voxel_metadata_transformer import VoxelMetadataFrameFields
 
 # pylint: disable=duplicate-code
+_logger = logging.getLogger(__name__)
 
 
 class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
@@ -149,3 +151,21 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
             dataset=dataset,
             anonymized_filepath=anonymized_filepath,
             values_to_set=values_to_set)
+
+    @classmethod
+    def update_processing_status_anonymization(cls,
+                                               dataset: fo.Dataset,
+                                               message: AnonymizationResult,
+                                               last_updated: str):
+        """ Updates the processing status of the snapshot after anonymization."""
+
+        values_to_set: dict[VoxelField, Any] = {
+            cls.Fields.DATA_STATUS.value: message.processing_status.value,
+            cls.Fields.LAST_UPDATED.value: last_updated
+        }
+        cls._upsert_sample(
+            tenant_id=message.tenant_id,
+            dataset=dataset,
+            anonymized_filepath=message.s3_path,
+            values_to_set=values_to_set)
+        _logger.info("Snapshot anonymization status updated successfully")

@@ -1,0 +1,8 @@
+{
+    "artifact_name": "anonymize",
+    "s3_path": "s3://dev-rcd-anonymized-video-files/ridecare_companion_fut/rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074_anonymized.mp4",
+    "processing_status": "processing",
+    "tenant_id": "ridecare_companion_fut",
+    "correlation_id": "rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074",
+    "raw_s3_path": "s3://dev-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074.mp4"
+}

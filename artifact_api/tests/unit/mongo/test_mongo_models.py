@@ -12,7 +12,8 @@ from artifact_api.models.mongo_models import (DBSnapshotRecordingOverview, DBSna
                                               DBCameraServiceEventArtifact, DBDeviceInfoEventArtifact,
                                               DBIncidentEventArtifact, DBS3VideoArtifact,
                                               DBVideoRecordingOverview, DBSnapshotUploadRule,
-                                              DBPipelineProcessingStatus)
+                                              DBPipelineProcessingStatus, DBAnonymizationResult,
+                                              DBOutputPath)
 
 
 @mark.unit
@@ -62,17 +63,17 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             tenant_id=tenant_id,
             time=time_str,
             aggregated_metadata={
-                "chc_duration":0,
-                "gnss_coverage":0,
-                "max_audio_loudness":0,
-                "max_person_count":0,
-                "mean_audio_bias":0,
-                "median_person_count":0,
-                "number_chc_events":0,
-                "ride_detection_people_count_after":0,
-                "ride_detection_people_count_before":0,
-                "sum_door_closed":0,
-                "variance_person_count":0
+                "chc_duration": 0,
+                "gnss_coverage": 0,
+                "max_audio_loudness": 0,
+                "max_person_count": 0,
+                "mean_audio_bias": 0,
+                "median_person_count": 0,
+                "number_chc_events": 0,
+                "ride_detection_people_count_after": 0,
+                "ride_detection_people_count_before": 0,
+                "sum_door_closed": 0,
+                "variance_person_count": 0
             }
         )
 
@@ -91,8 +92,8 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             info_source="mock_info_source",
             from_container="Metadata",
             artifact_name="mock_artifact_name",
-            processing_steps=["CHC",
-                              "Anonymize"],
+            processing_list=["CHC",
+                             "Anonymize"],
             _id="mock_id"
         )
 
@@ -282,21 +283,24 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             )
 
     @mark.unit
-    def test_db_video_recording_overview(self,db_video_recording_overview: DBVideoRecordingOverview):
+    def test_db_video_recording_overview(self, db_video_recording_overview: DBVideoRecordingOverview):
         """
         Test for DB Video Recording Overview mongodb model
 
         Args:
             db_video_recording_overview (DBVideoRecordingOverview): DB Video Recording Overview mongodb model
         """
-        json_model = db_video_recording_overview.model_dump(by_alias=True, exclude_none=True)
+        json_model = db_video_recording_overview.model_dump(
+            by_alias=True, exclude_none=True)
         assert json_model["#snapshots"] == 1
         assert json_model["devcloudid"] == "mock_dev_id"
         assert json_model["deviceID"] == "mock_device_id"
         assert json_model["length"] == "0:01:40"
-        assert json_model["recording_time"] == datetime(2023, 1, 1, tzinfo=timezone.utc)
+        assert json_model["recording_time"] == datetime(
+            2023, 1, 1, tzinfo=timezone.utc)
         assert json_model["recording_duration"] == 100
-        assert json_model["snapshots_paths"] == ["correlated_artifact1", "correlated_artifact2"]
+        assert json_model["snapshots_paths"] == [
+            "correlated_artifact1", "correlated_artifact2"]
         assert json_model["tenantID"] == "mock_tenant_id"
         assert json_model["time"] == "2023-01-01 00:00:00"
         assert json_model["chc_duration"] == 0
@@ -357,3 +361,53 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
 
         with raises(ValidationError):
             DBPipelineProcessingStatus(**invalid_data)
+
+    @fixture
+    def db_output_path(self) -> dict:
+        """Fixture for output path
+
+        Returns:
+            dict: Output path
+        """
+        return DBOutputPath(video="path/to/some/video")
+
+    @fixture
+    def db_ano_result(self, db_output_path: DBOutputPath) -> DBAnonymizationResult:
+        """Fixture for DB Anonymization Result
+
+        Returns:
+            DBAnonymizationResult: DB Anonymization Result
+        """
+
+        return DBAnonymizationResult(
+            _id="some_id",
+            algorithm_id="Anonymize",
+            pipeline_id="pipeline_1",
+            output_paths=db_output_path
+        )
+
+    @mark.unit
+    def test_db_ano_result(self, db_ano_result: DBAnonymizationResult):
+        """Test for DB Anonymization Result mongodb model
+
+        Args:
+            db_ano_result (DBAnonymizationResult): DB Anonymization Result mongodb model
+        """
+        assert db_ano_result.algorithm_id == "Anonymize"
+        assert db_ano_result.pipeline_id == "pipeline_1"
+        assert db_ano_result.output_paths.video == "path/to/some/video"
+
+    @mark.unit
+    def test_invalid_db_anonymization_result(self):
+        """Test for invalid DB Anonymization Result mongodb model
+        """
+
+        invalid_data = {
+            "_id": "some_id",
+            "algorithm_id": "Not Anonymize",
+            "pipeline_id": "pipeline_1",
+            "output_paths": "path/to/video"  # Invalid format
+        }
+
+        with raises(ValidationError):
+            DBAnonymizationResult(**invalid_data)

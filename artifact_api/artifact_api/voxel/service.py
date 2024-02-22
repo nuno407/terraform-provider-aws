@@ -151,3 +151,27 @@ class VoxelService:
         dataset = create_dataset(dataset_name, tags)
         VoxelVideo.attach_pipeline_processing_status_to_video(
             dataset, pipeline_status, last_updated=last_updated)
+
+    def update_video_processing_status_anonymization(self, video_anon_result, last_updated):
+        """
+        Updates the video processing status after anonymization
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=video_anon_result.tenant_id,
+            is_snapshot=False,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelVideo.update_processing_status_anonymization(
+            dataset, video_anon_result, last_updated)
+
+    def update_snapshot_processing_status_anonymization(self, snap_anon_result, last_updated):
+        """
+        Updates the snapshot processing status after anonymization
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=snap_anon_result.tenant_id,
+            is_snapshot=True,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelSnapshot.update_processing_status_anonymization(
+            dataset, snap_anon_result, last_updated)

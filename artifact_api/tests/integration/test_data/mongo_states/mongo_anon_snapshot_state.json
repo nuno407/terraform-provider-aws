@@ -1,0 +1,25 @@
+{
+    "DataIngestion": {
+        "algorithm-output": [
+            {
+                "algorithm_id": "Anonymize",
+                "output_paths": {
+                    "video": "dev-rcd-anonymized-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934_anonymized.jpeg"
+                },
+                "pipeline_id": "ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934"
+            }
+        ],
+        "pipeline-execution": [
+            {
+                "processing_status": "complete",
+                "from_container": "Metadata",
+                "info_source": "Anonymize",
+                "last_updated": "2030-01-14T00:00:00.000000Z",
+                "processing_list": [
+                    "Anonymize"
+                ],
+                "s3_path": "s3://dev-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934.jpeg"
+            }
+        ]
+    }
+}

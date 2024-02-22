@@ -6,7 +6,7 @@
                 "info_source": "SDM",
                 "last_updated": "2030-01-14T00:00:00.000000Z",
                 "processing_status": "received",
-                "processing_steps": [
+                "processing_list": [
                     "Anonymize",
                     "CHC"
                 ],

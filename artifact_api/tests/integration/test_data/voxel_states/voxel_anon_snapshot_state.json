@@ -1,0 +1,28 @@
+{
+    "RC-ridecare_companion_gridwise_snapshots": {
+        "tags": [
+            "RC"
+        ],
+        "samples": [
+            {
+                "PRED_device_classifications": null,
+                "PRED_device_pose": null,
+                "filepath": "s3://dev-rcd-anonymized-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934_anonymized.jpeg",
+                "tags": [],
+                "metadata": null,
+                "raw_filepath": "s3://dev-rcd-raw-video-files/ridecare_companion_gridwise/ridecare_companion_gridwise_rc_srx_prod_b807d46190c221f512b49753f9e9d6131cb3493e_TrainingMultiSnapshot_TrainingMultiSnapshot-b2533c47-faa6-4cde-93f6-3cb3b606b2a3_3_1707740756934.jpeg",
+                "data_privacy_document_id": "unused",
+                "video_id": null,
+                "tenant_id": null,
+                "device_id": null,
+                "recording_time": null,
+                "source_videos": null,
+                "rules": null,
+                "data_status": "complete",
+                "last_updated":{
+                    "$date": "2030-01-14T00:00:00Z"
+                }
+            }
+        ]
+    }
+}

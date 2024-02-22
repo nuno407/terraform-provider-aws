@@ -1,11 +1,11 @@
 """mongo controller service module"""
 from typing import Union
 import logging
-from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample, SignalsFrame
-from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact,VideoSignalsData,
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
+from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact, VideoSignalsData,
                                   DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
                                   PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,
-                                  SOSOperatorArtifact, PipelineProcessingStatus)
+                                  SOSOperatorArtifact, PipelineProcessingStatus, AnonymizationResult)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from kink import inject
 from artifact_api.models.mongo_models import DBSnapshotArtifact, SignalsSource
@@ -15,6 +15,7 @@ from artifact_api.mongo.services.mongo_sav_operator_service import MongoSavOpera
 from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
 from artifact_api.mongo.services.mongo_pipeline_service import MongoPipelineService
 from artifact_api.mongo.services.mongo_signals_service import MongoSignalsService
+from artifact_api.mongo.services.mongo_algorithm_output_service import MongoAlgorithmOutputService
 from artifact_api.exceptions import IMUEmptyException
 
 
@@ -34,7 +35,8 @@ class MongoService:  # pylint:disable=too-many-arguments
             sav_operator_feedback_controller: MongoSavOperatorService,
             mongo_recordings_controller: MongoRecordingsService,
             pipeline_processing_controller: MongoPipelineService,
-            mongo_signals_controller: MongoSignalsService) -> None:
+            mongo_signals_controller: MongoSignalsService,
+            mongo_algorithm_output_controller: MongoAlgorithmOutputService) -> None:
 
         self.__event_controller = mongo_event_controller
         self.__imu_controller = mongo_imu_controller
@@ -42,6 +44,7 @@ class MongoService:  # pylint:disable=too-many-arguments
         self.__mongo_recordings_controller = mongo_recordings_controller
         self.__pipeline_processing_controller = pipeline_processing_controller
         self.__signals_controller = mongo_signals_controller
+        self.__algorithm_output_controller = mongo_algorithm_output_controller
 
     async def update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str):
         """_summary_
@@ -124,11 +127,14 @@ class MongoService:  # pylint:disable=too-many-arguments
         Args:
             device_video_signals (VideoSignalsData): _description_
         """
-        _logger.debug("Inserting video signals to : %s", device_video_signals.video_raw_s3_path)
-        await self.__signals_controller.save_signals(device_video_signals.data, SignalsSource.MDF_PARSER,device_video_signals.correlation_id)
-        _logger.debug("Inserting aggregated_metadata : %s", str(device_video_signals.aggregated_metadata))
+        _logger.debug("Inserting video signals to : %s",
+                      device_video_signals.video_raw_s3_path)
+        await self.__signals_controller.save_signals(device_video_signals.data, SignalsSource.MDF_PARSER, device_video_signals.correlation_id)
+        _logger.debug("Inserting aggregated_metadata : %s",
+                      str(device_video_signals.aggregated_metadata))
         await self.__mongo_recordings_controller.upsert_video_aggregated_metadata(device_video_signals.aggregated_metadata, device_video_signals.correlation_id)
-        _logger.info("Video signals have been processed successfully to mongoDB")
+        _logger.info(
+            "Video signals have been processed successfully to mongoDB")
 
     async def process_imu_artifact(self, imu_data_artifact: IMUDataArtifact):
         """_summary_
@@ -174,3 +180,17 @@ class MongoService:  # pylint:disable=too-many-arguments
             DBPipelineProcessingStatus: Corresponding DB Pipeline Processing Status Artifact
         """
         await self.__pipeline_processing_controller.save_pipeline_processing_status(message, last_updated)
+
+    async def create_anonymization_result_output(self, message: AnonymizationResult, last_updated: str):
+        """Saves the algorithm output to the database
+
+        Args:
+            message (Union[SignalsFrame, IMUDataArtifact]): Algorithm output
+        """
+        await self.__algorithm_output_controller.save_anonymization_result_output(message)
+        _logger.info(
+            "Algorithm output has been processed successfully to mongoDB")
+
+        await self.__pipeline_processing_controller.update_pipeline_processing_status_anonymization(message, last_updated)
+        _logger.info(
+            "Pipeline processing status has been updated successfully to mongoDB")

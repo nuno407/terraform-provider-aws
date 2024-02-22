@@ -2,9 +2,9 @@ import logging
 
 from kink import inject
 from base.mongo.engine import Engine
-from artifact_api.models.mongo_models import DBPipelineProcessingStatus
+from artifact_api.models.mongo_models import DBPipelineProcessingStatus, DBAnonymizationResult, DBOutputPath
 
-from base.model.artifacts import PipelineProcessingStatus
+from base.model.artifacts import PipelineProcessingStatus, AnonymizationResult
 
 
 _logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class MongoPipelineService():
             info_source=message.info_source,
             last_updated=last_updated,
             processing_status=message.processing_status,
-            processing_steps=message.processing_steps
+            processing_list=message.processing_steps
         )
 
         await self.__pipeline_processing_status_engine.update_one(
@@ -53,3 +53,25 @@ class MongoPipelineService():
             upsert=True
         )
         return doc
+
+    async def update_pipeline_processing_status_anonymization(self, message: AnonymizationResult, last_updated: str):
+        """Updates the pipeline processing status
+
+        Args:
+            message (PipelineProcessingStatus): Pipeline Processing Status Artifact
+            last_updated (str): Last Updated date as a string
+        """
+        await self.__pipeline_processing_status_engine.update_one(
+            query={
+                "_id": message.correlation_id
+            },
+            command={
+                "$set": {
+                    "last_updated": last_updated,
+                    "processing_status": message.processing_status,
+                    "info_source": "Anonymize"
+                }
+            }
+        )
+        _logger.info(
+            "Pipeline processing status has been updated successfully to mongoDB")

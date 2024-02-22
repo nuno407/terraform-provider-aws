@@ -24,6 +24,7 @@ from artifact_api.mongo.services.mongo_imu_service import MongoIMUService
 from artifact_api.mongo.services.mongo_sav_operator_service import MongoSavOperatorService
 from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
 from artifact_api.mongo.services.mongo_pipeline_service import MongoPipelineService
+from artifact_api.mongo.services.mongo_algorithm_output_service import MongoAlgorithmOutputService
 # autopep8: on
 
 
@@ -131,6 +132,16 @@ def fixture_pipeline_processing_status_engine() -> MagicMock:
     return MagicMock()
 
 
+@fixture(name="algorithm_output_engine")
+def fixture_algorithm_output_engine() -> MagicMock:
+    """ Fixture for algorithm output engine
+
+    Returns:
+        MagicMock: Mock of the algorithm output db engine
+    """
+    return MagicMock()
+
+
 @fixture(name="mongo_pipeline_controller")
 def fixture_mongo_pipeline_controller(pipeline_processing_status_engine: MagicMock) -> MongoPipelineService:
     """ Fixture for mongo pipeline controller
@@ -156,7 +167,7 @@ def fixture_mongo_recordings_controller(video_engine: MagicMock,
     Returns:
         MongoRecordingsController: class with business logic methods for mongodb
     """
-    return MongoRecordingsService(snapshot_engine,video_engine)
+    return MongoRecordingsService(snapshot_engine, video_engine)
 
 
 @fixture(name="mongo_sav_operator_controller")
@@ -209,6 +220,19 @@ def fixture_mongo_event_controller(event_engine: MagicMock) -> MongoEventService
         MongoEventController: class with business logic methods for mongodb
     """
     return MongoEventService(event_engine)
+
+
+@fixture(name="mongo_algorithm_output_controller")
+def fixture_mongo_algorithm_output_controller(algorithm_output_engine: MagicMock) -> MongoAlgorithmOutputService:
+    """ Fixture for mongo algorithm output controller
+
+    Args:
+        algorithm_output_engine (MagicMock): Mock of the algorithm output db engine
+
+    Returns:
+        MongoAlgorithmOutputController: class with business logic methods for mongodb
+    """
+    return MongoAlgorithmOutputService(algorithm_output_engine)
 
 
 @fixture(name="media_controller")
@@ -268,7 +292,8 @@ def mongo_controller(
         mongo_sav_operator_controller: MagicMock,
         mongo_pipeline_controller: MagicMock,
         mongo_event_controller: MagicMock,
-        mongo_signals_controller: MagicMock) -> MongoService:
+        mongo_signals_controller: MagicMock,
+        mongo_algorithm_output_controller: MagicMock) -> MongoService:
     """ Fixture for mongo controller
 
     Args:
@@ -288,4 +313,5 @@ def mongo_controller(
         mongo_sav_operator_controller,
         mongo_recordings_controller,
         mongo_pipeline_controller,
-        mongo_signals_controller)
+        mongo_signals_controller,
+        mongo_algorithm_output_controller)

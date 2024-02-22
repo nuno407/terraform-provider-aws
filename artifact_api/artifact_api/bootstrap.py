@@ -80,6 +80,11 @@ def bootstrap_di() -> None:
                                   collection=di["db_metadata_tables"]["signals"],
                                   client=mongo_client)
 
+    di["algo_output_engine"] = Engine(model=DBSignals,
+                                      database=db_name,
+                                      collection=di["db_metadata_tables"]["algo_output"],
+                                      client=mongo_client)
+
 
 def load_mongodb_config_vars() -> dict[str, str]:
     """Gets mongodb configuration yaml"""

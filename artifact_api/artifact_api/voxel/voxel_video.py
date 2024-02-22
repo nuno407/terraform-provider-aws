@@ -5,7 +5,7 @@ from typing import Any
 from datetime import datetime
 import fiftyone as fo
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import S3VideoArtifact, PipelineProcessingStatus
+from base.model.artifacts import S3VideoArtifact, PipelineProcessingStatus, AnonymizationResult
 from base.model.artifacts.upload_rule_model import VideoUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadVideoRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelField, VoxelSample
@@ -153,12 +153,15 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
                                         raw_s3_path: str,
                                         agregated_metrics: dict[str, str | int | float | bool]):
         """ Load device agregated metadata. """
-        anonymized_filepath = get_anonymized_path_from_raw(filepath=raw_s3_path)
+        anonymized_filepath = get_anonymized_path_from_raw(
+            filepath=raw_s3_path)
 
         _logger.debug("Anonymized path calculated : %s", anonymized_filepath)
-        _logger.debug("Inserting aggregated_metadata : %s",str(agregated_metrics))
+        _logger.debug("Inserting aggregated_metadata : %s",
+                      str(agregated_metrics))
         values_to_set: dict[VoxelField, fo.DynamicEmbeddedDocument] = {
-            cls.Fields.AGREGATED_METADATA.value: fo.DynamicEmbeddedDocument(**agregated_metrics)
+            cls.Fields.AGREGATED_METADATA.value: fo.DynamicEmbeddedDocument(
+                **agregated_metrics)
         }
         cls._upsert_sample(
             tenant_id=tenant,
@@ -167,3 +170,20 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
             values_to_set=values_to_set)
 
         _logger.info("Device aggregated metadata inserted successfully")
+
+    @classmethod
+    def update_processing_status_anonymization(cls,
+                                               dataset: fo.Dataset,
+                                               message: AnonymizationResult,
+                                               last_updated: str):
+        """ Updates the processing status of the video after anonymization """
+        values_to_set: dict[VoxelField, Any] = {
+            cls.Fields.DATA_STATUS.value: message.processing_status.value,
+            cls.Fields.LAST_UPDATED.value: last_updated
+        }
+        cls._upsert_sample(
+            tenant_id=message.tenant_id,
+            dataset=dataset,
+            anonymized_filepath=message.s3_path,
+            values_to_set=values_to_set)
+        _logger.info("Processing status updated successfully")

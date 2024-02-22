@@ -43,8 +43,10 @@ class DBVideoRecordingOverview(ConfiguredBaseModel):
     recording_time: Optional[UtcDatetimeInPast] = Field(default=None)
     snapshots_paths: list[str] = []
     tenant_id: Optional[str] = Field(alias="tenantID", default=None)
-    time: Optional[str] = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
-    aggregated_metadata: Optional[dict[str,str | bool | int | float]] = Field(default=None)
+    time: Optional[str] = Field(
+        pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
+    aggregated_metadata: Optional[dict[str, str |
+                                       bool | int | float]] = Field(default=None)
 
     @model_serializer(mode="wrap")
     def serialize_aggregated_metadata(self, serializer: Any, _: SerializationInfo) -> Any:
@@ -197,7 +199,7 @@ class DBPipelineProcessingStatus(ConfiguredBaseModel):
     last_updated: str
     from_container: Literal["Metadata"] = Field(default="Metadata")
     processing_status: StatusProcessing
-    processing_steps: list[ProcessingStep] = Field(default=...)
+    processing_list: list[ProcessingStep] = Field(default=...)
 
 
 class SignalsSource(str, Enum):
@@ -209,15 +211,28 @@ class SignalsSource(str, Enum):
 class DBSignals(ConfiguredBaseModel):
     """Signals in the format used in the database"""
     recording: str
-    signals: dict[timedelta,dict[str, int | float | bool]]
+    signals: dict[timedelta, dict[str, int | float | bool]]
     source: SignalsSource
 
     @field_serializer("signals")
-    def serialize_signals(signals: dict[timedelta,dict[str, int | float | bool]]  # pylint: disable=no-self-argument
+    def serialize_signals(signals: dict[timedelta, dict[str, int | float | bool]]  # pylint: disable=no-self-argument
                           ) -> dict[str, dict[str, int | float | bool]]:
         """Serialize the signals dict"""
         return {
             "{:01d}:{:02d}:{:02d}.{:06d}".format(  # pylint: disable=consider-using-f-string
-                td.seconds // 3600,(td.seconds // 60) %
+                td.seconds // 3600, (td.seconds // 60) %
                 60, td.seconds %
-                60,td.microseconds):val for td, val in signals.items()}
+                60, td.microseconds): val for td, val in signals.items()}
+
+
+class DBOutputPath(ConfiguredBaseModel):
+    """Output path"""
+    video: str
+
+
+class DBAnonymizationResult(ConfiguredBaseModel):
+    """Anonymization result"""
+    _id: str
+    algorithm_id: Literal["Anonymize"] = Field(default="Anonymize")
+    pipeline_id: str
+    output_paths: DBOutputPath

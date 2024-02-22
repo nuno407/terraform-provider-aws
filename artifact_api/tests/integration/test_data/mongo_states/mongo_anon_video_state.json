@@ -1,0 +1,26 @@
+{
+    "DataIngestion": {
+        "algorithm-output": [
+            {
+                "algorithm_id": "Anonymize",
+                "output_paths": {
+                    "video": "dev-rcd-anonymized-video-files/ridecare_companion_fut/rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074_anonymized.mp4"
+                },
+                "pipeline_id": "rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074"
+            }
+        ],
+        "pipeline-execution": [
+            {
+                "processing_status": "processing",
+                "from_container": "Metadata",
+                "info_source": "Anonymize",
+                "last_updated": "2030-01-14T00:00:00.000000Z",
+                "processing_list": [
+                    "Anonymize",
+                    "CHC"
+                ],
+                "s3_path": "s3://dev-rcd-raw-video-files/ridecare_companion_fut/rc_srx_prod_9ff76c82ecf57b83ed0ff6ef179a8d5d624dec75_TrainingRecorder_67d2ed1a-a587-4069-8b60-50c57c1a1352_1695977265353_1695977290074.mp4"
+            }
+        ]
+    }
+}

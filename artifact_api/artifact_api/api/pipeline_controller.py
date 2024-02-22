@@ -19,17 +19,29 @@ class PipelineController:
     """Controller for pipeline outputs/updates"""
 
     @pipeline_router.post("/ridecare/pipeline/anonymize/video", response_model=ResponseMessage)
-    async def process_anonymized_video(self, video_anon_result: AnonymizationResult):  # pylint: disable=unused-argument
+    async def process_anonymized_video(self, video_anon_result: AnonymizationResult,
+                                       mongo_service: MongoService = Depends(
+                                           lambda: di[MongoService]),  # pylint: disable=unused-argument
+                                       voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process anonymized video
 
         Args:
             video_anon_result (AnonymizationResult): _description_
         """
+        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+
+        await mongo_service.create_anonymization_result_output(video_anon_result, last_updated_str)
+        voxel_service.update_video_processing_status_anonymization(
+            video_anon_result, last_updated)
         return ResponseMessage()
 
     @pipeline_router.post("/ridecare/pipeline/anonymize/snapshot", response_model=ResponseMessage)
-    async def create_anonymized_snapshot(self, snap_anon_result: AnonymizationResult):  # pylint: disable=unused-argument
+    async def process_anonymized_snapshot(self, snap_anon_result: AnonymizationResult,
+                                          mongo_service: MongoService = Depends(
+                                              lambda: di[MongoService]),  # pylint: disable=unused-argument
+                                          voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process anonymized snapshot
 
@@ -39,7 +51,11 @@ class PipelineController:
         Returns:
             _type_: _description_
         """
-
+        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+        await mongo_service.create_anonymization_result_output(snap_anon_result, last_updated_str)
+        voxel_service.update_snapshot_processing_status_anonymization(
+            snap_anon_result, last_updated)
         return ResponseMessage()
 
     @pipeline_router.post("/ridecare/pipeline/chc/video", response_model=ResponseMessage)
