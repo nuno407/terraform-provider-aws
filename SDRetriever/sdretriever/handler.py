@@ -15,6 +15,7 @@ from sdretriever.constants import (CONTAINER_NAME,
                                    MESSAGE_VISIBILITY_EXTENSION_HOURS)
 from sdretriever.exceptions import (
     NoIngestorForArtifactError,
+    EmptyFileError,
     TemporaryIngestionError)
 from sdretriever.ingestor.imu import IMUIngestor
 from sdretriever.ingestor.ingestor import Ingestor
@@ -152,6 +153,10 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
         except TemporaryIngestionError as excpt:
             _logger.exception(str(excpt))
             self.__increase_message_visability_timeout(message)
+
+        except EmptyFileError:
+            _logger.warning("Empty metadata for artifact %s. Message will be skipped", artifact.artifact_id)
+            self.__sqs_controller.delete_message(message)
         except NoIngestorForArtifactError:
             _logger.error("There is no ingestor for the current artifact")
             self.__sqs_controller.delete_message(message)

@@ -10,6 +10,7 @@ from base.model.artifacts import Artifact, SignalsArtifact, SnapshotArtifact
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
 from sdretriever.ingestor.ingestor import Ingestor
 from sdretriever.constants import FileExtension
+from sdretriever.exceptions import EmptyFileError
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 
 _logger = log.getLogger("SDRetriever." + __name__)
@@ -62,6 +63,10 @@ class SnapshotMetadataIngestor(Ingestor):  # pylint: disable=too-few-public-meth
                 artifact.referred_artifact.uuid])
 
         downloaded_object = self.__s3_chunk_ingestor.download_by_prefix_suffix(params=params)
+
+        # Workarround for error https://rb-tracker.bosch.com/tracker13/browse/MC-50263
+        if len(downloaded_object[0].data) == 0:
+            raise EmptyFileError("Snapshot metadata is empty")
 
         # Initialize file name and path
         metadata_snap_name = f"{artifact.artifact_id}{self.__file_extension}"

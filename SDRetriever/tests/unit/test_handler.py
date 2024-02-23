@@ -12,6 +12,7 @@ from base.model.artifacts import (IMUArtifact, RecorderType, SignalsArtifact, Mu
                                   SnapshotArtifact, TimeWindow, PreviewSignalsArtifact)
 from sdretriever.constants import CONTAINER_NAME
 from sdretriever.handler import IngestionHandler
+from sdretriever.exceptions import EmptyFileError
 
 datetime_in_past = datetime(2023, 5, 10, 2, 10, tzinfo=pytz.UTC)
 
@@ -338,6 +339,24 @@ def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: Ingestio
 
     snap_metadata_ing.ingest.assert_not_called()
     snap_metadata_ing.is_already_ingested.assert_called_once_with(snapshot_signals_artifact)
+    sqs_controller.send_message.assert_not_called()
+    sqs_controller.delete_message.assert_called_once_with(message)
+
+
+@pytest.mark.unit
+def test_ingestion_empty_metadata(
+        ingestion_handler: IngestionHandler,
+        snap_metadata_ing: Mock,
+        sqs_controller: Mock):
+    """Test IngestionHandler.handle method
+    """
+    message = MagicMock()
+    snap_metadata_ing.is_already_ingested = Mock(return_value=False)
+    snap_metadata_ing.ingest.side_effect = EmptyFileError("Empty file")
+
+    ingestion_handler.handle(snapshot_signals_artifact, message)
+
+    snap_metadata_ing.ingest.assert_called_once_with(snapshot_signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 

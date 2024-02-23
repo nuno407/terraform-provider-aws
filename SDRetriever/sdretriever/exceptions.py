@@ -25,5 +25,9 @@ class UploadNotYetCompletedError(TemporaryIngestionError):
     """Error raised when upload is not yet completed"""
 
 
+class EmptyFileError(Exception):
+    """Error raised when metadata is empty"""
+
+
 class NoIngestorForArtifactError(Exception):
     """Error raised when there is no ingestor for the artifact"""

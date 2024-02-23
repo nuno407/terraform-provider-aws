@@ -8,6 +8,7 @@ from pytest_lazyfixture import lazy_fixture
 from base.model.artifacts import (PreviewSignalsArtifact, Artifact, SignalsArtifact)
 from sdretriever.ingestor.snapshot_metadata import SnapshotMetadataIngestor
 from sdretriever.metadata_merger import MetadataMerger
+from sdretriever.exceptions import EmptyFileError
 from sdretriever.models import ChunkDownloadParamsByPrefix, S3ObjectDevcloud
 from sdretriever.s3.s3_downloader_uploader import S3DownloaderUploader
 from sdretriever.s3.s3_chunk_downloader_rcc import RCCChunkDownloader
@@ -52,7 +53,8 @@ class TestSnapshotMetadataIngestor:
         snapshot_name = snapshot_metadata_artifact.artifact_id + ".json"
         path_uploaded = f"s3://bucket/dummy_value"
 
-        downloaded_data = Mock()
+        downloaded_data = Mock(spec=S3ObjectDevcloud)
+        downloaded_data.data = "dummy_data"
 
         rcc_chunk_downloader.download_by_prefix_suffix = Mock(return_value=[downloaded_data])
         s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
@@ -101,3 +103,24 @@ class TestSnapshotMetadataIngestor:
         assert result == is_file_return
         s3_downloader_uploader.is_file_devcloud_raw.assert_called_once_with(
             snapshot_metadata_artifact.artifact_id + ".json", snapshot_metadata_artifact.tenant_id)
+
+    @mark.unit()
+    def test_ingest_empty_metadata(
+            self,
+            snapshot_metadata_ingestor: SnapshotMetadataIngestor,
+            rcc_chunk_downloader: RCCChunkDownloader,
+            s3_downloader_uploader: S3DownloaderUploader,
+            snapshot_metadata_artifact: SignalsArtifact):
+
+        # GIVEN
+        path_uploaded = f"s3://bucket/dummy_value"
+
+        downloaded_data = Mock(spec=S3ObjectDevcloud)
+        downloaded_data.data = b""
+
+        rcc_chunk_downloader.download_by_prefix_suffix = Mock(return_value=[downloaded_data])
+        s3_downloader_uploader.upload_to_devcloud_raw = Mock(return_value=path_uploaded)
+
+        # WHEN
+        with raises(EmptyFileError):
+            snapshot_metadata_ingestor.ingest(snapshot_metadata_artifact)
