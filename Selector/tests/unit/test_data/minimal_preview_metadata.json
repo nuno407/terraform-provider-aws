@@ -180,6 +180,13 @@
       "timestamp64": "168116",
       "objectlist": [
         {
+          "stringAttributes": [
+            {
+              "Collision_type": "LOW_IMPACT_COLLISION"
+            }
+          ]
+        },
+        {
           "floatAttributes": [
             {
               "CameraVerticalShifted": "0.697",
@@ -220,6 +227,13 @@
               "interior_camera_health_response_audio_blocked": "0",
               "interior_camera_health_response_audio_distorted": "0",
               "interior_camera_health_response_audio_signal": "0"
+            }
+          ]
+        },
+        {
+          "stringAttributes": [
+            {
+              "Collision_type": "HIGH_IMPACT_COLLISION"
             }
           ]
         },

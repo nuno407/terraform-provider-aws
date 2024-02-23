@@ -8,6 +8,7 @@ from selector.rules import CameraAlwaysShiftedRule
 from selector.rules import CHCEveryMinute
 from selector.rules import HighPersonCountVarianceRule
 from selector.rules import BDDEvent
+from selector.rules import CollisionEvent
 
 
 def ruleset() -> set[Rule]:
@@ -20,5 +21,6 @@ def ruleset() -> set[Rule]:
         CameraAlwaysShiftedRule(),
         CHCEveryMinute(),
         HighPersonCountVarianceRule(),
-        BDDEvent()
+        BDDEvent(),
+        CollisionEvent()
     }
