@@ -23,3 +23,7 @@ class VoxelProcessingException(Exception):
 
 class IMUEmptyException(Exception):
     """The IMU sample list was empty"""
+
+
+class FailToUpdateDocument(Exception):
+    """The document cannot be updated"""

@@ -2,7 +2,6 @@
 # autopep8: off
 """Configure tests"""
 import os
-import tempfile
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 from httpx import AsyncClient
@@ -11,7 +10,9 @@ from base.testing.mock_functions import set_mock_aws_credentials
 from base.testing.utils import get_abs_path
 
 set_mock_aws_credentials()
-os.environ["FIFTYONE_DATABASE_DIR"] = tempfile.TemporaryDirectory().name  # pylint: disable=consider-using-with
+DB_NAME = "DataIngestion"
+DB_URI = "mongodb://localhost:27017"
+os.environ["FIFTYONE_DATABASE_URI"] = DB_URI
 os.environ["FIFTYONE_DATABASE_ADMIN"] = "true"
 os.environ["FIFTYONE_DO_NOT_TRACK"] = "true"
 
@@ -24,24 +25,10 @@ from artifact_api.voxel.voxel_config import VoxelConfig
 # autopep8: on
 
 
-DB_NAME = "DataIngestion"
-
-
 @pytest.fixture()
 def mongo_host() -> str:
-    """
-    Test API client
-
-    Since fiftyone launches a mongodb instance by itself, it uses that database to preform the integration tests.
-    This enviornment variable is not documented in fityone, and thus might change in the future.
-
-    This uses an "hack" gather from the source code of the fiftyone library
-    (https://github.com/voxel51/fiftyone/blob/26866c5a37e2dff83fee0f18bbde9f7153ff0e99/fiftyone/core/odm/database.py#L203) # pylint: disable=line-too-long
-    It uses the FIFTYONE_PRIVATE_DATABASE_PORT to get the port from the internal DB
-
-    """
-    port = os.environ.get("FIFTYONE_PRIVATE_DATABASE_PORT")
-    return f"127.0.0.1:{port}"
+    """MongoDB connection string"""
+    return DB_URI
 
 
 @pytest.fixture()

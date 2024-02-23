@@ -35,27 +35,22 @@ class DBSnapshotUploadRule(ConfiguredBaseModel):
 class DBVideoRecordingOverview(ConfiguredBaseModel):
     """Video Recording Overview in the format used in the database"""
 
-    snapshots: int = Field(alias="#snapshots", default=0)
+    snapshots: Optional[int] = Field(alias="#snapshots", default=None)
     devcloud_id: Optional[str] = Field(alias="devcloudid", default=None)
     device_id: Optional[str] = Field(alias="deviceID", default=None)
     length: Optional[str] = Field(pattern=r"^\d?:\d{2}:\d{2}$", default=None)
     recording_duration: Optional[float] = Field(default=None)
     recording_time: Optional[UtcDatetimeInPast] = Field(default=None)
-    snapshots_paths: list[str] = []
+    snapshots_paths: Optional[list[str]] = Field(default=None)
     tenant_id: Optional[str] = Field(alias="tenantID", default=None)
-    time: Optional[str] = Field(
-        pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
-    aggregated_metadata: Optional[dict[str, str |
-                                       bool | int | float]] = Field(default=None)
+    time: Optional[str] = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
+    aggregated_metadata: Optional[dict[str,bool | int | float | str]] = Field(default=None)
 
     @model_serializer(mode="wrap")
     def serialize_aggregated_metadata(self, serializer: Any, _: SerializationInfo) -> Any:
         """
         Serializes the recording overview and flattens the aggregated_metadata to comply with
         the current DB schema.
-
-        This is an "hack" to keep a single agregated metadata model shared between Mongo and voxel.
-        This way any new field in the agregated metadata, can be changed in a single place.
 
         Based on: https://github.com/pydantic/pydantic/issues/6575
         """
@@ -79,7 +74,7 @@ class DBSnapshotRecordingOverview(ConfiguredBaseModel):
     device_id: str = Field(alias="deviceID")
     tenant_id: str = Field(alias="tenantID")
     recording_time: UtcDatetimeInPast
-    source_videos: list[str] = []
+    source_videos: Optional[list[str]] = Field(default=None)
 
 
 class DBCameraServiceEventArtifact(ConfiguredBaseModel):
@@ -147,7 +142,7 @@ class DBS3VideoArtifact(ConfiguredBaseModel):
     # Making it a composed primary key
     video_id: str
     media_type: Literal["video"] = Field(default="video", alias="_media_type")
-    mdf_available: str = Field(default="No", alias="MDF_available")
+    mdf_available: Optional[str] = Field(default=None, alias="MDF_available")
     filepath: Optional[str] = Field(default=None)
     resolution: Optional[str] = Field(default=None, pattern=r"\d+x\d+")
     recording_overview: Optional[DBVideoRecordingOverview]

@@ -108,7 +108,7 @@ class TestGeneric:
             "mongo_sdm_status_state.json",
             "voxel_sdm_status_state.json",
         ),
-        # Test metadata after video from video signals
+        # Test metadata from video signals after video
         (
             [
                 get_json_message("video_api_message.json"),
@@ -123,7 +123,22 @@ class TestGeneric:
             "mongo_video_signals_state.json",
             "voxel_video_signals_state.json",
         ),
-        # Test anonymize result video after sdn pipeline
+        # Test metadata from video signals before video
+        (
+            [
+                get_json_message("video_signals_data_api_message.json"),
+                get_json_message("video_api_message.json"),
+            ],
+            [
+                "/ridecare/signals/video",
+                "/ridecare/video"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_video_signals_state.json",
+            "voxel_video_signals_state.json",
+        ),
+        # Test anonymize result video after sdm pipeline
         (
             [
                 get_json_message("sdm_pipeline_status_api_message.json"),
@@ -138,7 +153,7 @@ class TestGeneric:
             "mongo_anon_video_state.json",
             "voxel_anon_video_state.json",
         ),
-        # Test anonymize result snapshot
+        # Test anonymize result snapshot after sdm pipeline
         (
             [
                 get_json_message("sdm_pipeline_snapshot_status_api_message.json"),
@@ -151,7 +166,7 @@ class TestGeneric:
             "voxel_config.yml",
             "mongo_config.yml",
             "mongo_anon_snapshot_state.json",
-            "voxel_anon_snapshot_state.json",
+            "voxel_anon_snapshot_state.json"
         )
     ],
         ids=[
@@ -162,7 +177,8 @@ class TestGeneric:
         "test_imu_artifact",
         "test_snap_metadata",
         "test_sdm_status",
-        "test_video_signals",
+        "test_video_signals_after_video",
+        "test_video_signals_before_video",
         "test_anon_result_video",
         "test_anon_result_snapshot"
     ],

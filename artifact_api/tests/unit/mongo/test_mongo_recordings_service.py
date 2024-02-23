@@ -7,6 +7,8 @@ from base.model.artifacts.api_messages import SignalsFrame
 
 from artifact_api.models.mongo_models import DBSignals
 from artifact_api.mongo.services.mongo_recordings_service import MongoRecordingsService
+from artifact_api.models.mongo_models import (DBS3VideoArtifact, DBSnapshotArtifact, DBSnapshotUploadRule,
+                                              DBVideoRecordingOverview, DBSnapshotRecordingOverview, DBVideoUploadRule)
 
 
 @mark.unit
@@ -25,24 +27,21 @@ class TestRecordingsMongoService:
         # GIVEN
         video_engine.update_one_flatten = AsyncMock()
         correlated_id = "id_1"
-        recording_overview = {
-            "snapshots_paths": [],
-            "#snapshots": 0
-        }
-        recording_overview.update(aggregated_metadata)
+
+        recording_overview = DBVideoRecordingOverview(aggregated_metadata=aggregated_metadata)
+        video_model = DBS3VideoArtifact(
+            video_id=correlated_id,
+            MDF_available="Yes",
+            media_type="video",
+            recording_overview=recording_overview,
+        )
         query = {
             "video_id": correlated_id,
             "_media_type": "video"
-        }
-        command = {
-            "video_id": correlated_id,
-            "MDF_available": "Yes",
-            "_media_type": "video",
-            "recording_overview": recording_overview
         }
 
         # THEN
         await mongo_recordings_controller.upsert_video_aggregated_metadata(aggregated_metadata, correlated_id)
 
         # THEN
-        video_engine.update_one_flatten.assert_called_once_with(query=query, set_command=command, upsert=True)
+        video_engine.update_one_flatten.assert_called_once_with(query=query, set_command=video_model, upsert=True)

@@ -27,6 +27,27 @@ from base.mongo.utils import flatten_dict
         }
 
     ),
+    (
+        {
+            "a": [1,{"b":2}]
+        },
+        {
+            "a.0":1,
+            "a.1.b":2
+        }
+    ),
+    (
+        {
+            "a": [1,{},[]],
+            "b":[]
+        },
+        {
+            "a.0":1,
+            "a.1":{},
+            "a.2":[],
+            "b":[]
+        }
+    ),
     ({},{})
 ])
 def test_flatten_dict(input, result):

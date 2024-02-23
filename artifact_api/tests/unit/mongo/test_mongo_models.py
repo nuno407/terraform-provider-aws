@@ -333,6 +333,7 @@ class TestMongoModels:  # pylint: disable=no-member, duplicate-code
             video_id=video_id,
             filepath=filepath,
             resolution=resolution,
+            MDF_available="No",
             recording_overview=db_video_recording_overview
         )
 

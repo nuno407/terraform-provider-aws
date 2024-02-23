@@ -9,7 +9,6 @@ from base.testing.mock_functions import set_mock_aws_credentials
 
 set_mock_aws_credentials()
 os.environ["FIFTYONE_DISABLE_SERVICES"] = "1"
-
 from base.mongo.engine import Engine
 from base.testing.utils import load_relative_str_file
 from base.model.artifacts.api_messages import SnapshotSignalsData

@@ -122,7 +122,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         )
 
     async def test_upsert_snapshot(self, snapshot_engine: MagicMock, mongo_controller: MongoService,
-                                   snapshot_artifact: SnapshotArtifact):
+                                   snapshot_artifact: SnapshotArtifact, mongo_recordings_controller: MongoRecordingsService):
         """Test for upsert_snapshot method
 
         Args:
@@ -131,8 +131,9 @@ class TestMongoController:  # pylint: disable=duplicate-code
             snapshot_artifact (SnapshotArtifact): snapshot artifact to be ingested
         """
         correlated_ids = ["mock_id"]
-
+        mongo_recordings_controller.update_snapshots_correlations = AsyncMock()
         snapshot_engine.update_one_flatten = AsyncMock()
+
         await mongo_controller.upsert_snapshot(snapshot_artifact, correlated_ids)
         snapshot_engine.update_one_flatten.assert_called_once_with(query={
             "video_id": snapshot_artifact.artifact_id,
@@ -141,6 +142,8 @@ class TestMongoController:  # pylint: disable=duplicate-code
             set_command=ANY,
             upsert=True
         )
+        mongo_recordings_controller.update_snapshots_correlations.assert_called_once_with(
+            [snapshot_artifact.artifact_id], correlated_ids)
 
     async def test_update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str,
                                               video_engine: MagicMock, mongo_controller: MongoService):
@@ -154,24 +157,23 @@ class TestMongoController:  # pylint: disable=duplicate-code
         """
 
         video_engine.update_many = AsyncMock()
-        update_video = [
-            {
-                "$addFields": {
-                    "recording_overview.snapshots_paths": {
-                        "$setUnion": [
-                            "$recording_overview.snapshots_paths",
-                            [snapshot_id]
-                        ]
-                    }
+        update_video = update_video = [{
+            "$addFields": {
+                "recording_overview.snapshots_paths": {
+                    "$setUnion": [
+                        {"$ifNull":["$recording_overview.snapshots_paths",[]]},
+                        [snapshot_id],
+                    ]
                 }
-            },
+            }
+        },
             {
                 "$set": {
                     "recording_overview.#snapshots": {
                         "$size": "$recording_overview.snapshots_paths"
                     }
                 }
-            }
+        }
         ]
 
         filter_correlated = {
@@ -311,7 +313,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         snapshot_engine.update_many = AsyncMock()
         update_snapshot = {
             "$addToSet": {
-                "recording_overview.source_videos": video_id
+                "recording_overview.source_videos": {'$each': ['video_id_1']}
             }
         }
 
@@ -323,7 +325,7 @@ class TestMongoController:  # pylint: disable=duplicate-code
         snapshot_engine.update_many.assert_called_once_with(filter_correlated, update_snapshot)
 
     async def test_create_s3video(self, video_engine: MagicMock, mongo_controller: MongoService,
-                                  video: S3VideoArtifact):
+                                  video: S3VideoArtifact, mongo_recordings_controller: MongoRecordingsService):
         """Test for create_s3video method
 
         Args:
@@ -332,15 +334,19 @@ class TestMongoController:  # pylint: disable=duplicate-code
             video (S3VideoArtifact): video artifact to be created
         """
         correlated_ids = ["mock_id"]
-        video_engine.update_one_flatten = AsyncMock()
+        video_engine.update_one = AsyncMock()
+        mongo_recordings_controller.update_videos_correlations = AsyncMock()
+
         await mongo_controller.upsert_video(video, correlated_ids)
-        video_engine.update_one_flatten.assert_called_once_with(query={
+        video_engine.update_one.assert_called_once_with(query={
             "video_id": video.artifact_id,
             "_media_type": "video"
         },
-            set_command=ANY,
+            command=ANY,
             upsert=True
         )
+        mongo_recordings_controller.update_videos_correlations.assert_called_once_with(
+            [video.artifact_id], correlated_ids)
 
     async def test_load_device_video_signals_data(self, mongo_controller: MongoService, mongo_signals_controller: MongoSignalsService, mongo_recordings_controller: MongoRecordingsService):
         """Test for load_device_video_signals_data method
