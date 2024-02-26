@@ -17,8 +17,8 @@ class HighPersonCountVarianceRule(BaseRule):
             self,
             attribute_name: str = "PersonCount_value",
             rule_name: str = "High Person Count Variance",
-            rule_version: str = "1.0.0",
-            min_ride_length_in_minutes: int = 1,
+            rule_version: str = "1.0.1",
+            min_ride_length_in_minutes: int = 3,
 
     ) -> None:
         super().__init__(attribute_name=attribute_name, rule_name=rule_name, rule_version=rule_version)
