@@ -62,7 +62,8 @@ class TestGeneric:
         (
             [get_json_message("camera_blocked_operator_api_message.json"),
              get_json_message("people_count_operator_api_message.json"),
-             get_json_message("sos_operator_api_message.json")],
+             get_json_message("sos_operator_api_message.json"),
+             get_json_message("other_operator_api_message.json")],
             "/ridecare/operator",
             "voxel_config.yml",
             "mongo_config.yml",

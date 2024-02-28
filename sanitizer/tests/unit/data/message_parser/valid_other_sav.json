@@ -1,0 +1,51 @@
+{
+    "MessageId": "d5efcdb0-dde6-434d-86f0-04f29aaf5670",
+    "ReceiptHandle": "AQEBtRt2cOA8kHEl4azewBJnr9l1K3Hve4GgWXzVDNulBuQrzzSNLFvMWy7w7cZ95xSiPQBLh1wiufj5EAJwgR2bw738aWh31anB1HdN+68sEUmFX05bQZal7mHr/nTwRE89USwjGXZulJm0Lu8YVihGwcAHzJKJNuNjRKxzKNo6vMkqsAfQ0COaH1yE6UN0DIyP5d2I9VR1oVF1lOdytaeU+PfuwMxJHTTNy1VFTSRKY8I6Jns69zULzYt8EKIIsG30r46w4L+sTv0YTm2BWLn3iKwyp9RmXqfpx/gmnYPVNqFvMYqmS6UfP1YeyDbSQOP5x00cGvcaXMVF0+cqIi/lMJxSE52YNsIE+worYq3Zhq6t7zyJ7s75rOlzrRoyZy4xVPKVchxaa1znu/AfygQV8FpATtwLSg8MIXzw8l87mgs=",
+    "MD5OfBody": "a19e573642dedd07f38fb0e6a98191fa",
+    "Body": {
+        "Type": "Notification",
+        "MessageId": "82d124c2-f7ed-5ce9-a86b-79a55aff0560",
+        "TopicArn": "arn:aws:sns:eu-central-1:213279581081:dev-operator-feedback-api",
+        "Message": {
+            "metadata": {
+                "deviceId": "DATANAUTS_DEV_02",
+                "tenant": "datanauts",
+                "eventTimestamp": 1693297035,
+                "operatorMonitoringStart": 1693297129,
+                "operatorMonitoringEnd": 1693298157
+            },
+            "additionalInformation": {
+                "isDoorBlocked": true,
+                "isCameraBlocked": false,
+                "isAudioMalfunction": true,
+                "observations": "Garfield the cat blocked the door"
+            },
+            "other": {
+                "type": "Something"
+            }
+        },
+        "Timestamp": "2023-08-29T08:22:42.144Z",
+        "SignatureVersion": "1",
+        "Signature": "l6y/NJhH77XNR9x5T/7YaIyogFiFwCd4RZmgEO/VtUKhU3K0uTtHByWSd7zARh8HeOE78vRf70xsrMHTpE3z7jMy304rO3znIBS2zSX67WSjVDi61dyBomiXB2FmF1l1xrSvJePOPHEZBtVK2623bs+bs5ujOWBSsU7unqmajj05Dmn+TwcoEtcbeplWoSq+d4nisXLxl/xSROP5t0HLy3dH/wRUA5/boVpNXWgObPF8TGLFtHytQLPtIKi4Bx/VFqMIQYnpMSxGsIYeaQwBTX0HLEPzk7sPf9nmCPLQcGGY2C9iuhpdre/F/d0jOdKikNDcaYN7uPMM5ABqkTuPhg==",
+        "SigningCertURL": "https://sns.eu-central-1.amazonaws.com/SimpleNotificationService-01d088a6f77103d0fe307c0069e40ed6.pem",
+        "UnsubscribeURL": "https://sns.eu-central-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-central-1:213279581081:dev-operator-feedback-api:7edf9718-6590-4c4c-a7b8-468e078ac3b1",
+        "MessageAttributes": {
+            "path": {
+                "Type": "String",
+                "Value": "/other/{deviceId}"
+            },
+            "deviceId": {
+                "Type": "String",
+                "Value": "DATANAUTS_DEV_02"
+            },
+            "tenant": {
+                "Type": "String",
+                "Value": "datanauts"
+            }
+        }
+    },
+    "Attributes": {
+        "SentTimestamp": "1690442767051",
+        "ApproximateReceiveCount": "1"
+    }
+}

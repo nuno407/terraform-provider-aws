@@ -46,6 +46,21 @@
                     "observations": "Garfield the cat blocked the door"
                 },
                 "reason": "ACCIDENTAL"
+            },
+            {
+                "tenant_id": "datanauts",
+                "device_id": "DATANAUTS_DEV_02",
+                "event_timestamp": "2023-08-29T08:17:15+00:00",
+                "operator_monitoring_start": "2023-08-29T08:18:49+00:00",
+                "operator_monitoring_end": "2023-08-29T08:35:57+00:00",
+                "artifact_name": "sav-operator-other",
+                "additional_information": {
+                    "is_door_blocked": true,
+                    "is_camera_blocked": false,
+                    "is_audio_malfunction": true,
+                    "observations": "Garfield the cat blocked the door"
+                },
+                "type": "Test"
             }
         ]
     }

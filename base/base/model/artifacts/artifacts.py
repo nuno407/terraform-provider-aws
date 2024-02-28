@@ -245,6 +245,13 @@ class CameraBlockedOperatorArtifact(OperatorArtifact):
     is_chc_correct: bool = Field(default=...)
 
 
+class OtherOperatorArtifact(OperatorArtifact):
+    """Represents an SAV SOS event"""
+    artifact_name: Literal["sav-operator-other"] = "sav-operator-other"
+    additional_information: OperatorAdditionalInformation = Field(default=...)
+    field_type: str = Field(default=..., alias="type")
+
+
 RCCArtifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-name
                      SnapshotArtifact,
                      SignalsArtifact,
@@ -256,7 +263,8 @@ RCCArtifacts = Union[S3VideoArtifact,  # type: ignore # pylint: disable=invalid-
                      DeviceInfoEventArtifact,
                      CameraBlockedOperatorArtifact,
                      PeopleCountOperatorArtifact,
-                     SOSOperatorArtifact]
+                     SOSOperatorArtifact,
+                     OtherOperatorArtifact]
 
 DiscriminatedRCCArtifactsTypeAdapter = TypeAdapter(Annotated[RCCArtifacts,
                                                              Field(..., discriminator="artifact_name")])

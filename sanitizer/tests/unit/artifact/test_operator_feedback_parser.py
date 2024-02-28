@@ -1,8 +1,14 @@
 import pytest
 
 from base.aws.model import SQSMessage
-from base.model.artifacts import (SOSOperatorArtifact, PeopleCountOperatorArtifact, OperatorArtifact,
-                                  CameraBlockedOperatorArtifact, OperatorAdditionalInformation, OperatorSOSReason)
+from base.model.artifacts import (
+    SOSOperatorArtifact,
+    PeopleCountOperatorArtifact,
+    OperatorArtifact,
+    CameraBlockedOperatorArtifact,
+    OperatorAdditionalInformation,
+    OperatorSOSReason,
+    OtherOperatorArtifact)
 from sanitizer.artifact.parsers.operator_feedback_parser import OperatorFeedbackParser
 from sanitizer.exceptions import ArtifactException
 from helper_functions import parse_sqs_message
@@ -25,6 +31,20 @@ def load_sos_message(reason: str) -> SQSMessage:
 
 @pytest.mark.unit
 @pytest.mark.parametrize("input_message,expected", [
+    (
+        parse_sqs_message("valid_other_sav.json"),
+        [
+            OtherOperatorArtifact(
+                tenant_id="datanauts",
+                device_id="DATANAUTS_DEV_02",
+                event_timestamp="2023-08-29T08:17:15+00:00",
+                operator_monitoring_start="2023-08-29T08:18:49+00:00",
+                operator_monitoring_end="2023-08-29T08:35:57+00:00",
+                additional_information=get_additional_info(),
+                field_type="Something"
+            )
+        ]
+    ),
     (
         parse_sqs_message("valid_camerablock_sav.json"),
         [

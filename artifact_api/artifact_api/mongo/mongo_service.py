@@ -2,10 +2,20 @@
 from typing import Union
 import logging
 from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
-from base.model.artifacts import (CameraBlockedOperatorArtifact, CameraServiceEventArtifact, VideoSignalsData,
-                                  DeviceInfoEventArtifact, IncidentEventArtifact, IMUArtifact,
-                                  PeopleCountOperatorArtifact, S3VideoArtifact, SnapshotArtifact,
-                                  SOSOperatorArtifact, PipelineProcessingStatus, AnonymizationResult)
+from base.model.artifacts import (
+    CameraBlockedOperatorArtifact,
+    CameraServiceEventArtifact,
+    VideoSignalsData,
+    DeviceInfoEventArtifact,
+    IncidentEventArtifact,
+    IMUArtifact,
+    PeopleCountOperatorArtifact,
+    S3VideoArtifact,
+    SnapshotArtifact,
+    SOSOperatorArtifact,
+    PipelineProcessingStatus,
+    AnonymizationResult,
+    OtherOperatorArtifact)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from kink import inject
 from artifact_api.models.mongo_models import DBSnapshotArtifact, SignalsSource
@@ -112,7 +122,8 @@ class MongoService:  # pylint:disable=too-many-arguments
     # Operator Events
     async def create_operator_feedback_event(self, artifact: Union[SOSOperatorArtifact,
                                                                    PeopleCountOperatorArtifact,
-                                                                   CameraBlockedOperatorArtifact]):
+                                                                   CameraBlockedOperatorArtifact,
+                                                                   OtherOperatorArtifact]):
         """
         Create operator feedback entry in database
         Args:

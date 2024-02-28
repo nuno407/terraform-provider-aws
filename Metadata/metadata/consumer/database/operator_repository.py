@@ -4,10 +4,12 @@ from base.model.artifacts import (CameraBlockedOperatorArtifact,
                                   OperatorAdditionalInformation,
                                   OperatorArtifact,
                                   PeopleCountOperatorArtifact,
-                                  SOSOperatorArtifact)
+                                  SOSOperatorArtifact,
+                                  OtherOperatorArtifact)
 from metadata.consumer.database.operator_feedback import (
     DBCameraBlockedOperatorArtifact, DBOperatorAdditionalInformation,
-    DBPeopleCountOperatorArtifact, DBSOSOperatorArtifact)
+    DBPeopleCountOperatorArtifact, DBSOSOperatorArtifact, DBOtherOperatorArtifact)
+from metadata.consumer.exceptions import NotSupportedArtifactError
 
 _logger = logging.getLogger(__name__)
 
@@ -69,3 +71,10 @@ class OperatorRepository:
                                                           additional_information=additional_information, **metadata)
             db_artifact.save()
             _logger.info("Stored CameraBlockedOperatorArtifact %s", db_artifact)
+        elif isinstance(artifact, OtherOperatorArtifact):
+            additional_information = OperatorRepository.get_additional_information(artifact.additional_information)
+            db_artifact = DBOtherOperatorArtifact(type=artifact.field_type, additional_information=additional_information, **metadata)
+            db_artifact.save()
+            _logger.info("Stored OtherOperatorArtifact %s", db_artifact)
+        else:
+            raise NotSupportedArtifactError("Artifact not supported")

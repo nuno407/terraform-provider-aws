@@ -3,8 +3,14 @@ from typing import Union
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
 from kink import di
-from base.model.artifacts import (CameraServiceEventArtifact, CameraBlockedOperatorArtifact, DeviceInfoEventArtifact,
-                                  IncidentEventArtifact, PeopleCountOperatorArtifact, SOSOperatorArtifact)
+from base.model.artifacts import (
+    CameraServiceEventArtifact,
+    CameraBlockedOperatorArtifact,
+    DeviceInfoEventArtifact,
+    IncidentEventArtifact,
+    PeopleCountOperatorArtifact,
+    SOSOperatorArtifact,
+    OtherOperatorArtifact)
 from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.models import ResponseMessage
 
@@ -33,7 +39,8 @@ class EventsController:
     @events_router.post("/ridecare/operator", response_model=ResponseMessage)
     async def process_operator_feedback(self, operator_feedback_event: Union[SOSOperatorArtifact,
                                                                              PeopleCountOperatorArtifact,
-                                                                             CameraBlockedOperatorArtifact],
+                                                                             CameraBlockedOperatorArtifact,
+                                                                             OtherOperatorArtifact],
                                         mongo_service: MongoService = Depends(lambda: di[MongoService])):
         """
         Process the operator feedback event

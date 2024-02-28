@@ -8,6 +8,7 @@ from base.model.artifacts import (
     SOSOperatorArtifact,
     PeopleCountOperatorArtifact,
     CameraBlockedOperatorArtifact,
+    OtherOperatorArtifact,
     RecorderType,
     OperatorArtifact)
 from kink import inject
@@ -17,6 +18,7 @@ from sanitizer.message.models.operator_feedback_messages import (
     ParsedCameraBlockedOperatorMessage,
     ParsedPeopleCountOperatorMessage,
     ParsedSOSOperatorMessage,
+    ParsedOtherOperatorMessage,
     parse_operator_message,
     OperatorFeedbackMessage)
 
@@ -63,5 +65,15 @@ class OperatorFeedbackParser(IArtifactParser):  # pylint: disable=too-few-public
                                       operator_monitoring_end=metadata.operator_monitoring_end,
                                       additional_information=information.parse_additional_information(),
                                       reason=event_message_body.sos.reason)
+        elif isinstance(event_message_body, ParsedOtherOperatorMessage):
+            metadata = event_message_body.metadata
+            information = event_message_body.additional_information
+            yield OtherOperatorArtifact(tenant_id=metadata.tenant,
+                                        device_id=metadata.device_id,
+                                        event_timestamp=metadata.event_timestamp,
+                                        operator_monitoring_start=metadata.operator_monitoring_start,
+                                        operator_monitoring_end=metadata.operator_monitoring_end,
+                                        additional_information=information.parse_additional_information(),
+                                        field_type=event_message_body.other.field_type)
         else:
             raise ArtifactException("Unable to determine event type from message.")

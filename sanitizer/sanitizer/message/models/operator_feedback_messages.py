@@ -31,6 +31,10 @@ class SOS(ConfiguredBaseModel):
     reason: OperatorSOSReason = Field(default=...)
 
 
+class Other(ConfiguredBaseModel):
+    field_type: str = Field(default=..., alias="type")
+
+
 class CameraBlockedOperator(ConfiguredBaseModel):
     is_chc_correct: bool = Field(alias="isChcCorrect")
 
@@ -58,9 +62,17 @@ class ParsedSOSOperatorMessage(ConfiguredBaseModel):
     sos: SOS = Field(alias="sos")
 
 
+class ParsedOtherOperatorMessage(ConfiguredBaseModel):
+    metadata: Metadata = Field(alias="metadata")
+    additional_information: AdditonalInformation = Field(alias="additionalInformation")
+    other: Other = Field(alias="other")
+
+
+# There is room for improvement in this parsing, by determining the type of message based on the endpoint
 OperatorFeedbackMessage = Union[ParsedCameraBlockedOperatorMessage,
                                 ParsedPeopleCountOperatorMessage,
-                                ParsedSOSOperatorMessage]
+                                ParsedSOSOperatorMessage,
+                                ParsedOtherOperatorMessage]
 
 OperatorFeedbackMessageAdapter = TypeAdapter(OperatorFeedbackMessage)
 

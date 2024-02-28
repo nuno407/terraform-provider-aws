@@ -18,6 +18,8 @@ then
         echo "Operating system not supported by this script, please refer to https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/ for specific instructions on how to install mongodb"
         exit 1
 
+    fi
+
     echo "MongoDB is not installed. Installing MongoDB..."
     # Install MongoDB
     sudo apt-get install gnupg curl
@@ -28,16 +30,16 @@ then
     sudo apt-get install -y mongodb-org=7.0.5 mongodb-org-database=7.0.5 mongodb-org-server=7.0.5 mongodb-mongosh=7.0.5 mongodb-org-mongos=7.0.5 mongodb-org-tools=7.0.5
 
 fi
-    rm -f /tmp/mongodb.log
+rm -f /tmp/mongodb.log
 
-    directory="/tmp/mongodb"
-    # Emtpy mongo data directory
-    if [ ! -d "$directory" ]; then
-        mkdir -p "$directory"
-    else
-        rm -r "$directory"/*
-    fi
+directory="/tmp/mongodb"
+# Emtpy mongo data directory
+if [ ! -d "$directory" ]; then
+    mkdir -p "$directory"
+else
+    rm -r "$directory"/*
+fi
 
-    mongod --dbpath $directory --logpath /tmp/mongodb.log --fork
-    echo "MongoDB is running on port 27017"
-    echo "To stop MongoDB, run: killall mongod"
+mongod --dbpath $directory --logpath /tmp/mongodb.log --fork
+echo "MongoDB is running on port 27017"
+echo "To stop MongoDB, run: killall mongod"

@@ -9,7 +9,7 @@ from base.model.artifacts import (Artifact, MultiSnapshotArtifact,
                                   S3VideoArtifact, SnapshotArtifact,
                                   TimeWindow, parse_artifact, Recording, OperatorSOSReason,
                                   CameraBlockedOperatorArtifact, PeopleCountOperatorArtifact,
-                                  SOSOperatorArtifact, OperatorAdditionalInformation)
+                                  SOSOperatorArtifact, OperatorAdditionalInformation, OtherOperatorArtifact)
 from base.timestamps import from_epoch_seconds_or_milliseconds
 
 
@@ -202,6 +202,18 @@ def sos_count_operator() -> SOSOperatorArtifact:
     )
 
 
+def other_operator_feedback() -> OtherOperatorArtifact:
+    return OtherOperatorArtifact(
+        tenant_id="ridecare_companion_fut",
+        device_id="rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc",
+        operator_monitoring_start=static_date() - timedelta(minutes=2),
+        operator_monitoring_end=static_date() - timedelta(minutes=1),
+        event_timestamp=static_date() - timedelta(minutes=2),
+        additional_information=operator_additional_information(),
+        field_type="test"
+    )
+
+
 @mark.unit
 class TestArtifacts:
     @mark.parametrize(
@@ -249,6 +261,8 @@ class TestArtifacts:
                        [people_count_operator(),
                         "sav-operator-people-count_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"],
                        [sos_count_operator(),
-                        "sav-operator-sos_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"]])
+                        "sav-operator-sos_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"],
+                       [other_operator_feedback(),
+                        "sav-operator-other_ridecare_companion_fut_rc_srx_prod_86540229e4d69c93a329000bfc8dc6b120272cbc_1665367680000"]])
     def test_artifact_id(self, artifact: Artifact, expected_id: str):
         assert artifact.artifact_id == expected_id  # type: ignore

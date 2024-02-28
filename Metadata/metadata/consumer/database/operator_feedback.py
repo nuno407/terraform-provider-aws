@@ -34,6 +34,12 @@ class DBSOSOperatorArtifact(DBOperatorFeedback):
     reason = EnumField(OperatorSOSReason, required=True)
 
 
+class DBOtherOperatorArtifact(DBOperatorFeedback):
+    """Database document SOSOperatorArtifact"""
+    additional_information = EmbeddedDocumentField(DBOperatorAdditionalInformation, required=True)
+    type = StringField(required=True)
+
+
 class DBPeopleCountOperatorArtifact(DBOperatorFeedback):
     """Database document PeopleCountOperatorArtifact"""
     additional_information = EmbeddedDocumentField(DBOperatorAdditionalInformation, required=True)

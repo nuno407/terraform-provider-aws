@@ -15,21 +15,23 @@ def get_sqs_message(file_name: str) -> str:
 class TestMessageSentMetadata:
 
     @ pytest.mark.integration
-    @ pytest.mark.parametrize("input_sqs_message, output_sqs_message", [
-        (
-            get_sqs_message("people_count_operator_input.json"),
-            get_sqs_message("people_count_operator_output.json"),
-        ),
-        (
-            get_sqs_message("camera_blocked_operator_input.json"),
-            get_sqs_message("camera_blocked_operator_output.json"),
-        ),
-        (
-            get_sqs_message("sos_operator_input.json"),
-            get_sqs_message("sos_operator_output.json"),
-        )
-
-    ], ids=["people_count_operator_artifact", "camera_blocked_operator", "sos_operator_artifact"])
+    @ pytest.mark.parametrize("input_sqs_message, output_sqs_message",
+                              [(get_sqs_message("people_count_operator_input.json"),
+                                get_sqs_message("people_count_operator_output.json"),
+                                ),
+                                  (get_sqs_message("camera_blocked_operator_input.json"),
+                                   get_sqs_message("camera_blocked_operator_output.json"),
+                                   ),
+                                  (get_sqs_message("sos_operator_input.json"),
+                                   get_sqs_message("sos_operator_output.json"),
+                                   ),
+                                  (get_sqs_message("other_operator_input.json"),
+                                   get_sqs_message("other_operator_output.json"),
+                                   )],
+                              ids=["people_count_operator_artifact",
+                                   "camera_blocked_operator",
+                                   "sos_operator_artifact",
+                                   "other_operator_artifact"])
     def test_message_sent_to_metadata(self,
                                       input_sqs_message: str,
                                       output_sqs_message: str,

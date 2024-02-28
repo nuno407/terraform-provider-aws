@@ -1,0 +1,15 @@
+{
+    "tenant_id": "deepsensation",
+    "device_id": "ivs_slimscaley_develop_bic2hi_01",
+    "event_timestamp": "2023-09-13T11:10:25.746000+00:00",
+    "operator_monitoring_start": "2023-09-13T11:11:10.585000+00:00",
+    "operator_monitoring_end": "2023-09-13T11:13:02.256000+00:00",
+    "artifact_name": "sav-operator-other",
+    "additional_information": {
+        "is_door_blocked": true,
+        "is_camera_blocked": false,
+        "is_audio_malfunction": true,
+        "observations": null
+    },
+    "type": "something"
+}
