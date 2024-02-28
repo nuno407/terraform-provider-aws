@@ -5,7 +5,7 @@ from base.mongo.engine import Engine
 from artifact_api.models.mongo_models import DBPipelineProcessingStatus, DBAnonymizationResult, DBOutputPath
 
 from base.model.artifacts import PipelineProcessingStatus, AnonymizationResult
-
+from base.model.artifacts.api_messages import CHCDataResult
 
 _logger = logging.getLogger(__name__)
 
@@ -70,6 +70,29 @@ class MongoPipelineService():
                     "last_updated": last_updated,
                     "processing_status": message.processing_status,
                     "info_source": "Anonymize"
+                }
+            }
+        )
+        _logger.info(
+            "Pipeline processing status has been updated successfully to mongoDB")
+
+    async def update_pipeline_processing_status_chc(self, message: CHCDataResult, last_updated: str):
+        """Updates the pipeline processing status
+
+        Args:
+            message (PipelineProcessingStatus): Pipeline Processing Status Artifact
+            last_updated (str): Last Updated date as a string
+        """
+        chc_result = message.message
+        await self.__pipeline_processing_status_engine.update_one(
+            query={
+                "_id": chc_result.correlation_id
+            },
+            command={
+                "$set": {
+                    "last_updated": last_updated,
+                    "processing_status": chc_result.processing_status,
+                    "info_source": "CHC"
                 }
             }
         )

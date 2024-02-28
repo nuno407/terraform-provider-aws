@@ -1,0 +1,21 @@
+{
+    "MessageId": "f417a4fe-9e84-472c-a354-e6afdee3d516",
+    "ReceiptHandle": "AQEBPq3o0RzlUqXnzOaOtZs59UkfEK8wjMdvzJFAhxpsJ/Vs43Tyudom4y2I1UTdEz9Macv3A1rOY0X+hO/O8mbuU1+OlwEvVFPU17kzdYBY0sVT9pMQg4y/rFIpqilJn1GJvKu+9dbf6hagJGQE2g8KhNL+sK3I64ExOCgljEnTeZ9APnQaMa2Rxgt32tgogjjoSqx8sDP9GtXOHv7ee9KW3g9cesp+Ie/Nl/ox7NnKsL6/JKvciDWF1PvMMTbck49BlgCycAvARkzYLyHmrthbGk2aQWXAPNKKTZ/3vOp8LLLrv2eD4PLW056yPm/OLFcLGkHt8ZYLtiwBDjtpmifzNF7VWKhd4JL0hWu/6fGVcIHGxw2xk0R4Fa+1KoH19YkWMxLVcKcDHF2hLsfF2XiCMpdgMF+E+AuBsEpjQKVwI4czSos4p+1H47XaF7DO7uC1",
+    "MD5OfBody": "83eff00611580c3e4859427a5d98faa5",
+    "Body":
+        {
+            "s3_path": "datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698.mp4",
+            "data_status": "complete",
+            "output": {
+                "bucket": "dev-rcd-anonymized-video-files",
+                "media_path": "-",
+                "meta_path": "datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698_chc.json"
+            }
+        },
+    "MessageAttributes": {
+        "SourceContainer": {
+            "StringValue": "CHC",
+            "DataType": "String"
+        }
+    }
+}

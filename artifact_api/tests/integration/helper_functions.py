@@ -61,6 +61,8 @@ async def dump_mongo_db(mongo_client: AsyncIOMotorClient):
     # Dump everything from mongo into a file
     for database in await mongo_client.list_database_names():
         db_dump = {}
+        if "fiftyone" in database.lower():
+            continue
         for collection in await mongo_client[database].list_collection_names():
             docs = await mongo_client[database][collection].find().to_list(length=None)
             real_docs = list(docs)

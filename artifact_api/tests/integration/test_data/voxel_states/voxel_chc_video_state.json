@@ -1,0 +1,34 @@
+{
+    "RC-datanauts": {
+        "tags": [
+            "RC"
+        ],
+        "samples": [
+            {
+                "filepath": "s3://dev-rcd-anonymized-video-files/datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698_anonymized.mp4",
+                "tags": [],
+                "metadata": null,
+                "data_privacy_document_id": "unused",
+                "video_id": null,
+                "tenant_id": null,
+                "device_id": null,
+                "recording_time": null,
+                "hour": null,
+                "day": null,
+                "month": null,
+                "year": null,
+                "recording_duration": null,
+                "resolution": null,
+                "snapshots_paths": null,
+                "num_snapshots": null,
+                "rules": null,
+                "aggregated_metadata": null,
+                "data_status": "complete",
+                "last_updated": {
+                    "$date": "2030-01-14T00:00:00Z"
+                },
+                "raw_filepath": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698.mp4"
+            }
+        ]
+    }
+}

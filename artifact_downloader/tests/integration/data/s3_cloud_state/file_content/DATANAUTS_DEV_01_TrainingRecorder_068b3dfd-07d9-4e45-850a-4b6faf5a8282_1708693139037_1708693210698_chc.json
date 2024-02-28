@@ -1,0 +1,302 @@
+{
+  "resolution": {
+    "width": "1280",
+    "height": "720"
+  },
+  "metaData version": "unknown",
+  "PoseNetwork version": "20230102-151652_so2e_mobilenet_v2_all_fut_roadtest",
+  "SegmentationNetwork version": "20230201_D7xF8_BOPre_11Classes",
+  "CVEReference file": "/opt/bosch/launcher/config/cars/graph_reference.txt",
+  "blockingrect": [
+  ],
+  "frame": [
+    {
+      "number": "0",
+      "timestamp": "3596782345",
+      "timestamp64": "1708698798857",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraVerticalShifted",
+              "value": "0.659"
+            },
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.704"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "facelist": [
+      ]
+    },
+    {
+      "number": "1",
+      "timestamp": "3596782355",
+      "timestamp64": "1708698798867",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraVerticalShifted",
+              "value": "0.619"
+            },
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.671"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "facelist": [
+      ]
+    },
+    {
+      "number": "2",
+      "timestamp": "3596782365",
+      "timestamp64": "1708698798877",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraVerticalShifted",
+              "value": "0.584"
+            },
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.679"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "facelist": [
+      ]
+    },
+    {
+      "number": "3",
+      "timestamp": "3596784425",
+      "timestamp64": "1708698800937",
+      "objectlist": [
+        {
+          "id": "1",
+          "boolAttributes": [
+            {
+              "name": "CameraViewShifted",
+              "value": "false"
+            }
+          ],
+          "floatAttributes": [
+            {
+              "name": "CameraVerticalShifted",
+              "value": "0.653"
+            },
+            {
+              "name": "CameraViewBlocked",
+              "value": "0.675"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cvb",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "floatAttributes": [
+            {
+              "name": "interior_camera_health_response_cve",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "11",
+          "floatAttributes": [
+            {
+              "name": "PersonCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "PersonCount_value",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "floatAttributes": [
+            {
+              "name": "DriverCount_confidence",
+              "value": "1"
+            },
+            {
+              "name": "DriverCount_value",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "facelist": [
+      ]
+    }
+  ]
+}

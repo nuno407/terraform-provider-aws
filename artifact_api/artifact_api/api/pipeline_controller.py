@@ -1,7 +1,6 @@
 """Router for pipeline outputs/updates"""
-from datetime import datetime
+from datetime import datetime, timezone
 from kink import di
-import pytz
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi_restful.cbv import cbv
@@ -29,7 +28,7 @@ class PipelineController:
         Args:
             video_anon_result (AnonymizationResult): _description_
         """
-        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated = datetime.now(timezone.utc)
         last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
         await mongo_service.create_anonymization_result_output(video_anon_result, last_updated_str)
@@ -51,7 +50,7 @@ class PipelineController:
         Returns:
             _type_: _description_
         """
-        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated = datetime.now(timezone.utc)
         last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
         await mongo_service.create_anonymization_result_output(snap_anon_result, last_updated_str)
         voxel_service.update_snapshot_processing_status_anonymization(
@@ -59,13 +58,23 @@ class PipelineController:
         return ResponseMessage()
 
     @pipeline_router.post("/ridecare/pipeline/chc/video", response_model=ResponseMessage)
-    async def create_video_chc_result(self, chc_result: CHCDataResult):  # pylint: disable=unused-argument
+    async def create_video_chc_result(self, chc_result: CHCDataResult,
+                                      mongo_service: MongoService = Depends(
+                                          lambda: di[MongoService]),
+                                      voxel_service: VoxelService = Depends(lambda: di[VoxelService])):  # pylint: disable=unused-argument
         """
         Process CHC result
 
         Args:
             chc_result (CHCDataResult): _description_
         """
+        last_updated = datetime.now(timezone.utc)
+        last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+
+        await mongo_service.create_chc_result_output(chc_result, last_updated_str)
+        voxel_service.update_video_processing_status_chc(
+            chc_result.message, last_updated)
+
         return ResponseMessage()
 
     @pipeline_router.post("/ridecare/pipeline/status", response_model=ResponseMessage)
@@ -80,9 +89,8 @@ class PipelineController:
             pipeline_status (PipelineProcessingStatus): _description_
 
         """
-        last_updated = datetime.now(tz=pytz.UTC)
+        last_updated = datetime.now(timezone.utc)
         last_updated_str = str(last_updated.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
-
         await mongo_service.create_pipeline_processing_status(pipeline_status, last_updated_str)
 
         if pipeline_status.object_type == PayloadType.VIDEO:

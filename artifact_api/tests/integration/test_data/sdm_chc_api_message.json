@@ -1,0 +1,13 @@
+{
+    "correlation_id": "DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698",
+    "s3_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698.mp4",
+    "artifact_name": "sdm",
+    "info_source": "SDM",
+    "processing_status": "received",
+    "processing_steps": [
+        "Anonymize",
+        "CHC"
+    ],
+    "object_type": "video",
+    "tenant_id": "datanauts"
+}

@@ -4,7 +4,7 @@ from pydantic import RootModel, TypeAdapter, Field, StrictBool
 
 from base.model.validators import LegacyTimeDelta
 from base.model.artifacts.artifacts import SignalsArtifact
-from base.model.artifacts.processing_result import IMUProcessingResult
+from base.model.artifacts.processing_result import IMUProcessingResult, CHCResult
 from base.model.base_model import ConfiguredBaseModel, S3Path
 from base.model.metadata.media_metadata import MediaMetadata
 
@@ -82,12 +82,12 @@ class IMUDataArtifact(ConfiguredBaseModel):
 class CHCDataResult(ConfiguredBaseModel):
     """CHC Data result"""
     artifact_name: Literal["chc_data_result"] = "chc_data_result"
-    id: str
-    chc_path: str
+    message: CHCResult
     data: dict[LegacyTimeDelta, SignalsFrame]
 
 
-APIMessages = Union[VideoSignalsData, SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
+APIMessages = Union[VideoSignalsData,
+                    SnapshotSignalsData, IMUDataArtifact, CHCDataResult]
 
 DiscriminatedAPIMessagesTypeAdapter = TypeAdapter(Annotated[APIMessages,
                                                   Field(..., discriminator="artifact_name")])

@@ -156,7 +156,7 @@ class VoxelSnapshot(VoxelSample):  # pylint: disable=too-few-public-methods
     def update_processing_status_anonymization(cls,
                                                dataset: fo.Dataset,
                                                message: AnonymizationResult,
-                                               last_updated: str):
+                                               last_updated: datetime):
         """ Updates the processing status of the snapshot after anonymization."""
 
         values_to_set: dict[VoxelField, Any] = {

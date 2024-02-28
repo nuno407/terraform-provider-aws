@@ -1,7 +1,7 @@
 """mongo controller service module"""
 from typing import Union
 import logging
-from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample
+from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample, CHCDataResult
 from base.model.artifacts import (
     CameraBlockedOperatorArtifact,
     CameraServiceEventArtifact,
@@ -205,3 +205,16 @@ class MongoService:  # pylint:disable=too-many-arguments
         await self.__pipeline_processing_controller.update_pipeline_processing_status_anonymization(message, last_updated)
         _logger.info(
             "Pipeline processing status has been updated successfully to mongoDB")
+
+    async def create_chc_result_output(self, message: CHCDataResult, last_updated: str):
+        """Saves the algorithm output to the database
+
+        Args:
+            message (CHCDataResult): CHC Data Result
+        """
+        await self.__algorithm_output_controller.save_chc_result_output(message)
+
+        await self.__pipeline_processing_controller.update_pipeline_processing_status_chc(message, last_updated)
+
+        algo_out_id = message.message.correlation_id + "_CHC"
+        await self.__signals_controller.save_signals(message.data, SignalsSource.CHC, message.message.correlation_id, algo_out_id=algo_out_id)

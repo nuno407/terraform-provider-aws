@@ -1,14 +1,30 @@
 """Mongo Models Module"""
 from enum import Enum
-from typing import Any, Optional, Literal
 from datetime import datetime, timedelta
-from pydantic import Field, field_serializer, model_serializer, SerializationInfo
+from typing import Any, Optional, Literal
+from typing_extensions import Annotated
+from pydantic import Field, model_serializer, SerializationInfo
+from pydantic.functional_serializers import PlainSerializer
 from base.model.artifacts.processing_result import StatusProcessing, ProcessingStep
 from base.model.base_model import ConfiguredBaseModel
 from base.model.event_types import (CameraServiceState, GeneralServiceState,
                                     IncidentType, ShutdownReason)
 from base.model.artifacts.upload_rule_model import RuleOrigin
 from base.model.validators import UtcDatetimeInPast
+
+
+def serialize_signals_dict(signals: dict[timedelta, dict[str, int | float | bool]]  # pylint: disable=no-self-argument
+                           ) -> dict[str, dict[str, int | float | bool]]:
+    """Serialize the signals dict"""
+    return {
+        "{:01d}:{:02d}:{:02d}.{:06d}".format(  # pylint: disable=consider-using-f-string
+            td.seconds // 3600, (td.seconds // 60) %
+            60, td.seconds %
+            60, td.microseconds): val for td, val in signals.items()}
+
+
+SignalsSerializer = Annotated[dict[timedelta, dict[str, int | float | bool]],
+                              PlainSerializer(serialize_signals_dict)]
 
 
 class DBVideoUploadRule(ConfiguredBaseModel):
@@ -43,8 +59,10 @@ class DBVideoRecordingOverview(ConfiguredBaseModel):
     recording_time: Optional[UtcDatetimeInPast] = Field(default=None)
     snapshots_paths: Optional[list[str]] = Field(default=None)
     tenant_id: Optional[str] = Field(alias="tenantID", default=None)
-    time: Optional[str] = Field(pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
-    aggregated_metadata: Optional[dict[str,bool | int | float | str]] = Field(default=None)
+    time: Optional[str] = Field(
+        pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", default=None)
+    aggregated_metadata: Optional[dict[str, bool |
+                                       int | float | str]] = Field(default=None)
 
     @model_serializer(mode="wrap")
     def serialize_aggregated_metadata(self, serializer: Any, _: SerializationInfo) -> Any:
@@ -206,23 +224,15 @@ class SignalsSource(str, Enum):
 class DBSignals(ConfiguredBaseModel):
     """Signals in the format used in the database"""
     recording: str
-    signals: dict[timedelta, dict[str, int | float | bool]]
+    signals: SignalsSerializer
     source: SignalsSource
-
-    @field_serializer("signals")
-    def serialize_signals(signals: dict[timedelta, dict[str, int | float | bool]]  # pylint: disable=no-self-argument
-                          ) -> dict[str, dict[str, int | float | bool]]:
-        """Serialize the signals dict"""
-        return {
-            "{:01d}:{:02d}:{:02d}.{:06d}".format(  # pylint: disable=consider-using-f-string
-                td.seconds // 3600, (td.seconds // 60) %
-                60, td.seconds %
-                60, td.microseconds): val for td, val in signals.items()}
+    algo_out_id: Optional[str] = Field(default=None)
 
 
 class DBOutputPath(ConfiguredBaseModel):
     """Output path"""
-    video: str
+    video: Optional[str] = Field(default=None)
+    metadata: Optional[str] = Field(default=None)
 
 
 class DBAnonymizationResult(ConfiguredBaseModel):
@@ -231,3 +241,17 @@ class DBAnonymizationResult(ConfiguredBaseModel):
     algorithm_id: Literal["Anonymize"] = Field(default="Anonymize")
     pipeline_id: str
     output_paths: DBOutputPath
+
+
+class DBResults(ConfiguredBaseModel):
+    """Signals Results"""
+    CHBs_sync: SignalsSerializer
+
+
+class DBCHCResult(ConfiguredBaseModel):
+    """CHC result"""
+    _id = str
+    algorithm_id: Literal["CHC"] = Field(default="CHC")
+    pipeline_id: str
+    output_paths: DBOutputPath
+    results: DBResults

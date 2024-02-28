@@ -157,7 +157,8 @@ class TestGeneric:
         # Test anonymize result snapshot after sdm pipeline
         (
             [
-                get_json_message("sdm_pipeline_snapshot_status_api_message.json"),
+                get_json_message(
+                    "sdm_pipeline_snapshot_status_api_message.json"),
                 get_json_message("anon_result_api_snapshot_message.json")
             ],
             [
@@ -168,6 +169,22 @@ class TestGeneric:
             "mongo_config.yml",
             "mongo_anon_snapshot_state.json",
             "voxel_anon_snapshot_state.json"
+        ),
+        # Test chc pipeline status after sdm pipeline
+        (
+            [
+                get_json_message("sdm_chc_api_message.json"),
+                get_json_message("chc_result_api_video_message.json")
+            ],
+            [
+                "ridecare/pipeline/status",
+                "ridecare/pipeline/chc/video"
+            ],
+            "voxel_config.yml",
+            "mongo_config.yml",
+            "mongo_chc_video_state.json",
+            "voxel_chc_video_state.json"
+
         )
     ],
         ids=[
@@ -181,7 +198,8 @@ class TestGeneric:
         "test_video_signals_after_video",
         "test_video_signals_before_video",
         "test_anon_result_video",
-        "test_anon_result_snapshot"
+        "test_anon_result_snapshot",
+        "test_chc_result_video",
     ],
         indirect=["mongo_api_config", "voxel_config"])
     @freeze_time("2030-01-14")
@@ -207,8 +225,7 @@ class TestGeneric:
         this will dump the state of the mongo and voxel database into seperated files in the same
         path where the tests were run. (mongo_dump.json and voxel_dump.json)
         The test will always fail in debug mode to avoid accidental pushes but
-        will allow to check the state of the database
-        after the test is run.
+        will allow to check the state of the database after the test has finished.
 
         Args:
             input_sqs_message_list (list[str]): _description_

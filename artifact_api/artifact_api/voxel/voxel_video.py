@@ -5,7 +5,7 @@ from typing import Any
 from datetime import datetime
 import fiftyone as fo
 from base.voxel.functions import get_anonymized_path_from_raw
-from base.model.artifacts import S3VideoArtifact, PipelineProcessingStatus, AnonymizationResult
+from base.model.artifacts import S3VideoArtifact, PipelineProcessingStatus, AnonymizationResult, CHCResult
 from base.model.artifacts.upload_rule_model import VideoUploadRule
 from artifact_api.voxel.voxel_embedded_models import UploadVideoRuleEmbeddedDocument
 from artifact_api.voxel.voxel_base_models import VoxelField, VoxelSample
@@ -175,7 +175,7 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
     def update_processing_status_anonymization(cls,
                                                dataset: fo.Dataset,
                                                message: AnonymizationResult,
-                                               last_updated: str):
+                                               last_updated: datetime):
         """ Updates the processing status of the video after anonymization """
         values_to_set: dict[VoxelField, Any] = {
             cls.Fields.DATA_STATUS.value: message.processing_status.value,
@@ -185,5 +185,24 @@ class VoxelVideo(VoxelSample):  # pylint: disable=too-few-public-methods
             tenant_id=message.tenant_id,
             dataset=dataset,
             anonymized_filepath=message.s3_path,
+            values_to_set=values_to_set)
+        _logger.info("Processing status updated successfully")
+
+    @classmethod
+    def update_processing_status_chc(cls,
+                                     dataset: fo.Dataset,
+                                     chc_result: CHCResult,
+                                     last_updated: datetime):
+        """ Updates the processing status of the video after CHC """
+        anonymized_filepath = get_anonymized_path_from_raw(
+            filepath=chc_result.raw_s3_path)
+        values_to_set: dict[VoxelField, Any] = {
+            cls.Fields.DATA_STATUS.value: chc_result.processing_status.value,
+            cls.Fields.LAST_UPDATED.value: last_updated
+        }
+        cls._upsert_sample(
+            tenant_id=chc_result.tenant_id,
+            dataset=dataset,
+            anonymized_filepath=anonymized_filepath,
             values_to_set=values_to_set)
         _logger.info("Processing status updated successfully")

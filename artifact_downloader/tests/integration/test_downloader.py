@@ -104,6 +104,12 @@ class TestAPIDownloader:
                 "anonymized_s3_state.json",
                 "ridecare/pipeline/anonymize/video",
                 "anonymization_video_result_post_data.json",
+            ),
+            (
+                "chc_video_result_sqs_message.json",
+                "chc_s3_state.json",
+                "ridecare/pipeline/chc/video",
+                "chc_video_result_post_data.json",
             )
         ],
         ids=["snapshot_test_success",
@@ -120,7 +126,8 @@ class TestAPIDownloader:
             "sdm_message_test_success",
             "mdfparser_test_success",
             "anonymize_snapshot_test",
-            "anonymize_video_test"
+            "anonymize_video_test",
+            "chc_video_test"
         ],
         indirect=["endpoint"])
     # autopep8: on
@@ -148,6 +155,13 @@ class TestAPIDownloader:
         - post_artifact_data_filename:
             A file containing the json data that is posted by the artifact_downloader. This file needs to be placed
             under data/post_data.
+
+        REMARKS:
+        For errors related to "botocore.errorfactory.NoSuchBucket" make sure that the bucket name used
+        in the sqs message and S3 state file is the same as the one used in the test message.
+
+        Make sure that ffprobe is installed in the system, this can be installed by running:
+        sudo apt-get install ffmpeg
         """
 
         # GIVEN
@@ -266,6 +280,12 @@ class TestAPIDownloader:
                 "anonymized_s3_state.json",
                 "ridecare/pipeline/anonymize/video",
                 "anonymization_video_result_post_data.json",
+            ),
+            (
+                "chc_video_result_sqs_message.json",
+                "chc_s3_state.json",
+                "ridecare/pipeline/chc/video",
+                "chc_video_result_post_data.json",
             )
             ],
             ids=["snapshot_test_failure",
@@ -281,7 +301,8 @@ class TestAPIDownloader:
                 "sdm_message_test_failure",
                 "mdfparser_test_failure",
                 "anonymize_snapshot_test",
-                "anonymize_video_test"
+                "anonymize_video_test",
+                "chc_video_test"
             ],
             indirect=["endpoint"])
     # autopep8: on
@@ -314,6 +335,8 @@ class TestAPIDownloader:
         For errors related to "botocore.errorfactory.NoSuchBucket" make sure that the bucket name used
         in the sqs message and S3 state file is the same as the one used in the test message.
 
+        Make sure that ffprobe is installed in the system, this can be installed by running:
+        sudo apt-get install ffmpeg
         """
 
         # GIVEN

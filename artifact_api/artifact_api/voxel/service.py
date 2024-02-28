@@ -4,9 +4,13 @@ from typing import List
 from kink import inject
 from base.voxel.functions import create_dataset
 from base.voxel.utils import determine_dataset_name
-from base.model.artifacts import S3VideoArtifact, SnapshotArtifact, PipelineProcessingStatus, VideoSignalsData
+from base.model.artifacts import (S3VideoArtifact,
+                                  SnapshotArtifact,
+                                  PipelineProcessingStatus,
+                                  VideoSignalsData,
+                                  AnonymizationResult)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
-from base.model.artifacts.api_messages import SnapshotSignalsData
+from base.model.artifacts.api_messages import SnapshotSignalsData, CHCResult
 from artifact_api.voxel.voxel_config import VoxelConfig
 from artifact_api.voxel.voxel_snapshot import VoxelSnapshot
 from artifact_api.voxel.voxel_video import VoxelVideo
@@ -139,7 +143,8 @@ class VoxelService:
         VoxelSnapshot.attach_pipeline_processing_status_to_snapshot(
             dataset, pipeline_status, last_updated=last_updated)
 
-    def attach_pipeline_processing_status_to_video(self, pipeline_status: PipelineProcessingStatus,
+    def attach_pipeline_processing_status_to_video(self,
+                                                   pipeline_status: PipelineProcessingStatus,
                                                    last_updated: datetime):
         """
         Attaches a pipeline processing status to a video
@@ -152,7 +157,9 @@ class VoxelService:
         VoxelVideo.attach_pipeline_processing_status_to_video(
             dataset, pipeline_status, last_updated=last_updated)
 
-    def update_video_processing_status_anonymization(self, video_anon_result, last_updated):
+    def update_video_processing_status_anonymization(self,
+                                                     video_anon_result: AnonymizationResult,
+                                                     last_updated: datetime):
         """
         Updates the video processing status after anonymization
         """
@@ -164,7 +171,9 @@ class VoxelService:
         VoxelVideo.update_processing_status_anonymization(
             dataset, video_anon_result, last_updated)
 
-    def update_snapshot_processing_status_anonymization(self, snap_anon_result, last_updated):
+    def update_snapshot_processing_status_anonymization(self,
+                                                        snap_anon_result: AnonymizationResult,
+                                                        last_updated: datetime):
         """
         Updates the snapshot processing status after anonymization
         """
@@ -175,3 +184,17 @@ class VoxelService:
         dataset = create_dataset(dataset_name, tags)
         VoxelSnapshot.update_processing_status_anonymization(
             dataset, snap_anon_result, last_updated)
+
+    def update_video_processing_status_chc(self,
+                                           chc_result: CHCResult,
+                                           last_updated: datetime):
+        """
+        Updates the video processing status after CHC
+        """
+        dataset_name, tags = determine_dataset_name(
+            tenant=chc_result.tenant_id,
+            is_snapshot=False,
+            mapping_config=self.__voxel_config.dataset_mapping)
+        dataset = create_dataset(dataset_name, tags)
+        VoxelVideo.update_processing_status_chc(
+            dataset, chc_result, last_updated)

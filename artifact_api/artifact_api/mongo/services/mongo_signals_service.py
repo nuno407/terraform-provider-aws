@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 from kink import inject
+from typing import Optional
 from base.mongo.engine import Engine
 from artifact_api.models.mongo_models import DBSignals
 from base.model.validators import LegacyTimeDelta
@@ -21,7 +22,7 @@ class MongoSignalsService():
         """
         self.__signals_engine = signals_engine
 
-    async def save_signals(self, signals: dict[timedelta, SignalsFrame], source: str, recording: str):
+    async def save_signals(self, signals: dict[timedelta, SignalsFrame], source: str, recording: str, algo_out_id: Optional[str] = None):
         """
         Save signals
 
@@ -31,7 +32,10 @@ class MongoSignalsService():
             recording (str): recording
 
         """
-        signals_dump: dict[timedelta, dict[str, int | float | bool]] = {k:v.model_dump() for k,v in signals.items()}
-        signals_model = DBSignals(source=source, recording=recording, signals=signals_dump)
+        signals_dump: dict[timedelta, dict[str, int | float | bool]] = {
+            k: v.model_dump() for k, v in signals.items()}
+        signals_model = DBSignals(
+            source=source, recording=recording, signals=signals_dump, algo_out_id=algo_out_id)
         await self.__signals_engine.save(signals_model)
-        _logger.info("A total of %s signals were saved for source %s and recording %s", len(signals), source, recording)
+        _logger.info("A total of %s signals were saved for source %s and recording %s", len(
+            signals), source, recording)

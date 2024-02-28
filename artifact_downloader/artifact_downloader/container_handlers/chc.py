@@ -1,5 +1,4 @@
 """CHC container handler"""
-import os
 from datetime import timedelta
 
 from requests import Request
@@ -54,11 +53,10 @@ class CHCContainerHandler(ContainerHandler):  # pylint: disable=too-few-public-m
 
         if message.body.raw_s3_path.endswith(".mp4"):
             signals = self.download_and_synchronize_chc(message.body.s3_path, message.body.raw_s3_path)
-            recording_id = os.path.basename(message.body.raw_s3_path).split(".")[0]
-            chc_data = CHCDataResult(id=recording_id, chc_path=message.body.raw_s3_path, data=signals)
+            chc_data = CHCDataResult(message=message.body, data=signals)
             return self.__request_factory.generate_request_from_artifact(self.__endpoint_video, chc_data)
 
-        raise UnexpectedContainerMessage("Anonymization result is neither not a video")
+        raise UnexpectedContainerMessage("Anonymization result is not a video")
 
     def download_and_synchronize_chc(self, chc_s3_path: str, video_s3_path: str) -> dict:
         """Downloads and synchronize CHC signals based on recording length.

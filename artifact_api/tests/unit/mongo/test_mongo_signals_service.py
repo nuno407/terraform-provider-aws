@@ -44,7 +44,8 @@ class TestMongoController:  # pylint: disable=duplicate-code
         output.source = source
         signals_engine.save = AsyncMock()
         recording = "recording_id"
-        db_signals = {k:SignalsFrame.model_validate(v) for k,v in output.signals.items()}
+        db_signals = {k: SignalsFrame.model_validate(
+            v) for k, v in output.signals.items()}
 
         # THEN
         await mongo_signals_controller.save_signals(db_signals, source, recording)

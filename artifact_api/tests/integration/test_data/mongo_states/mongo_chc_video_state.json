@@ -1,0 +1,127 @@
+{
+    "DataIngestion": {
+        "algorithm-output": [
+            {
+                "algorithm_id": "CHC",
+                "pipeline_id": "DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698",
+                "output_paths": {
+                    "metadata": "dev-rcd-anonymized-video-files/datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698_chc.json"
+                },
+                "results": {
+                    "CHBs_sync": {
+                        "0:00:00.000000": {
+                            "CameraVerticalShifted": 0.659,
+                            "CameraViewBlocked": 0.704,
+                            "CameraViewShifted": false,
+                            "DriverCount_confidence": 1.0,
+                            "DriverCount_value": 0.0,
+                            "PersonCount_confidence": 1.0,
+                            "PersonCount_value": 0.0,
+                            "interior_camera_health_response_cvb": 0.0,
+                            "interior_camera_health_response_cve": 0.0
+                        },
+                        "0:00:00.254750": {
+                            "CameraVerticalShifted": 0.619,
+                            "CameraViewBlocked": 0.671,
+                            "CameraViewShifted": false,
+                            "DriverCount_confidence": 1.0,
+                            "DriverCount_value": 0.0,
+                            "PersonCount_confidence": 1.0,
+                            "PersonCount_value": 0.0,
+                            "interior_camera_health_response_cvb": 0.0,
+                            "interior_camera_health_response_cve": 0.0
+                        },
+                        "0:00:00.509500": {
+                            "CameraVerticalShifted": 0.584,
+                            "CameraViewBlocked": 0.679,
+                            "CameraViewShifted": false,
+                            "DriverCount_confidence": 1.0,
+                            "DriverCount_value": 0.0,
+                            "PersonCount_confidence": 1.0,
+                            "PersonCount_value": 0.0,
+                            "interior_camera_health_response_cvb": 0.0,
+                            "interior_camera_health_response_cve": 0.0
+                        },
+                        "0:00:00.764250": {
+                            "CameraVerticalShifted": 0.653,
+                            "CameraViewBlocked": 0.675,
+                            "CameraViewShifted": false,
+                            "DriverCount_confidence": 1.0,
+                            "DriverCount_value": 0.0,
+                            "PersonCount_confidence": 1.0,
+                            "PersonCount_value": 0.0,
+                            "interior_camera_health_response_cvb": 0.0,
+                            "interior_camera_health_response_cve": 0.0
+                        }
+                    }
+                }
+            }
+        ],
+        "pipeline-execution": [
+            {
+                "from_container": "Metadata",
+                "info_source": "CHC",
+                "last_updated": "2030-01-14T00:00:00.000000Z",
+                "processing_list": [
+                    "Anonymize",
+                    "CHC"
+                ],
+                "processing_status": "complete",
+                "s3_path": "s3://dev-rcd-raw-video-files/datanauts/DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698.mp4"
+            }
+        ],
+        "signals": [
+            {
+                "recording": "DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698",
+                "signals": {
+                    "0:00:00.000000": {
+                        "CameraVerticalShifted": 0.659,
+                        "CameraViewBlocked": 0.704,
+                        "CameraViewShifted": false,
+                        "DriverCount_confidence": 1.0,
+                        "DriverCount_value": 0.0,
+                        "PersonCount_confidence": 1.0,
+                        "PersonCount_value": 0.0,
+                        "interior_camera_health_response_cvb": 0.0,
+                        "interior_camera_health_response_cve": 0.0
+                    },
+                    "0:00:00.254750": {
+                        "CameraVerticalShifted": 0.619,
+                        "CameraViewBlocked": 0.671,
+                        "CameraViewShifted": false,
+                        "DriverCount_confidence": 1.0,
+                        "DriverCount_value": 0.0,
+                        "PersonCount_confidence": 1.0,
+                        "PersonCount_value": 0.0,
+                        "interior_camera_health_response_cvb": 0.0,
+                        "interior_camera_health_response_cve": 0.0
+                    },
+                    "0:00:00.509500": {
+                        "CameraVerticalShifted": 0.584,
+                        "CameraViewBlocked": 0.679,
+                        "CameraViewShifted": false,
+                        "DriverCount_confidence": 1.0,
+                        "DriverCount_value": 0.0,
+                        "PersonCount_confidence": 1.0,
+                        "PersonCount_value": 0.0,
+                        "interior_camera_health_response_cvb": 0.0,
+                        "interior_camera_health_response_cve": 0.0
+                    },
+                    "0:00:00.764250": {
+                        "CameraVerticalShifted": 0.653,
+                        "CameraViewBlocked": 0.675,
+                        "CameraViewShifted": false,
+                        "DriverCount_confidence": 1.0,
+                        "DriverCount_value": 0.0,
+                        "PersonCount_confidence": 1.0,
+                        "PersonCount_value": 0.0,
+                        "interior_camera_health_response_cvb": 0.0,
+                        "interior_camera_health_response_cve": 0.0
+                    }
+                },
+                "source": "CHC",
+                "algo_out_id": "DATANAUTS_DEV_01_TrainingRecorder_068b3dfd-07d9-4e45-850a-4b6faf5a8282_1708693139037_1708693210698_CHC"
+            }
+        ]
+    }
+}
