@@ -1,7 +1,7 @@
 """ Selector component bussiness logic. """
 import logging
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from json import loads
 
 from kink import inject
@@ -127,9 +127,15 @@ class Selector:  # pylint: disable=too-few-public-methods,too-many-locals
             bool: Boolean indicating if the request succeeded.
         """
         try:
+            # Time windows for the request to the footage API
+            # The first time window, regarding the event, is the event timestamp +/- the upload window. Its upper
+            # limit is capped at the current time, to prevent requests of footage in the future, which cause errors.
             time_windows = [
                 (sav_operator_artifact.event_timestamp - timedelta(seconds=self.config.upload_window_seconds_start),
-                 sav_operator_artifact.event_timestamp + timedelta(seconds=self.config.upload_window_seconds_end)),
+                 min(
+                    datetime.now(timezone.utc),
+                    sav_operator_artifact.event_timestamp + timedelta(seconds=self.config.upload_window_seconds_end))
+                 ),
                 (sav_operator_artifact.operator_monitoring_start,
                  sav_operator_artifact.operator_monitoring_end)]
 

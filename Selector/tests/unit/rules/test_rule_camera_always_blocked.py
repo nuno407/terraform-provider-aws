@@ -1,7 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pytest import fixture, mark
-from pytz import UTC
 
 from base.model.artifacts import RecorderType
 from base.model.metadata.base_metadata import IntegerObject
@@ -21,8 +20,8 @@ class TestRuleCameraAlwaysBlocked:
     def ride_info(self, artifact: PreviewMetadataV063) -> RideInfo:
         return RideInfo(
             preview_metadata=artifact,
-            start_ride=datetime.now(tz=UTC),
-            end_ride=datetime.now(tz=UTC)
+            start_ride=datetime.now(timezone.utc),
+            end_ride=datetime.now(timezone.utc)
         )
 
     def test_rule_name(self, rule: Rule):

@@ -1,10 +1,10 @@
 """ Selector Tests. """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
-from pytz import UTC
+from freezegun import freeze_time
 
 from base.model.artifacts import (Artifact, CameraBlockedOperatorArtifact, IMUArtifact,
                                   OperatorArtifact, PeopleCountOperatorArtifact,
@@ -36,8 +36,8 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         sqs_controller.get_message = Mock(return_value=message)
         sqs_controller.delete_message = Mock(return_value=None)
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         video_artifact = MagicMock(spec=PreviewSignalsArtifact)
         video_artifact.timestamp = from_ts
         video_artifact.end_timestamp = to_ts
@@ -98,8 +98,8 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         sqs_controller.get_message = Mock(return_value=message)
         sqs_controller.delete_message = Mock(return_value=None)
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         video_artifact = MagicMock(spec=VideoArtifact)
         video_artifact.timestamp = from_ts
         video_artifact.end_timestamp = to_ts
@@ -133,8 +133,12 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         ])
         sqs_controller.delete_message.assert_called_once_with(message)
 
+    @freeze_time(datetime.now(timezone.utc))
     @patch("selector.selector.parse_artifact")
-    def test_process_sav_operator(self, parse_artifact_mock: Mock):
+    @pytest.mark.parametrize("event_timestamp_delta", [timedelta(seconds=0),
+                                                       timedelta(seconds=600)])
+    def test_process_sav_operator(self, parse_artifact_mock: Mock,
+                                  event_timestamp_delta: timedelta):
         """Tests that the footage api is called correctly"""
         footage_api_wrapper = Mock()
         footage_id = "dummy_footage_id"
@@ -148,12 +152,12 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         sqs_controller.get_message = Mock(return_value=message)
         sqs_controller.delete_message = Mock(return_value=None)
 
-        event_timestamp = datetime.now(tz=UTC) - timedelta(hours=1)
+        fixed_now = datetime.now(timezone.utc)
 
         operator_artifact = MagicMock(spec=OperatorArtifact)
-        operator_artifact.event_timestamp = event_timestamp
-        operator_artifact.operator_monitoring_start = datetime.now(tz=UTC) - timedelta(minutes=5)
-        operator_artifact.operator_monitoring_end = datetime.now(tz=UTC)
+        operator_artifact.event_timestamp = fixed_now - event_timestamp_delta
+        operator_artifact.operator_monitoring_start = fixed_now - timedelta(minutes=5)
+        operator_artifact.operator_monitoring_end = fixed_now
         operator_artifact.s3_path = None
         operator_artifact.device_id = "DATANAUTS_DEV_01"
         operator_artifact.tenant_id = "datanauts"
@@ -190,21 +194,21 @@ class TestSelector():  # pylint: disable=too-few-public-methods
                 call(
                     RecorderType.TRAINING,
                     operator_artifact.device_id,
-                    event_timestamp -
+                    operator_artifact.event_timestamp -
                     timedelta(
                         seconds=config.upload_window_seconds_start),
-                    event_timestamp +
-                    timedelta(
-                        seconds=config.upload_window_seconds_end)),
+                    min(fixed_now,
+                        operator_artifact.event_timestamp + timedelta(
+                            seconds=config.upload_window_seconds_end))),
                 call(
                     RecorderType.SNAPSHOT,
                     operator_artifact.device_id,
-                    event_timestamp -
+                    operator_artifact.event_timestamp -
                     timedelta(
                         seconds=config.upload_window_seconds_start),
-                    event_timestamp +
-                    timedelta(
-                        seconds=config.upload_window_seconds_end)),
+                    min(fixed_now,
+                        operator_artifact.event_timestamp + timedelta(
+                            seconds=config.upload_window_seconds_end))),
                 call(
                     RecorderType.TRAINING,
                     operator_artifact.device_id,
@@ -329,8 +333,8 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         graceful_exit = Mock()
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         video_artifact = MagicMock(spec=S3VideoArtifact)
         video_artifact.footage_id = "foo_footage_id"
         video_artifact.tenant_id = "test_tenant"
@@ -379,8 +383,8 @@ class TestSelector():  # pylint: disable=too-few-public-methods
         graceful_exit = Mock()
         type(graceful_exit).continue_running = PropertyMock(side_effect=[True, False])
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         snap_artifact = MagicMock(spec=SnapshotArtifact)
         snap_artifact.footage_id = "foo_footage_id"
         snap_artifact.tenant_id = "test_tenant"

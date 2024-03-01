@@ -1,8 +1,7 @@
 from pytest import fixture, mark
 from base.model.metadata.base_metadata import FrameSignal
 from selector.model import PreviewMetadataV063
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 
 
 @mark.unit
@@ -11,13 +10,13 @@ class TestPreviewMetadata:
     @fixture(scope="session")
     def mminimal_preview_frame_timestamps(self) -> list[datetime]:
         return [
-            datetime(2023, 5, 31, 14, 48, 24, 63000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 24, 954000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 25, 972000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 26, 989000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 27, 943000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 28, 961000, tzinfo=pytz.UTC),
-            datetime(2023, 5, 31, 14, 48, 29, 979000, tzinfo=pytz.UTC)
+            datetime(2023, 5, 31, 14, 48, 24, 63000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 24, 954000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 25, 972000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 26, 989000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 27, 943000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 28, 961000, tzinfo=timezone.utc),
+            datetime(2023, 5, 31, 14, 48, 29, 979000, tzinfo=timezone.utc)
         ]
 
     @mark.unit

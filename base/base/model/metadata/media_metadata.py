@@ -5,11 +5,9 @@ TrainingRecorder, InteriorRecorder and TrainingMultiSnapshot
 THIS IS NOT SUPPORTED FOR PREVIEW METADATA
 (Due the way each classification is handled in the metadata)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Generic, Iterator, Optional, TypeVar
-
-import pytz
 
 from pydantic import Field, model_validator, AwareDatetime
 
@@ -139,7 +137,7 @@ class MediaFrame(BaseFrame):
 
         delta_timestamp_pts = int(data["timestamp"]) - data["pts_timestamp_reference"]
         actual_timestamp = data["utc_timestamp_reference"] + delta_timestamp_pts
-        data["timestamp"] = datetime.fromtimestamp(actual_timestamp / 1000, tz=pytz.UTC)
+        data["timestamp"] = datetime.fromtimestamp(actual_timestamp / 1000, tz=timezone.utc)
         del data["utc_timestamp_reference"]
         del data["pts_timestamp_reference"]
         return data

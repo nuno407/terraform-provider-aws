@@ -1,13 +1,12 @@
 """ FootageApiWrapper Tests. """
 import json
-from datetime import datetime, timedelta
-from pytz import UTC
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 import pytest
 from selector.footage_api_wrapper import FootageApiWrapper
 from base.model.artifacts import RecorderType
 
-dummy_date = datetime(year=2023, month=1, day=10, hour=1, tzinfo=UTC)
+dummy_date = datetime(year=2023, month=1, day=10, hour=1, tzinfo=timezone.utc)
 
 
 @pytest.mark.unit

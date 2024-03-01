@@ -1,7 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pytest import fixture, mark
-from pytz import UTC
 
 from base.model.artifacts import (MultiSnapshotArtifact,
                                   PreviewSignalsArtifact, RecorderType,
@@ -19,9 +18,9 @@ tenant_device_and_timing = {
     "artifact_id": "foo",
     "tenant_id": "tenant_id",
     "device_id": "device_id",
-    "timestamp": datetime.now(tz=UTC),
-    "end_timestamp": datetime.now(tz=UTC),
-    "upload_timing": TimeWindow(start=datetime.now(tz=UTC), end=datetime.now(tz=UTC))
+    "timestamp": datetime.now(timezone.utc),
+    "end_timestamp": datetime.now(timezone.utc),
+    "upload_timing": TimeWindow(start=datetime.now(timezone.utc), end=datetime.now(timezone.utc))
 }
 
 
@@ -31,8 +30,8 @@ class TestCollisionEventRule:
     def ride_info(self, artifact: PreviewMetadataV063) -> RideInfo:
         return RideInfo(
             preview_metadata=artifact,
-            start_ride=datetime.now(tz=UTC),
-            end_ride=datetime.now(tz=UTC)
+            start_ride=datetime.now(timezone.utc),
+            end_ride=datetime.now(timezone.utc)
         )
 
     @fixture

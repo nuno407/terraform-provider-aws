@@ -1,7 +1,6 @@
 "Decision"
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import cast
-from pytz import UTC
 
 from pydantic import field_validator
 from pydantic.dataclasses import dataclass
@@ -23,7 +22,7 @@ class Decision:
     @classmethod
     def validate_footage_timestamp(cls, value: datetime):  # pylint: disable=no-self-argument
         """Validate footage_from and footage_to are valid"""
-        if value > datetime.now(tz=UTC):
+        if value > datetime.now(timezone.utc):
             raise TimeInTheFuture
         if value.utcoffset() is None:
             raise DatetimeObjectIsNaive

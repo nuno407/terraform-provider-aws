@@ -1,9 +1,8 @@
 """ Correlator Tests. """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, Mock, call
 
 import pytest
-from pytz import UTC
 
 from base.model.artifacts import (DEFAULT_RULE, DEFAULT_RULE_NAME, DEFAULT_RULE_VERSION,
                                   RecorderType, Recording, RuleOrigin, S3VideoArtifact, SelectorRule,
@@ -40,8 +39,8 @@ class TestCorrelator():
         cont_services = MagicMock()
         cont_services.sqs_queues_list["Metadata"] = "metadata-queue"
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         video_artifact = S3VideoArtifact(
             footage_id="foo_footage_id",
             tenant_id="test_tenant",
@@ -117,8 +116,8 @@ class TestCorrelator():
         cont_services = MagicMock()
         cont_services.sqs_queues_list["Metadata"] = "metadata-queue"
 
-        from_ts = datetime.now(tz=UTC) - timedelta(minutes=5)
-        to_ts = datetime.now(tz=UTC)
+        from_ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        to_ts = datetime.now(timezone.utc)
         snap_artifact = SnapshotArtifact(
             footage_id="foo_footage_id",
             device_id="foo_device_id",
