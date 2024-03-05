@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Labeling Bridge Service
+  description: |-
+    The labeling bridge service is responsible to send data to Kognic Labeling Tool and to Retreive data from the Tool
+  version: 1.0.0
+servers:
+  - url: https://labeling-bridge.ai-dev.bosch-ridecare.com
+paths:
+  /alive:
+    get:
+      description: Alive endpoint of the server
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /ready:
+    get:
+      description: Alive endpoint of the server
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /kognicExport:
+    post:
+      description: Export to kognic
+      requestBody:
+        description: Export
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestExportJobDTO"
+            example:
+              dataset: "DEVCLOUD-demo-multitenant"
+              kognicProjectId: "Orion-RC-Dev"
+              labellingType: ["2D_semseg", "Splines"]
+              labellingJobName: "PUT_ANY_NAME"
+              labellingGuidelines: "none"
+              voxelExportMethod: "filter"
+              clientId: "PUT_HERE_YOUR_CLIENT_ID"
+              clientSecret: "PUT_HERE_YOUR_CLIENT_SECRET"
+              voxelTagToExport: null
+              filters: null
+              stages: null
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /kognicImport:
+    post:
+      description: Import labeled data from kognic
+      requestBody:
+        description: Import
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestImportJobDTO"
+            example:
+              dataset: "DEVCLOUD-demo-multitenant"
+              kognicProjectId: "Orion-RC-Dev"
+              labellingJobName: "PUT_ANY_NAME"
+              clientId: "PUT_HERE_YOUR_CLIENT_ID"
+              clientSecret: "PUT_HERE_YOUR_CLIENT_SECRET"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+    RequestExportJobDTO:
+      type: object
+      required:
+        - dataset
+        - kognicProjectId
+        - labellingType
+        - labellingJobName
+        - labellingGuidelines
+        - voxelExportMethod
+        - clientId
+        - clientSecret
+      properties:
+        dataset:
+          type: string
+        kognicProjectId:
+          type: string
+        labellingType:
+          type: array
+          items:
+            type: string
+        labellingJobName:
+          type: string
+        labellingGuidelines:
+          type: string
+        voxelExportMethod:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        voxelTagToExport:
+          type: string
+        filters:
+          type: object
+        stages:
+          type: array
+          items:
+            type: object
+    RequestImportJobDTO:
+      type: object
+      required:
+        - dataset
+        - kognicProjectId
+        - labellingJobName
+        - clientId
+        - clientSecret
+      properties:
+        dataset:
+          type: string
+        kognicProjectId:
+          type: string
+        labellingJobName:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
