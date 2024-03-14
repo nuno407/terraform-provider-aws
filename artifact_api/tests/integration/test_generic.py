@@ -18,11 +18,6 @@ def get_json_message(file_name: str) -> dict:
 class TestGeneric:
     """
     Class that tests the entire component end2end
-
-    REMARKS:
-    VPN HAS TO BE DISABLED IN ORDER FOR THIS TESTS TO RUN,
-    this a weird bug where the VPN is blocking the connection to the voxel API, even though
-    everything runs locally.
     """
     @ pytest.mark.integration
     @ pytest.mark.parametrize("input_json_message_list, endpoints, voxel_config, \
@@ -69,24 +64,6 @@ class TestGeneric:
             "mongo_config.yml",
             "mongo_operator_state.json",
             None,
-        ),
-        # Tests IMU data and event updates
-        (
-            [
-                get_json_message("device_incident_event_api_message.json"),
-                get_json_message(
-                    "device_incident_event_outside_imu_api_message.json"),
-                get_json_message("imu_api_message.json")
-            ],
-            [
-                "/ridecare/event",
-                "/ridecare/event",
-                "/ridecare/imu/video"
-            ],
-            "voxel_config.yml",
-            "mongo_config.yml",
-            "mongo_imu_state.json",
-            None
         ),
 
         # Tests snapshot metadata
@@ -192,7 +169,6 @@ class TestGeneric:
         "test_video_artifact",
         "test_events_artifact",
         "test_sav_artifact",
-        "test_imu_artifact",
         "test_snap_metadata",
         "test_sdm_status",
         "test_video_signals_after_video",

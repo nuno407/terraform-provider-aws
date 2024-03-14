@@ -21,6 +21,11 @@ from artifact_api.models.mongo_models import (
     DBSignals)
 from artifact_api.voxel.voxel_config import VoxelConfig
 
+# Defines the size of each imu batch
+# A small value value will decrease the memory usage at the cost of increasing ingesting time
+# A large value will increase the memory usage but reduce ingesting time
+IMU_BATCH_SIZE = 20000
+
 
 def create_mongo_client(db_uri: str) -> AsyncIOMotorClient:
     """Function used to easealy mock the mongo client"""
@@ -45,6 +50,8 @@ def bootstrap_di() -> None:
     db_uri = os.environ["DATABASE_URI"]
     db_name = os.environ["DATABASE_NAME"]
     mongo_client = create_mongo_client(db_uri)
+
+    di["imu_batch_size"] = IMU_BATCH_SIZE
 
     di["event_engine"] = Engine(model=Union[DBCameraServiceEventArtifact,
                                             DBDeviceInfoEventArtifact,

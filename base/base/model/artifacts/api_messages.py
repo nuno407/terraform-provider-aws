@@ -1,7 +1,8 @@
 """Metadata API messages"""
 from typing import Union, Literal, Annotated
 from pydantic import RootModel, TypeAdapter, Field, StrictBool
-
+import pandas as pd
+import pandera as pa
 from base.model.validators import LegacyTimeDelta
 from base.model.artifacts.artifacts import SignalsArtifact
 from base.model.artifacts.processing_result import IMUProcessingResult, CHCResult
@@ -15,39 +16,39 @@ class IMUSource(ConfiguredBaseModel):
     tenant: str
 
 
-class IMUSample(ConfiguredBaseModel):
-    """IMUSample"""
-    source: IMUSource
-    timestamp: int  # This might cause slow parsing, needs investigation on large files
-    gyr_y_mean: float
-    gyr_x_var: float
-    gyr_z_max: float
-    acc_z_var: float
-    acc_z_max: float
-    gyr_y_var: float
-    acc_y_min: float
-    gyr_z_var: float
-    acc_z_mean: float
-    acc_x_max: float
-    acc_y_mean: float
-    gyr_x_mean: float
-    acc_y_max: float
-    gyr_y_min: float
-    acc_y_var: float
-    acc_z_min: float
-    acc_x_mean: float
-    gyr_x_max: float
-    acc_x_min: float
-    gyr_z_mean: float
-    gyr_x_min: float
-    gyr_y_max: float
-    acc_x_var: float
-    gyr_z_min: float
-
-
-class IMUProcessedData(RootModel):
+class IMUProcessedData(pa.DataFrameModel):
     """IMUProcessedData"""
-    root: list[IMUSample]
+    source: pa.typing.Series[pa.Object]  # Validation with TypedDict is 460x slower than with an object
+    timestamp: pa.typing.Series[pd.DatetimeTZDtype] = pa.Field(dtype_kwargs={"tz": "UTC"})
+    gyr_y_mean: pa.typing.Series[pa.Float]
+    gyr_x_var: pa.typing.Series[pa.Float]
+    gyr_z_max: pa.typing.Series[pa.Float]
+    acc_z_var: pa.typing.Series[pa.Float]
+    acc_z_max: pa.typing.Series[pa.Float]
+    gyr_y_var: pa.typing.Series[pa.Float]
+    acc_y_min: pa.typing.Series[pa.Float]
+    gyr_z_var: pa.typing.Series[pa.Float]
+    acc_z_mean: pa.typing.Series[pa.Float]
+    acc_x_max: pa.typing.Series[pa.Float]
+    acc_y_mean: pa.typing.Series[pa.Float]
+    gyr_x_mean: pa.typing.Series[pa.Float]
+    acc_y_max: pa.typing.Series[pa.Float]
+    gyr_y_min: pa.typing.Series[pa.Float]
+    acc_y_var: pa.typing.Series[pa.Float]
+    acc_z_min: pa.typing.Series[pa.Float]
+    acc_x_mean: pa.typing.Series[pa.Float]
+    gyr_x_max: pa.typing.Series[pa.Float]
+    acc_x_min: pa.typing.Series[pa.Float]
+    gyr_z_mean: pa.typing.Series[pa.Float]
+    gyr_x_min: pa.typing.Series[pa.Float]
+    gyr_y_max: pa.typing.Series[pa.Float]
+    acc_x_var: pa.typing.Series[pa.Float]
+    gyr_z_min: pa.typing.Series[pa.Float]
+
+    class Config:  # pylint: disable=too-few-public-methods
+        """Config for pandera model"""
+        coerce = True
+        from_format = "parquet"
 
 
 class SignalsFrame(RootModel):
@@ -76,7 +77,7 @@ class IMUDataArtifact(ConfiguredBaseModel):
     """IMUData"""
     artifact_name: Literal["imu_data_artifact"] = "imu_data_artifact"
     message: IMUProcessingResult
-    data: IMUProcessedData
+    data: str  # This a base 64 encoded parquet file ->  containing this "IMUProcessedData"
 
 
 class CHCDataResult(ConfiguredBaseModel):

@@ -5,10 +5,10 @@ import re
 from typing import Callable, Iterator, Optional
 
 from botocore.errorfactory import ClientError
+from botocore.response import StreamingBody
 from kink import inject
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_s3.type_defs import ListObjectsV2OutputTypeDef
-
 from base.aws.model import S3ObjectInfo
 
 _logger: logging.Logger = logging.getLogger(__name__)
@@ -55,6 +55,28 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         except ClientError:
             return False
 
+    def get_file_stream(self, s3_bucket: str, path: str) -> StreamingBody:
+        """Retrieves a given file from the selected s3 bucket
+
+        Arguments:
+            client {boto3.client} -- [client used to access the S3 service]
+            s3_bucket {string} -- [name of the source s3 bucket]
+            path {string} -- [string containg the path + file name of
+                                   the target file to be downloaded
+                                   from the source s3 bucket
+                                   (e.g. "uber/test_file_s3.txt")]
+        Returns:
+            object_file {StreamingBody} -- [a treaming body object containing the file]
+        """
+        full_path = s3_bucket + "/" + path
+        _logger.debug("Downloading [%s]..", full_path)
+        response = self.__s3_client.get_object(
+            Bucket=s3_bucket,
+            Key=path
+        )
+
+        return response["Body"]
+
     def download_file(self, s3_bucket: str, path: str) -> bytes:
         """Retrieves a given file from the selected s3 bucket
 
@@ -68,16 +90,9 @@ class S3Controller:  # pylint: disable=too-few-public-methods
         Returns:
             object_file {bytes} -- [downloaded file in bytes format]
         """
-        full_path = s3_bucket + "/" + path
-        _logger.debug("Downloading [%s]..", full_path)
-        response = self.__s3_client.get_object(
-            Bucket=s3_bucket,
-            Key=path
-        )
+        object_file = self.get_file_stream(s3_bucket, path).read()
 
-        object_file = response["Body"].read()
-
-        _logger.info("Downloaded [%s]", full_path)
+        _logger.info("File downloaded bucket=%s, path=%s", s3_bucket, path)
 
         return object_file
 

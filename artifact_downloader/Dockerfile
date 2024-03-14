@@ -1,11 +1,11 @@
-FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10.13-alpine
+FROM 081962623310.dkr.ecr.eu-central-1.amazonaws.com/base-images:python3.10-bullseye
 
 WORKDIR /app
 
-RUN apk update && apk upgrade && apk add ffmpeg
+RUN apt -y update && apt -y upgrade && apt -y --no-install-recommends install ffmpeg
 
 # Run as non-root user and group
-RUN addgroup -S -g 3000 docker-group && adduser -S -D -G docker-group -u 1000 docker
+RUN addgroup --system --gid 3000 docker-group && adduser --disabled-login --system --gid 3000 --uid 1000 docker
 USER 1000
 
 # Add base library

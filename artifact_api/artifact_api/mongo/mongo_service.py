@@ -1,7 +1,8 @@
 """mongo controller service module"""
 from typing import Union
 import logging
-from base.model.artifacts.api_messages import IMUDataArtifact, IMUSample, CHCDataResult
+import math
+from base.model.artifacts.api_messages import IMUProcessingResult, IMUProcessedData
 from base.model.artifacts import (
     CameraBlockedOperatorArtifact,
     CameraServiceEventArtifact,
@@ -15,7 +16,8 @@ from base.model.artifacts import (
     SOSOperatorArtifact,
     PipelineProcessingStatus,
     AnonymizationResult,
-    OtherOperatorArtifact)
+    OtherOperatorArtifact,
+    CHCDataResult)
 from base.model.artifacts.upload_rule_model import SnapshotUploadRule, VideoUploadRule
 from kink import inject
 from artifact_api.models.mongo_models import DBSnapshotArtifact, SignalsSource
@@ -26,6 +28,7 @@ from artifact_api.mongo.services.mongo_recordings_service import MongoRecordings
 from artifact_api.mongo.services.mongo_pipeline_service import MongoPipelineService
 from artifact_api.mongo.services.mongo_signals_service import MongoSignalsService
 from artifact_api.mongo.services.mongo_algorithm_output_service import MongoAlgorithmOutputService
+from artifact_api.utils.imu_gap_finder import IMUGapFinder
 from artifact_api.exceptions import IMUEmptyException
 
 
@@ -46,8 +49,11 @@ class MongoService:  # pylint:disable=too-many-arguments
             mongo_recordings_controller: MongoRecordingsService,
             pipeline_processing_controller: MongoPipelineService,
             mongo_signals_controller: MongoSignalsService,
-            mongo_algorithm_output_controller: MongoAlgorithmOutputService) -> None:
+            mongo_algorithm_output_controller: MongoAlgorithmOutputService,
+            imu_gap_finder: IMUGapFinder,
+            imu_batch_size: int) -> None:
 
+        self.__imu_batch_size = imu_batch_size
         self.__event_controller = mongo_event_controller
         self.__imu_controller = mongo_imu_controller
         self.__sav_operator_feedback_controller = sav_operator_feedback_controller
@@ -55,6 +61,7 @@ class MongoService:  # pylint:disable=too-many-arguments
         self.__pipeline_processing_controller = pipeline_processing_controller
         self.__signals_controller = mongo_signals_controller
         self.__algorithm_output_controller = mongo_algorithm_output_controller
+        self.__imu_gap_finder = imu_gap_finder
 
     async def update_videos_correlations(self, correlated_videos: list[str], snapshot_id: str):
         """_summary_
@@ -147,28 +154,32 @@ class MongoService:  # pylint:disable=too-many-arguments
         _logger.info(
             "Video signals have been processed successfully to mongoDB")
 
-    async def process_imu_artifact(self, imu_data_artifact: IMUDataArtifact):
+    async def process_imu_artifact(self, tenant_id: str, imu_df: IMUProcessedData):
         """_summary_
 
         Args:
             imu_data_artifact (IMUDataArtifact): _description_
         """
 
-        imu_data: list[IMUSample] = imu_data_artifact.data.root
-        imu_artifact: IMUArtifact = imu_data_artifact.message
-        imu_tenant = imu_artifact.tenant_id
-        imu_device = imu_data[0].source.device_id
-
-        if len(imu_data) == 0:
+        if len(imu_df) == 0:
             _logger.warning(
                 "The imu sample list does not contain any information")
             raise IMUEmptyException()
 
-        _logger.debug("Inserting IMU data from artifact: %s",
-                      str(imu_artifact))
+        imu_data = imu_df
+        imu_tenant = tenant_id
+        imu_device = imu_data.source.iloc[0]["device_id"]
 
-        imu_ranges = await self.__imu_controller.insert_imu_data(imu_data)
+        _logger.info("Inserting IMU data from device: %s and tenant: %s in %d batches",
+                     imu_device,tenant_id, math.ceil(len(imu_data) / self.__imu_batch_size))
 
+        # Ingest IMU by batches
+        for i in range(0, len(imu_data), self.__imu_batch_size):
+            await self.__imu_controller.insert_imu_data(imu_data.iloc[i:i + self.__imu_batch_size])
+
+        imu_ranges = self.__imu_gap_finder.get_valid_imu_time_ranges(imu_data)
+
+        _logger.info("Updating events in %d different time ranges",len(imu_ranges))
         for imu_range in imu_ranges:
             await self.__event_controller.update_events(imu_range, imu_tenant, imu_device, "imu")
 

@@ -24,7 +24,8 @@ extras_require: Dict[str, List[str]] = {
         "motor~=3.1.2"
     ],
     "model": [
-        "pydantic==2.6.0"
+        "pydantic==2.6.0",
+        "pandera==0.18.0"
     ],
     # we should use it in the future
     # "monitoring": [

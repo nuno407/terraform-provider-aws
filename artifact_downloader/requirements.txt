@@ -7,6 +7,8 @@ backoff == 2.2.1
 requests == 2.31.0
 pylint-pydantic == 0.3.0
 types_PyYAML == 6.0.12.12
+fastparquet == 2024.2.0
+pandas == 2.0.0
 types_requests == 2.31.0.6
 pydantic == 2.6.0
 -e ../base[aws,model]

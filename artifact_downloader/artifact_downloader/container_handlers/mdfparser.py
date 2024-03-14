@@ -1,7 +1,10 @@
 """MDFParser container handler"""
+from base64 import b64encode
+import pandas as pd
 from requests import Request
 from kink import inject
 from base.model.artifacts import IMUDataArtifact, IMUProcessingResult, SignalsProcessingResult, VideoSignalsData
+from artifact_downloader.memory_buffer import UnclosableMemoryBuffer
 from artifact_downloader.exceptions import UnexpectedContainerMessage
 from artifact_downloader.message.incoming_messages import MDFParserMessage
 from artifact_downloader.container_handlers.handler import ContainerHandler
@@ -52,10 +55,23 @@ class MDFParserContainerHandler(ContainerHandler):  # pylint: disable=too-few-pu
                 self.__endpoint_signals, artifact)
 
         if isinstance(message.body, IMUProcessingResult):
-            # if the model validation causes a bottleneck, create a dict payload and use generate_request instead
-            data = self.__s3_downloader.download_convert_json(message.body.s3_path)
-            artifact = IMUDataArtifact(data=data, message=message.body)
+            data_df: pd.DataFrame = self.__s3_downloader.download_convert_json_pandas(message.body.s3_path)
+
+            # Covert the pandas dataframe to parquet and compress it
+            buffer = UnclosableMemoryBuffer()
+            data_df.to_parquet(buffer, engine="fastparquet", index=False, compression="gzip")
+            del data_df
+
+            # Encodes the buffer to base64
+            buffer.seek(0)
+            encoded_imu = b64encode(buffer.read()).decode("utf-8")
+            del buffer
+
+            imu_artifact = IMUDataArtifact(
+                message=message.body,
+                data=encoded_imu
+            )
             return self.__request_factory.generate_request_from_artifact(
-                self.__endpoint_imu, artifact)
+                self.__endpoint_imu, imu_artifact)
 
         raise UnexpectedContainerMessage(f"Message of type {type(message.body)} is not a MDF message")

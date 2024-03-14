@@ -183,7 +183,7 @@ def fixture_mongo_sav_operator_controller(operator_feedback_engine: MagicMock) -
 
 
 @fixture(name="mongo_imu_controller")
-def fixture_mongo_imu_controller(processed_imu_engine: MagicMock, imu_gap_finder: IMUGapFinder) -> MongoIMUService:
+def fixture_mongo_imu_controller(processed_imu_engine: MagicMock) -> MongoIMUService:
     """ Fixture for mongo imu controller
 
     Args:
@@ -192,7 +192,7 @@ def fixture_mongo_imu_controller(processed_imu_engine: MagicMock, imu_gap_finder
     Returns:
         MongoIMUController: class with business logic methods for mongodb
     """
-    return MongoIMUService(processed_imu_engine, imu_gap_finder)
+    return MongoIMUService(processed_imu_engine)
 
 
 @fixture(name="mongo_signals_controller")
@@ -284,6 +284,14 @@ def snap_signals_artifact() -> SnapshotSignalsData:
         __file__, "test_data/training_snapshot_api_metadata_message.json"))
 
 
+@fixture(name="imu_batch_size_10")
+def imu_batch_size() -> int:
+    """
+    Fixture for IMU_BATCH_SIZE
+    """
+    return 10
+
+
 @fixture
 def mongo_controller(
         mongo_imu_controller: MagicMock,
@@ -292,7 +300,9 @@ def mongo_controller(
         mongo_pipeline_controller: MagicMock,
         mongo_event_controller: MagicMock,
         mongo_signals_controller: MagicMock,
-        mongo_algorithm_output_controller: MagicMock) -> MongoService:
+        mongo_algorithm_output_controller: MagicMock,
+        imu_gap_finder: IMUGapFinder,
+        imu_batch_size_10: int) -> MongoService:
     """ Fixture for mongo controller
 
     Args:
@@ -313,4 +323,6 @@ def mongo_controller(
         mongo_recordings_controller,
         mongo_pipeline_controller,
         mongo_signals_controller,
-        mongo_algorithm_output_controller)
+        mongo_algorithm_output_controller,
+        imu_gap_finder,
+        imu_batch_size_10)

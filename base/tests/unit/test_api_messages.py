@@ -1,14 +1,21 @@
 "Test metadata artifacts"
 import pytest
+import pandas as pd
 from datetime import timedelta
 from base.model.artifacts.api_messages import VideoSignalsData, IMUProcessedData, SignalsFrame, ConfiguredBaseModel
-from base.testing.utils import load_relative_str_file, load_relative_json_file
+from base.testing.utils import load_relative_str_file, load_relative_json_file, get_abs_path
 
 
 def load_data_str(file_name: str) -> str:
     """Load video signals"""
     path = f"artifacts/{file_name}"
     return load_relative_str_file(__file__, path)
+
+
+def get_data_path(file_name: str) -> str:
+    """Get data path"""
+    path = f"artifacts/{file_name}"
+    return get_abs_path(__file__, path)
 
 
 def load_data_dict(file_name: str) -> dict:
@@ -43,20 +50,21 @@ class TestMetadataArtifacts:
         assert model.model_dump() == signals_dict
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("imu_json,imu_python", [
-        (
-            load_data_str("test_imu.json"),
-            load_data_dict("test_imu.json"),
-        )
-    ], ids=["imu_1"])
-    def test_imu(self, imu_json: str, imu_python: dict):
+    def test_imu(self):
         """
         Test IMU
         """
-        model = IMUProcessedData.model_validate_json(imu_json)
-        imu_parsed = model.model_dump()
+        abs_path = get_data_path("test_imu.json")
+        df = pd.read_json(abs_path, orient="records")
+        model = IMUProcessedData.validate(df)
 
-        assert imu_parsed == imu_python
+        dtypes = model.dtypes
+        dtypes.pop("source")
+        dtypes.pop("timestamp")
+
+        assert model.timestamp.dtype == "datetime64[ns, UTC]"
+        assert model.source.dtype == "object"
+        assert dtypes.values.all() == "float64"
 
     @pytest.mark.unit
     @pytest.mark.parametrize("signals_json,signals_pydantic", [

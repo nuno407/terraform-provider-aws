@@ -1,9 +1,12 @@
 """Router for metadata"""
 import logging
+from base64 import b64decode
+from io import BytesIO
+import pandas as pd
 from kink import di
 from fastapi import APIRouter, Depends
 from fastapi_restful.cbv import cbv
-from base.model.artifacts.api_messages import IMUDataArtifact, VideoSignalsData, SnapshotSignalsData
+from base.model.artifacts.api_messages import VideoSignalsData, SnapshotSignalsData, IMUDataArtifact, IMUProcessedData
 from artifact_api.models import ResponseMessage
 from artifact_api.mongo.mongo_service import MongoService
 from artifact_api.voxel.service import VoxelService
@@ -55,5 +58,20 @@ class MetadataController:
         Args:
             imu_data_artifact (IMUDataArtifact): _description_
         """
-        await mongo_service.process_imu_artifact(imu_data_artifact)
+        _logger.info("Processing video IMU")
+
+        # Decode the base64 encoded parquet file
+        buffer = BytesIO(b64decode(imu_data_artifact.data))
+        del imu_data_artifact.data
+
+        _logger.debug("IMU file has been decoded successfully")
+
+        # Read the parquet file and validate the data
+        df = pd.read_parquet(buffer, engine="fastparquet")
+        df_typed = IMUProcessedData.validate(df)
+        _logger.debug("IMU been read and validated successfully")
+
+        await mongo_service.process_imu_artifact(imu_data_artifact.message.tenant_id, df_typed)
+
+        _logger.info("Video IMU has been ingested successfully")
         return ResponseMessage()

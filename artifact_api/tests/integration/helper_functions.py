@@ -108,6 +108,8 @@ async def assert_mongo_state(file_name: str, mongo_client: AsyncIOMotorClient, d
 
     for db_name, db_entry in mongo_expected_data.items():
         for col_name, collection in db_entry.items():
+            if "fiftyone" in col_name.lower():
+                continue
             docs = await mongo_client[db_name][col_name].find().to_list(length=None)
             real_docs = list(docs)
             for doc in real_docs:

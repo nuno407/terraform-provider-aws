@@ -6,6 +6,7 @@ moto[sqs,s3] ~= 4.2.7
 autopep8 == 2.0.4
 pylint == 3.0.3
 pylint-pydantic == 0.3.0
+pandas-stubs == 2.2.0.240218
 mypy == 1.8.0
 bandit == 1.7.5
 python-dotenv == 1.0.0
