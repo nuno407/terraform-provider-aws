@@ -105,9 +105,6 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
     def _get_forward_queues(self, artifact: Artifact) -> Iterator[str]:
         """ Gets the queues that the artifact should be forwarded to."""
 
-        if isinstance(artifact, IMUArtifact):
-            yield self.__mdfp_queue
-
         if isinstance(artifact, SignalsArtifact) and \
                 isinstance(artifact.referred_artifact, VideoArtifact):
             yield self.__mdfp_queue
@@ -155,7 +152,8 @@ class IngestionHandler:  # pylint: disable=too-many-instance-attributes, too-few
             self.__increase_message_visability_timeout(message)
 
         except EmptyFileError:
-            _logger.warning("Empty metadata for artifact %s. Message will be skipped", artifact.artifact_id)
+            _logger.warning(
+                "Empty metadata for artifact %s. Message will be skipped", artifact.artifact_id)
             self.__sqs_controller.delete_message(message)
         except NoIngestorForArtifactError:
             _logger.error("There is no ingestor for the current artifact")

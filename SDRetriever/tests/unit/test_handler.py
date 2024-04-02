@@ -122,7 +122,8 @@ s3_video_artifact = S3VideoArtifact(
     rcc_s3_path="s3://bucket/key",
     timestamp=datetime_in_past,
     end_timestamp=datetime_in_past,
-    recordings=[Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
+    recordings=[
+        Recording(recording_id="TrainingRecorder-abc", chunk_ids=[1, 2, 3])]
 )
 
 
@@ -218,7 +219,7 @@ imu_artifact = IMUArtifact(
 )
 
 
-@pytest.mark.unit
+@pytest.mark.skip("IMU Ingestion to mongodb is stopped")
 def test_ingestion_handler_handle_imu(ingestion_handler: IngestionHandler,
                                       imu_ing: Mock,
                                       sqs_controller: Mock):
@@ -293,7 +294,8 @@ def test_ingestion_already_ingested_signals(ingestion_handler: IngestionHandler,
     ingestion_handler.handle(signals_artifact, message)
 
     video_metadata_ing.ingest.assert_not_called()
-    video_metadata_ing.is_already_ingested.assert_called_once_with(signals_artifact)
+    video_metadata_ing.is_already_ingested.assert_called_once_with(
+        signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
@@ -338,7 +340,8 @@ def test_ingestion_already_ingested_signals_snapshot(ingestion_handler: Ingestio
     ingestion_handler.handle(snapshot_signals_artifact, message)
 
     snap_metadata_ing.ingest.assert_not_called()
-    snap_metadata_ing.is_already_ingested.assert_called_once_with(snapshot_signals_artifact)
+    snap_metadata_ing.is_already_ingested.assert_called_once_with(
+        snapshot_signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)
 
@@ -395,7 +398,8 @@ def test_ingestion_handler_handle_signals_preview(
     preview_metadata_ing.is_already_ingested = Mock(return_value=True)
 
     ingestion_handler.handle(preview_signals_artifact, message)
-    preview_metadata_ing.ingest.assert_called_once_with(preview_signals_artifact)
+    preview_metadata_ing.ingest.assert_called_once_with(
+        preview_signals_artifact)
 
     sqs_controller.send_message.assert_has_calls([
         call(preview_signals_artifact.stringify(),
@@ -415,6 +419,7 @@ def test_ingestion_already_ingested_signals_preview(ingestion_handler: Ingestion
     ingestion_handler.handle(preview_signals_artifact, message)
 
     preview_metadata_ing.ingest.assert_not_called()
-    preview_metadata_ing.is_already_ingested.assert_called_once_with(preview_signals_artifact)
+    preview_metadata_ing.is_already_ingested.assert_called_once_with(
+        preview_signals_artifact)
     sqs_controller.send_message.assert_not_called()
     sqs_controller.delete_message.assert_called_once_with(message)

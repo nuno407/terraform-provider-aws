@@ -12,10 +12,11 @@ import json
 
 
 class TestIMUIngestion:
-    @pytest.mark.integration()
+    @pytest.mark.skip("IMU Ingestion to mongodb is stopped")
     @pytest.mark.parametrize("rcc_files,input_sqs_message,expected_imu,output_sqs_message",
                              [(
-                                 get_s3_cloud_state("rcc_video_cloud_state.json"),
+                                 get_s3_cloud_state(
+                                     "rcc_video_cloud_state.json"),
                                  get_sqs_message("imu_download_message.json"),
                                  get_s3_file_content("merged_imu.csv"),
                                  get_sqs_message("imu_mdf_message.json"),
